@@ -10,8 +10,10 @@ class Photon:
         self.r = Vector(0,0,0)
         self.ez = UnitVector(0,0,1) # Propagation
         self.er = UnitVector(0,1,0) # Perpendicular to scattering plane
+        # We don't need to keep el, because it is obtainable from ez and er
+        # See below
         self.weight = 1.0
-        self.uniqueId = np.random.randint(1<<31)
+        self.uniqueId = np.random.randint(1<<31) # This is dumb but it works for now.
 
     @property
     def el(self) -> UnitVector:
@@ -19,7 +21,7 @@ class Photon:
 
     @property
     def isAlive(self) -> bool :
-        return self.weight != 0
+        return self.weight > 0
 
     def moveBy(self, d):
         self.r += self.ez * d
