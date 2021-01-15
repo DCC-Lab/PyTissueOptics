@@ -20,7 +20,7 @@ It will show you a graph of the energy deposited in the plane xz:
 
 There are many limitations, as this is mostly a teaching tool but I have used it for real calculations:
 1. There are no layer and/or interfaces : it is in a simple infinite volume (for now).
-2. It only uses Heenyey-Greenstein
+2. It only uses Henyey-Greenstein
 3. It does not compute all stats yet.
 4. Documentation is sparse at best.
 5. Did I say it was slow? It is 1000x slower than the well-known code MCML.
