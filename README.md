@@ -19,9 +19,10 @@ It will show you a graph of the energy deposited in the plane xz:
 ## Limitations
 
 There are many limitations, as this is mostly a teaching tool but I have used it for real calculations:
-1. There are no interfaces.  It is in a simple infinite volume (for now).
+1. There are no interfaces: it is in a simple infinite volume (for now).
 2. It does not compute all stats yet.
-3. Did I say it was slow?
+3. Documentation is sparse at best.
+4. Did I say it was slow?
 
 ## Advantages
 
