@@ -112,6 +112,12 @@ class Vector:
         # (40% of time spent here). It is difficult to optimize without
         # making it even less readable than it currently is
         # http://en.wikipedia.org/wiki/Rotation_matrix
+        # 
+        # Several options were tried in the past such as 
+        # external not-so-portable C library, unreadable 
+        # shortcuts, etc... and the performance gain was minimal (<20%).
+        # For now, this is the best, most readable solution.
+
         u.normalize()
 
         cost = math.cos(theta)
