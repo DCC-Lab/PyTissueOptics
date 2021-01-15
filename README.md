@@ -1,22 +1,37 @@
 # Monte Carlo in Python
 
-This is simple-object-oriented code that simulates the propagation of light in tissue. It is fairly simple and fairly slow, but it is very easy to understand and modify.
+This is an extremely simple object-oriented code in Python that simulates the propagation of light in tissue. It is not simple : it is outrageously simple and very slow. However, it is extremely easy to understand and most importantly modify.
 
-
+It may be slow, but speed is more than code performance: anyone can simulate something instantly instead of having to understand C, C++ or god forbid GPU code.  Therefore, you can modifiy everything in a day, get your result in a few hours instead of learning C (a few weeks), learn to work with compiled code (on separate machines) and modify C code written by someone else (weeks?). I think the overall speed to be concerned about is "the time it takes to get an answer", not necessarily the time it takes to run 100,000 photons.
 
 ## Getting started
 
-
+You can run the example program:
 
 ```shell
 python montecarlo.py
 ```
 
-will show you a graph of the energy deposited in the plane xz
+It will show you a graph of the energy deposited in the plane xz:
 
 <img src="README.assets/image-20201014234533031.png" alt="image-20201014234533031" style="zoom:50%;" />
 
-The code is fairly simple:
+## Limitations
+
+There are many limitations, as this is mostly a teaching tool but I have used it for real calculations:
+1. There are no interfaces.  It is in a simple infinite volume (for now).
+2. It does not compute all stats yet.
+3. Did I say it was slow?
+
+## Advantages
+
+However, there are advantages:
+
+1. It is extremely simple to understand.
+2. The code is very clear, and only a few files.
+3. It is relatively easy to modify for your own purpose.
+
+The code is in fact fairly simple:
 
 ```python
 import numpy as np
@@ -28,14 +43,14 @@ import time
 
 if __name__ == "__main__":
     N = 1000 # number of photons
-    mat = Material(mu_s=30, mu_a = 0.5, g = 0.8) # material
+    mat = Material(mu_s=30, mu_a = 0.5, g = 0.8) # material is infinite
     
     try:
-	      # continue previous calculation
+	# continue previous calculation
         mat.stats.restore("output.json") 
     except:
         # start over if file does not exist
-        mat.stats = Stats(min = (-2, -2, -2), max = (2, 2, 2), size = (41,41,41))
+        mat.stats = Stats(min = (-2, -2, -2), max = (2, 2, 2), size = (41,41,41)) # volume over which we keep stats
 
     startTime = time.time()
     for i in range(1,N+1):
