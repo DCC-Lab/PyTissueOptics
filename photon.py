@@ -4,9 +4,6 @@ from material import *
 
 class Photon:
     def __init__(self):
-        self.reset()
-
-    def reset(self):
         self.r = Vector(0,0,0)
         self.ez = UnitVector(0,0,1) # Propagation direction vector
         self.er = UnitVector(0,1,0) # Vector perpendicular to scattering plane and ez
