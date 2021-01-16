@@ -46,27 +46,30 @@ class Object:
             self.stats.show2D(plane='xz', integratedAlong='y', title="Final photons", realtime=False)
             #stats.show1D(axis='z', integratedAlong='xy', title="{0} photons".format(N), realtime=False)
 
-class Cube(Object):
-    def __init__(self, side, material, stats=None):
-        super(Cube, self).__init__(material, stats)
-        self.side = side
-        self.origin = Vector(0,0,0)
+class Box(Object):
+    def __init__(self, size, material, stats=None):
+        super(Box, self).__init__(material, stats)
+        self.size = size
 
     def contains(self, localPosition) -> bool:
-        if abs(localPosition.x) > self.side/2:
+        if abs(localPosition.x) > self.size[0]/2:
             return False
-        if abs(localPosition.y) > self.side/2:
+        if abs(localPosition.y) > self.size[1]/2:
             return False
-        if abs(localPosition.z) > self.side/2:
+        if abs(localPosition.z) > self.size[2]/2:
             return False
 
         return True
+
+class Cube(Object):
+    def __init__(self, side, material, stats=None):
+        super(Cube, self).__init__(material, stats)
+        self.size = (side,side,side)
 
 class Sphere(Object):
     def __init__(self, radius, material, stats=None):
         super(Sphere, self).__init__(material, stats)
         self.radius = radius
-        self.origin = Vector(0,0,0)
 
     def contains(self, localPosition) -> bool:
         if localPosition.abs() > self.radius:

@@ -45,10 +45,9 @@ class Photon:
         else:
             self.weight = 0
 
-class LaserSource:
-    def __init__(self, position, direction, maxCount):
+class Source:
+    def __init__(self, position, maxCount):
         self.position = position
-        self.direction = direction
         self.maxCount = maxCount
         self.iteration = 0
         self._photons = []
@@ -70,8 +69,8 @@ class LaserSource:
 
         start = time.monotonic()
         while len(self._photons) <= item:
-            self._photons.append(self.randomPhoton())
-            if time.monotonic() - start > 3:
+            self._photons.append(self.newPhoton())
+            if time.monotonic() - start > 2:
                 warnings.warn(f"Generating missing photon. This can take a few seconds.", UserWarning)
 
         return self._photons[item]
@@ -84,7 +83,29 @@ class LaserSource:
         self.iteration += 1
         return photon
 
-    def randomPhoton(self) -> Photon:
+    def newPhoton(self) -> Photon:
+        raise NotImplementedError()
+
+class IsotropicSource(Source):
+    def __init__(self, position, maxCount):
+        super(IsotropicSource, self).__init__(position, maxCount)
+
+    def newPhoton(self) -> Photon:
+        p = Photon()
+        p.r = self.position
+
+        phi = np.random.random()*2*np.pi
+        cost = 2*np.random.random()-1 
+
+        p.scatterBy(np.arccos(cost), phi)
+        return p
+
+class PencilSource(Source):
+    def __init__(self, position, direction, maxCount):
+        super(PencilSource, self).__init__(position, maxCount)
+        self.direction = direction
+
+    def newPhoton(self) -> Photon:
         p = Photon()
         p.r = self.position
         p.ez = self.direction
