@@ -16,14 +16,10 @@ class Object:
             (theta, phi) = self.material.getScatteringAngles(photon)
             photon.scatterBy(theta, phi)
             photon.moveBy(d)
-            delta = self.absorbEnergy(photon)
-    
-            if self.stats is not None:
-                self.stats.score(photon, delta)
-
+            self.absorbEnergy(photon)
             photon.roulette()
 
-    def propagateMany(self, N, showProgressEvery=100):
+    def propagateManyPhotons(self, N, showProgressEvery=100):
         for i in range(1,N+1):
             self.propagate(Photon())
             if i  % showProgressEvery == 0:
@@ -34,8 +30,15 @@ class Object:
     def contains(self, position) -> bool:
         return True
 
-    def absorbEnergy(self, photon) -> float:
+    def absorbEnergy(self, photon):
         delta = photon.weight * self.material.albedo
-        photon.decreaseWeightBy(delta)
-        return delta
+        if self.stats is not None:
+            self.stats.score(photon, delta)
+        photon.decreaseWeightBy(delta)    
+
+    def report(self):
+        if self.stats is not None:
+            self.stats.report()
+            self.stats.show2D(plane='xz', integratedAlong='y', title="Final photons", realtime=False)
+            #stats.show1D(axis='z', integratedAlong='xy', title="{0} photons".format(N), realtime=False)
 
