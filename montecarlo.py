@@ -4,10 +4,18 @@ from photon import *
 from object import *
 
 if __name__ == "__main__":
+    # We choose a material with scattering properties
     mat    = Material(mu_s=30, mu_a = 0.5, g = 0.8)
+    # We determine over what volume we want the statistics
     stats  = Stats(min = (-2, -2, -2), max = (2, 2, 2), size = (41,41,41))
+
+    # We pick a light source
     source = IsotropicSource(position=Vector(0,0,0), maxCount=10000)
-    tissue = Box(size=(1,2,3), material=mat, stats=stats)
-    #tissue = Sphere(radius=1, material=mat, stats=stats)
+
+    # Finally, we pick a geometry
+    tissue = Box(size=(2,3,1), material=mat, stats=stats)
+
+    # We propagate the photons from the source inside the geometry
     tissue.propagateMany(source, showProgressEvery=100)
+    
     tissue.report()

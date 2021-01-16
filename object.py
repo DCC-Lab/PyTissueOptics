@@ -6,7 +6,7 @@ from vector import *
 from photon import *
 
 class Object:
-    def __init__(self, material, stats=None):
+    def __init__(self, material=None, stats=None):
         self.material = material
         self.stats = stats
         self.origin = Vector(0,0,0)
@@ -65,6 +65,22 @@ class Cube(Object):
     def __init__(self, side, material, stats=None):
         super(Cube, self).__init__(material, stats)
         self.size = (side,side,side)
+
+class ZLayer(Object):
+    def __init__(self, thickness, material, stats=None):
+        super(ZLayer, self).__init__(material, stats)
+        self.size = (1e6,1e6,thickness)
+
+    def contains(self, localPosition) -> bool:
+        if abs(localPosition.z) > self.size[2]/2:
+            return False
+        # We keep those just in case
+        if abs(localPosition.x) > self.size[0]/2:
+            return False
+        if abs(localPosition.y) > self.size[1]/2:
+            return False
+
+        return True
 
 class Sphere(Object):
     def __init__(self, radius, material, stats=None):
