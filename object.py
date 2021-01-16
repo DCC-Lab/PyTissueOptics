@@ -23,11 +23,11 @@ class Object:
             photon.roulette()
 
 
-    def propagateManyPhotons(self, N, showProgressEvery=100):
-        for i in range(1,N+1):
-            self.propagate(Photon())
+    def propagateMany(self, source, showProgressEvery=100):
+        for i, photon in enumerate(source):
+            self.propagate(photon)
             if i  % showProgressEvery == 0:
-                print("Photon {0}/{1}".format(i,N) )
+                print("Photon {0}/{1}".format(i,source.maxCount) )
                 if self.stats is not None:
                     self.stats.show2D(plane='xz', integratedAlong='y', title="{0} photons".format(i)) 
 
@@ -58,6 +58,18 @@ class Cube(Object):
         if abs(localPosition.y) > self.side/2:
             return False
         if abs(localPosition.z) > self.side/2:
+            return False
+
+        return True
+
+class Sphere(Object):
+    def __init__(self, radius, material, stats=None):
+        super(Sphere, self).__init__(material, stats)
+        self.radius = radius
+        self.origin = Vector(0,0,0)
+
+    def contains(self, localPosition) -> bool:
+        if localPosition.abs() > self.radius:
             return False
 
         return True
