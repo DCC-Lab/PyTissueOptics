@@ -1,5 +1,6 @@
 import numpy as np
 import matplotlib.pyplot as plt
+import time
 import json
 
 class Stats:
@@ -13,9 +14,13 @@ class Stats:
                          (self.size[2]-1)/self.L[2])
 
         self.photons = set()
-        self.photonCount = 0
         self.energy = np.zeros(size)
         self.figure = None
+        self.startTime = time.time()
+
+    @property
+    def photonCount(self):
+        return len(self.photons)
 
     @property
     def xCoords(self):
@@ -39,10 +44,15 @@ class Stats:
 
         return coords
 
+    def report(self):
+        elapsed = time.time() - self.startTime
+        N = self.photonCount
+        print('{0:.1f} s for {2} photons, {1:.1f} ms per photon'.format(elapsed, elapsed/N*1000, N))
+
     def save(self, filepath="output.json"):
         data = {"min":self.min, "max":self.max, "L":self.L,
                 "size":self.size,"energy":self.energy.tolist(),
-                "photonCount":self.photonCount,"photons":list(self.photons)}
+                "photons":list(self.photons)}
 
         with open(filepath, "w") as write_file:
             json.dump(data, write_file,indent=4, sort_keys=True)
@@ -55,7 +65,6 @@ class Stats:
         self.max = data["max"]
         self.L = data["L"]
         self.size = data["size"]
-        self.photonCount = data["photonCount"]
         self.photons = set(data["photons"])
         self.energy = np.array(data["energy"])
 
@@ -72,7 +81,6 @@ class Stats:
         if self.size != data["size"]:
             raise ValueError("To append, data must have same size")
 
-        self.photonCount += data["photonCount"]
         self.photons.add(set(data["photons"]))
         self.energy = np.add(self.energy, np.array(data["energy"]))
 
@@ -80,27 +88,18 @@ class Stats:
         self.photons.add(photon.uniqueId)
         position = photon.r
 
-        i = int(self.binSizes[0]*(position.x-self.min[0]))
-        j = int(self.binSizes[1]*(position.y-self.min[1]))
-        k = int(self.binSizes[2]*(position.z-self.min[2]))
+        i = int(self.binSizes[0]*(position.x-self.min[0])-0.5)
+        j = int(self.binSizes[1]*(position.y-self.min[1])-0.5)
+        k = int(self.binSizes[2]*(position.z-self.min[2])-0.5)
 
-        # print(position, self.min, self.max, self.L)
-        # print(i,j,k)
+        if i < 0 or i > self.size[0]-1:
+            return
 
-        if i < 0:
-            i = 0
-        elif i > self.size[0]-1:
-            i = self.size[0]-1    
+        if j < 0 or j > self.size[1]-1:
+            return
 
-        if j < 0:
-            j = 0
-        elif j > self.size[1]-1:
-            j = self.size[1]-1    
-
-        if k < 0:
-            k = 0
-        elif k > self.size[2]-1:
-            k = self.size[2]-1    
+        if k < 0 or k > self.size[2]-1:
+            return
 
         self.energy[i,j,k] += delta
 
@@ -172,21 +171,21 @@ class Stats:
         plt.title(title)
         if cutAt is not None:
             if axis == 'z':
-                plt.plot(self.zCoords, np.log(self.energy[cutAt[0],cutAt[1],:]+0.0001),'ko--')
+                plt.plot(self.zCoords, np.log10(self.energy[cutAt[0],cutAt[1],:]+0.0001),'ko--')
             elif axis == 'y':
-                plt.plot(self.yCoords, np.log(self.energy[cutAt[0],:,cutAt[1]]+0.0001),'ko--')
+                plt.plot(self.yCoords, np.log10(self.energy[cutAt[0],:,cutAt[1]]+0.0001),'ko--')
             elif axis == 'x':
-                plt.plot(self.xCoords, np.log(self.energy[:,cutAt[0],cutAt[1]]+0.0001),'ko--')
+                plt.plot(self.xCoords, np.log10(self.energy[:,cutAt[0],cutAt[1]]+0.0001),'ko--')
         else:
             if axis == 'z':
                 sum = self.energy.sum(axis=(0,1))
-                plt.plot(self.zCoords, np.log(sum+0.0001),'ko--')
+                plt.plot(self.zCoords, np.log10(sum+0.0001),'ko--')
             elif axis == 'y':
                 sum = self.energy.sum(axis=(0,2))
-                plt.plot(self.yCoords, np.log(sum+0.0001),'ko--')
+                plt.plot(self.yCoords, np.log10(sum+0.0001),'ko--')
             elif axis == 'x':
                 sum = self.energy.sum(axis=(1,2))
-                plt.plot(self.xCoords, np.log(sum+0.0001),'ko--')
+                plt.plot(self.xCoords, np.log10(sum+0.0001),'ko--')
 
         if realtime:
             plt.show()

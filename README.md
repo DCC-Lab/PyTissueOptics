@@ -12,18 +12,23 @@ You can run the example program:
 python montecarlo.py
 ```
 
-It will show you a graph of the energy deposited in the plane xz:
+It will show you a graph of the energy deposited in the plane xz from a source at the origin:
 
-<img src="README.assets/image-20201014234533031.png" alt="image-20201014234533031" style="zoom:50%;" />
+<img src="README.assets/image-20210116103556173.png" alt="image-20210116103556173" style="zoom:50%;" />
+
+Or the logarithm (`log10`) of the intensity as a fonction of distance:
+
+<img src="README.assets/image-20210116104020740.png" alt="image-20210116104020740" style="zoom:50%;" />
 
 ## Limitations
 
 There are many limitations, as this is mostly a teaching tool but I have used it for real calculations:
 1. There are no layer and/or interfaces : it is in a simple infinite volume (for now).
-2. It only uses Henyey-Greenstein
-3. It does not compute all stats yet.
+2. It only uses Henyey-Greenstein because it is sufficient most of the time.
+3. It does not compute all possible stats (total reflectance, etc...).
 4. Documentation is sparse at best.
-5. Did I say it was slow? It is 200x slower than the well-known code [MCML](https://omlc.org/software/mc/mcml/) on the same machine.
+5. You have probably noticed that the axes on the graphs are currently not labelled. Don't tell my students.
+6. Did I say it was slow? It is approximately 200x slower than the well-known code [MCML](https://omlc.org/software/mc/mcml/) on the same machine. I know and *you* know, but see **Advantages** below.
 
 ## Advantages
 
@@ -33,10 +38,10 @@ However, there are advantages:
 2. The code is very clear, and only a few files.
 3. Can be used for teaching tissue optics.
 4. It can be used as a good example of object-oriented programming for those not familiar with it.
-5. It is relatively easy to modify for your own purpose.
-6. In addition, it is very easy to parallelize a Monte Carlo calculations, because all runs are independant, so splitting the job onto several CPUs is a good option to gain a factor of close to 10 in perfromance on many computers.  
+5. It is easy to modify for your own purpose.
+6. In addition, it is very easy to parallelize a Monte Carlo calculations, because all runs are independant, so splitting the job onto several CPUs is a good option to gain a factor of close to 10 in perfromance on many computers.
 
-The code is in fact so simple, here is a complete calculation that takes 10 seconds on my computer:
+The code is in fact so simple, here is the complete code that created the above two graphs in 10 seconds on my computer:
 
 ```python
 import numpy as np
