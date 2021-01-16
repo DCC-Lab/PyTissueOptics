@@ -23,7 +23,7 @@ class Photon:
         return self.weight > 0
 
     def moveBy(self, d):
-        self.r += self.ez * d
+        self.r.addScaled(self.ez, d)
 
     def scatterBy(self, theta, phi):
         self.er.rotateAround(self.ez, phi)

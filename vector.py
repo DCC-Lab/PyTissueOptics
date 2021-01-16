@@ -41,6 +41,11 @@ class Vector:
     def __radd__(self, vector):
         return Vector(self.x + vector.x, self.y + vector.y, self.z + vector.z)
 
+    def addScaled(self, vector, scale):
+        self.x += vector.x*scale
+        self.y += vector.y*scale
+        self.z += vector.z*scale
+
     def __sub__(self, vector):
         return Vector(self.x - vector.x, self.y - vector.y, self.z - vector.z)
 
@@ -49,13 +54,13 @@ class Vector:
 
     def __getitem__(self, index):
         if index == 0:
-        	return self.x
+            return self.x
         elif index == 1:
-        	return self.y
+            return self.y
         elif index == 2:
-        	return self.z
+            return self.z
         else:
-        	raise ValueError("Out of range index: must be 0,1 or 2")
+            raise ValueError("Out of range index: must be 0,1 or 2")
 
     def isParallelTo(self, vector):
         return (self.normalizedDotProduct(vector) - 1 < 1e-6)
