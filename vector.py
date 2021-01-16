@@ -47,6 +47,16 @@ class Vector:
     def __rsub__(self, vector):
         return Vector(-self.x + vector.x, -self.y + vector.y, -self.z + vector.z)
 
+    def __getitem__(self, index):
+        if index == 0:
+        	return self.x
+        elif index == 1:
+        	return self.y
+        elif index == 2:
+        	return self.z
+        else:
+        	raise ValueError("Out of range index: must be 0,1 or 2")
+
     def isParallelTo(self, vector):
         return (self.normalizedDotProduct(vector) - 1 < 1e-6)
 
@@ -115,7 +125,8 @@ class Vector:
         # 
         # Several options were tried in the past such as 
         # external not-so-portable C library, unreadable 
-        # shortcuts, etc... and the performance gain was minimal (<20%).
+        # shortcuts, sine and cosine lookup tables, etc... 
+        # and the performance gain was minimal (<20%).
         # For now, this is the best, most readable solution.
 
         u.normalize()
