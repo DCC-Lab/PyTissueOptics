@@ -14,6 +14,7 @@ class Stats:
                          (self.size[2]-1)/self.L[2])
 
         self.photons = set()
+        self.savedPhotonCount = 0
         self.energy = np.zeros(size)
         self.figure = None
         self.startTime = time.time()
@@ -52,7 +53,7 @@ class Stats:
     def save(self, filepath="output.json"):
         data = {"min":self.min, "max":self.max, "L":self.L,
                 "size":self.size,"energy":self.energy.tolist(),
-                "photons":list(self.photons)}
+                "photonCount":len(self.photons)}
 
         with open(filepath, "w") as write_file:
             json.dump(data, write_file,indent=4, sort_keys=True)
@@ -65,7 +66,7 @@ class Stats:
         self.max = data["max"]
         self.L = data["L"]
         self.size = data["size"]
-        self.photons = set(data["photons"])
+        self.savedPhotonCount = data["photonCount"]
         self.energy = np.array(data["energy"])
 
     def append(self, filepath="output.json"):
@@ -123,7 +124,7 @@ class Stats:
             plt.ion()
             self.figure = plt.figure()
 
-        plt.title("Energy in {0}, {1} photons".format(plane, len(self.photons)))
+        plt.title("Energy in {0}, {1} photons".format(plane, len(self.photons)+self.savedPhotonCount))
         if cutAt is not None:
             if plane == 'xy':
                 plt.imshow(np.log(self.energy[:,:,cutAt]+0.0001),cmap='hsv',extent=[self.min[0],self.max[0],self.min[1],self.max[1]],aspect='auto')
