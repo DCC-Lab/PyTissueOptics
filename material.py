@@ -7,6 +7,7 @@ class Material:
         self.mu_s = mu_s
         self.mu_a = mu_a
         self.mu_t = self.mu_a + self.mu_s
+        self.albedo = self.mu_a/self.mu_t
         self.g = g
         self.stats = Stats()
 
@@ -27,7 +28,7 @@ class Material:
         return (np.arccos(cost), phi)
 
     def absorbEnergy(self, photon):
-        delta = photon.weight * self.mu_a/self.mu_t
+        delta = photon.weight * self.albedo
         photon.decreaseWeightBy(delta)
         if self.stats is not None:
             self.stats.score(photon, delta)
