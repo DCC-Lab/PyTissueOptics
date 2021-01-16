@@ -19,6 +19,9 @@ class Photon:
     def isAlive(self) -> bool :
         return self.weight > 0
 
+    def transformToLocalCoordinates(self, origin):
+        self.r = self.r - origin
+
     def moveBy(self, d):
         self.r.addScaled(self.ez, d)
 
