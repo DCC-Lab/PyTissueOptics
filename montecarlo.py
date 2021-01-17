@@ -1,35 +1,22 @@
-import numpy as np
 from vector import *
 from material import *
 from photon import *
+from geometry import *
 
-if __name__ == "__main__":
-    N = 1000
-    mat = Material(mu_s=30, mu_a = 0.5, g = 0.8)
-    
-    try:
-        mat.stats.restore("output.json")
-    except:
-        mat.stats = Stats(min = (-2, -2, -2), max = (2, 2, 2), size = (41,41,41))
+# We choose a material with scattering properties
+mat    = Material(mu_s=30, mu_a = 0.5, g = 0.8)
 
-    for i in range(1,N+1):
-        photon = Photon()
-        while photon.isAlive:
-            d = mat.getScatteringDistance(photon)
-            (theta, phi) = mat.getScatteringAngles(photon)
-            photon.scatterBy(theta, phi)
-            photon.moveBy(d)
-            mat.absorbEnergy(photon)
-            photon.roulette()
-        if i  % 100 == 0:
-            print("Photon {0}/{1}".format(i,N) )
-            if mat.stats is not None:
-                #mat.stats.show1D(axis='z', integratedAlong='xy', title="{0} photons".format(i))
-                mat.stats.show2D(plane='xz', integratedAlong='y', title="{0} photons".format(i))
-                #mat.stats.show1D(axis='z', title="{0} photons".format(i))
+# We determine over what volume we want the statistics
+stats  = Stats(min = (-2, -2, -2), max = (2, 2, 2), size = (41,41,41))
 
-    if mat.stats is not None:
-        mat.stats.report()
-        mat.stats.save("output.json")
-        mat.stats.show2D(plane='xz', integratedAlong='y', title="{0} photons".format(N), realtime=False)
-        mat.stats.show1D(axis='z', integratedAlong='xy', title="{0} photons".format(N), realtime=False)
+# We pick a geometry
+tissue = Geometry(material=mat, stats=stats)
+
+# We pick a light source
+source = IsotropicSource(position=Vector(0,0,0), maxCount=1000)
+
+# We propagate the photons from the source inside the geometry
+tissue.propagateMany(source, showProgressEvery=100)
+
+# Report the results
+tissue.report()

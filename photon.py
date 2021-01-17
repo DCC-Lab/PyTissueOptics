@@ -1,15 +1,15 @@
 import numpy as np
 from vector import *
 from material import *
+import time
+import warnings
 
 class Photon:
     def __init__(self):
-        self.reset()
-
-    def reset(self):
         self.r = Vector(0,0,0)
         self.ez = UnitVector(0,0,1) # Propagation direction vector
         self.er = UnitVector(0,1,0) # Vector perpendicular to scattering plane and ez
+        self.wavelength = None
         # We don't need to keep el, because it is obtainable from ez and er
         self.weight = 1.0
         self.uniqueId = np.random.randint(1<<31) # This is dumb but it works for now.
@@ -21,6 +21,12 @@ class Photon:
     @property
     def isAlive(self) -> bool :
         return self.weight > 0
+
+    def transformToLocalCoordinates(self, origin):
+        self.r = self.r - origin
+
+    def transformFromLocalCoordinates(self, origin):
+        self.r = self.r + origin
 
     def moveBy(self, d):
         self.r.addScaled(self.ez, d)
@@ -42,3 +48,69 @@ class Photon:
             self.weight /= chance
         else:
             self.weight = 0
+
+class Source:
+    def __init__(self, position, maxCount):
+        self.position = position
+        self.maxCount = maxCount
+        self.iteration = 0
+        self._photons = []
+
+    def __iter__(self):
+        self.iteration = 0
+        return self
+
+    def __len__(self) -> int:
+        return self.maxCount
+
+    def __getitem__(self, item):
+        if item < 0:
+            # Convert negative index to positive (i.e. -1 == len - 1)
+            item += self.maxCount
+
+        if item < 0 or item >= self.maxCount:
+            raise IndexError(f"Index {item} out of bound, min = 0, max {self.maxCount}.")
+
+        start = time.monotonic()
+        while len(self._photons) <= item:
+            self._photons.append(self.newPhoton())
+            if time.monotonic() - start > 2:
+                warnings.warn(f"Generating missing photon. This can take a few seconds.", UserWarning)
+
+        return self._photons[item]
+
+    def __next__(self) -> Photon:
+        if self.iteration >= self.maxCount:
+            raise StopIteration
+        # This should be able to know if enough photon. If not enough, generate them
+        photon = self[self.iteration]
+        self.iteration += 1
+        return photon
+
+    def newPhoton(self) -> Photon:
+        raise NotImplementedError()
+
+class IsotropicSource(Source):
+    def __init__(self, position, maxCount):
+        super(IsotropicSource, self).__init__(position, maxCount)
+
+    def newPhoton(self) -> Photon:
+        p = Photon()
+        p.r = self.position
+
+        phi = np.random.random()*2*np.pi
+        cost = 2*np.random.random()-1 
+
+        p.scatterBy(np.arccos(cost), phi)
+        return p
+
+class PencilSource(Source):
+    def __init__(self, position, direction, maxCount):
+        super(PencilSource, self).__init__(position, maxCount)
+        self.direction = direction
+
+    def newPhoton(self) -> Photon:
+        p = Photon()
+        p.r = self.position
+        p.ez = self.direction
+        return p

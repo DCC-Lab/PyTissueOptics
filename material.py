@@ -3,15 +3,17 @@ import matplotlib.pyplot as plt
 from stats import *
 
 class Material:
-    def __init__(self, mu_s, mu_a, g):
+    def __init__(self, mu_s = 0, mu_a = 0, g = 0):
         self.mu_s = mu_s
         self.mu_a = mu_a
         self.mu_t = self.mu_a + self.mu_s
         self.albedo = self.mu_a/self.mu_t
         self.g = g
-        self.stats = Stats()
 
     def getScatteringDistance(self, photon) -> float:
+        if self.mu_t == 0:
+            return 1e3
+            
         rnd = 0
         while rnd == 0:
             rnd = np.random.random()
@@ -26,11 +28,3 @@ class Material:
             temp = (1-g*g)/(1-g+2*g*np.random.random())
             cost = (1+g*g - temp*temp)/(2*g)
         return (np.arccos(cost), phi)
-
-    def absorbEnergy(self, photon):
-        delta = photon.weight * self.albedo
-        photon.decreaseWeightBy(delta)
-        if self.stats is not None:
-            self.stats.score(photon, delta)
-
-
