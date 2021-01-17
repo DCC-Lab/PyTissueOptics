@@ -22,18 +22,16 @@ class Geometry:
             self.absorbEnergy(photon)
             photon.roulette()
 
+        photon.transformFromLocalCoordinates(self.origin)
+
     def propagateMany(self, source, showProgressEvery=100):
         for i, photon in enumerate(source):
             self.propagate(photon)
             self.showProgress(i, maxCount=source.maxCount, steps=showProgressEvery)
 
-    def showProgress(self, i, maxCount, steps):
-        if i  % steps == 0:
-            print("Photon {0}/{1}".format(i, maxCount) )
-            if self.stats is not None:
-                self.stats.show2D(plane='xz', integratedAlong='y', title="{0} photons".format(i)) 
-
     def contains(self, position) -> bool:
+        """ This object is infinite. Subclasses override with their 
+        specific geometry. """
         return True
 
     def absorbEnergy(self, photon):
@@ -41,6 +39,12 @@ class Geometry:
         if self.stats is not None:
             self.stats.score(photon, delta)
         photon.decreaseWeightBy(delta)    
+
+    def showProgress(self, i, maxCount, steps):
+        if i  % steps == 0:
+            print("Photon {0}/{1}".format(i, maxCount) )
+            if self.stats is not None:
+                self.stats.show2D(plane='xz', integratedAlong='y', title="{0} photons".format(i)) 
 
     def report(self):
         if self.stats is not None:
@@ -54,11 +58,12 @@ class Box(Geometry):
         self.size = size
 
     def contains(self, localPosition) -> bool:
-        if abs(localPosition.x) > self.size[0]/2:
+        # We check Z first because ZLayer will benefit from this
+        if abs(localPosition.z) > self.size[2]/2:
             return False
         if abs(localPosition.y) > self.size[1]/2:
             return False
-        if abs(localPosition.z) > self.size[2]/2:
+        if abs(localPosition.x) > self.size[0]/2:
             return False
 
         return True
@@ -72,17 +77,6 @@ class ZLayer(Geometry):
     def __init__(self, thickness, material, stats=None):
         super(ZLayer, self).__init__(material, stats)
         self.size = (1e6,1e6,thickness)
-
-    def contains(self, localPosition) -> bool:
-        if abs(localPosition.z) > self.size[2]/2:
-            return False
-        # We keep those just in case
-        if abs(localPosition.x) > self.size[0]/2:
-            return False
-        if abs(localPosition.y) > self.size[1]/2:
-            return False
-
-        return True
 
 class Sphere(Geometry):
     def __init__(self, radius, material, stats=None):

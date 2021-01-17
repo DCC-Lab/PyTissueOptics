@@ -54,6 +54,8 @@ However, there are advantages:
 5. It is fairly easy to modify for your own purpose.
 6. In addition, because it is very easy to parallelize a Monte Carlo calculations (all runs are independant), splitting the job onto several CPUs is a good option to gain a factor of close to 10 in perfromance on many computers.
 
+## The core of the code
+
 The code is in fact so simple, here is the complete code that created the above two graphs in 10 seconds on my computer:
 
 ```python
@@ -68,11 +70,11 @@ mat    = Material(mu_s=30, mu_a = 0.5, g = 0.8)
 # We determine over what volume we want the statistics
 stats  = Stats(min = (-2, -2, -2), max = (2, 2, 2), size = (41,41,41))
 
+# We pick a geometry
+tissue = Box(size=(2,3,1), material=mat, stats=stats)
+
 # We pick a light source
 source = IsotropicSource(position=Vector(0,0,0), maxCount=10000)
-
-# Finally, we pick a geometry
-tissue = Box(size=(2,3,1), material=mat, stats=stats)
 
 # We propagate the photons from the source inside the geometry
 tissue.propagateMany(source, showProgressEvery=100)
@@ -97,6 +99,9 @@ class Geometry:
             photon.scatterBy(theta, phi)
             self.absorbEnergy(photon)
             photon.roulette()
+            
+        photon.transformFromLocalCoordinates(self.origin)
+            
 
     def propagateMany(self, source, showProgressEvery=100):
         for i, photon in enumerate(source):
