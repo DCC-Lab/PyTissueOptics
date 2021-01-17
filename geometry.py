@@ -4,6 +4,7 @@ from stats import *
 from material import *
 from vector import *
 from photon import *
+from surface import *
 
 class Geometry:
     def __init__(self, material=None, stats=None):
@@ -14,7 +15,6 @@ class Geometry:
 
     def propagate(self, photon):
         photon.transformToLocalCoordinates(self.origin)
-
         lastPositionInside = photon.r
 
         while photon.isAlive and self.contains(photon.r):
@@ -44,7 +44,7 @@ class Geometry:
             self.propagate(photon)
             self.showProgress(i, maxCount=N , steps=showProgressEvery)
 
-        elapsed = time.time() - self.startTime
+        elapsed = time.time() - startTime
         print('{0:.1f} s for {2} photons, {1:.1f} ms per photon'.format(elapsed, elapsed/N*1000, N))
 
     def contains(self, position) -> bool:
