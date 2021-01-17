@@ -1,51 +1,97 @@
+import numpy as np
+import matplotlib.pyplot as plt
+from stats import *
+from material import *
 from vector import *
+from photon import *
 
-class Object:
-    def __init__(self, origin=Vector(0,0,0), material=Material(0,0,0)):
-        self.origin = origin # Global coordinates
+class Geometry:
+    def __init__(self, material=None, stats=None):
         self.material = material
-        self.boudingBoxMin = None # Local coordinates
-        self.boudingBoxMax = None # Local coordinates
-        self.objects = []
-        self.container = None
+        self.stats = stats
+        self.origin = Vector(0,0,0)
 
-    def placeInto(self, container, position):
-        # position in local coordinates of container
-        self.translate(container.origin + position) 
-        self.container = container
-        container.append(self)
+    def propagate(self, photon):
+        photon.transformToLocalCoordinates(self.origin)
 
-    def translateBy(self, position:Vector)
-        self.boundingBoxMin = self.boundingBoxMin - self.origin + position 
-        self.boundingBoxMax = self.boundingBoxMax - self.origin + position 
-        self.origin += position
+        while photon.isAlive and self.contains(photon.r):
+            d = self.material.getScatteringDistance(photon)
+            (theta, phi) = self.material.getScatteringAngles(photon)
+            photon.moveBy(d)
+            photon.scatterBy(theta, phi)
+            self.absorbEnergy(photon)
+            photon.roulette()
+
+    def propagateMany(self, source, showProgressEvery=100):
+        for i, photon in enumerate(source):
+            self.propagate(photon)
+            self.showProgress(i, maxCount=source.maxCount, steps=showProgressEvery)
+
+    def showProgress(self, i, maxCount, steps):
+        if i  % steps == 0:
+            print("Photon {0}/{1}".format(i, maxCount) )
+            if self.stats is not None:
+                self.stats.show2D(plane='xz', integratedAlong='y', title="{0} photons".format(i)) 
 
     def contains(self, position) -> bool:
-        if position.x < self.boundingBoxMin.x or position.x > self.boundingBoxMax.x:
+        return True
+
+    def absorbEnergy(self, photon):
+        delta = photon.weight * self.material.albedo
+        if self.stats is not None:
+            self.stats.score(photon, delta)
+        photon.decreaseWeightBy(delta)    
+
+    def report(self):
+        if self.stats is not None:
+            self.stats.report()
+            self.stats.show2D(plane='xz', integratedAlong='y', title="Final photons", realtime=False)
+            #stats.show1D(axis='z', integratedAlong='xy', title="{0} photons".format(N), realtime=False)
+
+class Box(Geometry):
+    def __init__(self, size, material, stats=None):
+        super(Box, self).__init__(material, stats)
+        self.size = size
+
+    def contains(self, localPosition) -> bool:
+        if abs(localPosition.x) > self.size[0]/2:
             return False
-        elif position.y < self.boundingBoxMin.y or position.y > self.boundingBoxMax.y:
+        if abs(localPosition.y) > self.size[1]/2:
             return False
-        elif position.z < self.boundingBoxMin.z or position.z > self.boundingBoxMax.z:
+        if abs(localPosition.z) > self.size[2]/2:
             return False
 
         return True
 
-class Cube(Object):
-    def __init__(self, side, origin=Vector(0,0,0), material=Material(0,0,0)):
-        self.side = side
-        Object.__init__(origin, material)
-        self.boundingBoxMin = origin - Vector(side/2,side/2,side/2)
-        self.boundingBoxMax = origin + Vector(side/2,side/2,side/2)
+class Cube(Geometry):
+    def __init__(self, side, material, stats=None):
+        super(Cube, self).__init__(material, stats)
+        self.size = (side,side,side)
 
-class InfiniteLayer(Object):
-    def __init__(self, thickness, origin=Vector(0,0,0), material=Material(0,0,0)):
-        self.thickness = thickness
-        Object.__init__(origin, material)
-        self.boundingBoxMin = origin + Vector(-1000,-1000,thickness)
-        self.boundingBoxMax = origin + Vector(+1000,+1000,thickness)
+class ZLayer(Geometry):
+    def __init__(self, thickness, material, stats=None):
+        super(ZLayer, self).__init__(material, stats)
+        self.size = (1e6,1e6,thickness)
 
-    def contains(self, position) -> bool:
-        if position.z < self.boundingBoxMin.z or position.z > self.boundingBoxMax.z:
+    def contains(self, localPosition) -> bool:
+        if abs(localPosition.z) > self.size[2]/2:
+            return False
+        # We keep those just in case
+        if abs(localPosition.x) > self.size[0]/2:
+            return False
+        if abs(localPosition.y) > self.size[1]/2:
             return False
 
         return True
+
+class Sphere(Geometry):
+    def __init__(self, radius, material, stats=None):
+        super(Sphere, self).__init__(material, stats)
+        self.radius = radius
+
+    def contains(self, localPosition) -> bool:
+        if localPosition.abs() > self.radius:
+            return False
+
+        return True
+

@@ -22,14 +22,23 @@ Then it will display the logarithm (`log10`) of the intensity as a fonction of d
 
 Then, the idea would be to modify the code for your geometry (layers, boxes, cubes, spheres, etc...) and compute what you want.
 
+## What it can do
 
+There are 6 main concepts (or `Class` in object-oriented language) in this code:
+
+1. `Photon`: The photon is the main actor:  it has a position, it propagates in a given direction.  Its direction is changed when it scatters. It does not know anything about geometry or physical properties of tissue.
+2. `Source`: A group of photons, such as `IsotropicSource`, `PencilSource` with specific properties. You provide the characteristics you want and it will give you a list of photons that responds to these criteria.  This list of photons will give you the answer you want after it has propagated in the `Object` of interest.
+3. `Material`: The scattering properties and the methods to calculate the scattering angles are the responsibility of the `Material` class.
+4. `Geometry`: A real-world geometry (`Box`, `Cube`, `Sphere`, `ZLayer`, etc...). The geometry has two important variables: a `Material` (which will dictate its scattering properties) and a `Stats` object to keep track of physical values of interest.  The material will provide the required functions to compute the scattering angles, and the photon will use these angles to compute its next position.  The `Stats` object will compute the relevant statistics.
+5. `Stats`: An object to keep track of something you want. For now, it only keeps track of volumetric quantities (i.e. the energy deposited in the tissue).
+6. Finally, a very useful `Vector` and `UnitVector` helper classes are used to simplify any 3D computation with vectors because they can be used like other values (they can be added, subtracted, normalized, etc...).
 
 ## Limitations
 
-There are many limitations, as this is mostly a teaching tool but I have used it for real calculations:
+There are many limitations, as this is mostly a teaching tool, but I use it for real calculations in my research:
 1. There are 3D objects, but reflections at the interface at not considered yet: the index of refraction for everything is `n=1`.
 2. It only uses Henyey-Greenstein because it is sufficient most of the time.
-3. It does not compute all possible stats (total reflectance, etc...), only the depositted energy in the volume.
+3. It does not compute all possible stats (total reflectance, etc...), only the deposited energy in the volume.
 4. Documentation is sparse at best.
 5. You have probably noticed that the axes on the graphs are currently not labelled. Don't tell my students.
 6. Did I say it was slow? It is approximately 200x slower than the well-known code [MCML](https://omlc.org/software/mc/mcml/) on the same machine. I know, and now I know that *you* know, but see **Advantages** below.
@@ -48,46 +57,53 @@ However, there are advantages:
 The code is in fact so simple, here is the complete code that created the above two graphs in 10 seconds on my computer:
 
 ```python
-import numpy as np
 from vector import *
 from material import *
 from photon import *
+from geometry import *
 
-import time
+# We choose a material with scattering properties
+mat    = Material(mu_s=30, mu_a = 0.5, g = 0.8)
 
-if __name__ == "__main__":
-    N = 1000 # number of photons
-    mat = Material(mu_s=30, mu_a = 0.5, g = 0.8) # material is infinite
-    
-    try:
-	# continue previous calculation
-        mat.stats.restore("output.json") 
-    except:
-        # start over if file does not exist
-        mat.stats = Stats(min = (-2, -2, -2), max = (2, 2, 2), size = (41,41,41)) # volume over which we keep stats
+# We determine over what volume we want the statistics
+stats  = Stats(min = (-2, -2, -2), max = (2, 2, 2), size = (41,41,41))
 
-    startTime = time.time()
-    for i in range(1,N+1):
-        photon = Photon()
-        while photon.isAlive:
-            d = mat.getScatteringDistance(photon)
-            (theta, phi) = mat.getScatteringAngles(photon)
-            photon.scatterBy(theta, phi)
+# We pick a light source
+source = IsotropicSource(position=Vector(0,0,0), maxCount=10000)
+
+# Finally, we pick a geometry
+tissue = Box(size=(2,3,1), material=mat, stats=stats)
+
+# We propagate the photons from the source inside the geometry
+tissue.propagateMany(source, showProgressEvery=100)
+
+# Report the results
+tissue.report()
+```
+
+The main function where the physics is *hidden* is `Geometry.propagate()` and ``Geometry.propagateMany()`:
+
+```python
+class Geometry:
+  [...]
+  
+   def propagate(self, photon):
+        photon.transformToLocalCoordinates(self.origin)
+
+        while photon.isAlive and self.contains(photon.r):
+            d = self.material.getScatteringDistance(photon)
+            theta, phi = self.material.getScatteringAngles(photon)
             photon.moveBy(d)
-            mat.absorbEnergy(photon)
+            photon.scatterBy(theta, phi)
+            self.absorbEnergy(photon)
             photon.roulette()
-        if i  % 100 == 0:
-            print("Photon {0}/{1}".format(i,N) )
-            if mat.stats is not None:
-                mat.stats.show2D(plane='xz', integratedAlong='y', title="{0} photons".format(i))
 
-    elapsed = time.time() - startTime
-    print('{0:.1f} s for {2} photons, {1:.1f} ms per photon'.format(elapsed, elapsed/N*1000, N))
-
-    if mat.stats is not None:
-        mat.stats.save("output.json")
-        mat.stats.show2D(plane='xz', integratedAlong='y', title="{0} photons".format(N), realtime=False)
-        mat.stats.show1D(axis='z', integratedAlong='xy', title="{0} photons".format(N), realtime=False)
+    def propagateMany(self, source, showProgressEvery=100):
+        for i, photon in enumerate(source):
+            self.propagate(photon)
+            self.showProgress(i, maxCount=source.maxCount, steps=showProgressEvery)
 
 ```
+
+
 
