@@ -10,6 +10,7 @@ class Geometry:
         self.material = material
         self.stats = stats
         self.origin = Vector(0,0,0)
+        self.surfaces = []
 
     def propagate(self, photon):
         photon.transformToLocalCoordinates(self.origin)

@@ -194,4 +194,3 @@ class Stats:
         else:
             plt.ioff()
             plt.show()
-

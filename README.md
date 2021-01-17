@@ -4,6 +4,8 @@ This is an extremely simple object-oriented code in Python that simulates the pr
 
 It may be slow, but speed is more than code performance: anyone with little to no experience can simulate something instantly instead of having to understand C, C++ or, god forbid, GPU code.  Therefore, you can quickly modifiy everything in an afternoon and get your results in a few hours, instead of learning C (a few weeks?), learn to work with compiled code (a few days? libraries anyone?) and finally modify the C code written by someone else (days? weeks?). I think the overall speed to be concerned about is "the time it takes to get an answer", not necessarily "the time it takes to run 100,000 photons". Considering many calculations with high performance code (in C for instance) take a few minutes, it is fairly reasonable to imagine you could start a calculation in Python, run it overnight and get an answer the next day after a few hours of calculations. I think there is a need for such a solution, and you will find it here.
 
+Therefore, the whole point is the following: this code is perfect for quickly prototyping a small calculation, and then determine if you need performance or not. For many things, you actually don't.
+
 ## Getting started
 
 Download the code (it is not a Python module yet).  Go to the main directory where you can run the example program:
