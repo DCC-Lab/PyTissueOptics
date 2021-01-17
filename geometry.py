@@ -19,9 +19,10 @@ class Geometry:
         while photon.isAlive and self.contains(photon.r):
             # Pick to scattering point
             d = self.material.getScatteringDistance(photon)
-            scatteringPoint = photon.r + photon.ez * d
+            
+            isNotIntersecting, surface, d = self.intersection(photon.r, photon.ez, d)
 
-            if self.contains(scatteringPoint):
+            if isNotIntersecting:
                 # If the scatteringPoint is still inside, we simply move
                 photon.moveBy(d)
  
@@ -32,18 +33,19 @@ class Geometry:
                 # Scatter within volume
                 theta, phi = self.material.getScatteringAngles(photon)
                 photon.scatterBy(theta, phi)
+
+                # And go again    
+                photon.roulette()
             else:
                 # If the scatteringPoint is outside, we move to the surface
-                (d, surface) = self.intersects(photon.r, d)
                 photon.moveBy(d)
 
-                # then we neglect reflections (for now), score, and leave
+                # then we neglect reflections (for now), score
                 self.scoreLeaving(photon, surface)
+
+                # and leave
                 break
             
-            # And go again    
-            photon.roulette()
-
         photon.transformFromLocalCoordinates(self.origin)
 
     def propagateMany(self, source, showProgressEvery=100):
@@ -57,8 +59,8 @@ class Geometry:
         elapsed = time.time() - startTime
         print('{0:.1f} s for {2} photons, {1:.1f} ms per photon'.format(elapsed, elapsed/N*1000, N))
 
-    def intersects(self, position, distance) -> (float, Surface):
-        return distance, None
+    def intersection(self, origin, direction, distance) -> (bool, Surface, float):
+        return True, None, distance
 
     def contains(self, position) -> bool:
         """ This object is infinite. Subclasses override with their 
@@ -134,4 +136,11 @@ class Sphere(Geometry):
             return False
 
         return True
+
+class KleinBottle(Geometry):
+    def __init__(self, material, stats=None):
+        super(KleinBottle, self).__init__(material, stats)
+
+    def contains(self, localPosition) -> bool:
+        raise NotImplementedError()
 

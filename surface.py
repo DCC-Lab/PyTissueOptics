@@ -1,8 +1,9 @@
 from vector import *
 
 class Surface:
-    def __init__(self, origin, bins = (11,11)):
+    def __init__(self, origin, normal, bins = (11,11)):
         self.origin = origin
+        self.normal = normal
         self.bins = bins
         self.intensity = np.zeros(bins)
 
@@ -21,7 +22,7 @@ class Surface:
 
 class FlatSurface(Surface):
     def __init__(self, origin, u, v, bins = (11,11)):
-        super(FlatSurface, self).__init__(origin, bins)
+        super(FlatSurface, self).__init__(origin, u.cross(v), bins)
         self.u = u
         self.v = v
 
@@ -33,6 +34,6 @@ class FlatSurface(Surface):
 
 class SphericalSurface(Surface):
     def __init__(self, origin, radius, bins = (37,11)):
-        super(SphericalSurface, self).__init__(origin, bins)
+        super(SphericalSurface, self).__init__(origin, None, bins)
         self.radius = radius
 
