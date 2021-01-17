@@ -15,25 +15,35 @@ class Geometry:
 
     def propagate(self, photon):
         photon.transformToLocalCoordinates(self.origin)
-        lastPositionInside = photon.r
 
         while photon.isAlive and self.contains(photon.r):
-            lastPositionInside = photon.r
-            # Move to interaction point
+            # Pick to scattering point
             d = self.material.getScatteringDistance(photon)
-            photon.moveBy(d)
+            scatteringPoint = photon.r + photon.ez * d
 
-            # Interact with volume
-            delta = self.absorbEnergy(photon)
-            self.scoreStepping(photon, delta)
+            if self.contains(scatteringPoint):
+                # If the scatteringPoint is still inside, we simply move
+                photon.moveBy(d)
+ 
+                # Interact with volume
+                delta = self.absorbEnergy(photon)
+                self.scoreStepping(photon, delta)
 
-            # Scatter within volume
-            theta, phi = self.material.getScatteringAngles(photon)
-            photon.scatterBy(theta, phi)
+                # Scatter within volume
+                theta, phi = self.material.getScatteringAngles(photon)
+                photon.scatterBy(theta, phi)
+            else:
+                # If the scatteringPoint is outside, we move to the surface
+                (d, surface) = self.intersects(photon.r, d)
+                photon.moveBy(d)
+
+                # then we neglect reflections (for now), score, and leave
+                self.scoreLeaving(photon, surface)
+                break
             
+            # And go again    
             photon.roulette()
 
-        self.scoreLeaving(photon, lastPositionInside)
         photon.transformFromLocalCoordinates(self.origin)
 
     def propagateMany(self, source, showProgressEvery=100):
@@ -46,6 +56,9 @@ class Geometry:
 
         elapsed = time.time() - startTime
         print('{0:.1f} s for {2} photons, {1:.1f} ms per photon'.format(elapsed, elapsed/N*1000, N))
+
+    def intersects(self, position, distance) -> (float, Surface):
+        return distance, None
 
     def contains(self, position) -> bool:
         """ This object is infinite. Subclasses override with their 
@@ -61,8 +74,9 @@ class Geometry:
         if self.stats is not None:
             self.stats.score(photon, delta)
 
-    def scoreLeaving(self, photon, lastPositionInside):
-        return
+    def scoreLeaving(self, photon, surface):
+        if surface is not None:
+            surface.score(photon)
 
     def showProgress(self, i, maxCount, steps):
         if i  % steps == 0:

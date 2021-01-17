@@ -12,7 +12,11 @@ class Surface:
     def locateIntersection(self, a, b) -> (float,float):
         raise NotImplementedError()
 
-    def score(self, photon, u, v):
+    def score(self, photon):
+        u,v = self.locateProjection(photon.r)
+        self.scoreAt(photon, u, v)
+
+    def scoreAt(self, photon, u, v):
         self.intensity[u,v] += photon.weight
 
 class FlatSurface(Surface):
