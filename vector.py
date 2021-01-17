@@ -22,6 +22,9 @@ class Vector:
     @property
     def isUnitary(self) -> bool:
         return abs(self.norm()-1)<1e-7
+
+    def __repr__(self):
+        return "({0:.4f},{1:.4f},{2:.4f})".format(self.x, self.y, self.z)
     
     def __str__(self):
         return "({0:.4f},{1:.4f},{2:.4f})".format(self.x, self.y, self.z)
