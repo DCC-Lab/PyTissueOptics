@@ -149,7 +149,7 @@ Note that this function is part of the `Geometry` object and does not make any a
            def newPhoton(self) -> Photon:
                p = Photon()
                # Do your thing here with self.myProperty and modify p
-      				 return p
+               return p
             
       ```
 
@@ -166,11 +166,13 @@ Note that this function is part of the `Geometry` object and does not make any a
            def getScatteringAngles(self, photon) -> (float, float):
                # Do your thing here with self.myProperty and compute theta, phi
                # Use Photon if needed (position, direction, wavelength, etc..)
-      				 return (theta, phi)
+               return (theta, phi)
             
       ```
 
-3. Maybe you want to compute some funky stats? At each step, `scoreStepping` is called with the photon and the drop in energy a that step.  When leaving the geometry, `scoreLeaving` is called with the photon and the last position inside.
+3. If `photon.keepPathHistory()` is called, it will keep track all positions during its lifetime. You can then compute whatever you want by rewriting that part of the code or with a hook function I will write at some point.
 
-4. Maybe your have a special geometry? Subclass `Geometry` and override the `contains` method to compute whether or not a given position is inside your object or not.
+4. Maybe you want to compute some funky stats? At each step, `scoreStepping` is called with the photon and the drop in energy a that step.  When leaving the geometry, `scoreLeaving` is called with the photon and the last position inside.
+
+5. Maybe your have a special geometry? Subclass `Geometry` and override the `contains` method to compute whether or not a given position is inside your object or not.
 
