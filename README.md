@@ -112,3 +112,43 @@ class Geometry:
 
 
 
+## How to go about modifying for your own purpose
+
+1. Maybe you have a special light source?
+
+   1. Subclass `Source` with your own light source and compute the photon properties in `newPhoton` according to your own rules. Use your source instead of `IsotropicSource` in the example above:
+
+      ```python
+      class MySource(Source):
+           def __init__(self, myProperty, position, maxCount):
+               super(MySource, self).__init__(position, maxCount)
+               self.myProperty = myProperty
+               
+           def newPhoton(self) -> Photon:
+               p = Photon()
+               # Do your thing here with self.myProperty and modify p
+      				 return p
+            
+      ```
+
+2. Maybe you have a special material scattering  model?
+
+   1. Subclass `Material` and override the methods for `getScatteringAngles()`.  Use your material in your geometry instead of `Material` in the example above.
+
+      ```python
+      class FunkyMaterial(Material):
+           def __init__(self, myProperty, mu_s = 0, mu_a = 0, g = 0):
+               super(MySource, self).__init__(mu_s, mu_a, g)
+               self.myProperty = myProperty
+               
+           def getScatteringAngles(self, photon) -> (float, float):
+               # Do your thing here with self.myProperty and compute theta, phi
+               # Use Photon if needed (position, direction, etc..)
+      				 return (theta, phi)
+            
+      ```
+
+3. Maybe your have a special geometry? Subclass `Geometry` and override the `contains` method to compute whether or not a given position is inside your object or not.
+
+4. Maybe you want to compute some funky stats? This is more complicated.
+
