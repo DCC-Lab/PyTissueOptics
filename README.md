@@ -29,7 +29,7 @@ There are 6 main concepts (or `Class` in object-oriented language) in this code:
 1. `Photon`: The photon is the main actor:  it has a position, it propagates in a given direction.  Its direction is changed when it scatters. It does not know anything about geometry or physical properties of tissue.
 2. `Source`: A group of photons, such as `IsotropicSource`, `PencilSource` with specific properties. You provide the characteristics you want and it will give you a list of photons that responds to these criteria.  This list of photons will give you the answer you want after it has propagated in the `Object` of interest.
 3. `Material`: The scattering properties and the methods to calculate the scattering angles are the responsibility of the `Material` class.
-4. `Geometry`: A real-world geometry (`Box`, `Cube`, `Sphere`, `ZLayer`, etc...). The geometry has two important variables: a `Material` (which will dictate its scattering properties) and a `Stats` object to keep track of physical values of interest.  The material will provide the required functions to compute the scattering angles, and the photon will use these angles to compute its next position.  The `Stats` object will compute the relevant statistics.
+4. `Geometry`: A real-world geometry (`Box`, `Cube`, `Sphere`, `Layer`, etc...). The geometry has two important variables: a `Material` (which will dictate its scattering properties) and a `Stats` object to keep track of physical values of interest.  The material will provide the required functions to compute the scattering angles, and the photon will use these angles to compute its next position.  The `Stats` object will compute the relevant statistics.
 5. `Stats`: An object to keep track of something you want. For now, it only keeps track of volumetric quantities (i.e. the energy deposited in the tissue).
 6. Finally, a very useful `Vector` and `UnitVector` helper classes are used to simplify any 3D computation with vectors because they can be used like other values (they can be added, subtracted, normalized, etc...).
 
@@ -83,7 +83,7 @@ tissue.propagateMany(source, showProgressEvery=100)
 tissue.report()
 ```
 
-The main function where the physics is *hidden* is `Geometry.propagate()` and ``Geometry.propagateMany()`:
+The main function where the physics is *hidden* is `Geometry.propagate()`. `Geometry.propagateMany()` is a helper to call the function several times, and could possibly be parallelized:
 
 ```python
 class Geometry:
@@ -95,12 +95,18 @@ class Geometry:
 
         while photon.isAlive and self.contains(photon.r):
             lastPositionInside = photon.r
+            # Move to interaction point
             d = self.material.getScatteringDistance(photon)
-            theta, phi = self.material.getScatteringAngles(photon)
             photon.moveBy(d)
-            photon.scatterBy(theta, phi)
+
+            # Interact with volume
             delta = self.absorbEnergy(photon)
             self.scoreStepping(photon, delta)
+
+            # Scatter within volume
+            theta, phi = self.material.getScatteringAngles(photon)
+            photon.scatterBy(theta, phi)
+            
             photon.roulette()
 
         self.scoreLeaving(photon, lastPositionInside)
@@ -119,7 +125,7 @@ class Geometry:
 
 ```
 
-
+Note that this function is part of the `Geometry` object and does not make any assumption on the details of the geometry, and relies on whatever material was provided to get the scattering angles. 
 
 ## How to go about modifying for your own purpose
 
@@ -142,7 +148,7 @@ class Geometry:
 
 2. Maybe you have a special material scattering  model?
 
-   1. Subclass `Material` and override the methods for `getScatteringAngles()`.  Use your material in your geometry instead of `Material` in the example above.
+   1. Subclass `Material` and override the methods for `getScatteringAngles()`.  Use your material in your geometry instead of `Material` in the example above. You could use the photon direction, polarization, position, or even its wavelength to compute its scattering angles:
 
       ```python
       class FunkyMaterial(Material):
@@ -152,12 +158,12 @@ class Geometry:
                
            def getScatteringAngles(self, photon) -> (float, float):
                # Do your thing here with self.myProperty and compute theta, phi
-               # Use Photon if needed (position, direction, etc..)
+               # Use Photon if needed (position, direction, wavelength, etc..)
       				 return (theta, phi)
             
       ```
 
-3. Maybe your have a special geometry? Subclass `Geometry` and override the `contains` method to compute whether or not a given position is inside your object or not.
+3. Maybe you want to compute some funky stats? At each step, `scoreStepping` is called with the photon and the drop in energy a that step.  When leaving the geometry, `scoreLeaving` is called with the photon and the last position inside.
 
-4. Maybe you want to compute some funky stats? Each step, `scoreStepping` is called with the photon and the drop in energy a that step.  When leaving the geometry, `scoreLeaving` is called with the photon and the last position inside.
+4. Maybe your have a special geometry? Subclass `Geometry` and override the `contains` method to compute whether or not a given position is inside your object or not.
 

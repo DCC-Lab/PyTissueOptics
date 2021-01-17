@@ -18,12 +18,18 @@ class Geometry:
 
         while photon.isAlive and self.contains(photon.r):
             lastPositionInside = photon.r
+            # Move to interaction point
             d = self.material.getScatteringDistance(photon)
-            theta, phi = self.material.getScatteringAngles(photon)
             photon.moveBy(d)
-            photon.scatterBy(theta, phi)
+
+            # Interact with volume
             delta = self.absorbEnergy(photon)
             self.scoreStepping(photon, delta)
+
+            # Scatter within volume
+            theta, phi = self.material.getScatteringAngles(photon)
+            photon.scatterBy(theta, phi)
+            
             photon.roulette()
 
         self.scoreLeaving(photon, lastPositionInside)
@@ -89,9 +95,9 @@ class Cube(Geometry):
         super(Cube, self).__init__(material, stats)
         self.size = (side,side,side)
 
-class ZLayer(Geometry):
+class Layer(Geometry):
     def __init__(self, thickness, material, stats=None):
-        super(ZLayer, self).__init__(material, stats)
+        super(Layer, self).__init__(material, stats)
         self.size = (1e6,1e6,thickness)
 
 class Sphere(Geometry):
