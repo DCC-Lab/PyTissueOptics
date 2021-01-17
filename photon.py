@@ -3,6 +3,7 @@ from vector import *
 from material import *
 import time
 import warnings
+import copy
 
 class Photon:
     def __init__(self):
@@ -13,6 +14,7 @@ class Photon:
         # We don't need to keep el, because it is obtainable from ez and er
         self.weight = 1.0
         self.uniqueId = np.random.randint(1<<31) # This is dumb but it works for now.
+        self.path = None
 
     @property
     def el(self) -> UnitVector:
@@ -22,6 +24,9 @@ class Photon:
     def isAlive(self) -> bool :
         return self.weight > 0
 
+    def keepPathStatistics(self):
+        self.path = [Vector(self.r)] # Will continue every move
+
     def transformToLocalCoordinates(self, origin):
         self.r = self.r - origin
 
@@ -30,6 +35,9 @@ class Photon:
 
     def moveBy(self, d):
         self.r.addScaled(self.ez, d)
+        
+        if self.path is not None:
+            self.path.append(Vector(self.r)) # We must make a copy
 
     def scatterBy(self, theta, phi):
         self.er.rotateAround(self.ez, phi)
