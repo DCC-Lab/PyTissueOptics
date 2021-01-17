@@ -81,7 +81,6 @@ class Box(Geometry):
         self.size = size
 
     def contains(self, localPosition) -> bool:
-        # We check Z first because ZLayer will benefit from this
         if abs(localPosition.z) > self.size[2]/2:
             return False
         if abs(localPosition.y) > self.size[1]/2:
@@ -100,6 +99,16 @@ class Layer(Geometry):
     def __init__(self, thickness, material, stats=None):
         super(Layer, self).__init__(material, stats)
         self.size = (1e6,1e6,thickness)
+
+    def contains(self, localPosition) -> bool:
+        if localPosition.z > self.size[2] or localPosition.z < 0:
+            return False
+        if abs(localPosition.y) > self.size[1]/2:
+            return False
+        if abs(localPosition.x) > self.size[0]/2:
+            return False
+
+        return True
 
 class Sphere(Geometry):
     def __init__(self, radius, material, stats=None):
