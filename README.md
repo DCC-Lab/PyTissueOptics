@@ -93,26 +93,31 @@ class Geometry:
   
     def propagate(self, photon):
         photon.transformToLocalCoordinates(self.origin)
-        lastPositionInside = photon.r
 
         while photon.isAlive and self.contains(photon.r):
-            lastPositionInside = photon.r
-            # Move to interaction point
+            # Pick to scattering point
             d = self.material.getScatteringDistance(photon)
-            photon.moveBy(d)
-
-            # Interact with volume
-            delta = self.absorbEnergy(photon)
-            self.scoreStepping(photon, delta)
-
-            # Scatter within volume
-            theta, phi = self.material.getScatteringAngles(photon)
-            photon.scatterBy(theta, phi)
+            isNotIntersecting, surface, d = self.intersection(photon.r, photon.ez, d)
+            if isNotIntersecting:
+                # If the scatteringPoint is still inside, we simply move
+                photon.moveBy(d) 
+                # Interact with volume
+                delta = self.absorbEnergy(photon)
+                self.scoreStepping(photon, delta)
+                # Scatter within volume
+                theta, phi = self.material.getScatteringAngles(photon)
+                photon.scatterBy(theta, phi)
+                # And go again    
+                photon.roulette()
+            else:
+                # If the scatteringPoint is outside, we move to the surface
+                photon.moveBy(d)
+                # then we neglect reflections (for now), score
+                self.scoreLeaving(photon, surface)
+                # and leave
+                break
             
-            photon.roulette()
-
-        self.scoreLeaving(photon, lastPositionInside)
-        photon.transformFromLocalCoordinates(self.origin)            
+        photon.transformFromLocalCoordinates(self.origin)
 
     def propagateMany(self, source, showProgressEvery=100):
         startTime = time.time()

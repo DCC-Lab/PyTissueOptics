@@ -7,29 +7,26 @@ class Surface:
         self.bins = bins
         self.intensity = np.zeros(bins)
 
-    def locateProjection(self, point) -> (float,float):
+    def uvCoordinates(self, point) -> (float,float):
         raise NotImplementedError()
 
-    def locateIntersection(self, a, b) -> (float,float):
+    def uvIndexes(self, point) -> (int, int):
         raise NotImplementedError()
 
     def score(self, photon):
-        u,v = self.locateProjection(photon.r)
-        self.scoreAt(photon, u, v)
+        i,j = self.uvIndexes(photon.r)
+        self.scoreAt(photon, i, j)
 
-    def scoreAt(self, photon, u, v):
-        self.intensity[u,v] += photon.weight
+    def scoreAt(self, photon, i, j):
+        self.intensity[i,j] += photon.weight
 
 class FlatSurface(Surface):
-    def __init__(self, origin, u, v, bins = (11,11)):
+    def __init__(self, origin, a, b, bins = (11,11)):
         super(FlatSurface, self).__init__(origin, u.cross(v), bins)
-        self.u = u
-        self.v = v
+        self.a = a
+        self.b = b
 
     def locateProjection(self, point) -> (float,float):
-        raise NotImplementedError()
-
-    def locateIntersection(self, a, b) -> (float,float):
         raise NotImplementedError()
 
 class SphericalSurface(Surface):

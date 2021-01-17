@@ -19,7 +19,6 @@ class Geometry:
         while photon.isAlive and self.contains(photon.r):
             # Pick to scattering point
             d = self.material.getScatteringDistance(photon)
-            
             isNotIntersecting, surface, d = self.intersection(photon.r, photon.ez, d)
 
             if isNotIntersecting:
@@ -45,7 +44,6 @@ class Geometry:
 
                 # and leave
                 break
-            
         photon.transformFromLocalCoordinates(self.origin)
 
     def propagateMany(self, source, showProgressEvery=100):
