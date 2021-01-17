@@ -89,24 +89,33 @@ The main function where the physics is *hidden* is `Geometry.propagate()` and ``
 class Geometry:
   [...]
   
-   def propagate(self, photon):
+    def propagate(self, photon):
         photon.transformToLocalCoordinates(self.origin)
+        lastPositionInside = photon.r
 
         while photon.isAlive and self.contains(photon.r):
+            lastPositionInside = photon.r
             d = self.material.getScatteringDistance(photon)
             theta, phi = self.material.getScatteringAngles(photon)
             photon.moveBy(d)
             photon.scatterBy(theta, phi)
-            self.absorbEnergy(photon)
+            delta = self.absorbEnergy(photon)
+            self.scoreStepping(photon, delta)
             photon.roulette()
-            
-        photon.transformFromLocalCoordinates(self.origin)
-            
+
+        self.scoreLeaving(photon, lastPositionInside)
+        photon.transformFromLocalCoordinates(self.origin)            
 
     def propagateMany(self, source, showProgressEvery=100):
+        startTime = time.time()
+        N = source.maxCount
+
         for i, photon in enumerate(source):
             self.propagate(photon)
-            self.showProgress(i, maxCount=source.maxCount, steps=showProgressEvery)
+            self.showProgress(i, maxCount=N , steps=showProgressEvery)
+
+        elapsed = time.time() - self.startTime
+        print('{0:.1f} s for {2} photons, {1:.1f} ms per photon'.format(elapsed, elapsed/N*1000, N))
 
 ```
 
@@ -150,5 +159,5 @@ class Geometry:
 
 3. Maybe your have a special geometry? Subclass `Geometry` and override the `contains` method to compute whether or not a given position is inside your object or not.
 
-4. Maybe you want to compute some funky stats? This is more complicated.
+4. Maybe you want to compute some funky stats? Each step, `scoreStepping` is called with the photon and the drop in energy a that step.  When leaving the geometry, `scoreLeaving` is called with the photon and the last position inside.
 

@@ -17,7 +17,6 @@ class Stats:
         self.savedPhotonCount = 0
         self.energy = np.zeros(size)
         self.figure = None
-        self.startTime = time.time()
 
     @property
     def photonCount(self):
