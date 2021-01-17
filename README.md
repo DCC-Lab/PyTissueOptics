@@ -1,45 +1,49 @@
-# Monte Carlo in Python
+# Light propagation with Monte Carlo in Python
 
-This is an extremely simple object-oriented code in Python that simulates the propagation of light in tissue. It is not just *simple*: it is **outrageously simple** and **very slow** (see below). However, it is **extremely easy to understand** and most importantly **very simple modify**.
+This is an extremely simple object-oriented code in Python that simulates the propagation of light in scattering tissue. It is not just *simple*: it is **outrageously simple** and **very slow** (see below). However, it is **extremely easy to understand** and most importantly **very simple modify**.
 
-It may be slow, but speed is more than code performance: anyone can simulate something instantly instead of having to understand C, C++ or god forbid GPU code.  Therefore, you can modifiy everything in a day, get your result in a few hours instead of learning C (a few weeks), learn to work with compiled code (on separate machines) and modify C code written by someone else (weeks?). I think the overall speed to be concerned about is "the time it takes to get an answer", not necessarily the time it takes to run 100,000 photons. Considering many calculations take a few minutes, it is fairly reasonable to imagine you could start a calculation in Python and run it overnight and get an answer the next day after a few hours of calculations. I think there is a need for such a solution, and you will find it here.
+It may be slow, but speed is more than code performance: anyone with little to no experience can simulate something instantly instead of having to understand C, C++ or, god forbid, GPU code.  Therefore, you can quickly modifiy everything in an afternoon and get your results in a few hours, instead of learning C (a few weeks?), learn to work with compiled code (a few days? libraries anyone?) and finally modify the C code written by someone else (days? weeks?). I think the overall speed to be concerned about is "the time it takes to get an answer", not necessarily "the time it takes to run 100,000 photons". Considering many calculations with high performance code (in C for instance) take a few minutes, it is fairly reasonable to imagine you could start a calculation in Python, run it overnight and get an answer the next day after a few hours of calculations. I think there is a need for such a solution, and you will find it here.
 
 ## Getting started
 
-You can run the example program:
+Download the code (it is not a Python module yet).  Go to the main directory where you can run the example program:
 
 ```shell
 python montecarlo.py
 ```
 
-It will show you a graph of the energy deposited in the plane xz from a source at the origin:
+You need Python 3, it will not work with Python 2. The example code will show you a graph of the energy deposited in the plane xz from a isotropic source at the origin:
 
 <img src="README.assets/image-20210116103556173.png" alt="image-20210116103556173" style="zoom:50%;" />
 
-Or the logarithm (`log10`) of the intensity as a fonction of distance:
+Then it will display the logarithm (`log10`) of the intensity as a fonction of distance along the x direction:
 
 <img src="README.assets/image-20210116104020740.png" alt="image-20210116104020740" style="zoom:50%;" />
+
+Then, the idea would be to modify the code for your geometry (layers, boxes, cubes, spheres, etc...) and compute what you want.
+
+
 
 ## Limitations
 
 There are many limitations, as this is mostly a teaching tool but I have used it for real calculations:
-1. There are no layer and/or interfaces : it is in a simple infinite volume (for now).
+1. There are 3D objects, but reflections at the interface at not considered yet: the index of refraction for everything is `n=1`.
 2. It only uses Henyey-Greenstein because it is sufficient most of the time.
-3. It does not compute all possible stats (total reflectance, etc...).
+3. It does not compute all possible stats (total reflectance, etc...), only the depositted energy in the volume.
 4. Documentation is sparse at best.
 5. You have probably noticed that the axes on the graphs are currently not labelled. Don't tell my students.
-6. Did I say it was slow? It is approximately 200x slower than the well-known code [MCML](https://omlc.org/software/mc/mcml/) on the same machine. I know and *you* know, but see **Advantages** below.
+6. Did I say it was slow? It is approximately 200x slower than the well-known code [MCML](https://omlc.org/software/mc/mcml/) on the same machine. I know, and now I know that *you* know, but see **Advantages** below.
 
 ## Advantages
 
 However, there are advantages:
 
 1. It is extremely simple to understand.
-2. The code is very clear, and only a few files.
-3. Can be used for teaching tissue optics.
-4. It can be used as a good example of object-oriented programming for those not familiar with it.
-5. It is easy to modify for your own purpose.
-6. In addition, it is very easy to parallelize a Monte Carlo calculations, because all runs are independant, so splitting the job onto several CPUs is a good option to gain a factor of close to 10 in perfromance on many computers.
+2. The code is very clear with only a few files in a single directory.
+3. It can be used for teaching tissue optics.
+4. It can be used for teaching object-oriented programming for those not familiar with it.
+5. It is fairly easy to modify for your own purpose.
+6. In addition, because it is very easy to parallelize a Monte Carlo calculations (all runs are independant), splitting the job onto several CPUs is a good option to gain a factor of close to 10 in perfromance on many computers.
 
 The code is in fact so simple, here is the complete code that created the above two graphs in 10 seconds on my computer:
 
