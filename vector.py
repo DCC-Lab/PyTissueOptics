@@ -19,6 +19,10 @@ class Vector:
         else:
             raise ValueError("No valid input for Vector")
 
+    @classmethod
+    def fromScaledSum(a, b, scale):
+        return Vector(a.x + b.x*scale, a.y + b.y*scale, a.z + b.z*scale)
+
     @property
     def isUnitary(self) -> bool:
         return abs(self.norm()-1)<1e-7

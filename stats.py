@@ -2,6 +2,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 import time
 import json
+from vector import *
 
 class Stats:
     def __init__(self, min = (-1, -1, 0), max = (1, 1, 0.5), size = (21,21,21)):
@@ -17,6 +18,9 @@ class Stats:
         self.savedPhotonCount = 0
         self.energy = np.zeros(size)
         self.figure = None
+        self.volume = []
+        self.crossing = []
+        self.final = []
 
     @property
     def photonCount(self):
@@ -84,7 +88,8 @@ class Stats:
         self.photons.add(set(data["photons"]))
         self.energy = np.add(self.energy, np.array(data["energy"]))
 
-    def score(self, photon, delta):
+    def scoreInVolume(self, photon, delta):
+        self.volume.append( (Vector(photon.r), photon.weight))
         self.photons.add(photon.uniqueId)
         position = photon.r
 
@@ -102,6 +107,12 @@ class Stats:
             return
 
         self.energy[i,j,k] += delta
+
+    def scoreWhenCrossing(self, photon):
+        self.crossing.append( (Vector(photon.r), photon.weight))
+
+    def scoreWhenFinal(self, photon):
+        self.final.append(photon)
 
     def show3D(self):
         raise NotImplementedError()
@@ -194,3 +205,42 @@ class Stats:
         else:
             plt.ioff()
             plt.show()
+
+    def crossingYZPlane(self, x, epsilon=0.01):
+        y = []
+        z = []
+        weights = []
+
+        for (r, w) in self.crossing:
+            if abs(r.x-x) < epsilon:
+                y.append(r.y)
+                z.append(r.z)
+                weights.append(w)
+
+        return y, z, weights
+
+    def crossingXYPlane(self, z, epsilon=0.01):
+        x = []
+        y = []
+        weights = []
+
+        for (r, w) in self.crossing:
+            if abs(r.z-z) < epsilon:
+                x.append(r.x)
+                y.append(r.y)
+                weights.append(w)
+
+        return x, y, weights
+
+    def crossingZXPlane(self, y, epsilon=0.01):
+        z = []
+        x = []
+        weights = []
+
+        for (r, w) in self.crossing:
+            if abs(r.y-y) < epsilon:
+                z.append(r.z)
+                x.append(r.x)
+                weights.append(w)
+
+        return z, x, weights
