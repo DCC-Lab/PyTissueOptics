@@ -90,23 +90,23 @@ class Stats:
 
     def scoreInVolume(self, photon, delta):
         self.volume.append( (Vector(photon.r), photon.weight))
-        self.photons.add(photon.uniqueId)
-        position = photon.r
+        # self.photons.add(photon.uniqueId)
+        # position = photon.r
 
-        i = int(self.binSizes[0]*(position.x-self.min[0])-0.5)
-        j = int(self.binSizes[1]*(position.y-self.min[1])-0.5)
-        k = int(self.binSizes[2]*(position.z-self.min[2])-0.5)
+        # i = int(self.binSizes[0]*(position.x-self.min[0])-0.5)
+        # j = int(self.binSizes[1]*(position.y-self.min[1])-0.5)
+        # k = int(self.binSizes[2]*(position.z-self.min[2])-0.5)
 
-        if i < 0 or i > self.size[0]-1:
-            return
+        # if i < 0 or i > self.size[0]-1:
+        #     return
 
-        if j < 0 or j > self.size[1]-1:
-            return
+        # if j < 0 or j > self.size[1]-1:
+        #     return
 
-        if k < 0 or k > self.size[2]-1:
-            return
+        # if k < 0 or k > self.size[2]-1:
+        #     return
 
-        self.energy[i,j,k] += delta
+        # self.energy[i,j,k] += delta
 
     def scoreWhenCrossing(self, photon):
         self.crossing.append( (Vector(photon.r), photon.weight))
@@ -206,7 +206,7 @@ class Stats:
             plt.ioff()
             plt.show()
 
-    def crossingYZPlane(self, x, epsilon=0.01):
+    def crossingYZPlane(self, x, epsilon=0.001):
         y = []
         z = []
         weights = []
@@ -219,7 +219,7 @@ class Stats:
 
         return y, z, weights
 
-    def crossingXYPlane(self, z, epsilon=0.01):
+    def crossingXYPlane(self, z, epsilon=0.001):
         x = []
         y = []
         weights = []
@@ -232,7 +232,7 @@ class Stats:
 
         return x, y, weights
 
-    def crossingZXPlane(self, y, epsilon=0.01):
+    def crossingZXPlane(self, y, epsilon=0.001):
         z = []
         x = []
         weights = []
