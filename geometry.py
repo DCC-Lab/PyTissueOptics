@@ -125,7 +125,7 @@ class Geometry:
         #     self.stats.show2D(plane='xz', integratedAlong='y', title="Final photons", realtime=False)
             #stats.show1D(axis='z', integratedAlong='xy', title="{0} photons".format(N), realtime=False)
 
-        self.showSurfaceIntensities()
+        self.reportSurfaceIntensities()
 
         #print(self.stats.crossing)
 
@@ -144,7 +144,7 @@ class Box(Geometry):
 
         return True
 
-    def showSurfaceIntensities(self):
+    def reportSurfaceIntensities(self):
         fig, axes = plt.subplots(nrows=2, ncols=3)
         a,b,weights = self.stats.crossingYZPlane(x=self.size[0]/2)
  
@@ -168,7 +168,7 @@ class Box(Geometry):
         fig.tight_layout()
         plt.show()
 
-class Cube(Geometry):
+class Cube(Box):
     def __init__(self, side, material, stats=None):
         super(Cube, self).__init__(material, stats)
         self.size = (side,side,side)
@@ -187,6 +187,18 @@ class Layer(Geometry):
             return False
 
         return True
+
+    def reportSurfaceIntensities(self):
+        fig, axes = plt.subplots(nrows=1, ncols=2)
+        
+        a,b,weights = self.stats.crossingXYPlane(z=self.size[2]/2)
+        axes[0, 2].set_title('Intensity at z = {0:.0f}'.format(self.size[2]/2))
+        axes[0, 2].hist2d(a,b,weights=weights, bins=11)
+        a,b,weights = self.stats.crossingXYPlane(z=-self.size[2]/2)
+        axes[1, 2].set_title('Intensity at z = {0:.0f}'.format(-self.size[2]/2))
+        axes[1, 2].hist2d(a,b,weights=weights, bins=11)
+        fig.tight_layout()
+        plt.show()
 
 class Sphere(Geometry):
     def __init__(self, radius, material, stats=None):
