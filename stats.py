@@ -206,6 +206,28 @@ class Stats:
             plt.ioff()
             plt.show()
 
+    def reportSurfaceIntensities(self, x, y, z):        
+        fig, axes = plt.subplots(nrows=2, ncols=3, figsize=(14,8))
+        N = len(self.final)
+
+        for i, cut in enumerate(x):
+            a,b,weights = self.crossingYZPlane(x=cut)
+            axes[i, 0].set_title('Intensity at x = {0:.0f} [T={1:.0f}%]'.format(cut,100*sum(weights)/N))
+            axes[i, 0].hist2d(a,b,weights=weights, bins=11)
+
+        for i, cut in enumerate(y):
+            a,b,weights = self.crossingZXPlane(y=cut)
+            axes[i, 1].set_title('Intensity at y = {0:.0f} [T={1:.0f}%]'.format(cut,100*sum(weights)/N))
+            axes[i, 1].hist2d(a,b,weights=weights, bins=11)
+
+        for i, cut in enumerate(z):
+            a,b,weights = self.crossingXYPlane(z=cut)
+            axes[i, 2].set_title('Intensity at z = {0:.0f} [T={1:.0f}%]'.format(cut,100*sum(weights)/N))
+            axes[i, 2].hist2d(a,b,weights=weights, bins=11)
+
+        fig.tight_layout()
+        plt.show()
+
     def crossingYZPlane(self, x, epsilon=0.001):
         y = []
         z = []

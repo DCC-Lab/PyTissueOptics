@@ -12,6 +12,18 @@ class Geometry:
         self.origin = Vector(0,0,0)
         self.stats = stats
 
+    @property
+    def xySurfaces(self):
+        return []
+
+    @property
+    def yzSurfaces(self):
+        return []
+               
+    @property
+    def zxSurfaces(self):
+        return []
+
     def propagate(self, photon):
         photon.transformToLocalCoordinates(self.origin)
 
@@ -63,10 +75,6 @@ class Geometry:
         if self.contains(finalPosition):
             return False, distance
 
-        if not self.contains(position):
-            print("Warning: edge case, initial position outside")
-            return False, distance
-
         wasInside = True
         finalPosition = position
         delta = 0.5*distance
@@ -90,8 +98,12 @@ class Geometry:
         return True, (finalPosition-position).abs()
 
     def contains(self, position) -> bool:
-        """ This object is infinite. Subclasses override with their 
-        specific geometry. """
+        """ This object is infinite. Subclasses override this method
+        with their specific geometry. 
+
+        It is important that this function be efficient: it is called
+        very frequently.
+        """
         return True
 
     def absorbEnergy(self, photon) -> float:
@@ -121,18 +133,28 @@ class Geometry:
             #     self.stats.show2D(plane='xz', integratedAlong='y', title="{0} photons".format(i)) 
 
     def report(self):
-        # if self.stats is not None:
-        #     self.stats.show2D(plane='xz', integratedAlong='y', title="Final photons", realtime=False)
-            #stats.show1D(axis='z', integratedAlong='xy', title="{0} photons".format(N), realtime=False)
+        if self.stats is not None:
+            self.stats.show2D(plane='xz', integratedAlong='y', title="Final photons", realtime=False)
+#            stats.show1D(axis='z', integratedAlong='xy', title="{0} photons".format(N), realtime=False)
 
-        self.reportSurfaceIntensities()
-
-        #print(self.stats.crossing)
+        self.stats.reportSurfaceIntensities(self.yzSurfaces, self.zxSurfaces, self.xySurfaces)
 
 class Box(Geometry):
     def __init__(self, size, material, stats=None):
         super(Box, self).__init__(material, stats)
         self.size = size
+
+    @property
+    def xySurfaces(self):
+        return [self.size[0]/2, -self.size[0]/2]
+
+    @property
+    def yzSurfaces(self):
+        return [self.size[1]/2, -self.size[1]/2]
+               
+    @property
+    def zxSurfaces(self):
+        return [self.size[2]/2, -self.size[2]/2]
 
     def contains(self, localPosition) -> bool:
         if abs(localPosition.z) > self.size[2]/2:
@@ -144,29 +166,6 @@ class Box(Geometry):
 
         return True
 
-    def reportSurfaceIntensities(self):
-        fig, axes = plt.subplots(nrows=2, ncols=3)
-        a,b,weights = self.stats.crossingYZPlane(x=self.size[0]/2)
- 
-        axes[0, 0].set_title('Intensity at x = {0:.0f}'.format(self.size[0]/2))
-        axes[0, 0].hist2d(a,b,weights=weights, bins=11)
-        a,b,weights = self.stats.crossingYZPlane(x=-self.size[0]/2)
-        axes[1, 0].set_title('Intensity at x = {0:.0f}'.format(-self.size[0]/2))
-        axes[1, 0].hist2d(a,b,weights=weights, bins=11)
-        a,b,weights = self.stats.crossingZXPlane(y=self.size[1]/2)
-        axes[0, 1].set_title('Intensity at y = {0:.0f}'.format(self.size[1]/2))
-        axes[0, 1].hist2d(a,b,weights=weights, bins=11)
-        a,b,weights = self.stats.crossingZXPlane(y=-self.size[1]/2)
-        axes[1, 1].set_title('Intensity at y = {0:.0f}'.format(-self.size[1]/2))
-        axes[1, 1].hist2d(a,b,weights=weights, bins=11)
-        a,b,weights = self.stats.crossingXYPlane(z=self.size[2]/2)
-        axes[0, 2].set_title('Intensity at z = {0:.0f}'.format(self.size[2]/2))
-        axes[0, 2].hist2d(a,b,weights=weights, bins=11)
-        a,b,weights = self.stats.crossingXYPlane(z=-self.size[2]/2)
-        axes[1, 2].set_title('Intensity at z = {0:.0f}'.format(-self.size[2]/2))
-        axes[1, 2].hist2d(a,b,weights=weights, bins=11)
-        fig.tight_layout()
-        plt.show()
 
 class Cube(Box):
     def __init__(self, side, material, stats=None):
@@ -177,6 +176,18 @@ class Layer(Geometry):
     def __init__(self, thickness, material, stats=None):
         super(Layer, self).__init__(material, stats)
         self.size = (1e6,1e6,thickness)
+
+    @property
+    def xySurfaces(self):
+        return [self.size[0]/2, -self.size[0]/2]
+
+    @property
+    def yzSurfaces(self):
+        return []
+               
+    @property
+    def zxSurfaces(self):
+        return []
 
     def contains(self, localPosition) -> bool:
         if localPosition.z > self.size[2] or localPosition.z < 0:
@@ -204,6 +215,7 @@ class Sphere(Geometry):
     def __init__(self, radius, material, stats=None):
         super(Sphere, self).__init__(material, stats)
         self.radius = radius
+
 
     def contains(self, localPosition) -> bool:
         if localPosition.abs() > self.radius:
