@@ -138,12 +138,12 @@ class Box(Geometry):
 
     @property
     def surfaces(self):
-        return [ XYPlane(atZ=self.size[2]/2, normal=zHat),
-                 XYPlane(atZ=-self.size[2]/2,normal=-zHat),
-                 YZPlane(atX=self.size[0]/2, normal=xHat),
-                 YZPlane(atX=-self.size[0]/2, normal=-xHat),
-                 ZXPlane(atY=self.size[1]/2, normal=yHat),
-                 ZXPlane(atY=-self.size[1]/2, normal=-yHat)]
+        return [ XYPlane(atZ=self.size[2]/2),
+                 -XYPlane(atZ=-self.size[2]/2),
+                 YZPlane(atX=self.size[0]/2),
+                 -YZPlane(atX=-self.size[0]/2),
+                 ZXPlane(atY=self.size[1]/2),
+                 -ZXPlane(atY=-self.size[1]/2)]
 
     def contains(self, localPosition) -> bool:
         if abs(localPosition.z) > self.size[2]/2:

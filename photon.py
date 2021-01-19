@@ -9,7 +9,11 @@ class Photon:
     def __init__(self, position=Vector(0,0,0), direction=UnitVector(0,0,1)):
         self.r = Vector(position)
         self.ez = UnitVector(direction) # Propagation direction vector
-        self.er = UnitVector(0,1,0) # Vector perpendicular to scattering plane and ez
+        self.er = UnitVector(0,1,0) 
+
+        if not self.er.isPerpendicularTo(self.ez):
+            self.er = None # User will need to fix er before running calculation
+
         self.wavelength = None
         # We don't need to keep el, because it is obtainable from ez and er
         self.weight = 1.0
