@@ -13,15 +13,7 @@ class Geometry:
         self.stats = stats
 
     @property
-    def xySurfaces(self):
-        return []
-
-    @property
-    def yzSurfaces(self):
-        return []
-               
-    @property
-    def zxSurfaces(self):
+    def surfaces(self):
         return []
 
     def propagate(self, photon):
@@ -134,10 +126,10 @@ class Geometry:
 
     def report(self):
         if self.stats is not None:
-            self.stats.show2D(plane='xz', integratedAlong='y', title="Final photons", realtime=False)
+            #self.stats.show2D(plane='xz', integratedAlong='y', title="Final photons", realtime=False)
 #            stats.show1D(axis='z', integratedAlong='xy', title="{0} photons".format(N), realtime=False)
 
-            self.stats.reportSurfaceIntensities(self.yzSurfaces, self.zxSurfaces, self.xySurfaces)
+            self.stats.showSurfaceIntensities(self.surfaces)
 
 class Box(Geometry):
     def __init__(self, size, material, stats=None):
@@ -145,16 +137,13 @@ class Box(Geometry):
         self.size = size
 
     @property
-    def xySurfaces(self):
-        return [self.size[0]/2, -self.size[0]/2]
-
-    @property
-    def yzSurfaces(self):
-        return [self.size[1]/2, -self.size[1]/2]
-               
-    @property
-    def zxSurfaces(self):
-        return [self.size[2]/2, -self.size[2]/2]
+    def surfaces(self):
+        return [ XYPlane(atZ=self.size[2]/2, normal=zHat),
+                 XYPlane(atZ=-self.size[2]/2,normal=-zHat),
+                 YZPlane(atX=self.size[0]/2, normal=xHat),
+                 YZPlane(atX=-self.size[0]/2, normal=-xHat),
+                 ZXPlane(atY=self.size[1]/2, normal=yHat),
+                 ZXPlane(atY=-self.size[1]/2, normal=-yHat)]
 
     def contains(self, localPosition) -> bool:
         if abs(localPosition.z) > self.size[2]/2:
@@ -178,16 +167,9 @@ class Layer(Geometry):
         self.size = (1e6,1e6,thickness)
 
     @property
-    def xySurfaces(self):
-        return [self.size[0]/2, -self.size[0]/2]
-
-    @property
-    def yzSurfaces(self):
-        return []
-               
-    @property
-    def zxSurfaces(self):
-        return []
+    def surfaces(self):
+        return [ XYPlane(atZ=self.size[2]/2, normal=zHat),
+                 XYPlane(atZ=-self.size[2]/2,normal=-zHat)]
 
     def contains(self, localPosition) -> bool:
         if localPosition.z > self.size[2] or localPosition.z < 0:

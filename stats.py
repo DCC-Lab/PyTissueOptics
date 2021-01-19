@@ -18,9 +18,11 @@ class Stats:
         self.savedPhotonCount = 0
         self.energy = np.zeros(size)
         self.figure = None
-        self.volume = [] 
+        self.volume = None
         self.crossing = []
         self.final = []
+
+        self.startTime = time.time()
 
     @property
     def photonCount(self):
@@ -52,41 +54,6 @@ class Stats:
         elapsed = time.time() - self.startTime
         N = self.photonCount
         print('{0:.1f} s for {2} photons, {1:.1f} ms per photon'.format(elapsed, elapsed/N*1000, N))
-
-    def save(self, filepath="output.json"):
-        data = {"min":self.min, "max":self.max, "L":self.L,
-                "size":self.size,"energy":self.energy.tolist(),
-                "photonCount":len(self.photons)}
-
-        with open(filepath, "w") as write_file:
-            json.dump(data, write_file,indent=4, sort_keys=True)
-
-    def restore(self, filepath="output.json"):
-        with open(filepath, "r") as read_file:
-            data = json.load(read_file)
-
-        self.min = data["min"]
-        self.max = data["max"]
-        self.L = data["L"]
-        self.size = data["size"]
-        self.savedPhotonCount = data["photonCount"]
-        self.energy = np.array(data["energy"])
-
-    def append(self, filepath="output.json"):
-        with open(filepath, "r") as read_file:
-            data = json.load(read_file)
-
-        if self.min != data["min"]:
-            raise ValueError("To append, data must have same min")
-        if self.max != data["max"]:
-            raise ValueError("To append, data must have same max")
-        if self.L != data["L"]:
-            raise ValueError("To append, data must have same L")
-        if self.size != data["size"]:
-            raise ValueError("To append, data must have same size")
-
-        self.photons.add(set(data["photons"]))
-        self.energy = np.add(self.energy, np.array(data["energy"]))
 
     def scoreInVolume(self, photon, delta):
         position = photon.r
@@ -204,63 +171,28 @@ class Stats:
             plt.ioff()
             plt.show()
 
-    def reportSurfaceIntensities(self, x, y, z):        
-        fig, axes = plt.subplots(nrows=2, ncols=3, figsize=(14,8))
+    def showSurfaceIntensities(self, surfaces):        
+        fig, axes = plt.subplots(nrows=2, ncols=len(surfaces)//2, figsize=(14,8))
         N = len(self.final)
 
-        for i, cut in enumerate(x):
-            a,b,weights = self.crossingYZPlane(x=cut)
-            axes[i, 0].set_title('Intensity at x = {0:.0f} [T={1:.0f}%]'.format(cut,100*sum(weights)/N))
-            axes[i, 0].hist2d(a,b,weights=weights, bins=21)
-
-        for i, cut in enumerate(y):
-            a,b,weights = self.crossingZXPlane(y=cut)
-            axes[i, 1].set_title('Intensity at y = {0:.0f} [T={1:.0f}%]'.format(cut,100*sum(weights)/N))
-            axes[i, 1].hist2d(a,b,weights=weights, bins=21)
-
-        for i, cut in enumerate(z):
-            a,b,weights = self.crossingXYPlane(z=cut)
-            axes[i, 2].set_title('Intensity at z = {0:.0f} [T={1:.0f}%]'.format(cut,100*sum(weights)/N))
-            axes[i, 2].hist2d(a,b,weights=weights, bins=21)
+        for i, surface in enumerate(surfaces):
+            a,b,weights = self.photonsCrossingPlane(surface)
+            axes[i % 2, i // 2].set_title('Intensity at {0} [T={1:.0f}%]'.format(surface,100*sum(weights)/N))
+            axes[i % 2, i // 2].hist2d(a,b,weights=weights, bins=11)
 
         fig.tight_layout()
         plt.show()
 
-    def crossingYZPlane(self, x, epsilon=0.001):
-        y = []
-        z = []
+    def photonsCrossingPlane(self, surface):
+        a = []
+        b = []
         weights = []
 
         for (r, w) in self.crossing:
-            if abs(r.x-x) < epsilon:
-                y.append(r.y)
-                z.append(r.z)
+            isContained, u, v = surface.contains(r)
+            if isContained:
+                a.append(u)
+                b.append(v)
                 weights.append(w)
 
-        return y, z, weights
-
-    def crossingXYPlane(self, z, epsilon=0.001):
-        x = []
-        y = []
-        weights = []
-
-        for (r, w) in self.crossing:
-            if abs(r.z-z) < epsilon:
-                x.append(r.x)
-                y.append(r.y)
-                weights.append(w)
-
-        return x, y, weights
-
-    def crossingZXPlane(self, y, epsilon=0.001):
-        z = []
-        x = []
-        weights = []
-
-        for (r, w) in self.crossing:
-            if abs(r.y-y) < epsilon:
-                z.append(r.z)
-                x.append(r.x)
-                weights.append(w)
-
-        return z, x, weights
+        return a, b, weights

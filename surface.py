@@ -1,43 +1,48 @@
 from vector import *
 
 class Surface:
-    def __init__(self, origin, normal, bins = (11,11)):
+    def __init__(self, origin, a, b, normal):
         self.origin = origin
         self.normal = normal
-        self.bins = bins
-        self.intensity = np.zeros(bins)
-
-    def contains(self, position, epsilon=0.001) -> bool:
-        return False
-
-    def uvCoordinates(self, point) -> (float,float):
-        raise NotImplementedError()
-
-    def uvIndexes(self, point) -> (int, int):
-        raise NotImplementedError()
-
-    def score(self, photon):
-        i,j = self.uvIndexes(photon.r)
-        self.scoreAt(photon, i, j)
-
-    def scoreAt(self, photon, i, j):
-        self.intensity[i,j] += photon.weight
-
-class XYPlane(Surface):
-    def __init__(self, z):
-        super(FlatSurface, self).__init__(Vector(0,0,z), UnitVector(0,0,1))
-
-class FlatSurface(Surface):
-    def __init__(self, origin, a, b, bins = (11,11)):
-        super(FlatSurface, self).__init__(origin, u.cross(v), bins)
         self.a = a
         self.b = b
+        self.description = "Surface"
 
-    def locateProjection(self, point) -> (float,float):
-        raise NotImplementedError()
+    def contains(self, position, epsilon=0.001) -> (bool, float, float):
+        local = position-self.origin
+        if abs(local.normalizedDotProduct(self.normal)) < epsilon:
+            return True, local.dot(self.a), local.dot(self.b) 
+        return False, None, None
 
-class SphericalSurface(Surface):
-    def __init__(self, origin, radius, bins = (37,11)):
-        super(SphericalSurface, self).__init__(origin, None, bins)
-        self.radius = radius
+    def __str__(self):
+        return self.description
 
+class XYPlane(Surface):
+    def __init__(self, atZ, normal):
+        super(XYPlane, self).__init__(Vector(0,0,atZ), xHat, yHat, normal)
+        self.description = "XY at z={0:.1f}".format(atZ)
+
+class YZPlane(Surface):
+    def __init__(self, atX, normal):
+        super(YZPlane, self).__init__(Vector(atX,0,0), yHat, zHat, normal)
+        self.description = "YZ at z={0:.1f}".format(atX)
+
+class ZXPlane(Surface):
+    def __init__(self, atY, normal):
+        super(ZXPlane, self).__init__(Vector(0, atY,0), zHat, xHat, normal)
+        self.description = "ZX at z={0:.1f}".format(atY)
+
+class XYRect(Surface):
+    def __init__(self, origin, size, normal):
+        super(XYRect, self).__init__(origin, size[0]*xHat, size[1]*yHat, normal)
+        self.description = "XY at z={0:.1f}".format(origin)
+
+class YZRect(Surface):
+    def __init__(self, origin, size, normal):
+        super(YZRect, self).__init__(origin, size[0]*yHat, size[1]*zHat, normal)
+        self.description = "YZ at z={0:.1f}".format(origin)
+
+class ZXRect(Surface):
+    def __init__(self, origin, size, normal):
+        super(ZXRect, self).__init__(origin, size[0]*zHat, size[1]*xHat, normal)
+        self.description = "ZX at z={0:.1f}".format(origin)
