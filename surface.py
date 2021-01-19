@@ -7,6 +7,9 @@ class Surface:
         self.bins = bins
         self.intensity = np.zeros(bins)
 
+    def contains(self, position, epsilon=0.001) -> bool:
+        return False
+
     def uvCoordinates(self, point) -> (float,float):
         raise NotImplementedError()
 
@@ -19,6 +22,10 @@ class Surface:
 
     def scoreAt(self, photon, i, j):
         self.intensity[i,j] += photon.weight
+
+class XYPlane(Surface):
+    def __init__(self, z):
+        super(FlatSurface, self).__init__(Vector(0,0,z), UnitVector(0,0,1))
 
 class FlatSurface(Surface):
     def __init__(self, origin, a, b, bins = (11,11)):
