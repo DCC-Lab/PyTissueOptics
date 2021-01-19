@@ -2,6 +2,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 import time
 import json
+from vector import *
 
 class Stats:
     def __init__(self, min = (-1, -1, 0), max = (1, 1, 0.5), size = (21,21,21)):
@@ -17,6 +18,9 @@ class Stats:
         self.savedPhotonCount = 0
         self.energy = np.zeros(size)
         self.figure = None
+        self.volume = [] 
+        self.crossing = []
+        self.final = []
 
     @property
     def photonCount(self):
@@ -84,8 +88,7 @@ class Stats:
         self.photons.add(set(data["photons"]))
         self.energy = np.add(self.energy, np.array(data["energy"]))
 
-    def score(self, photon, delta):
-        self.photons.add(photon.uniqueId)
+    def scoreInVolume(self, photon, delta):
         position = photon.r
 
         i = int(self.binSizes[0]*(position.x-self.min[0])-0.5)
@@ -102,6 +105,12 @@ class Stats:
             return
 
         self.energy[i,j,k] += delta
+
+    def scoreWhenCrossing(self, photon):
+        self.crossing.append( (Vector(photon.r), photon.weight))
+
+    def scoreWhenFinal(self, photon):
+        self.final.append(photon)
 
     def show3D(self):
         raise NotImplementedError()
@@ -194,3 +203,64 @@ class Stats:
         else:
             plt.ioff()
             plt.show()
+
+    def reportSurfaceIntensities(self, x, y, z):        
+        fig, axes = plt.subplots(nrows=2, ncols=3, figsize=(14,8))
+        N = len(self.final)
+
+        for i, cut in enumerate(x):
+            a,b,weights = self.crossingYZPlane(x=cut)
+            axes[i, 0].set_title('Intensity at x = {0:.0f} [T={1:.0f}%]'.format(cut,100*sum(weights)/N))
+            axes[i, 0].hist2d(a,b,weights=weights, bins=21)
+
+        for i, cut in enumerate(y):
+            a,b,weights = self.crossingZXPlane(y=cut)
+            axes[i, 1].set_title('Intensity at y = {0:.0f} [T={1:.0f}%]'.format(cut,100*sum(weights)/N))
+            axes[i, 1].hist2d(a,b,weights=weights, bins=21)
+
+        for i, cut in enumerate(z):
+            a,b,weights = self.crossingXYPlane(z=cut)
+            axes[i, 2].set_title('Intensity at z = {0:.0f} [T={1:.0f}%]'.format(cut,100*sum(weights)/N))
+            axes[i, 2].hist2d(a,b,weights=weights, bins=21)
+
+        fig.tight_layout()
+        plt.show()
+
+    def crossingYZPlane(self, x, epsilon=0.001):
+        y = []
+        z = []
+        weights = []
+
+        for (r, w) in self.crossing:
+            if abs(r.x-x) < epsilon:
+                y.append(r.y)
+                z.append(r.z)
+                weights.append(w)
+
+        return y, z, weights
+
+    def crossingXYPlane(self, z, epsilon=0.001):
+        x = []
+        y = []
+        weights = []
+
+        for (r, w) in self.crossing:
+            if abs(r.z-z) < epsilon:
+                x.append(r.x)
+                y.append(r.y)
+                weights.append(w)
+
+        return x, y, weights
+
+    def crossingZXPlane(self, y, epsilon=0.001):
+        z = []
+        x = []
+        weights = []
+
+        for (r, w) in self.crossing:
+            if abs(r.y-y) < epsilon:
+                z.append(r.z)
+                x.append(r.x)
+                weights.append(w)
+
+        return z, x, weights

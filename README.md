@@ -93,26 +93,31 @@ class Geometry:
   
     def propagate(self, photon):
         photon.transformToLocalCoordinates(self.origin)
-        lastPositionInside = photon.r
 
         while photon.isAlive and self.contains(photon.r):
-            lastPositionInside = photon.r
-            # Move to interaction point
+            # Pick to scattering point
             d = self.material.getScatteringDistance(photon)
-            photon.moveBy(d)
-
-            # Interact with volume
-            delta = self.absorbEnergy(photon)
-            self.scoreStepping(photon, delta)
-
-            # Scatter within volume
-            theta, phi = self.material.getScatteringAngles(photon)
-            photon.scatterBy(theta, phi)
+            isNotIntersecting, surface, d = self.intersection(photon.r, photon.ez, d)
+            if isNotIntersecting:
+                # If the scatteringPoint is still inside, we simply move
+                photon.moveBy(d) 
+                # Interact with volume
+                delta = self.absorbEnergy(photon)
+                self.scoreStepping(photon, delta)
+                # Scatter within volume
+                theta, phi = self.material.getScatteringAngles(photon)
+                photon.scatterBy(theta, phi)
+                # And go again    
+                photon.roulette()
+            else:
+                # If the scatteringPoint is outside, we move to the surface
+                photon.moveBy(d)
+                # then we neglect reflections (for now), score
+                self.scoreLeaving(photon, surface)
+                # and leave
+                break
             
-            photon.roulette()
-
-        self.scoreLeaving(photon, lastPositionInside)
-        photon.transformFromLocalCoordinates(self.origin)            
+        photon.transformFromLocalCoordinates(self.origin)
 
     def propagateMany(self, source, showProgressEvery=100):
         startTime = time.time()
@@ -144,7 +149,7 @@ Note that this function is part of the `Geometry` object and does not make any a
            def newPhoton(self) -> Photon:
                p = Photon()
                # Do your thing here with self.myProperty and modify p
-      				 return p
+               return p
             
       ```
 
@@ -161,11 +166,13 @@ Note that this function is part of the `Geometry` object and does not make any a
            def getScatteringAngles(self, photon) -> (float, float):
                # Do your thing here with self.myProperty and compute theta, phi
                # Use Photon if needed (position, direction, wavelength, etc..)
-      				 return (theta, phi)
+               return (theta, phi)
             
       ```
 
-3. Maybe you want to compute some funky stats? At each step, `scoreStepping` is called with the photon and the drop in energy a that step.  When leaving the geometry, `scoreLeaving` is called with the photon and the last position inside.
+3. If `photon.keepPathHistory()` is called, it will keep track all positions during its lifetime. You can then compute whatever you want by rewriting that part of the code or with a hook function I will write at some point.
 
-4. Maybe your have a special geometry? Subclass `Geometry` and override the `contains` method to compute whether or not a given position is inside your object or not.
+4. Maybe you want to compute some funky stats? At each step, `scoreStepping` is called with the photon and the drop in energy at that step.  When leaving the geometry, `scoreLeaving` is called with the photon and the last position inside.
+
+5. Maybe your have a special geometry? Subclass `Geometry` and override the `contains` method to compute whether or not a given position is inside your object or not and `intersection` to compute the point on the surface of your object where the photon exits.
 
