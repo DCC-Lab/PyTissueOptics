@@ -1,17 +1,27 @@
 from vector import *
 
 class Surface:
-    def __init__(self, origin, a, b, normal):
+    def __init__(self, origin, a, b, normal, size = None):
         self.origin = origin
-        self.normal = normal
         self.a = a
         self.b = b
+        self.normal = normal
+        self.size = size
         self.description = "Surface"
 
     def contains(self, position, epsilon=0.001) -> (bool, float, float):
         local = position-self.origin
         if abs(local.normalizedDotProduct(self.normal)) < epsilon:
-            return True, local.dot(self.a), local.dot(self.b) 
+            u = local.dot(self.a)
+            v = local.dot(self.b) 
+            if self.size is None:
+                return True, u, v
+            else:
+                if u > self.size[0] or u < 0 or v > self.size[1] or v < 0:
+                    return False, None, None
+                else:
+                    return True, u, v
+                    
         return False, None, None
 
     def __str__(self):
@@ -33,16 +43,16 @@ class ZXPlane(Surface):
         self.description = "ZX at z={0:.1f}".format(atY)
 
 class XYRect(Surface):
-    def __init__(self, origin, size, normal):
-        super(XYRect, self).__init__(origin, size[0]*xHat, size[1]*yHat, normal)
+    def __init__(self, origin, normal, size):
+        super(XYRect, self).__init__(origin, xHat, yHat, normal, size)
         self.description = "XY at z={0:.1f}".format(origin)
 
 class YZRect(Surface):
-    def __init__(self, origin, size, normal):
-        super(YZRect, self).__init__(origin, size[0]*yHat, size[1]*zHat, normal)
+    def __init__(self, origin, normal, size):
+        super(YZRect, self).__init__(origin, yHat, zHat, normal, size)
         self.description = "YZ at z={0:.1f}".format(origin)
 
 class ZXRect(Surface):
-    def __init__(self, origin, size, normal):
-        super(ZXRect, self).__init__(origin, size[0]*zHat, size[1]*xHat, normal)
+    def __init__(self, origin, normal, size):
+        super(ZXRect, self).__init__(origin, zHat, xHat, normal, size)
         self.description = "ZX at z={0:.1f}".format(origin)

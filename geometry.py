@@ -62,6 +62,20 @@ class Geometry:
         elapsed = time.time() - startTime
         print('{0:.1f} s for {2} photons, {1:.1f} ms per photon'.format(elapsed, elapsed/N*1000, N))
 
+    def absorbEnergy(self, photon) -> float:
+        delta = photon.weight * self.material.albedo
+        photon.decreaseWeightBy(delta)
+        return delta
+
+    def contains(self, position) -> bool:
+        """ The base object is infinite. Subclasses override this method
+        with their specific geometry. 
+
+        It is important that this function be efficient: it is called
+        very frequently.
+        """
+        return True
+
     def intersection(self, position, direction, distance) -> (bool, float): 
         finalPosition = position + distance*direction
         if self.contains(finalPosition):
@@ -89,20 +103,6 @@ class Geometry:
 
         return True, (finalPosition-position).abs()
 
-    def contains(self, position) -> bool:
-        """ This object is infinite. Subclasses override this method
-        with their specific geometry. 
-
-        It is important that this function be efficient: it is called
-        very frequently.
-        """
-        return True
-
-    def absorbEnergy(self, photon) -> float:
-        delta = photon.weight * self.material.albedo
-        photon.decreaseWeightBy(delta)
-        return delta
-
     def scoreInVolume(self, photon, delta):
         if self.stats is not None:
             self.stats.scoreInVolume(photon, delta)
@@ -122,11 +122,11 @@ class Geometry:
         if i  % steps == 0:
             print("{2} Photon {0}/{1}".format(i, maxCount, time.ctime()) )
             if self.stats is not None:
-                self.stats.show2D(plane='xz', integratedAlong='y', title="{0} photons".format(i)) 
+                self.stats.showEnergy2D(plane='xz', integratedAlong='y', title="{0} photons".format(i)) 
 
     def report(self):
         if self.stats is not None:
-            #self.stats.show2D(plane='xz', integratedAlong='y', title="Final photons", realtime=False)
+            self.stats.showEnergy2D(plane='xz', integratedAlong='y', title="Final photons", realtime=False)
 #            stats.show1D(axis='z', integratedAlong='xy', title="{0} photons".format(N), realtime=False)
 
             self.stats.showSurfaceIntensities(self.surfaces)
@@ -180,18 +180,6 @@ class Layer(Geometry):
             return False
 
         return True
-
-    def reportSurfaceIntensities(self):
-        fig, axes = plt.subplots(nrows=1, ncols=2)
-        
-        a,b,weights = self.stats.crossingXYPlane(z=self.size[2]/2)
-        axes[0, 2].set_title('Intensity at z = {0:.0f}'.format(self.size[2]/2))
-        axes[0, 2].hist2d(a,b,weights=weights, bins=11)
-        a,b,weights = self.stats.crossingXYPlane(z=-self.size[2]/2)
-        axes[1, 2].set_title('Intensity at z = {0:.0f}'.format(-self.size[2]/2))
-        axes[1, 2].hist2d(a,b,weights=weights, bins=11)
-        fig.tight_layout()
-        plt.show()
 
 class Sphere(Geometry):
     def __init__(self, radius, material, stats=None):

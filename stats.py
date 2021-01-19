@@ -79,10 +79,10 @@ class Stats:
     def scoreWhenFinal(self, photon):
         self.final.append(photon)
 
-    def show3D(self):
+    def showEnergy3D(self):
         raise NotImplementedError()
 
-    def show2D(self, plane:str, cutAt:int= None, integratedAlong:str=None, title="", realtime=True):
+    def showEnergy2D(self, plane:str, cutAt:int= None, integratedAlong:str=None, title="", realtime=True):
         if integratedAlong is None and cutAt is None:
             raise ValueError("You must provide cutAt= or integratedAlong=")
         elif integratedAlong is not None and cutAt is not None:
@@ -126,7 +126,7 @@ class Stats:
             plt.ioff()
             plt.show()
 
-    def show1D(self, axis:str, cutAt=None, integratedAlong=None, title="", realtime=True):
+    def showEnergy1D(self, axis:str, cutAt=None, integratedAlong=None, title="", realtime=True):
         if integratedAlong is None and cutAt is None:
             # Assume integral
             raise ValueError("You should provide cutAt=(x0, x1) or integratedAlong='xy'.")
@@ -181,6 +181,7 @@ class Stats:
             axes[i % 2, i // 2].hist2d(a,b,weights=weights, bins=11)
 
         fig.tight_layout()
+        plt.ioff()
         plt.show()
 
     def photonsCrossingPlane(self, surface):
