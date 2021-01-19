@@ -26,10 +26,14 @@ class Geometry:
 
             if not isIntersecting:
                 # If the scatteringPoint is still inside, we simply move
-                photon.moveBy(d)
+                # Default is simply photon.moveBy(d) but or other things 
+                # would be here. Create a new material for other behaviour
+                self.material.move(photon, d=d)
  
-                # Interact with volume
-                delta = self.absorbEnergy(photon)
+                # Interact with volume: default is absorption only
+                # Default is simply absorb energy. Create a Material
+                # for other behaviour
+                delta = self.material.interactWith(photon)
                 self.scoreInVolume(photon, delta)
 
                 # Scatter within volume
@@ -40,7 +44,7 @@ class Geometry:
                 photon.roulette()
             else:
                 # If the scatteringPoint is outside, we move to the surface
-                photon.moveBy(d)
+                self.material.move(photon, d=d)
 
                 # then we neglect reflections (for now), score
                 self.scoreWhenCrossing(photon)
@@ -72,7 +76,7 @@ class Geometry:
         with their specific geometry. 
 
         It is important that this function be efficient: it is called
-        very frequently.
+        very frequently. See implementations for Box, Sphere and Layer
         """
         return True
 
@@ -138,12 +142,12 @@ class Box(Geometry):
 
     @property
     def surfaces(self):
-        return [ XYPlane(atZ=self.size[2]/2),
-                 -XYPlane(atZ=-self.size[2]/2),
-                 YZPlane(atX=self.size[0]/2),
-                 -YZPlane(atX=-self.size[0]/2),
-                 ZXPlane(atY=self.size[1]/2),
-                 -ZXPlane(atY=-self.size[1]/2)]
+        return [ XYPlane(atZ= self.size[2]/2),
+                -XYPlane(atZ=-self.size[2]/2),
+                 YZPlane(atX= self.size[0]/2),
+                -YZPlane(atX=-self.size[0]/2),
+                 ZXPlane(atY= self.size[1]/2),
+                -ZXPlane(atY=-self.size[1]/2)]
 
     def contains(self, localPosition) -> bool:
         if abs(localPosition.z) > self.size[2]/2:
@@ -164,22 +168,33 @@ class Cube(Box):
 class Layer(Geometry):
     def __init__(self, thickness, material, stats=None):
         super(Layer, self).__init__(material, stats)
-        self.size = (1e6,1e6,thickness)
+        self.thickness = thickness
 
     @property
     def surfaces(self):
-        return [ XYPlane(atZ=self.size[2]/2, normal=zHat),
-                 XYPlane(atZ=-self.size[2]/2,normal=-zHat)]
+        return [ XYPlane(atZ= self.thickness),
+                -XYPlane(atZ= 0)]
 
     def contains(self, localPosition) -> bool:
-        if localPosition.z > self.size[2] or localPosition.z < 0:
+        if localPosition.z < 0:
             return False
-        if abs(localPosition.y) > self.size[1]/2:
-            return False
-        if abs(localPosition.x) > self.size[0]/2:
+        if localPosition.z > self.thickness:
             return False
 
         return True
+
+    def intersection(self, position, direction, distance) -> (bool, float): 
+        finalPosition = position + distance*direction
+        if self.contains(finalPosition):
+            return False, distance
+
+        if direction.z > 0:
+            d = (self.thickness - position.z)/direction.z
+            return True, d
+        elif direction.z < 0:
+            d = - position.z/direction.z
+            return True, d
+        return False, distance
 
 class Sphere(Geometry):
     def __init__(self, radius, material, stats=None):
@@ -200,3 +215,11 @@ class KleinBottle(Geometry):
     def contains(self, localPosition) -> bool:
         raise NotImplementedError()
 
+class World:
+    def __init__(self):
+        self.sources = []
+        self.geometries = []
+
+    def place(self, geometry, position):
+        geometry.origin = position
+        self.geometries.append(geometry)

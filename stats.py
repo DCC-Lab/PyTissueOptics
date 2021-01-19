@@ -177,8 +177,12 @@ class Stats:
 
         for i, surface in enumerate(surfaces):
             a,b,weights = self.photonsCrossingPlane(surface)
-            axes[i % 2, i // 2].set_title('Intensity at {0} [T={1:.0f}%]'.format(surface,100*sum(weights)/N))
-            axes[i % 2, i // 2].hist2d(a,b,weights=weights, bins=11)
+            if len(surfaces) > 2:
+                axes[i % 2, i // 2].set_title('Intensity at {0} [T={1:.0f}%]'.format(surface,100*sum(weights)/N))
+                axes[i % 2, i // 2].hist2d(a,b,weights=weights, bins=21)
+            else:
+                axes[i % 2].set_title('Intensity at {0} [T={1:.0f}%]'.format(surface,100*sum(weights)/N))
+                axes[i % 2].hist2d(a,b,weights=weights, bins=21)
 
         fig.tight_layout()
         plt.ioff()

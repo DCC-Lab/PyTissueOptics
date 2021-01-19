@@ -28,3 +28,11 @@ class Material:
             temp = (1-g*g)/(1-g+2*g*np.random.random())
             cost = (1+g*g - temp*temp)/(2*g)
         return (np.arccos(cost), phi)
+
+    def interactWith(self, photon) -> float:
+        delta = photon.weight * self.albedo
+        photon.decreaseWeightBy(delta)
+        return delta
+
+    def move(self, photon, d:float):
+        photon.moveBy(d)
