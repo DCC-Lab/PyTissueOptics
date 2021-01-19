@@ -128,7 +128,7 @@ class Geometry:
             return
 
         if i  % steps == 0:
-            print("Photon {0}/{1}".format(i, maxCount) )
+            print("{2} Photon {0}/{1}".format(i, maxCount, time.ctime()) )
             if self.stats is not None:
                 self.stats.show2D(plane='xz', integratedAlong='y', title="{0} photons".format(i)) 
 
