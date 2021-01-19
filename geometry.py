@@ -129,15 +129,15 @@ class Geometry:
 
         if i  % steps == 0:
             print("Photon {0}/{1}".format(i, maxCount) )
-            # if self.stats is not None:
-            #     self.stats.show2D(plane='xz', integratedAlong='y', title="{0} photons".format(i)) 
+            if self.stats is not None:
+                self.stats.show2D(plane='xz', integratedAlong='y', title="{0} photons".format(i)) 
 
     def report(self):
         if self.stats is not None:
             self.stats.show2D(plane='xz', integratedAlong='y', title="Final photons", realtime=False)
 #            stats.show1D(axis='z', integratedAlong='xy', title="{0} photons".format(N), realtime=False)
 
-        self.stats.reportSurfaceIntensities(self.yzSurfaces, self.zxSurfaces, self.xySurfaces)
+            self.stats.reportSurfaceIntensities(self.yzSurfaces, self.zxSurfaces, self.xySurfaces)
 
 class Box(Geometry):
     def __init__(self, size, material, stats=None):

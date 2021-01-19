@@ -14,7 +14,7 @@ tissue = Box(size=(2,2,2), material=mat, stats=stats)
 #tissue = Sphere(radius=2, material=mat, stats=stats)
 
 # We pick a light source
-source = IsotropicSource(position=Vector(0,0,0), maxCount=100000)
+source = IsotropicSource(position=Vector(0,0,0), maxCount=10000)
 
 # We propagate the photons from the source inside the geometry
 tissue.propagateMany(source, showProgressEvery=1000)

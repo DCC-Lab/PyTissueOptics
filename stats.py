@@ -18,7 +18,7 @@ class Stats:
         self.savedPhotonCount = 0
         self.energy = np.zeros(size)
         self.figure = None
-        self.volume = []
+        self.volume = [] 
         self.crossing = []
         self.final = []
 
@@ -89,24 +89,22 @@ class Stats:
         self.energy = np.add(self.energy, np.array(data["energy"]))
 
     def scoreInVolume(self, photon, delta):
-        self.volume.append( (Vector(photon.r), photon.weight))
-        # self.photons.add(photon.uniqueId)
-        # position = photon.r
+        position = photon.r
 
-        # i = int(self.binSizes[0]*(position.x-self.min[0])-0.5)
-        # j = int(self.binSizes[1]*(position.y-self.min[1])-0.5)
-        # k = int(self.binSizes[2]*(position.z-self.min[2])-0.5)
+        i = int(self.binSizes[0]*(position.x-self.min[0])-0.5)
+        j = int(self.binSizes[1]*(position.y-self.min[1])-0.5)
+        k = int(self.binSizes[2]*(position.z-self.min[2])-0.5)
 
-        # if i < 0 or i > self.size[0]-1:
-        #     return
+        if i < 0 or i > self.size[0]-1:
+            return
 
-        # if j < 0 or j > self.size[1]-1:
-        #     return
+        if j < 0 or j > self.size[1]-1:
+            return
 
-        # if k < 0 or k > self.size[2]-1:
-        #     return
+        if k < 0 or k > self.size[2]-1:
+            return
 
-        # self.energy[i,j,k] += delta
+        self.energy[i,j,k] += delta
 
     def scoreWhenCrossing(self, photon):
         self.crossing.append( (Vector(photon.r), photon.weight))
@@ -213,17 +211,17 @@ class Stats:
         for i, cut in enumerate(x):
             a,b,weights = self.crossingYZPlane(x=cut)
             axes[i, 0].set_title('Intensity at x = {0:.0f} [T={1:.0f}%]'.format(cut,100*sum(weights)/N))
-            axes[i, 0].hist2d(a,b,weights=weights, bins=11)
+            axes[i, 0].hist2d(a,b,weights=weights, bins=21)
 
         for i, cut in enumerate(y):
             a,b,weights = self.crossingZXPlane(y=cut)
             axes[i, 1].set_title('Intensity at y = {0:.0f} [T={1:.0f}%]'.format(cut,100*sum(weights)/N))
-            axes[i, 1].hist2d(a,b,weights=weights, bins=11)
+            axes[i, 1].hist2d(a,b,weights=weights, bins=21)
 
         for i, cut in enumerate(z):
             a,b,weights = self.crossingXYPlane(z=cut)
             axes[i, 2].set_title('Intensity at z = {0:.0f} [T={1:.0f}%]'.format(cut,100*sum(weights)/N))
-            axes[i, 2].hist2d(a,b,weights=weights, bins=11)
+            axes[i, 2].hist2d(a,b,weights=weights, bins=21)
 
         fig.tight_layout()
         plt.show()
