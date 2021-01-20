@@ -3,12 +3,13 @@ import matplotlib.pyplot as plt
 from stats import *
 
 class Material:
-    def __init__(self, mu_s = 0, mu_a = 0, g = 0):
+    def __init__(self, mu_s = 0, mu_a = 0, g = 0, index = 1.4):
         self.mu_s = mu_s
         self.mu_a = mu_a
         self.mu_t = self.mu_a + self.mu_s
         self.albedo = self.mu_a/self.mu_t
         self.g = g
+        self.index = index
 
     def getScatteringDistance(self, photon) -> float:
         if self.mu_t == 0:
