@@ -7,6 +7,9 @@ class Surface:
         self.b = b
         self.normal = normal
         self.size = size
+        self.indexInside = 1.0
+        self.indexOutside = 1.0
+
         if description is None:
             self.description = "Surface"
         else:
