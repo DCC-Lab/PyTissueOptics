@@ -2,6 +2,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 import time
 from vector import *
+import os
 
 class Stats:
     def __init__(self, min = (-1, -1, 0), max = (1, 1, 0.5), size = (21,21,21)):
@@ -19,6 +20,13 @@ class Stats:
         self.crossing = []
         self.final = []
         self.startTime = time.time()
+
+        try:
+            os.environ['DISPLAY']
+        except:
+            print("Exception!")
+            print(os.environ)
+            #plt.switch_backend('agg')
 
     @property
     def photonCount(self):
@@ -205,3 +213,12 @@ class Stats:
         fig.tight_layout()
         plt.ioff()
         plt.show()
+
+    @property
+    def hasDisplay(self):
+        try:
+            os.environ['DISPLAY']
+        except:
+            return False
+
+        return True
