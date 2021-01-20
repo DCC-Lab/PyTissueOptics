@@ -133,18 +133,22 @@ class Vector:
 
     def normalizedCrossProduct(self, vector):
         productNorm = self.norm() * vector.norm()
-        return self.cross(vector) / math.sqrt(productNorm)
+        if productNorm == 0:
+            return 0
+        return self.cross(vector) * (1 / math.sqrt(productNorm))
 
     def normalizedDotProduct(self, vector):
         productNorm = self.norm() * vector.norm()
-        return self.dot(vector) / math.sqrt(productNorm)
+        if productNorm == 0:
+            return 0
+        return self.dot(vector) * (1 / math.sqrt(productNorm))
 
-    def orientedAngleBetween(self, u, v, w):
-        sinPhi = u.normalizedCrossProduct(v)
-        sinPhiAbs = abs(sinPhi)
-        phi = math.arcsin(sinPhiAbs)
+    def orientedAngleBetween(self, v, w):
+        sinPhi = self.normalizedCrossProduct(v)
+        sinPhiAbs = sinPhi.abs()
+        phi = math.asin(sinPhiAbs)
     
-        if u.dot(v) <= 0:
+        if self.dot(v) <= 0:
             phi = math.pi-phi
 
         if sinPhi.dot(w) <= 0:
