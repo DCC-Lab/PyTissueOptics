@@ -55,14 +55,14 @@ class Geometry:
         self.scoreFinal(photon)
         photon.transformFromLocalCoordinates(self.origin)
 
-    def propagateMany(self, source):
+    def propagateMany(self, source, graphs=True):
         N = source.maxCount
 
         startTime = time.time()
         self.setupSurfaces()
         for i, photon in enumerate(source):
             self.propagate(photon)
-            self.showProgress(i+1, maxCount=N)
+            self.showProgress(i+1, maxCount=N, graphs=graphs)
 
         elapsed = time.time() - startTime
         print('{0:.1f} s for {2} photons, {1:.1f} ms per photon'.format(elapsed, elapsed/N*1000, N))
@@ -77,9 +77,9 @@ class Geometry:
         return True
 
     def intersection(self, position, direction, distance) -> (bool, float, Surface): 
-        """ This function is a very general function, somewhat efficient
+        """ This function is a very general function, surprisingly efficient
         to find if a photon will leave the object.  `contains` is called
-        repeatedly and must be high performance. It is possible to write 
+        repeatedly and must be high performance. It may be possible to write 
         a specialized version for a subclass, but this version will work
         by default for all objects.
         """
@@ -163,19 +163,19 @@ class Geometry:
         if self.stats is not None:
             self.stats.scoreWhenFinal(photon)
 
-    def showProgress(self, i, maxCount):
+    def showProgress(self, i, maxCount, graphs=False):
         steps = 100
         while steps < i:
             steps *= 10
 
         if i  % steps == 0:
             print("{2} Photon {0}/{1}".format(i, maxCount, time.ctime()) )
-            if self.stats is not None:
+            if graphs and self.stats is not None:
                 self.stats.showEnergy2D(plane='xz', integratedAlong='y', title="{0} photons".format(i)) 
 
     def report(self):
         if self.stats is not None:
-            self.stats.showEnergy2D(plane='xz', integratedAlong='y', title="Final photons", realtime=False)
+            #self.stats.showEnergy2D(plane='xz', integratedAlong='y', title="Final photons", realtime=False)
             self.stats.showSurfaceIntensities(self.surfaces)
 
             for i, surface in enumerate(self.surfaces):
@@ -204,7 +204,6 @@ class Box(Geometry):
             return False
 
         return True
-
 
 class Cube(Box):
     def __init__(self, side, material, stats=None):
