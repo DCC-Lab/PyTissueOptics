@@ -11,6 +11,7 @@ class Geometry:
         self.material = material
         self.origin = Vector(0,0,0)
         self.stats = stats
+        self.surfaces = []
 
     def propagate(self, photon):
         photon.transformToLocalCoordinates(self.origin)
@@ -55,9 +56,10 @@ class Geometry:
         photon.transformFromLocalCoordinates(self.origin)
 
     def propagateMany(self, source):
-        startTime = time.time()
         N = source.maxCount
 
+        startTime = time.time()
+        self.setupSurfaces()
         for i, photon in enumerate(source):
             self.propagate(photon)
             self.showProgress(i+1, maxCount=N)
@@ -113,20 +115,23 @@ class Geometry:
 
         return True, (finalPosition-position).abs(), surface
 
-    @property
-    def surfaces(self):
-        return []
+    def setupSurfaces(self):
+        for s in self.surfaces:
+            s.indexInside = self.material.index
+            s.indexOutside = 1.0 # FIXME
 
     def isReflected(self, photon, surface) -> bool:
-        # Get index n1, n2, compute Fresnel transmission coefficient t
-        # Pick a random number > t -> reflected
-        # If < t -> transmitted
         n1 = surface.indexInside
         n2 = surface.indexOutside
-        t = 2*n1/(n1+n2)
 
-        t = 0.5 # testing
-        if np.random.random() > t:
+        planeOfIncidenceNormal = photon.ez.normalizedCrossProduct(surface.normal)
+        thetaIn = photon.ez.orientedAngleBetween(surface.normal, planeOfIncidenceNormal)
+        if math.sin(thetaIn)*n1/n2 > 1:
+            return True
+
+        R = (n2-n1)/(n1+n2)
+        R *= R
+        if np.random.random() < R:
             return True
         return False
 
@@ -183,15 +188,12 @@ class Box(Geometry):
     def __init__(self, size, material, stats=None):
         super(Box, self).__init__(material, stats)
         self.size = size
-
-    @property
-    def surfaces(self):
-        return [ XYPlane(atZ= self.size[2]/2, description="Back"),
-                -XYPlane(atZ=-self.size[2]/2, description="Front"),
-                 YZPlane(atX= self.size[0]/2, description="Right"), 
-                -YZPlane(atX=-self.size[0]/2, description="Left"),
-                 ZXPlane(atY= self.size[1]/2, description="Top"),
-                -ZXPlane(atY=-self.size[1]/2, description="Bottom")]
+        self.surfaces = [ XYPlane(atZ= self.size[2]/2, description="Back"),
+                         -XYPlane(atZ=-self.size[2]/2, description="Front"),
+                          YZPlane(atX= self.size[0]/2, description="Right"), 
+                         -YZPlane(atX=-self.size[0]/2, description="Left"),
+                          ZXPlane(atY= self.size[1]/2, description="Top"),
+                         -ZXPlane(atY=-self.size[1]/2, description="Bottom")]
 
     def contains(self, localPosition) -> bool:
         if abs(localPosition.z) > self.size[2]/2:
@@ -213,11 +215,8 @@ class Layer(Geometry):
     def __init__(self, thickness, material, stats=None):
         super(Layer, self).__init__(material, stats)
         self.thickness = thickness
-
-    @property
-    def surfaces(self):
-        return [ XYPlane(atZ= self.thickness, description="Back"),
-                -XYPlane(atZ= 0, description="Front")]
+        self.surfaces = [ XYPlane(atZ= self.thickness, description="Back"),
+                         -XYPlane(atZ= 0, description="Front")]
 
     def contains(self, localPosition) -> bool:
         if localPosition.z < 0:
@@ -249,10 +248,7 @@ class SemiInfiniteLayer(Geometry):
 
     def __init__(self, material, stats=None):
         super(SemiInfiniteLayer, self).__init__(material, stats)
-
-    @property
-    def surfaces(self):
-        return [ -XYPlane(atZ= 0, description="Front")]
+        self.surfaces = [ -XYPlane(atZ= 0, description="Front")]
 
     def contains(self, localPosition) -> bool:
         if localPosition.z < 0:
