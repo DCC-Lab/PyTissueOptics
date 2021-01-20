@@ -30,6 +30,24 @@ class Surface:
 
         return False, None, None
 
+    def intersection(self, position, direction, maxDistance) -> (bool, float): 
+        # This function is not as efficient as the Geometry implementation
+        # https://en.wikipedia.org/wiki/Line–plane_intersection
+
+        dotProduct = direction.dot(self.normal)
+        if dotProduct == 0:
+            return False, maxDistance
+
+        d = (position - self.origin).dot(self.normal)/dotProduct
+        if d >= 0 and d <= maxDistance:
+            inPlane = (position-self.origin)+d*direction
+            if self.contains(inPlane):
+                return True, d
+            else:                
+                return False, maxDistance
+        else:
+            return False, maxDistance
+
     def __str__(self):
         return self.description
 
