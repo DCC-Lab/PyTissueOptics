@@ -40,19 +40,19 @@ class Geometry:
                 theta, phi = self.material.getScatteringAngles(photon)
                 photon.scatterBy(theta, phi)
 
-                # And go again    
-                photon.roulette()
             else:
                 # If the scatteringPoint is outside, we move to the surface
                 self.material.move(photon, d=d)
 
-                # then we neglect reflections (for now), and score
-                # (this can have a significant effect: it will overestimate
-                # transmittance)
-                self.scoreWhenCrossing(photon)
+                if self.isReflected(photon):
+                    pass
+                else:
+                    # and leave
+                    self.scoreWhenCrossing(photon)
+                    break
 
-                # and leave
-                break
+            # And go again    
+            photon.roulette()
 
         self.scoreFinal(photon)
         photon.transformFromLocalCoordinates(self.origin)
@@ -110,6 +110,13 @@ class Geometry:
             wasInside = isInside
 
         return True, (finalPosition-position).abs()
+
+    def isReflected(self, photon) -> bool:
+        for surface in self.surfaces:
+            if surface.contains(photon.r):
+                cosTheta = photon.ez.normalizedDotProduct(surface.normal)
+
+        return False
 
     def scoreInVolume(self, photon, delta):
         if self.stats is not None:
