@@ -30,10 +30,10 @@ There are 6 main concepts (or `Class` in object-oriented language) in this code:
 
 1. `Photon`: The photon is the main actor:  it has a position, it propagates in a given direction.  Its direction is changed when it scatters. It does not know anything about geometry or physical properties of tissue.
 2. `Source`: A group of photons, such as `IsotropicSource`, `PencilSource` with specific properties. You provide the characteristics you want and it will give you a list of photons that responds to these criteria.  This list of photons will give you the answer you want after it has propagated in the `Object` of interest.
-3. `Material`: The scattering properties and the methods to calculate the scattering angles are the responsibility of the `Material` class.
+3. `Material`: The scattering properties and the methods to calculate the scattering angles are the responsibility of the `Material` class. The `Material` also knows how to move the photon between two points (for instance, if there is birefringence, this is where you would put it).
 4. `Geometry`: A real-world geometry (`Box`, `Cube`, `Sphere`, `Layer`, etc...). The geometry has two important variables: a `Material` (which will dictate its scattering properties) and a `Stats` object to keep track of physical values of interest.  The material will provide the required functions to compute the scattering angles, and the photon will use these angles to compute its next position.  The `Stats` object will compute the relevant statistics.
-5. `Stats`: An object to keep track of something you want. For now, it only keeps track of volumetric quantities (i.e. the energy deposited in the tissue). *A branch is under development for scoring on surfaces that make up the geometry*.
-6. Finally, a very useful `Vector` and `UnitVector` helper classes are used to simplify any 3D computation with vectors because they can be used like other values (they can be added, subtracted, normalized, etc...).
+5. `Stats`: An object to keep track of something you want. For now, it only keeps track of volumetric quantities (i.e. the energy deposited in the tissue) and intensities through the surfaces delimiting geometries.
+6. Finally, very useful `Vector`, `UnitVector` and `Surface` helper classes with their subclasses are used to simplify any 3D computation with vectors, planes, surfaces, because they can be used like other values (they can be added, subtracted, normalized, etc...).
 
 ## Limitations
 
@@ -43,7 +43,7 @@ There are many limitations, as this is mostly a teaching tool, but I use it for 
 3. It does not compute all possible stats (total reflectance, etc...), only the deposited energy in the volume.
 4. Documentation is sparse at best.
 5. You have probably noticed that the axes on the graphs are currently not labelled. Don't tell my students.
-6. Did I say it was slow? It is approximately 200x slower than the well-known code [MCML](https://omlc.org/software/mc/mcml/) on the same machine. I know, and now I know that *you* know, but see **Advantages** below.
+6. Did I say it was slow? It is approximately 50x slower than the well-known code [MCML](https://omlc.org/software/mc/mcml/) on the same machine. I know, and now I know that *you* know, but see **Advantages** below.
 
 ## Advantages
 
@@ -53,7 +53,7 @@ However, there are advantages:
 2. The code is very clear with only a few files in a single directory.
 3. It can be used for teaching tissue optics.
 4. It can be used for teaching object-oriented programming for those not familiar with it.
-5. It is fairly easy to modify for your own purpose.
+5. It is fairly easy to modify for your own purpose. Many modifications do not even require to subclass.
 6. In addition, because it is very easy to parallelize a Monte Carlo calculations (all runs are independant), splitting the job onto several CPUs is a good option to gain a factor of close to 10 in perfromance on many computers.
 
 ## The core of the code
@@ -95,28 +95,41 @@ class Geometry:
         photon.transformToLocalCoordinates(self.origin)
 
         while photon.isAlive and self.contains(photon.r):
-            # Pick to scattering point
+            # Pick distance to scattering point
             d = self.material.getScatteringDistance(photon)
-            isNotIntersecting, surface, d = self.intersection(photon.r, photon.ez, d)
-            if isNotIntersecting:
+            isIntersecting, d = self.intersection(photon.r, photon.ez, d)
+
+            if not isIntersecting:
                 # If the scatteringPoint is still inside, we simply move
-                photon.moveBy(d) 
+                # Default is simply photon.moveBy(d) but other things 
+                # would be here. Create a new material for other behaviour
+                self.material.move(photon, d=d)
+ 
                 # Interact with volume
-                delta = self.absorbEnergy(photon)
-                self.scoreStepping(photon, delta)
+                # Default is simply absorb energy. Create a Material
+                # for other behaviour
+                delta = self.material.interactWith(photon)
+                self.scoreInVolume(photon, delta)
+
                 # Scatter within volume
+                # Default is Henyey-Greenstein. Create a Material
+                # for other behaviour            
                 theta, phi = self.material.getScatteringAngles(photon)
                 photon.scatterBy(theta, phi)
+
                 # And go again    
                 photon.roulette()
             else:
                 # If the scatteringPoint is outside, we move to the surface
-                photon.moveBy(d)
+                self.material.move(photon, d=d)
+
                 # then we neglect reflections (for now), score
-                self.scoreLeaving(photon, surface)
+                self.scoreWhenCrossing(photon)
+
                 # and leave
                 break
-            
+
+        self.scoreFinal(photon)
         photon.transformFromLocalCoordinates(self.origin)
 
     def propagateMany(self, source, showProgressEvery=100):
@@ -127,7 +140,7 @@ class Geometry:
             self.propagate(photon)
             self.showProgress(i, maxCount=N , steps=showProgressEvery)
 
-        elapsed = time.time() - self.startTime
+        elapsed = time.time() - startTime
         print('{0:.1f} s for {2} photons, {1:.1f} ms per photon'.format(elapsed, elapsed/N*1000, N))
 
 ```

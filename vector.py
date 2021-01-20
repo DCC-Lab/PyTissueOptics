@@ -48,6 +48,9 @@ class Vector:
     def __radd__(self, vector):
         return Vector(self.x + vector.x, self.y + vector.y, self.z + vector.z)
 
+    def __neg__(self):
+        return Vector(-self.x, -self.y, -self.z)
+
     def addScaled(self, vector, scale):
         self.x += vector.x*scale
         self.y += vector.y*scale
@@ -74,6 +77,27 @@ class Vector:
 
     def isPerpendicularTo(self, vector):
         return (self.normalizedDotProduct(vector) < 1e-6)
+
+    def isInXYPlane(self, atZ, epsilon=0.001) -> bool:
+        if abs(self.z-z) < epsilon:
+            return True
+        return False
+
+    def isInYZPlane(self, atX, epsilon=0.001) -> bool:
+        if abs(self.x-x) < epsilon:
+            return True
+        return False
+
+    def isInZXPlane(self, atY, epsilon=0.001) -> bool:
+        if abs(self.y-y) < epsilon:
+            return True
+        return False
+
+    def isInPlane(self, origin:'Vector', normal:'Vector', epsilon=0.001) -> bool:
+        local = self-origin
+        if abs(local.normalizedDotProduct(normal)) < epsilon:
+            return True
+        return False
 
     def norm(self):
         ux = self.x
@@ -235,3 +259,8 @@ class UnitVector(Vector):
             return self.dot(vector)
         else:
             return Vector.normalizedDotProduct(self, vector)
+
+xHat = UnitVector(1,0,0)
+yHat = UnitVector(0,1,0)
+zHat = UnitVector(0,0,1)
+

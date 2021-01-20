@@ -1,43 +1,73 @@
 from vector import *
 
 class Surface:
-    def __init__(self, origin, normal, bins = (11,11)):
+    def __init__(self, origin, a, b, normal, size = None, description=None):
         self.origin = origin
-        self.normal = normal
-        self.bins = bins
-        self.intensity = np.zeros(bins)
-
-    def contains(self, position, epsilon=0.001) -> bool:
-        return False
-
-    def uvCoordinates(self, point) -> (float,float):
-        raise NotImplementedError()
-
-    def uvIndexes(self, point) -> (int, int):
-        raise NotImplementedError()
-
-    def score(self, photon):
-        i,j = self.uvIndexes(photon.r)
-        self.scoreAt(photon, i, j)
-
-    def scoreAt(self, photon, i, j):
-        self.intensity[i,j] += photon.weight
-
-class XYPlane(Surface):
-    def __init__(self, z):
-        super(FlatSurface, self).__init__(Vector(0,0,z), UnitVector(0,0,1))
-
-class FlatSurface(Surface):
-    def __init__(self, origin, a, b, bins = (11,11)):
-        super(FlatSurface, self).__init__(origin, u.cross(v), bins)
         self.a = a
         self.b = b
+        self.normal = normal
+        self.size = size
+        if description is None:
+            self.description = "Surface"
+        else:
+            self.description = description
 
-    def locateProjection(self, point) -> (float,float):
-        raise NotImplementedError()
+    def contains(self, position, epsilon=0.001) -> (bool, float, float):
+        local = position-self.origin
+        if abs(local.normalizedDotProduct(self.normal)) < epsilon:
+            u = local.dot(self.a)
+            v = local.dot(self.b) 
+            if self.size is None:
+                return True, u, v
+            else:
+                if u > self.size[0] or u < 0 or v > self.size[1] or v < 0:
+                    return False, None, None
+                else:
+                    return True, u, v
 
-class SphericalSurface(Surface):
-    def __init__(self, origin, radius, bins = (37,11)):
-        super(SphericalSurface, self).__init__(origin, None, bins)
-        self.radius = radius
+        return False, None, None
 
+    def __str__(self):
+        return self.description
+
+    def __neg__(self):
+        s = Surface(self.origin, self.b, self.a, -self.normal, self.size)
+        s.description = self.description
+        return s
+
+class XYPlane(Surface):
+    def __init__(self, atZ, description=None):
+        if description is None:
+            description = "XY at z={0:.1f}".format(atZ)
+        super(XYPlane, self).__init__(Vector(0,0,atZ), xHat, yHat, zHat, 
+                                      size=None, description=description)
+
+class YZPlane(Surface):
+    def __init__(self, atX, description=None):
+        if description is None:
+            description = "YZ at x={0:.1f}".format(atX)
+        super(YZPlane, self).__init__(Vector(atX,0,0), yHat, zHat, xHat, size=None, description=description)
+
+class ZXPlane(Surface):
+    def __init__(self, atY, description=None):
+        if description is None:
+            description = "ZX at y={0:.1f}".format(atY)
+        super(ZXPlane, self).__init__(Vector(0, atY,0), zHat, xHat, yHat, size=None, description=description)
+
+class XYRect(Surface):
+    def __init__(self, origin, size, description=None):
+        if description is None:
+            description = "XY at z={0:.1f}".format(origin)
+        super(XYRect, self).__init__(origin, xHat, yHat, zHat, size, description=description)
+
+class YZRect(Surface):
+    def __init__(self, origin, size, description=None):
+        if description is None:
+            description = "YZ at x={0:.1f}".format(origin)
+        super(YZRect, self).__init__(origin, yHat, zHat, xHat, size, description=description)
+
+class ZXRect(Surface):
+    def __init__(self, origin, size, description=None):
+        if description is None:
+            description = "ZX at y={0:.1f}".format(origin)
+        super(ZXRect, self).__init__(origin, zHat, xHat, yHat, size, description)
