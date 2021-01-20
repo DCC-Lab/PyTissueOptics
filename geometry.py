@@ -12,17 +12,13 @@ class Geometry:
         self.origin = Vector(0,0,0)
         self.stats = stats
 
-    @property
-    def surfaces(self):
-        return []
-
     def propagate(self, photon):
         photon.transformToLocalCoordinates(self.origin)
 
         while photon.isAlive and self.contains(photon.r):
             # Pick distance to scattering point
             d = self.material.getScatteringDistance(photon)
-            isIntersecting, d = self.intersection(photon.r, photon.ez, d)
+            isIntersecting, d, surface = self.intersection(photon.r, photon.ez, d)
 
             if not isIntersecting:
                 # If the scatteringPoint is still inside, we simply move
@@ -44,10 +40,11 @@ class Geometry:
                 # If the scatteringPoint is outside, we move to the surface
                 self.material.move(photon, d=d)
 
-                if self.isReflected(photon):
-                    pass
+                if self.isReflected(photon, surface): 
+                    self.reflect(photon, surface)
                 else:
                     # and leave
+                    self.transmit(photon, surface)
                     self.scoreWhenCrossing(photon)
                     break
 
@@ -77,7 +74,7 @@ class Geometry:
         """
         return True
 
-    def intersection(self, position, direction, distance) -> (bool, float): 
+    def intersection(self, position, direction, distance) -> (bool, float, Surface): 
         """ This function is a very general function, somewhat efficient
         to find if a photon will leave the object.  `contains` is called
         repeatedly and must be high performance. It is possible to write 
@@ -87,7 +84,7 @@ class Geometry:
 
         finalPosition = position + distance*direction
         if self.contains(finalPosition):
-            return False, distance
+            return False, distance, None
 
         wasInside = True
         finalPosition = position
@@ -103,20 +100,51 @@ class Geometry:
                 delta = delta * 1.5
 
             if delta >= 2*distance:
-                return False, distance
+                return False, distance, None
             elif delta <= -2*distance:
-                return False, distance
+                return False, distance, None
 
             wasInside = isInside
 
-        return True, (finalPosition-position).abs()
-
-    def isReflected(self, photon) -> bool:
+        surface = None
         for surface in self.surfaces:
-            if surface.contains(photon.r):
-                cosTheta = photon.ez.normalizedDotProduct(surface.normal)
+            if surface.contains(finalPosition):
+                break
 
+        return True, (finalPosition-position).abs(), surface
+
+    @property
+    def surfaces(self):
+        return []
+
+    def isReflected(self, photon, surface) -> bool:
+        # Get index n1, n2, compute Fresnel transmission coefficient t
+        # Pick a random number > t -> reflected
+        # If < t -> transmitted
+        n1 = surface.indexInside
+        n2 = surface.indexOutside
+        t = 2*n1/(n1+n2)
+
+        t = 0.5 # testing
+        if np.random.random() > t:
+            return True
         return False
+
+    def reflect(self, photon, surface):
+        planeOfIncidenceNormal = photon.ez.normalizedCrossProduct(surface.normal)
+        thetaIn = photon.ez.orientedAngleBetween(surface.normal, planeOfIncidenceNormal)
+
+        photon.ez.rotateAround(planeOfIncidenceNormal, np.pi-thetaIn)
+
+    def transmit(self, photon, surface):
+        planeOfIncidenceNormal = photon.ez.normalizedCrossProduct(surface.normal)
+        thetaIn = photon.ez.orientedAngleBetween(surface.normal, planeOfIncidenceNormal)
+
+        n1 = surface.indexInside
+        n2 = surface.indexOutside
+        thetaOut = math.asin(n1*math.sin(thetaIn)/n2)
+
+        photon.ez.rotateAround(planeOfIncidenceNormal, thetaOut-thetaIn)
 
     def scoreInVolume(self, photon, delta):
         if self.stats is not None:
@@ -158,12 +186,12 @@ class Box(Geometry):
 
     @property
     def surfaces(self):
-        return [ XYPlane(atZ= self.size[2]/2),
-                -XYPlane(atZ=-self.size[2]/2),
-                 YZPlane(atX= self.size[0]/2),
-                -YZPlane(atX=-self.size[0]/2),
-                 ZXPlane(atY= self.size[1]/2),
-                -ZXPlane(atY=-self.size[1]/2)]
+        return [ XYPlane(atZ= self.size[2]/2, description="Back"),
+                -XYPlane(atZ=-self.size[2]/2, description="Front"),
+                 YZPlane(atX= self.size[0]/2, description="Right"), 
+                -YZPlane(atX=-self.size[0]/2, description="Left"),
+                 ZXPlane(atY= self.size[1]/2, description="Top"),
+                -ZXPlane(atY=-self.size[1]/2, description="Bottom")]
 
     def contains(self, localPosition) -> bool:
         if abs(localPosition.z) > self.size[2]/2:
@@ -199,18 +227,19 @@ class Layer(Geometry):
 
         return True
 
-    def intersection(self, position, direction, distance) -> (bool, float): 
+    def intersection(self, position, direction, distance) -> (bool, float, Surface): 
         finalPosition = position + distance*direction
         if self.contains(finalPosition):
-            return False, distance
+            return False, distance, None
 
         if direction.z > 0:
             d = (self.thickness - position.z)/direction.z
-            return True, d
+            return True, d, self.surfaces[0]
         elif direction.z < 0:
             d = - position.z/direction.z
-            return True, d
-        return False, distance
+            return True, d, self.surfaces[1]
+
+        return False, distance, None
 
 class SemiInfiniteLayer(Geometry):
     """ This class is actually a bad idea: the photons don't exit
@@ -223,7 +252,7 @@ class SemiInfiniteLayer(Geometry):
 
     @property
     def surfaces(self):
-        return [ -XYPlane(atZ= 0)]
+        return [ -XYPlane(atZ= 0, description="Front")]
 
     def contains(self, localPosition) -> bool:
         if localPosition.z < 0:
@@ -231,15 +260,16 @@ class SemiInfiniteLayer(Geometry):
 
         return True
 
-    def intersection(self, position, direction, distance) -> (bool, float): 
+    def intersection(self, position, direction, distance) -> (bool, float, Surface): 
         finalPosition = position + distance*direction
         if self.contains(finalPosition):
-            return False, distance
+            return False, distance, None
 
         if direction.z < 0:
             d = - position.z/direction.z
-            return True, d
-        return False, distance
+            return True, d, self.surfaces[0]
+
+        return False, distance, None
 
 class Sphere(Geometry):
     def __init__(self, radius, material, stats=None):
