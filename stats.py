@@ -1,7 +1,6 @@
 import numpy as np
 import matplotlib.pyplot as plt
 import time
-import json
 from vector import *
 
 class Stats:
@@ -14,19 +13,16 @@ class Stats:
                          (self.size[1]-1)/self.L[1],
                          (self.size[2]-1)/self.L[2])
 
-        self.photons = set()
-        self.savedPhotonCount = 0
         self.energy = np.zeros(size)
         self.figure = None
         self.volume = None
         self.crossing = []
         self.final = []
-
         self.startTime = time.time()
 
     @property
     def photonCount(self):
-        return len(self.photons)
+        return len(self.final)
 
     @property
     def xCoords(self):
@@ -49,6 +45,27 @@ class Stats:
             coords.append(self.min[2] + i * (self.max[2]-self.min[2])/self.size[2])
 
         return coords
+
+    def photonsCrossingPlane(self, surface):
+        a = []
+        b = []
+        weights = []
+
+        for (r, w) in self.crossing:
+            isContained, u, v = surface.contains(r)
+            if isContained:
+                a.append(u)
+                b.append(v)
+                weights.append(w)
+
+        return a, b, weights
+
+    def totalWeightCrossingPlane(self, surface) -> float:
+        a, b, weights = self.photonsCrossingPlane(surface)
+        return sum(weights)
+
+    def totalWeightAbsorbed(self) -> float:
+        return sum(sum(sum(self.energy)))
 
     def report(self):
         elapsed = time.time() - self.startTime
@@ -99,7 +116,7 @@ class Stats:
             plt.ion()
             self.figure = plt.figure()
 
-        plt.title("Energy in {0}, {1} photons".format(plane, len(self.photons)+self.savedPhotonCount))
+        plt.title("Energy in {0}, {1} photons".format(plane, self.photonCount))
         if cutAt is not None:
             if plane == 'xy':
                 plt.imshow(np.log(self.energy[:,:,cutAt]+0.0001),cmap='hsv',extent=[self.min[0],self.max[0],self.min[1],self.max[1]],aspect='auto')
@@ -171,33 +188,20 @@ class Stats:
             plt.ioff()
             plt.show()
 
-    def showSurfaceIntensities(self, surfaces):        
+    def showSurfaceIntensities(self, surfaces):
         fig, axes = plt.subplots(nrows=2, ncols=len(surfaces)//2, figsize=(14,8))
         N = len(self.final)
 
         for i, surface in enumerate(surfaces):
             a,b,weights = self.photonsCrossingPlane(surface)
             if len(surfaces) > 2:
-                axes[i % 2, i // 2].set_title('Intensity at {0} [T={1:.0f}%]'.format(surface,100*sum(weights)/N))
+                axes[i % 2, i // 2].set_title('Intensity at {0} [T={1:.1f}%]'.format(surface,100*sum(weights)/N))
                 axes[i % 2, i // 2].hist2d(a,b,weights=weights, bins=21)
             else:
-                axes[i % 2].set_title('Intensity at {0} [T={1:.0f}%]'.format(surface,100*sum(weights)/N))
+                fig.set_size_inches(4,8)
+                axes[i % 2].set_title('Intensity at {0} [T={1:.1f}%]'.format(surface,100*sum(weights)/N))
                 axes[i % 2].hist2d(a,b,weights=weights, bins=21)
 
         fig.tight_layout()
         plt.ioff()
         plt.show()
-
-    def photonsCrossingPlane(self, surface):
-        a = []
-        b = []
-        weights = []
-
-        for (r, w) in self.crossing:
-            isContained, u, v = surface.contains(r)
-            if isContained:
-                a.append(u)
-                b.append(v)
-                weights.append(w)
-
-        return a, b, weights

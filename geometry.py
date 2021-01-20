@@ -26,7 +26,7 @@ class Geometry:
 
             if not isIntersecting:
                 # If the scatteringPoint is still inside, we simply move
-                # Default is simply photon.moveBy(d) but or other things 
+                # Default is simply photon.moveBy(d) but other things 
                 # would be here. Create a new material for other behaviour
                 self.material.move(photon, d=d)
  
@@ -46,7 +46,9 @@ class Geometry:
                 # If the scatteringPoint is outside, we move to the surface
                 self.material.move(photon, d=d)
 
-                # then we neglect reflections (for now), score
+                # then we neglect reflections (for now), and score
+                # (this can have a significant effect: it will overestimate
+                # transmittance)
                 self.scoreWhenCrossing(photon)
 
                 # and leave
@@ -55,21 +57,16 @@ class Geometry:
         self.scoreFinal(photon)
         photon.transformFromLocalCoordinates(self.origin)
 
-    def propagateMany(self, source, showProgressEvery=100):
+    def propagateMany(self, source):
         startTime = time.time()
         N = source.maxCount
 
         for i, photon in enumerate(source):
             self.propagate(photon)
-            self.showProgress(i, maxCount=N , steps=showProgressEvery)
+            self.showProgress(i+1, maxCount=N)
 
         elapsed = time.time() - startTime
         print('{0:.1f} s for {2} photons, {1:.1f} ms per photon'.format(elapsed, elapsed/N*1000, N))
-
-    def absorbEnergy(self, photon) -> float:
-        delta = photon.weight * self.material.albedo
-        photon.decreaseWeightBy(delta)
-        return delta
 
     def contains(self, position) -> bool:
         """ The base object is infinite. Subclasses override this method
@@ -81,6 +78,13 @@ class Geometry:
         return True
 
     def intersection(self, position, direction, distance) -> (bool, float): 
+        """ This function is a very general function, somewhat efficient
+        to find if a photon will leave the object.  `contains` is called
+        repeatedly and must be high performance. It is possible to write 
+        a specialized version for a subclass, but this version will work
+        by default for all objects.
+        """
+
         finalPosition = position + distance*direction
         if self.contains(finalPosition):
             return False, distance
@@ -119,9 +123,10 @@ class Geometry:
         if self.stats is not None:
             self.stats.scoreWhenFinal(photon)
 
-    def showProgress(self, i, maxCount, steps):
-        if steps is None or steps == 0:
-            return
+    def showProgress(self, i, maxCount):
+        steps = 100
+        while steps < i:
+            steps *= 10
 
         if i  % steps == 0:
             print("{2} Photon {0}/{1}".format(i, maxCount, time.ctime()) )
@@ -131,9 +136,13 @@ class Geometry:
     def report(self):
         if self.stats is not None:
             self.stats.showEnergy2D(plane='xz', integratedAlong='y', title="Final photons", realtime=False)
-#            stats.show1D(axis='z', integratedAlong='xy', title="{0} photons".format(N), realtime=False)
-
             self.stats.showSurfaceIntensities(self.surfaces)
+
+            for i, surface in enumerate(self.surfaces):
+                totalWeight = self.stats.totalWeightCrossingPlane(surface)
+                print("Transmittance [{0}] : {1:.1f}%".format(surface, 100*totalWeight/self.stats.photonCount))
+
+            print("Absorbance : {0:.1f}%".format(100*self.stats.totalWeightAbsorbed()/self.stats.photonCount))
 
 class Box(Geometry):
     def __init__(self, size, material, stats=None):
@@ -172,8 +181,8 @@ class Layer(Geometry):
 
     @property
     def surfaces(self):
-        return [ XYPlane(atZ= self.thickness),
-                -XYPlane(atZ= 0)]
+        return [ XYPlane(atZ= self.thickness, description="Back"),
+                -XYPlane(atZ= 0, description="Front")]
 
     def contains(self, localPosition) -> bool:
         if localPosition.z < 0:
@@ -196,11 +205,39 @@ class Layer(Geometry):
             return True, d
         return False, distance
 
+class SemiInfiniteLayer(Geometry):
+    """ This class is actually a bad idea: the photons don't exit
+    on the other side and will just take a long time to propagate.
+    It is better to use a finite layer with a thickness a bit larger
+    than what you are interested in."""
+
+    def __init__(self, material, stats=None):
+        super(SemiInfiniteLayer, self).__init__(material, stats)
+
+    @property
+    def surfaces(self):
+        return [ -XYPlane(atZ= 0)]
+
+    def contains(self, localPosition) -> bool:
+        if localPosition.z < 0:
+            return False
+
+        return True
+
+    def intersection(self, position, direction, distance) -> (bool, float): 
+        finalPosition = position + distance*direction
+        if self.contains(finalPosition):
+            return False, distance
+
+        if direction.z < 0:
+            d = - position.z/direction.z
+            return True, d
+        return False, distance
+
 class Sphere(Geometry):
     def __init__(self, radius, material, stats=None):
         super(Sphere, self).__init__(material, stats)
         self.radius = radius
-
 
     def contains(self, localPosition) -> bool:
         if localPosition.abs() > self.radius:
