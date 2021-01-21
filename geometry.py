@@ -133,7 +133,7 @@ class Geometry:
         planeOfIncidenceNormal = photon.ez.normalizedCrossProduct(surface.normal)
         thetaIn = photon.ez.orientedAngleBetween(surface.normal, planeOfIncidenceNormal)
 
-        photon.ez.rotateAround(planeOfIncidenceNormal, np.pi-thetaIn)
+        photon.ez.rotateAround(planeOfIncidenceNormal, np.pi-2*thetaIn)
 
     def transmit(self, photon, surface):
         planeOfIncidenceNormal = photon.ez.normalizedCrossProduct(surface.normal)

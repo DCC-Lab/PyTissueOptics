@@ -22,6 +22,10 @@ Then it will display the logarithm (`log10`) of the intensity as a fonction of d
 
 <img src="README.assets/image-20210116104020740.png" alt="image-20210116104020740" style="zoom:50%;" />
 
+We can also display the intensity on surfaces:
+
+<img src="README.assets/image-20210121112646920.png" alt="image-20210121112646920" style="zoom:50%;" />
+
 Then, the idea would be to modify the code for your geometry (layers, boxes, cubes, spheres, etc...) and compute what you want.
 
 ## What it can do
@@ -31,7 +35,7 @@ There are 6 main concepts (or `Class` in object-oriented language) in this code:
 1. `Photon`: The photon is the main actor:  it has a position, it propagates in a given direction.  Its direction is changed when it scatters. It does not know anything about geometry or physical properties of tissue.
 2. `Source`: A group of photons, such as `IsotropicSource`, `PencilSource` with specific properties. You provide the characteristics you want and it will give you a list of photons that responds to these criteria.  This list of photons will give you the answer you want after it has propagated in the `Object` of interest.
 3. `Material`: The scattering properties and the methods to calculate the scattering angles are the responsibility of the `Material` class. The `Material` also knows how to move the photon between two points (for instance, if there is birefringence, this is where you would put it).
-4. `Geometry`: A real-world geometry (`Box`, `Cube`, `Sphere`, `Layer`, etc...). The geometry has two important variables: a `Material` (which will dictate its scattering properties) and a `Stats` object to keep track of physical values of interest.  The material will provide the required functions to compute the scattering angles, and the photon will use these angles to compute its next position.  The `Stats` object will compute the relevant statistics.
+4. `Geometry`: A real-world geometry (`Box`, `Cube`, `Sphere`, `Layer`, etc...). The geometry has two important variables: a `Material` (which will dictate its optical properties i.e. scattering and index) and a `Stats` object to keep track of physical values of interest.  The material will provide the required functions to compute the scattering angles, and the photon will use these angles to compute its next position.  The `Stats` object will compute the relevant statistics.
 5. `Stats`: An object to keep track of something you want. For now, it only keeps track of volumetric quantities (i.e. the energy deposited in the tissue) and intensities through the surfaces delimiting geometries.
 6. Finally, very useful `Vector`, `UnitVector` and `Surface` helper classes with their subclasses are used to simplify any 3D computation with vectors, planes, surfaces, because they can be used like other values (they can be added, subtracted, normalized, etc...).
 
@@ -67,19 +71,25 @@ from photon import *
 from geometry import *
 
 # We choose a material with scattering properties
-mat    = Material(mu_s=30, mu_a = 0.5, g = 0.8)
+mat    = Material(mu_s=30, mu_a = 0.1, g = 0.8, index = 1.4)
 
-# We determine over what volume we want the statistics
+# We want stats: we must determine over what volume we want the energy
 stats  = Stats(min = (-2, -2, -2), max = (2, 2, 2), size = (41,41,41))
 
 # We pick a geometry
-tissue = Box(size=(2,3,1), material=mat, stats=stats)
+tissue = Layer(thickness=2, material=mat, stats=stats)
+# Other options:
+#tissue = Box(size=(2,2,2), material=mat, stats=stats)
+#tissue = Sphere(radius=2, material=mat, stats=stats)
 
 # We pick a light source
-source = IsotropicSource(position=Vector(0,0,0), maxCount=10000)
+source = PencilSource(position=Vector(0,0,0.001), direction=Vector(0,0,1), maxCount=100000)
+# Other options
+# source = IsotropicSource(position=Vector(0,0,0.001), maxCount=100000)
 
 # We propagate the photons from the source inside the geometry
-tissue.propagateMany(source, showProgressEvery=100)
+# The source needs to be inside the geometry (for now)
+tissue.propagateMany(source, graphs=False)
 
 # Report the results
 tissue.report()
@@ -97,7 +107,7 @@ class Geometry:
         while photon.isAlive and self.contains(photon.r):
             # Pick distance to scattering point
             d = self.material.getScatteringDistance(photon)
-            isIntersecting, d = self.intersection(photon.r, photon.ez, d)
+            isIntersecting, d, surface = self.intersection(photon.r, photon.ez, d)
 
             if not isIntersecting:
                 # If the scatteringPoint is still inside, we simply move
@@ -105,29 +115,30 @@ class Geometry:
                 # would be here. Create a new material for other behaviour
                 self.material.move(photon, d=d)
  
-                # Interact with volume
+                # Interact with volume: default is absorption only
                 # Default is simply absorb energy. Create a Material
                 # for other behaviour
                 delta = self.material.interactWith(photon)
                 self.scoreInVolume(photon, delta)
 
                 # Scatter within volume
-                # Default is Henyey-Greenstein. Create a Material
-                # for other behaviour            
                 theta, phi = self.material.getScatteringAngles(photon)
                 photon.scatterBy(theta, phi)
 
-                # And go again    
-                photon.roulette()
             else:
                 # If the scatteringPoint is outside, we move to the surface
                 self.material.move(photon, d=d)
 
-                # then we neglect reflections (for now), score
-                self.scoreWhenCrossing(photon)
+                if self.isReflected(photon, surface): 
+                    self.reflect(photon, surface)
+                else:
+                    # and leave
+                    self.transmit(photon, surface)
+                    self.scoreWhenCrossing(photon)
+                    break
 
-                # and leave
-                break
+            # And go again    
+            photon.roulette()
 
         self.scoreFinal(photon)
         photon.transformFromLocalCoordinates(self.origin)
