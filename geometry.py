@@ -77,11 +77,12 @@ class Geometry:
         return True
 
     def intersection(self, position, direction, distance) -> (bool, float, Surface): 
-        """ This function is a very general function, surprisingly efficient
+        """ This function is a very general function
         to find if a photon will leave the object.  `contains` is called
-        repeatedly and must be high performance. It may be possible to write 
-        a specialized version for a subclass, but this version will work
-        by default for all objects.
+        repeatedly, is geometry-specific, and must be high performance. 
+        It may be possible to write a specialized version for a subclass,
+        but this version will work by default for all objects and is 
+        surprisingly efficient.
         """
 
         finalPosition = position + distance*direction
@@ -89,22 +90,15 @@ class Geometry:
             return False, distance, None
 
         wasInside = True
-        finalPosition = position
+        finalPosition = Vector(position) # Copy
         delta = 0.5*distance
 
-        while ( abs(delta) > 0.0001):
+        while abs(delta) > 0.0001:
             finalPosition += delta * direction
             isInside = self.contains(finalPosition)
             
             if isInside != wasInside:
-                delta = -delta / 2.0
-            else:
-                delta = delta * 1.5
-
-            if delta >= 2*distance:
-                return False, distance, None
-            elif delta <= -2*distance:
-                return False, distance, None
+                delta = -delta * 0.5
 
             wasInside = isInside
 
