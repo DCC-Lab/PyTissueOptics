@@ -176,7 +176,7 @@ class Geometry:
 
     def report(self):
         if self.stats is not None:
-            #self.stats.showEnergy2D(plane='xz', integratedAlong='y', title="Final photons", realtime=False)
+            self.stats.showEnergy2D(plane='xz', integratedAlong='y', title="Final photons", realtime=False)
             self.stats.showSurfaceIntensities(self.surfaces)
 
             totalWeightAcrossAllSurfaces = 0

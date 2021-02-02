@@ -15,11 +15,11 @@ tissue = Layer(thickness=2, material=mat, stats=stats)
 #tissue = Sphere(radius=2, material=mat, stats=stats)
 
 # We pick a light source
-source = PencilSource(position=Vector(0,0,0.001), direction=Vector(0,0,1), maxCount=1000)
+# The source needs to be inside the geometry (for now)
+source = PencilSource(position=Vector(0,0,0.001), direction=Vector(0,0,1), maxCount=10000)
 
 # We propagate the photons from the source inside the geometry
-# The source needs to be inside the geometry (for now)
-tissue.propagateMany(source, graphs=False)
+tissue.propagateMany(source, graphs=True)
 
 # Report the results
 tissue.report()
