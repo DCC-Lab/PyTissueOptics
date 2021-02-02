@@ -16,7 +16,9 @@ class Geometry:
         self.origin = Vector(0,0,0)
         self.stats = stats
         self.surfaces = []
+
         self.epsilon = 1e-5
+        self.startTime = None # We are not calculating anything
 
     def propagate(self, photon):
         photon.transformToLocalCoordinates(self.origin)

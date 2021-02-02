@@ -145,7 +145,7 @@ class Stats:
 
         if realtime:
             plt.show()
-            plt.pause(0.0001)
+            plt.pause(0.1)
             plt.clf()
         else:
             plt.ioff()
