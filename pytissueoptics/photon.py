@@ -1,9 +1,9 @@
 import numpy as np
-from vector import *
-from material import *
 import time
 import warnings
 import copy
+from .vector import *
+from .material import *
 
 class Photon:
     def __init__(self, position=Vector(0,0,0), direction=UnitVector(0,0,1)):

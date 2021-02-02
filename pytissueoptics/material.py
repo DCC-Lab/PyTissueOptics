@@ -1,6 +1,6 @@
 import numpy as np
 import matplotlib.pyplot as plt
-from stats import *
+from .stats import *
 
 class Material:
     def __init__(self, mu_s = 0, mu_a = 0, g = 0, index = 1.4):

@@ -1,4 +1,4 @@
-from vector import *
+from .vector import *
 
 class Surface:
     def __init__(self, origin, a, b, normal, size = None, description=None):

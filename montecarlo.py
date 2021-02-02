@@ -1,7 +1,4 @@
-from vector import *
-from material import *
-from photon import *
-from geometry import *
+from pytissueoptics import *
 
 # We choose a material with scattering properties
 mat    = Material(mu_s=10, mu_a = 0.1, g = 0.8, index = 1.4)

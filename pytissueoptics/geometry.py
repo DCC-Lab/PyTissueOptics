@@ -1,12 +1,9 @@
 import numpy as np
 import matplotlib.pyplot as plt
-from stats import *
-from material import *
-from vector import *
-from photon import *
-from surface import *
 import signal
 import sys
+import time
+from .surface import *
 
 class Geometry:
     verbose = False

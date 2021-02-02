@@ -1,8 +1,8 @@
 import numpy as np
 import matplotlib.pyplot as plt
 import time
-from vector import *
 import os
+from .vector import *
 
 class Stats:
     def __init__(self, min = (-1, -1, 0), max = (1, 1, 0.5), size = (21,21,21)):
