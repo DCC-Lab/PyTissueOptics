@@ -12,7 +12,7 @@ class Geometry:
         self.origin = Vector(0,0,0)
         self.stats = stats
         self.surfaces = []
-        self.epsilon = 1e-4
+        self.epsilon = 1e-5
 
     def propagate(self, photon):
         photon.transformToLocalCoordinates(self.origin)
@@ -188,7 +188,7 @@ class Geometry:
             print("Absorbance : {0:.1f}%".format(100*self.stats.totalWeightAbsorbed()/self.stats.photonCount))
 
             totalCheck = totalWeightAcrossAllSurfaces + self.stats.totalWeightAbsorbed()
-            print("Check: Absorbance + Transmittance = {0:.1f}%".format(100*totalCheck/self.stats.photonCount))
+            print("Absorbance + Transmittance = {0:.1f}%".format(100*totalCheck/self.stats.photonCount))
 
 
 class Box(Geometry):
@@ -291,11 +291,11 @@ class KleinBottle(Geometry):
     def contains(self, localPosition) -> bool:
         raise NotImplementedError()
 
-class World:
-    def __init__(self):
-        self.sources = []
-        self.geometries = []
+# class World:
+#     def __init__(self):
+#         self.sources = []
+#         self.geometries = []
 
-    def place(self, geometry, position):
-        geometry.origin = position
-        self.geometries.append(geometry)
+#     def place(self, geometry, position):
+#         geometry.origin = position
+#         self.geometries.append(geometry)

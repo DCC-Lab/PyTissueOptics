@@ -10,8 +10,8 @@ mat    = Material(mu_s=30, mu_a = 0.1, g = 0.8, index = 1.0)
 stats  = Stats(min = (-2, -2, -2), max = (2, 2, 2), size = (41,41,41))
 
 # We pick a geometry
-#tissue = Box(size=(2,2,2), material=mat, stats=stats)
-tissue = Layer(thickness=2, material=mat, stats=stats)
+tissue = Box(size=(2,2,2), material=mat, stats=stats)
+#tissue = Layer(thickness=2, material=mat, stats=stats)
 #tissue = Sphere(radius=2, material=mat, stats=stats)
 
 # We pick a light source
