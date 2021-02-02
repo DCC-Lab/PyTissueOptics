@@ -22,10 +22,11 @@ class Geometry:
             # Pick distance to scattering point
             if d <= 0:
                 d = self.material.getScatteringDistance(photon)
+                
             isIntersecting, distToPropagate, surface = self.intersection(photon.r, photon.ez, d)
 
             if not isIntersecting:
-                # If the scatteringPoint is still inside, we simply move
+                # If the scattering point is still inside, we simply move
                 # Default is simply photon.moveBy(d) but other things 
                 # would be here. Create a new material for other behaviour
                 self.material.move(photon, d=distToPropagate)
@@ -39,14 +40,13 @@ class Geometry:
                 # Scatter within volume
                 theta, phi = self.material.getScatteringAngles(photon)
                 photon.scatterBy(theta, phi)
-
             else:
-                # If the displacement crosses an interface, we move to the surface
+                # If the photon crosses an interface, we move to the surface
                 self.material.move(photon, d=distToPropagate)
 
-                # Determine if reflected or not
+                # Determine if reflected or not with Fresnel coefficients
                 if self.isReflected(photon, surface): 
-                    # reflect and keep propagating
+                    # reflect photon and keep propagating
                     self.reflect(photon, surface)
                 else:
                     # transmit, score, and leave
@@ -59,9 +59,11 @@ class Geometry:
             # And go again    
             photon.roulette()
 
+        # Because the code will not typically calculate millions of photons, it is
+        # inexpensive to keep all the propagated photons.  This allows users
+        # to go through the list after the fact for a calculation of their choice
         self.scoreFinal(photon)
         photon.transformFromLocalCoordinates(self.origin)
-
     def propagateMany(self, source, graphs=True):
         N = source.maxCount
 
