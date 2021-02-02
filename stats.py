@@ -21,13 +21,6 @@ class Stats:
         self.final = []
         self.startTime = time.time()
 
-        try:
-            os.environ['DISPLAY']
-        except:
-            print("Exception!")
-            print(os.environ)
-            #plt.switch_backend('agg')
-
     @property
     def photonCount(self):
         return len(self.final)

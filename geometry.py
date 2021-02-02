@@ -5,8 +5,12 @@ from material import *
 from vector import *
 from photon import *
 from surface import *
+import signal
+import sys
 
 class Geometry:
+    verbose = False
+
     def __init__(self, material=None, stats=None):
         self.material = material
         self.origin = Vector(0,0,0)
@@ -65,16 +69,15 @@ class Geometry:
         self.scoreFinal(photon)
         photon.transformFromLocalCoordinates(self.origin)
     def propagateMany(self, source, graphs=True):
+        self.startCalculation()
+
         N = source.maxCount
 
-        startTime = time.time()
-        self.setupSurfaces()
         for i, photon in enumerate(source):
             self.propagate(photon)
             self.showProgress(i+1, maxCount=N, graphs=graphs)
 
-        elapsed = time.time() - startTime
-        print('{0:.1f} s for {2} photons, {1:.1f} ms per photon'.format(elapsed, elapsed/N*1000, N))
+        self.completeCalculation()
 
     def contains(self, position) -> bool:
         """ The base object is infinite. Subclasses override this method
@@ -117,6 +120,7 @@ class Geometry:
                 break
 
         return True, (finalPosition-position).abs(), surface
+
 
     def setupSurfaces(self):
         for s in self.surfaces:
@@ -166,10 +170,40 @@ class Geometry:
         if self.stats is not None:
             self.stats.scoreWhenFinal(photon)
 
+    def startCalculation(self):
+        self.setupSurfaces()
+
+        if 'SIGUSR1' in dir(signal) and 'SIGUSR2' in dir(signal):
+            # Trick to send a signal to code as it is running on Unix and derivatives
+            # In the shell, use `kill -USR1 processID` to get more feedback
+            # use `kill -USR2 processID` to force a save
+            signal.signal(signal.SIGUSR1, self.processSignal)
+            signal.signal(signal.SIGUSR2, self.processSignal)
+
+        self.startTime = time.time()
+
+    def completeCalculation(self) -> float:
+        if 'SIGUSR1' in dir(signal) and 'SIGUSR2' in dir(signal):
+            signal.signal(signal.SIGUSR1, signal.SIG_DFL)
+            signal.signal(signal.SIGUSR2, signal.SIG_DFL)
+
+        elapsed = time.time() - self.startTime
+        self.startTime = None
+        return elapsed
+
+    def processSignal(self, signum, frame):
+        if signum == signal.SIGUSR1:
+            Geometry.verbose = not Geometry.verbose
+            print('Toggling verbose to {0}'.format(Geometry.verbose))
+        elif signum == signal.SIGUSR2:
+            print("Requesting save (not implemented)")
+
     def showProgress(self, i, maxCount, graphs=False):
         steps = 100
-        while steps < i:
-            steps *= 10
+
+        if not Geometry.verbose:
+            while steps < i:
+                steps *= 10
 
         if i  % steps == 0:
             print("{2} Photon {0}/{1}".format(i, maxCount, time.ctime()) )
@@ -301,3 +335,4 @@ class KleinBottle(Geometry):
 #     def place(self, geometry, position):
 #         geometry.origin = position
 #         self.geometries.append(geometry)
+
