@@ -143,7 +143,7 @@ class Vector:
             return 0
         return self.dot(vector) * (1 / math.sqrt(productNorm))
 
-    def orientedAngleBetween(self, v, w):
+    def angleWith(self, v, righthand):
         sinPhi = self.normalizedCrossProduct(v)
         sinPhiAbs = sinPhi.abs()
         phi = math.asin(sinPhiAbs)
@@ -151,7 +151,7 @@ class Vector:
         if self.dot(v) <= 0:
             phi = math.pi-phi
 
-        if sinPhi.dot(w) <= 0:
+        if sinPhi.dot(righthand) <= 0:
             phi = -phi
     
         return phi

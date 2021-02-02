@@ -70,6 +70,7 @@ class Stats:
 
     def totalWeightCrossingPlane(self, surface) -> float:
         a, b, weights = self.photonsCrossingPlane(surface)
+
         return sum(weights)
 
     def totalWeightAbsorbed(self) -> float:
@@ -87,19 +88,25 @@ class Stats:
         j = int(self.binSizes[1]*(position.y-self.min[1])-0.5)
         k = int(self.binSizes[2]*(position.z-self.min[2])-0.5)
 
-        if i < 0 or i > self.size[0]-1:
-            return
+        if i < 0: 
+            i = 0
+        if i > self.size[0]-1:
+            i = self.size[0]-1
+        
+        if j < 0:
+            j = 0
+        if j > self.size[1]-1:
+            j = self.size[1]-1
 
-        if j < 0 or j > self.size[1]-1:
-            return
-
-        if k < 0 or k > self.size[2]-1:
-            return
+        if k < 0:
+            k = 0
+        if k > self.size[2]-1:
+            k = self.size[2]-1
 
         self.energy[i,j,k] += delta
 
-    def scoreWhenCrossing(self, photon):
-        self.crossing.append( (Vector(photon.r), photon.weight))
+    def scoreWhenCrossing(self, photon, surface):
+        self.crossing.append( (Vector(photon.r), photon.weight) )
 
     def scoreWhenFinal(self, photon):
         self.final.append(photon)

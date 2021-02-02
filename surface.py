@@ -9,6 +9,7 @@ class Surface:
         self.size = size
         self.indexInside = 1.0
         self.indexOutside = 1.0
+        self.crossing = []
 
         if description is None:
             self.description = "Surface"
@@ -16,14 +17,19 @@ class Surface:
             self.description = description
 
     def contains(self, position, epsilon=0.001) -> (bool, float, float):
+        # Convert to position in surface coordinates
         local = position-self.origin
         if abs(local.normalizedDotProduct(self.normal)) < epsilon:
+            # We're in the plane of the surface element
+            # Compute u,v coordinates
             u = local.dot(self.a)
             v = local.dot(self.b) 
             if self.size is None:
+                # If element is infinite, then we really are on it, return coordinates
                 return True, u, v
             else:
-                if u > self.size[0] or u < 0 or v > self.size[1] or v < 0:
+                # If element is finite, check we are on surface element with a small margin
+                if u > self.size[0]+epsilon or u < -epsilon or v > self.size[1] + epsilon or v < -epsilon:
                     return False, None, None
                 else:
                     return True, u, v
@@ -32,6 +38,7 @@ class Surface:
 
     def intersection(self, position, direction, maxDistance) -> (bool, float): 
         # This function is not as efficient as the Geometry implementation
+        # So we don't really use it, but it is still available
         # https://en.wikipedia.org/wiki/Line–plane_intersection
 
         dotProduct = direction.dot(self.normal)
@@ -47,6 +54,14 @@ class Surface:
                 return False, maxDistance
         else:
             return False, maxDistance
+
+    def totalWeightCrossing(self):
+        weights = []
+
+        for (r, w) in self.crossing:
+            weights.append(w)
+
+        return sum(weights)
 
     def __str__(self):
         return self.description

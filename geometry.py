@@ -12,21 +12,24 @@ class Geometry:
         self.origin = Vector(0,0,0)
         self.stats = stats
         self.surfaces = []
+        self.epsilon = 1e-4
 
     def propagate(self, photon):
         photon.transformToLocalCoordinates(self.origin)
 
+        d = 0
         while photon.isAlive and self.contains(photon.r):
             # Pick distance to scattering point
-            d = self.material.getScatteringDistance(photon)
-            isIntersecting, d, surface = self.intersection(photon.r, photon.ez, d)
+            if d <= 0:
+                d = self.material.getScatteringDistance(photon)
+            isIntersecting, distToPropagate, surface = self.intersection(photon.r, photon.ez, d)
 
             if not isIntersecting:
                 # If the scatteringPoint is still inside, we simply move
                 # Default is simply photon.moveBy(d) but other things 
                 # would be here. Create a new material for other behaviour
-                self.material.move(photon, d=d)
- 
+                self.material.move(photon, d=distToPropagate)
+
                 # Interact with volume: default is absorption only
                 # Default is simply absorb energy. Create a Material
                 # for other behaviour
@@ -38,16 +41,20 @@ class Geometry:
                 photon.scatterBy(theta, phi)
 
             else:
-                # If the scatteringPoint is outside, we move to the surface
-                self.material.move(photon, d=d)
+                # If the displacement crosses an interface, we move to the surface
+                self.material.move(photon, d=distToPropagate)
 
+                # Determine if reflected or not
                 if self.isReflected(photon, surface): 
+                    # reflect and keep propagating
                     self.reflect(photon, surface)
                 else:
-                    # and leave
+                    # transmit, score, and leave
                     self.transmit(photon, surface)
-                    self.scoreWhenCrossing(photon)
+                    self.scoreWhenCrossing(photon, surface)
                     break
+
+            d -= distToPropagate
 
             # And go again    
             photon.roulette()
@@ -93,7 +100,7 @@ class Geometry:
         finalPosition = Vector(position) # Copy
         delta = 0.5*distance
 
-        while abs(delta) > 0.0001:
+        while abs(delta) > 0.00001:
             finalPosition += delta * direction
             isInside = self.contains(finalPosition)
             
@@ -119,7 +126,7 @@ class Geometry:
         n2 = surface.indexOutside
 
         planeOfIncidenceNormal = photon.ez.normalizedCrossProduct(surface.normal)
-        thetaIn = photon.ez.orientedAngleBetween(surface.normal, planeOfIncidenceNormal)
+        thetaIn = photon.ez.angleWith(surface.normal, righthand=planeOfIncidenceNormal)
         if math.sin(thetaIn)*n1/n2 > 1:
             return True
 
@@ -131,13 +138,13 @@ class Geometry:
 
     def reflect(self, photon, surface):
         planeOfIncidenceNormal = photon.ez.normalizedCrossProduct(surface.normal)
-        thetaIn = photon.ez.orientedAngleBetween(surface.normal, planeOfIncidenceNormal)
+        thetaIn = photon.ez.angleWith(surface.normal, righthand=planeOfIncidenceNormal)
 
-        photon.ez.rotateAround(planeOfIncidenceNormal, np.pi-2*thetaIn)
+        photon.ez.rotateAround(planeOfIncidenceNormal, 2*thetaIn-np.pi)
 
     def transmit(self, photon, surface):
         planeOfIncidenceNormal = photon.ez.normalizedCrossProduct(surface.normal)
-        thetaIn = photon.ez.orientedAngleBetween(surface.normal, planeOfIncidenceNormal)
+        thetaIn = photon.ez.angleWith(surface.normal, righthand=planeOfIncidenceNormal)
 
         n1 = surface.indexInside
         n2 = surface.indexOutside
@@ -149,9 +156,9 @@ class Geometry:
         if self.stats is not None:
             self.stats.scoreInVolume(photon, delta)
 
-    def scoreWhenCrossing(self, photon):
+    def scoreWhenCrossing(self, photon, surface):
         if self.stats is not None:
-            self.stats.scoreWhenCrossing(photon)
+            self.stats.scoreWhenCrossing(photon, surface)
 
     def scoreFinal(self, photon):
         if self.stats is not None:
@@ -172,11 +179,17 @@ class Geometry:
             #self.stats.showEnergy2D(plane='xz', integratedAlong='y', title="Final photons", realtime=False)
             self.stats.showSurfaceIntensities(self.surfaces)
 
+            totalWeightAcrossAllSurfaces = 0
             for i, surface in enumerate(self.surfaces):
                 totalWeight = self.stats.totalWeightCrossingPlane(surface)
                 print("Transmittance [{0}] : {1:.1f}%".format(surface, 100*totalWeight/self.stats.photonCount))
+                totalWeightAcrossAllSurfaces += totalWeight
 
             print("Absorbance : {0:.1f}%".format(100*self.stats.totalWeightAbsorbed()/self.stats.photonCount))
+
+            totalCheck = totalWeightAcrossAllSurfaces + self.stats.totalWeightAbsorbed()
+            print("Check: Absorbance + Transmittance = {0:.1f}%".format(100*totalCheck/self.stats.photonCount))
+
 
 class Box(Geometry):
     def __init__(self, size, material, stats=None):
@@ -190,11 +203,11 @@ class Box(Geometry):
                          -ZXPlane(atY=-self.size[1]/2, description="Bottom")]
 
     def contains(self, localPosition) -> bool:
-        if abs(localPosition.z) > self.size[2]/2:
+        if abs(localPosition.z) > self.size[2]/2 + self.epsilon:
             return False
-        if abs(localPosition.y) > self.size[1]/2:
+        if abs(localPosition.y) > self.size[1]/2 + self.epsilon:
             return False
-        if abs(localPosition.x) > self.size[0]/2:
+        if abs(localPosition.x) > self.size[0]/2 + self.epsilon:
             return False
 
         return True
@@ -212,9 +225,9 @@ class Layer(Geometry):
                          -XYPlane(atZ= 0, description="Front")]
 
     def contains(self, localPosition) -> bool:
-        if localPosition.z < 0:
+        if localPosition.z < -self.epsilon:
             return False
-        if localPosition.z > self.thickness:
+        if localPosition.z > self.thickness + self.epsilon:
             return False
 
         return True
@@ -244,7 +257,7 @@ class SemiInfiniteLayer(Geometry):
         self.surfaces = [ -XYPlane(atZ= 0, description="Front")]
 
     def contains(self, localPosition) -> bool:
-        if localPosition.z < 0:
+        if localPosition.z < -self.epsilon:
             return False
 
         return True
@@ -266,7 +279,7 @@ class Sphere(Geometry):
         self.radius = radius
 
     def contains(self, localPosition) -> bool:
-        if localPosition.abs() > self.radius:
+        if localPosition.abs() > self.radius + self.epsilon:
             return False
 
         return True
