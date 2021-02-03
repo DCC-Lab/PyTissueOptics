@@ -127,21 +127,21 @@ class Stats:
         plt.title("Energy in {0}, {1} photons".format(plane, self.photonCount))
         if cutAt is not None:
             if plane == 'xy':
-                plt.imshow(np.log(self.energy[:,:,cutAt]+0.0001),cmap='hsv',extent=[self.min[0],self.max[0],self.min[1],self.max[1]],aspect='auto')
+                plt.imshow(np.log(self.energy[:,:,cutAt]+0.0001),cmap='viridis',extent=[self.min[0],self.max[0],self.min[1],self.max[1]],aspect='auto')
             elif plane == 'yz':
-                plt.imshow(np.log(self.energy[cutAt,:,:]+0.0001),cmap='hsv',extent=[self.min[1],self.max[1],self.min[2],self.max[2]],aspect='auto')
+                plt.imshow(np.log(self.energy[cutAt,:,:]+0.0001),cmap='viridis',extent=[self.min[1],self.max[1],self.min[2],self.max[2]],aspect='auto')
             elif plane == 'xz':
-                plt.imshow(np.log(self.energy[:,cutAt,:]+0.0001),cmap='hsv',extent=[self.min[0],self.max[0],self.min[2],self.max[2]],aspect='auto')
+                plt.imshow(np.log(self.energy[:,cutAt,:]+0.0001),cmap='viridis',extent=[self.min[0],self.max[0],self.min[2],self.max[2]],aspect='auto')
         else:
             if plane == 'xy':
                 sum = self.energy.sum(axis=2)
-                plt.imshow(np.log(sum+0.0001),cmap='hsv',extent=[self.min[0],self.max[0],self.min[1],self.max[1]],aspect='auto')
+                plt.imshow(np.log(sum+0.0001),cmap='viridis',extent=[self.min[0],self.max[0],self.min[1],self.max[1]],aspect='auto')
             elif plane == 'yz':
                 sum = self.energy.sum(axis=0)
-                plt.imshow(np.log(sum+0.0001),cmap='hsv',extent=[self.min[1],self.max[1],self.min[2],self.max[2]],aspect='auto')
+                plt.imshow(np.log(sum+0.0001),cmap='viridis',extent=[self.min[1],self.max[1],self.min[2],self.max[2]],aspect='auto')
             elif plane == 'xz':
                 sum = self.energy.sum(axis=1)
-                plt.imshow(np.log(sum+0.0001),cmap='hsv',extent=[self.min[2],self.max[2],self.min[0],self.max[0]],aspect='auto')
+                plt.imshow(np.log(sum+0.0001),cmap='viridis',extent=[self.min[2],self.max[2],self.min[0],self.max[0]],aspect='auto')
 
         if realtime:
             plt.show()
