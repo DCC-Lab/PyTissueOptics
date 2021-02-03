@@ -11,6 +11,7 @@ Therefore, the whole point is the following: this code is perfect for quickly pr
 Download the code (it is not a Python module yet).  Go to the main directory where you can run the example program:
 
 ```shell
+pip install pytissueoptics
 python montecarlo.py
 ```
 
