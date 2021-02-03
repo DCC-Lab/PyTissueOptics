@@ -216,7 +216,6 @@ class Geometry:
         string += "{0}".format(self.material)
         return string
 
-
 class Box(Geometry):
     def __init__(self, size, material, stats=None, label="Box"):
         super(Box, self).__init__(material, stats, label)

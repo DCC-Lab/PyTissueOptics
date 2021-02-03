@@ -152,3 +152,25 @@ class PencilSource(Source):
 
     def newPhoton(self) -> Photon:
         return Photon( Vector(self.position), Vector(self.direction))
+
+class FiberSource(Source):
+    def __init__(self, position, direction, coreDiameter, na, maxCount, distribution="uniform"):
+        super(FiberSource, self).__init__(position, maxCount)
+        self.direction = direction
+        self.coreDiameter = coreDiameter
+        self.na = na
+        self.maxAngle = math.asin(self.na)
+        self.distribution = distribution
+        self.count = 0
+
+    def newPhoton(self) -> Photon:
+        if self.distribution == "uniform":
+            r = (self.coreDiameter/2) * sqrt(random())
+            theta = random() * 2 * PI
+            x = self.position[0] + r * cos(theta)
+            y = self.position[1] + r * sin(theta)
+
+            return Photon( Vector(x, y, self.position[3]), Vector(self.direction))
+
+        elif self.distribution == "normal":
+            raise NotImplementedError()
