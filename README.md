@@ -8,11 +8,11 @@ Therefore, the whole point is the following: this code is perfect for quickly pr
 
 ## Getting started
 
-Download the code (it is not a Python module yet).  Go to the main directory where you can run the example program:
+Install with pip or get the [code](https://github.com/DCC-Lab/PyTissueOptics) from GitHub. You can run the example code immediately:
 
 ```shell
-pip install pytissueoptics
-python montecarlo.py
+pip install pytissueoptics --upgrade
+python -m pytissueoptics
 ```
 
 You need Python 3, it will not work with Python 2. The example code will show you a graph of the energy deposited in the plane xz from a isotropic source at the origin:
