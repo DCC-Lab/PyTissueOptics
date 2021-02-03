@@ -1,8 +1,9 @@
 import numpy as np
 import matplotlib.pyplot as plt
-from stats import *
 
 class Material:
+    veryFar = 1e4
+
     def __init__(self, mu_s = 0, mu_a = 0, g = 0, index = 1.4):
         self.mu_s = mu_s
         self.mu_a = mu_a
@@ -13,7 +14,7 @@ class Material:
 
     def getScatteringDistance(self, photon) -> float:
         if self.mu_t == 0:
-            return 1e3
+            return Material.veryFar
             
         rnd = 0
         while rnd == 0:
@@ -37,3 +38,10 @@ class Material:
 
     def move(self, photon, d:float):
         photon.moveBy(d)
+
+    def __repr__(self):
+        return "Material: µs={0} µa={1} g={2} n={3}".format(self.mu_s, self.mu_a, self.g, self.index)
+
+    def __str__(self):
+        return "Material: µs={0} µa={1} g={2} n={3}".format(self.mu_s, self.mu_a, self.g, self.index)
+

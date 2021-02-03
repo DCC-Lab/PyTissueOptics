@@ -1,4 +1,4 @@
-from vector import *
+from .vector import *
 
 class Surface:
     def __init__(self, origin, a, b, normal, size = None, description=None):
@@ -63,11 +63,14 @@ class Surface:
 
         return sum(weights)
 
+    def __repr__(self):
+        return "'{0}' normal:{1}".format(self.description, self.normal)
+
     def __str__(self):
-        return self.description
+        return "{0}".format(self.description, self.normal)
 
     def __neg__(self):
-        s = Surface(self.origin, self.b, self.a, -self.normal, self.size)
+        s = Surface( Vector(self.origin), Vector(self.b), Vector(self.a), -Vector(self.normal), self.size)
         s.description = self.description
         return s
 
