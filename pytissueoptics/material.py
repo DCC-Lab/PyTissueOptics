@@ -38,3 +38,10 @@ class Material:
 
     def move(self, photon, d:float):
         photon.moveBy(d)
+
+    def __repr__(self):
+        return "Material: µs={0} µa={1} g={2} n={3}".format(self.mu_s, self.mu_a, self.g, self.index)
+
+    def __str__(self):
+        return "Material: µs={0} µa={1} g={2} n={3}".format(self.mu_s, self.mu_a, self.g, self.index)
+

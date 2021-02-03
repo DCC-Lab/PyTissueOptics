@@ -8,11 +8,12 @@ from .surface import *
 class Geometry:
     verbose = False
 
-    def __init__(self, material=None, stats=None):
+    def __init__(self, material=None, stats=None, label=""):
         self.material = material
         self.origin = Vector(0,0,0)
         self.stats = stats
         self.surfaces = []
+        self.label = label
 
         self.epsilon = 1e-5
         self.startTime = None # We are not calculating anything
@@ -185,10 +186,13 @@ class Geometry:
                 self.stats.showEnergy2D(plane='xz', integratedAlong='y', title="{0} photons".format(i)) 
 
     def report(self):
-        if self.stats is not None:
-            self.stats.showEnergy2D(plane='xz', integratedAlong='y', title="Final photons", realtime=False)
-            self.stats.showSurfaceIntensities(self.surfaces)
+        print("Geometry and material")
+        print("=====================")
+        print(self)
 
+        print("\nPhysical quantities")
+        print("=====================")
+        if self.stats is not None:
             totalWeightAcrossAllSurfaces = 0
             for i, surface in enumerate(self.surfaces):
                 totalWeight = self.stats.totalWeightCrossingPlane(surface)
@@ -200,10 +204,22 @@ class Geometry:
             totalCheck = totalWeightAcrossAllSurfaces + self.stats.totalWeightAbsorbed()
             print("Absorbance + Transmittance = {0:.1f}%".format(100*totalCheck/self.stats.photonCount))
 
+            self.stats.showEnergy2D(plane='xz', integratedAlong='y', title="Final photons", realtime=False)
+            self.stats.showSurfaceIntensities(self.surfaces)
+
+
+    def __repr__(self):
+        return "{0}".format(self)
+
+    def __str__(self):
+        string = "'{0}' with surfaces {1}\n".format(self.label, self.surfaces)
+        string += "{0}".format(self.material)
+        return string
+
 
 class Box(Geometry):
-    def __init__(self, size, material, stats=None):
-        super(Box, self).__init__(material, stats)
+    def __init__(self, size, material, stats=None, label="Box"):
+        super(Box, self).__init__(material, stats, label)
         self.size = size
         self.surfaces = [ XYPlane(atZ= self.size[2]/2, description="Back"),
                          -XYPlane(atZ=-self.size[2]/2, description="Front"),
@@ -223,13 +239,13 @@ class Box(Geometry):
         return True
 
 class Cube(Box):
-    def __init__(self, side, material, stats=None):
-        super(Cube, self).__init__(material, stats)
+    def __init__(self, side, material, stats=None, label="Cube"):
+        super(Cube, self).__init__(material, stats, label)
         self.size = (side,side,side)
 
 class Layer(Geometry):
-    def __init__(self, thickness, material, stats=None):
-        super(Layer, self).__init__(material, stats)
+    def __init__(self, thickness, material, stats=None, label="Box"):
+        super(Layer, self).__init__(material, stats, label)
         self.thickness = thickness
         self.surfaces = [ XYPlane(atZ= self.thickness, description="Back"),
                          -XYPlane(atZ= 0, description="Front")]
@@ -262,8 +278,8 @@ class SemiInfiniteLayer(Geometry):
     It is better to use a finite layer with a thickness a bit larger
     than what you are interested in."""
 
-    def __init__(self, material, stats=None):
-        super(SemiInfiniteLayer, self).__init__(material, stats)
+    def __init__(self, material, stats=None, label="Semi-infinite layer"):
+        super(SemiInfiniteLayer, self).__init__(material, stats, label)
         self.surfaces = [ -XYPlane(atZ= 0, description="Front")]
 
     def contains(self, localPosition) -> bool:
@@ -284,8 +300,8 @@ class SemiInfiniteLayer(Geometry):
         return False, distance, None
 
 class Sphere(Geometry):
-    def __init__(self, radius, material, stats=None):
-        super(Sphere, self).__init__(material, stats)
+    def __init__(self, radius, material, stats=None, label="Sphere"):
+        super(Sphere, self).__init__(material, stats, label)
         self.radius = radius
 
     def contains(self, localPosition) -> bool:
