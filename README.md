@@ -16,15 +16,15 @@ python montecarlo.py
 
 You need Python 3, it will not work with Python 2. The example code will show you a graph of the energy deposited in the plane xz from a isotropic source at the origin:
 
-<img src="README.assets/image-20210116103556173.png" alt="image-20210116103556173" style="zoom:50%;" />
+<img src="https://raw.githubusercontent.com/DCC-Lab/PyTissueOptics/main/README.assets/image-20210116103556173.png" alt="image-20210116103556173" style="zoom:50%;" />
 
 Then it will display the logarithm (`log10`) of the intensity as a fonction of distance along the x direction:
 
-<img src="README.assets/image-20210116104020740.png" alt="image-20210116104020740" style="zoom:50%;" />
+<img src="https://raw.githubusercontent.com/DCC-Lab/PyTissueOptics/main/README.assets/image-20210116104020740.png" alt="image-20210116104020740" style="zoom:50%;" />
 
 We can also display the intensity on surfaces:
 
-<img src="README.assets/image-20210121112646920.png" alt="image-20210121112646920" style="zoom:50%;" />
+<img src="https://raw.githubusercontent.com/DCC-Lab/PyTissueOptics/main/README.assets/image-20210121112646920.png" alt="image-20210121112646920" style="zoom:50%;" />
 
 Then, the idea would be to modify the code for your geometry (layers, boxes, cubes, spheres, etc...) and compute what you want.
 
