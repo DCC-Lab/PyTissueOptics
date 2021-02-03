@@ -1,9 +1,7 @@
 import numpy as np
 import time
 import warnings
-import copy
 from .vector import *
-from .material import *
 
 class Photon:
     def __init__(self, position=Vector(0,0,0), direction=UnitVector(0,0,1)):
@@ -51,6 +49,37 @@ class Photon:
         self.weight -= delta
         if self.weight < 0:
             self.weight = 0
+
+    def angleOfIncidence(self, surface) -> (float, Vector):
+        planeOfIncidenceNormal = self.ez.normalizedCrossProduct(surface.normal)
+        return self.ez.angleWith(surface.normal, righthand=planeOfIncidenceNormal),planeOfIncidenceNormal
+
+    def fresnelCoefficient(self, surface):
+        n1 = surface.indexInside
+        n2 = surface.indexOutside
+
+        thetaIn, planeOfIncidenceNormal = self.angleOfIncidence(surface)
+        if math.sin(thetaIn)*n1/n2 > 1:
+            return 1
+
+        R = (n2-n1)/(n1+n2)
+        return R*R
+
+    def reflect(self, surface):
+        planeOfIncidenceNormal = self.ez.normalizedCrossProduct(surface.normal)
+        thetaIn = self.ez.angleWith(surface.normal, righthand=planeOfIncidenceNormal)
+
+        self.ez.rotateAround(planeOfIncidenceNormal, 2*thetaIn-np.pi)
+
+    def refract(self, surface):
+        planeOfIncidenceNormal = self.ez.normalizedCrossProduct(surface.normal)
+        thetaIn = self.ez.angleWith(surface.normal, righthand=planeOfIncidenceNormal)
+
+        n1 = surface.indexInside
+        n2 = surface.indexOutside
+        thetaOut = math.asin(n1*math.sin(thetaIn)/n2)
+
+        self.ez.rotateAround(planeOfIncidenceNormal, thetaOut-thetaIn)
 
     def roulette(self):
         chance = 0.1

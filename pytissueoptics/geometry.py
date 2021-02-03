@@ -50,10 +50,10 @@ class Geometry:
                 # Determine if reflected or not with Fresnel coefficients
                 if self.isReflected(photon, surface): 
                     # reflect photon and keep propagating
-                    self.reflect(photon, surface)
+                    photon.reflect(surface)
                 else:
                     # transmit, score, and leave
-                    self.transmit(photon, surface)
+                    photon.refract(surface)
                     self.scoreWhenCrossing(photon, surface)
                     break
 
@@ -127,35 +127,10 @@ class Geometry:
             s.indexOutside = 1.0 # FIXME
 
     def isReflected(self, photon, surface) -> bool:
-        n1 = surface.indexInside
-        n2 = surface.indexOutside
-
-        planeOfIncidenceNormal = photon.ez.normalizedCrossProduct(surface.normal)
-        thetaIn = photon.ez.angleWith(surface.normal, righthand=planeOfIncidenceNormal)
-        if math.sin(thetaIn)*n1/n2 > 1:
-            return True
-
-        R = (n2-n1)/(n1+n2)
-        R *= R
+        R = photon.fresnelCoefficient(surface)
         if np.random.random() < R:
             return True
         return False
-
-    def reflect(self, photon, surface):
-        planeOfIncidenceNormal = photon.ez.normalizedCrossProduct(surface.normal)
-        thetaIn = photon.ez.angleWith(surface.normal, righthand=planeOfIncidenceNormal)
-
-        photon.ez.rotateAround(planeOfIncidenceNormal, 2*thetaIn-np.pi)
-
-    def transmit(self, photon, surface):
-        planeOfIncidenceNormal = photon.ez.normalizedCrossProduct(surface.normal)
-        thetaIn = photon.ez.angleWith(surface.normal, righthand=planeOfIncidenceNormal)
-
-        n1 = surface.indexInside
-        n2 = surface.indexOutside
-        thetaOut = math.asin(n1*math.sin(thetaIn)/n2)
-
-        photon.ez.rotateAround(planeOfIncidenceNormal, thetaOut-thetaIn)
 
     def scoreInVolume(self, photon, delta):
         if self.stats is not None:
