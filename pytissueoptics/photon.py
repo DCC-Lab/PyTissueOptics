@@ -2,20 +2,22 @@ import numpy as np
 import time
 import warnings
 from .vector import *
+from math import acos, asin, cos, sin, atan, tan, sqrt, pi
+import random
 
 class Photon:
-    def __init__(self, position=Vector(0,0,0), direction=UnitVector(0,0,1)):
+    def __init__(self, position=Vector(0, 0, 0), direction=UnitVector(0, 0, 1)):
         self.r = Vector(position)
-        self.ez = UnitVector(direction) # Propagation direction vector
-        self.er = UnitVector(0,1,0) 
+        self.ez = UnitVector(direction)  # Propagation direction vector
+        self.er = UnitVector(0, 1, 0)
 
         if not self.er.isPerpendicularTo(self.ez):
-            self.er = None # User will need to fix er before running calculation
+            self.er = None  # User will need to fix er before running calculation
 
         self.wavelength = None
         # We don't need to keep el, because it is obtainable from ez and er
         self.weight = 1.0
-        self.uniqueId = np.random.randint(1<<31) # This is dumb but it works for now.
+        self.uniqueId = np.random.randint(1 << 31)  # This is dumb but it works for now.
         self.path = None
 
     @property
@@ -27,7 +29,7 @@ class Photon:
         return self.weight > 0
 
     def keepPathStatistics(self):
-        self.path = [Vector(self.r)] # Will continue every move
+        self.path = [Vector(self.r)]  # Will continue every move
 
     def transformToLocalCoordinates(self, origin):
         self.r = self.r - origin
@@ -39,7 +41,7 @@ class Photon:
         self.r.addScaled(self.ez, d)
         
         if self.path is not None:
-            self.path.append(Vector(self.r)) # We must make a copy
+            self.path.append(Vector(self.r))  # We must make a copy
 
     def scatterBy(self, theta, phi):
         self.er.rotateAround(self.ez, phi)
@@ -52,7 +54,7 @@ class Photon:
 
     def angleOfIncidence(self, surface) -> (float, Vector):
         planeOfIncidenceNormal = self.ez.normalizedCrossProduct(surface.normal)
-        return self.ez.angleWith(surface.normal, righthand=planeOfIncidenceNormal),planeOfIncidenceNormal
+        return self.ez.angleWith(surface.normal, righthand=planeOfIncidenceNormal), planeOfIncidenceNormal
 
     def fresnelCoefficient(self, surface):
         n1 = surface.indexInside
@@ -151,7 +153,7 @@ class PencilSource(Source):
         self.direction = direction
 
     def newPhoton(self) -> Photon:
-        return Photon( Vector(self.position), Vector(self.direction))
+        return Photon(Vector(self.position), Vector(self.direction))
 
 class FiberSource(Source):
     def __init__(self, position, direction, coreDiameter, na, maxCount, distribution="uniform"):
@@ -176,11 +178,11 @@ class FiberSource(Source):
             raise NotImplementedError()
 
     def newUniformPosition(self):
-        r = (self.coreDiameter / 2) * sqrt(random())
-        theta = random() * 2 * PI
+        r = (self.coreDiameter / 2) * sqrt(random.random())
+        theta = random.random() * 2 * pi
         x = self.position[0] + r * cos(theta)
         y = self.position[1] + r * sin(theta)
-        return Vector(x, y, self.position[3])
+        return Vector(x, y, self.position[2])
 
     def newUniformConeDirection(self):
         # Generating a uniformly distributed random vector in a cone is funky:
@@ -188,8 +190,8 @@ class FiberSource(Source):
 
         z = random.uniform(math.cos(self.maxAngle), 1)
         theta1 = math.acos(z)
-        theta2 = 2 * PI * random()
-        a = z / atan((PI/2) - theta1)
+        theta2 = 2 * pi * random.random()
+        a = z / atan((pi/2) - theta1)
         x = cos(theta2) * a
         y = sin(theta2) * a
 
