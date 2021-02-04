@@ -162,15 +162,35 @@ class FiberSource(Source):
         self.maxAngle = math.asin(self.na)
         self.distribution = distribution
         self.count = 0
+        # TODO: take into account the direction to select the orientation of the random points (normal plan)
+        # Now only works towards the Z axis.
 
     def newPhoton(self) -> Photon:
         if self.distribution == "uniform":
-            r = (self.coreDiameter/2) * sqrt(random())
-            theta = random() * 2 * PI
-            x = self.position[0] + r * cos(theta)
-            y = self.position[1] + r * sin(theta)
+            positionVector = self.newUniformPosition()
+            directionVector = self.newUniformConeDirection()
 
-            return Photon( Vector(x, y, self.position[3]), Vector(self.direction))
+            return Photon(positionVector, directionVector)
 
         elif self.distribution == "normal":
             raise NotImplementedError()
+
+    def newUniformPosition(self):
+        r = (self.coreDiameter / 2) * sqrt(random())
+        theta = random() * 2 * PI
+        x = self.position[0] + r * cos(theta)
+        y = self.position[1] + r * sin(theta)
+        return Vector(x, y, self.position[3])
+
+    def newUniformConeDirection(self):
+        # Generating a uniformly distributed random vector in a cone is funky:
+        # https://math.stackexchange.com/questions/56784/generate-a-random-direction-within-a-cone
+
+        z = random.uniform(math.cos(self.maxAngle), 1)
+        theta1 = math.acos(z)
+        theta2 = 2 * PI * random()
+        a = z / atan((PI/2) - theta1)
+        x = cos(theta2) * a
+        y = sin(theta2) * a
+
+        return Vector(x, y, z)
