@@ -178,7 +178,7 @@ class Geometry:
 
         if not Geometry.verbose:
             while steps < i:
-                steps *= 10
+                steps *= 5
 
         if i  % steps == 0:
             print("{2} Photon {0}/{1}".format(i, maxCount, time.ctime()) )

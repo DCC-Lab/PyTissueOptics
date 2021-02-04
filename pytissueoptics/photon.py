@@ -13,6 +13,7 @@ class Photon:
 
         if not self.er.isPerpendicularTo(self.ez):
             self.er = None  # User will need to fix er before running calculation
+            self.er = self.findPerpendicular(self.ez)
 
         self.wavelength = None
         # We don't need to keep el, because it is obtainable from ez and er
@@ -36,6 +37,14 @@ class Photon:
 
     def transformFromLocalCoordinates(self, origin):
         self.r = self.r + origin
+
+    def findPerpendicular(self, v: Vector):
+        if v[1] == 0 and v[2] == 0:
+            if v[0] == 0:
+                raise ValueError('zero vector')
+            else:
+                return v.normalizedCrossProduct(yHat)
+        return v.normalizedCrossProduct(xHat)
 
     def moveBy(self, d):
         self.r.addScaled(self.ez, d)
@@ -172,13 +181,13 @@ class FiberSource(Source):
             positionVector = self.newUniformPosition()
             directionVector = self.newUniformConeDirection()
 
-            return Photon(positionVector, directionVector)
+            return Photon(Vector(positionVector), Vector(directionVector))
 
         elif self.distribution == "normal":
             raise NotImplementedError()
 
     def newUniformPosition(self):
-        r = (self.coreDiameter / 2) * sqrt(random.random())
+        r = (self.coreDiameter / 2) * random.random()
         theta = random.random() * 2 * pi
         x = self.position[0] + r * cos(theta)
         y = self.position[1] + r * sin(theta)
@@ -195,4 +204,7 @@ class FiberSource(Source):
         x = cos(theta2) * a
         y = sin(theta2) * a
 
-        return Vector(x, y, z)
+        direction = Vector(x, y, z)
+        direction.normalize()
+
+        return direction

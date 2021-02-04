@@ -2,8 +2,9 @@ import numpy as np
 import math
 from collections import namedtuple
 
+
 class Vector:
-    def __init__(self, x:float=0,y:float=0,z:float=0):
+    def __init__(self, x: float = 0, y: float = 0, z: float = 0):
         if isinstance(x, (int, float)):
             self.x = x
             self.y = y 
@@ -25,7 +26,7 @@ class Vector:
 
     @property
     def isUnitary(self) -> bool:
-        return abs(self.norm()-1)<1e-7
+        return abs(self.norm()-1) < 1e-7
 
     def __repr__(self):
         return "({0:.4f},{1:.4f},{2:.4f})".format(self.x, self.y, self.z)
@@ -73,10 +74,10 @@ class Vector:
             raise ValueError("Out of range index: must be 0,1 or 2")
 
     def isParallelTo(self, vector):
-        return (self.normalizedDotProduct(vector) - 1 < 1e-6)
+        return self.normalizedDotProduct(vector) - 1 < 1e-6
 
     def isPerpendicularTo(self, vector):
-        return (self.normalizedDotProduct(vector) < 1e-6)
+        return self.normalizedDotProduct(vector) < 1e-6
 
     def isInXYPlane(self, atZ, epsilon=0.001) -> bool:
         if abs(self.z-z) < epsilon:
@@ -93,7 +94,7 @@ class Vector:
             return True
         return False
 
-    def isInPlane(self, origin:'Vector', normal:'Vector', epsilon=0.001) -> bool:
+    def isInPlane(self, origin: 'Vector', normal: 'Vector', epsilon=0.001) -> bool:
         local = self-origin
         if abs(local.normalizedDotProduct(normal)) < epsilon:
             return True
@@ -264,7 +265,8 @@ class UnitVector(Vector):
         else:
             return Vector.normalizedDotProduct(self, vector)
 
-xHat = UnitVector(1,0,0)
-yHat = UnitVector(0,1,0)
-zHat = UnitVector(0,0,1)
+
+xHat = UnitVector(1, 0, 0)
+yHat = UnitVector(0, 1, 0)
+zHat = UnitVector(0, 0, 1)
 
