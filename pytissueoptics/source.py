@@ -88,11 +88,16 @@ class MultimodeFiberSource(Source):
         return Photon(Vector(positionVector), Vector(directionVector))
 
     def newUniformPosition(self):
-        r = self.radius * random.random()
-        theta = random.random() * 2 * pi
+        
+        position = None
+        while position is None:
+            x = self.radius * (2*random.random()-1)
+            y = self.radius * (2*random.random()-1)
 
-        position = Vector.fromScaledSum(self.origin, self.xAxis,  r * cos(theta))
-        position += self.yAxis * r * sin(theta)
+            if x*x+y*y < self.radius*self.radius:
+                position = Vector.fromScaledSum(self.origin, self.xAxis,  x)
+                position += self.yAxis * y
+        
         return position
 
     def newUniformConeDirection(self):
