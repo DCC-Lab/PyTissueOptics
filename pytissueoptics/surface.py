@@ -45,7 +45,7 @@ class Surface:
         if dotProduct == 0:
             return False, maxDistance
 
-        d = (position - self.origin).dot(self.normal)/dotProduct
+        d = (self.origin-position).dot(self.normal)/dotProduct
         if d >= 0 and d <= maxDistance:
             inPlane = (position-self.origin)+d*direction
             if self.contains(inPlane):
