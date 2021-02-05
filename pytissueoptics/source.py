@@ -62,7 +62,7 @@ class IsotropicSource(Source):
 class PencilSource(Source):
     def __init__(self, direction, maxCount):
         super(PencilSource, self).__init__(maxCount)
-        self.direction = direction
+        self.direction = Vector(direction)
 
     def newPhoton(self) -> Photon:
         return Photon( Vector(self.origin), Vector(self.direction))

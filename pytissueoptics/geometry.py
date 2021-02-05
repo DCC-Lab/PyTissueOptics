@@ -35,7 +35,7 @@ class Geometry:
                 # Default is simply photon.moveBy(d) but other things 
                 # would be here. Create a new material for other behaviour
                 self.material.move(photon, d=d)
-
+                d = 0
                 # Interact with volume: default is absorption only
                 # Default is simply absorb energy. Create a Material
                 # for other behaviour
@@ -54,6 +54,7 @@ class Geometry:
                     # reflect photon and keep propagating
                     photon.reflect(surface)
                     photon.moveBy(d=1e-3) # Move away from surface
+                    d -= distToPropagate + 1e-3
                 else:
                     # transmit, score, and leave
                     photon.refract(surface)
@@ -61,7 +62,6 @@ class Geometry:
                     photon.moveBy(d=1e-3) # We make sure we are out
                     break
 
-            d -= distToPropagate
             # And go again    
             photon.roulette()
 
@@ -176,10 +176,12 @@ class Geometry:
             totalWeightAcrossAllSurfaces = 0
             for i, surface in enumerate(self.surfaces):
                 totalWeight = self.stats.totalWeightCrossingPlane(surface)
-                print("Transmittance [{0}] : {1:.1f}%".format(surface, 100*totalWeight/self.stats.inputWeight))
+                print("Transmittance [{0}] : {1:.1f}% ".format(surface, 100*totalWeight/self.stats.inputWeight))
+                print("Transmittance [{0}] : {1:.1f}% of total power".format(surface, 100*totalWeight/self.stats.photonCount))
                 totalWeightAcrossAllSurfaces += totalWeight
 
             print("Absorbance : {0:.1f}%".format(100*self.stats.totalWeightAbsorbed()/self.stats.inputWeight))
+            print("Absorbance : {0:.1f}%".format(100*self.stats.totalWeightAbsorbed()/self.stats.photonCount))
 
             totalCheck = totalWeightAcrossAllSurfaces + self.stats.totalWeightAbsorbed()
             print("Absorbance + Transmittance = {0:.1f}%".format(100*totalCheck/self.stats.inputWeight))

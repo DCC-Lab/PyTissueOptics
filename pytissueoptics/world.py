@@ -30,7 +30,9 @@ class World:
                         if surface is not None:
                             # Moving to next object in air
                             photon.moveBy(distance)
-                            photon.refract(surface) #screw reflections!
+                            R = photon.fresnelCoefficient(surface)
+                            photon.refract(surface)
+                            photon.decreaseWeightBy(R*photon.weight)
                             photon.moveBy(1e-4)
                         else:
                             photon.weight = 0
@@ -109,7 +111,7 @@ class World:
     def processSignal(cls, signum, frame):
         if signum == signal.SIGUSR1:
             World.verbose = not World.verbose
-            print('Toggling verbose to {0}'.format(Geometry.verbose))
+            print('Toggling verbose to {0}'.format(World.verbose))
         elif signum == signal.SIGUSR2:
             print("Requesting save (not implemented)")
 
