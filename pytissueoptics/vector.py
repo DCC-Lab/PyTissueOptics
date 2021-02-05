@@ -121,7 +121,11 @@ class Vector:
         return math.sqrt(ux*ux+uy*uy+uz*uz)
 
     def normalize(self):
-        length = self.abs()
+        ux = self.x
+        uy = self.y
+        uz = self.z
+        length = math.sqrt(ux*ux+uy*uy+uz*uz)
+
         self.x /= length
         self.y /= length
         self.z /= length
@@ -144,7 +148,8 @@ class Vector:
         productNorm = self.norm() * vector.norm()
         if productNorm == 0:
             return 0
-        return self.cross(vector) * (1 / math.sqrt(productNorm))
+
+        return UnitVector(self.cross(vector) * (1 / math.sqrt(productNorm)))
 
     def normalizedDotProduct(self, vector):
         productNorm = self.norm() * vector.norm()
@@ -233,6 +238,7 @@ class Vector:
 class UnitVector(Vector):
     def __init__(self, x:float=0,y:float=0,z:float=0):
         Vector.__init__(self, x,y,z)
+        Vector.normalize(self) # We really want this normalized
 
     def abs(self):
         """ The `sqrt()` calculation normally used to compute `Vector.abs()`
@@ -245,7 +251,11 @@ class UnitVector(Vector):
         ux = self.x
         uy = self.y
         uz = self.z
-        return (ux*ux+uy*uy+uz*uz+1)/2
+        length = (ux*ux+uy*uy+uz*uz+1)/2
+        if length > 1:
+            self.normalize()
+            return 1.0
+        return length
 
     def cross(self, vector):
         """ Accessing properties is costly when done very often.
