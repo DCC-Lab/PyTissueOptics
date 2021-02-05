@@ -5,14 +5,15 @@ import sys
 import time
 from .surface import *
 from .photon import *
+from .source import *
 
 class Geometry:
     verbose = False
     allGeometries = []
 
-    def __init__(self, material=None, stats=None, label=""):
+    def __init__(self, position, material=None, stats=None, label=""):
         self.material = material
-        self.origin = Vector(0,0,0)
+        self.origin = position
         self.stats = stats
         self.surfaces = []
         self.label = label
@@ -262,8 +263,8 @@ class Geometry:
 
 
 class Box(Geometry):
-    def __init__(self, size, material, stats=None, label="Box"):
-        super(Box, self).__init__(material, stats, label)
+    def __init__(self, size, position, material, stats=None, label="Box"):
+        super(Box, self).__init__(position, material, stats, label)
         self.size = size
         self.surfaces = [ XYPlane(atZ= self.size[2]/2, description="Back"),
                          -XYPlane(atZ=-self.size[2]/2, description="Front"),
@@ -283,13 +284,13 @@ class Box(Geometry):
         return True
 
 class Cube(Box):
-    def __init__(self, side, material, stats=None, label="Cube"):
-        super(Cube, self).__init__(material, stats, label)
+    def __init__(self, side, position, material, stats=None, label="Cube"):
+        super(Cube, self).__init__(position, material, stats, label)
         self.size = (side,side,side)
 
 class Layer(Geometry):
-    def __init__(self, thickness, material, stats=None, label="Box"):
-        super(Layer, self).__init__(material, stats, label)
+    def __init__(self, thickness, position, material, stats=None, label="Box"):
+        super(Layer, self).__init__(position, material, stats, label)
         self.thickness = thickness
         self.surfaces = [ XYPlane(atZ= self.thickness, description="Back"),
                          -XYPlane(atZ= 0, description="Front")]
@@ -322,8 +323,8 @@ class SemiInfiniteLayer(Geometry):
     It is better to use a finite layer with a thickness a bit larger
     than what you are interested in."""
 
-    def __init__(self, material, stats=None, label="Semi-infinite layer"):
-        super(SemiInfiniteLayer, self).__init__(material, stats, label)
+    def __init__(self, position, material, stats=None, label="Semi-infinite layer"):
+        super(SemiInfiniteLayer, self).__init__(position, material, stats, label)
         self.surfaces = [ -XYPlane(atZ= 0, description="Front")]
 
     def contains(self, localPosition) -> bool:
@@ -344,8 +345,8 @@ class SemiInfiniteLayer(Geometry):
         return distance, None
 
 class Sphere(Geometry):
-    def __init__(self, radius, material, stats=None, label="Sphere"):
-        super(Sphere, self).__init__(material, stats, label)
+    def __init__(self, radius, position, material, stats=None, label="Sphere"):
+        super(Sphere, self).__init__(position, material, stats, label)
         self.radius = radius
 
     def contains(self, localPosition) -> bool:
@@ -355,8 +356,8 @@ class Sphere(Geometry):
         return True
 
 class KleinBottle(Geometry):
-    def __init__(self, material, stats=None):
-        super(KleinBottle, self).__init__(material, stats)
+    def __init__(self, position, material, stats=None):
+        super(KleinBottle, self).__init__(position, material, stats)
 
     def contains(self, localPosition) -> bool:
         raise NotImplementedError()

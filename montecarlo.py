@@ -11,7 +11,7 @@ source = PencilSource(position=Vector(0,0,-4), direction=Vector(0,0,1), maxCount
 
 # We pick a geometry
 #tissue = Layer(thickness=2, material=mat, stats=stats)
-tissue = Box(size=(2,2,2), material=mat, stats=stats)
+tissue = Box(position=Vector(0,0,0), size=(2,2,2), material=mat, stats=stats)
 #tissue = Sphere(radius=2, material=mat, stats=stats)
 
 

@@ -13,6 +13,7 @@ from .vector import *
 from .surface import *
 from .material import *
 from .photon import *
+from .source import *
 from .geometry import *
 from .stats import *
 
