@@ -34,7 +34,7 @@ class Geometry:
                 # If the scattering point is still inside, we simply move
                 # Default is simply photon.moveBy(d) but other things 
                 # would be here. Create a new material for other behaviour
-                self.material.move(photon, d=distToPropagate)
+                self.material.move(photon, d=d)
 
                 # Interact with volume: default is absorption only
                 # Default is simply absorb energy. Create a Material
@@ -218,8 +218,7 @@ class Box(Geometry):
 
 class Cube(Box):
     def __init__(self, side, material, stats=None, label="Cube"):
-        super(Cube, self).__init__(material, stats, label)
-        self.size = (side,side,side)
+        super(Cube, self).__init__((side,side,side), material, stats, label)
 
 class Layer(Geometry):
     def __init__(self, thickness, material, stats=None, label="Layer"):

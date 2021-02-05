@@ -38,7 +38,7 @@ class World:
                 World.showProgress(i+1, maxCount=source.maxCount, graphs=graphs)
 
         duration = World.completeCalculation()
-        print("{0:.1f} ms per photon".format(duration*1000/N))
+        print("{0:.1f} ms per photon\n".format(duration*1000/N))
 
     @classmethod
     def place(cls, anObject, position):
@@ -123,8 +123,11 @@ class World:
 
         if i  % steps == 0:
             print("{2} Photon {0}/{1}".format(i, maxCount, time.ctime()) )
-            # if graphs and self.stats is not None:
-            #     self.stats.showEnergy2D(plane='xz', integratedAlong='y', title="{0} photons".format(i)) 
+
+            if graphs:
+                for geometry in World.geometries:
+                    if geometry.stats is not None:
+                        geometry.stats.showEnergy2D(plane='xz', integratedAlong='y', title="{0} photons".format(i)) 
 
     @classmethod
     def report(cls):
