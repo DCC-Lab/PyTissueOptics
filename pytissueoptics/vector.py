@@ -2,8 +2,9 @@ import numpy as np
 import math
 from collections import namedtuple
 
+
 class Vector:
-    def __init__(self, x:float=0,y:float=0,z:float=0):
+    def __init__(self, x: float = 0, y: float = 0, z: float = 0):
         if isinstance(x, (int, float)):
             self.x = x
             self.y = y 
@@ -25,7 +26,7 @@ class Vector:
 
     @property
     def isUnitary(self) -> bool:
-        return abs(self.norm()-1)<1e-7
+        return abs(self.norm()-1) < 1e-7
 
     def __repr__(self):
         return "({0:.4f},{1:.4f},{2:.4f})".format(self.x, self.y, self.z)
@@ -73,10 +74,18 @@ class Vector:
             raise ValueError("Out of range index: must be 0,1 or 2")
 
     def isParallelTo(self, vector):
-        return (self.normalizedDotProduct(vector) - 1 < 1e-6)
+        return self.normalizedDotProduct(vector) - 1 < 1e-6
 
     def isPerpendicularTo(self, vector):
-        return (self.normalizedDotProduct(vector) < 1e-6)
+        return self.normalizedDotProduct(vector) < 1e-6
+
+    def anyPerpendicular(self):
+        if self.x == 0 and self.y == 0:
+            if self.z == 0:
+                raise ValueError('Null vector has not perpedicular vector')
+            else:
+                return self.normalizedCrossProduct(yHat)
+        return self.normalizedCrossProduct(xHat)
 
     def isInXYPlane(self, atZ, epsilon=0.001) -> bool:
         if abs(self.z-z) < epsilon:
@@ -93,7 +102,7 @@ class Vector:
             return True
         return False
 
-    def isInPlane(self, origin:'Vector', normal:'Vector', epsilon=0.001) -> bool:
+    def isInPlane(self, origin: 'Vector', normal: 'Vector', epsilon=0.001) -> bool:
         local = self-origin
         if abs(local.normalizedDotProduct(normal)) < epsilon:
             return True
@@ -112,7 +121,11 @@ class Vector:
         return math.sqrt(ux*ux+uy*uy+uz*uz)
 
     def normalize(self):
-        length = self.abs()
+        ux = self.x
+        uy = self.y
+        uz = self.z
+        length = math.sqrt(ux*ux+uy*uy+uz*uz)
+
         self.x /= length
         self.y /= length
         self.z /= length
@@ -135,7 +148,8 @@ class Vector:
         productNorm = self.norm() * vector.norm()
         if productNorm == 0:
             return 0
-        return self.cross(vector) * (1 / math.sqrt(productNorm))
+
+        return UnitVector(self.cross(vector) * (1 / math.sqrt(productNorm)))
 
     def normalizedDotProduct(self, vector):
         productNorm = self.norm() * vector.norm()
@@ -224,6 +238,7 @@ class Vector:
 class UnitVector(Vector):
     def __init__(self, x:float=0,y:float=0,z:float=0):
         Vector.__init__(self, x,y,z)
+        Vector.normalize(self) # We really want this normalized
 
     def abs(self):
         """ The `sqrt()` calculation normally used to compute `Vector.abs()`
@@ -236,7 +251,11 @@ class UnitVector(Vector):
         ux = self.x
         uy = self.y
         uz = self.z
-        return (ux*ux+uy*uy+uz*uz+1)/2
+        length = (ux*ux+uy*uy+uz*uz+1)/2
+        if length > 1:
+            self.normalize()
+            return 1.0
+        return length
 
     def cross(self, vector):
         """ Accessing properties is costly when done very often.
@@ -264,7 +283,8 @@ class UnitVector(Vector):
         else:
             return Vector.normalizedDotProduct(self, vector)
 
-xHat = UnitVector(1,0,0)
-yHat = UnitVector(0,1,0)
-zHat = UnitVector(0,0,1)
+
+xHat = UnitVector(1, 0, 0)
+yHat = UnitVector(0, 1, 0)
+zHat = UnitVector(0, 0, 1)
 

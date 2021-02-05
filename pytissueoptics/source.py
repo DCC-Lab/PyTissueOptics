@@ -66,3 +66,50 @@ class PencilSource(Source):
 
     def newPhoton(self) -> Photon:
         return Photon( Vector(self.origin), Vector(self.direction))
+
+class MultimodeFiberSource(Source):
+    def __init__(self, direction, diameter, NA, index, maxCount):
+        super(MultimodeFiberSource, self).__init__(maxCount)
+        self.direction = UnitVector(direction)
+        self.xAxis = UnitVector(self.direction.anyPerpendicular())
+        self.yAxis = UnitVector(self.direction.cross(self.xAxis))
+        self.radius = diameter/2
+        self.NA = NA
+        self.index = index
+
+    @property
+    def maxAngle(self):
+        return math.asin(self.NA/self.index)
+
+    def newPhoton(self) -> Photon:
+        positionVector = self.newUniformPosition()
+        directionVector = self.newUniformConeDirection()
+
+        return Photon(Vector(positionVector), Vector(directionVector))
+
+    def newUniformPosition(self):
+        
+        position = None
+        while position is None:
+            x = self.radius * (2*random.random()-1)
+            y = self.radius * (2*random.random()-1)
+
+            if x*x+y*y < self.radius*self.radius:
+                position = Vector.fromScaledSum(self.origin, self.xAxis,  x)
+                position += self.yAxis * y
+        
+        return position
+
+    def newUniformConeDirection(self):
+        # Generating a uniformly distributed random vector in a cone is funky:
+        # https://math.stackexchange.com/questions/56784/generate-a-random-direction-within-a-cone
+
+        z = random.uniform(math.cos(self.maxAngle), 1)
+        theta1 = math.acos(z)
+        theta2 = 2 * pi * random.random()
+        beta = (pi / 2) - theta1
+        a = z / tan(beta)
+        x = cos(theta2) * a
+        y = sin(theta2) * a
+
+        return UnitVector(x, y, z)
