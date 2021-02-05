@@ -10,9 +10,9 @@ class Stats:
         self.max = max
         self.L = (self.max[0]-self.min[0],self.max[1]-self.min[1],self.max[2]-self.min[2])
         self.size = size
-        self.binSizes = ((self.size[0]-1)/self.L[0],
-                         (self.size[1]-1)/self.L[1],
-                         (self.size[2]-1)/self.L[2])
+        self.binSizes = (float(self.size[0]-1)/self.L[0],
+                         float(self.size[1]-1)/self.L[1],
+                         float(self.size[2]-1)/self.L[2])
 
         self.energy = np.zeros(size)
         self.figure = None
@@ -77,9 +77,9 @@ class Stats:
     def scoreInVolume(self, photon, delta):
         position = photon.r
 
-        i = int(self.binSizes[0]*(position.x-self.min[0])-0.5)
-        j = int(self.binSizes[1]*(position.y-self.min[1])-0.5)
-        k = int(self.binSizes[2]*(position.z-self.min[2])-0.5)
+        i = int(self.binSizes[0]*(position.x-self.min[0])+0.5)
+        j = int(self.binSizes[1]*(position.y-self.min[1])+0.5)
+        k = int(self.binSizes[2]*(position.z-self.min[2])+0.5)
 
         if i < 0: 
             i = 0
