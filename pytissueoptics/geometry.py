@@ -4,9 +4,11 @@ import signal
 import sys
 import time
 from .surface import *
+from .photon import *
 
 class Geometry:
     verbose = False
+    allGeometries = []
 
     def __init__(self, material=None, stats=None, label=""):
         self.material = material
@@ -17,6 +19,7 @@ class Geometry:
 
         self.epsilon = 1e-5
         self.startTime = None # We are not calculating anything
+        Geometry.allGeometries.append(self)
 
     def propagate(self, photon):
         photon.transformToLocalCoordinates(self.origin)
@@ -27,9 +30,9 @@ class Geometry:
             if d <= 0:
                 d = self.material.getScatteringDistance(photon)
                 
-            isIntersecting, distToPropagate, surface = self.intersection(photon.r, photon.ez, d)
+            distToPropagate, surface = self.mayExitThroughInterface(photon.r, photon.ez, d)
 
-            if not isIntersecting:
+            if surface is None:
                 # If the scattering point is still inside, we simply move
                 # Default is simply photon.moveBy(d) but other things 
                 # would be here. Create a new material for other behaviour
@@ -56,6 +59,7 @@ class Geometry:
                     # transmit, score, and leave
                     photon.refract(surface)
                     self.scoreWhenCrossing(photon, surface)
+                    photon.moveBy(d=1e-4) # We make sure we are out
                     break
 
             d -= distToPropagate
@@ -68,17 +72,7 @@ class Geometry:
         # to go through the list after the fact for a calculation of their choice
         self.scoreFinal(photon)
         photon.transformFromLocalCoordinates(self.origin)
-    def propagateMany(self, source, graphs=True):
-        self.startCalculation()
-
-        N = source.maxCount
-
-        for i, photon in enumerate(source):
-            self.propagate(photon)
-            self.showProgress(i+1, maxCount=N, graphs=graphs)
-
-        self.completeCalculation()
-
+    
     def contains(self, position) -> bool:
         """ The base object is infinite. Subclasses override this method
         with their specific geometry. 
@@ -88,8 +82,11 @@ class Geometry:
         """
         return True
 
-    def intersection(self, position, direction, distance) -> (bool, float, Surface): 
-        """ This function is a very general function
+    def mayExitThroughInterface(self, position, direction, distance) -> (float, Surface): 
+        """ Is this line segment from position to distance*direction leaving
+        the object through any surface elements? Valid only from inside the object.
+        
+        This function is a very general function
         to find if a photon will leave the object.  `contains` is called
         repeatedly, is geometry-specific, and must be high performance. 
         It may be possible to write a specialized version for a subclass,
@@ -99,7 +96,7 @@ class Geometry:
 
         finalPosition = position + distance*direction
         if self.contains(finalPosition):
-            return False, distance, None
+            return distance, None
 
         wasInside = True
         finalPosition = Vector(position) # Copy
@@ -119,8 +116,33 @@ class Geometry:
             if surface.contains(finalPosition):
                 break
 
-        return True, (finalPosition-position).abs(), surface
+        return (finalPosition-position).abs(), surface
 
+    def mayEnterThroughInterface(self, position, direction, distance) -> (float, Surface):
+        """ Is this line segment from position to distance*direction crossing
+        any surface elements of this object? Valid from inside or outside the object.
+
+        This will be very slow: going through all elements to check for
+        an intersection is abysmally slow
+        and increases linearly with the number of surface elements
+        There are tons of strategies to improve this (axis-aligned boxes,
+        oriented boxes but most importantly KDTree and OCTrees).
+        It is not done here, we are already very slow: what's more slowdown
+        amongst friends? """
+
+        minDistance = distance
+        intersectSurface = None
+        for surface in self.surfaces:
+            if direction.dot(surface.normal) >= 0:
+                # Parallel or outward, does not apply
+                continue
+            # Going inward, against surface normal
+            isIntersecting, distanceToSurface = surface.intersection(position, direction, distance)
+            if isIntersecting and distanceToSurface < minDistance:
+                intersectSurface = surface
+                minDistance = distanceToSurface
+
+        return minDistance, intersectSurface
 
     def setupSurfaces(self):
         for s in self.surfaces:
@@ -145,9 +167,29 @@ class Geometry:
         if self.stats is not None:
             self.stats.scoreWhenFinal(photon)
 
-    def startCalculation(self):
-        self.setupSurfaces()
+    @classmethod
+    def propagateAll(self, graphs):
+        Geometry.startCalculation()
 
+        for source in Source.allSources:
+            for i, photon in enumerate(source):
+                while photon.isAlive:
+                    for geometry in Geometry.allGeometries:
+                        distanceToSurface, surface = geometry.mayEnterThroughInterface(photon.r, photon.ez, distance=1e4)
+                        if surface is not None:
+                            photon.moveBy(distanceToSurface)
+                            photon.refract(surface)
+                            photon.moveBy(1e-4)
+                            geometry.propagate(photon)
+                            break
+                        else:
+                            photon.weight = 0
+                geometry.showProgress(i+1, maxCount=source.maxCount, graphs=graphs)
+
+        Geometry.completeCalculation()
+
+    @classmethod
+    def startCalculation(self):
         if 'SIGUSR1' in dir(signal) and 'SIGUSR2' in dir(signal):
             # Trick to send a signal to code as it is running on Unix and derivatives
             # In the shell, use `kill -USR1 processID` to get more feedback
@@ -155,18 +197,20 @@ class Geometry:
             signal.signal(signal.SIGUSR1, self.processSignal)
             signal.signal(signal.SIGUSR2, self.processSignal)
 
-        self.startTime = time.time()
+        Geometry.startTime = time.time()
 
-    def completeCalculation(self) -> float:
+    @classmethod
+    def completeCalculation(cls) -> float:
         if 'SIGUSR1' in dir(signal) and 'SIGUSR2' in dir(signal):
             signal.signal(signal.SIGUSR1, signal.SIG_DFL)
             signal.signal(signal.SIGUSR2, signal.SIG_DFL)
 
-        elapsed = time.time() - self.startTime
-        self.startTime = None
+        elapsed = time.time() - Geometry.startTime
+        Geometry.startTime = None
         return elapsed
 
-    def processSignal(self, signum, frame):
+    @classmethod
+    def processSignal(cls, signum, frame):
         if signum == signal.SIGUSR1:
             Geometry.verbose = not Geometry.verbose
             print('Toggling verbose to {0}'.format(Geometry.verbose))
@@ -258,19 +302,19 @@ class Layer(Geometry):
 
         return True
 
-    def intersection(self, position, direction, distance) -> (bool, float, Surface): 
+    def mayExitThroughInterface(self, position, direction, distance) -> (float, Surface): 
         finalPosition = position + distance*direction
         if self.contains(finalPosition):
-            return False, distance, None
+            return distance, None
 
         if direction.z > 0:
             d = (self.thickness - position.z)/direction.z
-            return True, d, self.surfaces[0]
+            return d, self.surfaces[0]
         elif direction.z < 0:
             d = - position.z/direction.z
-            return True, d, self.surfaces[1]
+            return d, self.surfaces[1]
 
-        return False, distance, None
+        return distance, None
 
 class SemiInfiniteLayer(Geometry):
     """ This class is actually a bad idea: the photons don't exit
@@ -288,16 +332,16 @@ class SemiInfiniteLayer(Geometry):
 
         return True
 
-    def intersection(self, position, direction, distance) -> (bool, float, Surface): 
+    def mayExitThroughInterface(self, position, direction, distance) -> (float, Surface): 
         finalPosition = position + distance*direction
         if self.contains(finalPosition):
-            return False, distance, None
+            return distance, None
 
         if direction.z < 0:
             d = - position.z/direction.z
-            return True, d, self.surfaces[0]
+            return d, self.surfaces[0]
 
-        return False, distance, None
+        return distance, None
 
 class Sphere(Geometry):
     def __init__(self, radius, material, stats=None, label="Sphere"):
@@ -316,13 +360,3 @@ class KleinBottle(Geometry):
 
     def contains(self, localPosition) -> bool:
         raise NotImplementedError()
-
-# class World:
-#     def __init__(self):
-#         self.sources = []
-#         self.geometries = []
-
-#     def place(self, geometry, position):
-#         geometry.origin = position
-#         self.geometries.append(geometry)
-

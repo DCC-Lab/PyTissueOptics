@@ -10,7 +10,7 @@ class Photon:
         self.er = UnitVector(0,1,0) 
 
         if not self.er.isPerpendicularTo(self.ez):
-            self.er = None # User will need to fix er before running calculation
+            self.er = None # User will need to provide er before running calculation
 
         self.wavelength = None
         # We don't need to keep el, because it is obtainable from ez and er
@@ -73,6 +73,10 @@ class Photon:
 
     def refract(self, surface):
         planeOfIncidenceNormal = self.ez.normalizedCrossProduct(surface.normal)
+        if planeOfIncidenceNormal.norm() == 0:
+            # Normal incidence
+            return
+
         thetaIn = self.ez.angleWith(surface.normal, righthand=planeOfIncidenceNormal)
 
         n1 = surface.indexInside
@@ -91,11 +95,14 @@ class Photon:
             self.weight = 0
 
 class Source:
+    allSources = []
+
     def __init__(self, position, maxCount):
         self.position = position
         self.maxCount = maxCount
         self.iteration = 0
         self._photons = []
+        Source.allSources.append(self)
 
     def __iter__(self):
         self.iteration = 0
