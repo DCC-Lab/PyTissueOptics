@@ -70,8 +70,10 @@ class PencilSource(Source):
 class MultimodeFiberSource(Source):
     def __init__(self, direction, diameter, NA, index, maxCount):
         super(MultimodeFiberSource, self).__init__(maxCount)
-        self.direction = direction
-        self.diameter = diameter
+        self.direction = UnitVector(direction)
+        self.xAxis = UnitVector(self.direction.anyPerpendicular())
+        self.yAxis = UnitVector(self.direction.cross(self.xAxis))
+        self.radius = diameter/2
         self.NA = NA
         self.index = index
 
@@ -86,11 +88,12 @@ class MultimodeFiberSource(Source):
         return Photon(Vector(positionVector), Vector(directionVector))
 
     def newUniformPosition(self):
-        r = (self.diameter / 2) * sqrt(random.random())
+        r = self.radius * random.random()
         theta = random.random() * 2 * pi
-        x = self.origin.x + r * cos(theta)
-        y = self.origin.y + r * sin(theta)
-        return Vector(x, y, self.origin.z)
+
+        position = Vector.fromScaledSum(self.origin, self.xAxis,  r * cos(theta))
+        position += self.yAxis * r * sin(theta)
+        return position
 
     def newUniformConeDirection(self):
         # Generating a uniformly distributed random vector in a cone is funky:
@@ -104,7 +107,4 @@ class MultimodeFiberSource(Source):
         x = cos(theta2) * a
         y = sin(theta2) * a
 
-        direction = Vector(x, y, z)
-        direction.normalize()
-
-        return direction
+        return UnitVector(x, y, z)
