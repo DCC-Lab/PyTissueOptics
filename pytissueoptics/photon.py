@@ -165,14 +165,15 @@ class PencilSource(Source):
         return Photon(Vector(self.position), Vector(self.direction))
 
 class FiberSource(Source):
-    def __init__(self, position, direction, coreDiameter, na, maxCount, distribution="uniform"):
+    def __init__(self, position, direction, coreDiameter, na, index, maxCount, distribution="uniform"):
         super(FiberSource, self).__init__(position, maxCount)
         self.direction = direction
         self.coreDiameter = coreDiameter
         self.na = na
-        self.maxAngle = math.asin(self.na)
+        self.maxAngle = math.asin(self.na/index)
         self.distribution = distribution
         self.count = 0
+        self.angles = []
         # TODO: take into account the direction to select the orientation of the random points (normal plan)
         # Now only works towards the Z axis.
 
@@ -187,7 +188,7 @@ class FiberSource(Source):
             raise NotImplementedError()
 
     def newUniformPosition(self):
-        r = (self.coreDiameter / 2) * random.random()
+        r = (self.coreDiameter / 2) * sqrt(random.random())
         theta = random.random() * 2 * pi
         x = self.position[0] + r * cos(theta)
         y = self.position[1] + r * sin(theta)
@@ -200,7 +201,8 @@ class FiberSource(Source):
         z = random.uniform(math.cos(self.maxAngle), 1)
         theta1 = math.acos(z)
         theta2 = 2 * pi * random.random()
-        a = z / atan((pi/2) - theta1)
+        beta = (pi / 2) - theta1
+        a = z / tan(beta)
         x = cos(theta2) * a
         y = sin(theta2) * a
 
