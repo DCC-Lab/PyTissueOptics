@@ -15,7 +15,6 @@ class Photon:
         self.wavelength = None
         # We don't need to keep el, because it is obtainable from ez and er
         self.weight = 1.0
-        self.uniqueId = np.random.randint(1<<31) # This is dumb but it works for now.
         self.path = None
 
     @property

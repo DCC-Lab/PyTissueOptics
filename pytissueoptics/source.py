@@ -3,16 +3,15 @@ import time
 import warnings
 from .vector import *
 from .photon import *
+from .world import *
 
 class Source:
-    allSources = []
-
     def __init__(self, position, maxCount):
         self.origin = position
         self.maxCount = maxCount
         self.iteration = 0
         self._photons = []
-        Source.allSources.append(self)
+        World.sources.append(self)
 
     def __iter__(self):
         self.iteration = 0

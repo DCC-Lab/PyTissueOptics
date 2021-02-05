@@ -6,11 +6,9 @@ import time
 from .surface import *
 from .photon import *
 from .source import *
+from .world import *
 
 class Geometry:
-    verbose = False
-    allGeometries = []
-
     def __init__(self, position, material=None, stats=None, label=""):
         self.material = material
         self.origin = position
@@ -20,7 +18,15 @@ class Geometry:
 
         self.epsilon = 1e-5
         self.startTime = None # We are not calculating anything
-        Geometry.allGeometries.append(self)
+        World.geometries.append(self)
+
+    def __repr__(self):
+        return "{0}".format(self)
+
+    def __str__(self):
+        string = "'{0}' {2} with surfaces {1}\n".format(self.label, self.surfaces, self.origin)
+        string += "{0}".format(self.material)
+        return string
 
     def propagate(self, photon):
         photon.transformToLocalCoordinates(self.origin)
@@ -60,7 +66,7 @@ class Geometry:
                     # transmit, score, and leave
                     photon.refract(surface)
                     self.scoreWhenCrossing(photon, surface)
-                    photon.moveBy(d=1e-4) # We make sure we are out
+                    photon.moveBy(d=1e-3) # We make sure we are out
                     break
 
             d -= distToPropagate
@@ -145,11 +151,6 @@ class Geometry:
 
         return minDistance, intersectSurface
 
-    def setupSurfaces(self):
-        for s in self.surfaces:
-            s.indexInside = self.material.index
-            s.indexOutside = 1.0 # FIXME
-
     def isReflected(self, photon, surface) -> bool:
         R = photon.fresnelCoefficient(surface)
         if np.random.random() < R:
@@ -167,68 +168,6 @@ class Geometry:
     def scoreFinal(self, photon):
         if self.stats is not None:
             self.stats.scoreWhenFinal(photon)
-
-    @classmethod
-    def propagateAll(self, graphs):
-        Geometry.startCalculation()
-
-        for source in Source.allSources:
-            for i, photon in enumerate(source):
-                while photon.isAlive:
-                    for geometry in Geometry.allGeometries:
-                        distanceToSurface, surface = geometry.mayEnterThroughInterface(photon.r, photon.ez, distance=1e4)
-                        if surface is not None:
-                            photon.moveBy(distanceToSurface)
-                            photon.refract(surface)
-                            photon.moveBy(1e-4)
-                            geometry.propagate(photon)
-                            break
-                        else:
-                            photon.weight = 0
-                geometry.showProgress(i+1, maxCount=source.maxCount, graphs=graphs)
-
-        Geometry.completeCalculation()
-
-    @classmethod
-    def startCalculation(self):
-        if 'SIGUSR1' in dir(signal) and 'SIGUSR2' in dir(signal):
-            # Trick to send a signal to code as it is running on Unix and derivatives
-            # In the shell, use `kill -USR1 processID` to get more feedback
-            # use `kill -USR2 processID` to force a save
-            signal.signal(signal.SIGUSR1, self.processSignal)
-            signal.signal(signal.SIGUSR2, self.processSignal)
-
-        Geometry.startTime = time.time()
-
-    @classmethod
-    def completeCalculation(cls) -> float:
-        if 'SIGUSR1' in dir(signal) and 'SIGUSR2' in dir(signal):
-            signal.signal(signal.SIGUSR1, signal.SIG_DFL)
-            signal.signal(signal.SIGUSR2, signal.SIG_DFL)
-
-        elapsed = time.time() - Geometry.startTime
-        Geometry.startTime = None
-        return elapsed
-
-    @classmethod
-    def processSignal(cls, signum, frame):
-        if signum == signal.SIGUSR1:
-            Geometry.verbose = not Geometry.verbose
-            print('Toggling verbose to {0}'.format(Geometry.verbose))
-        elif signum == signal.SIGUSR2:
-            print("Requesting save (not implemented)")
-
-    def showProgress(self, i, maxCount, graphs=False):
-        steps = 100
-
-        if not Geometry.verbose:
-            while steps < i:
-                steps *= 10
-
-        if i  % steps == 0:
-            print("{2} Photon {0}/{1}".format(i, maxCount, time.ctime()) )
-            if graphs and self.stats is not None:
-                self.stats.showEnergy2D(plane='xz', integratedAlong='y', title="{0} photons".format(i)) 
 
     def report(self):
         print("Geometry and material")
@@ -252,26 +191,16 @@ class Geometry:
             self.stats.showEnergy2D(plane='xz', integratedAlong='y', title="Final photons", realtime=False)
             self.stats.showSurfaceIntensities(self.surfaces)
 
-
-    def __repr__(self):
-        return "{0}".format(self)
-
-    def __str__(self):
-        string = "'{0}' with surfaces {1}\n".format(self.label, self.surfaces)
-        string += "{0}".format(self.material)
-        return string
-
-
 class Box(Geometry):
     def __init__(self, size, position, material, stats=None, label="Box"):
         super(Box, self).__init__(position, material, stats, label)
         self.size = size
-        self.surfaces = [ XYPlane(atZ= self.size[2]/2, description="Back"),
-                         -XYPlane(atZ=-self.size[2]/2, description="Front"),
-                          YZPlane(atX= self.size[0]/2, description="Right"), 
+        self.surfaces = [-XYPlane(atZ=-self.size[2]/2, description="Front"),
+                          XYPlane(atZ= self.size[2]/2, description="Back"),
                          -YZPlane(atX=-self.size[0]/2, description="Left"),
-                          ZXPlane(atY= self.size[1]/2, description="Top"),
-                         -ZXPlane(atY=-self.size[1]/2, description="Bottom")]
+                          YZPlane(atX= self.size[0]/2, description="Right"), 
+                         -ZXPlane(atY=-self.size[1]/2, description="Bottom"),
+                         ZXPlane(atY= self.size[1]/2, description="Top")]
 
     def contains(self, localPosition) -> bool:
         if abs(localPosition.z) > self.size[2]/2 + self.epsilon:
@@ -289,11 +218,11 @@ class Cube(Box):
         self.size = (side,side,side)
 
 class Layer(Geometry):
-    def __init__(self, thickness, position, material, stats=None, label="Box"):
+    def __init__(self, thickness, position, material, stats=None, label="Layer"):
         super(Layer, self).__init__(position, material, stats, label)
         self.thickness = thickness
-        self.surfaces = [ XYPlane(atZ= self.thickness, description="Back"),
-                         -XYPlane(atZ= 0, description="Front")]
+        self.surfaces = [-XYPlane(atZ= 0, description="Front"),
+                          XYPlane(atZ= self.thickness, description="Back")]
 
     def contains(self, localPosition) -> bool:
         if localPosition.z < -self.epsilon:
@@ -316,6 +245,9 @@ class Layer(Geometry):
             return d, self.surfaces[1]
 
         return distance, None
+
+    def stack(self, layer):
+        return
 
 class SemiInfiniteLayer(Geometry):
     """ This class is actually a bad idea: the photons don't exit
