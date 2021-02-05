@@ -7,7 +7,7 @@ mat    = Material(mu_s=30, mu_a = 0.01, g = 0.8, index = 1.0)
 stats  = Stats(min = (-4, -4, -4), max = (4, 4, 4), size = (50,50,50))
 
 # We pick a light source
-source = PencilSource(direction=Vector(0,0,1), maxCount=10000)
+source = MultimodeFiberSource(direction=Vector(0,0,1), diameter=1e-2, NA=0.5, index=1.4, maxCount=10000)
 
 # We pick a geometry
 tissue = Layer(thickness=1, material=mat, stats=stats)

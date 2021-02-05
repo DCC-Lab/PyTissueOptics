@@ -79,6 +79,14 @@ class Vector:
     def isPerpendicularTo(self, vector):
         return self.normalizedDotProduct(vector) < 1e-6
 
+    def anyPerpendicular(self):
+        if self.x == 0 and self.y == 0:
+            if self.z == 0:
+                raise ValueError('Null vector has not perpedicular vector')
+            else:
+                return self.normalizedCrossProduct(yHat)
+        return self.normalizedCrossProduct(xHat)
+
     def isInXYPlane(self, atZ, epsilon=0.001) -> bool:
         if abs(self.z-z) < epsilon:
             return True
