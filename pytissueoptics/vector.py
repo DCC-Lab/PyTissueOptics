@@ -20,7 +20,7 @@ class Vector:
             raise ValueError("No valid input for Vector")
 
     @classmethod
-    def fromScaledSum(a, b, scale):
+    def fromScaledSum(cls, a, b, scale):
         return Vector(a.x + b.x*scale, a.y + b.y*scale, a.z + b.z*scale)
 
     @property

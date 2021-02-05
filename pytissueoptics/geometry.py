@@ -53,6 +53,7 @@ class Geometry:
                 if self.isReflected(photon, surface): 
                     # reflect photon and keep propagating
                     photon.reflect(surface)
+                    photon.moveBy(d=1e-3) # Move away from surface
                 else:
                     # transmit, score, and leave
                     photon.refract(surface)
@@ -61,7 +62,6 @@ class Geometry:
                     break
 
             d -= distToPropagate
-
             # And go again    
             photon.roulette()
 
@@ -92,7 +92,7 @@ class Geometry:
         surprisingly efficient.
         """
 
-        finalPosition = position + distance*direction
+        finalPosition = Vector.fromScaledSum(position, direction, distance)
         if self.contains(finalPosition):
             return distance, None
 
@@ -111,14 +111,15 @@ class Geometry:
 
         surface = None
         for surface in self.surfaces:
-            if surface.contains(finalPosition):
-                break
+            if surface.normal.dot(direction) > 0:
+                if surface.contains(finalPosition):
+                    break
 
         return (finalPosition-position).abs(), surface
 
     def nextEntranceInterface(self, position, direction, distance) -> (float, Surface):
         """ Is this line segment from position to distance*direction crossing
-        any surface elements of this object? Valid from inside or outside the object.
+        any surface elements of this object? Valid from outside the object.
 
         This will be very slow: going through all elements to check for
         an intersection is abysmally slow
@@ -236,7 +237,7 @@ class Layer(Geometry):
         return True
 
     def nextExitInterface(self, position, direction, distance) -> (float, Surface): 
-        finalPosition = position + distance*direction
+        finalPosition = Vector.fromScaledSum(position, direction, distance)
         if self.contains(finalPosition):
             return distance, None
 
