@@ -187,7 +187,8 @@ class Geometry:
             print("Absorbance + Transmittance = {0:.1f}%".format(100*totalCheck/self.stats.inputWeight))
 
             self.stats.showEnergy2D(plane='xz', integratedAlong='y', title="Final photons", realtime=False)
-            self.stats.showSurfaceIntensities(self.surfaces)
+            if len(self.surfaces) != 0:
+                self.stats.showSurfaceIntensities(self.surfaces)
 
     def __repr__(self):
         return "{0}".format(self)
