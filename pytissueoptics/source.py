@@ -3,15 +3,13 @@ import time
 import warnings
 from .vector import *
 from .photon import *
-from .world import *
 
 class Source:
-    def __init__(self, position, maxCount):
-        self.origin = position
+    def __init__(self, maxCount):
+        self.origin = Vector(0,0,0)
         self.maxCount = maxCount
         self.iteration = 0
         self._photons = []
-        World.sources.append(self)
 
     def __iter__(self):
         self.iteration = 0
@@ -48,8 +46,8 @@ class Source:
         raise NotImplementedError()
 
 class IsotropicSource(Source):
-    def __init__(self, position, maxCount):
-        super(IsotropicSource, self).__init__(position, maxCount)
+    def __init__(self, maxCount):
+        super(IsotropicSource, self).__init__(maxCount)
 
     def newPhoton(self) -> Photon:
         p = Photon()
@@ -62,8 +60,8 @@ class IsotropicSource(Source):
         return p
 
 class PencilSource(Source):
-    def __init__(self, position, direction, maxCount):
-        super(PencilSource, self).__init__(position, maxCount)
+    def __init__(self, direction, maxCount):
+        super(PencilSource, self).__init__(maxCount)
         self.direction = direction
 
     def newPhoton(self) -> Photon:

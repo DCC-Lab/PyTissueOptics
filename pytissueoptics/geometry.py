@@ -6,38 +6,29 @@ import time
 from .surface import *
 from .photon import *
 from .source import *
-from .world import *
 
 class Geometry:
-    def __init__(self, position, material=None, stats=None, label=""):
+    def __init__(self, material=None, stats=None, label=""):
         self.material = material
-        self.origin = position
+        self.origin = Vector(0,0,0)
         self.stats = stats
         self.surfaces = []
         self.label = label
+        self.inputWeight = 0
 
         self.epsilon = 1e-5
         self.startTime = None # We are not calculating anything
-        World.geometries.append(self)
-
-    def __repr__(self):
-        return "{0}".format(self)
-
-    def __str__(self):
-        string = "'{0}' {2} with surfaces {1}\n".format(self.label, self.surfaces, self.origin)
-        string += "{0}".format(self.material)
-        return string
 
     def propagate(self, photon):
         photon.transformToLocalCoordinates(self.origin)
-
+        self.scoreWhenStarting(photon)
         d = 0
         while photon.isAlive and self.contains(photon.r):
             # Pick distance to scattering point
             if d <= 0:
                 d = self.material.getScatteringDistance(photon)
                 
-            distToPropagate, surface = self.mayExitThroughInterface(photon.r, photon.ez, d)
+            distToPropagate, surface = self.nextExitInterface(photon.r, photon.ez, d)
 
             if surface is None:
                 # If the scattering point is still inside, we simply move
@@ -77,7 +68,7 @@ class Geometry:
         # Because the code will not typically calculate millions of photons, it is
         # inexpensive to keep all the propagated photons.  This allows users
         # to go through the list after the fact for a calculation of their choice
-        self.scoreFinal(photon)
+        self.scoreWhenFinal(photon)
         photon.transformFromLocalCoordinates(self.origin)
     
     def contains(self, position) -> bool:
@@ -89,7 +80,7 @@ class Geometry:
         """
         return True
 
-    def mayExitThroughInterface(self, position, direction, distance) -> (float, Surface): 
+    def nextExitInterface(self, position, direction, distance) -> (float, Surface): 
         """ Is this line segment from position to distance*direction leaving
         the object through any surface elements? Valid only from inside the object.
         
@@ -125,7 +116,7 @@ class Geometry:
 
         return (finalPosition-position).abs(), surface
 
-    def mayEnterThroughInterface(self, position, direction, distance) -> (float, Surface):
+    def nextEntranceInterface(self, position, direction, distance) -> (float, Surface):
         """ Is this line segment from position to distance*direction crossing
         any surface elements of this object? Valid from inside or outside the object.
 
@@ -157,6 +148,10 @@ class Geometry:
             return True
         return False
 
+    def scoreWhenStarting(self, photon):
+        if self.stats is not None:
+            self.stats.scoreWhenStarting(photon)
+
     def scoreInVolume(self, photon, delta):
         if self.stats is not None:
             self.stats.scoreInVolume(photon, delta)
@@ -165,7 +160,7 @@ class Geometry:
         if self.stats is not None:
             self.stats.scoreWhenCrossing(photon, surface)
 
-    def scoreFinal(self, photon):
+    def scoreWhenFinal(self, photon):
         if self.stats is not None:
             self.stats.scoreWhenFinal(photon)
 
@@ -180,27 +175,35 @@ class Geometry:
             totalWeightAcrossAllSurfaces = 0
             for i, surface in enumerate(self.surfaces):
                 totalWeight = self.stats.totalWeightCrossingPlane(surface)
-                print("Transmittance [{0}] : {1:.1f}%".format(surface, 100*totalWeight/self.stats.photonCount))
+                print("Transmittance [{0}] : {1:.1f}%".format(surface, 100*totalWeight/self.stats.inputWeight))
                 totalWeightAcrossAllSurfaces += totalWeight
 
-            print("Absorbance : {0:.1f}%".format(100*self.stats.totalWeightAbsorbed()/self.stats.photonCount))
+            print("Absorbance : {0:.1f}%".format(100*self.stats.totalWeightAbsorbed()/self.stats.inputWeight))
 
             totalCheck = totalWeightAcrossAllSurfaces + self.stats.totalWeightAbsorbed()
-            print("Absorbance + Transmittance = {0:.1f}%".format(100*totalCheck/self.stats.photonCount))
+            print("Absorbance + Transmittance = {0:.1f}%".format(100*totalCheck/self.stats.inputWeight))
 
             self.stats.showEnergy2D(plane='xz', integratedAlong='y', title="Final photons", realtime=False)
             self.stats.showSurfaceIntensities(self.surfaces)
 
+    def __repr__(self):
+        return "{0}".format(self)
+
+    def __str__(self):
+        string = "'{0}' {2} with surfaces {1}\n".format(self.label, self.surfaces, self.origin)
+        string += "{0}".format(self.material)
+        return string
+
 class Box(Geometry):
-    def __init__(self, size, position, material, stats=None, label="Box"):
-        super(Box, self).__init__(position, material, stats, label)
+    def __init__(self, size, material, stats=None, label="Box"):
+        super(Box, self).__init__(material, stats, label)
         self.size = size
         self.surfaces = [-XYPlane(atZ=-self.size[2]/2, description="Front"),
                           XYPlane(atZ= self.size[2]/2, description="Back"),
                          -YZPlane(atX=-self.size[0]/2, description="Left"),
                           YZPlane(atX= self.size[0]/2, description="Right"), 
                          -ZXPlane(atY=-self.size[1]/2, description="Bottom"),
-                         ZXPlane(atY= self.size[1]/2, description="Top")]
+                          ZXPlane(atY= self.size[1]/2, description="Top")]
 
     def contains(self, localPosition) -> bool:
         if abs(localPosition.z) > self.size[2]/2 + self.epsilon:
@@ -213,13 +216,13 @@ class Box(Geometry):
         return True
 
 class Cube(Box):
-    def __init__(self, side, position, material, stats=None, label="Cube"):
-        super(Cube, self).__init__(position, material, stats, label)
+    def __init__(self, side, material, stats=None, label="Cube"):
+        super(Cube, self).__init__(material, stats, label)
         self.size = (side,side,side)
 
 class Layer(Geometry):
-    def __init__(self, thickness, position, material, stats=None, label="Layer"):
-        super(Layer, self).__init__(position, material, stats, label)
+    def __init__(self, thickness, material, stats=None, label="Layer"):
+        super(Layer, self).__init__(material, stats, label)
         self.thickness = thickness
         self.surfaces = [-XYPlane(atZ= 0, description="Front"),
                           XYPlane(atZ= self.thickness, description="Back")]
@@ -232,7 +235,7 @@ class Layer(Geometry):
 
         return True
 
-    def mayExitThroughInterface(self, position, direction, distance) -> (float, Surface): 
+    def nextExitInterface(self, position, direction, distance) -> (float, Surface): 
         finalPosition = position + distance*direction
         if self.contains(finalPosition):
             return distance, None
@@ -255,8 +258,8 @@ class SemiInfiniteLayer(Geometry):
     It is better to use a finite layer with a thickness a bit larger
     than what you are interested in."""
 
-    def __init__(self, position, material, stats=None, label="Semi-infinite layer"):
-        super(SemiInfiniteLayer, self).__init__(position, material, stats, label)
+    def __init__(self, material, stats=None, label="Semi-infinite layer"):
+        super(SemiInfiniteLayer, self).__init__(material, stats, label)
         self.surfaces = [ -XYPlane(atZ= 0, description="Front")]
 
     def contains(self, localPosition) -> bool:
@@ -265,7 +268,7 @@ class SemiInfiniteLayer(Geometry):
 
         return True
 
-    def mayExitThroughInterface(self, position, direction, distance) -> (float, Surface): 
+    def nextExitInterface(self, position, direction, distance) -> (float, Surface): 
         finalPosition = position + distance*direction
         if self.contains(finalPosition):
             return distance, None
@@ -276,16 +279,17 @@ class SemiInfiniteLayer(Geometry):
 
         return distance, None
 
-class Sphere(Geometry):
-    def __init__(self, radius, position, material, stats=None, label="Sphere"):
-        super(Sphere, self).__init__(position, material, stats, label)
-        self.radius = radius
 
-    def contains(self, localPosition) -> bool:
-        if localPosition.abs() > self.radius + self.epsilon:
-            return False
+# class Sphere(Geometry):
+#     def __init__(self, radius, material, stats=None, label="Sphere"):
+#         super(Sphere, self).__init__(position, material, stats, label)
+#         self.radius = radius
 
-        return True
+#     def contains(self, localPosition) -> bool:
+#         if localPosition.abs() > self.radius + self.epsilon:
+#             return False
+
+#         return True
 
 class KleinBottle(Geometry):
     def __init__(self, position, material, stats=None):

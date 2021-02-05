@@ -15,6 +15,7 @@ from .material import *
 from .photon import *
 from .source import *
 from .geometry import *
+from .world import *
 from .stats import *
 
 

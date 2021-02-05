@@ -6,35 +6,48 @@ import time
 from .surface import *
 from .photon import *
 from .source import *
+from .geometry import *
 
 class World:
-    geometries = []
-    sources = []
+    geometries = set()
+    sources = set()
     verbose = False
 
     @classmethod
-    def propagateAll(self, graphs):
+    def compute(self, graphs):
         World.startCalculation()
-
+        N = 0
         for source in World.sources:
+            N += source.maxCount
+
             for i, photon in enumerate(source):
                 while photon.isAlive:
                     currentGeometry = World.contains(photon.r)
                     if currentGeometry is not None:
                         currentGeometry.propagate(photon)
                     else:
-                        distanceToSurface, surface, nextGeometry = World.willEnterThroughInterface(photon)
+                        distance, surface, nextGeometry = World.nextObstacle(photon)
                         if surface is not None:
                             # Moving to next object in air
-                            photon.moveBy(distanceToSurface)
-                            #photon.refract(surface) #screw reflections!
+                            photon.moveBy(distance)
+                            photon.refract(surface) #screw reflections!
                             photon.moveBy(1e-4)
                         else:
                             photon.weight = 0
 
                 World.showProgress(i+1, maxCount=source.maxCount, graphs=graphs)
 
-        World.completeCalculation()
+        duration = World.completeCalculation()
+        print("{0:.1f} ms per photon".format(duration*1000/N))
+
+    @classmethod
+    def place(cls, anObject, position):
+        if isinstance(anObject, Geometry):
+            anObject.origin = position
+            World.geometries.add(anObject)
+        elif isinstance(anObject, Source):
+            anObject.origin = position
+            World.sources.add(anObject)
 
     @classmethod
     def contains(cls, worldCoordinates):
@@ -45,13 +58,13 @@ class World:
         return None
 
     @classmethod
-    def willEnterThroughInterface(cls, photon):
+    def nextObstacle(cls, photon):
         distance = 1e7
         intersect = None
         sGeometry = None
         for geometry in World.geometries:
             photon.transformToLocalCoordinates(geometry.origin)
-            distanceToSurface, surface = geometry.mayEnterThroughInterface(photon.r, photon.ez, distance=1e4)
+            distanceToSurface, surface = geometry.nextEntranceInterface(photon.r, photon.ez, distance=1e4)
             if distanceToSurface < distance:
                 distance = distanceToSurface
                 intersect = surface
@@ -117,4 +130,3 @@ class World:
     def report(cls):
         for geometry in World.geometries:
             geometry.report()
-            

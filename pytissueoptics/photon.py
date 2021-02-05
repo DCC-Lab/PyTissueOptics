@@ -78,8 +78,13 @@ class Photon:
 
         thetaIn = self.ez.angleWith(surface.normal, righthand=planeOfIncidenceNormal)
 
-        n1 = surface.indexInside
-        n2 = surface.indexOutside
+        if self.ez.dot(surface.normal) > 0:
+            n1 = surface.indexInside
+            n2 = surface.indexOutside
+        else:
+            n1 = surface.indexOutside
+            n2 = surface.indexInside
+
         thetaOut = math.asin(n1*math.sin(thetaIn)/n2)
 
         self.ez.rotateAround(planeOfIncidenceNormal, thetaOut-thetaIn)

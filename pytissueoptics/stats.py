@@ -17,9 +17,14 @@ class Stats:
         self.energy = np.zeros(size)
         self.figure = None
         self.volume = None
+        self.starting = []
         self.crossing = []
         self.final = []
         self.startTime = time.time()
+
+    @property
+    def inputWeight(self):
+        return sum(self.starting)
 
     @property
     def photonCount(self):
@@ -101,6 +106,9 @@ class Stats:
     def scoreWhenCrossing(self, photon, surface):
         self.crossing.append( (Vector(photon.r), photon.weight) )
 
+    def scoreWhenStarting(self, photon):
+        self.starting.append(photon.weight)
+
     def scoreWhenFinal(self, photon):
         self.final.append(photon)
 
@@ -124,7 +132,7 @@ class Stats:
             plt.ion()
             self.figure = plt.figure()
 
-        plt.title("Energy in {0}, {1} photons".format(plane, self.photonCount))
+        plt.title("Energy in {0} with {1:.0f} photons".format(plane, self.inputWeight))
         if cutAt is not None:
             if plane == 'xy':
                 plt.imshow(np.log(self.energy[:,:,cutAt]+0.0001),cmap='viridis',extent=[self.min[0],self.max[0],self.min[1],self.max[1]],aspect='auto')
@@ -198,7 +206,7 @@ class Stats:
 
     def showSurfaceIntensities(self, surfaces):
         fig, axes = plt.subplots(nrows=2, ncols=len(surfaces)//2, figsize=(14,8))
-        N = len(self.final)
+        N = self.inputWeight
 
         for i, surface in enumerate(surfaces):
             a,b,weights = self.photonsCrossingPlane(surface)
