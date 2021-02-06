@@ -53,6 +53,9 @@ class Photon:
 
     def angleOfIncidence(self, surface) -> (float, Vector):
         planeOfIncidenceNormal = self.ez.normalizedCrossProduct(surface.normal)
+        if planeOfIncidenceNormal.isNull:
+            return 0, surface.normal.anyPerpendicular()
+
         return self.ez.angleWith(surface.normal, righthand=planeOfIncidenceNormal), planeOfIncidenceNormal
 
     def fresnelCoefficient(self, surface):
