@@ -207,19 +207,22 @@ class Stats:
             plt.ioff()
             plt.show()
 
-    def showSurfaceIntensities(self, surfaces):
-        fig, axes = plt.subplots(nrows=2, ncols=len(surfaces)//2, figsize=(14,8))
+    def showSurfaceIntensities(self, surfaces, bins=21):
+        fig, axes = plt.subplots(nrows=2, ncols=max(1,len(surfaces)//2), figsize=(14,8))
         N = self.inputWeight
 
         for i, surface in enumerate(surfaces):
             a,b,weights = self.photonsCrossingPlane(surface)
             if len(surfaces) > 2:
                 axes[i % 2, i // 2].set_title('Intensity at {0} [T={1:.1f}%]'.format(surface,100*sum(weights)/N))
-                axes[i % 2, i // 2].hist2d(a,b,weights=weights, bins=21)
+                axes[i % 2, i // 2].hist2d(a,b,weights=weights, bins=bins)
+            elif len(surfaces) == 1:
+                axes[0].set_title('Intensity at {0} [T={1:.1f}%]'.format(surface,100*sum(weights)/N))
+                axes[0].hist2d(a,b,weights=weights, bins=bins)
             else:
                 fig.set_size_inches(4,8)
                 axes[i % 2].set_title('Intensity at {0} [T={1:.1f}%]'.format(surface,100*sum(weights)/N))
-                axes[i % 2].hist2d(a,b,weights=weights, bins=21)
+                axes[i % 2].hist2d(a,b,weights=weights, bins=bins)
 
         fig.tight_layout()
         plt.ioff()
