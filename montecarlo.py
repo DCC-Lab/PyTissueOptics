@@ -8,7 +8,7 @@ stats  = Stats(min = (-2,-2,-2), max = (2,2,2), size = (50,50,50))
 
 # We pick a light source
 source = PencilSource(direction=UnitVector(0,0,1), maxCount=1000)
-detector = Detector(size=1, NA=1)
+detector = Detector(NA=1)
 
 # We pick a geometry
 tissue = Layer(thickness=1, material=mat, stats=stats)

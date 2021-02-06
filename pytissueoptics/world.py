@@ -31,9 +31,9 @@ class World:
                         if surface is not None:
                             # Moving to next object in air
                             photon.moveBy(distance)
-                            R = photon.fresnelCoefficient(surface)
-                            photon.refract(surface)
-                            photon.decreaseWeightBy(R*photon.weight)
+#                            R = photon.fresnelCoefficient(surface)
+#                            photon.refract(surface)
+#                            photon.decreaseWeightBy(R*photon.weight)
                             photon.moveBy(1e-4)
                         else:
                             photon.weight = 0
@@ -72,7 +72,6 @@ class World:
                 distance = distanceToSurface
                 intersect = surface
                 sGeometry = geometry
-                print(sGeometry, surface)
             photon.transformFromLocalCoordinates(geometry.origin)
 
         return distance, intersect, sGeometry
