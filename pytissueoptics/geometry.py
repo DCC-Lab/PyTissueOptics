@@ -4,37 +4,38 @@ import signal
 import sys
 import time
 from .surface import *
+from .photon import *
+from .source import *
 
 class Geometry:
-    verbose = False
-
     def __init__(self, material=None, stats=None, label=""):
         self.material = material
         self.origin = Vector(0,0,0)
         self.stats = stats
         self.surfaces = []
         self.label = label
+        self.inputWeight = 0
 
         self.epsilon = 1e-5
         self.startTime = None # We are not calculating anything
 
     def propagate(self, photon):
         photon.transformToLocalCoordinates(self.origin)
-
+        self.scoreWhenStarting(photon)
         d = 0
         while photon.isAlive and self.contains(photon.r):
             # Pick distance to scattering point
             if d <= 0:
                 d = self.material.getScatteringDistance(photon)
                 
-            isIntersecting, distToPropagate, surface = self.intersection(photon.r, photon.ez, d)
+            distToPropagate, surface = self.nextExitInterface(photon.r, photon.ez, d)
 
-            if not isIntersecting:
+            if surface is None:
                 # If the scattering point is still inside, we simply move
                 # Default is simply photon.moveBy(d) but other things 
                 # would be here. Create a new material for other behaviour
-                self.material.move(photon, d=distToPropagate)
-
+                self.material.move(photon, d=d)
+                d = 0
                 # Interact with volume: default is absorption only
                 # Default is simply absorb energy. Create a Material
                 # for other behaviour
@@ -52,13 +53,14 @@ class Geometry:
                 if self.isReflected(photon, surface): 
                     # reflect photon and keep propagating
                     photon.reflect(surface)
+                    photon.moveBy(d=1e-3) # Move away from surface
+                    d -= distToPropagate
                 else:
                     # transmit, score, and leave
                     photon.refract(surface)
                     self.scoreWhenCrossing(photon, surface)
+                    photon.moveBy(d=1e-3) # We make sure we are out
                     break
-
-            d -= distToPropagate
 
             # And go again    
             photon.roulette()
@@ -66,19 +68,9 @@ class Geometry:
         # Because the code will not typically calculate millions of photons, it is
         # inexpensive to keep all the propagated photons.  This allows users
         # to go through the list after the fact for a calculation of their choice
-        self.scoreFinal(photon)
+        self.scoreWhenFinal(photon)
         photon.transformFromLocalCoordinates(self.origin)
-    def propagateMany(self, source, graphs=True):
-        self.startCalculation()
-
-        N = source.maxCount
-
-        for i, photon in enumerate(source):
-            self.propagate(photon)
-            self.showProgress(i+1, maxCount=N, graphs=graphs)
-
-        self.completeCalculation()
-
+    
     def contains(self, position) -> bool:
         """ The base object is infinite. Subclasses override this method
         with their specific geometry. 
@@ -88,8 +80,11 @@ class Geometry:
         """
         return True
 
-    def intersection(self, position, direction, distance) -> (bool, float, Surface): 
-        """ This function is a very general function
+    def nextExitInterface(self, position, direction, distance) -> (float, Surface): 
+        """ Is this line segment from position to distance*direction leaving
+        the object through any surface elements? Valid only from inside the object.
+        
+        This function is a very general function
         to find if a photon will leave the object.  `contains` is called
         repeatedly, is geometry-specific, and must be high performance. 
         It may be possible to write a specialized version for a subclass,
@@ -97,9 +92,9 @@ class Geometry:
         surprisingly efficient.
         """
 
-        finalPosition = position + distance*direction
+        finalPosition = Vector.fromScaledSum(position, direction, distance)
         if self.contains(finalPosition):
-            return False, distance, None
+            return distance, None
 
         wasInside = True
         finalPosition = Vector(position) # Copy
@@ -114,24 +109,49 @@ class Geometry:
 
             wasInside = isInside
 
-        surface = None
         for surface in self.surfaces:
-            if surface.contains(finalPosition):
-                break
+            if surface.normal.dot(direction) > 0:
+                if surface.contains(finalPosition):
+                    return (finalPosition-position).abs(), surface
 
-        return True, (finalPosition-position).abs(), surface
+        return distance, None 
 
 
-    def setupSurfaces(self):
-        for s in self.surfaces:
-            s.indexInside = self.material.index
-            s.indexOutside = 1.0 # FIXME
+    def nextEntranceInterface(self, position, direction, distance) -> (float, Surface):
+        """ Is this line segment from position to distance*direction crossing
+        any surface elements of this object? Valid from outside the object.
+
+        This will be very slow: going through all elements to check for
+        an intersection is abysmally slow
+        and increases linearly with the number of surface elements
+        There are tons of strategies to improve this (axis-aligned boxes,
+        oriented boxes but most importantly KDTree and OCTrees).
+        It is not done here, we are already very slow: what's more slowdown
+        amongst friends? """
+
+        minDistance = distance
+        intersectSurface = None
+        for surface in self.surfaces:
+            if direction.dot(surface.normal) >= 0:
+                # Parallel or outward, does not apply
+                continue
+            # Going inward, against surface normal
+            isIntersecting, distanceToSurface = surface.intersection(position, direction, distance)
+            if isIntersecting and distanceToSurface < minDistance:
+                intersectSurface = surface
+                minDistance = distanceToSurface
+
+        return minDistance, intersectSurface
 
     def isReflected(self, photon, surface) -> bool:
         R = photon.fresnelCoefficient(surface)
         if np.random.random() < R:
             return True
         return False
+
+    def scoreWhenStarting(self, photon):
+        if self.stats is not None:
+            self.stats.scoreWhenStarting(photon)
 
     def scoreInVolume(self, photon, delta):
         if self.stats is not None:
@@ -141,49 +161,9 @@ class Geometry:
         if self.stats is not None:
             self.stats.scoreWhenCrossing(photon, surface)
 
-    def scoreFinal(self, photon):
+    def scoreWhenFinal(self, photon):
         if self.stats is not None:
             self.stats.scoreWhenFinal(photon)
-
-    def startCalculation(self):
-        self.setupSurfaces()
-
-        if 'SIGUSR1' in dir(signal) and 'SIGUSR2' in dir(signal):
-            # Trick to send a signal to code as it is running on Unix and derivatives
-            # In the shell, use `kill -USR1 processID` to get more feedback
-            # use `kill -USR2 processID` to force a save
-            signal.signal(signal.SIGUSR1, self.processSignal)
-            signal.signal(signal.SIGUSR2, self.processSignal)
-
-        self.startTime = time.time()
-
-    def completeCalculation(self) -> float:
-        if 'SIGUSR1' in dir(signal) and 'SIGUSR2' in dir(signal):
-            signal.signal(signal.SIGUSR1, signal.SIG_DFL)
-            signal.signal(signal.SIGUSR2, signal.SIG_DFL)
-
-        elapsed = time.time() - self.startTime
-        self.startTime = None
-        return elapsed
-
-    def processSignal(self, signum, frame):
-        if signum == signal.SIGUSR1:
-            Geometry.verbose = not Geometry.verbose
-            print('Toggling verbose to {0}'.format(Geometry.verbose))
-        elif signum == signal.SIGUSR2:
-            print("Requesting save (not implemented)")
-
-    def showProgress(self, i, maxCount, graphs=False):
-        steps = 100
-
-        if not Geometry.verbose:
-            while steps < i:
-                steps *= 10
-
-        if i  % steps == 0:
-            print("{2} Photon {0}/{1}".format(i, maxCount, time.ctime()) )
-            if graphs and self.stats is not None:
-                self.stats.showEnergy2D(plane='xz', integratedAlong='y', title="{0} photons".format(i)) 
 
     def report(self):
         print("Geometry and material")
@@ -196,37 +176,38 @@ class Geometry:
             totalWeightAcrossAllSurfaces = 0
             for i, surface in enumerate(self.surfaces):
                 totalWeight = self.stats.totalWeightCrossingPlane(surface)
-                print("Transmittance [{0}] : {1:.1f}%".format(surface, 100*totalWeight/self.stats.photonCount))
+                print("Transmittance [{0}] : {1:.1f}% ".format(surface, 100*totalWeight/self.stats.inputWeight))
+                print("Transmittance [{0}] : {1:.1f}% of total power".format(surface, 100*totalWeight/self.stats.photonCount))
                 totalWeightAcrossAllSurfaces += totalWeight
 
+            print("Absorbance : {0:.1f}%".format(100*self.stats.totalWeightAbsorbed()/self.stats.inputWeight))
             print("Absorbance : {0:.1f}%".format(100*self.stats.totalWeightAbsorbed()/self.stats.photonCount))
 
             totalCheck = totalWeightAcrossAllSurfaces + self.stats.totalWeightAbsorbed()
-            print("Absorbance + Transmittance = {0:.1f}%".format(100*totalCheck/self.stats.photonCount))
+            print("Absorbance + Transmittance = {0:.1f}%".format(100*totalCheck/self.stats.inputWeight))
 
             self.stats.showEnergy2D(plane='xz', integratedAlong='y', title="Final photons", realtime=False)
-            self.stats.showSurfaceIntensities(self.surfaces)
-
+            if len(self.surfaces) != 0:
+                self.stats.showSurfaceIntensities(self.surfaces)
 
     def __repr__(self):
         return "{0}".format(self)
 
     def __str__(self):
-        string = "'{0}' with surfaces {1}\n".format(self.label, self.surfaces)
+        string = "'{0}' {2} with surfaces {1}\n".format(self.label, self.surfaces, self.origin)
         string += "{0}".format(self.material)
         return string
-
 
 class Box(Geometry):
     def __init__(self, size, material, stats=None, label="Box"):
         super(Box, self).__init__(material, stats, label)
         self.size = size
-        self.surfaces = [ XYPlane(atZ= self.size[2]/2, description="Back"),
-                         -XYPlane(atZ=-self.size[2]/2, description="Front"),
-                          YZPlane(atX= self.size[0]/2, description="Right"), 
+        self.surfaces = [-XYPlane(atZ=-self.size[2]/2, description="Front"),
+                          XYPlane(atZ= self.size[2]/2, description="Back"),
                          -YZPlane(atX=-self.size[0]/2, description="Left"),
-                          ZXPlane(atY= self.size[1]/2, description="Top"),
-                         -ZXPlane(atY=-self.size[1]/2, description="Bottom")]
+                          YZPlane(atX= self.size[0]/2, description="Right"), 
+                         -ZXPlane(atY=-self.size[1]/2, description="Bottom"),
+                          ZXPlane(atY= self.size[1]/2, description="Top")]
 
     def contains(self, localPosition) -> bool:
         if abs(localPosition.z) > self.size[2]/2 + self.epsilon:
@@ -240,15 +221,14 @@ class Box(Geometry):
 
 class Cube(Box):
     def __init__(self, side, material, stats=None, label="Cube"):
-        super(Cube, self).__init__(material, stats, label)
-        self.size = (side,side,side)
+        super(Cube, self).__init__((side,side,side), material, stats, label)
 
 class Layer(Geometry):
-    def __init__(self, thickness, material, stats=None, label="Box"):
+    def __init__(self, thickness, material, stats=None, label="Layer"):
         super(Layer, self).__init__(material, stats, label)
         self.thickness = thickness
-        self.surfaces = [ XYPlane(atZ= self.thickness, description="Back"),
-                         -XYPlane(atZ= 0, description="Front")]
+        self.surfaces = [-XYPlane(atZ= 0, description="Front"),
+                          XYPlane(atZ= self.thickness, description="Back")]
 
     def contains(self, localPosition) -> bool:
         if localPosition.z < -self.epsilon:
@@ -258,19 +238,22 @@ class Layer(Geometry):
 
         return True
 
-    def intersection(self, position, direction, distance) -> (bool, float, Surface): 
-        finalPosition = position + distance*direction
+    def nextExitInterface(self, position, direction, distance) -> (float, Surface): 
+        finalPosition = Vector.fromScaledSum(position, direction, distance)
         if self.contains(finalPosition):
-            return False, distance, None
+            return distance, None
 
         if direction.z > 0:
             d = (self.thickness - position.z)/direction.z
-            return True, d, self.surfaces[0]
+            return d, self.surfaces[0]
         elif direction.z < 0:
             d = - position.z/direction.z
-            return True, d, self.surfaces[1]
+            return d, self.surfaces[1]
 
-        return False, distance, None
+        return distance, None
+
+    def stack(self, layer):
+        return
 
 class SemiInfiniteLayer(Geometry):
     """ This class is actually a bad idea: the photons don't exit
@@ -288,41 +271,32 @@ class SemiInfiniteLayer(Geometry):
 
         return True
 
-    def intersection(self, position, direction, distance) -> (bool, float, Surface): 
+    def nextExitInterface(self, position, direction, distance) -> (float, Surface): 
         finalPosition = position + distance*direction
         if self.contains(finalPosition):
-            return False, distance, None
+            return distance, None
 
         if direction.z < 0:
             d = - position.z/direction.z
-            return True, d, self.surfaces[0]
+            return d, self.surfaces[0]
 
-        return False, distance, None
+        return distance, None
 
-class Sphere(Geometry):
-    def __init__(self, radius, material, stats=None, label="Sphere"):
-        super(Sphere, self).__init__(material, stats, label)
-        self.radius = radius
 
-    def contains(self, localPosition) -> bool:
-        if localPosition.abs() > self.radius + self.epsilon:
-            return False
+# class Sphere(Geometry):
+#     def __init__(self, radius, material, stats=None, label="Sphere"):
+#         super(Sphere, self).__init__(position, material, stats, label)
+#         self.radius = radius
 
-        return True
+#     def contains(self, localPosition) -> bool:
+#         if localPosition.abs() > self.radius + self.epsilon:
+#             return False
+
+#         return True
 
 class KleinBottle(Geometry):
-    def __init__(self, material, stats=None):
-        super(KleinBottle, self).__init__(material, stats)
+    def __init__(self, position, material, stats=None):
+        super(KleinBottle, self).__init__(position, material, stats)
 
     def contains(self, localPosition) -> bool:
         raise NotImplementedError()
-
-# class World:
-#     def __init__(self):
-#         self.sources = []
-#         self.geometries = []
-
-#     def place(self, geometry, position):
-#         geometry.origin = position
-#         self.geometries.append(geometry)
-
