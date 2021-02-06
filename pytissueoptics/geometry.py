@@ -145,7 +145,6 @@ class Geometry:
 
     def isReflected(self, photon, surface) -> bool:
         R = photon.fresnelCoefficient(surface)
-        print("R=",R)
         if np.random.random() < R:
             return True
         return False
