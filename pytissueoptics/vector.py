@@ -28,6 +28,10 @@ class Vector:
     def isUnitary(self) -> bool:
         return abs(self.norm()-1) < 1e-7
 
+    @property
+    def isNull(self) -> bool:
+        return abs(self.norm()) < 1e-7
+
     def __repr__(self):
         return "({0:.4f},{1:.4f},{2:.4f})".format(self.x, self.y, self.z)
     
@@ -125,10 +129,10 @@ class Vector:
         uy = self.y
         uz = self.z
         length = math.sqrt(ux*ux+uy*uy+uz*uz)
-
-        self.x /= length
-        self.y /= length
-        self.z /= length
+        if length != 0:
+            self.x /= length
+            self.y /= length
+            self.z /= length
 
     def cross(self, vector):
         """ Accessing properties is costly when done very often.
