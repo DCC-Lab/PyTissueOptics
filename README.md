@@ -43,10 +43,11 @@ There are 6 main concepts (or `Class` in object-oriented language) in this code:
 ## Limitations
 
 There are many limitations, as this is mostly a teaching tool, but I use it for real calculations in my research:
-1. It only uses Henyey-Greenstein because it is sufficient most of the time.
+1. It really is not fully tested yet as of 1.0.4, especially with `reflections`.  Setting all indices to 1.0 is a safe measure to get safe results (but obviously without reflections).
+2. It only uses Henyey-Greenstein because it is sufficient most of the time.
 3. Documentation is sparse at best.
-5. You have probably noticed that the axes on the graphs are currently not labelled. Don't tell my students.
-6. Did I say it was slow? It is approximately 50x slower than the well-known code [MCML](https://omlc.org/software/mc/mcml/) on the same machine. I know, and now I know that *you* know, but see **Advantages** below.
+4. You have probably noticed that the axes on the graphs are currently not labelled. Don't tell my students.
+5. Did I say it was slow? It is approximately 50x slower than the well-known code [MCML](https://omlc.org/software/mc/mcml/) on the same machine. I know, and now I know that *you* know, but see **Advantages** below.
 
 ## Advantages
 
@@ -64,34 +65,31 @@ However, there are advantages:
 The code is in fact so simple, here is the complete code that can create graphs similar to the ones above in 10 seconds on my computer:
 
 ```python
-from vector import *
-from material import *
-from photon import *
-from geometry import *
+from pytissueoptics import *
 
 # We choose a material with scattering properties
 mat    = Material(mu_s=30, mu_a = 0.1, g = 0.8, index = 1.4)
 
 # We want stats: we must determine over what volume we want the energy
-stats  = Stats(min = (-2, -2, -2), max = (2, 2, 2), size = (41,41,41))
-
-# We pick a geometry
-tissue = Layer(thickness=2, material=mat, stats=stats)
-#tissue = Box(size=(2,2,2), material=mat, stats=stats)
-#tissue = Sphere(radius=2, material=mat, stats=stats)
+stats  = Stats(min = (-2,-2,-2), max = (2,2,2), size = (50,50,50))
 
 # We pick a light source
-# The source needs to be inside the geometry (for now)
-source = PencilSource(position=Vector(0,0,0.001), direction=Vector(0,0,1), maxCount=1000)
+source = PencilSource(direction=UnitVector(0,0,1), maxCount=10000)
+
+# We pick a geometry
+tissue = Layer(thickness=1, material=mat, stats=stats)
 
 # We propagate the photons from the source inside the geometry
-tissue.propagateMany(source, graphs=True)
+World.place(source, position=Vector(0,0,-1))
+World.place(tissue, position=Vector(0,0,0))
 
-# Report the results
-tissue.report()
+World.compute(graphs=True)
+
+# Report the results for all geometries
+World.report()
 ```
 
-The main function where the physics is *hidden* is `Geometry.propagate()`. `Geometry.propagateMany()` is a helper to call the function several times, and could possibly be parallelized:
+The main function where the physics is *hidden* is `Geometry.propagate()`. `World.compute()` is a helper to call the function several times, and could possibly be parallelized:
 
 ```python
 class Geometry:
@@ -99,21 +97,21 @@ class Geometry:
   
     def propagate(self, photon):
         photon.transformToLocalCoordinates(self.origin)
-
+        self.scoreWhenStarting(photon)
         d = 0
         while photon.isAlive and self.contains(photon.r):
             # Pick distance to scattering point
             if d <= 0:
                 d = self.material.getScatteringDistance(photon)
                 
-            isIntersecting, distToPropagate, surface = self.intersection(photon.r, photon.ez, d)
+            distToPropagate, surface = self.nextExitInterface(photon.r, photon.ez, d)
 
-            if not isIntersecting:
+            if surface is None:
                 # If the scattering point is still inside, we simply move
                 # Default is simply photon.moveBy(d) but other things 
                 # would be here. Create a new material for other behaviour
-                self.material.move(photon, d=distToPropagate)
-
+                self.material.move(photon, d=d)
+                d = 0
                 # Interact with volume: default is absorption only
                 # Default is simply absorb energy. Create a Material
                 # for other behaviour
@@ -130,14 +128,15 @@ class Geometry:
                 # Determine if reflected or not with Fresnel coefficients
                 if self.isReflected(photon, surface): 
                     # reflect photon and keep propagating
-                    self.reflect(photon, surface)
+                    photon.reflect(surface)
+                    photon.moveBy(d=1e-3) # Move away from surface
+                    d -= distToPropagate
                 else:
                     # transmit, score, and leave
-                    self.transmit(photon, surface)
+                    photon.refract(surface)
                     self.scoreWhenCrossing(photon, surface)
+                    photon.moveBy(d=1e-3) # We make sure we are out
                     break
-
-            d -= distToPropagate
 
             # And go again    
             photon.roulette()
@@ -145,23 +144,45 @@ class Geometry:
         # Because the code will not typically calculate millions of photons, it is
         # inexpensive to keep all the propagated photons.  This allows users
         # to go through the list after the fact for a calculation of their choice
-        self.scoreFinal(photon)
+        self.scoreWhenFinal(photon)
         photon.transformFromLocalCoordinates(self.origin)
 
-    def propagateMany(self, source, showProgressEvery=100):
-        startTime = time.time()
-        N = source.maxCount
+        
+[...]
+class World:
+  [...]
+    @classmethod
+    def compute(self, graphs):
+        World.startCalculation()
+        N = 0
+        for source in World.sources:
+            N += source.maxCount
 
-        for i, photon in enumerate(source):
-            self.propagate(photon)
-            self.showProgress(i, maxCount=N , steps=showProgressEvery)
+            for i, photon in enumerate(source):
+                while photon.isAlive:
+                    currentGeometry = World.contains(photon.r)
+                    if currentGeometry is not None:
+                        currentGeometry.propagate(photon)
+                    else:
+                        distance, surface, nextGeometry = World.nextObstacle(photon)
+                        if surface is not None:
+                            # Moving to next object in air
+                            photon.moveBy(distance)
+                            R = photon.fresnelCoefficient(surface)
+                            photon.refract(surface)
+                            photon.decreaseWeightBy(R*photon.weight)
+                            photon.moveBy(1e-4)
+                        else:
+                            photon.weight = 0
 
-        elapsed = time.time() - startTime
-        print('{0:.1f} s for {2} photons, {1:.1f} ms per photon'.format(elapsed, elapsed/N*1000, N))
+                World.showProgress(i+1, maxCount=source.maxCount, graphs=graphs)
 
+        duration = World.completeCalculation()
+        print("{0:.1f} ms per photon\n".format(duration*1000/N))
+  
 ```
 
-Note that this function is part of the `Geometry` object and does not make any assumption on the details of the geometry, and relies on whatever material was provided to get the scattering angles. 
+Note that this `propagate` function is part of the `Geometry` object and does not make any assumption on the details of the geometry, and relies on whatever material was provided to get the scattering angles. 
 
 ## How to go about modifying for your own purpose
 
