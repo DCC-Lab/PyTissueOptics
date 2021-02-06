@@ -51,27 +51,45 @@ class Photon:
         if self.weight < 0:
             self.weight = 0
 
-    def angleOfIncidence(self, surface) -> (float, Vector):
-        planeOfIncidenceNormal = self.ez.normalizedCrossProduct(surface.normal)
-        if planeOfIncidenceNormal.isNull:
-            return 0, surface.normal.anyPerpendicular()
-
-        return self.ez.angleWith(surface.normal, axis=planeOfIncidenceNormal), planeOfIncidenceNormal
-
     def fresnelCoefficient(self, surface):
+        """ Fresnel reflection coefficient, directly from MCML code in 
+        Wang, L-H, S.L. Jacques, L-Q Zheng: 
+        MCML - Monte Carlo modeling of photon transport in multi-layered
+        tissues. Computer Methods and Programs in Biomedicine 47:131-146, 1995. 
+
+        """
         if self.ez.dot(surface.normal) > 0:
+            normal = surface.normal
             n1 = surface.indexInside
             n2 = surface.indexOutside
         else:
-            n2 = surface.indexInside
+            normal = -surface.normal
             n1 = surface.indexOutside
+            n2 = surface.indexInside
 
-        thetaIn, planeOfIncidenceNormal = self.angleOfIncidence(surface)
-        if math.sin(thetaIn)*n1/n2 > 1:
+        if n1 == n2:
+            return 0
+
+        planeOfIncidenceNormal = self.ez.normalizedCrossProduct(normal)
+        if planeOfIncidenceNormal.isNull:
+            R = (n2-n1)/(n2+n1)
+            return R*R
+
+        thetaIn = self.ez.angleWith(normal, axis=planeOfIncidenceNormal)
+
+        sa1 = math.sin(thetaIn)
+        if sa1*n1/n2 > 1:
             return 1
+        sa2 = sa1*n1/n2
+        ca1 = math.sqrt(1-sa1*sa1)
+        ca2 = math.sqrt(1-sa2*sa2)
 
-        R = (n2-n1)/(n1+n2)
-        return R*R
+        cap = ca1*ca2 - sa1*sa2 # c+ = cc - ss.
+        cam = ca1*ca2 + sa1*sa2 # c- = cc + ss. 
+        sap = sa1*ca2 + ca1*sa2 # s+ = sc + cs. 
+        sam = sa1*ca2 - ca1*sa2 # s- = sc - cs. 
+        r = 0.5*sam*sam*(cam*cam+cap*cap)/(sap*sap*cam*cam); 
+        return r
 
     def reflect(self, surface):
         planeOfIncidenceNormal = self.ez.normalizedCrossProduct(surface.normal)
@@ -80,20 +98,37 @@ class Photon:
         self.ez.rotateAround(planeOfIncidenceNormal, 2*thetaIn-np.pi)
 
     def refract(self, surface):
-        planeOfIncidenceNormal = self.ez.normalizedCrossProduct(surface.normal)
+        """ Refract the photon when going through surface.  The surface
+        normal in the class Surface always points outward for the object.
+        Hence, to simplify the math, we always flip the normal to have 
+        angles between -90 and 90.
+
+        Since having n1 == n2 is not that rare, if that is the case we 
+        know there is no refraction, and we simply return.
+        """
+
+        if surface.indexInside == surface.indexOutside:
+            return
+
+        normal = None
+
+        if self.ez.dot(surface.normal) > 0:
+            # Going out
+            n1 = surface.indexInside
+            n2 = surface.indexOutside
+            normal = surface.normal
+        else:
+            # Going in, we flip normal
+            n1 = surface.indexOutside
+            n2 = surface.indexInside
+            normal = -surface.normal
+
+        planeOfIncidenceNormal = self.ez.normalizedCrossProduct(normal)
         if planeOfIncidenceNormal.norm() == 0:
             # Normal incidence
             return
 
-        thetaIn = self.ez.angleWith(surface.normal, axis=planeOfIncidenceNormal)
-
-        if self.ez.dot(surface.normal) > 0:
-            n1 = surface.indexInside
-            n2 = surface.indexOutside
-        else:
-            n1 = surface.indexOutside
-            n2 = surface.indexInside
-
+        thetaIn = self.ez.angleWith(normal, axis=planeOfIncidenceNormal)
         thetaOut = math.asin(n1*math.sin(thetaIn)/n2)
 
         self.ez.rotateAround(planeOfIncidenceNormal, thetaOut-thetaIn)

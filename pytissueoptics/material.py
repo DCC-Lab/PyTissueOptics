@@ -4,13 +4,16 @@ import matplotlib.pyplot as plt
 class Material:
     veryFar = 1e4
 
-    def __init__(self, mu_s = 0, mu_a = 0, g = 0, index = 1.4):
+    def __init__(self, mu_s = 0, mu_a = 0, g = 0, index = 1.0):
         self.mu_s = mu_s
         self.mu_a = mu_a
         self.mu_t = self.mu_a + self.mu_s
         self.albedo = self.mu_a/self.mu_t
         self.g = g
         self.index = index
+        if self.index != 1.0:
+            raise ValueError("Unfortunately, the index of the material needs \
+to be 1.0 because the fresnel reflection code is buggy.")
 
     def getScatteringDistance(self, photon) -> float:
         if self.mu_t == 0:

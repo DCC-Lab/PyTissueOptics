@@ -78,10 +78,10 @@ class Vector:
             raise ValueError("Out of range index: must be 0,1 or 2")
 
     def isParallelTo(self, vector):
-        return self.normalizedDotProduct(vector) - 1 < 1e-6
+        return (abs(self.normalizedDotProduct(vector)) - 1 < 1e-6)
 
     def isPerpendicularTo(self, vector):
-        return self.normalizedDotProduct(vector) < 1e-6
+        return ( abs(self.normalizedDotProduct(vector)) < 1e-6)
 
     def anyPerpendicular(self):
         if self.x == 0 and self.y == 0:
