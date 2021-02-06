@@ -56,7 +56,7 @@ class Photon:
         if planeOfIncidenceNormal.isNull:
             return 0, surface.normal.anyPerpendicular()
 
-        return self.ez.angleWith(surface.normal, righthand=planeOfIncidenceNormal), planeOfIncidenceNormal
+        return self.ez.angleWith(surface.normal, axis=planeOfIncidenceNormal), planeOfIncidenceNormal
 
     def fresnelCoefficient(self, surface):
         if self.ez.dot(surface.normal) > 0:
@@ -75,7 +75,7 @@ class Photon:
 
     def reflect(self, surface):
         planeOfIncidenceNormal = self.ez.normalizedCrossProduct(surface.normal)
-        thetaIn = self.ez.angleWith(surface.normal, righthand=planeOfIncidenceNormal)
+        thetaIn = self.ez.angleWith(surface.normal, axis=planeOfIncidenceNormal)
 
         self.ez.rotateAround(planeOfIncidenceNormal, 2*thetaIn-np.pi)
 
@@ -85,7 +85,7 @@ class Photon:
             # Normal incidence
             return
 
-        thetaIn = self.ez.angleWith(surface.normal, righthand=planeOfIncidenceNormal)
+        thetaIn = self.ez.angleWith(surface.normal, axis=planeOfIncidenceNormal)
 
         if self.ez.dot(surface.normal) > 0:
             n1 = surface.indexInside

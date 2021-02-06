@@ -24,6 +24,11 @@ class Vector:
     def fromScaledSum(cls, a, b, scale):
         return Vector(a.x + b.x*scale, a.y + b.y*scale, a.z + b.z*scale)
 
+    def addScaled(self, vector, scale):
+        self.x += vector.x*scale
+        self.y += vector.y*scale
+        self.z += vector.z*scale
+
     @property
     def isUnitary(self) -> bool:
         return abs(self.norm()-1) < 1e-7
@@ -55,11 +60,6 @@ class Vector:
 
     def __neg__(self):
         return Vector(-self.x, -self.y, -self.z)
-
-    def addScaled(self, vector, scale):
-        self.x += vector.x*scale
-        self.y += vector.y*scale
-        self.z += vector.z*scale
 
     def __sub__(self, vector):
         return Vector(self.x - vector.x, self.y - vector.y, self.z - vector.z)
@@ -148,20 +148,40 @@ class Vector:
     def dot(self, vector):
         return self.x*vector.x + self.y*vector.y + self.z*vector.z 
 
-    def normalizedCrossProduct(self, vector):
+    def normalizedCrossProduct(self, vector) -> 'Vector':
+        """ Computes the normalized cross product with another vector.
+        The absolute value is the sin of the angle between both. You cannot
+        get the sign of this angle without providing a perpendicular vector
+        that defines the "positive" direction. If you want the angle, 
+        use the method angleWith().
+
+        It is twice as fast to use x**(-0.5) rather than 1/sqrt(x).
+        """
         productNorm = self.norm() * vector.norm()
         if productNorm == 0:
-            return 0
+            return None
 
-        return UnitVector(self.cross(vector) * (1 / math.sqrt(productNorm)))
+        return Vector(self.cross(vector) * (productNorm**(-0.5)))
 
     def normalizedDotProduct(self, vector):
+        """ Computes the normalized dot product with another vector.
+        The value is the cos of the angle between both.
+
+        It is twice as fast to use x**(-0.5) rather than 1/sqrt(x)
+        """
         productNorm = self.norm() * vector.norm()
         if productNorm == 0:
             return 0
-        return self.dot(vector) * (1 / math.sqrt(productNorm))
+        return self.dot(vector) * (productNorm**(-0.5))
 
-    def angleWith(self, v, righthand):
+    def angleWith(self, v, axis):
+        """ Computes the normalized cross product with another vector.
+        The absolute value is the sin of the angle between both. You cannot
+        get the sign of this angle without providing a perpendicular vector
+        that defines the "positive" direction. If you want the angle, 
+        use the method angleWith().
+        """
+
         sinPhi = self.normalizedCrossProduct(v)
         sinPhiAbs = sinPhi.abs()
         phi = math.asin(sinPhiAbs)
@@ -169,7 +189,7 @@ class Vector:
         if self.dot(v) <= 0:
             phi = math.pi-phi
 
-        if sinPhi.dot(righthand) <= 0:
+        if sinPhi.dot(axis) <= 0:
             phi = -phi
     
         return phi
