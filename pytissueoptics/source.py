@@ -142,11 +142,15 @@ class SinglemodeFiberSource(Source):
 
         # sigma = 0.2 is a little low. That would give 5sigma inside the core, so 99.999% of the photons = never.
 
-        r = (self.coreDiameter / 2) * sqrt(abs(random.gauss(0, 0.2)))
+        r = self.radius * sqrt(abs(random.gauss(0, 0.2)))
         theta = random.random() * 2 * pi
-        x = self.position[0] + r * cos(theta)
-        y = self.position[1] + r * sin(theta)
-        return Vector(x, y, self.position[2])
+        x = r * cos(theta)
+        y = r * sin(theta)
+
+        position = Vector.fromScaledSum(self.origin, self.xAxis, x)
+        position += self.yAxis * y
+
+        return position
 
     def newGaussianDirection(self):
         z = 2
@@ -161,7 +165,4 @@ class SinglemodeFiberSource(Source):
         x = cos(theta2) * a
         y = sin(theta2) * a
 
-        direction = Vector(x, y, z)
-        direction.normalize()
-
-        return direction
+        return UnitVector(x, y, z)
