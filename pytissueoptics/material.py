@@ -8,7 +8,12 @@ class Material:
         self.mu_s = mu_s
         self.mu_a = mu_a
         self.mu_t = self.mu_a + self.mu_s
-        self.albedo = self.mu_a/self.mu_t
+        
+        if self.mu_t != 0:
+            self.albedo = self.mu_a/self.mu_t
+        else:
+            self.albedo = None
+            
         self.g = g
         self.index = index
         if self.index != 1.0:

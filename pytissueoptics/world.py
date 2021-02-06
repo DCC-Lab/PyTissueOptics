@@ -7,6 +7,7 @@ from .surface import *
 from .photon import *
 from .source import *
 from .geometry import *
+from .detector import *
 
 class World:
     geometries = set()
@@ -44,7 +45,7 @@ class World:
 
     @classmethod
     def place(cls, anObject, position):
-        if isinstance(anObject, Geometry):
+        if isinstance(anObject, Geometry) or isinstance(anObject, Detector):
             anObject.origin = position
             World.geometries.add(anObject)
         elif isinstance(anObject, Source):
@@ -66,11 +67,12 @@ class World:
         sGeometry = None
         for geometry in World.geometries:
             photon.transformToLocalCoordinates(geometry.origin)
-            distanceToSurface, surface = geometry.nextEntranceInterface(photon.r, photon.ez, distance=1e4)
+            distanceToSurface, surface = geometry.nextEntranceInterface(photon.r, photon.ez, distance=distance)
             if distanceToSurface < distance:
                 distance = distanceToSurface
                 intersect = surface
                 sGeometry = geometry
+                print(sGeometry, surface)
             photon.transformFromLocalCoordinates(geometry.origin)
 
         return distance, intersect, sGeometry

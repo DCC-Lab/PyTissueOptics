@@ -116,7 +116,6 @@ class Geometry:
 
         return distance, None 
 
-
     def nextEntranceInterface(self, position, direction, distance) -> (float, Surface):
         """ Is this line segment from position to distance*direction crossing
         any surface elements of this object? Valid from outside the object.

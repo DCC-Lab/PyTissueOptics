@@ -24,7 +24,10 @@ class Stats:
 
     @property
     def inputWeight(self):
-        return sum(self.starting)
+        total = sum(self.starting)
+        if total == 0:
+            return 1.0
+        return total
 
     @property
     def photonCount(self):
