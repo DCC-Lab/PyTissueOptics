@@ -86,7 +86,7 @@ class Vector:
     def anyPerpendicular(self):
         if self.x == 0 and self.y == 0:
             if self.z == 0:
-                raise ValueError('Null vector has not perpedicular vector')
+                return None
             else:
                 return self.normalizedCrossProduct(yHat)
         return self.normalizedCrossProduct(xHat)
