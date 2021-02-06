@@ -59,8 +59,12 @@ class Photon:
         return self.ez.angleWith(surface.normal, righthand=planeOfIncidenceNormal), planeOfIncidenceNormal
 
     def fresnelCoefficient(self, surface):
-        n1 = surface.indexInside
-        n2 = surface.indexOutside
+        if self.ez.dot(surface.normal) > 0:
+            n1 = surface.indexInside
+            n2 = surface.indexOutside
+        else:
+            n2 = surface.indexInside
+            n1 = surface.indexOutside
 
         thetaIn, planeOfIncidenceNormal = self.angleOfIncidence(surface)
         if math.sin(thetaIn)*n1/n2 > 1:
