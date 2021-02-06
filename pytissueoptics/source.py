@@ -4,6 +4,7 @@ import warnings
 from .vector import *
 from .photon import *
 
+
 class Source:
     def __init__(self, maxCount):
         self.origin = Vector(0,0,0)
@@ -113,3 +114,55 @@ class MultimodeFiberSource(Source):
         y = sin(theta2) * a
 
         return UnitVector(x, y, z)
+
+
+class SinglemodeFiberSource(Source):
+    def __init__(self, direction, diameter, NA, index, maxCount):
+        super(SinglemodeFiberSource, self).__init__(maxCount)
+        self.direction = UnitVector(direction)
+        self.xAxis = UnitVector(self.direction.anyPerpendicular())
+        self.yAxis = UnitVector(self.direction.cross(self.xAxis))
+        self.radius = diameter / 2
+        self.NA = NA
+        self.index = index
+
+    @property
+    def maxAngle(self):
+        return math.asin(self.NA / self.index)
+
+    def newPhoton(self) -> Photon:
+        positionVector = self.newGaussianPosition()
+        directionVector = self.newGaussianDirection()
+
+        return Photon(Vector(positionVector), Vector(directionVector))
+
+    def newGaussianPosition(self):
+        # We have to find the right (sigma) so that it mimics correctly the LP01mode distribution of a real SMF
+        # with a good guiding coefficient (let's say 90%) or maybe we should ask the core/clad index and wavelenght.
+        # so we could compute all the necessary parameters to get the coupling coefficient and calculate the right param
+
+        # sigma = 0.2 is a little low. That would give 5sigma inside the core, so 99.999% of the photons = never.
+
+        r = (self.coreDiameter / 2) * sqrt(abs(random.gauss(0, 0.2)))
+        theta = random.random() * 2 * pi
+        x = self.position[0] + r * cos(theta)
+        y = self.position[1] + r * sin(theta)
+        return Vector(x, y, self.position[2])
+
+    def newGaussianDirection(self):
+        z = 2
+        while z > 1:
+            # The sigma here will be the most critical portion that will determine the behaviours of the output beam
+            # Maths have to be done to find the most accurate calculation for this parameter. Is now set to cos(angle)/2.
+            z = random.gauss(1, math.cos(self.maxAngle) / 2)
+        theta1 = math.acos(z)
+        theta2 = 2 * pi * random.random()
+        beta = (pi / 2) - theta1
+        a = z / tan(beta)
+        x = cos(theta2) * a
+        y = sin(theta2) * a
+
+        direction = Vector(x, y, z)
+        direction.normalize()
+
+        return direction
