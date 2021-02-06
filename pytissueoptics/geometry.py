@@ -54,7 +54,7 @@ class Geometry:
                     # reflect photon and keep propagating
                     photon.reflect(surface)
                     photon.moveBy(d=1e-3) # Move away from surface
-                    d -= distToPropagate + 1e-3
+                    d -= distToPropagate
                 else:
                     # transmit, score, and leave
                     photon.refract(surface)
@@ -109,13 +109,13 @@ class Geometry:
 
             wasInside = isInside
 
-        surface = None
         for surface in self.surfaces:
             if surface.normal.dot(direction) > 0:
                 if surface.contains(finalPosition):
-                    break
+                    return (finalPosition-position).abs(), surface
 
-        return (finalPosition-position).abs(), surface
+        return distance, None 
+
 
     def nextEntranceInterface(self, position, direction, distance) -> (float, Surface):
         """ Is this line segment from position to distance*direction crossing
@@ -145,6 +145,7 @@ class Geometry:
 
     def isReflected(self, photon, surface) -> bool:
         R = photon.fresnelCoefficient(surface)
+        print("R=",R)
         if np.random.random() < R:
             return True
         return False
