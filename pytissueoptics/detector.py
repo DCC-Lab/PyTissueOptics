@@ -31,5 +31,5 @@ class Detector(Layer):
         if self.stats is not None:
             for i, surface in enumerate(self.surfaces):
                 totalWeight = self.stats.totalWeightCrossingPlane(surface)
-                print("Detected [{0}] : {1:.1f}% photon weight".format(surface, totalWeight))
+                print("Detected [{0}] : {1:.1f} photon weight".format(surface, totalWeight))
                 self.stats.showSurfaceIntensities(self.surfaces, bins=51)
