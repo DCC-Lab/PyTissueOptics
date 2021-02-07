@@ -164,7 +164,7 @@ class Geometry:
         if self.stats is not None:
             self.stats.scoreWhenFinal(photon)
 
-    def report(self):
+    def report(self, totalSourcePhotons):
         print("Geometry and material")
         print("=====================")
         print(self)
@@ -175,12 +175,12 @@ class Geometry:
             totalWeightAcrossAllSurfaces = 0
             for i, surface in enumerate(self.surfaces):
                 totalWeight = self.stats.totalWeightCrossingPlane(surface)
-                print("Transmittance [{0}] : {1:.1f}% ".format(surface, 100*totalWeight/self.stats.inputWeight))
-                print("Transmittance [{0}] : {1:.1f}% of total power".format(surface, 100*totalWeight/self.stats.photonCount))
+                print("Transmittance [{0}] : {1:.1f}% of propagating light".format(surface, 100*totalWeight/self.stats.inputWeight))
+                print("Transmittance [{0}] : {1:.1f}% of total power".format(surface, 100*totalWeight/totalSourcePhotons))
                 totalWeightAcrossAllSurfaces += totalWeight
 
-            print("Absorbance : {0:.1f}%".format(100*self.stats.totalWeightAbsorbed()/self.stats.inputWeight))
-            print("Absorbance : {0:.1f}%".format(100*self.stats.totalWeightAbsorbed()/self.stats.photonCount))
+            print("Absorbance : {0:.1f}% of propagating light".format(100*self.stats.totalWeightAbsorbed()/self.stats.inputWeight))
+            print("Absorbance : {0:.1f}% of total power".format(100*self.stats.totalWeightAbsorbed()/totalSourcePhotons))
 
             totalCheck = totalWeightAcrossAllSurfaces + self.stats.totalWeightAbsorbed()
             print("Absorbance + Transmittance = {0:.1f}%".format(100*totalCheck/self.stats.inputWeight))

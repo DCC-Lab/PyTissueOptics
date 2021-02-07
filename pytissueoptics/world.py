@@ -15,6 +15,13 @@ class World:
     verbose = False
 
     @classmethod
+    def totalSourcePhotons(cls) -> float:
+        total = 0
+        for source in cls.sources:
+            total += source.maxCount
+        return total
+
+    @classmethod
     def compute(self, graphs):
         World.startCalculation()
         N = 0
@@ -31,9 +38,9 @@ class World:
                         if surface is not None:
                             # Moving to next object in air
                             photon.moveBy(distance)
-#                            R = photon.fresnelCoefficient(surface)
-#                            photon.refract(surface)
-#                            photon.decreaseWeightBy(R*photon.weight)
+                            R = photon.fresnelCoefficient(surface)
+                            photon.refract(surface)
+                            photon.decreaseWeightBy(R*photon.weight)
                             photon.moveBy(1e-4)
                         else:
                             photon.weight = 0
@@ -135,4 +142,4 @@ class World:
     @classmethod
     def report(cls):
         for geometry in World.geometries:
-            geometry.report()
+            geometry.report(totalSourcePhotons=World.totalSourcePhotons())

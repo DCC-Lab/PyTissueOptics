@@ -24,12 +24,12 @@ class Detector(Layer):
             # Do the math for NA If angle too large, reject
             self.stats.scoreWhenCrossing(photon, surface)
 
-    def report(self):
+    def report(self, totalSourcePhotons):
         print("Detector")
         print("=====================")
 
         if self.stats is not None:
             for i, surface in enumerate(self.surfaces):
                 totalWeight = self.stats.totalWeightCrossingPlane(surface)
-                print("Detected [{0}] : {1:.1f} photon weight".format(surface, totalWeight))
+                print("Detected [{0}] : {1:.1f}% intensity".format(surface, totalWeight/totalSourcePhotons))
                 self.stats.showSurfaceIntensities(self.surfaces, bins=51)
