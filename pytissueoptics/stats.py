@@ -15,7 +15,8 @@ class Stats:
                          float(self.size[2]-1)/self.L[2])
 
         self.energy = np.zeros(size)
-        self.figure = None
+        self.surfaceFig = None
+        self.volumeFig = None
         self.volume = None
         self.starting = []
         self.crossing = []
@@ -131,9 +132,9 @@ class Stats:
             elif plane == 'xz':
                 cutAt = int((self.size[1]-1)/2)
 
-        if self.figure == None:
+        if self.volumeFig == None:
             plt.ion()
-            self.figure = plt.figure()
+            self.volumeFig = plt.figure()
 
         plt.title("Energy in {0} with {1:.0f} photons".format(plane, self.inputWeight))
         if cutAt is not None:
@@ -155,12 +156,12 @@ class Stats:
                 plt.imshow(np.log(sum+0.0001),cmap='viridis',extent=[self.min[2],self.max[2],self.min[0],self.max[0]],aspect='auto')
 
         if realtime:
-            plt.show()
+            self.volumeFig.show()
             plt.pause(0.1)
             plt.clf()
         else:
             plt.ioff()
-            plt.show()
+            self.volumeFig.show()
 
     def showEnergy1D(self, axis:str, cutAt=None, integratedAlong=None, title="", realtime=True):
         if integratedAlong is None and cutAt is None:
@@ -208,7 +209,7 @@ class Stats:
             plt.show()
 
     def showSurfaceIntensities(self, surfaces, bins=21):
-        fig, axes = plt.subplots(nrows=2, ncols=max(1,len(surfaces)//2), figsize=(14,8))
+        self.surfaceFig, axes = plt.subplots(nrows=2, ncols=max(1,len(surfaces)//2), figsize=(14,8))
         N = self.inputWeight
 
         for i, surface in enumerate(surfaces):
@@ -220,11 +221,11 @@ class Stats:
                 axes[0].set_title('Intensity at {0} [T={1:.1f}%]'.format(surface,100*sum(weights)/N))
                 axes[0].hist2d(a,b,weights=weights, bins=bins)
             else:
-                fig.set_size_inches(4,8)
+                self.surfaceFig.set_size_inches(4,8)
                 axes[i % 2].set_title('Intensity at {0} [T={1:.1f}%]'.format(surface,100*sum(weights)/N))
                 axes[i % 2].hist2d(a,b,weights=weights, bins=bins)
 
-        fig.tight_layout()
+        self.surfaceFig.tight_layout()
         plt.ioff()
         plt.show()
 

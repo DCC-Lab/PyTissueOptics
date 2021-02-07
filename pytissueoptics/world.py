@@ -29,22 +29,34 @@ class World:
             N += source.maxCount
 
             for i, photon in enumerate(source):
+                currentGeometry = World.contains(photon.r)
                 while photon.isAlive:
-                    currentGeometry = World.contains(photon.r)
                     if currentGeometry is not None:
+                        # We are in an object, propagate in it
                         currentGeometry.propagate(photon)
+                        # Then check if we are in another adjacent object
+                        currentGeometry = World.contains(photon.r)
                     else:
+                        # We are in free space (World). Find next object
                         distance, surface, nextGeometry = World.nextObstacle(photon)
                         if surface is not None:
-                            # Moving to next object in air
+                            # We are hitting something, moving to surface
                             photon.moveBy(distance)
-                            R = photon.fresnelCoefficient(surface)
-                            photon.refract(surface)
-                            photon.decreaseWeightBy(R*photon.weight)
-                            photon.moveBy(1e-4)
+                            # At surface, determine if reflected or not 
+                            if nextGeometry.isReflected(photon, surface): 
+                                # reflect photon and keep propagating
+                                photon.reflect(surface)
+                                # Move away from surface to avoid getting stuck there
+                                photon.moveBy(d=1e-3) 
+                            else:
+                                # transmit, score, and enter (at top of this loop)
+                                photon.refract(surface)
+                                nextGeometry.scoreWhenEntering(photon, surface)
+                                # Move away from surface to avoid getting stuck there
+                                photon.moveBy(d=1e-3)
+                                currentGeometry = nextGeometry
                         else:
                             photon.weight = 0
-
                 World.showProgress(i+1, maxCount=source.maxCount, graphs=graphs)
 
         duration = World.completeCalculation()
@@ -58,6 +70,9 @@ class World:
         elif isinstance(anObject, Source):
             anObject.origin = position
             World.sources.add(anObject)
+        elif isinstance(anObject, Detector):
+            anObject.origin = position
+            World.detector.add(anObject)
 
     @classmethod
     def contains(cls, worldCoordinates):

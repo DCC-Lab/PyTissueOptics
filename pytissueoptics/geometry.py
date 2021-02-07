@@ -58,7 +58,7 @@ class Geometry:
                 else:
                     # transmit, score, and leave
                     photon.refract(surface)
-                    self.scoreWhenCrossing(photon, surface)
+                    self.scoreWhenExiting(photon, surface)
                     photon.moveBy(d=1e-3) # We make sure we are out
                     break
 
@@ -156,9 +156,12 @@ class Geometry:
         if self.stats is not None:
             self.stats.scoreInVolume(photon, delta)
 
-    def scoreWhenCrossing(self, photon, surface):
+    def scoreWhenExiting(self, photon, surface):
         if self.stats is not None:
             self.stats.scoreWhenCrossing(photon, surface)
+
+    def scoreWhenEntering(self, photon, surface):
+        return
 
     def scoreWhenFinal(self, photon):
         if self.stats is not None:
