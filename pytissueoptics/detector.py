@@ -8,6 +8,7 @@ class Detector(Geometry):
         stats = Stats()
         super(Detector, self).__init__(material=Material(), stats=stats, label=label)
         self.surfaces = [XYPlane(atZ=0,description="Detector")]                
+        self.NA = NA
 
     def contains(self, position):
         return False
@@ -20,9 +21,14 @@ class Detector(Geometry):
 
     def scoreWhenEntering(self, photon, surface):
         if self.stats is not None:
-            # Do the math for NA If angle too large, reject
-            self.stats.scoreWhenCrossing(photon, surface)
-
+            cosPhi = photon.ez.normalizedDotProduct(-self.surfaces[0].normal)
+            sinPhi = math.sqrt(1-cosPhi*cosPhi)
+            
+            if sinPhi <= self.NA:
+                self.stats.scoreWhenCrossing(photon, surface)
+            else:
+                if photon.r.abs() < 0.3:
+                    print(photon.r, cosPhi, sinPhi)
     def scoreInVolume(self, photon, surface):
         return
 
@@ -37,4 +43,4 @@ class Detector(Geometry):
         if self.stats is not None:
             totalWeight = self.stats.totalWeightCrossingPlane(detectorSurface)
             print("{0:.1f}% intensity".format(100*totalWeight/totalSourcePhotons))
-            self.stats.showSurfaceIntensities(self.surfaces, maxPhotons=totalSourcePhotons, bins=51)
+            self.stats.showSurfaceIntensities(self.surfaces, maxPhotons=totalSourcePhotons, bins=11)
