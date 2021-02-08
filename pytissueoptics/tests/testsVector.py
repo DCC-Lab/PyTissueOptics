@@ -48,17 +48,7 @@ class TestVector(envtest.PyTissueTestCase):
         self.assertEqual(v.y, 2)
         self.assertEqual(v.z, 3)
 
-
-    def testVectorIsParallel(self):     
-        v1 = Vector(1,2,3)
-        v2 = Vector(2,4,6)
-        self.assertTrue(v1.isParallelTo(v2))
-        self.assertFalse(v1.isParallelTo(xHat))
-        self.assertFalse(v1.isParallelTo(yHat))
-        self.assertFalse(v1.isParallelTo(zHat))
-
-
-    def testConstVectors(self):      
+    def testCannotSetConstVectors(self):      
         with self.assertRaises(RuntimeError):
             xHat.x = 2
         with self.assertRaises(RuntimeError):
@@ -79,6 +69,17 @@ class TestVector(envtest.PyTissueTestCase):
             zHat.y = 2
         with self.assertRaises(RuntimeError):
             zHat.z = 2
+
+
+
+    def testVectorIsParallel(self):     
+        v1 = Vector(1,2,3)
+        v2 = Vector(2,4,6)
+        self.assertTrue(v1.isParallelTo(v2))
+        self.assertFalse(v1.isParallelTo(xHat))
+        self.assertFalse(v1.isParallelTo(yHat))
+        self.assertFalse(v1.isParallelTo(zHat))
+
 
 
 
