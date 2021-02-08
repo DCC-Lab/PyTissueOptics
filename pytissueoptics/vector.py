@@ -5,19 +5,39 @@ import math
 class Vector:
     def __init__(self, x: float = 0, y: float = 0, z: float = 0):
         if isinstance(x, (int, float)):
-            self.x = x
-            self.y = y 
-            self.z = z
+            self._x = x
+            self._y = y 
+            self._z = z
         elif isinstance(x, Vector):
-            self.x = x.x
-            self.y = x.y 
-            self.z = x.z 
-        elif isinstance(x, np.ndarray):
-            self.x = x
-            self.y = y 
-            self.z = z
+            self._x = x.x
+            self._y = x.y 
+            self._z = x.z 
         else:
             raise ValueError("No valid input for Vector")
+
+    @property
+    def x(self):
+        return self._x
+    
+    @property
+    def y(self):
+        return self._y
+
+    @property
+    def z(self):
+        return self._z
+
+    @x.setter
+    def x(self, value):
+        self._x = value
+    
+    @y.setter
+    def y(self, value):
+        self._y = value
+
+    @z.setter
+    def z(self, value):
+        self._z = value
 
     @classmethod
     def fromScaledSum(cls, a, b, scale):
@@ -77,7 +97,7 @@ class Vector:
             raise ValueError("Out of range index: must be 0,1 or 2")
 
     def isParallelTo(self, vector):
-        return abs(self.normalizedDotProduct(vector)) - 1 < 1e-6
+        return self.normalizedCrossProduct(vector).abs() < 1e-6
 
     def isPerpendicularTo(self, vector):
         return abs(self.normalizedDotProduct(vector)) < 1e-6
@@ -308,7 +328,65 @@ class UnitVector(Vector):
             return Vector.normalizedDotProduct(self, vector)
 
 
-xHat = UnitVector(1, 0, 0)
-yHat = UnitVector(0, 1, 0)
-zHat = UnitVector(0, 0, 1)
+class ConstVector(Vector):
+    def __init__(self, x: float = 0, y: float = 0, z: float = 0):
+        Vector.__init__(self, x, y, z)
+
+    @property
+    def x(self):
+        return self._x
+
+    @property
+    def y(self):
+        return self._y
+
+    @property
+    def z(self):
+        return self._z
+
+    @x.setter
+    def x(self, value):
+        raise RuntimeError("You cannot change a constant vector")
+
+    @y.setter
+    def y(self, value):
+        raise RuntimeError("You cannot change a constant vector")
+
+    @z.setter
+    def z(self, value):
+        raise RuntimeError("You cannot change a constant vector")
+
+class ConstUnitVector(UnitVector):
+    def __init__(self, x: float = 0, y: float = 0, z: float = 0):
+        Vector.__init__(self, x, y, z)
+        if self.norm() != 1.0:
+            raise ValueError("Vector must be created with proper normalized values")
+
+    @property
+    def x(self):
+        return self._x
+
+    @property
+    def y(self):
+        return self._y
+
+    @property
+    def z(self):
+        return self._z
+
+    @x.setter
+    def x(self, value):
+        raise RuntimeError("You cannot change a constant vector")
+
+    @y.setter
+    def y(self, value):
+        raise RuntimeError("You cannot change a constant vector")
+
+    @z.setter
+    def z(self, value):
+        raise RuntimeError("You cannot change a constant vector")
+    
+xHat = ConstUnitVector(1, 0, 0)
+yHat = ConstUnitVector(0, 1, 0)
+zHat = ConstUnitVector(0, 0, 1)
 
