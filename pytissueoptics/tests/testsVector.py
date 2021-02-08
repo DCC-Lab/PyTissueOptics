@@ -4,7 +4,6 @@ import numpy as np
 
 inf = float("+inf")
 
-
 class TestVector(envtest.PyTissueTestCase):
 
     def testNullVector(self):
@@ -39,6 +38,12 @@ class TestVector(envtest.PyTissueTestCase):
     #     self.assertEqual(v.y, 2)
     #     self.assertEqual(v.z, 3)
 
+    def testConstVectors(self):
+        self.assertTrue(oHat.isEqualTo(Vector(0,0,0)))
+        self.assertTrue(xHat.isEqualTo(Vector(1,0,0)))
+        self.assertTrue(yHat.isEqualTo(Vector(0,1,0)))
+        self.assertTrue(zHat.isEqualTo(Vector(0,0,1)))
+
     def testCanSetValuesVector(self):
         v = Vector()
         v.x = 1
@@ -70,17 +75,37 @@ class TestVector(envtest.PyTissueTestCase):
         with self.assertRaises(RuntimeError):
             zHat.z = 2
 
-
-
     def testVectorIsParallel(self):     
         v1 = Vector(1,2,3)
         v2 = Vector(2,4,6)
+
         self.assertTrue(v1.isParallelTo(v2))
         self.assertFalse(v1.isParallelTo(xHat))
         self.assertFalse(v1.isParallelTo(yHat))
         self.assertFalse(v1.isParallelTo(zHat))
 
+    def testVectorIsAlmostParallel(self):     
+        v1 = Vector(1,2,3)
+        v3 = Vector(1,2,3.0000001)
+        self.assertTrue(v1.isParallelTo(v3))
 
+    def testVectorIsAlmostNotParallel(self):     
+        v1 = Vector(1,2,3)
+        v3 = Vector(1,2,3.0001)
+        self.assertFalse(v1.isParallelTo(v3))
+
+    def testVectorIsPerpendicular(self):     
+        self.assertTrue(xHat.isPerpendicularTo(yHat))
+        self.assertTrue(xHat.isPerpendicularTo(zHat))
+        self.assertFalse(xHat.isPerpendicularTo(xHat))
+
+        self.assertTrue(yHat.isPerpendicularTo(zHat))
+        self.assertTrue(yHat.isPerpendicularTo(xHat))
+        self.assertFalse(yHat.isPerpendicularTo(yHat))
+
+        self.assertTrue(zHat.isPerpendicularTo(xHat))
+        self.assertTrue(zHat.isPerpendicularTo(yHat))
+        self.assertFalse(zHat.isPerpendicularTo(zHat))
 
 
 if __name__ == '__main__':

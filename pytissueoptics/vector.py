@@ -1,6 +1,6 @@
 import numpy as np
 import math
-
+import sys
 
 class Vector:
     def __init__(self, x: float = 0, y: float = 0, z: float = 0):
@@ -54,7 +54,7 @@ class Vector:
 
     @property
     def isNull(self) -> bool:
-        return abs(self.norm()) < 1e-7
+        return self.norm() < 1e-7
 
     def __repr__(self):
         return "({0:.4f},{1:.4f},{2:.4f})".format(self.x, self.y, self.z)
@@ -96,11 +96,20 @@ class Vector:
         else:
             raise ValueError("Out of range index: must be 0,1 or 2")
 
-    def isParallelTo(self, vector):
-        return self.normalizedCrossProduct(vector).abs() < 1e-6
+    def isEqualTo(self, vector):
+        if self.x != vector.x:
+            return False
+        if self.y != vector.y:
+            return False
+        if self.z != vector.z:
+            return False
+        return True
 
-    def isPerpendicularTo(self, vector):
-        return abs(self.normalizedDotProduct(vector)) < 1e-6
+    def isParallelTo(self, vector, epsilon=1e-7):
+        return self.normalizedCrossProduct(vector).abs() < epsilon
+
+    def isPerpendicularTo(self, vector, epsilon=1e-7):
+        return abs(self.normalizedDotProduct(vector)) < epsilon
 
     def anyPerpendicular(self):
         if self.x == 0 and self.y == 0:
@@ -385,7 +394,8 @@ class ConstUnitVector(UnitVector):
     @z.setter
     def z(self, value):
         raise RuntimeError("You cannot change a constant vector")
-    
+
+oHat = ConstVector(0, 0, 0)    
 xHat = ConstUnitVector(1, 0, 0)
 yHat = ConstUnitVector(0, 1, 0)
 zHat = ConstUnitVector(0, 0, 1)
