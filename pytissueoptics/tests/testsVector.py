@@ -107,6 +107,30 @@ class TestVector(envtest.PyTissueTestCase):
         self.assertTrue(zHat.isPerpendicularTo(yHat))
         self.assertFalse(zHat.isPerpendicularTo(zHat))
 
+    def testAngle(self):
+        self.assertEqual(xHat.angleWith(yHat, zHat), np.pi/2)
+        self.assertEqual(yHat.angleWith(xHat, zHat), -np.pi/2)
+        self.assertEqual(xHat.angleWith(yHat, -zHat),-np.pi/2)
+
+    def testQuadrantAngle(self):
+        plus45 = xHat + yHat
+        plus135 = -xHat + yHat
+        minus45 = xHat - yHat
+        minus135 = -xHat - yHat
+
+        self.assertAlmostEqual(xHat.angleWith(plus45, zHat), np.pi/4, 6)
+        self.assertAlmostEqual(xHat.angleWith(plus135, zHat), 3*np.pi/4, 6)
+
+        self.assertAlmostEqual(xHat.angleWith(minus45, zHat), -np.pi/4, 6)
+        self.assertAlmostEqual(xHat.angleWith(minus135, zHat), -3*np.pi/4, 6)
+
+        self.assertAlmostEqual(xHat.angleWith(plus45, -zHat), -np.pi/4, 6)
+        self.assertAlmostEqual(xHat.angleWith(plus135, -zHat), -3*np.pi/4, 6)
+
+        self.assertAlmostEqual(xHat.angleWith(minus45, -zHat), np.pi/4, 6)
+        self.assertAlmostEqual(xHat.angleWith(minus135, -zHat), 3*np.pi/4, 6)
+
+        self.assertAlmostEqual(xHat.angleWith(-xHat, zHat), np.pi, 6)
 
 if __name__ == '__main__':
     envtest.main()
