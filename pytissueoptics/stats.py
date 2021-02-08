@@ -17,7 +17,7 @@ class Stats:
         self.energy = np.zeros(size)
         self.surfaceFig = None
         self.volumeFig = None
-        self.volume = None
+        self.volume = []
         self.starting = []
         self.crossing = []
         self.final = []
@@ -84,6 +84,7 @@ class Stats:
         print('{0:.1f} s for {2} photons, {1:.1f} ms per photon'.format(elapsed, elapsed/N*1000, N))
 
     def scoreInVolume(self, photon, delta):
+        self.volume.append((Vector(photon.r), delta))
         position = photon.r
 
         i = int(self.binSizes[0]*(position.x-self.min[0])+0.5)
@@ -120,6 +121,9 @@ class Stats:
         raise NotImplementedError()
 
     def showEnergy2D(self, plane:str, cutAt:int= None, integratedAlong:str=None, title="", realtime=True):
+        if len(self.volume) == 0:
+            return
+
         if integratedAlong is None and cutAt is None:
             raise ValueError("You must provide cutAt= or integratedAlong=")
         elif integratedAlong is not None and cutAt is not None:
@@ -164,6 +168,9 @@ class Stats:
             self.volumeFig.show()
 
     def showEnergy1D(self, axis:str, cutAt=None, integratedAlong=None, title="", realtime=True):
+        if len(self.volume) == 0:
+            return
+
         if integratedAlong is None and cutAt is None:
             # Assume integral
             raise ValueError("You should provide cutAt=(x0, x1) or integratedAlong='xy'.")
@@ -208,9 +215,12 @@ class Stats:
             plt.ioff()
             plt.show()
 
-    def showSurfaceIntensities(self, surfaces, bins=21):
+    def showSurfaceIntensities(self, surfaces, maxPhotons, bins=21):
+        if len(self.crossing) == 0:
+            return
+
         self.surfaceFig, axes = plt.subplots(nrows=2, ncols=max(1,len(surfaces)//2), figsize=(14,8))
-        N = self.inputWeight
+        N = maxPhotons
 
         for i, surface in enumerate(surfaces):
             a,b,weights = self.photonsCrossingPlane(surface)
@@ -225,7 +235,6 @@ class Stats:
                 axes[i % 2].set_title('Intensity at {0} [T={1:.1f}%]'.format(surface,100*sum(weights)/N))
                 axes[i % 2].hist2d(a,b,weights=weights, bins=bins)
 
-        self.surfaceFig.tight_layout()
         plt.ioff()
         plt.show()
 

@@ -168,12 +168,14 @@ class Geometry:
             self.stats.scoreWhenFinal(photon)
 
     def report(self, totalSourcePhotons):
+        print("{0}\n".format(self.label))
+        print("=====================\n")
         print("Geometry and material")
-        print("=====================")
+        print("---------------------")
         print(self)
 
         print("\nPhysical quantities")
-        print("=====================")
+        print("---------------------")
         if self.stats is not None:
             totalWeightAcrossAllSurfaces = 0
             for i, surface in enumerate(self.surfaces):
@@ -190,7 +192,7 @@ class Geometry:
 
             self.stats.showEnergy2D(plane='xz', integratedAlong='y', title="Final photons", realtime=False)
             if len(self.surfaces) != 0:
-                self.stats.showSurfaceIntensities(self.surfaces)
+                self.stats.showSurfaceIntensities(self.surfaces, maxPhotons=totalSourcePhotons)
 
     def __repr__(self):
         return "{0}".format(self)
