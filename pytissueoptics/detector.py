@@ -15,7 +15,7 @@ class Detector(Geometry):
 
     def propagate(self, photon):
         photon.transformToLocalCoordinates(self.origin)
-        photon.z = 0 # We force it onto the front surface
+        photon.z = 0  # We force it onto the front surface
         self.scoreWhenEntering(photon, self.surfaces[0])
         photon.weight = 0
 

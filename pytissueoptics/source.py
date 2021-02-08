@@ -1,12 +1,9 @@
-import numpy as np
-import time
-import warnings
-from .vector import *
 from .photon import *
+
 
 class Source:
     def __init__(self, maxCount):
-        self.origin = Vector(0,0,0)
+        self.origin = Vector(0, 0, 0)
         self.maxCount = maxCount
         self.iteration = 0
         self._photons = []
@@ -45,6 +42,7 @@ class Source:
     def newPhoton(self) -> Photon:
         raise NotImplementedError()
 
+
 class IsotropicSource(Source):
     def __init__(self, maxCount):
         super(IsotropicSource, self).__init__(maxCount)
@@ -53,11 +51,12 @@ class IsotropicSource(Source):
         p = Photon()
         p.r = self.origin
 
-        phi = np.random.random()*2*np.pi
-        cost = 2*np.random.random()-1 
+        phi = np.random.random() * 2 * np.pi
+        cost = 2 * np.random.random() - 1
 
         p.scatterBy(np.arccos(cost), phi)
         return p
+
 
 class PencilSource(Source):
     def __init__(self, direction, maxCount):
@@ -65,7 +64,8 @@ class PencilSource(Source):
         self.direction = Vector(direction)
 
     def newPhoton(self) -> Photon:
-        return Photon( Vector(self.origin), Vector(self.direction))
+        return Photon(Vector(self.origin), Vector(self.direction))
+
 
 class MultimodeFiberSource(Source):
     def __init__(self, direction, diameter, NA, index, maxCount):
@@ -73,13 +73,13 @@ class MultimodeFiberSource(Source):
         self.direction = UnitVector(direction)
         self.xAxis = UnitVector(self.direction.anyPerpendicular())
         self.yAxis = UnitVector(self.direction.cross(self.xAxis))
-        self.radius = diameter/2
+        self.radius = diameter / 2
         self.NA = NA
         self.index = index
 
     @property
     def maxAngle(self):
-        return math.asin(self.NA/self.index)
+        return math.asin(self.NA / self.index)
 
     def newPhoton(self) -> Photon:
         positionVector = self.newUniformPosition()
@@ -88,16 +88,16 @@ class MultimodeFiberSource(Source):
         return Photon(Vector(positionVector), Vector(directionVector))
 
     def newUniformPosition(self):
-        
+
         position = None
         while position is None:
-            x = self.radius * (2*random.random()-1)
-            y = self.radius * (2*random.random()-1)
+            x = self.radius * (2 * random.random() - 1)
+            y = self.radius * (2 * random.random() - 1)
 
-            if x*x+y*y < self.radius*self.radius:
-                position = Vector.fromScaledSum(self.origin, self.xAxis,  x)
+            if x * x + y * y < self.radius * self.radius:
+                position = Vector.fromScaledSum(self.origin, self.xAxis, x)
                 position += self.yAxis * y
-        
+
         return position
 
     def newUniformConeDirection(self):
