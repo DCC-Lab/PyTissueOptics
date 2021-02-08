@@ -159,7 +159,7 @@ class Vector:
         """
         productNorm = self.norm() * vector.norm()
         if productNorm == 0:
-            return None
+            return Vector(0,0,0)
 
         return Vector(self.cross(vector) * (productNorm**(-0.5)))
 
