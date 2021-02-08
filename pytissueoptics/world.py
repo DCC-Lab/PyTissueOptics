@@ -1,13 +1,6 @@
-import numpy as np
-import matplotlib.pyplot as plt
 import signal
-import sys
-import time
-from .surface import *
-from .photon import *
-from .source import *
-from .geometry import *
 from .detector import *
+
 
 class World:
     geometries = set()
@@ -22,7 +15,7 @@ class World:
         return total
 
     @classmethod
-    def compute(self, graphs):
+    def compute(cls, graphs):
         World.startCalculation()
         N = 0
         for source in World.sources:
@@ -43,11 +36,11 @@ class World:
                             # We are hitting something, moving to surface
                             photon.moveBy(distance)
                             # At surface, determine if reflected or not 
-                            if nextGeometry.isReflected(photon, surface): 
+                            if nextGeometry.isReflected(photon, surface):
                                 # reflect photon and keep propagating
                                 photon.reflect(surface)
                                 # Move away from surface to avoid getting stuck there
-                                photon.moveBy(d=1e-3) 
+                                photon.moveBy(d=1e-3)
                             else:
                                 # transmit, score, and enter (at top of this loop)
                                 photon.refract(surface)
@@ -57,10 +50,10 @@ class World:
                                 currentGeometry = nextGeometry
                         else:
                             photon.weight = 0
-                World.showProgress(i+1, maxCount=source.maxCount, graphs=graphs)
+                World.showProgress(i + 1, maxCount=source.maxCount, graphs=graphs)
 
         duration = World.completeCalculation()
-        print("{0:.1f} ms per photon\n".format(duration*1000/N))
+        print("{0:.1f} ms per photon\n".format(duration * 1000 / N))
 
     @classmethod
     def place(cls, anObject, position):
@@ -113,7 +106,7 @@ class World:
         for geometry in World.geometries:
             for surface in geometry.surfaces:
                 surface.indexInside = geometry.material.index
-                surface.indexOutside = 1.0 # Index outside
+                surface.indexOutside = 1.0  # Index outside
 
         if len(World.sources) == 0:
             raise LogicalError("No sources: you must create sources")
@@ -146,13 +139,13 @@ class World:
             while steps < i:
                 steps *= 10
 
-        if i  % steps == 0:
-            print("{2} Photon {0}/{1}".format(i, maxCount, time.ctime()) )
+        if i % steps == 0:
+            print("{2} Photon {0}/{1}".format(i, maxCount, time.ctime()))
 
             if graphs:
                 for geometry in World.geometries:
                     if geometry.stats is not None:
-                        geometry.stats.showEnergy2D(plane='xz', integratedAlong='y', title="{0} photons".format(i)) 
+                        geometry.stats.showEnergy2D(plane='xz', integratedAlong='y', title="{0} photons".format(i))
 
     @classmethod
     def report(cls):
