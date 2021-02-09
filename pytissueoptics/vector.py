@@ -48,7 +48,7 @@ class Vector:
         self.y += vector.y*scale
         self.z += vector.z*scale
         return self
-        
+
     @property
     def isUnitary(self) -> bool:
         return abs(self.norm()-1) < 1e-7
@@ -124,17 +124,17 @@ class Vector:
         return self.normalizedCrossProduct(xHat)
 
     def isInXYPlane(self, atZ, epsilon=0.001) -> bool:
-        if abs(self.z-z) < epsilon:
+        if abs(self.z-atZ) < epsilon:
             return True
         return False
 
     def isInYZPlane(self, atX, epsilon=0.001) -> bool:
-        if abs(self.x-x) < epsilon:
+        if abs(self.x-atX) < epsilon:
             return True
         return False
 
     def isInZXPlane(self, atY, epsilon=0.001) -> bool:
-        if abs(self.y-y) < epsilon:
+        if abs(self.y-atY) < epsilon:
             return True
         return False
 

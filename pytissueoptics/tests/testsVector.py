@@ -32,18 +32,26 @@ class TestVector(envtest.PyTissueTestCase):
         constVector.x = 4
         self.assertEqual(v.x, 1)
 
-    # def testVectorInitArray(self):
-    #     v = Vector(np.ndarray((1,2,3)))
-    #     self.assertIsNotNone(v)
-    #     self.assertEqual(v.x, 1)
-    #     self.assertEqual(v.y, 2)
-    #     self.assertEqual(v.z, 3)
+    def testInvalidInput(self):
+        with self.assertRaises(ValueError):
+            Vector("ouch")
 
     def testConstVectors(self):
         self.assertTrue(oHat.isEqualTo(Vector(0,0,0)))
         self.assertTrue(xHat.isEqualTo(Vector(1,0,0)))
         self.assertTrue(yHat.isEqualTo(Vector(0,1,0)))
         self.assertTrue(zHat.isEqualTo(Vector(0,0,1)))
+
+    def testEqualVectors(self):
+        self.assertEqual(oHat, Vector(0,0,0))
+        self.assertEqual(xHat, Vector(1,0,0))
+        self.assertEqual(yHat, Vector(0,1,0))
+        self.assertEqual(zHat, Vector(0,0,1))
+
+        self.assertNotEqual(Vector(1,2,3), Vector(0,2,3))
+        self.assertNotEqual(Vector(1,2,3), Vector(1,0,3))
+        self.assertNotEqual(Vector(1,2,3), Vector(1,2,0))
+
 
     def testCanSetValuesVector(self):
         v = Vector()
@@ -75,6 +83,14 @@ class TestVector(envtest.PyTissueTestCase):
             zHat.y = 2
         with self.assertRaises(RuntimeError):
             zHat.z = 2
+
+    def testVectorIsNull(self):
+        self.assertTrue(oHat.isNull)
+
+    def testVectorIsUnitary(self):
+        self.assertTrue(xHat.isUnitary)
+        self.assertTrue(yHat.isUnitary)
+        self.assertTrue(zHat.isUnitary)
 
     def testVectorIsParallel(self):     
         v1 = Vector(1,2,3)
@@ -109,7 +125,7 @@ class TestVector(envtest.PyTissueTestCase):
         self.assertFalse(zHat.isPerpendicularTo(zHat))
 
     def testManyPerpendicularVectors(self):
-        for i in range(100000):
+        for i in range(10000):
             v1 = Vector(random.random()*2-1, random.random()*2-1, random.random()*2-1)
             v2 = Vector(random.random()*2-1, random.random()*2-1, random.random()*2-1)
             self.assertTrue(v1.cross(v2).isPerpendicularTo(v1))
@@ -149,13 +165,26 @@ class TestVector(envtest.PyTissueTestCase):
         self.assertEqual(v1.addScaled(v2, s), v3)
 
     def testAnyPerpendicular(self):
-        v1 = Vector(1,2,3)
-        v2 = Vector(-4,-5,-6)
+        vectors = (Vector(1,2,3), Vector(-1,-2-3), xHat, yHat, zHat )
+        for v in vectors:
+            self.assertTrue(v.anyPerpendicular().isPerpendicularTo(v))
 
-        self.assertTrue(v1.anyPerpendicular().isPerpendicularTo(v1))
-        self.assertTrue(v2.anyPerpendicular().isPerpendicularTo(v2))
         self.assertIsNone(oHat.anyPerpendicular())
 
+    def testIsInKnownPlane(self):
+        v = Vector(1,2,3)
+        self.assertTrue(v.isInXYPlane(atZ=3))
+        self.assertTrue(v.isInYZPlane(atX=1))
+        self.assertTrue(v.isInZXPlane(atY=2))
+
+        self.assertFalse(v.isInXYPlane(atZ=3.1))
+        self.assertFalse(v.isInYZPlane(atX=1.1))
+        self.assertFalse(v.isInZXPlane(atY=2.1))
+
+    def testIsInSomePlane(self):
+        v = Vector(1,1,0)
+        self.assertTrue(v.isInPlane(origin=Vector(0,0,0), normal=zHat))
+        self.assertFalse(v.isInPlane(origin=Vector(1,1,1), normal=zHat))
 
 if __name__ == '__main__':
     envtest.main()
