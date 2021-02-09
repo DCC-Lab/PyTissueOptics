@@ -70,7 +70,7 @@ class Photon:
         if n1 == n2:
             return 0
 
-        thetaIn, planeOfIncidenceNormal = self.ez.angleOfIncidence(normal)
+        thetaIn, planeOfIncidenceNormal, actualNormal = self.ez.angleOfIncidence(normal)
         if thetaIn == 0:
             R = (n2-n1)/(n2+n1)
             return R*R
@@ -90,7 +90,7 @@ class Photon:
         return r
 
     def reflect(self, surface):
-        thetaIn, planeOfIncidenceNormal = self.ez.angleOfIncidence(surface.normal)
+        thetaIn, planeOfIncidenceNormal, actualNormal = self.ez.angleOfIncidence(surface.normal)
 
         self.ez.rotateAround(planeOfIncidenceNormal, 2*thetaIn-np.pi)
 
@@ -120,7 +120,7 @@ class Photon:
             n2 = surface.indexInside
             normal = -surface.normal
 
-        thetaIn, planeOfIncidenceNormal = self.ez.angleOfIncidence(surface.normal)
+        thetaIn, planeOfIncidenceNormal, actualNormal = self.ez.angleOfIncidence(normal)
 
         if thetaIn == 0:
             # Normal incidence

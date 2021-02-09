@@ -254,7 +254,7 @@ class Vector:
             normal = -normal
 
         planeNormal = self.planeOfIncidence(normal)
-        return self.angleWith(normal, axis=planeNormal), planeNormal
+        return self.angleWith(normal, axis=planeNormal), planeNormal, normal
 
     def rotateAround(self, u, theta):
         # This is the most expensive (and most common)
