@@ -212,5 +212,28 @@ class TestVector(envtest.PyTissueTestCase):
             self.assertTrue( v1.cross(v2).abs() < 1e-6)
             self.assertTrue( v1.isParallelTo(v2) )
 
+    def testPlaneOfIncidence(self):
+        ez = Vector(0,1,1).normalized()
+        plane = ez.planeOfIncidence(normal=zHat)
+        self.assertTrue(plane.isParallelTo(xHat))
+        self.assertTrue(plane.isUnitary)
+
+        ez = Vector(0,1,1).normalized()
+        plane = ez.planeOfIncidence(normal=-zHat)
+        self.assertTrue(plane.isParallelTo(xHat))
+        self.assertTrue(plane.isUnitary)
+
+        plane = zHat.planeOfIncidence(normal=-zHat)
+        self.assertTrue(plane.isPerpendicularTo(zHat))
+        self.assertTrue(plane.isUnitary)
+
+        plane = zHat.planeOfIncidence(normal=-zHat)
+        self.assertTrue(plane.isPerpendicularTo(zHat))
+        self.assertTrue(plane.isUnitary)
+
+        plane = zHat.planeOfIncidence(normal=zHat)
+        self.assertTrue(plane.isPerpendicularTo(zHat))
+        self.assertTrue(plane.isUnitary)
+
 if __name__ == '__main__':
     envtest.main()

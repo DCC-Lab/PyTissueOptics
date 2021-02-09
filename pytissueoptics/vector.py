@@ -120,8 +120,8 @@ class Vector:
             if self.z == 0:
                 return None
             else:
-                return self.normalizedCrossProduct(yHat)
-        return self.normalizedCrossProduct(xHat)
+                return self.cross(yHat)
+        return self.cross(xHat)
 
     def isInXYPlane(self, atZ, epsilon=0.001) -> bool:
         if abs(self.z-atZ) < epsilon:
@@ -165,6 +165,11 @@ class Vector:
             self.x /= length
             self.y /= length
             self.z /= length
+        return self
+
+    def normalized(self):
+        v = Vector(self.x, self.y, self.z)
+        return v.normalize()
 
     def cross(self, vector):
         """ Accessing properties is costly when done very often.
@@ -221,6 +226,19 @@ class Vector:
             phi = -phi
     
         return phi
+
+    def planeOfIncidence(self, normal):
+        if self.dot(normal) < 0:
+            normal = -normal
+
+        planeOfIncidenceNormal = self.cross(normal)
+        if planeOfIncidenceNormal.norm() < 1e-7:
+            someVector = self.anyPerpendicular()
+            if not someVector.isUnitary:
+                someVector.normalized()
+            return someVector
+        else:
+            return planeOfIncidenceNormal.normalized()
 
     def rotateAround(self, u, theta):
         # This is the most expensive (and most common)
