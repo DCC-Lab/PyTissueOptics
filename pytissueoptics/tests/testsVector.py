@@ -223,6 +223,16 @@ class TestVector(envtest.PyTissueTestCase):
         self.assertTrue(plane.isParallelTo(xHat))
         self.assertTrue(plane.isUnitary)
 
+        ez = Vector(0,-1,1).normalized()
+        plane = ez.planeOfIncidence(normal=zHat)
+        self.assertTrue(plane.isParallelTo(xHat))
+        self.assertTrue(plane.isUnitary)
+
+        ez = Vector(0,1,1) # unnormalized
+        plane = ez.planeOfIncidence(normal=Vector(0,0,10))
+        self.assertTrue(plane.isParallelTo(xHat))
+        self.assertTrue(plane.isUnitary)
+
         plane = zHat.planeOfIncidence(normal=-zHat)
         self.assertTrue(plane.isPerpendicularTo(zHat))
         self.assertTrue(plane.isUnitary)
@@ -234,6 +244,42 @@ class TestVector(envtest.PyTissueTestCase):
         plane = zHat.planeOfIncidence(normal=zHat)
         self.assertTrue(plane.isPerpendicularTo(zHat))
         self.assertTrue(plane.isUnitary)
+
+    def testAngleOfIncidence(self):
+        ez = Vector(0,1,1).normalized()
+        surfaceNormal = zHat
+        planeNormal = ez.planeOfIncidence(normal=surfaceNormal)
+        self.assertAlmostEqual(ez.angleWith(surfaceNormal, planeNormal), np.pi/4,6)
+
+        ez = Vector(0,-1,1).normalized()
+        surfaceNormal = zHat
+        planeNormal = ez.planeOfIncidence(normal=surfaceNormal)
+        self.assertAlmostEqual(ez.angleWith(surfaceNormal, planeNormal), np.pi/4,6)
+
+        ez = Vector(0,1,1).normalized()
+        surfaceNormal = zHat
+        angle, planeNormal = ez.angleOfIncidence(surfaceNormal)
+        self.assertAlmostEqual(angle, np.pi/4,6)
+        self.assertTrue(planeNormal.isUnitary)
+
+        ez = Vector(0,-1,1).normalized()
+        surfaceNormal = zHat
+        angle, planeNormal = ez.angleOfIncidence(surfaceNormal)
+        self.assertAlmostEqual(angle, np.pi/4,6)
+        self.assertTrue(planeNormal.isUnitary)
+
+        ez = zHat
+        surfaceNormal = zHat
+        angle, planeNormal = ez.angleOfIncidence(surfaceNormal)
+        self.assertAlmostEqual(angle, 0,6)
+        self.assertTrue(planeNormal.isUnitary)
+
+        ez = Vector(0,0,1)
+        surfaceNormal = Vector(0,0,1)
+        angle, planeNormal = ez.angleOfIncidence(surfaceNormal)
+        self.assertAlmostEqual(angle, 0,6)
+        self.assertTrue(planeNormal.isUnitary)
+
 
 if __name__ == '__main__':
     envtest.main()

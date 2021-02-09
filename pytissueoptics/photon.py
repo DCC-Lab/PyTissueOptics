@@ -91,16 +91,8 @@ class Photon:
         r = 0.5*sam*sam*(cam*cam+cap*cap)/(sap*sap*cam*cam); 
         return r
 
-    def planeOfIncidence(self, surface):
-        planeOfIncidenceNormal = self.ez.normalizedCrossProduct(surface.normal)
-        if planeOfIncidenceNormal.norm() < 1e-7:
-            return self.ez.anyPerpendicular()
-        else:
-            return planeOfIncidenceNormal
-
     def reflect(self, surface):
-        planeOfIncidenceNormal = self.planeOfIncidence(surface)
-        thetaIn = self.ez.angleWith(surface.normal, axis=planeOfIncidenceNormal)
+        thetaIn, planeOfIncidenceNormal = self.ez.angleOfIncidence(surface.normal)
 
         self.ez.rotateAround(planeOfIncidenceNormal, 2*thetaIn-np.pi)
 

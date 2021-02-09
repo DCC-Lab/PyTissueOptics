@@ -123,6 +123,14 @@ class Vector:
                 return self.cross(yHat)
         return self.cross(xHat)
 
+    def anyUnitaryPerpendicular(self):
+        if self.x == 0 and self.y == 0:
+            if self.z == 0:
+                return None
+            else:
+                return self.cross(yHat).normalized()
+        return self.cross(xHat).normalized()
+
     def isInXYPlane(self, atZ, epsilon=0.001) -> bool:
         if abs(self.z-atZ) < epsilon:
             return True
@@ -233,12 +241,16 @@ class Vector:
 
         planeOfIncidenceNormal = self.cross(normal)
         if planeOfIncidenceNormal.norm() < 1e-7:
-            someVector = self.anyPerpendicular()
-            if not someVector.isUnitary:
-                someVector.normalized()
-            return someVector
+            return self.anyUnitaryPerpendicular()
         else:
             return planeOfIncidenceNormal.normalized()
+
+    def angleOfIncidence(self, normal):
+        if self.dot(normal) < 0:
+            normal = -normal
+
+        planeNormal = self.planeOfIncidence(normal)
+        return self.angleWith(normal, axis=planeNormal), planeNormal
 
     def rotateAround(self, u, theta):
         # This is the most expensive (and most common)
@@ -308,25 +320,7 @@ class Vector:
 
 class UnitVector(Vector):
     def __init__(self, x: float = 0, y: float = 0, z: float = 0):
-        Vector.__init__(self, x, y, z)
-        Vector.normalize(self)  # We really want this normalized
-
-    def abs(self):
-        """ The `sqrt()` calculation normally used to compute `Vector.abs()`
-        is expensive. If a vector should be unitary in the first place, 
-        then we can use sqrt(1+x) = 1+x/2+...
-        with norm = 1 + x, or norm - 1 = x. Sneaky, but efficient.
-        We still need to compute `abs()` because we want to normalize
-        the vector manually after calculations because if we don't,
-        round-off errors will take over."""
-        ux = self.x
-        uy = self.y
-        uz = self.z
-        length = (ux * ux + uy * uy + uz * uz + 1) / 2
-        if length > 1:
-            self.normalize()
-            return 1.0
-        return length
+        Vector.__init__(self, Vector(x, y, z).normalized())
 
     def cross(self, vector):
         """ Accessing properties is costly when done very often.
