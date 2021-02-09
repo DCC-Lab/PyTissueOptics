@@ -70,12 +70,10 @@ class Photon:
         if n1 == n2:
             return 0
 
-        planeOfIncidenceNormal = self.ez.normalizedCrossProduct(normal)
-        if planeOfIncidenceNormal.isNull:
+        thetaIn, planeOfIncidenceNormal = self.ez.angleOfIncidence(normal)
+        if thetaIn == 0:
             R = (n2-n1)/(n2+n1)
             return R*R
-
-        thetaIn = self.ez.angleWith(normal, axis=planeOfIncidenceNormal)
 
         sa1 = math.sin(thetaIn)
         if sa1*n1/n2 > 1:
@@ -122,12 +120,12 @@ class Photon:
             n2 = surface.indexInside
             normal = -surface.normal
 
-        planeOfIncidenceNormal = self.ez.normalizedCrossProduct(normal)
-        if planeOfIncidenceNormal.norm() == 0:
+        thetaIn, planeOfIncidenceNormal = self.ez.angleOfIncidence(surface.normal)
+
+        if thetaIn == 0:
             # Normal incidence
             return
 
-        thetaIn = self.ez.angleWith(normal, axis=planeOfIncidenceNormal)
         thetaOut = math.asin(n1*math.sin(thetaIn)/n2)
 
         self.ez.rotateAround(planeOfIncidenceNormal, thetaOut-thetaIn)
