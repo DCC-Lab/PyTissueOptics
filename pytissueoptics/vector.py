@@ -322,20 +322,6 @@ class UnitVector(Vector):
     def __init__(self, x: float = 0, y: float = 0, z: float = 0):
         Vector.__init__(self, Vector(x, y, z).normalized())
 
-    def cross(self, vector):
-        """ Accessing properties is costly when done very often.
-        cross product of unit vectors is a common operation """
-        ux = self.x
-        uy = self.y
-        uz = self.z
-        vx = vector.x
-        vy = vector.y
-        vz = vector.z
-        if isinstance(vector, UnitVector):
-            return UnitVector(uy*vz - uz*vy, uz*vx - ux*vz, ux*vy - uy*vx)
-        else:
-            return Vector(uy*vz - uz*vy, uz*vx - ux*vz, ux*vy - uy*vx)
-
     def normalizedCrossProduct(self, vector):
         if isinstance(vector, UnitVector):
             return self.cross(vector)
@@ -351,7 +337,17 @@ class UnitVector(Vector):
 
 class ConstVector(Vector):
     def __init__(self, x: float = 0, y: float = 0, z: float = 0):
+        self._abs = 0
+        self._norm = 0
         Vector.__init__(self, x, y, z)
+        self._abs = self.abs()
+        self._norm = self.norm()
+
+    def norm(self):
+        return self._norm
+
+    def abs(self):
+        return self._abs
 
     @property
     def x(self):
@@ -382,6 +378,12 @@ class ConstUnitVector(UnitVector):
         Vector.__init__(self, x, y, z)
         if self.norm() != 1.0:
             raise ValueError("Vector must be created with proper normalized values")
+
+    def norm(self):
+        return 1.0
+
+    def abs(self):
+        return 1.0
 
     @property
     def x(self):

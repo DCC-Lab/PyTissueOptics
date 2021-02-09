@@ -26,13 +26,21 @@ class TestPhoton(envtest.PyTissueTestCase):
     #     print(p.ez)
     #     self.assertTrue(p.ez == -zHat)
 
-    def testReflect(self):
+    def testReflectNormalIncidence(self):
         s = Surface(origin=oHat, a=xHat, b=yHat, normal=zHat)
         p = Photon(position=Vector(0,0,0), direction=zHat)
 
         thetaIn, planeOfIncidenceNormal = p.ez.angleOfIncidence(s.normal)
         p.ez.rotateAround(planeOfIncidenceNormal, 2*thetaIn-np.pi)
-        self.assertAlmostEqual((p.ez + zHat).norm(), 0, 6)
+        self.assertAlmostEqual((p.ez - -zHat).norm(), 0, 6)
+
+    def testReflectPlus45Incidence(self):
+        s = Surface(origin=oHat, a=xHat, b=yHat, normal=zHat)
+        p = Photon(position=Vector(0,0,0), direction=Vector(0,1,1).normalized())
+
+        thetaIn, planeOfIncidenceNormal = p.ez.angleOfIncidence(s.normal)
+        p.ez.rotateAround(planeOfIncidenceNormal, 2*thetaIn-np.pi)
+        self.assertAlmostEqual((p.ez - Vector(0,1,-1).normalized()).norm(), 0, 6)
 
 if __name__ == '__main__':
     envtest.main()
