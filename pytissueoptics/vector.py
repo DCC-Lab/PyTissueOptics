@@ -47,7 +47,8 @@ class Vector:
         self.x += vector.x*scale
         self.y += vector.y*scale
         self.z += vector.z*scale
-
+        return self
+        
     @property
     def isUnitary(self) -> bool:
         return abs(self.norm()-1) < 1e-7
@@ -95,6 +96,9 @@ class Vector:
             return self.z
         else:
             raise ValueError("Out of range index: must be 0,1 or 2")
+
+    def __eq__(self, vector):
+        return self.isEqualTo(vector)
 
     def isEqualTo(self, vector):
         if self.x != vector.x:
@@ -203,11 +207,7 @@ class Vector:
         return self.dot(vector) * (productNorm**(-0.5))
 
     def angleWith(self, v, axis):
-        """ Computes the normalized cross product with another vector.
-        The absolute value is the sin of the angle between both. You cannot
-        get the sign of this angle without providing a perpendicular vector
-        that defines the "positive" direction. If you want the angle, 
-        use the method angleWith().
+        """ Provides angle 
         """
 
         sinPhi = self.normalizedCrossProduct(v)
