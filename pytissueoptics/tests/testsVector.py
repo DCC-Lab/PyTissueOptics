@@ -186,5 +186,31 @@ class TestVector(envtest.PyTissueTestCase):
         self.assertTrue(v.isInPlane(origin=Vector(0,0,0), normal=zHat))
         self.assertFalse(v.isInPlane(origin=Vector(1,1,1), normal=zHat))
 
+    def testRotationsUnitVectors(self):
+        for i in range(10000):
+            v1 = UnitVector(random.random()*2-1, random.random()*2-1, random.random()*2-1)
+            v2 = UnitVector(random.random()*2-1, random.random()*2-1, random.random()*2-1)
+            axis = v1.cross(v2)
+            angle = v1.angleWith(v2, axis)
+            v1.rotateAround(axis, angle)
+
+            self.assertTrue( (v1-v2).abs() < 1e-6)
+
+        self.assertEqual(Vector(1,0,0).rotateAround(zHat, np.pi/2), yHat)
+        self.assertEqual(Vector(0,1,0).rotateAround(xHat, np.pi/2), zHat)
+        self.assertEqual(Vector(0,0,1).rotateAround(yHat, np.pi/2), xHat)
+
+    def testRotationsUnitVectors(self):
+        for i in range(10000):
+            v1 = Vector(random.random()*2-1, random.random()*2-1, random.random()*2-1)
+            v2 = Vector(random.random()*2-1, random.random()*2-1, random.random()*2-1)
+            axis = v1.cross(v2)
+            angle = v1.angleWith(v2, axis)
+            v1.rotateAround(axis, angle)
+
+            self.assertTrue( v1.dot(v2) >= 0)
+            self.assertTrue( v1.cross(v2).abs() < 1e-6)
+            self.assertTrue( v1.isParallelTo(v2) )
+
 if __name__ == '__main__':
     envtest.main()
