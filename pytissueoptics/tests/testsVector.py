@@ -195,12 +195,15 @@ class TestVector(envtest.PyTissueTestCase):
             v1.rotateAround(axis, angle)
 
             self.assertTrue( (v1-v2).abs() < 1e-6)
+            self.assertTrue( v1.isUnitary)
+            self.assertTrue( v2.isUnitary)
 
-        self.assertEqual(Vector(1,0,0).rotateAround(zHat, np.pi/2), yHat)
-        self.assertEqual(Vector(0,1,0).rotateAround(xHat, np.pi/2), zHat)
-        self.assertEqual(Vector(0,0,1).rotateAround(yHat, np.pi/2), xHat)
+        self.assertTrue(Vector(1,0,0).rotateAround(zHat, np.pi/2).isAlmostEqualTo( yHat))
+        self.assertTrue(Vector(0,1,0).rotateAround(xHat, np.pi/2).isAlmostEqualTo( zHat))
+        self.assertTrue(Vector(0,0,1).rotateAround(yHat, np.pi/2).isAlmostEqualTo( xHat))
+            
 
-    def testRotationsUnitVectors(self):
+    def testRotationsVectors(self):
         for i in range(10000):
             v1 = Vector(random.random()*2-1, random.random()*2-1, random.random()*2-1)
             v2 = Vector(random.random()*2-1, random.random()*2-1, random.random()*2-1)

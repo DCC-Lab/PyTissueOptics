@@ -109,6 +109,15 @@ class Vector:
             return False
         return True
 
+    def isAlmostEqualTo(self, vector, epsilon=1e-6):
+        if abs(self.x - vector.x) > epsilon:
+            return False
+        if abs(self.y - vector.y) > epsilon:
+            return False
+        if abs(self.z - vector.z) > epsilon:
+            return False
+        return True
+
     def isParallelTo(self, vector, epsilon=1e-7):
         return self.normalizedCrossProduct(vector).abs() < epsilon
 
@@ -288,6 +297,7 @@ class Vector:
         self.z = (uz * ux * one_cost - uy * sint) * X \
                  + (uz * uy * one_cost + ux * sint) * Y \
                  + (cost + uz * uz * one_cost) * Z
+        return self
 
     def rotateAroundX(self, phi):
         v = Vector(self.x, self.y, self.z)
@@ -297,6 +307,7 @@ class Vector:
     
         self.y = c * v.y - s * v.z
         self.z = s * v.y + c * v.z
+        return self
 
     def rotateAroundY(self, phi):
         v = Vector(self.x, self.y, self.z)
@@ -306,6 +317,7 @@ class Vector:
     
         self.x = c * v.x + s * v.z
         self.z = -s * v.x + c * v.z
+        return self
 
     def rotateAroundZ(self, phi):
         v = Vector(self.x, self.y, self.z)
@@ -316,6 +328,7 @@ class Vector:
         self.x = c * v.x - s * v.y
         self.y = s * v.x + c * v.y
         self.z = v.z
+        return self
 
 
 class UnitVector(Vector):
@@ -342,6 +355,9 @@ class ConstVector(Vector):
         Vector.__init__(self, x, y, z)
         self._abs = self.abs()
         self._norm = self.norm()
+
+    def normalize(self):
+        return self
 
     def norm(self):
         return self._norm
@@ -378,6 +394,9 @@ class ConstUnitVector(UnitVector):
         Vector.__init__(self, x, y, z)
         if self.norm() != 1.0:
             raise ValueError("Vector must be created with proper normalized values")
+
+    def normalize(self):
+        return self
 
     def norm(self):
         return 1.0

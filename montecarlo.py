@@ -1,14 +1,14 @@
 from pytissueoptics import *
 
 # We choose a material with scattering properties
-mat = Material(mu_s=1, mu_a=0.1, g=0.1, index=1.0)
+mat = Material(mu_s=1, mu_a=0.1, g=0.1, index=1.4)
 
 # We want stats: we must determine over what volume we want the energy
 stats = Stats(min=(-2, -2, -2), max=(2, 2, 2), size=(50, 50, 50))
 
 # We pick a light source
-source = MultimodeFiberSource(direction=UnitVector(0, 0, 1), diameter=0.1, NA=0.6, index=1.0, maxCount=100000)
-detector = Detector(NA=1)
+source = MultimodeFiberSource(direction=zHat, diameter=0.1, NA=0.6, index=1.0, maxCount=10000)
+detector = Detector(NA=1.0)
 
 # We pick a geometry
 tissue = Layer(thickness=1, material=mat, stats=stats)
