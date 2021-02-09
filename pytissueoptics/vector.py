@@ -69,8 +69,8 @@ class Vector:
     def __rmul__(self, scale):
         return Vector(self.x * scale, self.y * scale, self.z * scale)
 
-    def __div__(self, scale):
-        return self.v / scale
+    def __truediv__(self, scale):
+        return Vector(self.x / scale, self.y / scale, self.z / scale)
 
     def __add__(self, vector):
         return Vector(self.x + vector.x, self.y + vector.y, self.z + vector.z)
@@ -133,12 +133,7 @@ class Vector:
         return self.cross(xHat)
 
     def anyUnitaryPerpendicular(self):
-        if self.x == 0 and self.y == 0:
-            if self.z == 0:
-                return None
-            else:
-                return self.cross(yHat).normalized()
-        return self.cross(xHat).normalized()
+        return self.anyPerpendicular().normalized()
 
     def isInXYPlane(self, atZ, epsilon=0.001) -> bool:
         if abs(self.z-atZ) < epsilon:

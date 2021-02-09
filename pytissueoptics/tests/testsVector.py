@@ -6,6 +6,27 @@ import random
 inf = float("+inf")
 
 class TestVector(envtest.PyTissueTestCase):
+    def randomVector(self):
+        x = random.random()*2-1
+        y = random.random()*2-1
+        z = random.random()*2-1
+        return Vector(x,y,z)
+
+    def randomVectors(self, N):
+        vectors = []
+        for i in range(N):
+            x = random.random()*2-1
+            y = random.random()*2-1
+            z = random.random()*2-1
+            vectors.append( Vector(x,y,z) )
+
+    def randomUnitVectors(self, N):
+        vectors = []
+        for i in range(N):
+            x = random.random()*2-1
+            y = random.random()*2-1
+            z = random.random()*2-1
+            vectors.append( UnitVector(x,y,z) )
 
     def testNullVector(self):
         v = Vector()
@@ -52,6 +73,9 @@ class TestVector(envtest.PyTissueTestCase):
         self.assertNotEqual(Vector(1,2,3), Vector(1,0,3))
         self.assertNotEqual(Vector(1,2,3), Vector(1,2,0))
 
+        self.assertFalse(Vector(1,2,3).isAlmostEqualTo(Vector(1.1,2,3)))
+        self.assertFalse(Vector(1,2,3).isAlmostEqualTo(Vector(1,2.1,3)))
+        self.assertFalse(Vector(1,2,3).isAlmostEqualTo(Vector(1,2,3.1)))
 
     def testCanSetValuesVector(self):
         v = Vector()
@@ -91,6 +115,60 @@ class TestVector(envtest.PyTissueTestCase):
         self.assertTrue(xHat.isUnitary)
         self.assertTrue(yHat.isUnitary)
         self.assertTrue(zHat.isUnitary)
+
+    def testNormalizedCrossedProduct(self):
+        v1 = Vector(1,2,3)
+        v2 = v1.anyPerpendicular()
+        self.assertAlmostEqual(v1.normalizedCrossProduct(v2).abs(), 1.0, 6)
+
+        v1 = Vector(1,0,0)
+        v2 = Vector(1,1,0)
+        self.assertAlmostEqual(v1.normalizedCrossProduct(v2).abs(), np.sin(np.pi/4), 6)
+
+        v1 = Vector(2,0,0)
+        v2 = Vector(2,2,0)
+        self.assertAlmostEqual(v1.normalizedCrossProduct(v2).abs(), np.sin(np.pi/4), 6)
+
+        v1 = Vector(0,0,1)
+        v2 = Vector(0,1,1)
+        self.assertAlmostEqual(v1.normalizedCrossProduct(v2).abs(), np.sin(np.pi/4), 6)
+
+        v1 = Vector(0,1,0)
+        v2 = Vector(0,1,1)
+        self.assertAlmostEqual(v1.normalizedCrossProduct(v2).abs(), np.sin(np.pi/4), 6)
+
+    def testOperators(self):
+        v1 = Vector(1,2,3)
+        self.assertTrue( (v1*2).isAlmostEqualTo(Vector(2,4,6)))
+        self.assertTrue( (2*v1).isAlmostEqualTo(Vector(2,4,6)))
+        self.assertTrue( (v1/2.0).isAlmostEqualTo(Vector(0.5,1,1.5)))
+        self.assertTrue( (v1+v1+v1).isAlmostEqualTo(Vector(3,6,9)))
+        self.assertTrue( (v1-2*v1).isAlmostEqualTo(Vector(-1,-2,-3)))
+        self.assertTrue( (-v1).isAlmostEqualTo(Vector(-1,-2,-3)))
+
+    def testRotateAround(self):
+        v1 = Vector(1,2,3)
+        axis = v1.anyUnitaryPerpendicular()
+        v1.rotateAround(axis, 0.5)
+        v2 = Vector(1,2,3)
+        self.assertAlmostEqual(v1.normalizedCrossProduct(v2).abs(), np.sin(0.5), 6)
+
+        for i in range(1000):
+            v1 = self.randomVector()
+            v2 = Vector(v1)
+            axis = v1.anyUnitaryPerpendicular()
+            angle = 2*np.pi*random.random()
+            v1.rotateAround(axis, angle)
+            self.assertAlmostEqual(v1.normalizedCrossProduct(v2).abs(), abs(np.sin(angle)), 6)
+
+    def testAngleWith(self):
+        for i in range(1000):
+            v1 = self.randomVector()
+            v2 = Vector(v1)
+            axis = v1.anyUnitaryPerpendicular()
+            angle = np.pi*(random.random()*2-1)
+            v1.rotateAround(axis, angle)
+            self.assertAlmostEqual(v1.angleWith(v2, axis), -angle, 6)
 
     def testVectorIsParallel(self):     
         v1 = Vector(1,2,3)
