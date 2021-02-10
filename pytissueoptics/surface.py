@@ -117,3 +117,45 @@ class ZXRect(Surface):
         if description is None:
             description = "ZX at y={0:.1f}".format(origin)
         super(ZXRect, self).__init__(origin, zHat, xHat, yHat, size, description)
+
+class Intersect:
+    def __init__(self, direction, surface):
+        self.surface = surface
+        self.direction = direction
+
+        self.indexIn = None
+        self.indexOut = None
+        self.actualNormal = None
+        self.incidencePlane = None
+        self.setIncidencePamareters()
+        self.thetaIn = self.angleWith(self.actualNormal, self.incidencePlane)
+        self.thetaOut = None
+
+
+    def setIncidence(self):
+        if self.incidencePlane is not None:
+            return self.incidencePlane
+
+        if self.dot(self.surface.normal) < 0:
+            # We are going towards inside of the object
+            self.actualNormal = -self.surface.normal
+            self.indexIn = self.surface.indexOutside
+            self.indexOut = self.surface.indexInside
+        else:
+            # We are going towards outside of the object
+            self.actualNormal = self.surface.normal
+            self.indexIn = self.surface.indexInside
+            self.indexOut = self.surface.indexOutside
+
+        plane = self.direction.cross(self.actualNormal)
+        if plane.norm() < 1e-7:
+            # Normal incidence: any plane will
+            self.incidencePlane = self.direction.anyUnitaryPerpendicular()
+        else:
+            self.incidencePlane = plane.normalize()
+
+    # def computeIncidence(self):
+
+    # def computeReflection(self):
+
+    # def computeRefraction(self):
