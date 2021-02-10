@@ -104,9 +104,6 @@ class Photon:
         know there is no refraction, and we simply return.
         """
 
-        if surface.indexInside == surface.indexOutside:
-            return
-
         normal = None
 
         if self.ez.dot(surface.normal) > 0:
@@ -122,13 +119,16 @@ class Photon:
 
         thetaIn, planeOfIncidenceNormal, actualNormal = self.ez.angleOfIncidence(normal)
 
-        if thetaIn == 0:
-            # Normal incidence
-            return
 
-        thetaOut = math.asin(n1*math.sin(thetaIn)/n2)
+        sinThetaOut = n1*math.sin(thetaIn)/n2
+        if sinThetaOut > 1:
+            # We should not be here.
+            raise ValueError("Can't refract beyond angle of total reflection")
 
-        self.ez.rotateAround(planeOfIncidenceNormal, thetaOut-thetaIn)
+        thetaOut = np.arcsin(sinThetaOut)
+        # TODO: why not thetaOut - thetaIn? Depends on planeOfIncidence but
+        # I expected thetaOut-thetaIn
+        self.ez.rotateAround(planeOfIncidenceNormal, thetaIn-thetaOut)
 
     def roulette(self):
         chance = 0.1

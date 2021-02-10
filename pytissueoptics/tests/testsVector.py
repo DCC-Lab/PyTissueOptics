@@ -336,6 +336,7 @@ class TestVector(envtest.PyTissueTestCase):
         surfaceNormal = Vector(0,0,1)
         angle, planeNormal, actualNormal = ez.angleOfIncidence(normal=surfaceNormal)
         self.assertAlmostEqual(ez.angleWith(surfaceNormal, planeNormal), np.pi/4,6)
+
         surfaceNormal = Vector(0,0,-1)
         angle, planeNormal, actualNormal = ez.angleOfIncidence(normal=surfaceNormal)
         self.assertAlmostEqual(ez.angleWith(actualNormal, planeNormal), np.pi/4,6)
