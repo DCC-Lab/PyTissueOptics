@@ -75,17 +75,11 @@ class Vector:
     def __add__(self, vector):
         return Vector(self.x + vector.x, self.y + vector.y, self.z + vector.z)
 
-    def __radd__(self, vector):
-        return Vector(self.x + vector.x, self.y + vector.y, self.z + vector.z)
-
     def __neg__(self):
         return Vector(-self.x, -self.y, -self.z)
 
     def __sub__(self, vector):
         return Vector(self.x - vector.x, self.y - vector.y, self.z - vector.z)
-
-    def __rsub__(self, vector):
-        return Vector(-self.x + vector.x, -self.y + vector.y, -self.z + vector.z)
 
     def __getitem__(self, index):
         if index == 0:

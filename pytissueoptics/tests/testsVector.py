@@ -35,6 +35,15 @@ class TestVector(envtest.PyTissueTestCase):
         self.assertEqual(v.y, 0)
         self.assertEqual(v.z, 0)
 
+    def testGetItemVector(self):
+        v = Vector(1,2,3)
+        self.assertIsNotNone(v)
+        self.assertEqual(v[0], 1)
+        self.assertEqual(v[1], 2)
+        self.assertEqual(v[2], 3)
+        with self.assertRaises(ValueError):
+            v[3]
+
     def testVectorValueInit(self):
         v = Vector(1,2,3)
         self.assertIsNotNone(v)
