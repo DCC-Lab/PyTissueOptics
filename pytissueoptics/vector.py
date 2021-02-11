@@ -4,6 +4,9 @@ import sys
 
 class Vector:
     def __init__(self, x: float = 0, y: float = 0, z: float = 0):
+        """ Access properties with x,y and z.
+        Internally for speed, read access done with self._x """
+
         if isinstance(x, (int, float)):
             self._x = x
             self._y = y 
@@ -104,11 +107,11 @@ class Vector:
         return True
 
     def isAlmostEqualTo(self, vector, epsilon=1e-6):
-        if abs(self.x - vector.x) > epsilon:
+        if abs(self._x - vector.x) > epsilon:
             return False
-        if abs(self.y - vector.y) > epsilon:
+        if abs(self._y - vector.y) > epsilon:
             return False
-        if abs(self.z - vector.z) > epsilon:
+        if abs(self._z - vector.z) > epsilon:
             return False
         return True
 
@@ -119,8 +122,8 @@ class Vector:
         return abs(self.normalizedDotProduct(vector)) < epsilon
 
     def anyPerpendicular(self):
-        if self.x == 0 and self.y == 0:
-            if self.z == 0:
+        if self._x == 0 and self.y == 0:
+            if self._z == 0:
                 return None
             else:
                 return self.cross(yHat)
@@ -130,17 +133,17 @@ class Vector:
         return self.anyPerpendicular().normalized()
 
     def isInXYPlane(self, atZ, epsilon=0.001) -> bool:
-        if abs(self.z-atZ) < epsilon:
+        if abs(self._z-atZ) < epsilon:
             return True
         return False
 
     def isInYZPlane(self, atX, epsilon=0.001) -> bool:
-        if abs(self.x-atX) < epsilon:
+        if abs(self._x-atX) < epsilon:
             return True
         return False
 
     def isInZXPlane(self, atY, epsilon=0.001) -> bool:
-        if abs(self.y-atY) < epsilon:
+        if abs(self._y-atY) < epsilon:
             return True
         return False
 
@@ -151,26 +154,28 @@ class Vector:
         return False
 
     def norm(self):
-        ux = self.x
-        uy = self.y
-        uz = self.z
+        ux = self._x
+        uy = self._y
+        uz = self._z
         return ux*ux+uy*uy+uz*uz
 
     def abs(self):
-        ux = self.x
-        uy = self.y
-        uz = self.z
-        return math.sqrt(ux*ux+uy*uy+uz*uz)
+        ux = self._x
+        uy = self._y
+        uz = self._z
+        return (ux*ux+uy*uy+uz*uz)**(0.5)
 
     def normalize(self):
-        ux = self.x
-        uy = self.y
-        uz = self.z
-        length = math.sqrt(ux*ux+uy*uy+uz*uz)
-        if length != 0:
-            self.x /= length
-            self.y /= length
-            self.z /= length
+        ux = self._x
+        uy = self._y
+        uz = self._z
+
+        norm = ux*ux+uy*uy+uz*uz
+        if norm != 0:
+            invLength = norm**(-0.5)
+            self.x *= invLength
+            self.y *= invLength
+            self.z *= invLength
         return self
 
     def normalized(self):
@@ -180,9 +185,9 @@ class Vector:
     def cross(self, vector):
         """ Accessing properties is costly when done very often.
         cross product is a common operation """
-        ux = self.x
-        uy = self.y
-        uz = self.z
+        ux = self._x
+        uy = self._y
+        uz = self._z
         vx = vector.x
         vy = vector.y
         vz = vector.z
@@ -264,7 +269,7 @@ class Vector:
     def rotateAround(self, u, theta):
         # This is the most expensive (and most common)
         # operation when performing Monte Carlo in tissue 
-        # (40% of time spent here). It is difficult to optimize without
+        # (15% of time spent here). It is difficult to optimize without
         # making it even less readable than it currently is
         # http://en.wikipedia.org/wiki/Rotation_matrix
         # 
@@ -280,13 +285,13 @@ class Vector:
         sint = math.sin(theta)
         one_cost = 1 - cost
         
-        ux = u.x
-        uy = u.y
-        uz = u.z
+        ux = u._x
+        uy = u._y
+        uz = u._z
         
-        X = self.x
-        Y = self.y
-        Z = self.z
+        X = self._x
+        Y = self._y
+        Z = self._z
 
         self.x = (cost + ux * ux * one_cost) * X \
                  + (ux * uy * one_cost - uz * sint) * Y \
