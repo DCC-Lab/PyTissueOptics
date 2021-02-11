@@ -3,10 +3,10 @@ from .vector import *
 
 class Surface:
     def __init__(self, origin, a, b, normal, size=None, description=None):
-        self.origin = Vector(origin)
-        self.a = Vector(a)
-        self.b = Vector(b)
-        self.normal = UnitVector(normal)
+        self.origin = ConstVector(origin)
+        self.a = ConstVector(a)
+        self.b = ConstVector(b)
+        self.normal = ConstUnitVector(normal)
         self.size = size
         self.indexInside = 1.0
         self.indexOutside = 1.0
