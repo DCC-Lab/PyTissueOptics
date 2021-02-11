@@ -11,7 +11,7 @@ source = PencilSource(direction=zHat, maxCount=10000)
 detector = Detector(NA=0.5)
 
 # We pick a geometry
-tissue = Layer(thickness=1, material=mat, stats=stats)
+tissue = SemiInfiniteLayer(material=mat, stats=stats)
 
 # We propagate the photons from the source inside the geometry
 World.place(source, position=Vector(0, 0, -1))

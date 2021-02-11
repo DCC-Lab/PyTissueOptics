@@ -16,9 +16,6 @@ class Material:
 
         self.g = g
         self.index = index
-#         if self.index != 1.0:
-#             raise ValueError("Unfortunately, the index of the material needs \
-# to be 1.0 because the fresnel reflection code is buggy.")
 
     def getScatteringDistance(self, photon) -> float:
         if self.mu_t == 0:

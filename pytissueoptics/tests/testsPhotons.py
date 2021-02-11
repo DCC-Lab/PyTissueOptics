@@ -44,20 +44,18 @@ class TestPhoton(envtest.PyTissueTestCase):
     def testReflectNormalIncidence(self):
         s = Surface(origin=oHat, a=xHat, b=yHat, normal=zHat)
         p = Photon(position=Vector(0,0,0), direction=zHat)
-        intersect = FresnelIntersect(p.ez, s)
-        deflection, axis = intersect.reflectionDeflection()
-        p.deflect(deflection, axis)
+        intersect = FresnelIntersect(p.ez, s, distance=0)
+        p.reflect(intersect)
         self.assertTrue( (p.ez+zHat).norm() < 1e-6)
 
     def testNoRefract(self):
         s = Surface(origin=oHat, a=xHat, b=yHat, normal=-zHat)
         s.indexInside = 1.0
         s.indexOutside = 1.0
-        intersect = FresnelIntersect(zHat, s)
-        deflection, axis = intersect.refractionDeflection()
+        intersect = FresnelIntersect(zHat, s, distance=0)
 
         p = Photon(position=Vector(0,0,0), direction=zHat)
-        p.deflect(deflection, axis)
+        p.refract(intersect)
         self.assertTrue( p.ez.isAlmostEqualTo(zHat))
 
     def testNormalRefract(self):
@@ -66,10 +64,9 @@ class TestPhoton(envtest.PyTissueTestCase):
         s.indexOutside = 1.0
         p = Photon(position=Vector(0,0,0), direction=zHat)
 
-        intersect = FresnelIntersect(p.ez, s)
-        deflection, axis = intersect.refractionDeflection()
+        intersect = FresnelIntersect(p.ez, s, distance=0)
 
-        p.deflect(deflection, axis)
+        p.refract(intersect)
         self.assertTrue( p.ez.isAlmostEqualTo(zHat))
 
     def testRefractIntoFrom(self):
@@ -88,10 +85,9 @@ class TestPhoton(envtest.PyTissueTestCase):
             vOut = UnitVector(0,sinOut, cosOut)
 
             p = Photon(position=Vector(0,0,0), direction=vIn)
-            intersect = FresnelIntersect(p.ez, s)
-            deflection, axis = intersect.refractionDeflection()
+            intersection = FresnelIntersect(p.ez, s, distance=0)
 
-            p.deflect(deflection, axis)
+            p.refract(intersection)
 
 
             self.assertTrue( p.ez.isAlmostEqualTo(vOut), "ez: {0} vOut: {1} vIn {2}".format(p.ez, vOut, vIn))
@@ -109,7 +105,7 @@ class TestPhoton(envtest.PyTissueTestCase):
             sinOut = np.sin(thetaIn)*s.indexInside/s.indexOutside
 
             p = Photon(position=Vector(0,0,0), direction=vIn)
-            intersect = FresnelIntersect(p.ez, s)
+            intersect = FresnelIntersect(p.ez, s, distance=0)
 
             if abs(sinOut) >= 1:
                 continue
@@ -117,8 +113,7 @@ class TestPhoton(envtest.PyTissueTestCase):
             cosOut = np.cos(thetaOut)
 
             vOut = UnitVector(0,sinOut, cosOut)
-            deflection, axis = intersect.refractionDeflection()
-            p.deflect(deflection, axis)
+            p.refract(intersect)
 
             self.assertTrue( p.ez.isAlmostEqualTo(vOut), "ez: {0} vOut: {1} vIn {2}".format(p.ez, vOut, vIn))
 
