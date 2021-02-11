@@ -239,6 +239,17 @@ class Vector:
     
         return phi
 
+    def sinAngleWith(self, v, axis):
+        """ Provides sine of angle, often sufficient in calculations
+        """
+
+        sinPhi = self.normalizedCrossProduct(v)
+    
+        if sinPhi.dot(axis) <= 0:
+            return -sinPhi.abs()
+    
+        return sinPhi.abs()
+
     def planeOfIncidence(self, normal):
         if self.dot(normal) < 0:
             normal = -normal
@@ -292,37 +303,6 @@ class Vector:
         self.z = (uz * ux * one_cost - uy * sint) * X \
                  + (uz * uy * one_cost + ux * sint) * Y \
                  + (cost + uz * uz * one_cost) * Z
-        return self
-
-    def rotateAroundX(self, phi):
-        v = Vector(self.x, self.y, self.z)
-        
-        c = math.cos(phi)
-        s = math.sin(phi)
-    
-        self.y = c * v.y - s * v.z
-        self.z = s * v.y + c * v.z
-        return self
-
-    def rotateAroundY(self, phi):
-        v = Vector(self.x, self.y, self.z)
-        
-        c = math.cos(phi)
-        s = math.sin(phi)
-    
-        self.x = c * v.x + s * v.z
-        self.z = -s * v.x + c * v.z
-        return self
-
-    def rotateAroundZ(self, phi):
-        v = Vector(self.x, self.y, self.z)
-        
-        c = math.cos(phi)
-        s = math.sin(phi)
-    
-        self.x = c * v.x - s * v.y
-        self.y = s * v.x + c * v.y
-        self.z = v.z
         return self
 
 

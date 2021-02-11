@@ -118,25 +118,14 @@ class ZXRect(Surface):
             description = "ZX at y={0:.1f}".format(origin)
         super(ZXRect, self).__init__(origin, zHat, xHat, yHat, size, description)
 
-class Intersect:
-    def __init__(self, direction, surface):
+class FresnelIntersect:
+    def __init__(self, direction, surface, distance, geometry):
         self.surface = surface
         self.direction = direction
+        self.distance = distance
+        self.geometry = geometry
 
-        self.indexIn = None
-        self.indexOut = None
-        self.actualNormal = None
-        self.incidencePlane = None
-        self.setIncidencePamareters()
-        self.thetaIn = self.angleWith(self.actualNormal, self.incidencePlane)
-        self.thetaOut = None
-
-
-    def setIncidence(self):
-        if self.incidencePlane is not None:
-            return self.incidencePlane
-
-        if self.dot(self.surface.normal) < 0:
+        if direction.dot(surface.normal) < 0:
             # We are going towards inside of the object
             self.actualNormal = -self.surface.normal
             self.indexIn = self.surface.indexOutside
@@ -147,15 +136,75 @@ class Intersect:
             self.indexIn = self.surface.indexInside
             self.indexOut = self.surface.indexOutside
 
-        plane = self.direction.cross(self.actualNormal)
+        plane = direction.cross(self.actualNormal)
         if plane.norm() < 1e-7:
             # Normal incidence: any plane will
             self.incidencePlane = self.direction.anyUnitaryPerpendicular()
         else:
             self.incidencePlane = plane.normalize()
 
-    # def computeIncidence(self):
+        self.thetaIn = direction.angleWith(self.actualNormal, self.incidencePlane)
+        self.thetaOut = None
 
-    # def computeReflection(self):
+    def reflectionCoefficient(self, theta) -> float:
+        """ Fresnel reflection coefficient, directly from MCML code in 
+        Wang, L-H, S.L. Jacques, L-Q Zheng: 
+        MCML - Monte Carlo modeling of photon transport in multi-layered
+        tissues. Computer Methods and Programs in Biomedicine 47:131-146, 1995. 
 
-    # def computeRefraction(self):
+        """
+        n1 = self.indexIn
+        n2 = self.indexOut
+
+        if n1 == n2:
+            return 0
+
+        if theta == 0:
+            R = (n2-n1)/(n2+n1)
+            return R*R
+
+        sa1 = math.sin(theta)
+        if sa1*n1/n2 > 1:
+            return 1
+
+        sa2 = sa1*n1/n2
+        ca1 = math.sqrt(1-sa1*sa1)
+        if 1-sa2*sa2 > 0:
+            ca2 = math.sqrt(1-sa2*sa2)
+        else:
+            ca2 = 0
+        cap = ca1*ca2 - sa1*sa2 # c+ = cc - ss.
+        cam = ca1*ca2 + sa1*sa2 # c- = cc + ss. 
+        sap = sa1*ca2 + ca1*sa2 # s+ = sc + cs. 
+        sam = sa1*ca2 - ca1*sa2 # s- = sc - cs. 
+        r = 0.5*sam*sam*(cam*cam+cap*cap)/(sap*sap*cam*cam); 
+        return r
+
+    def isReflected(self) -> bool:
+        R = self.reflectionCoefficient(self.thetaIn)
+        if np.random.random() < R:
+            return True
+        return False
+
+    @property
+    def reflectionDeflection(self) -> float:
+        return 2*self.thetaIn-np.pi
+
+    @property
+    def refractionDeflection(self) -> float:
+        """ Refract the photon when going through surface.  The surface
+        normal in the class Surface always points outward for the object.
+        Hence, to simplify the math, we always flip the normal to have 
+        angles between -90 and 90.
+
+        Since having n1 == n2 is not that rare, if that is the case we 
+        know there is no refraction, and we simply return.
+        """
+
+        sinThetaOut = self.indexIn*math.sin(self.thetaIn)/self.indexOut
+        if abs(sinThetaOut) > 1:
+            # We should not be here.
+            raise ValueError("Can't refract beyond angle of total reflection")
+
+        self.thetaOut = np.arcsin(sinThetaOut)
+        return self.thetaIn - self.thetaOut

@@ -23,9 +23,9 @@ class Geometry:
             if d <= 0:
                 d = self.material.getScatteringDistance(photon)
 
-            distToPropagate, surface = self.nextExitInterface(photon.r, photon.ez, d)
+            intersection = self.nextExitInterface(photon.r, photon.ez, d)
 
-            if surface is None:
+            if intersection is None:
                 # If the scattering point is still inside, we simply move
                 # Default is simply photon.moveBy(d) but other things 
                 # would be here. Create a new material for other behaviour
@@ -42,18 +42,18 @@ class Geometry:
                 photon.scatterBy(theta, phi)
             else:
                 # If the photon crosses an interface, we move to the surface
-                self.material.move(photon, d=distToPropagate)
+                self.material.move(photon, d=intersection.distance)
 
                 # Determine if reflected or not with Fresnel coefficients
-                if self.isReflected(photon, surface):
+                if intersection.isReflected():
                     # reflect photon and keep propagating
-                    photon.reflect(surface)
+                    photon.reflect(intersection)
                     photon.moveBy(d=1e-3)  # Move away from surface
-                    d -= distToPropagate
+                    d -= intersection.distance
                 else:
                     # transmit, score, and leave
-                    photon.refract(surface)
-                    self.scoreWhenExiting(photon, surface)
+                    photon.refract(intersection)
+                    self.scoreWhenExiting(photon, intersection.surface)
                     photon.moveBy(d=1e-3)  # We make sure we are out
                     break
 
@@ -75,7 +75,7 @@ class Geometry:
         """
         return True
 
-    def nextExitInterface(self, position, direction, distance) -> (float, Surface):
+    def nextExitInterface(self, position, direction, distance) -> FresnelIntersect:
         """ Is this line segment from position to distance*direction leaving
         the object through any surface elements? Valid only from inside the object.
         
@@ -107,11 +107,12 @@ class Geometry:
         for surface in self.surfaces:
             if surface.normal.dot(direction) > 0:
                 if surface.contains(finalPosition):
-                    return (finalPosition - position).abs(), surface
+                    distanceToSurface = (finalPosition - position).abs()
+                    return FresnelIntersect(direction, surface, distanceToSurface)
 
         return distance, None
 
-    def nextEntranceInterface(self, position, direction, distance) -> (float, Surface):
+    def nextEntranceInterface(self, position, direction, distance) -> FresnelIntersect:
         """ Is this line segment from position to distance*direction crossing
         any surface elements of this object? Valid from outside the object.
 
@@ -135,7 +136,9 @@ class Geometry:
                 intersectSurface = surface
                 minDistance = distanceToSurface
 
-        return minDistance, intersectSurface
+        if intersectSurface is None:
+            return None
+        return FresnelIntersect(direction, intersectSurface, minDistance, self)
 
     @staticmethod
     def isReflected(photon, surface) -> bool:
@@ -245,19 +248,19 @@ class Layer(Geometry):
 
         return True
 
-    def nextExitInterface(self, position, direction, distance) -> (float, Surface):
+    def nextExitInterface(self, position, direction, distance) -> FresnelIntersect:
         finalPosition = Vector.fromScaledSum(position, direction, distance)
         if self.contains(finalPosition):
-            return distance, None
+            return None
 
         if direction.z > 0:
             d = (self.thickness - position.z) / direction.z
-            return d, self.surfaces[0]
+            return FresnelIntersect(direction, self.surfaces[0], d, geometry=self) 
         elif direction.z < 0:
             d = - position.z / direction.z
-            return d, self.surfaces[1]
+            return FresnelIntersect(direction, self.surfaces[1], d, geometry=self) 
 
-        return distance, None
+        return None
 
     def stack(self, layer):
         return
@@ -279,16 +282,16 @@ class SemiInfiniteLayer(Geometry):
 
         return True
 
-    def nextExitInterface(self, position, direction, distance) -> (float, Surface):
+    def nextExitInterface(self, position, direction, distance) -> FresnelIntersect:
         finalPosition = position + distance * direction
         if self.contains(finalPosition):
-            return distance, None
+            return None
 
         if direction.z < 0:
             d = - position.z / direction.z
-            return d, self.surfaces[0]
+            return FresnelIntersect(direction, self.surfaces[0], d, geometry=self) 
 
-        return distance, None
+        return None
 
 
 # class Sphere(Geometry):

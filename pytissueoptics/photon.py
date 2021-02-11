@@ -51,50 +51,13 @@ class Photon:
         if self.weight < 0:
             self.weight = 0
 
-    def fresnelCoefficient(self, surface):
-        """ Fresnel reflection coefficient, directly from MCML code in 
-        Wang, L-H, S.L. Jacques, L-Q Zheng: 
-        MCML - Monte Carlo modeling of photon transport in multi-layered
-        tissues. Computer Methods and Programs in Biomedicine 47:131-146, 1995. 
+    def deflect(self, deflectionAngle, incidencePlane):
+        self.ez.rotateAround(incidencePlane, deflectionAngle)
 
-        """
-        if self.ez.dot(surface.normal) > 0:
-            normal = surface.normal
-            n1 = surface.indexInside
-            n2 = surface.indexOutside
-        else:
-            normal = -surface.normal
-            n1 = surface.indexOutside
-            n2 = surface.indexInside
+    def reflect(self, intersection):
+        self.ez.rotateAround(intersection.incidencePlane, intersection.reflectionDeflection)
 
-        if n1 == n2:
-            return 0
-
-        thetaIn, planeOfIncidenceNormal, actualNormal = self.ez.angleOfIncidence(normal)
-        if thetaIn == 0:
-            R = (n2-n1)/(n2+n1)
-            return R*R
-
-        sa1 = math.sin(thetaIn)
-        if sa1*n1/n2 > 1:
-            return 1
-        sa2 = sa1*n1/n2
-        ca1 = math.sqrt(1-sa1*sa1)
-        ca2 = math.sqrt(1-sa2*sa2)
-
-        cap = ca1*ca2 - sa1*sa2 # c+ = cc - ss.
-        cam = ca1*ca2 + sa1*sa2 # c- = cc + ss. 
-        sap = sa1*ca2 + ca1*sa2 # s+ = sc + cs. 
-        sam = sa1*ca2 - ca1*sa2 # s- = sc - cs. 
-        r = 0.5*sam*sam*(cam*cam+cap*cap)/(sap*sap*cam*cam); 
-        return r
-
-    def reflect(self, surface):
-        thetaIn, planeOfIncidenceNormal, actualNormal = self.ez.angleOfIncidence(surface.normal)
-
-        self.ez.rotateAround(planeOfIncidenceNormal, 2*thetaIn-np.pi)
-
-    def refract(self, surface):
+    def refract(self, intersection):
         """ Refract the photon when going through surface.  The surface
         normal in the class Surface always points outward for the object.
         Hence, to simplify the math, we always flip the normal to have 
@@ -104,31 +67,8 @@ class Photon:
         know there is no refraction, and we simply return.
         """
 
-        normal = None
+        self.ez.rotateAround(intersection.incidencePlane, intersection.refractionDeflection)
 
-        if self.ez.dot(surface.normal) > 0:
-            # Going out
-            n1 = surface.indexInside
-            n2 = surface.indexOutside
-            normal = surface.normal
-        else:
-            # Going in, we flip normal
-            n1 = surface.indexOutside
-            n2 = surface.indexInside
-            normal = -surface.normal
-
-        thetaIn, planeOfIncidenceNormal, actualNormal = self.ez.angleOfIncidence(normal)
-
-
-        sinThetaOut = n1*math.sin(thetaIn)/n2
-        if sinThetaOut > 1:
-            # We should not be here.
-            raise ValueError("Can't refract beyond angle of total reflection")
-
-        thetaOut = np.arcsin(sinThetaOut)
-        # TODO: why not thetaOut - thetaIn? Depends on planeOfIncidence but
-        # I expected thetaOut-thetaIn
-        self.ez.rotateAround(planeOfIncidenceNormal, thetaIn-thetaOut)
 
     def roulette(self):
         chance = 0.1

@@ -31,23 +31,23 @@ class World:
                         currentGeometry = World.contains(photon.r)
                     else:
                         # We are in free space (World). Find next object
-                        distance, surface, nextGeometry = World.nextObstacle(photon)
-                        if surface is not None:
+                        intersection = World.nextObstacle(photon)
+                        if intersection is not None:
                             # We are hitting something, moving to surface
-                            photon.moveBy(distance)
+                            photon.moveBy(intersection.distance)
                             # At surface, determine if reflected or not 
-                            if nextGeometry.isReflected(photon, surface):
+                            if intersection.isReflected():
                                 # reflect photon and keep propagating
-                                photon.reflect(surface)
+                                photon.reflect(intersection)
                                 # Move away from surface to avoid getting stuck there
                                 photon.moveBy(d=1e-3)
                             else:
                                 # transmit, score, and enter (at top of this loop)
-                                photon.refract(surface)
-                                nextGeometry.scoreWhenEntering(photon, surface)
+                                photon.refract(intersection)
+                                intersection.geometry.scoreWhenEntering(photon, intersection.surface)
                                 # Move away from surface to avoid getting stuck there
                                 photon.moveBy(d=1e-3)
-                                currentGeometry = nextGeometry
+                                currentGeometry = intersection.geometry
                         else:
                             photon.weight = 0
                 World.showProgress(i + 1, maxCount=source.maxCount, graphs=graphs)
@@ -78,18 +78,17 @@ class World:
     @classmethod
     def nextObstacle(cls, photon):
         distance = 1e7
-        intersect = None
-        sGeometry = None
+        closestIntersect = None
         for geometry in World.geometries:
             photon.transformToLocalCoordinates(geometry.origin)
-            distanceToSurface, surface = geometry.nextEntranceInterface(photon.r, photon.ez, distance=distance)
-            if distanceToSurface < distance:
-                distance = distanceToSurface
-                intersect = surface
-                sGeometry = geometry
+            someIntersection = geometry.nextEntranceInterface(photon.r, photon.ez, distance=distance)
+            if someIntersection is not None:
+                if someIntersection.distance < distance:
+                    closestIntersect = someIntersection
+                    
             photon.transformFromLocalCoordinates(geometry.origin)
 
-        return distance, intersect, sGeometry
+        return closestIntersect
 
     @classmethod
     def startCalculation(self):
