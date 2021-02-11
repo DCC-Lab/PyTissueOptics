@@ -86,14 +86,9 @@ class TestVector(envtest.PyTissueTestCase):
             sumDist += d
         self.assertAlmostEqual((sumDist)/N, 1/mat.mu_t, 2)
 
-    def testMaterialMut(self):
+    def testMaterialAlbedo(self):
         mat = Material(mu_s = 0, mu_a = 0, g = 0.8)
-        sumDist = 0
-        N = 1000000
-        for i in range(N):
-            d = mat.getScatteringDistance(None)
-            sumDist += d
-        self.assertAlmostEqual((sumDist)/N, mat.veryFar, 2)
+        self.assertAlmostEqual(mat.albedo,0, 2)
 
 if __name__ == '__main__':
     envtest.main()

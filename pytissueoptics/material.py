@@ -12,7 +12,7 @@ class Material:
         if self.mu_t != 0:
             self.albedo = self.mu_a / self.mu_t
         else:
-            self.albedo = None
+            self.albedo = 0
 
         self.g = g
         self.index = index
