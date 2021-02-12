@@ -22,6 +22,7 @@ class Stats:
         self.crossing = []
         self.final = []
         self.startTime = time.time()
+        self.fig, self.axes = plt.subplots()
 
     @property
     def inputWeight(self):

@@ -1,11 +1,14 @@
 import signal
 from .detector import *
+import datetime as dt
 
 
 class World:
     geometries = set()
     sources = set()
     verbose = False
+    startTime = None
+    stopTime = None
 
     @classmethod
     def totalSourcePhotons(cls) -> float:
@@ -17,6 +20,7 @@ class World:
     @classmethod
     def compute(cls, graphs):
         World.startCalculation()
+        World.startTime = dt.datetime.now()
         N = 0
         for source in World.sources:
             N += source.maxCount
@@ -51,9 +55,6 @@ class World:
                         else:
                             photon.weight = 0
                 World.showProgress(i + 1, maxCount=source.maxCount, graphs=graphs)
-
-        duration = World.completeCalculation()
-        print("{0:.1f} ms per photon\n".format(duration * 1000 / N))
 
     @classmethod
     def place(cls, anObject, position):
@@ -113,14 +114,10 @@ class World:
         World.startTime = time.time()
 
     @classmethod
-    def completeCalculation(cls) -> float:
+    def completeCalculation(cls):
         if 'SIGUSR1' in dir(signal) and 'SIGUSR2' in dir(signal):
             signal.signal(signal.SIGUSR1, signal.SIG_DFL)
             signal.signal(signal.SIGUSR2, signal.SIG_DFL)
-
-        elapsed = time.time() - World.startTime
-        World.startTime = None
-        return elapsed
 
     @classmethod
     def processSignal(cls, signum, frame):
@@ -133,18 +130,24 @@ class World:
     @classmethod
     def showProgress(cls, i, maxCount, graphs=False):
         steps = 100
-
         if not World.verbose:
             while steps < i:
-                steps *= 10
+                steps *= 5
 
-        if i % steps == 0:
-            print("{2} Photon {0}/{1}".format(i, maxCount, time.ctime()))
+        if i % steps == 0 or i == maxCount:
+
+            deltaTime = (dt.datetime.now()-World.startTime)
+            delta_us = deltaTime / dt.timedelta(microseconds=1)
+            avgTimeUsPerPhoton = delta_us/i
+            remainingSecs = ((maxCount-i)*avgTimeUsPerPhoton)/10**6
+            print(f"{i}/{maxCount} Photons\t::\t{avgTimeUsPerPhoton:9.4f} us/photon\t::\t{remainingSecs:9.4f} seconds remaining.")
 
             if graphs:
                 for geometry in World.geometries:
                     if geometry.stats is not None:
                         geometry.stats.showEnergy2D(plane='xz', integratedAlong='y', title="{0} photons".format(i))
+
+
 
     @classmethod
     def report(cls):
