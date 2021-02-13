@@ -1,6 +1,8 @@
 import signal
 from .detector import *
 import datetime as dt
+import time
+import sys
 
 
 class World:
@@ -26,6 +28,7 @@ class World:
             N += source.maxCount
 
             for i, photon in enumerate(source):
+
                 currentGeometry = World.contains(photon.r)
                 while photon.isAlive:
                     if currentGeometry is not None:
@@ -128,26 +131,27 @@ class World:
             print("Requesting save (not implemented)")
 
     @classmethod
-    def showProgress(cls, i, maxCount, graphs=False):
+    def showProgress(cls, i, maxCount, graphs=False, hist=True):
         steps = 100
         if not World.verbose:
             while steps < i:
                 steps *= 5
 
         if i % steps == 0 or i == maxCount:
-
-            deltaTime = (dt.datetime.now()-World.startTime)
-            delta_us = deltaTime / dt.timedelta(microseconds=1)
-            avgTimeUsPerPhoton = delta_us/i
-            remainingSecs = ((maxCount-i)*avgTimeUsPerPhoton)/10**6
-            print(f"{i}/{maxCount} Photons\t::\t{avgTimeUsPerPhoton:9.4f} us/photon\t::\t{remainingSecs:9.4f} seconds remaining.")
-
             if graphs:
                 for geometry in World.geometries:
                     if geometry.stats is not None:
                         geometry.stats.showEnergy2D(plane='xz', integratedAlong='y', title="{0} photons".format(i))
 
-
+        if i % 100 == 0:
+            deltaTime = (dt.datetime.now() - World.startTime)
+            delta_ms = deltaTime / (1000 * dt.timedelta(microseconds=1))
+            avgTimeMsPerPhoton = delta_ms / i
+            m, s = divmod(((maxCount - i) * avgTimeMsPerPhoton) / 10 ** 3, 60)
+            h, m = divmod(m, 60)
+            sys.stdout.flush()
+            sys.stdout.write(
+                f"\r{i}/{maxCount} Photons\t\t::\t{avgTimeMsPerPhoton:9.4f} ms/photon\t\t::\t{h:2.0f}h {m:2.0f}m {s:2.0f}s remaining")
 
     @classmethod
     def report(cls):
