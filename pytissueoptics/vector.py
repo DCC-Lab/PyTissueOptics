@@ -331,7 +331,10 @@ class ConstVector(Vector):
         self._norm = self.norm()
 
     def normalize(self):
-        return self
+        if self._norm != 1:
+            raise RuntimeError("You cannot normalize a constant vector: you can use Vector instead.")
+        else:
+            raise RuntimeError("You cannot normalize a constant vector: you can use ConstUnitVector instead for unit vectors, there is no need to normalize them.")
 
     def norm(self):
         return self._norm

@@ -36,15 +36,6 @@ class Material:
             cost = (1 + g * g - temp * temp) / (2 * g)
         return np.arccos(cost), phi
 
-    def interactWith(self, photon) -> float:
-        delta = photon.weight * self.albedo
-        photon.decreaseWeightBy(delta)
-        return delta
-
-    @staticmethod
-    def move(photon, d: float):
-        photon.moveBy(d)
-
     def __repr__(self):
         return "Material: µs={0} µa={1} g={2} n={3}".format(self.mu_s, self.mu_a, self.g, self.index)
 

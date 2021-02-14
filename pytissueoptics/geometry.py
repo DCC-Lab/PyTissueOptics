@@ -29,12 +29,13 @@ class Geometry:
                 # If the scattering point is still inside, we simply move
                 # Default is simply photon.moveBy(d) but other things 
                 # would be here. Create a new material for other behaviour
-                self.material.move(photon, d=d)
+                photon.moveBy(d)
                 d = 0
                 # Interact with volume: default is absorption only
                 # Default is simply absorb energy. Create a Material
                 # for other behaviour
-                delta = self.material.interactWith(photon)
+                delta = photon.weight * self.material.albedo
+                photon.decreaseWeightBy(delta)
                 self.scoreInVolume(photon, delta)
 
                 # Scatter within volume
@@ -42,7 +43,7 @@ class Geometry:
                 photon.scatterBy(theta, phi)
             else:
                 # If the photon crosses an interface, we move to the surface
-                self.material.move(photon, d=intersection.distance)
+                photon.moveBy(d=intersection.distance)
 
                 # Determine if reflected or not with Fresnel coefficients
                 if intersection.isReflected():

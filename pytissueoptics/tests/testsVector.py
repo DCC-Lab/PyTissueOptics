@@ -96,6 +96,15 @@ class TestVector(envtest.PyTissueTestCase):
         self.assertEqual(v.z, 3)
 
     def testCannotSetConstVectors(self):      
+        v = ConstVector(1,2,3)
+
+        with self.assertRaises(RuntimeError):
+            v.x = 1
+        with self.assertRaises(RuntimeError):
+            v.y = 2
+        with self.assertRaises(RuntimeError):
+            v.z = 3
+
         with self.assertRaises(RuntimeError):
             xHat.x = 2
         with self.assertRaises(RuntimeError):
@@ -116,6 +125,12 @@ class TestVector(envtest.PyTissueTestCase):
             zHat.y = 2
         with self.assertRaises(RuntimeError):
             zHat.z = 2
+
+    def testCannotNormalizeConstVectors(self):      
+        v = ConstVector(1,2,3)
+
+        with self.assertRaises(RuntimeError):
+            v.normalize()
 
     def testVectorIsNull(self):
         self.assertTrue(oHat.isNull)
