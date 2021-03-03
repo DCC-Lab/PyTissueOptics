@@ -19,6 +19,7 @@ class TestVector(envtest.PyTissueTestCase):
             y = random.random()*2-1
             z = random.random()*2-1
             vectors.append( Vector(x,y,z) )
+        return vectors
 
     def randomUnitVectors(self, N):
         vectors = []
@@ -27,6 +28,7 @@ class TestVector(envtest.PyTissueTestCase):
             y = random.random()*2-1
             z = random.random()*2-1
             vectors.append( UnitVector(x,y,z) )
+        return vectors
 
     def testNullVector(self):
         vs = Vectors(N=1000)
@@ -37,6 +39,26 @@ class TestVector(envtest.PyTissueTestCase):
             self.assertEqual(v.x, 0)
             self.assertEqual(v.y, 0)
             self.assertEqual(v.z, 0)
+
+    def testSomeVectors(self):
+        vs = Vectors(initial=self.randomVectors(N=1000))
+        self.assertIsNotNone(vs)
+        self.assertEqual(vs.count, 1000)
+
+        for v in vs:        
+            self.assertTrue(abs(v.x) <= 1)
+            self.assertTrue(abs(v.y) <= 1)
+            self.assertTrue(abs(v.z) <= 1)
+
+    def testAddVectors(self):
+        v1 = Vectors(initial=[Vector(1,1,1)]*1000)
+        v2 = Vectors(initial=[Vector(1,2,3)]*1000)
+
+        vs = v1 + v2
+        for v in vs:        
+            self.assertEqual(v.x, 2)
+            self.assertEqual(v.y, 3)
+            self.assertEqual(v.z, 4)
 
     # def testGetItemVector(self):
     #     v = Vector(1,2,3)

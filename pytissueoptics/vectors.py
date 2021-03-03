@@ -4,11 +4,18 @@ import sys
 from .vector import Vector
 
 class Vectors:
-    def __init__(self, initial:[Vector] = None, N=10000):
+    """ This is thereference implementation of Vectors. Other classes will
+    be created such as GPUVectors, CuPyVectors, and others to refine the
+    implementation. 
+    """
+
+    def __init__(self, initial = None, N=None):
         if initial is not None:
-            self.v = initial
+            self.v = initial #Copy?
+        elif N is not None:
+            self.v = [Vector(0,0,0)]*N
         else:
-            self.v = [Vector()]*N
+            self.v = []
 
     @property
     def count(self):
@@ -71,12 +78,12 @@ class Vectors:
     # def __truediv__(self, scale):
     #     return Vector(self.x / scale, self.y / scale, self.z / scale)
 
-    # def __add__(self, vectors):
-    #     Vectors(N=vectors.count)
-    #     for i,v in enumerate(vectors):
-    #         self.v[i] += v
+    def __add__(self, rhs):
+        result = Vectors(N=self.count)
+        for i in range(self.count):
+            result.v[i] = self.v[i] + rhs[i]
 
-    #     return Vector(self.x + vector.x, self.y + vector.y, self.z + vector.z)
+        return result
 
     # def __neg__(self):
     #     return Vector(-self.x, -self.y, -self.z)
@@ -87,6 +94,9 @@ class Vectors:
     def __getitem__(self, index):
         return self.v[index]
 
+    def __setitem__(self, index, newvalue): 
+        self.v[index] = newvalue
+        
     # def __eq__(self, vector):
     #     return self.isEqualTo(vector)
 
