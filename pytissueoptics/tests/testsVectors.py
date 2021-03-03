@@ -348,6 +348,10 @@ class TestVector(envtest.PyTissueTestCase):
             vectors.append( UnitVector(x,y,z) )
         return vectors
 
+class TestNumpyVectors(envtest.PyTissueTestCase):
+    def testMulWithNumpyVector(self):
+        pass
+
 
 if __name__ == '__main__':
     envtest.main()

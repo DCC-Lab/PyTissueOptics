@@ -28,13 +28,13 @@ class NativeVectors:
     implementation for speed. 
     """
 
-    def __init__(self, vectors = None, N=None):
+    def __init__(self, vectors=None, N=None):
         self.v = []
         if vectors is not None:
             for v in vectors:
                 self.v.append(Vector(v)) # always copy
         elif N is not None:
-            self.v = [Vector(0,0,0)]*N
+            self.v = [Vector(0, 0, 0)]*N
         self._iteration = 0
 
     @property
@@ -197,5 +197,73 @@ class NativeVectors:
         v = Vectors(self) # copy
         [v1.rotateAround(v2,t) for (v1,v2,t) in list(zip(v.v, u.v, theta))]
         return v
+
+class NumpyVectors:
+    """ This is the reference implementation of Vectors. Other classes will
+    be created such as GPUVectors, NumpyVectors, CuPyVectors, and others to refine the
+    implementation for speed.
+    """
+
+    def __init__(self, count: int):
+        self.v = np.ndarray(3, count, dtype=np.float32)
+        self._iteration = 0
+
+    def __len__(self):
+        return self.v.shape[1]
+
+    def __mul__(self, val):
+        pass
+
+    def __rmul__(self, scale):
+        pass
+
+    def __truediv__(self, scale):
+        pass
+
+    def __add__(self, rhs):
+        pass
+
+    def __neg__(self):
+        pass
+
+    def __sub__(self, rhs):
+        pass
+
+    def __getitem__(self, index):
+        pass
+
+    def __setitem__(self, index, newvalue):
+        pass
+
+    def __eq__(self, rhs):
+        pass
+
+    def __iter__(self):
+        self._iteration = 0
+        return self
+
+    def __next__(self):
+        pass
+
+    @property
+    def isUnitary(self) -> [bool]:
+        pass
+
+    @property
+    def isNull(self) -> [bool]:
+        pass
+
+    @property
+    def count(self):
+        return len(self.v)
+
+    @classmethod
+    def random(cls, N):
+        array = np.random.rand(3, N)
+        return array
+
+    @classmethod
+    def randomUnitary(cls, N):
+        pass
 
 Vectors = NativeVectors
