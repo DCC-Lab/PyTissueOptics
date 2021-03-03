@@ -139,10 +139,11 @@ class NativeVectors:
         return [v1.abs() for v1 in self.v]
 
     def normalize(self):
-        return [v1.normalize() for v1 in self.v]
+        [v1.normalize() for v1 in self.v]
+        return self
 
     def normalized(self):
-        return Vector([v1.normalized() for v1 in Vector(self)])
+        return Vectors([v1.normalized() for v1 in self.v])
 
     def isPerpendicularTo(self, rhs, epsilon=1e-7):
         return [v1.isPerpendicularTo(v2) for (v1,v2) in list(zip(self.v, rhs.v))]

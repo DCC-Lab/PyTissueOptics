@@ -311,6 +311,19 @@ class TestVector(envtest.PyTissueTestCase):
 
     #     self.assertAlmostEqual(xHat.angleWith(-xHat, zHat), -np.pi, 6)
 
+    def testNormAbs(self):
+        v1 = Vectors([Vector(1,1,1), Vector(1,0,1),Vector(0,1,1)]) 
+        self.assertEqual(v1.norm(), [3,2,2])
+        self.assertEqual(v1.abs(), [np.sqrt(3),np.sqrt(2),np.sqrt(2)])
+
+    def testNormalize(self):
+        v1 = Vectors([Vector(1,1,1), Vector(1,0,1),Vector(0,1,1)]) 
+        v2 = v1.normalized()
+        self.assertTrue(np.array(v2.isUnitary).all())
+
+        v1.normalize()
+        self.assertTrue(np.array(v1.isUnitary).all())
+
     def testScaledSum(self):
         v1 = Vectors([Vector(1,2,3), Vector(4,5,6),Vector(7,8,9)]) 
         v2 = Vectors([Vector(1,2,3), Vector(4,5,6),Vector(7,8,9)]) 
