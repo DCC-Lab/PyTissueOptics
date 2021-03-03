@@ -4,7 +4,9 @@ import sys
 from .vector import Vector
 
 """
-Vectors and Scalars are arrays of Vector and scalars (float, int, etc...)
+Vectors and Scalars are arrays of Vector and scalars (float, int, etc...).
+They appear as list of vectors or list of scalar, they are iterable.
+
 These classes are putting in place the structure to act on an array of values, 
 possibly in parallel.  Vectors is identical to Vector with its API but it always
 acts on an array of [Vector]. A possible implementation would use the GPU to perform
@@ -46,7 +48,7 @@ class NativeVectors:
         return Vectors([v1+v2*s for (v1,v2, s) in list(zip(self.v, rhs, scale))])
 
     @property
-    def isUnitary(self) -> bool:
+    def isUnitary(self) -> [bool]:
         return [v.isUnitary for v in self.v]
 
     @property
@@ -112,14 +114,11 @@ class NativeVectors:
     def isParallelTo(self, rhs, epsilon=1e-7):
         return [v1.isParallelTo(v2) for (v1,v2) in list(zip(self.v, rhs.v))]
 
-    def isPerpendicularTo(self, rhs, epsilon=1e-7):
-        return [v1.isPerpendicularTo(v2) for (v1,v2) in list(zip(self.v, rhs.v))]
-
     def anyPerpendicular(self):
-        return [v1.anyPerpendicular() for v1 in self.v]
+        return Vectors([v1.anyPerpendicular() for v1 in self.v])
 
     def anyUnitaryPerpendicular(self):
-        return [v1.anyUnitaryPerpendicular() for v1 in self.v]
+        return Vectors([v1.anyUnitaryPerpendicular() for v1 in self.v])
 
     def isInXYPlane(self, atZ, epsilon=0.001):
         return [v1.isInXYPlane(atZ=atZ, epsilon=epsilon) for v1 in self.v]
@@ -143,7 +142,7 @@ class NativeVectors:
         return [v1.normalize() for v1 in self.v]
 
     def normalized(self):
-        return [v1.normalized() for v1 in Vector(self)]
+        return Vector([v1.normalized() for v1 in Vector(self)])
 
     def isPerpendicularTo(self, rhs, epsilon=1e-7):
         return [v1.isPerpendicularTo(v2) for (v1,v2) in list(zip(self.v, rhs.v))]

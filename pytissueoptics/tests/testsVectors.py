@@ -179,6 +179,16 @@ class TestVector(envtest.PyTissueTestCase):
         v2 = Vectors([Vector(0,0,1), Vector(1.0000001,0,0), Vector(0,1.01,0)])
         self.assertEqual(v1.isAlmostEqualTo(v2,epsilon=1e-6), [False, True, False])
 
+    def testVectorParallel(self):
+        v1 = Vectors([oHat, xHat, yHat])
+        v2 = Vectors([oHat, xHat, xHat])
+        self.assertEqual(v1.isParallelTo(v2,epsilon=1e-6), [True, True, False])
+
+    def testVectorPerpendicular2(self):
+        v1 = Vectors([zHat, xHat, yHat])
+        v2 = Vectors([Vector(1,1,1), zHat, xHat])
+        self.assertEqual(v1.isPerpendicularTo(v2,epsilon=1e-6), [False, True, True])
+
     # def testNormalizedCrossedProduct(self):
     #     v1 = Vector(1,2,3)
     #     v2 = v1.anyPerpendicular()
@@ -316,6 +326,22 @@ class TestVector(envtest.PyTissueTestCase):
 
         self.assertIsNone(oHat.anyPerpendicular())
         self.assertIsNone(oHat.anyPerpendicular())
+
+    def testAnyPerpendicular(self):
+        vectors = Vectors(vectors=self.randomVectors(N=10000))
+        perp = vectors.anyPerpendicular()
+        isPerp = vectors.isPerpendicularTo(perp)
+
+        self.assertTrue(np.array(isPerp).all())
+
+    def testAnyUnitaryPerpendicular(self):
+        vectors = Vectors(vectors=self.randomVectors(N=10000))
+        perp = vectors.anyUnitaryPerpendicular()
+        isPerp = vectors.isPerpendicularTo(perp, epsilon=1e-5)
+        isUnitary = perp.isUnitary
+
+        self.assertTrue(np.array(isPerp).all())
+        self.assertTrue(np.array(isUnitary).all())
 
     # def testIsInKnownPlane(self):
     #     v = Vector(1,2,3)
