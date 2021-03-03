@@ -39,7 +39,27 @@ class NativeVectors:
     @property
     def count(self):
         return len(self.v)
-    
+
+    @classmethod
+    def random(cls, N):
+        vectors = []
+        for i in range(N):
+            x = random.random()*2-1
+            y = random.random()*2-1
+            z = random.random()*2-1
+            vectors.append( Vector(x,y,z) )
+        return Vectors(vectors)
+
+    @classmethod
+    def randomUnitary(cls, N):
+        vectors = []
+        for i in range(N):
+            x = random.random()*2-1
+            y = random.random()*2-1
+            z = random.random()*2-1
+            vectors.append( Vector(x,y,z).normalized() )
+        return Vectors(vectors)
+
     @classmethod
     def fromScaledSum(cls, a, b, scale):
         return a.addScaled(b,scale)
@@ -169,13 +189,14 @@ class NativeVectors:
 
     def angleOfIncidence(self, normal):
         dotProduct = self.dot(normal)
-        correctedNormal = Vectors([n*sign(s) for (n, s) in list(zip(normal, dotProduct))])
+        correctedNormal = Vectors([n*(1-2*(s<0)) for (n, s) in list(zip(normal, dotProduct))])
 
         planeNormal = self.planeOfIncidence(correctedNormal)
         return self.angleWith(correctedNormal, axis=planeNormal), planeNormal, correctedNormal
 
     def rotateAround(self, u, theta):
-        return Vectors([v1.rotateAround(v2,t) for (v1,v2,t) in list(zip(self.v, u.v, theta))])
+        [v1.rotateAround(v2,t) for (v1,v2,t) in list(zip(self.v, u.v, theta))]
+        return self
 
 # class UnitVectors(Vectors):
 #     def __init__(self, x: float = 0, y: float = 0, z: float = 0):
