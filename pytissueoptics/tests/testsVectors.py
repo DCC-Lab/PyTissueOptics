@@ -286,13 +286,13 @@ class TestVector(envtest.PyTissueTestCase):
 
     #     self.assertAlmostEqual(xHat.angleWith(-xHat, zHat), -np.pi, 6)
 
-    # def testScaledSum(self):
-    #     v1 = Vector(1,2,3)
-    #     v2 = Vector(4,5,6)
-    #     s  = 2
-    #     v3 = Vector(9, 12, 15)
-    #     self.assertEqual(Vector.fromScaledSum(v1, v2, s), v3)
-    #     self.assertEqual(v1.addScaled(v2, s), v3)
+    def testScaledSum(self):
+        v1 = Vectors([Vector(1,2,3), Vector(4,5,6),Vector(7,8,9)]) 
+        v2 = Vectors([Vector(1,2,3), Vector(4,5,6),Vector(7,8,9)]) 
+        s  = [1,2,3]
+        v3 = Vectors([Vector(2,4,6), Vector(12,15,18),Vector(28,32,36)])
+        self.assertEqual(Vectors.fromScaledSum(v1, v2, s), v3)
+        self.assertEqual(v1.addScaled(v2, s), v3)
 
     # def testAnyPerpendicular(self):
     #     vectors = (Vector(1,2,3), Vector(-1,-2-3), xHat, yHat, zHat )

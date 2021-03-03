@@ -45,15 +45,12 @@ class Vectors:
     # def z(self, value):
     #     self._z = value
 
-    # @classmethod
-    # def fromScaledSum(cls, a, b, scale):
-    #     return Vector(a.x + b.x*scale, a.y + b.y*scale, a.z + b.z*scale)
+    @classmethod
+    def fromScaledSum(cls, a, b, scale):
+        return a.addScaled(b,scale)
 
-    # def addScaled(self, vector, scale):
-    #     self.x += vector.x*scale
-    #     self.y += vector.y*scale
-    #     self.z += vector.z*scale
-    #     return self
+    def addScaled(self, rhs, scale):
+        return Vectors([v1+v2*s for (v1,v2, s) in list(zip(self.v, rhs, scale))])
 
     @property
     def isUnitary(self) -> bool:
