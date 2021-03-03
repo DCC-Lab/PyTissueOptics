@@ -199,9 +199,7 @@ class NativeVectors:
         return v
 
 class NumpyVectors:
-    """ This is the reference implementation of Vectors. Other classes will
-    be created such as GPUVectors, NumpyVectors, CuPyVectors, and others to refine the
-    implementation for speed.
+    """ This is the Numpy implementation of Vectors using numpy arrays
     """
 
     def __init__(self, count: int):
