@@ -106,8 +106,8 @@ class NativeVectors:
     def isEqualTo(self, rhs):
         return [v1.isEqualTo(v2) for (v1,v2) in list(zip(self.v, rhs.v))]
 
-    def isAlmostEqualTo(self, rhs):
-        return [v1.isAlmostEqualTo(v2) for (v1,v2) in list(zip(self.v, rhs.v))]
+    def isAlmostEqualTo(self, rhs, epsilon):
+        return [v1.isAlmostEqualTo(v2, epsilon) for (v1,v2) in list(zip(self.v, rhs.v))]
 
     def isParallelTo(self, rhs, epsilon=1e-7):
         return [v1.isParallelTo(v2) for (v1,v2) in list(zip(self.v, rhs.v))]

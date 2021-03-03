@@ -65,6 +65,12 @@ class TestVector(envtest.PyTissueTestCase):
         self.assertTrue(v1*s == Vectors([oHat, 2*xHat, 3*yHat]))
         self.assertTrue(s*v1 == Vectors([oHat, 2*xHat, 3*yHat]))
 
+    def testDivideVectors(self):
+        v1 = Vectors([oHat, xHat, yHat])
+        s = [1,2,3]
+
+        self.assertTrue(v1/s == Vectors([oHat, xHat/2, yHat/3]))
+
     # def testGetItemVector(self):
     #     v = Vector(1,2,3)
     #     self.assertIsNotNone(v)
@@ -167,6 +173,11 @@ class TestVector(envtest.PyTissueTestCase):
     def testVectorNegative(self):
         vs = Vectors([oHat, xHat, yHat])
         self.assertEqual(-vs, Vectors([-oHat, -xHat, -yHat]))
+
+    def testVectorAlmostEqual(self):
+        v1 = Vectors([oHat, xHat, yHat])
+        v2 = Vectors([Vector(0,0,1), Vector(1.0000001,0,0), Vector(0,1.01,0)])
+        self.assertEqual(v1.isAlmostEqualTo(v2,epsilon=1e-6), [False, True, False])
 
     # def testNormalizedCrossedProduct(self):
     #     v1 = Vector(1,2,3)
