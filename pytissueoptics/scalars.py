@@ -1,5 +1,5 @@
 import numpy as np
-
+from .vectors import NumpyVectors
 
 class NumpyScalars:
     def __init__(self, count: int, value: float):
@@ -19,6 +19,11 @@ class NumpyScalars:
         if isinstance(other, NumpyScalars):
             result = np.multiply(self.s, other.s)
             return result
+        elif isinstance(other, NumpyVectors):
+            result = np.multiply(self.s[:, None] * other)
+            return result
+        else:
+            raise NotImplemented
 
     def __truediv__(self, other):
         pass
