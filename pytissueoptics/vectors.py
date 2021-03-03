@@ -10,12 +10,12 @@ class Vectors:
     """
 
     def __init__(self, initial = None, N=None):
+        self.v = []
         if initial is not None:
-            self.v = initial #Copy?
+            for v in initial:
+                self.v.append(Vector(v))
         elif N is not None:
             self.v = [Vector(0,0,0)]*N
-        else:
-            self.v = []
 
     @property
     def count(self):
@@ -55,13 +55,19 @@ class Vectors:
     #     self.z += vector.z*scale
     #     return self
 
-    # @property
-    # def isUnitary(self) -> bool:
-    #     return abs(self.norm()-1) < 1e-7
+    @property
+    def isUnitary(self) -> bool:
+        isUnitary = []
+        for v in self.v:
+            isUnitary.append(v.isUnitary)
+        return isUnitary
 
-    # @property
-    # def isNull(self) -> bool:
-    #     return self.norm() < 1e-7
+    @property
+    def isNull(self) -> [bool]:
+        isNull = []
+        for v in self.v:
+            isNull.append(v.isNull)
+        return isNull
 
     # def __repr__(self):
     #     return "({0:.4f},{1:.4f},{2:.4f})".format(self.x, self.y, self.z)
@@ -85,18 +91,26 @@ class Vectors:
 
         return result
 
-    # def __neg__(self):
-    #     return Vector(-self.x, -self.y, -self.z)
+    def __neg__(self):
+        result = Vectors(N=self.count)
+        for i in range(self.count):
+            result.v[i] = self.v[i] + rhs[i]
 
-    # def __sub__(self, vector):
-    #     return Vector(self.x - vector.x, self.y - vector.y, self.z - vector.z)
+        return result
+
+    def __sub__(self, rhs):
+        result = Vectors(N=self.count)
+        for i in range(self.count):
+            result.v[i] = self.v[i] - rhs[i]
+
+        return result
 
     def __getitem__(self, index):
         return self.v[index]
 
     def __setitem__(self, index, newvalue): 
         self.v[index] = newvalue
-        
+
     # def __eq__(self, vector):
     #     return self.isEqualTo(vector)
 

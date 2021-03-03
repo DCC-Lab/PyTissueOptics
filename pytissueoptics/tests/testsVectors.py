@@ -55,10 +55,22 @@ class TestVector(envtest.PyTissueTestCase):
         v2 = Vectors(initial=[Vector(1,2,3)]*1000)
 
         vs = v1 + v2
+        self.assertEqual(vs.count, 1000)
         for v in vs:        
             self.assertEqual(v.x, 2)
             self.assertEqual(v.y, 3)
             self.assertEqual(v.z, 4)
+
+    def testSubVectors(self):
+        v1 = Vectors(initial=[Vector(1,1,1)]*1000)
+        v2 = Vectors(initial=[Vector(1,2,3)]*1000)
+
+        vs = v1 - v2
+        self.assertEqual(vs.count, 1000)
+        for v in vs:        
+            self.assertEqual(v.x, 0)
+            self.assertEqual(v.y, -1)
+            self.assertEqual(v.z, -2)
 
     # def testGetItemVector(self):
     #     v = Vector(1,2,3)
@@ -157,8 +169,13 @@ class TestVector(envtest.PyTissueTestCase):
     #     with self.assertRaises(RuntimeError):
     #         v.normalize()
 
-    # def testVectorIsNull(self):
-    #     self.assertTrue(oHat.isNull)
+    def testVectorIsNull(self):
+        vs = Vectors([oHat, xHat, yHat])
+        self.assertEqual(vs.isNull, [True, False, False])
+
+    def testVectorIsUnitary(self):
+        vs = Vectors([oHat, xHat, yHat])
+        self.assertEqual(vs.isUnitary, [False, True, True])
 
     # def testVectorIsUnitary(self):
     #     self.assertTrue(xHat.isUnitary)
