@@ -57,17 +57,11 @@ class Vectors:
 
     @property
     def isUnitary(self) -> bool:
-        isUnitary = []
-        for v in self.v:
-            isUnitary.append(v.isUnitary)
-        return isUnitary
+        return [v.isUnitary for v in self.v]
 
     @property
     def isNull(self) -> [bool]:
-        isNull = []
-        for v in self.v:
-            isNull.append(v.isNull)
-        return isNull
+        return [v.isNull for v in self.v]
 
     # def __repr__(self):
     #     return "({0:.4f},{1:.4f},{2:.4f})".format(self.x, self.y, self.z)
