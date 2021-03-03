@@ -3,8 +3,24 @@ import math
 import sys
 from .vector import Vector
 
-class Vectors:
-    """ This is thereference implementation of Vectors. Other classes will
+"""
+Vectors and Scalars are arrays of Vector and scalars (float, int, etc...)
+These classes are putting in place the structure to act on an array of values, 
+possibly in parallel.  Vectors is identical to Vector with its API but it always
+acts on an array of [Vector]. A possible implementation would use the GPU to perform
+the operations.
+
+This will permit expressive object-oriented code such as:
+
+a = Vectors(N=1000)
+b = Vectors(N=1000)
+
+c = a+b
+
+"""
+
+class NativeVectors:
+    """ This is the reference implementation of Vectors. Other classes will
     be created such as GPUVectors, NumpyVectors, CuPyVectors, and others to refine the
     implementation for speed. 
     """
@@ -16,35 +32,12 @@ class Vectors:
                 self.v.append(Vector(v)) # always copy
         elif N is not None:
             self.v = [Vector(0,0,0)]*N
+        self._iteration = 0
 
     @property
     def count(self):
         return len(self.v)
     
-    # @property
-    # def x(self):
-    #     return self._x
-    
-    # @property
-    # def y(self):
-    #     return self._y
-
-    # @property
-    # def z(self):
-    #     return self._z
-
-    # @x.setter
-    # def x(self, value):
-    #     self._x = value
-    
-    # @y.setter
-    # def y(self, value):
-    #     self._y = value
-
-    # @z.setter
-    # def z(self, value):
-    #     self._z = value
-
     @classmethod
     def fromScaledSum(cls, a, b, scale):
         return a.addScaled(b,scale)
@@ -97,6 +90,18 @@ class Vectors:
         each = [v1.isEqualTo(v2) for (v1,v2) in list(zip(self.v, rhs.v))]
 
         return np.array(each).all()
+
+    def __iter__(self):
+        self._iteration = 0
+        return self
+
+    def __next__(self):
+        if self._iteration < self.count:
+            result = self.v[self._iteration]
+            self._iteration += 1
+            return result
+        else:
+            raise StopIteration
 
     def isEqualTo(self, rhs):
         return [v1.isEqualTo(v2) for (v1,v2) in list(zip(self.v, rhs.v))]
@@ -160,17 +165,17 @@ class Vectors:
         return [v1.angleWith(v=v2,axis=v3) for (v1,v2,v3) in list(zip(self.v, v.v, axis.v))]
 
     def planeOfIncidence(self, normal):
-        return [v1.planeOfIncidence(normal=v2) for (v1,v2) in list(zip(self.v, normal.v))]
+        return Vectors([v1.planeOfIncidence(normal=v2) for (v1,v2) in list(zip(self.v, normal.v))])
 
-    # def angleOfIncidence(self, normal):
-    #     if self.dot(normal) < 0:
-    #         normal = -normal
+    def angleOfIncidence(self, normal):
+        dotProduct = self.dot(normal)
+        correctedNormal = Vectors([n*sign(s) for (n, s) in list(zip(normal, dotProduct))])
 
-    #     planeNormal = self.planeOfIncidence(normal)
-    #     return self.angleWith(normal, axis=planeNormal), planeNormal, normal
+        planeNormal = self.planeOfIncidence(correctedNormal)
+        return self.angleWith(correctedNormal, axis=planeNormal), planeNormal, correctedNormal
 
     def rotateAround(self, u, theta):
-        return [v1.rotateAround(v2,t) for (v1,v2,t) in list(zip(self.v, u.v, theta))]
+        return Vectors([v1.rotateAround(v2,t) for (v1,v2,t) in list(zip(self.v, u.v, theta))])
 
 # class UnitVectors(Vectors):
 #     def __init__(self, x: float = 0, y: float = 0, z: float = 0):
@@ -277,3 +282,4 @@ class Vectors:
 # yHat = ConstUnitVector(0, 1, 0)
 # zHat = ConstUnitVector(0, 0, 1)
 
+Vectors = NativeVectors

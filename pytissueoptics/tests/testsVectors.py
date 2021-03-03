@@ -164,6 +164,10 @@ class TestVector(envtest.PyTissueTestCase):
         vs = Vectors([oHat, xHat, yHat])
         self.assertEqual(vs.isUnitary, [False, True, True])
 
+    def testVectorNegative(self):
+        vs = Vectors([oHat, xHat, yHat])
+        self.assertEqual(-vs, Vectors([-oHat, -xHat, -yHat]))
+
     # def testNormalizedCrossedProduct(self):
     #     v1 = Vector(1,2,3)
     #     v2 = v1.anyPerpendicular()
@@ -294,13 +298,13 @@ class TestVector(envtest.PyTissueTestCase):
         self.assertEqual(Vectors.fromScaledSum(v1, v2, s), v3)
         self.assertEqual(v1.addScaled(v2, s), v3)
 
-    # def testAnyPerpendicular(self):
-    #     vectors = (Vector(1,2,3), Vector(-1,-2-3), xHat, yHat, zHat )
-    #     for v in vectors:
-    #         self.assertTrue(v.anyPerpendicular().isPerpendicularTo(v))
+    def testAnyPerpendicular(self):
+        vectors = Vectors([Vector(1,2,3), Vector(-1,-2-3), xHat, yHat, zHat])
+        for v in vectors:
+            self.assertTrue(v.anyPerpendicular().isPerpendicularTo(v))
 
-    #     self.assertIsNone(oHat.anyPerpendicular())
-    #     self.assertIsNone(oHat.anyPerpendicular())
+        self.assertIsNone(oHat.anyPerpendicular())
+        self.assertIsNone(oHat.anyPerpendicular())
 
     # def testIsInKnownPlane(self):
     #     v = Vector(1,2,3)
