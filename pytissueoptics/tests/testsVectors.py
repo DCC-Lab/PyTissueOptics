@@ -41,7 +41,7 @@ class TestVector(envtest.PyTissueTestCase):
             self.assertEqual(v.z, 0)
 
     def testSomeVectors(self):
-        vs = Vectors(initial=self.randomVectors(N=1000))
+        vs = Vectors(self.randomVectors(N=1000))
         self.assertIsNotNone(vs)
         self.assertEqual(vs.count, 1000)
 
@@ -51,8 +51,8 @@ class TestVector(envtest.PyTissueTestCase):
             self.assertTrue(abs(v.z) <= 1)
 
     def testAddVectors(self):
-        v1 = Vectors(initial=[Vector(1,1,1)]*1000)
-        v2 = Vectors(initial=[Vector(1,2,3)]*1000)
+        v1 = Vectors(vectors=[Vector(1,1,1)]*1000)
+        v2 = Vectors(vectors=[Vector(1,2,3)]*1000)
 
         vs = v1 + v2
         self.assertEqual(vs.count, 1000)
@@ -62,8 +62,8 @@ class TestVector(envtest.PyTissueTestCase):
             self.assertEqual(v.z, 4)
 
     def testSubVectors(self):
-        v1 = Vectors(initial=[Vector(1,1,1)]*1000)
-        v2 = Vectors(initial=[Vector(1,2,3)]*1000)
+        v1 = Vectors(vectors=[Vector(1,1,1)]*1000)
+        v2 = Vectors(vectors=[Vector(1,2,3)]*1000)
 
         vs = v1 - v2
         self.assertEqual(vs.count, 1000)
