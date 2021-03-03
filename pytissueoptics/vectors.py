@@ -5,8 +5,8 @@ from .vector import Vector
 
 class Vectors:
     """ This is thereference implementation of Vectors. Other classes will
-    be created such as GPUVectors, CuPyVectors, and others to refine the
-    implementation. 
+    be created such as GPUVectors, NumpyVectors, CuPyVectors, and others to refine the
+    implementation for speed. 
     """
 
     def __init__(self, vectors = None, N=None):
@@ -69,13 +69,16 @@ class Vectors:
     # def __str__(self):
     #     return "({0:.4f},{1:.4f},{2:.4f})".format(self.x, self.y, self.z)
 
+    def __len__(self):
+        return len(self.v)
+
     def __mul__(self, scale):
         return Vectors([v1*s for (v1,s) in list(zip(self.v, scale))])
 
     def __rmul__(self, scale):
         return Vectors([v1*s for (v1,s) in list(zip(self.v, scale))])
 
-    def __rmul__(self, scale):
+    def __truediv__(self, scale):
         return Vectors([v1/s for (v1,s) in list(zip(self.v, scale))])
 
     def __add__(self, rhs):
@@ -94,7 +97,9 @@ class Vectors:
         self.v[index] = newvalue
 
     def __eq__(self, rhs):
-        return [v1.isEqualTo(v2) for (v1,v2) in list(zip(self.v, rhs.v))]
+        each = [v1.isEqualTo(v2) for (v1,v2) in list(zip(self.v, rhs.v))]
+
+        return np.array(each).all()
 
     def isEqualTo(self, rhs):
         return [v1.isEqualTo(v2) for (v1,v2) in list(zip(self.v, rhs.v))]

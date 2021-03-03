@@ -6,30 +6,6 @@ import random
 inf = float("+inf")
 
 class TestVector(envtest.PyTissueTestCase):
-    def randomVector(self):
-        x = random.random()*2-1
-        y = random.random()*2-1
-        z = random.random()*2-1
-        return Vector(x,y,z)
-
-    def randomVectors(self, N):
-        vectors = []
-        for i in range(N):
-            x = random.random()*2-1
-            y = random.random()*2-1
-            z = random.random()*2-1
-            vectors.append( Vector(x,y,z) )
-        return vectors
-
-    def randomUnitVectors(self, N):
-        vectors = []
-        for i in range(N):
-            x = random.random()*2-1
-            y = random.random()*2-1
-            z = random.random()*2-1
-            vectors.append( UnitVector(x,y,z) )
-        return vectors
-
     def testNullVector(self):
         vs = Vectors(N=1000)
         self.assertIsNotNone(vs)
@@ -49,6 +25,10 @@ class TestVector(envtest.PyTissueTestCase):
             self.assertTrue(abs(v.x) <= 1)
             self.assertTrue(abs(v.y) <= 1)
             self.assertTrue(abs(v.z) <= 1)
+
+    def testSomeVectors(self):
+        vs = Vectors(self.randomVectors(N=1000))
+        self.assertEqual(len(vs), vs.count)
 
     def testAddVectors(self):
         v1 = Vectors(vectors=[Vector(1,1,1)]*1000)
@@ -77,6 +57,13 @@ class TestVector(envtest.PyTissueTestCase):
         v2 = Vectors([oHat, yHat, yHat])
 
         self.assertEqual(v1.isEqualTo(v2), [True, False, True])
+
+    def testScaleVectors(self):
+        v1 = Vectors([oHat, xHat, yHat])
+        s = [1,2,3]
+
+        self.assertTrue(v1*s == Vectors([oHat, 2*xHat, 3*yHat]))
+        self.assertTrue(s*v1 == Vectors([oHat, 2*xHat, 3*yHat]))
 
     # def testGetItemVector(self):
     #     v = Vector(1,2,3)
@@ -115,28 +102,22 @@ class TestVector(envtest.PyTissueTestCase):
     #     self.assertTrue(yHat.isEqualTo(Vector(0,1,0)))
     #     self.assertTrue(zHat.isEqualTo(Vector(0,0,1)))
 
-    # def testEqualVectors(self):
-    #     self.assertEqual(oHat, Vector(0,0,0))
-    #     self.assertEqual(xHat, Vector(1,0,0))
-    #     self.assertEqual(yHat, Vector(0,1,0))
-    #     self.assertEqual(zHat, Vector(0,0,1))
+    def testEqualsVectors(self):
+        v1 = Vectors([oHat, xHat, yHat])
+        v2 = Vectors([oHat, yHat, yHat])
+        v3 = Vectors([oHat, yHat, yHat])
 
-    #     self.assertNotEqual(Vector(1,2,3), Vector(0,2,3))
-    #     self.assertNotEqual(Vector(1,2,3), Vector(1,0,3))
-    #     self.assertNotEqual(Vector(1,2,3), Vector(1,2,0))
+        self.assertFalse(v1 == v2)
+        self.assertTrue(v2 == v3)
 
-    #     self.assertFalse(Vector(1,2,3).isAlmostEqualTo(Vector(1.1,2,3)))
-    #     self.assertFalse(Vector(1,2,3).isAlmostEqualTo(Vector(1,2.1,3)))
-    #     self.assertFalse(Vector(1,2,3).isAlmostEqualTo(Vector(1,2,3.1)))
-
-    # def testCanSetValuesVector(self):
-    #     v = Vector()
-    #     v.x = 1
-    #     v.y = 2
-    #     v.z = 3
-    #     self.assertEqual(v.x, 1)
-    #     self.assertEqual(v.y, 2)
-    #     self.assertEqual(v.z, 3)
+    def testCanSetValuesVector(self):
+        v = Vector()
+        v.x = 1
+        v.y = 2
+        v.z = 3
+        self.assertEqual(v.x, 1)
+        self.assertEqual(v.y, 2)
+        self.assertEqual(v.z, 3)
 
     # def testCannotSetConstVectors(self):      
     #     v = ConstVector(1,2,3)
@@ -182,11 +163,6 @@ class TestVector(envtest.PyTissueTestCase):
     def testVectorIsUnitary(self):
         vs = Vectors([oHat, xHat, yHat])
         self.assertEqual(vs.isUnitary, [False, True, True])
-
-    # def testVectorIsUnitary(self):
-    #     self.assertTrue(xHat.isUnitary)
-    #     self.assertTrue(yHat.isUnitary)
-    #     self.assertTrue(zHat.isUnitary)
 
     # def testNormalizedCrossedProduct(self):
     #     v1 = Vector(1,2,3)
@@ -441,6 +417,30 @@ class TestVector(envtest.PyTissueTestCase):
     #     angle, planeNormal, actualNormal = ez.angleOfIncidence(surfaceNormal)
     #     self.assertAlmostEqual(angle, 0,6)
     #     self.assertTrue(planeNormal.isUnitary)
+
+    def randomVector(self):
+        x = random.random()*2-1
+        y = random.random()*2-1
+        z = random.random()*2-1
+        return Vector(x,y,z)
+
+    def randomVectors(self, N):
+        vectors = []
+        for i in range(N):
+            x = random.random()*2-1
+            y = random.random()*2-1
+            z = random.random()*2-1
+            vectors.append( Vector(x,y,z) )
+        return vectors
+
+    def randomUnitVectors(self, N):
+        vectors = []
+        for i in range(N):
+            x = random.random()*2-1
+            y = random.random()*2-1
+            z = random.random()*2-1
+            vectors.append( UnitVector(x,y,z) )
+        return vectors
 
 
 if __name__ == '__main__':
