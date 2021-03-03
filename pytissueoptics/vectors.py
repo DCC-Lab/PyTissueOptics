@@ -76,12 +76,6 @@ class NativeVectors:
     def isNull(self) -> [bool]:
         return [v.isNull for v in self.v]
 
-    # def __repr__(self):
-    #     return "({0:.4f},{1:.4f},{2:.4f})".format(self.x, self.y, self.z)
-    
-    # def __str__(self):
-    #     return "({0:.4f},{1:.4f},{2:.4f})".format(self.x, self.y, self.z)
-
     def __len__(self):
         return len(self.v)
 
@@ -199,109 +193,9 @@ class NativeVectors:
         [v1.rotateAround(v2,t) for (v1,v2,t) in list(zip(self.v, u.v, theta))]
         return self
 
-# class UnitVectors(Vectors):
-#     def __init__(self, x: float = 0, y: float = 0, z: float = 0):
-#         Vectors.__init__(self, Vector(x, y, z).normalized())
-
-#     def normalizedCrossProduct(self, vector):
-#         if isinstance(vector, UnitVector):
-#             return self.cross(vector)
-#         else:
-#             return Vector.normalizedCrossProduct(self, vector)
-
-#     def normalizedDotProduct(self, vector):
-#         if isinstance(vector, UnitVector):
-#             return self.dot(vector)
-#         else:
-#             return Vector.normalizedDotProduct(self, vector)
-
-
-# class ConstVectors(Vectors):
-#     def __init__(self, x: float = 0, y: float = 0, z: float = 0):
-#         self._abs = 0
-#         self._norm = 0
-#         Vector.__init__(self, x, y, z)
-#         self._abs = self.abs()
-#         self._norm = self.norm()
-
-#     def normalize(self):
-#         if self._norm != 1:
-#             raise RuntimeError("You cannot normalize a constant vector: you can use Vector instead.")
-#         else:
-#             raise RuntimeError("You cannot normalize a constant vector: you can use ConstUnitVector instead for unit vectors, there is no need to normalize them.")
-
-#     def norm(self):
-#         return self._norm
-
-#     def abs(self):
-#         return self._abs
-
-#     @property
-#     def x(self):
-#         return self._x
-
-#     @property
-#     def y(self):
-#         return self._y
-
-#     @property
-#     def z(self):
-#         return self._z
-
-#     @x.setter
-#     def x(self, value):
-#         raise RuntimeError("You cannot change a constant vector")
-
-#     @y.setter
-#     def y(self, value):
-#         raise RuntimeError("You cannot change a constant vector")
-
-#     @z.setter
-#     def z(self, value):
-#         raise RuntimeError("You cannot change a constant vector")
-
-# class ConstUnitVectors(UnitVectors):
-#     def __init__(self, x: float = 0, y: float = 0, z: float = 0):
-#         Vector.__init__(self, x, y, z)
-#         if self.norm() != 1.0:
-#             raise ValueError("Vector must be created with proper normalized values")
-
-#     def normalize(self):
-#         return self
-
-#     def norm(self):
-#         return 1.0
-
-#     def abs(self):
-#         return 1.0
-
-#     @property
-#     def x(self):
-#         return self._x
-
-#     @property
-#     def y(self):
-#         return self._y
-
-#     @property
-#     def z(self):
-#         return self._z
-
-#     @x.setter
-#     def x(self, value):
-#         raise RuntimeError("You cannot change a constant vector")
-
-#     @y.setter
-#     def y(self, value):
-#         raise RuntimeError("You cannot change a constant vector")
-
-#     @z.setter
-#     def z(self, value):
-#         raise RuntimeError("You cannot change a constant vector")
-
-# oHat = ConstVector(0, 0, 0)    
-# xHat = ConstUnitVector(1, 0, 0)
-# yHat = ConstUnitVector(0, 1, 0)
-# zHat = ConstUnitVector(0, 0, 1)
+    def rotatedAround(self, u, theta):
+        v = Vectors(self) # copy
+        [v1.rotateAround(v2,t) for (v1,v2,t) in list(zip(v.v, u.v, theta))]
+        return v
 
 Vectors = NativeVectors

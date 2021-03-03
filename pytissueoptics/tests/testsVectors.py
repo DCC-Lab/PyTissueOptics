@@ -233,6 +233,18 @@ class TestVector(envtest.PyTissueTestCase):
         for i in range(3):
             self.assertAlmostEqual(angle[i], actual[i],3,"Error at {0}".format(i))
 
+    def testRotatedAround(self):
+        v1 = Vectors([xHat, yHat, zHat])
+        axis = Vectors([zHat, xHat, yHat])
+        angle = [np.pi/2, np.pi/2, np.pi/2]
+
+        v3 = v1.rotatedAround(axis, angle)
+
+        actual = v1.angleWith(v3, axis)
+
+        for i in range(3):
+            self.assertAlmostEqual(angle[i], actual[i],3,"Error at {0}".format(i))
+
     def testPlaneAndAngleOfIncidence(self):
         v1 = Vectors([Vector(0,1,1), Vector(0,-1,1), Vector(1,0,1)])
         normal = Vectors([zHat, zHat, zHat])
