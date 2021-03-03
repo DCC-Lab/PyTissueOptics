@@ -79,25 +79,13 @@ class Vectors:
     #     return Vector(self.x / scale, self.y / scale, self.z / scale)
 
     def __add__(self, rhs):
-        result = Vectors(N=self.count)
-        for i in range(self.count):
-            result.v[i] = self.v[i] + rhs[i]
-
-        return result
+        return Vectors([v1+v2 for (v1,v2) in list(zip(self.v, rhs.v))])
 
     def __neg__(self):
-        result = Vectors(N=self.count)
-        for i in range(self.count):
-            result.v[i] = self.v[i] + rhs[i]
-
-        return result
+        return Vectors([-v1 for v1 in self.v])
 
     def __sub__(self, rhs):
-        result = Vectors(N=self.count)
-        for i in range(self.count):
-            result.v[i] = self.v[i] - rhs[i]
-
-        return result
+        return Vectors([v1-v2 for (v1,v2) in list(zip(self.v, rhs.v))])
 
     def __getitem__(self, index):
         return self.v[index]
@@ -105,17 +93,11 @@ class Vectors:
     def __setitem__(self, index, newvalue): 
         self.v[index] = newvalue
 
-    # def __eq__(self, vector):
-    #     return self.isEqualTo(vector)
+    def __eq__(self, rhs):
+        return [v1.isEqualTo(v2) for (v1,v2) in list(zip(self.v, rhs.v))]
 
-    # def isEqualTo(self, vector):
-    #     if self.x != vector.x:
-    #         return False
-    #     if self.y != vector.y:
-    #         return False
-    #     if self.z != vector.z:
-    #         return False
-    #     return True
+    def isEqualTo(self, rhs):
+        return [v1.isEqualTo(v2) for (v1,v2) in list(zip(self.v, rhs.v))]
 
     # def isAlmostEqualTo(self, vector, epsilon=1e-6):
     #     if abs(self._x - vector.x) > epsilon:

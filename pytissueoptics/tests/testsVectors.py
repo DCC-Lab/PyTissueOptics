@@ -72,6 +72,12 @@ class TestVector(envtest.PyTissueTestCase):
             self.assertEqual(v.y, -1)
             self.assertEqual(v.z, -2)
 
+    def testEqualVectors(self):
+        v1 = Vectors([oHat, xHat, yHat])
+        v2 = Vectors([oHat, yHat, yHat])
+
+        self.assertEqual(v1.isEqualTo(v2), [True, False, True])
+
     # def testGetItemVector(self):
     #     v = Vector(1,2,3)
     #     self.assertIsNotNone(v)
