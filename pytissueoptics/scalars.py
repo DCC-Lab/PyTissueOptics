@@ -17,6 +17,10 @@ class Scalars:
 
         self._iteration = 0
 
+    @classmethod
+    def random(cls, N):
+        return Scalars([np.random.random() for i in range(N)])
+
     def __iter__(self):
         self._iteration = 0
         return self
