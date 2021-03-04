@@ -211,42 +211,52 @@ class NumpyVectors:
     This architecture will be used by cupy since it is a drop-in replacement
     """
 
-    def __init__(self, count: int):
-        self.v = np.ndarray(3, count, dtype=np.float32)
+    def __init__(self, vectors=None, N=None):
+        if vectors is not None:
+            self.v = np.asarray(vectors)
+        elif N is not None:
+            self.v = np.zeros(3, N, dtype=np.float32)
+            
         self._iteration = 0
-
+    
     def __len__(self):
         return self.v.shape[1]
 
     def __mul__(self, other):
         if isinstance(other, NumpyVectors):
-            result = np.multiply(self.v, other.v)
-            return result
+            return NumpyVectors(np.multiply(self.v, other.v))
         elif isinstance(other, NumpyScalars):
-            result = np.multiply(self.v * other.s[:, None])
-            return result
+            return NumpyVectors(np.multiply(self.v * other.v[:, None]))
+        else:
+            return NumpyVectors(np.multiply(self.v, other))
 
     def __truediv__(self, other):
         if isinstance(other, NumpyVectors):
-            result = np.multiply(self.v, other.v)
-            return result
+            return NumpyVectors(np.true_div(self.v, other.v))
         elif isinstance(other, NumpyScalars):
-            result = np.multiply(self.v * other.s[:, None])
-            return result
+            return NumpyVectors(np.true_div(self.v * other.v[:, None]))
+        else:
+            return NumpyVectors(np.true_div(self.v, other))
 
-    def __add__(self, rhs):
-        pass
+    def __add__(self, other):
+        if isinstance(other, NumpyVectors):
+            return NumpyVectors(np.add(self.v, other.v))
+        else:
+            return NumpyVectors(np.add(self.v, other))
+
+    def __sub__(self, other):
+        if isinstance(other, NumpyVectors):
+            return NumpyVectors(np.subtract(self.v, other.v))
+        else:
+            return NumpyVectors(np.subtract(self.v, other))
 
     def __neg__(self):
-        pass
-
-    def __sub__(self, rhs):
-        pass
+        return NumpyVectors(np.negative(self.v))
 
     def __getitem__(self, index):
         pass
 
-    def __setitem__(self, index, newvalue):
+    def __setitem__(self, index, value):
         pass
 
     def __eq__(self, rhs):
