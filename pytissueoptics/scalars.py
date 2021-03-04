@@ -67,61 +67,82 @@ class Scalars:
             each = [v1 == v2 for (v1, v2) in list(zip(self.v, rhs))]            
         return np.array(each).all()
 
+
 class NumpyScalars:
-    def __init__(self, count: int, value: float):
-        self.s = np.full((1, count), value, dtype=np.float32)
+    def __init__(self, array=None, N=None):
+        if array is not None:
+            self.v = np.asarray(array, dtype=np.float32)
+        elif N is not None:
+            self.v = np.zeros((1, N), dtype=np.float32)
+            
+        self._iteration = 0
+
+    def __len__(self):
+        return self.v.shape[1]
 
     def __add__(self, other):
         if isinstance(other, NumpyScalars):
-            result = np.add(self.s, other.s)
-            return result
+            return NumpyScalars(np.add(self.v, other.v))
+        else:
+            return NumpyScalars(np.add(self.v, other))
 
     def __sub__(self, other):
         if isinstance(other, NumpyScalars):
-            result = np.subtract(self.s, other.s)
-            return result
+            return NumpyScalars(np.subtract(self.v, other.v))
+        else:
+            return NumpyScalars(np.subtract(self.v, other))
 
     def __mul__(self, other):
         if isinstance(other, NumpyScalars):
-            result = np.multiply(self.s, other.s)
-            return result
+            return NumpyScalars(np.multiply(self.v, other.v))
         elif isinstance(other, NumpyVectors):
-            result = np.multiply(self.s[:, None] * other.v)
-            return result
+            return NumpyScalars(np.multiply(self.v[:, None], other.v))
         else:
-            raise NotImplemented
+            return NumpyScalars(np.multiply(self.v, other))
 
     def __truediv__(self, other):
-        pass
-
-    def __repr__(self):
-        pass
+        if isinstance(other, NumpyScalars):
+            return NumpyScalars(np.true_divide(self.v, other.v))
+        elif isinstance(other, NumpyVectors):
+            return NumpyScalars(np.multiply(self.v[:, None], other.v))
+        else:
+            return NumpyScalars(np.true_divide(self.v, other))
 
     def __neg__(self):
-        result = np.negative(self.s)
-        return result
+        return NumpyScalars(np.negative(self.v))
 
     def __getitem__(self, item):
-        pass
+        return self.v[:, item]
 
-    def __setitem__(self, key, value):
-        pass
+    def __setitem__(self, key, value: np.float32):
+        self.v[:, key] = value
 
     def __eq__(self, other):
-        pass
+        if isinstance(other, NumpyScalars):
+            return np.equal(self.v, other.v)
+        else:
+            return np.equal(self.v, other)
 
     def __iter__(self):
-        pass
+        self._iteration = 0
+        return self
 
     def __next__(self):
-        pass
+        if self._iteration < len(self):
+            result = self.v[:, self._iteration]
+            self._iteration += 1
+            return result
+        else:
+            raise StopIteration
 
     @classmethod
-    def random(cls, count: int):
-        s = np.random.rand(1, count)
-        return s
+    def setAll(cls, value, N):
+        return NumpyScalars(np.full((1, N), value))
+        
+    @classmethod
+    def random(cls, N: int):
+        return NumpyScalars(np.random.rand(1, N))
 
     @classmethod
-    def random2(cls, count: int):
-        s = (np.random.rand(1, count) * 2) - 1
-        return s
+    def random2(cls, N: int):
+        return NumpyScalars((np.random.rand(1, N) * 2) - 1)

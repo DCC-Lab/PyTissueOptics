@@ -206,66 +206,86 @@ class NativeVectors:
         [v1.rotateAround(v2,t) for (v1,v2,t) in list(zip(v.v, u.v, theta))]
         return v
 
+
 class NumpyVectors:
     """ This is the Reference Vectors Class for numpy-like calculations.
     This architecture will be used by cupy since it is a drop-in replacement
     """
 
-    def __init__(self, count: int):
-        self.v = np.ndarray(3, count, dtype=np.float32)
+    def __init__(self, vectors=None, N=None):
+        if vectors is not None:
+            self.v = np.asarray(vectors)
+        elif N is not None:
+            self.v = np.zeros(3, N, dtype=np.float32)
+            
         self._iteration = 0
-
+    
     def __len__(self):
         return self.v.shape[1]
 
     def __mul__(self, other):
         if isinstance(other, NumpyVectors):
-            result = np.multiply(self.v, other.v)
-            return result
+            return NumpyVectors(np.multiply(self.v, other.v))
         elif isinstance(other, NumpyScalars):
-            result = np.multiply(self.v * other.s[:, None])
-            return result
+            return NumpyVectors(np.multiply(self.v * other.v[:, None]))
+        else:
+            return NumpyVectors(np.multiply(self.v, other))
 
     def __truediv__(self, other):
         if isinstance(other, NumpyVectors):
-            result = np.multiply(self.v, other.v)
-            return result
+            return NumpyVectors(np.true_div(self.v, other.v))
         elif isinstance(other, NumpyScalars):
-            result = np.multiply(self.v * other.s[:, None])
-            return result
+            return NumpyVectors(np.true_div(self.v * other.v[:, None]))
+        else:
+            return NumpyVectors(np.true_div(self.v, other))
 
-    def __add__(self, rhs):
-        pass
+    def __add__(self, other):
+        if isinstance(other, NumpyVectors):
+            return NumpyVectors(np.add(self.v, other.v))
+        else:
+            return NumpyVectors(np.add(self.v, other))
+
+    def __sub__(self, other):
+        if isinstance(other, NumpyVectors):
+            return NumpyVectors(np.subtract(self.v, other.v))
+        else:
+            return NumpyVectors(np.subtract(self.v, other))
 
     def __neg__(self):
-        pass
+        return NumpyVectors(np.negative(self.v))
 
-    def __sub__(self, rhs):
-        pass
+    def __eq__(self, other):
+        if isinstance(other, NumpyVectors):
+            return NumpyVectors(np.equal(self.v, other.v))
+        else:
+            return NumpyVectors(np.subtract(self.v, other))
+
+    """The getitem, setitem, iter, next special methods should not be used
+    because never should there be need to bypass the numpy function. Such use
+    could and will deteriorate performances and possibly fail to parallelize."""
 
     def __getitem__(self, index):
-        pass
+        return self.v[:, index]
 
-    def __setitem__(self, index, newvalue):
-        pass
-
-    def __eq__(self, rhs):
-        pass
+    def __setitem__(self, index, value):
+        self.v[:, index] = value
 
     def __iter__(self):
         self._iteration = 0
         return self
 
     def __next__(self):
-        pass
+        result = self.v[:, self._iteration]
+        self._iteration += 1
+        return result
 
     @property
-    def isUnitary(self) -> [bool]:
-        pass
+    def isUnitary(self):
+        return np.less(np.abs(np.linalg.norm(self.v, axis=0)-1, 1e-7))
 
     @property
-    def isNull(self) -> [bool]:
-        pass
+    def isNull(self):
+        return np.less(np.linalg.norm(self.v, axis=0), 1e-7)
 
     @property
     def count(self):
@@ -273,8 +293,7 @@ class NumpyVectors:
 
     @classmethod
     def random(cls, N):
-        array = np.random.rand(3, N)
-        return array
+        return NumpyVectors(np.random.rand(3, N))
 
     @classmethod
     def randomUnitary(cls, N):
@@ -320,14 +339,15 @@ class NumpyVectors:
     def normalized(self):
         pass
 
-    def isPerpendicularTo(self, rhs, epsilon=1e-7):
+    def isPerpendicularTo(self, other, epsilon=1e-7):
         pass
 
-    def cross(self, rhs):
-        pass
+    def cross(self, other):
+        return NumpyVectors(np.cross(self.v, other.v))
 
-    def dot(self, rhs):
-        pass
+    def dot(self, other):
+        return NumpyScalars(np.dot(self.v, other.v))
+
 
     def normalizedCrossProduct(self, rhs):
         pass
@@ -346,5 +366,6 @@ class NumpyVectors:
 
     def rotateAround(self, u, theta):
         pass
+
 
 Vectors = NativeVectors
