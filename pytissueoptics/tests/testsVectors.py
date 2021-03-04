@@ -247,16 +247,15 @@ class TestVector(envtest.PyTissueTestCase):
 
     def testPlaneAndAngleOfIncidence(self):
         v1 = Vectors([Vector(0,1,1), Vector(0,-1,1), Vector(1,0,1)])
-        normal = Vectors([zHat, zHat, zHat])
+        normal = Vectors([zHat, zHat, -zHat])
 
-        angles = [np.pi/4, np.pi/4, np.pi/4]
-        expected = Vectors([xHat, -xHat, -yHat])
-        actual = v1.planeOfIncidence(normal)
+        expectedAngles = [np.pi/4, np.pi/4, np.pi/4]
+        expectedPlanes = Vectors([xHat, -xHat, -yHat])
         actualAngles, actualPlanes, correctedNormal = v1.angleOfIncidence(normal)
 
         for i in range(3):
-            self.assertTrue(actual[i].isAlmostEqualTo(expected[i]))
-            self.assertAlmostEqual(actualAngles[i], angles[i])
+            self.assertTrue(actualPlanes[i].isAlmostEqualTo(expectedPlanes[i]))
+            self.assertAlmostEqual(actualAngles[i], expectedAngles[i])
 
     def testNormAbs(self):
         v1 = Vectors([Vector(1,1,1), Vector(1,0,1),Vector(0,1,1)]) 
