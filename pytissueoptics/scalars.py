@@ -20,7 +20,7 @@ class NumpyScalars:
             result = np.multiply(self.s, other.s)
             return result
         elif isinstance(other, NumpyVectors):
-            result = np.multiply(self.s[:, None] * other)
+            result = np.multiply(self.s[:, None] * other.v)
             return result
         else:
             raise NotImplemented
