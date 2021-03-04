@@ -89,13 +89,13 @@ class NativeVectors:
         return Vectors([v1/s for (v1,s) in list(zip(self.v, scale))])
 
     def __add__(self, rhs):
-        return Vectors([v1+v2 for (v1,v2) in list(zip(self.v, rhs.v))])
+        return Vectors([v1+v2 for (v1,v2) in list(zip(self.v, rhs))])
 
     def __neg__(self):
         return Vectors([-v1 for v1 in self.v])
 
     def __sub__(self, rhs):
-        return Vectors([v1-v2 for (v1,v2) in list(zip(self.v, rhs.v))])
+        return Vectors([v1-v2 for (v1,v2) in list(zip(self.v, rhs))])
 
     def __getitem__(self, index):
         return self.v[index]
@@ -104,7 +104,7 @@ class NativeVectors:
         self.v[index] = newvalue
 
     def __eq__(self, rhs):
-        each = [v1.isEqualTo(v2) for (v1,v2) in list(zip(self.v, rhs.v))]
+        each = [v1.isEqualTo(v2) for (v1,v2) in list(zip(self.v, rhs))]
 
         return np.array(each).all()
 
@@ -121,13 +121,13 @@ class NativeVectors:
             raise StopIteration
 
     def isEqualTo(self, rhs):
-        return [v1.isEqualTo(v2) for (v1,v2) in list(zip(self.v, rhs.v))]
+        return Scalars([v1.isEqualTo(v2) for (v1,v2) in list(zip(self.v, rhs))])
 
     def isAlmostEqualTo(self, rhs, epsilon):
-        return [v1.isAlmostEqualTo(v2, epsilon) for (v1,v2) in list(zip(self.v, rhs.v))]
+        return Scalars([v1.isAlmostEqualTo(v2, epsilon) for (v1,v2) in list(zip(self.v, rhs))])
 
     def isParallelTo(self, rhs, epsilon=1e-7):
-        return [v1.isParallelTo(v2) for (v1,v2) in list(zip(self.v, rhs.v))]
+        return Scalars([v1.isParallelTo(v2) for (v1,v2) in list(zip(self.v, rhs))])
 
     def anyPerpendicular(self):
         return Vectors([v1.anyPerpendicular() for v1 in self.v])
@@ -136,22 +136,22 @@ class NativeVectors:
         return Vectors([v1.anyUnitaryPerpendicular() for v1 in self.v])
 
     def isInXYPlane(self, atZ, epsilon=0.001):
-        return [v1.isInXYPlane(atZ=atZ, epsilon=epsilon) for v1 in self.v]
+        return Scalars([v1.isInXYPlane(atZ=atZ, epsilon=epsilon) for v1 in self.v])
 
     def isInYZPlane(self, atX, epsilon=0.001):
-        return [v1.isInYZPlane(atX=atX, epsilon=epsilon) for v1 in self.v]
+        return Scalars([v1.isInYZPlane(atX=atX, epsilon=epsilon) for v1 in self.v])
 
     def isInZXPlane(self, atY, epsilon=0.001):
-        return [v1.isInZXPlane(atY=atY, epsilon=epsilon) for v1 in self.v]
+        return Scalars([v1.isInZXPlane(atY=atY, epsilon=epsilon) for v1 in self.v])
 
     def isInPlane(self, origin: 'Vector', normal: 'Vector', epsilon=0.001) -> bool:
-        return [v1.isInPlane(origin, normal, epsilon) for v1 in self.v]
+        return Scalars([v1.isInPlane(origin, normal, epsilon) for v1 in self.v])
 
     def norm(self):
-        return [v1.norm() for v1 in self.v]
+        return Scalars([v1.norm() for v1 in self.v])
 
     def abs(self):
-        return [v1.abs() for v1 in self.v]
+        return Scalars([v1.abs() for v1 in self.v])
 
     def normalize(self):
         [v1.normalize() for v1 in self.v]
@@ -161,33 +161,34 @@ class NativeVectors:
         return Vectors([v1.normalized() for v1 in self.v])
 
     def isPerpendicularTo(self, rhs, epsilon=1e-7):
-        return [v1.isPerpendicularTo(v2) for (v1,v2) in list(zip(self.v, rhs.v))]
+        return Scalars([v1.isPerpendicularTo(v2) for (v1,v2) in list(zip(self.v, rhs))])
 
     def cross(self, rhs):
-        return Vectors([v1.cross(v2) for (v1,v2) in list(zip(self.v, rhs.v))])
+        return Vectors([v1.cross(v2) for (v1,v2) in list(zip(self.v, rhs))])
 
     def dot(self, rhs):
-        return [v1.dot(v2) for (v1,v2) in list(zip(self.v, rhs.v))]
+        return Scalars([v1.dot(v2) for (v1,v2) in list(zip(self.v, rhs))])
 
     def normalizedCrossProduct(self, rhs):
         return Vectors([v1.normalizedCrossProduct(v2) 
-            for (v1,v2) in list(zip(self.v, rhs.v))])
+            for (v1,v2) in list(zip(self.v, rhs))])
 
     def normalizedDotProduct(self, rhs):
-        return [v1.normalizedDotProduct(v2) for (v1,v2) in list(zip(self.v, rhs.v))]
+        return Scalars([v1.normalizedDotProduct(v2) for (v1,v2) in list(zip(self.v, rhs))])
 
     def angleWith(self, v, axis):
-        return [v1.angleWith(v=v2,axis=v3) for (v1,v2,v3) in list(zip(self.v, v.v, axis.v))]
+        return Scalars([v1.angleWith(v=v2,axis=v3) for (v1,v2,v3) in list(zip(self.v, v, axis))])
 
     def planeOfIncidence(self, normal):
-        return Vectors([v1.planeOfIncidence(normal=v2) for (v1,v2) in list(zip(self.v, normal.v))])
+        return Vectors([v1.planeOfIncidence(normal=v2) for (v1,v2) in list(zip(self.v, normal))])
 
     def angleOfIncidence(self, normal):
         dotProduct = self.dot(normal)
         correctedNormal = Vectors([n*(1-2*(s<0)) for (n, s) in list(zip(normal, dotProduct))])
 
         planeNormal = self.planeOfIncidence(correctedNormal)
-        return self.angleWith(correctedNormal, axis=planeNormal), planeNormal, correctedNormal
+        angles = Scalars(self.angleWith(correctedNormal, axis=planeNormal))
+        return angles, planeNormal, correctedNormal
 
     def rotateAround(self, u, theta):
         [v1.rotateAround(v2,t) for (v1,v2,t) in list(zip(self.v, u.v, theta))]
@@ -269,9 +270,15 @@ class Scalars:
     There is a reason for not using numpy.array directly: we want to
     add new functions that will be specific to our problem here,
     and Python does not allow us to extend system classes.
+
+    The class works with float, int and bool.  With boolean values, True is 1.
     """
-    def __init__(self, array, N):
-        self.v = np.array(array)
+    def __init__(self, array=None, N=None):
+        if array is not None:
+            self.v = np.array(array)
+        elif N is not None:
+            self.v = np.array([0]*N)
+
         self._iteration = 0
 
     def __iter__(self):
@@ -279,7 +286,7 @@ class Scalars:
         return self
 
     def __next__(self):
-        if self._iteration < self.count:
+        if self._iteration < len(self):
             result = self.v[self._iteration]
             self._iteration += 1
             return result
@@ -314,7 +321,10 @@ class Scalars:
         self.v[index] = newvalue
 
     def __eq__(self, rhs):
-        each = [v1 == v2 for (v1,v2) in list(zip(self.v, rhs.v))]
+        if isinstance(rhs, Scalars):
+            each = [v1 == v2 for (v1,v2) in list(zip(self.v, rhs.v))]
+        else:
+            each = [v1 == v2 for (v1,v2) in list(zip(self.v, rhs))]            
         return np.array(each).all()
 
 Vectors = NativeVectors
