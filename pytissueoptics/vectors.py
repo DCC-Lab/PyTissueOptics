@@ -3,7 +3,8 @@ import math
 import sys
 import random
 from .vector import Vector
-from .scalars import NumpyScalars
+from .scalars import *
+
 """
 Vectors and Scalars are arrays of Vector and scalars (float, int, etc...).
 They appear as list of vectors or list of scalar, they are iterable.
@@ -190,7 +191,7 @@ class NativeVectors:
 
     def angleOfIncidence(self, normal):
         dotProduct = self.dot(normal)
-        correctedNormal = Vectors([n * (1 - 2 * (s < 0)) for (n, s) in list(zip(normal, dotProduct))])
+        correctedNormal = Vectors([n*(1.0 - 2.0 * (s < 0)) for (n, s) in list(zip(normal, dotProduct.v))])
 
         planeNormal = self.planeOfIncidence(correctedNormal)
         angles = Scalars(self.angleWith(correctedNormal, axis=planeNormal))

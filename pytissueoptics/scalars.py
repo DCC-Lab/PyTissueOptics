@@ -1,5 +1,5 @@
 import numpy as np
-from .vectors import NumpyVectors
+from .vectors import *
 
 class Scalars:
     """ An array of scalars that is compatible with operations on Vectors 
