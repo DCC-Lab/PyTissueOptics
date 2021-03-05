@@ -348,12 +348,28 @@ class TestVector(envtest.PyTissueTestCase):
         return vectors
 
 class TestNumpyVectors(envtest.PyTissueTestCase):
-    def testMulWithNumpyVector(self):
-        pass
 
     def testCheckInitTypeFloat64(self):
         vecs = NumpyVectors([[1, -0.042982430, 1], [1, 0.9933727400, 1], [2, -0.106597860, 3]])
         self.assertEqual(np.float64, type(vecs[0][0]))
+
+    def testAdd(self):
+        pass
+
+    def testSubtract(self):
+        pass
+
+    def testDivide(self):
+        pass
+
+    def testMul(self):
+        pass
+
+    def testNeg(self):
+        pass
+
+    def testLen(self):
+        pass
 
     def testIsNullTrue(self):
         vecs = NumpyVectors.randomUniform(100, 0)
@@ -462,6 +478,63 @@ class TestNumpyVectors(envtest.PyTissueTestCase):
         else:
             r = True
         self.assertTrue(r)
+
+    def testAbs(self):
+        pass
+
+    def testIsParallelTo(self):
+        pass
+
+    def testIsPerpendicularTo(self):
+        pass
+
+    def testDot(self):
+        pass
+
+    def testCross(self):
+        pass
+
+    def testAnyPerpendicular(self):
+        pass
+
+    def testAnyUnitaryPerpendicular(self):
+        pass
+
+    def testIsInXYPlane(self):
+        pass
+
+    def testIsInYZPlane(self):
+        pass
+
+    def testIsInZXPlane(self):
+        pass
+
+    def testIsInPlane(self):
+        pass
+
+    def testNormalize(self):
+        pass
+
+    def testNormalized(self):
+        pass
+
+    def testNormalizedCrossProduct(self):
+        pass
+
+    def testNormalizedDotProduct(self):
+        pass
+
+    def testAngleWith(self):
+        pass
+
+    def testPlaneOfIncidence(self):
+        pass
+
+    def testAngleOfIncidence(self):
+        pass
+
+    def testRotateAround(self):
+        pass
 
 
 if __name__ == '__main__':
