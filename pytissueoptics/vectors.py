@@ -263,7 +263,6 @@ class NumpyVectors:
         else:
             return NumpyVectors(np.subtract(self.v, other))
 
-
     """ The getitem, setitem, iter, next special methods should not be used
     because never should there be need to bypass the numpy function. Such use
     could and will deteriorate performances and possibly fail to parallelize.
@@ -303,16 +302,16 @@ class NumpyVectors:
         x = (r * np.sin(phi) * np.cos(theta))
         y = (r * np.sin(phi) * np.sin(theta))
         z = r * np.cos(phi)
-        return NumpyVectors(np.stack((x, y, z), axis=0))
+        return NumpyVectors(np.concatenate((x, y, z), axis=0))
 
     @classmethod
     def randomUniformUnitary(cls, N):
         theta = np.random.rand(1, N) * 2 * np.pi
-        phi = (np.random.rand(1, N) * np.pi)
+        phi = np.random.rand(1, N) * np.pi
         x = np.sin(phi)*np.cos(theta)
         y = np.sin(phi)*np.sin(theta)
         z = np.cos(phi)
-        return NumpyVectors(np.stack((x, y, z), axis=0))
+        return NumpyVectors(np.concatenate((x, y, z), axis=0))
 
     def isEqualTo(self, other):
         if isinstance(other, NumpyVectors):
