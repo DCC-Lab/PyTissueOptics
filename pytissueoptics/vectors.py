@@ -197,7 +197,7 @@ class NativeVectors:
         dotProduct = self.dot(normal)
         normal.mask = (dotProduct.v < 0)
         correctedNormal = -normal
-        print(normal.v, correctedNormal.v)
+
         planeNormal = self.planeOfIncidence(correctedNormal)
         angles = Scalars(self.angleWith(correctedNormal, axis=planeNormal))
         return angles, planeNormal, correctedNormal
