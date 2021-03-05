@@ -17,6 +17,12 @@ class TestScalars(envtest.PyTissueTestCase):
         s = s.negate()
         self.assertTrue(s.all())
 
+    def testScalarsOrAnd(self):
+        s1 = Scalars([True, False, True, False])
+        s2 = Scalars([True, False, False, True])
+        s3 = (s1 and s2)
+        self.assertTrue(s3 == Scalars([True, False, False, False]))
+
 
 if __name__ == '__main__':
     envtest.main()

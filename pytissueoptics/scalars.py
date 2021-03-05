@@ -11,11 +11,12 @@ class Scalars:
 
     The class works with float, int and bool.  With boolean values, True is 1.
     """
+
     def __init__(self, array=None, N=None):
         if array is not None:
             self.v = np.array(array)
         elif N is not None:
-            self.v = np.array([0]*N)
+            self.v = np.array([0] * N)
         else:
             raise ValueError("You must provide an array or N")
         self._iteration = 0
@@ -40,44 +41,44 @@ class Scalars:
         return len(self.v)
 
     def __mul__(self, scale) -> 'Scalars':
-        return Scalars(self.v*scale)
+        return Scalars(self.v * scale)
 
     def __rmul__(self, scale) -> 'Scalars':
-        return Scalars(self.v*scale)
+        return Scalars(self.v * scale)
 
     def __truediv__(self, scale) -> 'Scalars':
-        return Scalars(self.v/scale)
+        return Scalars(self.v / scale)
 
     def __add__(self, rhs) -> 'Scalars':
-        return Scalars([v1+v2 for (v1, v2) in list(zip(self.v, rhs.v))])
+        return Scalars([v1 + v2 for (v1, v2) in list(zip(self.v, rhs.v))])
 
     def __neg__(self) -> 'Scalars':
         return Scalars([-v1 for v1 in self.v])
 
     def __sub__(self, rhs) -> 'Scalars':
-        return Scalars([v1-v2 for (v1, v2) in list(zip(self.v, rhs.v))])
+        return Scalars([v1 - v2 for (v1, v2) in list(zip(self.v, rhs.v))])
 
     def __getitem__(self, index):
         return self.v[index]
 
-    def __setitem__(self, index, newvalue): 
+    def __setitem__(self, index, newvalue):
         self.v[index] = newvalue
 
     def __eq__(self, rhs) -> bool:
         if isinstance(rhs, Scalars):
             each = [v1 == v2 for (v1, v2) in list(zip(self.v, rhs.v))]
         else:
-            each = [v1 == v2 for (v1, v2) in list(zip(self.v, rhs))]            
+            each = [v1 == v2 for (v1, v2) in list(zip(self.v, rhs))]
         return np.array(each).all()
 
     def negate(self) -> 'Scalars':
-        return Scalars([not v1 for v1 in self.v])
+        return Scalars([not bool(v1) for v1 in self.v])
 
     def __and__(self, rhs) -> 'Scalars':
-        return Scalars(self.v and rhs.v)
+        return Scalars([bool(v1) and bool(v2) for v1, v2 in (self.v, rhs)])
 
     def __or__(self, rhs) -> 'Scalars':
-        return Scalars(self.v or rhs.v)
+        return Scalars([bool(v1) or bool(v2) for v1, v2 in (self.v, rhs)])
 
     def all(self) -> bool:
         return self.v.all()
@@ -98,7 +99,7 @@ class NumpyScalars:
                 self.v = np.asarray(array, dtype=np.float64)
         elif N is not None:
             self.v = np.zeros((1, N), dtype=np.float64)
-            
+
         self._iteration = 0
 
     def __len__(self):
@@ -168,7 +169,7 @@ class NumpyScalars:
     @classmethod
     def setAll(cls, value, N):
         return NumpyScalars(np.full((1, N), value))
-        
+
     @classmethod
     def random(cls, N: int):
         return NumpyScalars(np.random.rand(1, N))
