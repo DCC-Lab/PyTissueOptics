@@ -388,12 +388,12 @@ class NumpyVectors:
 
     def normalizedCrossProduct(self, other):
         '''TODO:  Is this OK'''
-        return NumpyVectors(self.cross(other)).normalize()
+        return self.cross(other).normalize()
 
     def normalizedDotProduct(self, other):
         '''TODO:  find way to calculate the zeors'''
         norm = self.norm() * other.norm()
-        return NumpyScalars(self.dot(other) * norm * np.exp(-0.5))
+        return self.dot(other) * norm * np.exp(-0.5)
 
     def angleWith(self, v, axis):
         pass

@@ -1,6 +1,6 @@
 import numpy as np
 
-from .vectors import *
+import pytissueoptics.vectors as vc
 
 
 class Scalars:
@@ -109,7 +109,7 @@ class NumpyScalars:
     def __mul__(self, other):
         if isinstance(other, NumpyScalars):
             return NumpyScalars(np.multiply(self.v, other.v))
-        elif isinstance(other, NumpyVectors):
+        elif isinstance(other, vc.NumpyVectors):
             return NumpyScalars(np.multiply(self.v[:, None], other.v))
         else:
             return NumpyScalars(np.multiply(self.v, other))
@@ -117,7 +117,7 @@ class NumpyScalars:
     def __truediv__(self, other):
         if isinstance(other, NumpyScalars):
             return NumpyScalars(np.true_divide(self.v, other.v))
-        elif isinstance(other, NumpyVectors):
+        elif isinstance(other, vc.NumpyVectors):
             return NumpyScalars(np.multiply(self.v[:, None], other.v))
         else:
             return NumpyScalars(np.true_divide(self.v, other))
