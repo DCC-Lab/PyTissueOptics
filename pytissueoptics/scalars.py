@@ -1,5 +1,7 @@
 import numpy as np
+
 from .vectors import *
+
 
 class Scalars:
     """ An array of scalars that is compatible with operations on Vectors 
@@ -167,6 +169,6 @@ class NumpyScalars:
 
     def isEqualTo(self, other):
         if isinstance(other, NumpyScalars):
-            return NumpyScalars(np.less(np.abs(np.subtract(self.v, other.v)), 1e-9))
+            return NumpyScalars(np.less_equal(np.abs(np.subtract(self.v, other.v)), 1e-9))
         else:
-            return NumpyScalars(np.less(np.abs(np.subtract(self.v, other)), 1e-9))
+            return NumpyScalars(np.less_equal(np.abs(np.subtract(self.v, other)), 1e-9))

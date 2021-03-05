@@ -230,12 +230,12 @@ class NumpyVectors:
             else:
                 self.v = np.asarray(vectors, dtype=np.float64)
         elif N is not None:
-            self.v = np.zeros(3, N, dtype=np.float64)
+            self.v = np.zeros((N, 3), dtype=np.float64)
             
         self._iteration = 0
     
     def __len__(self):
-        return self.v.shape[1]
+        return self.v.shape[0]
 
     def __mul__(self, other):
         if isinstance(other, NumpyVectors):
@@ -274,16 +274,22 @@ class NumpyVectors:
         else:
             return NumpyVectors(np.subtract(self.v, other))
 
+    def __str__(self):
+        return str(self.v)
+
+    def __repr__(self):
+        return str(self.v)
+
     """ The getitem, setitem, iter, next special methods should not be used
     because never should there be need to bypass the numpy function. Such use
     could and will deteriorate performances and possibly fail to parallelize.
     Can be used to unit test """
 
     def __getitem__(self, index):
-        return self.v[:, index]
+        return self.v[index, :]
 
     def __setitem__(self, index, value):
-        self.v[:, index] = value
+        self.v[index, :] = value
 
     def __iter__(self):
         self._iteration = 0
@@ -296,11 +302,11 @@ class NumpyVectors:
 
     @property
     def isUnitary(self):
-        return np.less(np.abs(np.linalg.norm(self.v, axis=0))-1, 1e-9)
+        return np.less(np.abs(np.linalg.norm(self.v, axis=1))-1, 1e-9)
 
     @property
     def isNull(self):
-        return np.less(np.linalg.norm(self.v, axis=0), 1e-9)
+        return np.less(np.linalg.norm(self.v, axis=1), 1e-9)
 
     @property
     def count(self):
@@ -308,33 +314,33 @@ class NumpyVectors:
 
     @classmethod
     def randomUniform(cls, N, r):
-        theta = (np.random.rand(1, N) * 2 * np.pi)
-        phi = (np.random.rand(1, N) * np.pi)
-        x = (r * np.sin(phi) * np.cos(theta))
-        y = (r * np.sin(phi) * np.sin(theta))
+        theta = (np.random.rand(N) * 2 * np.pi)
+        phi = (np.random.rand(N) * np.pi)
+        x = r * np.sin(phi) * np.cos(theta)
+        y = r * np.sin(phi) * np.sin(theta)
         z = r * np.cos(phi)
-        return NumpyVectors(np.concatenate((x, y, z), axis=0))
+        return NumpyVectors(np.stack((x, y, z), axis=-1))
 
     @classmethod
     def randomUniformUnitary(cls, N):
-        theta = np.random.rand(1, N) * 2 * np.pi
-        phi = np.random.rand(1, N) * np.pi
+        theta = np.random.rand(N) * 2 * np.pi
+        phi = np.random.rand(N) * np.pi
         x = np.sin(phi)*np.cos(theta)
         y = np.sin(phi)*np.sin(theta)
         z = np.cos(phi)
-        return NumpyVectors(np.concatenate((x, y, z), axis=0))
+        return NumpyVectors(np.stack((x, y, z), axis=-1))
 
     def isEqualTo(self, other):
         if isinstance(other, NumpyVectors):
-            return NumpyScalars(np.less(np.abs(np.subtract(self.v, other.v)), 1e-9))
+            return NumpyScalars(np.less_equal(np.abs(np.subtract(self.v, other.v)), 1e-9))
         else:
-            return NumpyScalars(np.less(np.abs(np.subtract(self.v, other)), 1e-9))
+            return NumpyScalars(np.less_equal(np.abs(np.subtract(self.v, other)), 1e-9))
 
     def isAlmostEqualTo(self, other, epsilon):
         if isinstance(other, NumpyVectors):
-            return NumpyScalars(np.less(np.abs(np.subtract(self.v, other.v)), epsilon))
+            return NumpyScalars(np.less_equal(np.abs(np.subtract(self.v, other.v)), epsilon))
         else:
-            return NumpyScalars(np.less(np.abs(np.subtract(self.v, other)), epsilon))
+            return NumpyScalars(np.less_equal(np.abs(np.subtract(self.v, other)), epsilon))
 
     def isParallelTo(self, other, epsilon=1e-9):
         return np.less(self.normalizedDotProduct(other.v) - 1, epsilon)
@@ -361,22 +367,24 @@ class NumpyVectors:
         pass
 
     def norm(self):
-        return NumpyScalars(np.linalg.norm(self.v, axis=0))
+        return NumpyScalars(np.linalg.norm(self.v, axis=1))
 
     def abs(self):
         return NumpyVectors(np.abs(self.v))
 
     def normalize(self):
-        self.v = self.v/np.linalg.norm(self.v, axis=0)
+        self.v = self.v/np.linalg.norm(self.v, axis=1)
 
     def normalized(self):
-        return NumpyVectors(self.v/np.linalg.norm(self.v, axis=0))
+        return NumpyVectors(self.v/np.linalg.norm(self.v, axis=1))
 
     def cross(self, other):
         return NumpyVectors(np.cross(self.v, other.v))
 
     def dot(self, other):
-        return NumpyScalars(np.dot(self.v, other.v))
+        # element-wise dot product(fake np.dot)
+        # https://stackoverflow.com/questions/41443444/numpy-element-wise-dot-product
+        return NumpyScalars(np.einsum('ij,ij->i', self.v, other.v))
 
     def normalizedCrossProduct(self, other):
         '''TODO:  Is this OK'''

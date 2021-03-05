@@ -327,13 +327,13 @@ class TestNumpyVectors(envtest.PyTissueTestCase):
         pass
 
     def testCheckInitTypeFloat64(self):
-        vecs = NumpyVectors([[1, -0.042982430, 1], [1, 0.9933727400, 1], [2, -0.106597860, 3]])
+        vecs = NumpyVectors([[1, 1, 1], [-0.04298243, 0.99337274, -0.10659786], [0, 1, 0], [-1, 0, 0]])
         self.assertEqual(np.float64, type(vecs[0][0]))
 
     def testGetItem(self):
-        vecs = NumpyVectors([[1, -0.042982430, 1], [1, 0.9933727400, 1], [2, -0.106597860, 3]])
+        vecs = NumpyVectors([[1, 1, 1], [-0.04298243, 0.99337274, -0.10659786], [0, 1, 0], [-1, 0, 0]])
         r = vecs[0]
-        r = np.equal(r, [1, 1, 2])
+        r = np.equal(r, [1, 1, 1])
         if False in r:
             r = False
         else:
@@ -344,9 +344,9 @@ class TestNumpyVectors(envtest.PyTissueTestCase):
         pass
 
     def testAdd(self):
-        vecs = NumpyVectors([[1, 1, 1], [1, 1, 1], [1, 1, 1]])
+        vecs = NumpyVectors([[1, 1, 1], [0, 1, 0], [-1, 0, 0]])
         r = vecs + 1
-        r = np.equal(r.v, [[2, 2, 2], [2, 2, 2], [2, 2, 2]])
+        r = np.equal(r.v, [[2, 2, 2], [1, 2, 1], [0, 1, 1]])
         if False in r:
             r = False
         else:
@@ -354,9 +354,9 @@ class TestNumpyVectors(envtest.PyTissueTestCase):
         self.assertTrue(r)
 
     def testSubtract(self):
-        vecs = NumpyVectors([[2, 2, 2], [2, 2, 2], [2, 2, 2]])
+        vecs = NumpyVectors([[2, 2, 2], [1, 2, 2], [2, 2, 3]])
         r = vecs - 1
-        r = np.equal(r.v, [[1, 1, 1], [1, 1, 1], [1, 1, 1]])
+        r = np.equal(r.v, [[1, 1, 1], [0, 1, 1], [1, 1, 2]])
         if False in r:
             r = False
         else:
@@ -364,9 +364,9 @@ class TestNumpyVectors(envtest.PyTissueTestCase):
         self.assertTrue(r)
 
     def testDivide(self):
-        vecs = NumpyVectors([[1, -0.5, 1], [1, 0.5, 1], [2, -0.5, 3]])
+        vecs = NumpyVectors([[1, 1, 1], [-2, -2, -2], [3, 3, 3], [0, 0, 0]])
         r = vecs/2.0
-        r = np.equal(r.v, [[0.5, -0.25, 0.5], [0.5, 0.25, 0.5], [1, -0.25, 1.5]])
+        r = np.equal(r.v, [[0.5, 0.5, 0.5], [-1, -1, -1], [1.5, 1.5, 1.5], [0, 0, 0]])
         if False in r:
             r = False
         else:
@@ -374,9 +374,9 @@ class TestNumpyVectors(envtest.PyTissueTestCase):
         self.assertTrue(r)
 
     def testMul(self):
-        vecs = NumpyVectors([[1, 1, 1], [1, 1, 1], [1, 1, 1]])
+        vecs = NumpyVectors([[-1, -1, -1], [2, 2, 2], [0, 0, 0]])
         r = vecs * 2.0
-        r = np.equal(r.v, [[2, 2, 2], [2, 2, 2], [2, 2, 2]])
+        r = np.equal(r.v, [[-2, -2, -2], [4, 4, 4], [0, 0, 0]])
         if False in r:
             r = False
         else:
@@ -388,12 +388,11 @@ class TestNumpyVectors(envtest.PyTissueTestCase):
 
     def testLen(self):
         vecs = NumpyVectors([[1, 1, 1], [1, 1, 1], [1, 1, 1], [1, 1, 1]])
-        print(vecs.v.shape)
         r = len(vecs)
-        self.assertEqual(r, 3)
+        self.assertEqual(r, 4)
 
     def testIsNullTrue(self):
-        vecs = NumpyVectors.randomUniform(100, 0)
+        vecs = NumpyVectors([[0, 0, 0], [0, 0, 0]])
         r = vecs.isNull
         if False in r:
             r = False
@@ -402,7 +401,7 @@ class TestNumpyVectors(envtest.PyTissueTestCase):
         self.assertTrue(r)
 
     def testIsNullFalse(self):
-        vecs = NumpyVectors.randomUniform(100, 0.0001)
+        vecs = NumpyVectors([[0, 0, 0], [0.0001, 0, 0]])
         r = vecs.isNull
         if False in r:
             r = False
@@ -411,18 +410,19 @@ class TestNumpyVectors(envtest.PyTissueTestCase):
         self.assertFalse(r)
 
     def testIsUnitaryTrue(self):
-        vecs = NumpyVectors([[1, -0.04298243, 1], [1, 0.99337274, 1], [2, -0.10659786, 3]])
+        vecs = NumpyVectors([[1, 1, 1], [-0.04298243, 0.99337274, -0.10659786], [0, 1, 0], [-1, 0, 0]])
         verify = np.count_nonzero(vecs.isUnitary)
-        self.assertEqual(verify, 1)
+        self.assertEqual(verify, 3)
 
     def testIsUnitaryFalse(self):
-        vecs = NumpyVectors([[1, -0.04298243, 1], [1, 0.99337274, 1], [2, -0.10659786, 3]])
-        verify = 3 - np.count_nonzero(vecs.isUnitary)
-        self.assertEqual(verify, 2)
+        vecs = NumpyVectors([[1, 1, 1], [-0.04298243, 0.99337274, -0.10659786], [0, 1, 0], [-1, 0, 0]])
+        verify = 4 - np.count_nonzero(vecs.isUnitary)
+        self.assertEqual(verify, 1)
 
     def testRandomVectors(self):
-        vecs = NumpyVectors.randomUniform(100, 3)
-        r = np.less_equal(np.subtract(np.linalg.norm(vecs.v, axis=0), (np.ones(100)*3).astype('float64')), 1e-9)
+        vecs = NumpyVectors.randomUniform(3, 3)
+        print(vecs)
+        r = np.less_equal(np.subtract(np.linalg.norm(vecs.v, axis=1), (np.ones((3, 3))*3).astype('float64')), 1e-9)
         if False in r:
             r = False
         else:
@@ -430,9 +430,10 @@ class TestNumpyVectors(envtest.PyTissueTestCase):
         self.assertTrue(r)
 
     def testRandomUnitVectors(self):
-        vecs = NumpyVectors.randomUniformUnitary(100)
+        vecs = NumpyVectors.randomUniformUnitary(3)
+        print(vecs.v[0, 0], vecs.v[0, 1], vecs.v[0, 2])
         r = vecs.isUnitary
-        print(vecs[0][0], vecs[1][0], vecs[2][0])
+
         if False in r:
             r = False
         else:
@@ -440,8 +441,8 @@ class TestNumpyVectors(envtest.PyTissueTestCase):
         self.assertTrue(r)
 
     def testIsEqualToFalse(self):
-        vecs = NumpyVectors([[1, -0.04298243, 1], [1, 0.99337274, 1], [2, -0.10659786, 3]])
-        vecs2 = NumpyVectors([[1, -0.04298242, 1], [1, 0.99337271, 1], [2, -0.10659786, 3]])
+        vecs = NumpyVectors([[1, 1, 1], [-0.04298243, 0.99337274, -0.10659786], [1, 1, 3]])
+        vecs2 = NumpyVectors([[0, 1, 1], [-0.0429843, 0.99337274, -0.10659786], [1, 1, 3]])
         r = vecs.isEqualTo(vecs2)
         if False in r:
             r = False
@@ -450,8 +451,8 @@ class TestNumpyVectors(envtest.PyTissueTestCase):
         self.assertFalse(r)
 
     def testIsEqualToTrue(self):
-        vecs = NumpyVectors([[1, -0.04298243, 1], [1, 0.99337274, 1], [2, -0.10659786, 3]])
-        vecs2 = NumpyVectors([[1, -0.04298243, 1], [1, 0.99337274, 1], [2, -0.10659786, 3]])
+        vecs = NumpyVectors([[1, 1, 1], [-0.04298243, 0.99337274, -0.10659786], [1, 1, 3]])
+        vecs2 = NumpyVectors([[1, 1, 1], [-0.04298243, 0.99337274, -0.10659786], [1, 1, 3]])
         r = vecs.isEqualTo(vecs2)
         if False in r:
             r = False
@@ -460,8 +461,8 @@ class TestNumpyVectors(envtest.PyTissueTestCase):
         self.assertTrue(r)
 
     def testIsAlmostEqualToFalse(self):
-        vecs = NumpyVectors([[1, -0.04298243, 1], [1, 0.99337274, 1], [2, -0.10659786, 3]])
-        vecs2 = NumpyVectors([[1, -0.04298242, 1], [1, 0.99337273, 1], [2, -0.10659785, 3]])
+        vecs = NumpyVectors([[1, 1, 1], [-0.04298243, 0.99337274, -0.10659786], [1, 1, 3]])
+        vecs2 = NumpyVectors([[1, 1, 1], [-0.04288243, 0.99337274, -0.10659786], [1, 1, 3]])
         r = vecs.isAlmostEqualTo(vecs2, 0.000000001)
         if False in r:
             r = False
@@ -470,9 +471,12 @@ class TestNumpyVectors(envtest.PyTissueTestCase):
         self.assertFalse(r)
 
     def testIsAlmostEqualToTrue(self):
-        vecs = NumpyVectors([[1, -0.04298243, 1], [1, 0.99337274, 1], [2, -0.10659786, 3]])
-        vecs2 = NumpyVectors([[1, -0.04298242, 1], [1, 0.99337273, 1], [2, -0.10659785, 3]])
+        vecs = NumpyVectors([[1, 1, 1], [-0.04298243, 0.99337274, -0.10659786], [1, 1, 3]])
+        vecs2 = NumpyVectors([[1, 1, 1], [-0.04298343, 0.99337274, -0.10659786], [1, 1, 3]])
+
         r = vecs.isAlmostEqualTo(vecs2, 0.00001)
+        print(r.v)
+
         if False in r:
             r = False
         else:
@@ -480,18 +484,20 @@ class TestNumpyVectors(envtest.PyTissueTestCase):
         self.assertTrue(r)
 
     def testNormOutputTypeFloat64(self):
-        vecs = NumpyVectors([[1, -0.042982430, 1], [1, 0.9933727400, 1], [2, -0.106597860, 3]])
+        vecs = NumpyVectors([[1, 1, 1], [-0.04298243, 0.99337274, -0.10659786], [1, 1, 3]])
         vnorms = vecs.norm()
         print(vnorms[0])
         self.assertEqual(np.float64, type(vnorms[0]))
 
     def testNorm(self):
-        vecs = NumpyVectors([[1, -0.04032489522818527, 1], [1, 0.40978405819370556, 1], [2, -0.9112908034623929, 3]])
+        vecs = NumpyVectors([[1, 1, 1], [0.866539324968574, -0.49677441419390916, 0.04821596919389434], [1, 1, 3]])
         vnorms = vecs.norm()
-        norm1 = np.sqrt(1+1+2**2)
+        print(vnorms.v[0], vnorms.v[1], vnorms.v[2])
+        norm1 = np.sqrt(1 + 1 + 1)
         norm2 = 1
-        norm3 = np.sqrt(1+1+3**2)
+        norm3 = np.sqrt(1 + 1 + 3**2)
         norms = [norm1, norm2, norm3]
+        print(norms)
         r = vnorms.isEqualTo(norms)
 
         if False in r:
@@ -501,7 +507,7 @@ class TestNumpyVectors(envtest.PyTissueTestCase):
         self.assertTrue(r)
 
     def testAbs(self):
-        vecs = NumpyVectors([[1, -0.04032489522818527, 1], [1, 0.40978405819370556, 1], [2, -0.9112908034623929, 3]])
+        vecs = NumpyVectors([[-1, 1, 1], [0.866539324968574, -0.49677441419390916, 0.04821596919389434], [1, 1, 3]])
         r = vecs.abs()
         r = np.greater_equal(r.v, np.zeros((3, 3)))
         if False in r:
@@ -510,14 +516,18 @@ class TestNumpyVectors(envtest.PyTissueTestCase):
             r = True
         self.assertTrue(r)
 
-    def testIsParallelTo(self):
+    def testIsParallelToTrue(self):
         pass
 
     def testIsPerpendicularTo(self):
         pass
 
     def testDot(self):
-        pass
+        vecs3 = NumpyVectors([[0, 0, 1], [1, 1, 1], [-2, -2, -2]])
+        vecs4 = NumpyVectors([[1, 0, 0], [1, 1, 1], [2, 2, 2]])
+        r = vecs3.dot(vecs4)
+        r = np.all(np.equal([0, 3, -12], r.v))
+        self.assertTrue(r)
 
     def testCross(self):
         pass
@@ -550,7 +560,11 @@ class TestNumpyVectors(envtest.PyTissueTestCase):
         pass
 
     def testNormalizedDotProduct(self):
-        pass
+        vecs = NumpyVectors([[1, 1, 1], [-0.04298243, 0.99337274, -0.10659786], [0, 1, 0], [-1, 0, 0]])
+        vecs2 = NumpyVectors([[1, 1, 0], [-0.04298243, 0.99337274, -0.10659786], [0, 0, 1], [0, -2, 0]])
+        r = vecs.normalizedDotProduct(vecs2)
+        print(r)
+
 
     def testAngleWith(self):
         pass
