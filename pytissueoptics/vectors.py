@@ -214,7 +214,7 @@ class NumpyVectors:
 
     def __init__(self, vectors=None, N=None):
         if vectors is not None:
-            self.v = vectors
+            self.v = np.asarray(vectors).astype('float64')
         elif N is not None:
             self.v = np.zeros(3, N, dtype=np.float64)
             
@@ -345,7 +345,7 @@ class NumpyVectors:
         pass
 
     def norm(self):
-        return NumpyScalars(np.abs(np.linalg.norm(self.v, axis=0)).astype('float64'))
+        return NumpyScalars(np.linalg.norm(self.v, axis=0))
 
     def abs(self):
         pass

@@ -11,7 +11,7 @@ class Scalars:
     """
     def __init__(self, array=None, N=None):
         if array is not None:
-            self.v = np.array(array)
+            self.v = np.asarray(array).astype('float64')
         elif N is not None:
             self.v = np.array([0]*N)
 
@@ -112,10 +112,10 @@ class NumpyScalars:
         return NumpyScalars(np.negative(self.v))
 
     def __getitem__(self, item):
-        return self.v[:, item]
+        return self.v[item]
 
     def __setitem__(self, key, value: np.float32):
-        self.v[:, key] = value
+        self.v[key] = value
 
     def __eq__(self, other):
         if isinstance(other, NumpyScalars):
@@ -152,3 +152,9 @@ class NumpyScalars:
     @classmethod
     def random2(cls, N: int):
         return NumpyScalars((np.random.rand(1, N) * 2) - 1)
+
+    def isEqualTo(self, other):
+        if isinstance(other, NumpyScalars):
+            return NumpyScalars(np.less(np.abs(np.subtract(self.v, other.v)), 1e-9))
+        else:
+            return NumpyScalars(np.less(np.abs(np.subtract(self.v, other)), 1e-9))

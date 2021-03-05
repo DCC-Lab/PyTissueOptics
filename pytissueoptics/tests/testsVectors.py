@@ -351,6 +351,10 @@ class TestNumpyVectors(envtest.PyTissueTestCase):
     def testMulWithNumpyVector(self):
         pass
 
+    def testCheckInitTypeFloat64(self):
+        vecs = NumpyVectors([[1, -0.042982430, 1], [1, 0.9933727400, 1], [2, -0.106597860, 3]])
+        self.assertEqual(np.float64, type(vecs[0][0]))
+
     def testIsNullTrue(self):
         vecs = NumpyVectors.randomUniform(100, 0)
         r = vecs.isNull
@@ -437,15 +441,27 @@ class TestNumpyVectors(envtest.PyTissueTestCase):
             r = True
         self.assertTrue(r)
 
-    def testNorm(self):
-        vecs = NumpyVectors([[1, -0.04298243, 1], [1, 0.99337274, 1], [2, -0.10659786, 3]])
+    def testNormOutputTypeFloat64(self):
+        vecs = NumpyVectors([[1, -0.042982430, 1], [1, 0.9933727400, 1], [2, -0.106597860, 3]])
         vnorms = vecs.norm()
-        norm1 = sqrt(1+1+2**2)
+        self.assertEqual(np.float64, type(vnorms[0]))
+
+    def testNorm(self):
+        vecs = NumpyVectors([[1, -0.042982430, 1], [1, 0.9933727400, 1], [2, -0.106597860, 3]])
+        vnorms = vecs.norm()
+        norm1 = np.sqrt(1+1+2**2)
         norm2 = 1
-        norm3 = sqrt(1+1+3**2)
+        norm3 = np.sqrt(1+1+3**2)
         norms = [norm1, norm2, norm3]
         print(vnorms.v, norms)
-        self.assertEquals(vnorms.v, norms)
+        r = vnorms.isEqualTo(norms)
+        print(r.v)
+
+        if False in r:
+            r = False
+        else:
+            r = True
+        self.assertTrue(r)
 
 
 if __name__ == '__main__':
