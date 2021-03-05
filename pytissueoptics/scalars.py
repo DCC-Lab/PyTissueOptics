@@ -71,14 +71,14 @@ class Scalars:
             each = [v1 == v2 for (v1, v2) in list(zip(self.v, rhs))]
         return np.array(each).all()
 
-    def negate(self) -> 'Scalars':
+    def not_(self) -> 'Scalars':
         return Scalars([not bool(v1) for v1 in self.v])
 
-    def __and__(self, rhs) -> 'Scalars':
-        return Scalars([bool(v1) and bool(v2) for v1, v2 in (self.v, rhs)])
+    def and_(self, rhs) -> 'Scalars':
+        return Scalars([v1 and v2 for v1, v2 in list(zip(self.v, rhs))])
 
-    def __or__(self, rhs) -> 'Scalars':
-        return Scalars([bool(v1) or bool(v2) for v1, v2 in (self.v, rhs)])
+    def or_(self, rhs) -> 'Scalars':
+        return Scalars([v1 or v2 for v1, v2 in list(zip(self.v, rhs))])
 
     def all(self) -> bool:
         return self.v.all()
