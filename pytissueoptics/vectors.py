@@ -236,11 +236,11 @@ class NumpyVectors:
 
     def __truediv__(self, other):
         if isinstance(other, NumpyVectors):
-            return NumpyVectors(np.true_div(self.v, other.v))
+            return NumpyVectors(np.true_divide(self.v, other.v))
         elif isinstance(other, NumpyScalars):
-            return NumpyVectors(np.true_div(self.v * other.v[:, None]))
+            return NumpyVectors(np.true_divide(self.v * other.v[:, None]))
         else:
-            return NumpyVectors(np.true_div(self.v, other))
+            return NumpyVectors(np.true_divide(self.v, other))
 
     def __add__(self, other):
         if isinstance(other, NumpyVectors):
@@ -326,7 +326,7 @@ class NumpyVectors:
             return NumpyScalars(np.less(np.abs(np.subtract(self.v, other)), epsilon))
 
     def isParallelTo(self, other, epsilon=1e-9):
-        pass
+        return np.less(self.normalizedDotProduct(other.v) - 1, epsilon)
 
     def anyPerpendicular(self):
         pass
@@ -350,13 +350,13 @@ class NumpyVectors:
         return NumpyScalars(np.linalg.norm(self.v, axis=0))
 
     def abs(self):
-        pass
+        return NumpyVectors(np.abs(self.v))
 
     def normalize(self):
-        pass
+        self.v = self.v/np.linalg.norm(self.v, axis=0)
 
     def normalized(self):
-        pass
+        return NumpyVectors(self.v/np.linalg.norm(self.v, axis=0))
 
     def isPerpendicularTo(self, other, epsilon=1e-9):
         pass
@@ -367,11 +367,15 @@ class NumpyVectors:
     def dot(self, other):
         return NumpyScalars(np.dot(self.v, other.v))
 
-    def normalizedCrossProduct(self, rhs):
+    def normalizedCrossProduct(self, other):
         pass
 
-    def normalizedDotProduct(self, rhs):
-        pass
+    def normalizedDotProduct(self, other):
+        '''TODO: '''
+        productNorm = self.norm() * other.norm()
+        if productNorm == 0:
+            return 0
+        return self.dot(other) * (1 / math.sqrt(productNorm))
 
     def angleWith(self, v, axis):
         pass

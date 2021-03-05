@@ -373,22 +373,53 @@ class TestNumpyVectors(envtest.PyTissueTestCase):
         pass
 
     def testAdd(self):
-        pass
+        vecs = NumpyVectors([[1, 1, 1], [1, 1, 1], [1, 1, 1]])
+        r = vecs + 1
+        r = np.equal(r.v, [[2, 2, 2], [2, 2, 2], [2, 2, 2]])
+        if False in r:
+            r = False
+        else:
+            r = True
+        self.assertTrue(r)
 
     def testSubtract(self):
-        pass
+        vecs = NumpyVectors([[2, 2, 2], [2, 2, 2], [2, 2, 2]])
+        r = vecs - 1
+        r = np.equal(r.v, [[1, 1, 1], [1, 1, 1], [1, 1, 1]])
+        if False in r:
+            r = False
+        else:
+            r = True
+        self.assertTrue(r)
 
     def testDivide(self):
-        pass
+        vecs = NumpyVectors([[1, -0.5, 1], [1, 0.5, 1], [2, -0.5, 3]])
+        r = vecs/2.0
+        r = np.equal(r.v, [[0.5, -0.25, 0.5], [0.5, 0.25, 0.5], [1, -0.25, 1.5]])
+        if False in r:
+            r = False
+        else:
+            r = True
+        self.assertTrue(r)
 
     def testMul(self):
-        pass
+        vecs = NumpyVectors([[1, 1, 1], [1, 1, 1], [1, 1, 1]])
+        r = vecs * 2.0
+        r = np.equal(r.v, [[2, 2, 2], [2, 2, 2], [2, 2, 2]])
+        if False in r:
+            r = False
+        else:
+            r = True
+        self.assertTrue(r)
 
     def testNeg(self):
         pass
 
     def testLen(self):
-        pass
+        vecs = NumpyVectors([[1, 1, 1], [1, 1, 1], [1, 1, 1], [1, 1, 1]])
+        print(vecs.v.shape)
+        r = len(vecs)
+        self.assertEqual(r, 3)
 
     def testIsNullTrue(self):
         vecs = NumpyVectors.randomUniform(100, 0)
@@ -499,7 +530,14 @@ class TestNumpyVectors(envtest.PyTissueTestCase):
         self.assertTrue(r)
 
     def testAbs(self):
-        pass
+        vecs = NumpyVectors([[1, -0.04032489522818527, 1], [1, 0.40978405819370556, 1], [2, -0.9112908034623929, 3]])
+        r = vecs.abs()
+        r = np.greater_equal(r.v, np.zeros((3, 3)))
+        if False in r:
+            r = False
+        else:
+            r = True
+        self.assertTrue(r)
 
     def testIsParallelTo(self):
         pass
