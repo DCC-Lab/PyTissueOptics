@@ -135,6 +135,12 @@ class NumpyScalars:
         else:
             raise StopIteration
 
+    def __contains__(self, item):
+        if item in self.v:
+            return True
+        else:
+            return False
+
     @classmethod
     def setAll(cls, value, N):
         return NumpyScalars(np.full((1, N), value))

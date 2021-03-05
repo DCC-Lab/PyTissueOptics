@@ -351,6 +351,102 @@ class TestNumpyVectors(envtest.PyTissueTestCase):
     def testMulWithNumpyVector(self):
         pass
 
+    def testIsNullTrue(self):
+        vecs = NumpyVectors.randomUniform(100, 0)
+        r = vecs.isNull
+        if False in r:
+            r = False
+        else:
+            r = True
+        self.assertTrue(r)
+
+    def testIsNullFalse(self):
+        vecs = NumpyVectors.randomUniform(100, 0.0001)
+        r = vecs.isNull
+        if False in r:
+            r = False
+        else:
+            r = True
+        self.assertFalse(r)
+
+    def testIsUnitaryTrue(self):
+        vecs = NumpyVectors([[1, -0.04298243, 1], [1, 0.99337274, 1], [2, -0.10659786, 3]])
+        verify = np.count_nonzero(vecs.isUnitary)
+        self.assertEqual(verify, 1)
+
+    def testIsUnitaryFalse(self):
+        vecs = NumpyVectors([[1, -0.04298243, 1], [1, 0.99337274, 1], [2, -0.10659786, 3]])
+        verify = 3 - np.count_nonzero(vecs.isUnitary)
+        self.assertEqual(verify, 2)
+
+    def testRandomVectors(self):
+        vecs = NumpyVectors.randomUniform(100, 3)
+        r = np.less_equal(np.subtract(np.linalg.norm(vecs.v, axis=0), (np.ones(100)*3).astype('float64')), 1e-9)
+        if False in r:
+            r = False
+        else:
+            r = True
+        self.assertTrue(r)
+
+    def testRandomUnitVectors(self):
+        vecs = NumpyVectors.randomUniformUnitary(100)
+        r = vecs.isUnitary
+        if False in r:
+            r = False
+        else:
+            r = True
+        self.assertTrue(r)
+
+    def testIsEqualToFalse(self):
+        vecs = NumpyVectors([[1, -0.04298243, 1], [1, 0.99337274, 1], [2, -0.10659786, 3]])
+        vecs2 = NumpyVectors([[1, -0.04298242, 1], [1, 0.99337271, 1], [2, -0.10659786, 3]])
+        r = vecs.isEqualTo(vecs2)
+        if False in r:
+            r = False
+        else:
+            r = True
+        self.assertFalse(r)
+
+    def testIsEqualToTrue(self):
+        vecs = NumpyVectors([[1, -0.04298243, 1], [1, 0.99337274, 1], [2, -0.10659786, 3]])
+        vecs2 = NumpyVectors([[1, -0.04298243, 1], [1, 0.99337274, 1], [2, -0.10659786, 3]])
+        r = vecs.isEqualTo(vecs2)
+        if False in r:
+            r = False
+        else:
+            r = True
+        self.assertTrue(r)
+
+    def testIsAlmostEqualToFalse(self):
+        vecs = NumpyVectors([[1, -0.04298243, 1], [1, 0.99337274, 1], [2, -0.10659786, 3]])
+        vecs2 = NumpyVectors([[1, -0.04298242, 1], [1, 0.99337273, 1], [2, -0.10659785, 3]])
+        r = vecs.isAlmostEqualTo(vecs2, 0.000000001)
+        if False in r:
+            r = False
+        else:
+            r = True
+        self.assertFalse(r)
+
+    def testIsAlmostEqualToTrue(self):
+        vecs = NumpyVectors([[1, -0.04298243, 1], [1, 0.99337274, 1], [2, -0.10659786, 3]])
+        vecs2 = NumpyVectors([[1, -0.04298242, 1], [1, 0.99337273, 1], [2, -0.10659785, 3]])
+        r = vecs.isAlmostEqualTo(vecs2, 0.00001)
+        if False in r:
+            r = False
+        else:
+            r = True
+        self.assertTrue(r)
+
+    def testNorm(self):
+        vecs = NumpyVectors([[1, -0.04298243, 1], [1, 0.99337274, 1], [2, -0.10659786, 3]])
+        vnorms = vecs.norm()
+        norm1 = sqrt(1+1+2**2)
+        norm2 = 1
+        norm3 = sqrt(1+1+3**2)
+        norms = [norm1, norm2, norm3]
+        print(vnorms.v, norms)
+        self.assertEquals(vnorms.v, norms)
+
 
 if __name__ == '__main__':
     envtest.main()

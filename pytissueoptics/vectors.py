@@ -214,9 +214,9 @@ class NumpyVectors:
 
     def __init__(self, vectors=None, N=None):
         if vectors is not None:
-            self.v = np.asarray(vectors)
+            self.v = vectors
         elif N is not None:
-            self.v = np.zeros(3, N, dtype=np.float32)
+            self.v = np.zeros(3, N, dtype=np.float64)
             
         self._iteration = 0
     
@@ -260,9 +260,11 @@ class NumpyVectors:
         else:
             return NumpyVectors(np.subtract(self.v, other))
 
-    """The getitem, setitem, iter, next special methods should not be used
+
+    """ The getitem, setitem, iter, next special methods should not be used
     because never should there be need to bypass the numpy function. Such use
-    could and will deteriorate performances and possibly fail to parallelize."""
+    could and will deteriorate performances and possibly fail to parallelize.
+    Can be used to unit test """
 
     def __getitem__(self, index):
         return self.v[:, index]
@@ -281,31 +283,47 @@ class NumpyVectors:
 
     @property
     def isUnitary(self):
-        return np.less(np.abs(np.linalg.norm(self.v, axis=0)-1, 1e-7))
+        return np.less(np.abs(np.linalg.norm(self.v, axis=0))-1, 1e-9)
 
     @property
     def isNull(self):
-        return np.less(np.linalg.norm(self.v, axis=0), 1e-7)
+        return np.less(np.linalg.norm(self.v, axis=0), 1e-9)
 
     @property
     def count(self):
         return len(self.v)
 
     @classmethod
-    def random(cls, N):
-        return NumpyVectors(np.random.rand(3, N))
+    def randomUniform(cls, N, r):
+        theta = (np.random.rand(1, N) * 2 * np.pi)
+        phi = (np.random.rand(1, N) * np.pi)
+        x = (r * np.sin(phi) * np.cos(theta))
+        y = (r * np.sin(phi) * np.sin(theta))
+        z = r * np.cos(phi)
+        return NumpyVectors(np.stack((x, y, z), axis=0).astype('float64'))
 
     @classmethod
-    def randomUnitary(cls, N):
-        pass
+    def randomUniformUnitary(cls, N):
+        theta = np.random.rand(1, N) * 2 * np.pi
+        phi = (np.random.rand(1, N) * np.pi)
+        x = np.sin(phi)*np.cos(theta)
+        y = np.sin(phi)*np.sin(theta)
+        z = np.cos(phi)
+        return NumpyVectors(np.stack((x, y, z), axis=0).astype('float64'))
 
-    def isEqualTo(self, rhs):
-        pass
+    def isEqualTo(self, other):
+        if isinstance(other, NumpyVectors):
+            return NumpyScalars(np.less(np.abs(np.subtract(self.v, other.v)), 1e-9))
+        else:
+            return NumpyScalars(np.less(np.abs(np.subtract(self.v, other)), 1e-9))
 
-    def isAlmostEqualTo(self, rhs, epsilon):
-        pass
+    def isAlmostEqualTo(self, other, epsilon):
+        if isinstance(other, NumpyVectors):
+            return NumpyScalars(np.less(np.abs(np.subtract(self.v, other.v)), epsilon))
+        else:
+            return NumpyScalars(np.less(np.abs(np.subtract(self.v, other)), epsilon))
 
-    def isParallelTo(self, rhs, epsilon=1e-7):
+    def isParallelTo(self, other, epsilon=1e-9):
         pass
 
     def anyPerpendicular(self):
@@ -327,19 +345,19 @@ class NumpyVectors:
         pass
 
     def norm(self):
-        pass
+        return NumpyScalars(np.abs(np.linalg.norm(self.v, axis=0)).astype('float64'))
 
     def abs(self):
         pass
 
     def normalize(self):
-        pass
+
         return self
 
     def normalized(self):
         pass
 
-    def isPerpendicularTo(self, other, epsilon=1e-7):
+    def isPerpendicularTo(self, other, epsilon=1e-9):
         pass
 
     def cross(self, other):
@@ -347,7 +365,6 @@ class NumpyVectors:
 
     def dot(self, other):
         return NumpyScalars(np.dot(self.v, other.v))
-
 
     def normalizedCrossProduct(self, rhs):
         pass
