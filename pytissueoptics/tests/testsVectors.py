@@ -349,9 +349,29 @@ class TestVector(envtest.PyTissueTestCase):
 
 class TestNumpyVectors(envtest.PyTissueTestCase):
 
+    def testInitWithList(self):
+        pass
+
+    def testInitWithNumpyArray(self):
+        pass
+
     def testCheckInitTypeFloat64(self):
         vecs = NumpyVectors([[1, -0.042982430, 1], [1, 0.9933727400, 1], [2, -0.106597860, 3]])
         self.assertEqual(np.float64, type(vecs[0][0]))
+
+    def testGetItem(self):
+        vecs = NumpyVectors([[1, -0.042982430, 1], [1, 0.9933727400, 1], [2, -0.106597860, 3]])
+        r = vecs[0]
+        print(vecs.v)
+        r = np.equal(r, [1, 1, 2])
+        if False in r:
+            r = False
+        else:
+            r = True
+        self.assertTrue(r)
+
+    def testSetItem(self):
+        pass
 
     def testAdd(self):
         pass
@@ -411,6 +431,7 @@ class TestNumpyVectors(envtest.PyTissueTestCase):
     def testRandomUnitVectors(self):
         vecs = NumpyVectors.randomUniformUnitary(100)
         r = vecs.isUnitary
+        print(vecs.v)
         if False in r:
             r = False
         else:
@@ -460,6 +481,7 @@ class TestNumpyVectors(envtest.PyTissueTestCase):
     def testNormOutputTypeFloat64(self):
         vecs = NumpyVectors([[1, -0.042982430, 1], [1, 0.9933727400, 1], [2, -0.106597860, 3]])
         vnorms = vecs.norm()
+        print(vnorms[0])
         self.assertEqual(np.float64, type(vnorms[0]))
 
     def testNorm(self):
@@ -469,7 +491,7 @@ class TestNumpyVectors(envtest.PyTissueTestCase):
         norm2 = 1
         norm3 = np.sqrt(1+1+3**2)
         norms = [norm1, norm2, norm3]
-        print(vnorms.v, norms)
+        print(vnorms[1], norms)
         r = vnorms.isEqualTo(norms)
         print(r.v)
 

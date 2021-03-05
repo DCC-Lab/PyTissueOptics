@@ -214,7 +214,10 @@ class NumpyVectors:
 
     def __init__(self, vectors=None, N=None):
         if vectors is not None:
-            self.v = np.asarray(vectors).astype('float64')
+            if type(vectors) == np.ndarray:
+                self.v = vectors.astype('float64')
+            else:
+                self.v = np.asarray(vectors, dtype=np.float64)
         elif N is not None:
             self.v = np.zeros(3, N, dtype=np.float64)
             
@@ -300,7 +303,7 @@ class NumpyVectors:
         x = (r * np.sin(phi) * np.cos(theta))
         y = (r * np.sin(phi) * np.sin(theta))
         z = r * np.cos(phi)
-        return NumpyVectors(np.stack((x, y, z), axis=0).astype('float64'))
+        return NumpyVectors(np.stack((x, y, z), axis=0))
 
     @classmethod
     def randomUniformUnitary(cls, N):
@@ -309,7 +312,7 @@ class NumpyVectors:
         x = np.sin(phi)*np.cos(theta)
         y = np.sin(phi)*np.sin(theta)
         z = np.cos(phi)
-        return NumpyVectors(np.stack((x, y, z), axis=0).astype('float64'))
+        return NumpyVectors(np.stack((x, y, z), axis=0))
 
     def isEqualTo(self, other):
         if isinstance(other, NumpyVectors):
@@ -351,8 +354,7 @@ class NumpyVectors:
         pass
 
     def normalize(self):
-
-        return self
+        pass
 
     def normalized(self):
         pass

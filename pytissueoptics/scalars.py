@@ -71,9 +71,12 @@ class Scalars:
 class NumpyScalars:
     def __init__(self, array=None, N=None):
         if array is not None:
-            self.v = np.asarray(array, dtype=np.float32)
+            if type(array) == np.ndarray:
+                self.v = array.astype('float64')
+            else:
+                self.v = np.asarray(array, dtype=np.float64)
         elif N is not None:
-            self.v = np.zeros((1, N), dtype=np.float32)
+            self.v = np.zeros((1, N), dtype=np.float64)
             
         self._iteration = 0
 

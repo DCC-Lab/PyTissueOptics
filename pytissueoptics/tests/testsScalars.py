@@ -7,7 +7,7 @@ inf = float("+inf")
 
 class TestNumpyScalars(envtest.PyTissueTestCase):
     def testMultiplicationWithNumpyScalars(self):
-        NumpyScalars
+        pass
 
 
 if __name__ == '__main__':
