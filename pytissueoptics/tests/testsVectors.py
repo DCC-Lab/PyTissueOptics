@@ -170,6 +170,11 @@ class TestVector(envtest.PyTissueTestCase):
         vs = Vectors([oHat, xHat, yHat])
         self.assertEqual(vs.isUnitary, [False, True, True])
 
+    def testVectorIsUnitaryWithMask(self):
+        vs = Vectors([oHat, xHat, yHat])
+        vs.mask = [False, True, False]
+        self.assertEqual(vs.isUnitary, [None, True, None])
+
     def testVectorNegative(self):
         vs = Vectors([oHat, xHat, yHat])
         self.assertEqual(-vs, Vectors([-oHat, -xHat, -yHat]))
