@@ -5,7 +5,7 @@ import random
 
 inf = float("+inf")
 
-class TestVector(envtest.PyTissueTestCase):
+class TestVectors(envtest.PyTissueTestCase):
     def testNullVector(self):
         vs = Vectors(N=1000)
         self.assertIsNotNone(vs)
@@ -41,6 +41,15 @@ class TestVector(envtest.PyTissueTestCase):
             self.assertEqual(v.y, 3)
             self.assertEqual(v.z, 4)
 
+    def testAddVectorsWithMask(self):
+        v1 = Vectors(vectors=[Vector(1,1,1)]*3)
+        v1.mask = [False, True, True]
+        v2 = Vectors(vectors=[Vector(1,2,3)]*3)
+
+        vs = v1 + v2
+        self.assertEqual(vs.count, 3)
+        self.assertEqual(vs, [oHat, Vector(2,3,4), Vector(2,3,4)])
+
     def testSubVectors(self):
         v1 = Vectors(vectors=[Vector(1,1,1)]*1000)
         v2 = Vectors(vectors=[Vector(1,2,3)]*1000)
@@ -51,6 +60,15 @@ class TestVector(envtest.PyTissueTestCase):
             self.assertEqual(v.x, 0)
             self.assertEqual(v.y, -1)
             self.assertEqual(v.z, -2)
+
+    def testSubVectorsWithMask(self):
+        v1 = Vectors(vectors=[Vector(1,1,1)]*3)
+        v1.mask = [False, True, True]
+        v2 = Vectors(vectors=[Vector(1,2,3)]*3)
+
+        vs = v1 - v2
+        self.assertEqual(vs.count, 3)
+        self.assertEqual(vs, [oHat, Vector(0,-1,-2), Vector(0,-1,-2)])
 
     def testEqualVectors(self):
         v1 = Vectors([oHat, xHat, yHat])
@@ -71,43 +89,6 @@ class TestVector(envtest.PyTissueTestCase):
 
         self.assertTrue(v1/s == Vectors([oHat, xHat/2, yHat/3]))
 
-    # def testGetItemVector(self):
-    #     v = Vector(1,2,3)
-    #     self.assertIsNotNone(v)
-    #     self.assertEqual(v[0], 1)
-    #     self.assertEqual(v[1], 2)
-    #     self.assertEqual(v[2], 3)
-    #     with self.assertRaises(ValueError):
-    #         v[3]
-
-    # def testVectorValueInit(self):
-    #     v = Vector(1,2,3)
-    #     self.assertIsNotNone(v)
-    #     self.assertEqual(v.x, 1)
-    #     self.assertEqual(v.y, 2)
-    #     self.assertEqual(v.z, 3)
-
-    # def testVectorCopy(self):
-    #     constVector = Vector(1,2,3)
-    #     v = Vector(constVector)
-    #     self.assertIsNotNone(v)
-    #     self.assertEqual(v.x, 1)
-    #     self.assertEqual(v.y, 2)
-    #     self.assertEqual(v.z, 3)
-
-    #     constVector.x = 4
-    #     self.assertEqual(v.x, 1)
-
-    # def testInvalidInput(self):
-    #     with self.assertRaises(ValueError):
-    #         Vector("ouch")
-
-    # def testConstVectors(self):
-    #     self.assertTrue(oHat.isEqualTo(Vector(0,0,0)))
-    #     self.assertTrue(xHat.isEqualTo(Vector(1,0,0)))
-    #     self.assertTrue(yHat.isEqualTo(Vector(0,1,0)))
-    #     self.assertTrue(zHat.isEqualTo(Vector(0,0,1)))
-
     def testEqualsVectors(self):
         v1 = Vectors([oHat, xHat, yHat])
         v2 = Vectors([oHat, yHat, yHat])
@@ -125,43 +106,6 @@ class TestVector(envtest.PyTissueTestCase):
         self.assertEqual(v.y, 2)
         self.assertEqual(v.z, 3)
 
-    # def testCannotSetConstVectors(self):      
-    #     v = ConstVector(1,2,3)
-
-    #     with self.assertRaises(RuntimeError):
-    #         v.x = 1
-    #     with self.assertRaises(RuntimeError):
-    #         v.y = 2
-    #     with self.assertRaises(RuntimeError):
-    #         v.z = 3
-
-    #     with self.assertRaises(RuntimeError):
-    #         xHat.x = 2
-    #     with self.assertRaises(RuntimeError):
-    #         xHat.y = 2
-    #     with self.assertRaises(RuntimeError):
-    #         xHat.z = 2
-
-    #     with self.assertRaises(RuntimeError):
-    #         yHat.x = 2
-    #     with self.assertRaises(RuntimeError):
-    #         yHat.y = 2
-    #     with self.assertRaises(RuntimeError):
-    #         yHat.z = 2
-
-    #     with self.assertRaises(RuntimeError):
-    #         zHat.x = 2
-    #     with self.assertRaises(RuntimeError):
-    #         zHat.y = 2
-    #     with self.assertRaises(RuntimeError):
-    #         zHat.z = 2
-
-    # def testCannotNormalizeConstVectors(self):      
-    #     v = ConstVector(1,2,3)
-
-    #     with self.assertRaises(RuntimeError):
-    #         v.normalize()
-
     def testVectorIsNull(self):
         vs = Vectors([oHat, xHat, yHat])
         self.assertEqual(vs.isNull, [True, False, False])
@@ -173,16 +117,28 @@ class TestVector(envtest.PyTissueTestCase):
     def testVectorIsUnitaryWithMask(self):
         vs = Vectors([oHat, xHat, yHat])
         vs.mask = [False, True, False]
-        self.assertEqual(vs.isUnitary, [None, True, None])
+        self.assertEqual(vs.isUnitary, [False, True, False])
 
     def testVectorNegative(self):
         vs = Vectors([oHat, xHat, yHat])
         self.assertEqual(-vs, Vectors([-oHat, -xHat, -yHat]))
 
+    def testVectorNegativeWithMask(self):
+        vs = Vectors([oHat, xHat, yHat])
+        vs.mask = [False, True, False]
+        self.assertEqual(-vs, Vectors([oHat, -xHat, oHat]))
+
     def testVectorAlmostEqual(self):
         v1 = Vectors([oHat, xHat, yHat])
         v2 = Vectors([Vector(0,0,1), Vector(1.0000001,0,0), Vector(0,1.01,0)])
         self.assertEqual(v1.isAlmostEqualTo(v2,epsilon=1e-6), [False, True, False])
+
+    def testVectorAlmostEqualWithMask(self):
+        v1 = Vectors([oHat, xHat, yHat])
+        v1.mask = [False, True, True]
+        v2 = Vectors([Vector(0,0,1), Vector(1.0000001,0,0), Vector(0,1.01,0)])
+        r = v1.isAlmostEqualTo(v2,epsilon=1e-6)
+        self.assertEqual(r, [False, True, False])
 
     def testVectorParallel(self):
         v1 = Vectors([oHat, xHat, yHat])
@@ -275,12 +231,22 @@ class TestVector(envtest.PyTissueTestCase):
         v1.normalize()
         self.assertTrue(np.array(v1.isUnitary).all())
 
+    def testNormalizeWithMask(self):
+        v1 = Vectors([Vector(1,1,1), Vector(1,0,1),Vector(0,1,1)])
+        v1.mask = [False, True, True]
+        v2 = v1.normalized()
+
+        v1.normalize()
+        self.assertEqual(v1[0], Vector(1,1,1))
+
     def testScaledSum(self):
-        v1 = Vectors([Vector(1,2,3), Vector(4,5,6),Vector(7,8,9)]) 
+        v1 = Vectors([Vector(1,2,3), Vector(4,5,6),Vector(7,8,9)])
+        v1.mask = [False, True, True]
         v2 = Vectors([Vector(1,2,3), Vector(4,5,6),Vector(7,8,9)]) 
         s  = [1,2,3]
-        v3 = Vectors([Vector(2,4,6), Vector(12,15,18),Vector(28,32,36)])
-        self.assertEqual(Vectors.fromScaledSum(v1, v2, s), v3)
+        v3 = Vectors([oHat, Vector(12,15,18),Vector(28,32,36)])
+        r = Vectors.fromScaledSum(v1, v2, s)
+        self.assertEqual(r, v3)
         self.assertEqual(v1.addScaled(v2, s), v3)
 
     def testAnyPerpendicular(self):
