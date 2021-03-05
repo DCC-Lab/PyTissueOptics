@@ -41,7 +41,13 @@ class NativeVectors:
         elif N is not None:
             self.v = [Vector(0, 0, 0)] * N
         self._iteration = 0
-        self.mask = Scalars([True]*len(self.v))
+        self.selected = Scalars([True]*len(self.v))
+
+    # def selectedAll(self):
+    #     self.selected = Scalars([True] * len(self.v))
+    #
+    def selectedVectors(self):
+        return Vectors([v1 if e else None for (v1, e) in list(zip(self.v, self.selected))])
 
     @property
     def count(self):
@@ -72,15 +78,15 @@ class NativeVectors:
         return a.addScaled(b, scale)
 
     def addScaled(self, rhs, scale):
-        return Vectors([v1 if not m else v1 + v2 * s for (v1, v2, s, m) in list(zip(self.v, rhs, scale, self.mask))])
+        return Vectors([v1 if not e else v1 + v2 * s for (v1, v2, s, e) in list(zip(self.v, rhs, scale, self.selected))])
 
     @property
     def isUnitary(self) -> [bool]:
-        return [ v.isUnitary if m else False for v, m in list(zip(self.v, self.mask))]
+        return [ v.isUnitary if e else False for v, e in list(zip(self.v, self.selected))]
 
     @property
     def isNull(self) -> [bool]:
-        return [v.isNull if m else False for v, m in list(zip(self.v, self.mask))]
+        return [v.isNull if e else False for v, e in list(zip(self.v, self.selected))]
 
     # def __repr__(self):
     #     return "({0:.4f},{1:.4f},{2:.4f})".format(self.x, self.y, self.z)
@@ -92,22 +98,22 @@ class NativeVectors:
         return len(self.v)
 
     def __mul__(self, scale):
-        return Vectors([v1 * s if m else v1 for (v1, s, m) in list(zip(self.v, scale, self.mask))])
+        return Vectors([v1 * s if e else v1 for (v1, s, e) in list(zip(self.v, scale, self.selected))])
 
     def __rmul__(self, scale):
-        return Vectors([v1 * s if m else v1 for (v1, s, m) in list(zip(self.v, scale, self.mask))])
+        return Vectors([v1 * s if e else v1 for (v1, s, e) in list(zip(self.v, scale, self.selected))])
 
     def __truediv__(self, scale):
-        return Vectors([v1 / s if m else v1 for (v1, s, m) in list(zip(self.v, scale, self.mask))])
+        return Vectors([v1 / s if e else v1 for (v1, s, e) in list(zip(self.v, scale, self.selected))])
 
     def __add__(self, rhs):
-        return Vectors([v1 + v2 if m else v1 for (v1, v2, m) in list(zip(self.v, rhs.v, self.mask))])
+        return Vectors([v1 + v2 if e else v1 for (v1, v2, e) in list(zip(self.v, rhs.v, self.selected))])
 
     def __neg__(self):
-        return Vectors([-v1 if m else v1 for v1, m in list(zip(self.v, self.mask))])
+        return Vectors([-v1 if e else v1 for v1, e in list(zip(self.v, self.selected))])
 
     def __sub__(self, rhs):
-        return Vectors([v1 - v2 if m else v1 for (v1, v2, m) in list(zip(self.v, rhs.v, self.mask))])
+        return Vectors([v1 - v2 if e else v1 for (v1, v2, e) in list(zip(self.v, rhs.v, self.selected))])
 
     def __getitem__(self, index):
         return self.v[index]
@@ -116,7 +122,7 @@ class NativeVectors:
         self.v[index] = newvalue
 
     def __eq__(self, rhs):
-        each = [ v1 == v2 if m else False for (v1, v2, m) in list(zip(self.v, rhs, self.mask))]
+        each = [ v1 == v2 if e else False for (v1, v2, e) in list(zip(self.v, rhs, self.selected))]
         return np.array(each).all()
 
     def __iter__(self):
@@ -132,70 +138,70 @@ class NativeVectors:
             raise StopIteration
 
     def isEqualTo(self, rhs):
-        return Scalars([False if not m or v1 is None or v2 is None else v1.isEqualTo(v2) for (v1, v2, m) in list(zip(self.v, rhs, self.mask))])
+        return Scalars([False if not e or v1 is None or v2 is None else v1.isEqualTo(v2) for (v1, v2, e) in list(zip(self.v, rhs, self.selected))])
 
     def isAlmostEqualTo(self, rhs, epsilon):
-        return Scalars([False if not m or v1 is None or v2 is None else v1.isAlmostEqualTo(v2, epsilon) for (v1,v2,m) in list(zip(self.v, rhs, self.mask))])
+        return Scalars([False if not e or v1 is None or v2 is None else v1.isAlmostEqualTo(v2, epsilon) for (v1,v2,e) in list(zip(self.v, rhs, self.selected))])
 
     def isParallelTo(self, rhs, epsilon=1e-7):
-        return Scalars([False if not m or v1 is None else v1.isParallelTo(v2) for (v1, v2,m) in list(zip(self.v, rhs, self.mask))])
+        return Scalars([False if not e or v1 is None else v1.isParallelTo(v2) for (v1, v2,e) in list(zip(self.v, rhs, self.selected))])
 
     def anyPerpendicular(self):
-        return Vectors([oHat if not m or v1 is None else v1.anyPerpendicular() for v1,m in list(zip(self.v, self.mask))])
+        return Vectors([oHat if not e or v1 is None else v1.anyPerpendicular() for v1,e in list(zip(self.v, self.selected))])
 
     def anyUnitaryPerpendicular(self):
-        return Vectors([oHat if not m or v1 is None else v1.anyUnitaryPerpendicular() for v1,m in list(zip(self.v, self.mask))])
+        return Vectors([oHat if not e or v1 is None else v1.anyUnitaryPerpendicular() for v1,e in list(zip(self.v, self.selected))])
 
     def isInXYPlane(self, atZ, epsilon=0.001):
-        return Scalars([v1.isInXYPlane(atZ=atZ, epsilon=epsilon) if m else False for v1,m in list(zip(self.v, self.mask))])
+        return Scalars([v1.isInXYPlane(atZ=atZ, epsilon=epsilon) if e else False for v1,e in list(zip(self.v, self.selected))])
 
     def isInYZPlane(self, atX, epsilon=0.001):
-        return Scalars([v1.isInYZPlane(atX=atX, epsilon=epsilon) if m else False for v1,m in list(zip(self.v, self.mask))])
+        return Scalars([v1.isInYZPlane(atX=atX, epsilon=epsilon) if e else False for v1,e in list(zip(self.v, self.selected))])
 
     def isInZXPlane(self, atY, epsilon=0.001):
-        return Scalars([v1.isInZXPlane(atY=atY, epsilon=epsilon) if m else False for v1,m in list(zip(self.v, self.mask))])
+        return Scalars([v1.isInZXPlane(atY=atY, epsilon=epsilon) if e else False for v1,e in list(zip(self.v, self.selected))])
 
     def isInPlane(self, origin: 'Vector', normal: 'Vector', epsilon=0.001) -> bool:
-        return Scalars([v1.isInPlane(origin, normal, epsilon) if m else False for v1,m in list(zip(self.v, self.mask))])
+        return Scalars([v1.isInPlane(origin, normal, epsilon) if e else False for v1,e in list(zip(self.v, self.selected))])
 
     def norm(self):
-        return Scalars([v1.norm() if m else 0 for v1,m in list(zip(self.v, self.mask))])
+        return Scalars([v1.norm() if e else 0 for v1,e in list(zip(self.v, self.selected))])
 
     def abs(self):
-        return Scalars([v1.abs() if m else 0 for v1,m in list(zip(self.v, self.mask))])
+        return Scalars([v1.abs() if e else 0 for v1,e in list(zip(self.v, self.selected))])
 
     def normalize(self):
-        [v1.normalize() if m else v1 for v1,m in list(zip(self.v, self.mask))]
+        [v1.normalize() if e else v1 for v1,e in list(zip(self.v, self.selected))]
         return self
 
     def normalized(self):
-        return Vectors([v1.normalized() if m else v1 for v1,m in list(zip(self.v, self.mask))])
+        return Vectors([v1.normalized() if e else v1 for v1,e in list(zip(self.v, self.selected))])
 
     def isPerpendicularTo(self, rhs, epsilon=1e-7):
-        return Scalars([v1.isPerpendicularTo(v2) if m else False for (v1, v2, m) in list(zip(self.v, rhs, self.mask))])
+        return Scalars([v1.isPerpendicularTo(v2) if e else False for (v1, v2, e) in list(zip(self.v, rhs, self.selected))])
 
     def cross(self, rhs):
-        return Vectors([v1.cross(v2) if m else v1 for (v1, v2, m) in list(zip(self.v, rhs, self.mask))])
+        return Vectors([v1.cross(v2) if e else v1 for (v1, v2, e) in list(zip(self.v, rhs, self.selected))])
 
     def dot(self, rhs):
-        return Scalars([v1.dot(v2) if m else 0 for (v1, v2, m) in list(zip(self.v, rhs, self.mask))])
+        return Scalars([v1.dot(v2) if e else 0 for (v1, v2, e) in list(zip(self.v, rhs, self.selected))])
 
     def normalizedCrossProduct(self, rhs):
-        return Vectors([v1.normalizedCrossProduct(v2) if m else v1
-            for (v1,v2,m) in list(zip(self.v, rhs, self.mask))])
+        return Vectors([v1.normalizedCrossProduct(v2) if e else v1
+            for (v1,v2,e) in list(zip(self.v, rhs, self.selected))])
 
     def normalizedDotProduct(self, rhs):
-        return Scalars([v1.normalizedDotProduct(v2) if m else 0 for (v1, v2, m) in list(zip(self.v, rhs, self.mask))])
+        return Scalars([v1.normalizedDotProduct(v2) if e else 0 for (v1, v2, e) in list(zip(self.v, rhs, self.selected))])
 
     def angleWith(self, v, axis):
-        return Scalars([v1.angleWith(v=v2, axis=v3) if m else 0 for (v1, v2, v3, m) in list(zip(self.v, v, axis, self.mask))])
+        return Scalars([v1.angleWith(v=v2, axis=v3) if e else 0 for (v1, v2, v3, e) in list(zip(self.v, v, axis, self.selected))])
 
     def planeOfIncidence(self, normal):
-        return Vectors([v1.planeOfIncidence(normal=v2) if m else oHat for (v1, v2, m) in list(zip(self.v, normal, self.mask))])
+        return Vectors([v1.planeOfIncidence(normal=v2) if e else oHat for (v1, v2, e) in list(zip(self.v, normal, self.selected))])
 
     def angleOfIncidence(self, normal):
         dotProduct = self.dot(normal)
-        normal.mask = (dotProduct.v < 0)
+        normal.selected = (dotProduct.v < 0)
         correctedNormal = -normal
 
         planeNormal = self.planeOfIncidence(correctedNormal)
@@ -203,12 +209,12 @@ class NativeVectors:
         return angles, planeNormal, correctedNormal
 
     def rotateAround(self, u, theta):
-        [v1.rotateAround(v2, t) if m else v1 for (v1, v2, t, m) in list(zip(self.v, u.v, theta, self.mask))]
+        [v1.rotateAround(v2, t) if e else v1 for (v1, v2, t, e) in list(zip(self.v, u.v, theta, self.selected))]
         return self
 
     def rotatedAround(self, u, theta):
         v = Vectors(self) # copy
-        [v1.rotateAround(v2,t) if m else v1 for (v1,v2,t, m) in list(zip(v.v, u.v, theta, self.mask))]
+        [v1.rotateAround(v2,t) if e else v1 for (v1,v2,t, e) in list(zip(v.v, u.v, theta, self.selected))]
         return v
 
 

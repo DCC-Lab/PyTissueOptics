@@ -43,7 +43,7 @@ class TestVectors(envtest.PyTissueTestCase):
 
     def testAddVectorsWithMask(self):
         v1 = Vectors(vectors=[Vector(1,1,1)]*3)
-        v1.mask = [False, True, True]
+        v1.selected = [False, True, True]
         v2 = Vectors(vectors=[Vector(1,2,3)]*3)
 
         vs = v1 + v2
@@ -63,7 +63,7 @@ class TestVectors(envtest.PyTissueTestCase):
 
     def testSubVectorsWithMask(self):
         v1 = Vectors(vectors=[Vector(1,1,1)]*3)
-        v1.mask = [False, True, True]
+        v1.selected = [False, True, True]
         v2 = Vectors(vectors=[Vector(1,2,3)]*3)
 
         vs = v1 - v2
@@ -116,7 +116,7 @@ class TestVectors(envtest.PyTissueTestCase):
 
     def testVectorIsUnitaryWithMask(self):
         vs = Vectors([oHat, xHat, yHat])
-        vs.mask = [False, True, False]
+        vs.selected = [False, True, False]
         self.assertEqual(vs.isUnitary, [False, True, False])
 
     def testVectorNegative(self):
@@ -125,7 +125,7 @@ class TestVectors(envtest.PyTissueTestCase):
 
     def testVectorNegativeWithMask(self):
         vs = Vectors([oHat, xHat, yHat])
-        vs.mask = [False, True, False]
+        vs.selected = [False, True, False]
         self.assertEqual(-vs, Vectors([oHat, -xHat, yHat]))
 
     def testVectorAlmostEqual(self):
@@ -135,7 +135,7 @@ class TestVectors(envtest.PyTissueTestCase):
 
     def testVectorAlmostEqualWithMask(self):
         v1 = Vectors([oHat, xHat, yHat])
-        v1.mask = [False, True, True]
+        v1.selected = [False, True, True]
         v2 = Vectors([Vector(0,0,1), Vector(1.0000001,0,0), Vector(0,1.01,0)])
         r = v1.isAlmostEqualTo(v2,epsilon=1e-6)
         self.assertEqual(r, [False, True, False])
@@ -233,7 +233,7 @@ class TestVectors(envtest.PyTissueTestCase):
 
     def testNormalizeWithMask(self):
         v1 = Vectors([Vector(1,1,1), Vector(1,0,1),Vector(0,1,1)])
-        v1.mask = [False, True, True]
+        v1.selected = [False, True, True]
         v2 = v1.normalized()
 
         v1.normalize()
@@ -241,7 +241,7 @@ class TestVectors(envtest.PyTissueTestCase):
 
     def testScaledSum(self):
         v1 = Vectors([Vector(1,2,3), Vector(4,5,6),Vector(7,8,9)])
-        v1.mask = [False, True, True]
+        v1.selected = [False, True, True]
         v2 = Vectors([Vector(1,2,3), Vector(4,5,6),Vector(7,8,9)]) 
         s  = [1,2,3]
         v3 = Vectors([Vector(1,2,3), Vector(12,15,18),Vector(28,32,36)])

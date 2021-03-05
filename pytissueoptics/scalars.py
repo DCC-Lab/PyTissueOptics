@@ -67,10 +67,13 @@ class Scalars:
             each = [v1 == v2 for (v1, v2) in list(zip(self.v, rhs))]            
         return np.array(each).all()
 
-    def allTrue(self):
+    def all(self):
         return self.v.all()
 
-    def allFalse(self):
+    def any(self):
+        return self.v.any()
+
+    def none(self):
         return not self.v.any()
 
 
