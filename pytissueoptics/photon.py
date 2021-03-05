@@ -2,6 +2,7 @@ import numpy as np
 import time
 import warnings
 from .vector import *
+from .vectors import *
 from math import acos, asin, cos, sin, atan, tan, sqrt, pi
 import random
 
@@ -81,54 +82,55 @@ class Photon:
             self.weight = 0
 
 
-# class Photons:
-#     def __init__(self, position=None, direction=None):
-#         n = len(position)
-#         self.r = Vectors(position)
-#         self.ez = Vectors(direction)  # Propagation direction vector
-#         self.er = Vectors( [Vector(0, 1, 0)]*n )
-#
-#         if self.er.isPerpendicularTo(self.ez).all():
-#             self.er = self.ez.anyPerpendicular()
-#
-#         # We don't need to keep el, because it is obtainable from ez and er
-#         self.weight = Scalars([1.0]*n)
-#         self.path = None
-#
-#     @property
-#     def el(self) -> Vectors:
-#         return self.ez.cross(self.er)
-#
-#     @property
-#     def isAlive(self) -> bool:
-#         return (self.weight.v > 0).all()
-#
-#     def transformToLocalCoordinates(self, origin):
-#         self.r = self.r - [origin]* len(self.r)
-#
-#     def transformFromLocalCoordinates(self, origin):
-#         self.r = self.r + [origin]* len(self.r)
-#
-#     def moveBy(self, d):
-#         self.r.addScaled(self.ez, d)
-#
-#     def scatterBy(self, theta, phi):
-#         self.er.rotateAround(self.ez, phi)
-#         self.ez.rotateAround(self.er, theta)
-#
-#     def decreaseWeightBy(self, delta):
-#         self.weight -= delta
-#         if self.weight < 0:
-#             self.weight = 0
-#
-#     def roulette(self):
-#         n = len(self.position)
-#         chance = 0.1
-#         factor = [1]*n
-#         rouletteMask = (self.weight.v < 1e-4)
-#         dontTouchMask = not rouletteMask
-#
-#         live = (Scalars.random(n) < chance)
-#         die = Scalars(not live.v)
-#         factor = dontTouchMask + rouletteMask * live/chance
+class Photons:
+    def __init__(self, position=None, direction=None):
+        n = len(position)
+        self.r = Vectors(position)
+        self.ez = Vectors(direction)  # Propagation direction vector
+        self.er = Vectors( [Vector(0, 1, 0)]*n )
+
+        self.er.select(self.er.isPerpendicularTo(self.ez))
+        self.er = self.ez.anyPerpendicular()
+        self.er.selectAll()
+
+        # We don't need to keep el, because it is obtainable from ez and er
+        self.weight = Scalars([1.0]*n)
+        self.path = None
+
+    @property
+    def el(self) -> Vectors:
+        return self.ez.cross(self.er)
+
+    @property
+    def isAlive(self) -> bool:
+        return (self.weight.v > 0).all()
+
+    def transformToLocalCoordinates(self, origin):
+        self.r = self.r - [origin]* len(self.r)
+
+    def transformFromLocalCoordinates(self, origin):
+        self.r = self.r + [origin]* len(self.r)
+
+    def moveBy(self, d):
+        self.r.addScaled(self.ez, d)
+
+    def scatterBy(self, theta, phi):
+        self.er.rotateAround(self.ez, phi)
+        self.ez.rotateAround(self.er, theta)
+
+    def decreaseWeightBy(self, delta):
+        self.weight -= delta
+        if self.weight < 0:
+            self.weight = 0
+
+    def roulette(self):
+        n = len(self.position)
+        chance = 0.1
+        factor = [1]*n
+        rouletteMask = (self.weight.v < 1e-4)
+        dontTouchMask = not rouletteMask
+
+        live = (Scalars.random(n) < chance)
+        die = Scalars(not live.v)
+        factor = dontTouchMask + rouletteMask * live/chance
 

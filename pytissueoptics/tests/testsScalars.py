@@ -5,9 +5,17 @@ import random
 
 inf = float("+inf")
 
-class TestNumpyScalars(envtest.PyTissueTestCase):
-    def testMultiplicationWithNumpyScalars(self):
-        pass
+class TestScalars(envtest.PyTissueTestCase):
+    def testScalars(self):
+        s = Scalars(N=100)
+        self.assertIsNotNone(s)
+        self.assertFalse(s.all())
+
+    def testScalarsNot(self):
+        s = Scalars(N=100)
+        self.assertIsNotNone(s)
+        s = s.negate()
+        self.assertTrue(s.all())
 
 
 if __name__ == '__main__':

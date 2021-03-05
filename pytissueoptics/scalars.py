@@ -16,7 +16,8 @@ class Scalars:
             self.v = np.array(array)
         elif N is not None:
             self.v = np.array([0]*N)
-
+        else:
+            raise ValueError("You must provide an array or N")
         self._iteration = 0
 
     @classmethod
@@ -35,25 +36,25 @@ class Scalars:
         else:
             raise StopIteration
 
-    def __len__(self):
+    def __len__(self) -> int:
         return len(self.v)
 
-    def __mul__(self, scale):
+    def __mul__(self, scale) -> 'Scalars':
         return Scalars(self.v*scale)
 
-    def __rmul__(self, scale):
+    def __rmul__(self, scale) -> 'Scalars':
         return Scalars(self.v*scale)
 
-    def __truediv__(self, scale):
+    def __truediv__(self, scale) -> 'Scalars':
         return Scalars(self.v/scale)
 
-    def __add__(self, rhs):
+    def __add__(self, rhs) -> 'Scalars':
         return Scalars([v1+v2 for (v1, v2) in list(zip(self.v, rhs.v))])
 
-    def __neg__(self):
+    def __neg__(self) -> 'Scalars':
         return Scalars([-v1 for v1 in self.v])
 
-    def __sub__(self, rhs):
+    def __sub__(self, rhs) -> 'Scalars':
         return Scalars([v1-v2 for (v1, v2) in list(zip(self.v, rhs.v))])
 
     def __getitem__(self, index):
@@ -62,20 +63,29 @@ class Scalars:
     def __setitem__(self, index, newvalue): 
         self.v[index] = newvalue
 
-    def __eq__(self, rhs):
+    def __eq__(self, rhs) -> bool:
         if isinstance(rhs, Scalars):
             each = [v1 == v2 for (v1, v2) in list(zip(self.v, rhs.v))]
         else:
             each = [v1 == v2 for (v1, v2) in list(zip(self.v, rhs))]            
         return np.array(each).all()
 
-    def all(self):
+    def negate(self) -> 'Scalars':
+        return Scalars([not v1 for v1 in self.v])
+
+    def __and__(self, rhs) -> 'Scalars':
+        return Scalars(self.v and rhs.v)
+
+    def __or__(self, rhs) -> 'Scalars':
+        return Scalars(self.v or rhs.v)
+
+    def all(self) -> bool:
         return self.v.all()
 
-    def any(self):
+    def any(self) -> bool:
         return self.v.any()
 
-    def none(self):
+    def none(self) -> bool:
         return not self.v.any()
 
 

@@ -43,9 +43,12 @@ class NativeVectors:
         self._iteration = 0
         self.selected = Scalars([True]*len(self.v))
 
-    # def selectedAll(self):
-    #     self.selected = Scalars([True] * len(self.v))
-    #
+    def selectAll(self):
+        self.selected = Scalars([True] * len(self.v))
+
+    def select(self, which):
+        self.selected = Scalars(which)
+
     def selectedVectors(self):
         return Vectors([v1 if e else None for (v1, e) in list(zip(self.v, self.selected))])
 
@@ -392,8 +395,8 @@ class NumpyVectors:
 
     def normalizedDotProduct(self, other):
         '''TODO:  find way to calculate the zeors'''
-        norm = self.norm() * other.norm()
-        return self.dot(other) * norm * np.exp(-0.5)
+        invAbs = np.power((self.norm() * other.norm()).v,0.5)
+        return self.dot(other) / invAbs
 
     def angleWith(self, v, axis):
         pass

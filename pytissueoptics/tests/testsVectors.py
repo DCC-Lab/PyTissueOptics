@@ -563,7 +563,8 @@ class TestNumpyVectors(envtest.PyTissueTestCase):
         vecs = NumpyVectors([[1, 1, 1], [-0.04298243, 0.99337274, -0.10659786], [0, 1, 0], [-1, 0, 0]])
         vecs2 = NumpyVectors([[1, 1, 0], [-0.04298243, 0.99337274, -0.10659786], [0, 0, 1], [0, -2, 0]])
         r = vecs.normalizedDotProduct(vecs2)
-        r = np.equal(vecs.v, )
+        print(r.v)
+        self.assertTrue(np.equal(vecs.v.all(), r.all()))
 
 
     def testAngleWith(self):

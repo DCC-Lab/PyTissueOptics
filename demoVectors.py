@@ -21,7 +21,7 @@ N = 10000
 position = Vectors(N=N)
 direction = Vectors([zHat]*N)
 er = Vectors([xHat]*N)
-weight = np.array([1.0]*N)
+weight = Scalars([1.0]*N)
 
 isAlive = True
 while isAlive:
