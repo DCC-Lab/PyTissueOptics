@@ -328,6 +328,9 @@ class NumpyVectors:
     def isParallelTo(self, other, epsilon=1e-9):
         return np.less(self.normalizedDotProduct(other.v) - 1, epsilon)
 
+    def isPerpendicularTo(self, other, epsilon=1e-9):
+        return np.less(self.normalizedDotProduct(other.v), epsilon)
+
     def anyPerpendicular(self):
         pass
 
@@ -343,7 +346,7 @@ class NumpyVectors:
     def isInZXPlane(self, atY, epsilon=0.001):
         pass
 
-    def isInPlane(self, origin: 'Vector', normal: 'Vector', epsilon=0.001) -> bool:
+    def isInPlane(self, origin: 'Vector', normal: 'Vector', epsilon=0.001):
         pass
 
     def norm(self):
@@ -358,9 +361,6 @@ class NumpyVectors:
     def normalized(self):
         return NumpyVectors(self.v/np.linalg.norm(self.v, axis=0))
 
-    def isPerpendicularTo(self, other, epsilon=1e-9):
-        pass
-
     def cross(self, other):
         return NumpyVectors(np.cross(self.v, other.v))
 
@@ -368,14 +368,13 @@ class NumpyVectors:
         return NumpyScalars(np.dot(self.v, other.v))
 
     def normalizedCrossProduct(self, other):
-        pass
+        '''TODO:  Is this OK'''
+        return NumpyVectors(self.cross(other)).normalize()
 
     def normalizedDotProduct(self, other):
-        '''TODO: '''
-        productNorm = self.norm() * other.norm()
-        if productNorm == 0:
-            return 0
-        return self.dot(other) * (1 / math.sqrt(productNorm))
+        '''TODO:  find way to calculate the zeors'''
+        norm = self.norm() * other.norm()
+        return NumpyScalars(self.dot(other) * norm * np.exp(-0.5))
 
     def angleWith(self, v, axis):
         pass
