@@ -215,7 +215,10 @@ class NumpyVectors:
 
     def __init__(self, vectors=None, N=None):
         if vectors is not None:
-            self.v = np.asarray(vectors).astype('float64')
+            if type(vectors) == np.ndarray:
+                self.v = vectors.astype('float64')
+            else:
+                self.v = np.asarray(vectors, dtype=np.float64)
         elif N is not None:
             self.v = np.zeros(3, N, dtype=np.float64)
             
@@ -234,11 +237,11 @@ class NumpyVectors:
 
     def __truediv__(self, other):
         if isinstance(other, NumpyVectors):
-            return NumpyVectors(np.true_div(self.v, other.v))
+            return NumpyVectors(np.true_divide(self.v, other.v))
         elif isinstance(other, NumpyScalars):
-            return NumpyVectors(np.true_div(self.v * other.v[:, None]))
+            return NumpyVectors(np.true_divide(self.v * other.v[:, None]))
         else:
-            return NumpyVectors(np.true_div(self.v, other))
+            return NumpyVectors(np.true_divide(self.v, other))
 
     def __add__(self, other):
         if isinstance(other, NumpyVectors):
@@ -260,7 +263,6 @@ class NumpyVectors:
             return NumpyVectors(np.equal(self.v, other.v))
         else:
             return NumpyVectors(np.subtract(self.v, other))
-
 
     """ The getitem, setitem, iter, next special methods should not be used
     because never should there be need to bypass the numpy function. Such use
@@ -301,16 +303,16 @@ class NumpyVectors:
         x = (r * np.sin(phi) * np.cos(theta))
         y = (r * np.sin(phi) * np.sin(theta))
         z = r * np.cos(phi)
-        return NumpyVectors(np.stack((x, y, z), axis=0).astype('float64'))
+        return NumpyVectors(np.concatenate((x, y, z), axis=0))
 
     @classmethod
     def randomUniformUnitary(cls, N):
         theta = np.random.rand(1, N) * 2 * np.pi
-        phi = (np.random.rand(1, N) * np.pi)
+        phi = np.random.rand(1, N) * np.pi
         x = np.sin(phi)*np.cos(theta)
         y = np.sin(phi)*np.sin(theta)
         z = np.cos(phi)
-        return NumpyVectors(np.stack((x, y, z), axis=0).astype('float64'))
+        return NumpyVectors(np.concatenate((x, y, z), axis=0))
 
     def isEqualTo(self, other):
         if isinstance(other, NumpyVectors):
@@ -325,7 +327,10 @@ class NumpyVectors:
             return NumpyScalars(np.less(np.abs(np.subtract(self.v, other)), epsilon))
 
     def isParallelTo(self, other, epsilon=1e-9):
-        pass
+        return np.less(self.normalizedDotProduct(other.v) - 1, epsilon)
+
+    def isPerpendicularTo(self, other, epsilon=1e-9):
+        return np.less(self.normalizedDotProduct(other.v), epsilon)
 
     def anyPerpendicular(self):
         pass
@@ -342,24 +347,20 @@ class NumpyVectors:
     def isInZXPlane(self, atY, epsilon=0.001):
         pass
 
-    def isInPlane(self, origin: 'Vector', normal: 'Vector', epsilon=0.001) -> bool:
+    def isInPlane(self, origin: 'Vector', normal: 'Vector', epsilon=0.001):
         pass
 
     def norm(self):
         return NumpyScalars(np.linalg.norm(self.v, axis=0))
 
     def abs(self):
-        pass
+        return NumpyVectors(np.abs(self.v))
 
     def normalize(self):
-
-        return self
+        self.v = self.v/np.linalg.norm(self.v, axis=0)
 
     def normalized(self):
-        pass
-
-    def isPerpendicularTo(self, other, epsilon=1e-9):
-        pass
+        return NumpyVectors(self.v/np.linalg.norm(self.v, axis=0))
 
     def cross(self, other):
         return NumpyVectors(np.cross(self.v, other.v))
@@ -367,11 +368,14 @@ class NumpyVectors:
     def dot(self, other):
         return NumpyScalars(np.dot(self.v, other.v))
 
-    def normalizedCrossProduct(self, rhs):
-        pass
+    def normalizedCrossProduct(self, other):
+        '''TODO:  Is this OK'''
+        return NumpyVectors(self.cross(other)).normalize()
 
-    def normalizedDotProduct(self, rhs):
-        pass
+    def normalizedDotProduct(self, other):
+        '''TODO:  find way to calculate the zeors'''
+        norm = self.norm() * other.norm()
+        return NumpyScalars(self.dot(other) * norm * np.exp(-0.5))
 
     def angleWith(self, v, axis):
         pass
