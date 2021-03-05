@@ -67,6 +67,12 @@ class Scalars:
             each = [v1 == v2 for (v1, v2) in list(zip(self.v, rhs))]            
         return np.array(each).all()
 
+    def allTrue(self):
+        return self.v.all()
+
+    def allFalse(self):
+        return not self.v.any()
+
 
 class NumpyScalars:
     def __init__(self, array=None, N=None):
