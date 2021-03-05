@@ -48,7 +48,7 @@ class TestVectors(envtest.PyTissueTestCase):
 
         vs = v1 + v2
         self.assertEqual(vs.count, 3)
-        self.assertEqual(vs, [oHat, Vector(2,3,4), Vector(2,3,4)])
+        self.assertEqual(vs, [Vector(1,1,1), Vector(2,3,4), Vector(2,3,4)])
 
     def testSubVectors(self):
         v1 = Vectors(vectors=[Vector(1,1,1)]*1000)
@@ -68,7 +68,7 @@ class TestVectors(envtest.PyTissueTestCase):
 
         vs = v1 - v2
         self.assertEqual(vs.count, 3)
-        self.assertEqual(vs, [oHat, Vector(0,-1,-2), Vector(0,-1,-2)])
+        self.assertEqual(vs, [Vector(1,1,1), Vector(0,-1,-2), Vector(0,-1,-2)])
 
     def testEqualVectors(self):
         v1 = Vectors([oHat, xHat, yHat])
@@ -126,7 +126,7 @@ class TestVectors(envtest.PyTissueTestCase):
     def testVectorNegativeWithMask(self):
         vs = Vectors([oHat, xHat, yHat])
         vs.mask = [False, True, False]
-        self.assertEqual(-vs, Vectors([oHat, -xHat, oHat]))
+        self.assertEqual(-vs, Vectors([oHat, -xHat, yHat]))
 
     def testVectorAlmostEqual(self):
         v1 = Vectors([oHat, xHat, yHat])
@@ -213,7 +213,7 @@ class TestVectors(envtest.PyTissueTestCase):
         expectedAngles = [np.pi/4, np.pi/4, np.pi/4]
         expectedPlanes = Vectors([xHat, -xHat, -yHat])
         actualAngles, actualPlanes, correctedNormal = v1.angleOfIncidence(normal)
-
+        print(actualPlanes.v)
         for i in range(3):
             self.assertTrue(actualPlanes[i].isAlmostEqualTo(expectedPlanes[i]))
             self.assertAlmostEqual(actualAngles[i], expectedAngles[i])
@@ -244,7 +244,7 @@ class TestVectors(envtest.PyTissueTestCase):
         v1.mask = [False, True, True]
         v2 = Vectors([Vector(1,2,3), Vector(4,5,6),Vector(7,8,9)]) 
         s  = [1,2,3]
-        v3 = Vectors([oHat, Vector(12,15,18),Vector(28,32,36)])
+        v3 = Vectors([Vector(1,2,3), Vector(12,15,18),Vector(28,32,36)])
         r = Vectors.fromScaledSum(v1, v2, s)
         self.assertEqual(r, v3)
         self.assertEqual(v1.addScaled(v2, s), v3)

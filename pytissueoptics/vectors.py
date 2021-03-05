@@ -72,7 +72,7 @@ class NativeVectors:
         return a.addScaled(b, scale)
 
     def addScaled(self, rhs, scale):
-        return Vectors([oHat if not m else v1 + v2 * s for (v1, v2, s, m) in list(zip(self.v, rhs, scale, self.mask))])
+        return Vectors([v1 if not m else v1 + v2 * s for (v1, v2, s, m) in list(zip(self.v, rhs, scale, self.mask))])
 
     @property
     def isUnitary(self) -> [bool]:
@@ -80,7 +80,7 @@ class NativeVectors:
 
     @property
     def isNull(self) -> [bool]:
-        return [v.isNull if m else None for v, m in list(zip(self.v, self.mask))]
+        return [v.isNull if m else False for v, m in list(zip(self.v, self.mask))]
 
     # def __repr__(self):
     #     return "({0:.4f},{1:.4f},{2:.4f})".format(self.x, self.y, self.z)
@@ -92,22 +92,22 @@ class NativeVectors:
         return len(self.v)
 
     def __mul__(self, scale):
-        return Vectors([v1 * s if m else oHat for (v1, s, m) in list(zip(self.v, scale, self.mask))])
+        return Vectors([v1 * s if m else v1 for (v1, s, m) in list(zip(self.v, scale, self.mask))])
 
     def __rmul__(self, scale):
-        return Vectors([v1 * s if m else oHat for (v1, s, m) in list(zip(self.v, scale, self.mask))])
+        return Vectors([v1 * s if m else v1 for (v1, s, m) in list(zip(self.v, scale, self.mask))])
 
     def __truediv__(self, scale):
-        return Vectors([v1 / s if m else oHat for (v1, s, m) in list(zip(self.v, scale, self.mask))])
+        return Vectors([v1 / s if m else v1 for (v1, s, m) in list(zip(self.v, scale, self.mask))])
 
     def __add__(self, rhs):
-        return Vectors([v1 + v2 if m else oHat for (v1, v2, m) in list(zip(self.v, rhs.v, self.mask))])
+        return Vectors([v1 + v2 if m else v1 for (v1, v2, m) in list(zip(self.v, rhs.v, self.mask))])
 
     def __neg__(self):
-        return Vectors([-v1 if m else oHat for v1, m in list(zip(self.v, self.mask))])
+        return Vectors([-v1 if m else v1 for v1, m in list(zip(self.v, self.mask))])
 
     def __sub__(self, rhs):
-        return Vectors([v1 - v2 if m else oHat for (v1, v2, m) in list(zip(self.v, rhs.v, self.mask))])
+        return Vectors([v1 - v2 if m else v1 for (v1, v2, m) in list(zip(self.v, rhs.v, self.mask))])
 
     def __getitem__(self, index):
         return self.v[index]
@@ -116,7 +116,7 @@ class NativeVectors:
         self.v[index] = newvalue
 
     def __eq__(self, rhs):
-        each = [ False if v2 is None else v1 == v2 if m else False for (v1, v2, m) in list(zip(self.v, rhs, self.mask))]
+        each = [ v1 == v2 if m else False for (v1, v2, m) in list(zip(self.v, rhs, self.mask))]
         return np.array(each).all()
 
     def __iter__(self):
@@ -165,23 +165,23 @@ class NativeVectors:
         return Scalars([v1.abs() if m else 0 for v1,m in list(zip(self.v, self.mask))])
 
     def normalize(self):
-        [v1.normalize() if m else None for v1,m in list(zip(self.v, self.mask))]
+        [v1.normalize() if m else v1 for v1,m in list(zip(self.v, self.mask))]
         return self
 
     def normalized(self):
-        return Vectors([v1.normalized() if m else oHat for v1,m in list(zip(self.v, self.mask))])
+        return Vectors([v1.normalized() if m else v1 for v1,m in list(zip(self.v, self.mask))])
 
     def isPerpendicularTo(self, rhs, epsilon=1e-7):
         return Scalars([v1.isPerpendicularTo(v2) if m else False for (v1, v2, m) in list(zip(self.v, rhs, self.mask))])
 
     def cross(self, rhs):
-        return Vectors([v1.cross(v2) if m else oHat for (v1, v2, m) in list(zip(self.v, rhs, self.mask))])
+        return Vectors([v1.cross(v2) if m else v1 for (v1, v2, m) in list(zip(self.v, rhs, self.mask))])
 
     def dot(self, rhs):
         return Scalars([v1.dot(v2) if m else 0 for (v1, v2, m) in list(zip(self.v, rhs, self.mask))])
 
     def normalizedCrossProduct(self, rhs):
-        return Vectors([v1.normalizedCrossProduct(v2) if m else oHat
+        return Vectors([v1.normalizedCrossProduct(v2) if m else v1
             for (v1,v2,m) in list(zip(self.v, rhs, self.mask))])
 
     def normalizedDotProduct(self, rhs):
@@ -195,19 +195,20 @@ class NativeVectors:
 
     def angleOfIncidence(self, normal):
         dotProduct = self.dot(normal)
-        correctedNormal = Vectors([n*(1.0 - 2.0 * (s < 0)) for (n, s, m) in list(zip(normal, dotProduct.v, self.mask))])
-
+        normal.mask = (dotProduct.v < 0)
+        correctedNormal = -normal
+        print(normal.v, correctedNormal.v)
         planeNormal = self.planeOfIncidence(correctedNormal)
         angles = Scalars(self.angleWith(correctedNormal, axis=planeNormal))
         return angles, planeNormal, correctedNormal
 
     def rotateAround(self, u, theta):
-        [v1.rotateAround(v2, t) if m else oHat for (v1, v2, t, m) in list(zip(self.v, u.v, theta, self.mask))]
+        [v1.rotateAround(v2, t) if m else v1 for (v1, v2, t, m) in list(zip(self.v, u.v, theta, self.mask))]
         return self
 
     def rotatedAround(self, u, theta):
         v = Vectors(self) # copy
-        [v1.rotateAround(v2,t) if m else oHat for (v1,v2,t, m) in list(zip(v.v, u.v, theta, self.mask))]
+        [v1.rotateAround(v2,t) if m else v1 for (v1,v2,t, m) in list(zip(v.v, u.v, theta, self.mask))]
         return v
 
 
