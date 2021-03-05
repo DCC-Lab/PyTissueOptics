@@ -11,7 +11,7 @@ class Scalars:
     """
     def __init__(self, array=None, N=None):
         if array is not None:
-            self.v = np.asarray(array).astype('float64')
+            self.v = np.asarray(array)
         elif N is not None:
             self.v = np.array([0]*N)
 
