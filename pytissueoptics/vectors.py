@@ -349,7 +349,22 @@ class NumpyVectors:
         return np.less(self.normalizedDotProduct(other.v), epsilon)
 
     def anyPerpendicular(self):
-        pass
+        # check if x or y is zero, if yes, check if z is 0: set to none, if not, cross with yhat
+        xHat = np.array([1, 0, 0]).transpose()
+        yHat = np.array([0, 1, 0]).transpose()
+        zHat = np.array([0, 0, 1]).transpose()
+        convA = np.array([1, 1, 0]).transpose()
+        convB = np.array([0, 0, 1]).transpose()
+        YZ0 = self * convA
+        Z0 = self * convB
+        maskXY0 = np.all(YZ0.v == 0, axis=1)
+        maskZ0 = np.all(Z0.v == 0, axis=1)
+        maskXYZ0 = np.logical_and(maskXY0, maskZ0)
+        maskXYZ1 = np.invert(np.logical_or(maskXYZ0, maskZ0))
+
+
+
+        return self.cross([1, 0, 0])
 
     def anyUnitaryPerpendicular(self):
         pass
@@ -379,12 +394,18 @@ class NumpyVectors:
         return NumpyVectors(self.v/np.linalg.norm(self.v, axis=1))
 
     def cross(self, other):
-        return NumpyVectors(np.cross(self.v, other.v))
+        if isinstance(other, NumpyVectors):
+            return NumpyVectors(np.cross(self.v, other.v))
+        else:
+            return NumpyVectors(np.cross(self.v, other))
 
     def dot(self, other):
         # element-wise dot product(fake np.dot)
         # https://stackoverflow.com/questions/41443444/numpy-element-wise-dot-product
-        return NumpyScalars(np.einsum('ij,ij->i', self.v, other.v))
+        if isinstance(other, NumpyVectors):
+            return NumpyScalars(np.einsum('ij,ij->i', self.v, other.v))
+        else:
+            pass
 
     def normalizedCrossProduct(self, other):
         '''TODO:  Is this OK'''
