@@ -241,7 +241,10 @@ class NumpyVectors:
         if isinstance(other, NumpyVectors):
             return NumpyVectors(np.multiply(self.v, other.v))
         elif isinstance(other, NumpyScalars):
-            return NumpyVectors(np.multiply(self.v * other.v[:, None]))
+            return NumpyVectors(np.multiply(self.v, other.v[:, None]))
+        # elif isinstance(other, np.ndarray):
+        #     if len(other.shape) == 1:
+        #         return NumpyVectors(self.v * other[:, None])
         else:
             return NumpyVectors(np.multiply(self.v, other))
 
@@ -349,22 +352,39 @@ class NumpyVectors:
         return np.less(self.normalizedDotProduct(other.v), epsilon)
 
     def anyPerpendicular(self):
-        # check if x or y is zero, if yes, check if z is 0: set to none, if not, cross with yhat
+        # check if x or y is zero, if yes, cross yHat elif z is 0: set to none, if not, cross with xHat
         xHat = np.array([1, 0, 0]).transpose()
         yHat = np.array([0, 1, 0]).transpose()
-        zHat = np.array([0, 0, 1]).transpose()
         convA = np.array([1, 1, 0]).transpose()
         convB = np.array([0, 0, 1]).transpose()
         YZ0 = self * convA
         Z0 = self * convB
-        maskXY0 = np.all(YZ0.v == 0, axis=1)
-        maskZ0 = np.all(Z0.v == 0, axis=1)
-        maskXYZ0 = np.logical_and(maskXY0, maskZ0)
-        maskXYZ1 = np.invert(np.logical_or(maskXYZ0, maskZ0))
+        P = np.all(YZ0.v == 0, axis=1)
+        Q = np.all(Z0.v == 0, axis=1)
+        not_P = np.logical_not(P)
+        P_and_Q = np.logical_and(P, Q)
+        maskXY0 = np.logical_xor(P, P_and_Q)
+        maskXYZ0 = P_and_Q
+        maskXY1 = not_P
 
+        aXY0 = self * maskXY0[:, None]
+        aXYZ0 = self * maskXYZ0[:, None]
+        aXY1 = self * maskXY1[:, None]
 
+        aXY0Cross = aXY0.cross(xHat)
+        aXY1Cross = aXY1.cross(yHat)
 
-        return self.cross([1, 0, 0])
+        output = aXY0Cross + aXY1Cross
+
+        # print("X=0, Y=0 :\n{}\n".format(aXY0))
+        # print("X!=0, Y!=0 ; \n{}\n".format(aXY1))
+        #
+        # print("X=0, Y=0 :\n{}\n".format(aXY0Cross))
+        # print("X!=0, Y!=0 ; \n{}\n".format(aXY1Cross))
+        #
+        # print("OUTPUT:\n{}\n".format(output))
+
+        return output
 
     def anyUnitaryPerpendicular(self):
         pass

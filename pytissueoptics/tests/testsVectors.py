@@ -551,14 +551,16 @@ class TestNumpyVectors(envtest.PyTissueTestCase):
         maskZ0 = np.all(Z0.v == 0, axis=1)
         maskXYZ0 = np.logical_and(maskXY0, maskZ0)
         maskXYZ1 = np.invert(np.logical_or(maskXYZ0, maskZ0))
-        verify = [True,False,False,True,False],[False,False,True,True,True],[False,False,False,True,False],[True,True,False,False,False]
+        verify = [[True,False,False,True,False],[False,False,True,True,True],[False,False,False,True,False],[True,True,False,False,False]]
         r = np.all([np.equal(verify[0], maskXY0), np.equal(verify[1], maskZ0), np.equal(verify[2], maskXYZ0), np.equal(verify[3], maskXYZ1)])
         self.assertTrue(r)
 
     def testAnyPerpendicular(self):
         vecs4 = NumpyVectors([[0, 0, 1], [1, 1, 1], [2, 2, 0], [0, 0, 0], [1, 0, 0]])
-        vecs4.anyPerpendicular()
-        self.assertTrue(False)
+        r = vecs4.anyPerpendicular()
+        verify = [[0,  1,  0], [-1,  0,  1], [0,  0,  2], [0,  0,  0], [0,  0,  1]]
+        r = np.all(np.equal(r.v, verify))
+        self.assertTrue(r)
 
     def testAnyUnitaryPerpendicular(self):
         self.assertTrue(False)
