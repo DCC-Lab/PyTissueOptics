@@ -252,7 +252,7 @@ class NumpyVectors:
         if isinstance(other, NumpyVectors):
             return NumpyVectors(np.true_divide(self.v, other.v))
         elif isinstance(other, NumpyScalars):
-            return NumpyVectors(np.true_divide(self.v * other.v[:, None]))
+            return NumpyVectors(np.true_divide(self.v, other.v[:, None]))
         else:
             return NumpyVectors(np.true_divide(self.v, other))
 
@@ -387,7 +387,7 @@ class NumpyVectors:
         return output
 
     def anyUnitaryPerpendicular(self):
-        pass
+        return self.anyPerpendicular().normalized()
 
     def isInXYPlane(self, atZ, epsilon=0.001):
         pass
@@ -411,7 +411,7 @@ class NumpyVectors:
         self.v = self.v/np.linalg.norm(self.v, axis=1)
 
     def normalized(self):
-        return NumpyVectors(self.v/np.linalg.norm(self.v, axis=1))
+        return NumpyVectors(self/self.norm())
 
     def cross(self, other):
         if isinstance(other, NumpyVectors):
@@ -425,11 +425,11 @@ class NumpyVectors:
         if isinstance(other, NumpyVectors):
             return NumpyScalars(np.einsum('ij,ij->i', self.v, other.v))
         else:
-            pass
+            return NumpyScalars(np.einsum('ij,ij->i', self.v, other))
 
     def normalizedCrossProduct(self, other):
         '''TODO:  Is this OK'''
-        return self.cross(other).normalize()
+        return self.cross(other).normalized()
 
     def normalizedDotProduct(self, other):
         '''TODO:  find way to calculate the zeors'''
@@ -437,16 +437,74 @@ class NumpyVectors:
         return self.dot(other) * norm * np.exp(-0.5)
 
     def angleWith(self, v, axis):
-        pass
+        """ TODO: Provides angles """
+
+        sinPhi = self.normalizedCrossProduct(v)
+        sinPhiAbs = sinPhi.abs()
+        phi = np.asin(sinPhiAbs)
+        if_dotV_seq_0_mask = self.dot(v).v <= 0
+        if_dotV_seq_0_data = np.subtract(np.pi, phi)
+        phi0 = if_dotV_seq_0_data * if_dotV_seq_0_mask[:, None]
+
+        if_sinPhi_seq_0_mask = sinPhi.dot(axis).v <= 0
+        if_sinPhi_seq_0 = np.invert(phi)
+        phi1 = if_sinPhi_seq_0 * if_sinPhi_seq_0_mask[:, None]
+
+        phi = np.add(phi0, phi1)
+        print(phi)
+        # if self.dot(v) <= 0:
+        #     phi = math.pi - phi
+        #
+        # if sinPhi.dot(axis) <= 0:
+        #     phi = -phi
+        #
+        # return phi
 
     def planeOfIncidence(self, normal):
-        pass
+        """ TODO: Provides angles """
+        if self.dot(normal) < 0:
+            normal = -normal
+
+        planeOfIncidenceNormal = self.cross(normal)
+        if planeOfIncidenceNormal.norm() < 1e-7:
+            return self.anyUnitaryPerpendicular()
+        else:
+            return planeOfIncidenceNormal.normalized()
 
     def angleOfIncidence(self, normal):
-        pass
+        """ TODO: Provides angles """
+        if self.dot(normal) < 0:
+            normal = -normal
+
+        planeNormal = self.planeOfIncidence(normal)
+        return self.angleWith(normal, axis=planeNormal), planeNormal, normal
 
     def rotateAround(self, u, theta):
-        pass
+        """ TODO: Provides angles """
+        u.normalize()
+
+        cost = math.cos(theta)
+        sint = math.sin(theta)
+        one_cost = 1 - cost
+
+        ux = u._x
+        uy = u._y
+        uz = u._z
+
+        X = self._x
+        Y = self._y
+        Z = self._z
+
+        self.x = (cost + ux * ux * one_cost) * X \
+                 + (ux * uy * one_cost - uz * sint) * Y \
+                 + (ux * uz * one_cost + uy * sint) * Z
+        self.y = (uy * ux * one_cost + uz * sint) * X \
+                 + (cost + uy * uy * one_cost) * Y \
+                 + (uy * uz * one_cost - ux * sint) * Z
+        self.z = (uz * ux * one_cost - uy * sint) * X \
+                 + (uz * uy * one_cost + ux * sint) * Y \
+                 + (cost + uz * uz * one_cost) * Z
+        return self
 
 
 Vectors = NativeVectors

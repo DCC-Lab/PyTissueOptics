@@ -563,7 +563,10 @@ class TestNumpyVectors(envtest.PyTissueTestCase):
         self.assertTrue(r)
 
     def testAnyUnitaryPerpendicular(self):
-        self.assertTrue(False)
+        vecs4 = NumpyVectors([[0, 0, 1], [1, 1, 1], [2, 2, 0], [0, 0, 0], [1, 0, 0]])
+        r = vecs4.anyUnitaryPerpendicular()
+        r = r.isUnitary()
+        print(r)
 
     def testIsInXYPlane(self):
         self.assertTrue(False)
