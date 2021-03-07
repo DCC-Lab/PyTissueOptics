@@ -411,6 +411,7 @@ class NumpyVectors:
         self.v = self.v/np.linalg.norm(self.v, axis=1)
 
     def normalized(self):
+        "MUST verify that norm is 0."
         return NumpyVectors(self/self.norm())
 
     def cross(self, other):
