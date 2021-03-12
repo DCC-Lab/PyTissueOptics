@@ -4,6 +4,7 @@ import sys
 import random
 from .vector import Vector, oHat
 from .scalars import *
+import copy
 
 """
 Vectors and Scalars are arrays of Vector and scalars (float, int, etc...).
@@ -291,9 +292,6 @@ class NumpyVectors:
     def __getitem__(self, index):
         return self.v[index, :]
 
-    def __setitem__(self, index, value):
-        self.v[index, :] = value
-
     def __iter__(self):
         self._iteration = 0
         return self
@@ -408,11 +406,17 @@ class NumpyVectors:
         return NumpyVectors(np.abs(self.v))
 
     def normalize(self):
-        self.v = self.v/np.linalg.norm(self.v, axis=1)
+        """MUST verify that norm is 0."""
+        norm = self.norm().v
+        normNot0 = np.where(norm != 0, norm, 1)
+        normalizedVectors = self.v / normNot0[:, None]
+        self.v = normalizedVectors
+        return self
 
     def normalized(self):
-        "MUST verify that norm is 0."
-        return NumpyVectors(self/self.norm())
+        """Watch out, does this modifies the self also?"""
+        v = copy.deepcopy(self)
+        return v.normalize()
 
     def cross(self, other):
         if isinstance(other, NumpyVectors):
@@ -439,7 +443,6 @@ class NumpyVectors:
 
     def angleWith(self, v, axis):
         """ TODO: Provides angles """
-
         sinPhi = self.normalizedCrossProduct(v)
         sinPhiAbs = sinPhi.abs()
         phi = np.asin(sinPhiAbs)
@@ -471,6 +474,7 @@ class NumpyVectors:
             return self.anyUnitaryPerpendicular()
         else:
             return planeOfIncidenceNormal.normalized()
+
 
     def angleOfIncidence(self, normal):
         """ TODO: Provides angles """
@@ -506,6 +510,9 @@ class NumpyVectors:
                  + (uz * uy * one_cost + ux * sint) * Y \
                  + (cost + uz * uz * one_cost) * Z
         return self
+
+    def mask1DtoMask2D(self, mask1D):
+        return np.ones_like(self.v)*mask1D[:, None]
 
 
 Vectors = NativeVectors
