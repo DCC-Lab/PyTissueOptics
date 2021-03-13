@@ -454,8 +454,6 @@ class NumpyVectors:
     """ TODO: Test Function """
     def angleWith(self, v, axis):
         """ will v and axis be Vectors Array too or single vectors??"""
-        """ TODO: Test Function """
-
         sinPhi = self.normalizedCrossProduct(v)
         sinPhiAbs = sinPhi.abs()
         phi = np.asin(sinPhiAbs.v)  # what happens here?
@@ -468,11 +466,10 @@ class NumpyVectors:
         phi = np.where(dotAxis.v <= 0, minusPhi, phi)
 
         print(phi)
-        return phi
+        return phi  # What's supposed to be the return type?
 
     """ TODO: Test Function """
     def planeOfIncidence(self, normal):
-        """ TODO: Test Function """
 
         dotNormal = self.dot(normal)
         normal = np.where(dotNormal.v < 0, -normal, normal)
@@ -488,38 +485,34 @@ class NumpyVectors:
 
     """ TODO: Test Function """
     def angleOfIncidence(self, normal):
-        """ TODO: Test Function """
         dotNormal = self.dot(normal)
         normal = NumpyVectors(np.where(dotNormal.v < 0, -normal, normal))
 
         planeNormal = self.planeOfIncidence(normal)
         return self.angleWith(normal, axis=planeNormal), planeNormal, normal
 
+    """ TODO: Test Function """
     def rotateAround(self, u, theta):
-        """ TODO: Provides angles """
         u.normalize()
 
-        cost = math.cos(theta)
-        sint = math.sin(theta)
+        cost = math.cos(theta.v)
+        sint = math.sin(theta.v)
         one_cost = 1 - cost
 
-        ux = u._x
-        uy = u._y
-        uz = u._z
+        ux = u.v[:, 0]
+        uy = u.v[:, 1]
+        uz = u.v[:, 2]
 
-        X = self._x
-        Y = self._y
-        Z = self._z
+        X = self.v[:, 0]
+        Y = self.v[:, 1]
+        Z = self.v[:, 2]
 
-        self.x = (cost + ux * ux * one_cost) * X \
-                 + (ux * uy * one_cost - uz * sint) * Y \
-                 + (ux * uz * one_cost + uy * sint) * Z
-        self.y = (uy * ux * one_cost + uz * sint) * X \
-                 + (cost + uy * uy * one_cost) * Y \
-                 + (uy * uz * one_cost - ux * sint) * Z
-        self.z = (uz * ux * one_cost - uy * sint) * X \
-                 + (uz * uy * one_cost + ux * sint) * Y \
-                 + (cost + uz * uz * one_cost) * Z
+        x = (cost + ux * ux * one_cost) * X + (ux * uy * one_cost - uz * sint) * Y + (ux * uz * one_cost + uy * sint) * Z
+        y = (uy * ux * one_cost + uz * sint) * X + (cost + uy * uy * one_cost) * Y + (uy * uz * one_cost - ux * sint) * Z
+        z = (uz * ux * one_cost - uy * sint) * X + (uz * uy * one_cost + ux * sint) * Y + (cost + uz * uz * one_cost) * Z
+
+        self.v = np.array(np.meshgrid(x, y, z))
+
         return self
 
 
