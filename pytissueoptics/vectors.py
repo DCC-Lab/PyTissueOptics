@@ -343,9 +343,11 @@ class NumpyVectors:
         else:
             return NumpyScalars(np.less_equal(np.abs(np.subtract(self.v, other)), epsilon))
 
+    """ TODO: Test Function """
     def isParallelTo(self, other, epsilon=1e-9):
         return np.less(self.normalizedDotProduct(other.v) - 1, epsilon)
 
+    """ TODO: Test Function """
     def isPerpendicularTo(self, other, epsilon=1e-9):
         return np.less(self.normalizedDotProduct(other.v), epsilon)
 
@@ -387,15 +389,19 @@ class NumpyVectors:
     def anyUnitaryPerpendicular(self):
         return self.anyPerpendicular().normalized()
 
+    """ TODO: Make Function """
     def isInXYPlane(self, atZ, epsilon=0.001):
         pass
 
+    """ TODO: Make Function """
     def isInYZPlane(self, atX, epsilon=0.001):
         pass
 
+    """ TODO: Make Function """
     def isInZXPlane(self, atY, epsilon=0.001):
         pass
 
+    """ TODO: Make Function """
     def isInPlane(self, origin: 'Vector', normal: 'Vector', epsilon=0.001):
         pass
 
@@ -414,10 +420,11 @@ class NumpyVectors:
         return self
 
     def normalized(self):
-        """Watch out, does this modifies the self also?"""
+        """Watch out, does this modifies the self also?, yes which is why I deepcopy"""
         v = copy.deepcopy(self)
         return v.normalize()
 
+    """ TODO: Test Function """
     def cross(self, other):
         if isinstance(other, NumpyVectors):
             return NumpyVectors(np.cross(self.v, other.v))
@@ -432,54 +439,58 @@ class NumpyVectors:
         else:
             return NumpyScalars(np.einsum('ij,ij->i', self.v, other))
 
+    """ TODO: Test Function """
     def normalizedCrossProduct(self, other):
         '''TODO:  Is this OK'''
-        return self.cross(other).normalized()
+        productNorm = self.norm() * other.norm()
+        return self.cross(other) * productNorm * np.exp(-0.5)
 
+    """ TODO: Test Function """
     def normalizedDotProduct(self, other):
         '''TODO:  find way to calculate the zeors'''
-        norm = self.norm() * other.norm()
-        return self.dot(other) * norm * np.exp(-0.5)
+        productNorm = self.norm() * other.norm()
+        return self.dot(other) * productNorm * np.exp(-0.5)
 
+    """ TODO: Test Function """
     def angleWith(self, v, axis):
-        """ TODO: Provides angles """
+        """ will v and axis be Vectors Array too or single vectors??"""
+        """ TODO: Test Function """
+
         sinPhi = self.normalizedCrossProduct(v)
         sinPhiAbs = sinPhi.abs()
-        phi = np.asin(sinPhiAbs)
-        if_dotV_seq_0_mask = self.dot(v).v <= 0
-        if_dotV_seq_0_data = np.subtract(np.pi, phi)
-        phi0 = if_dotV_seq_0_data * if_dotV_seq_0_mask[:, None]
+        phi = np.asin(sinPhiAbs.v)  # what happens here?
+        piMinusPhi = np.pi - phi  # and here ?
+        dotV = self.dot(v)
+        dotAxis = sinPhi.dot(axis)
 
-        if_sinPhi_seq_0_mask = sinPhi.dot(axis).v <= 0
-        if_sinPhi_seq_0 = np.invert(phi)
-        phi1 = if_sinPhi_seq_0 * if_sinPhi_seq_0_mask[:, None]
+        phi = np.where(dotV.v <= 0, piMinusPhi, phi)
+        minusPhi = -phi
+        phi = np.where(dotAxis.v <= 0, minusPhi, phi)
 
-        phi = np.add(phi0, phi1)
         print(phi)
-        # if self.dot(v) <= 0:
-        #     phi = math.pi - phi
-        #
-        # if sinPhi.dot(axis) <= 0:
-        #     phi = -phi
-        #
-        # return phi
+        return phi
 
+    """ TODO: Test Function """
     def planeOfIncidence(self, normal):
-        """ TODO: Provides angles """
-        if self.dot(normal) < 0:
-            normal = -normal
+        """ TODO: Test Function """
+
+        dotNormal = self.dot(normal)
+        normal = np.where(dotNormal.v < 0, -normal, normal)
 
         planeOfIncidenceNormal = self.cross(normal)
-        if planeOfIncidenceNormal.norm() < 1e-7:
-            return self.anyUnitaryPerpendicular()
-        else:
-            return planeOfIncidenceNormal.normalized()
+        planeNorm = planeOfIncidenceNormal.norm()
 
+        anyPerp = self.anyPerpendicular()
+        planeNormalized = planeOfIncidenceNormal.normalized()
 
+        output = np.where(planeNorm.v < 1e-7, anyPerp.v, planeNormalized.v)
+        return NumpyVectors(output)
+
+    """ TODO: Test Function """
     def angleOfIncidence(self, normal):
-        """ TODO: Provides angles """
-        if self.dot(normal) < 0:
-            normal = -normal
+        """ TODO: Test Function """
+        dotNormal = self.dot(normal)
+        normal = NumpyVectors(np.where(dotNormal.v < 0, -normal, normal))
 
         planeNormal = self.planeOfIncidence(normal)
         return self.angleWith(normal, axis=planeNormal), planeNormal, normal
@@ -511,8 +522,6 @@ class NumpyVectors:
                  + (cost + uz * uz * one_cost) * Z
         return self
 
-    def mask1DtoMask2D(self, mask1D):
-        return np.ones_like(self.v)*mask1D[:, None]
 
 
 Vectors = NativeVectors
