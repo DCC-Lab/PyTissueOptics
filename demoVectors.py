@@ -6,6 +6,10 @@ from cupyx import optimizing
 from time import time_ns
 
 
+def print_to_stdout(*a):
+
+    print(*a, file=sys.stdout)
+
 def getScatteringDistance(N, mu_s):
     scalar = [] 
     for i in range(N):
@@ -20,25 +24,22 @@ def getScatteringAngle(N):
         phi.append(random.random() * 2 * np.pi)
     return theta, phi
 
-batches = 2
-N = 8000000
-
+time0 = time_ns()
+batches = 10
+N = 500000
 position = Vectors(N=N)
 direction = Vectors([[0, 0, 1]]*N)
 # direction = Vectors([zHat]*N)
 er = Vectors([[1, 0, 0]]*N)
 # er = Vectors([xHat]*N)
 weight = Scalars([1.0]*N)
-
 isAlive = True
+time1 = time_ns()
+print(f"Initialization   ::  {(time1-time0)/1000000000}s")
 
-# cuda stuff
-print(cp.cuda.runtime.getDeviceCount())
-mempool = cp.get_default_memory_pool()
-pinned_mempool = cp.get_default_pinned_memory_pool()
-
-timea = time_ns()
+time2 = time_ns()
 for i in range(batches):
+    time3 = time_ns()
     count = 0
     while isAlive:
         count += 1
@@ -53,12 +54,11 @@ for i in range(batches):
         weight *= 0.9
         isAlive = (weight.v > 0.001).any()
 
-        if not count % 10:
-            print(f"Pool Available:{mempool.total_bytes()/1000000}MB, Allocated:{mempool.used_bytes()/1000000}MB, Pool Blocks:{pinned_mempool.n_free_blocks()}")  # 512
-
     weight = Scalars([1.0] * N)
     isAlive = True
+    time4 = time_ns()
+    print(f"Batch #{i}   ::  {(time4-time3)/1000000000}s ::  {(i+1)*N/1000000}M photons/{N*batches/1000000}M    ::  ({int((i+1)*N*100/(N*batches))}%)")
 
-timeb = time_ns()
-
-print(f"{N} photons per batch, {batches} batches, in {(timeb-timea)/1e9} seconds.")
+time5 = time_ns()
+print(f"Calculations Only    ::  {N*batches/1000000}M photons    ::  {(time5-time2)/1000000000}s")
+print(f"Complete Process    ::  {N*batches/1000000}M photons    ::  {(time5-time0)/1000000000}s")

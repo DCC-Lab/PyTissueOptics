@@ -242,7 +242,7 @@ class NumpyVectors:
         if isinstance(other, NumpyVectors):
             return NumpyVectors(np.multiply(self.v, other.v))
         elif isinstance(other, NumpyScalars):
-            return NumpyVectors(np.multiply(self.v, other.v[:, None]))
+            return NumpyVectors(np.multiply(self.v, other.v[0][:, None]))
         # elif isinstance(other, np.ndarray):
         #     if len(other.shape) == 1:
         #         return NumpyVectors(self.v * other[:, None])
@@ -841,4 +841,4 @@ class CupyVectors:
         return self
 
 
-Vectors = CupyVectors
+Vectors = NumpyVectors
