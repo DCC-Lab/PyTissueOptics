@@ -40,19 +40,18 @@ pinned_mempool = cp.get_default_pinned_memory_pool()
 timea = time_ns()
 for i in range(batches):
     count = 0
-    with optimizing.optimize():
-        while isAlive:
-            count += 1
-            theta = Scalars.random(N=N) * 2 * np.pi
-            phi = Scalars.random(N=N) * 2 * np.pi
+    while isAlive:
+        count += 1
+        theta = Scalars.random(N=N) * 2 * np.pi
+        phi = Scalars.random(N=N) * 2 * np.pi
 
-            d = Scalars.random(N=N)
+        d = Scalars.random(N=N)
 
-            er.rotateAround(direction, phi)
-            direction.rotateAround(er, theta)
-            position = position + direction*d
-            weight *= 0.9
-            isAlive = (weight.v > 0.001).any()
+        er.rotateAround(direction, phi)
+        direction.rotateAround(er, theta)
+        position = position + direction*d
+        weight *= 0.9
+        isAlive = (weight.v > 0.001).any()
 
         if not count % 10:
             print(f"Pool Available:{mempool.total_bytes()/1000000}MB, Allocated:{mempool.used_bytes()/1000000}MB, Pool Blocks:{pinned_mempool.n_free_blocks()}")  # 512
