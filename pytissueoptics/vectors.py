@@ -543,7 +543,7 @@ class CupyVectors:
         if isinstance(other, CupyVectors):
             return CupyVectors(cp.multiply(self.v, other.v))
         elif isinstance(other, CupyScalars):
-            return CupyVectors(cp.multiply(self.v, other.v[:, None]))
+            return CupyVectors(cp.multiply(self.v, other.v[0][:, None]))
         # elif isinstance(other, cp.ndarray):
         #     if len(other.shape) == 1:
         #         return CupyVectors(self.v * other[:, None])
@@ -811,8 +811,10 @@ class CupyVectors:
     def rotateAround(self, u, theta):
         u.normalize()
         # print(theta.v)
-        if type(theta.v) == np.ndarray:
-            theta = cp.array(theta.v)
+        if type(theta) == np.ndarray:
+            theta = cp.array(theta)
+        elif type(theta) == CupyScalars:
+            theta = theta.v
 
         cost = (cp.cos(theta))[0]
         sint = (cp.sin(theta))[0]
@@ -839,4 +841,4 @@ class CupyVectors:
         return self
 
 
-Vectors = NumpyVectors
+Vectors = CupyVectors
