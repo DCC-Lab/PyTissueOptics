@@ -161,10 +161,12 @@ class NumpyScalars:
         
     @classmethod
     def random(cls, N: int):
+        """Random number between [0, 1]"""
         return NumpyScalars(np.random.rand(1, N))
 
     @classmethod
     def random2(cls, N: int):
+        """Random number between [-1, 1]"""
         return NumpyScalars((np.random.rand(1, N) * 2) - 1)
 
     def isEqualTo(self, other):

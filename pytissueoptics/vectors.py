@@ -228,6 +228,7 @@ class NumpyVectors:
         if vectors is not None:
             if type(vectors) == np.ndarray:
                 self.v = vectors.astype('float64')
+
             else:
                 self.v = np.asarray(vectors, dtype=np.float64)
         elif N is not None:
@@ -329,7 +330,9 @@ class NumpyVectors:
         x = np.sin(phi)*np.cos(theta)
         y = np.sin(phi)*np.sin(theta)
         z = np.cos(phi)
-        return NumpyVectors(np.stack((x, y, z), axis=-1))
+        output = NumpyVectors(np.stack((x, y, z), axis=-1))
+        print(output)
+        return output
 
     def isEqualTo(self, other):
         if isinstance(other, NumpyVectors):
@@ -465,7 +468,7 @@ class NumpyVectors:
         minusPhi = -phi
         phi = np.where(dotAxis.v <= 0, minusPhi, phi)
 
-        print(phi)
+        # print(phi)
         return phi  # What's supposed to be the return type?
 
     """ TODO: Test Function """
@@ -494,10 +497,10 @@ class NumpyVectors:
     """ TODO: Test Function """
     def rotateAround(self, u, theta):
         u.normalize()
-
-        cost = math.cos(theta.v)
-        sint = math.sin(theta.v)
-        one_cost = 1 - cost
+        #print(theta.v)
+        cost = (np.cos(theta.v))[0]
+        sint = (np.sin(theta.v))[0]
+        one_cost = (1 - cost)
 
         ux = u.v[:, 0]
         uy = u.v[:, 1]
@@ -511,10 +514,11 @@ class NumpyVectors:
         y = (uy * ux * one_cost + uz * sint) * X + (cost + uy * uy * one_cost) * Y + (uy * uz * one_cost - ux * sint) * Z
         z = (uz * ux * one_cost - uy * sint) * X + (uz * uy * one_cost + ux * sint) * Y + (cost + uz * uz * one_cost) * Z
 
-        self.v = np.array(np.meshgrid(x, y, z))
+        self.v = np.stack((x, y, z), axis=-1)
+        #print(self.v)
 
         return self
 
 
 
-Vectors = NativeVectors
+Vectors = NumpyVectors
