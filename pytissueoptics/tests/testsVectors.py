@@ -316,10 +316,14 @@ class TestVectors(envtest.PyTissueTestCase):
 class TestNumpyVectors(envtest.PyTissueTestCase):
 
     def testInitWithList(self):
-        pass
+        vecs = NumpyVectors([[1, 1, 1], [-0.04298243, 0.99337274, -0.10659786], [0, 1, 0], [-1, 0, 0]])
+        r = np.all(np.equal(vecs.v, [[1, 1, 1], [-0.04298243, 0.99337274, -0.10659786], [0, 1, 0], [-1, 0, 0]]))
+        self.assertTrue(r)
 
     def testInitWithNumpyArray(self):
-        pass
+        vecs = NumpyVectors(np.array([[1, 1, 1], [-0.04298243, 0.99337274, -0.10659786], [0, 1, 0], [-1, 0, 0]]))
+        r = np.all(np.equal(vecs.v, [[1, 1, 1], [-0.04298243, 0.99337274, -0.10659786], [0, 1, 0], [-1, 0, 0]]))
+        self.assertTrue(r)
 
     def testCheckInitTypeFloat64(self):
         vecs = NumpyVectors([[1, 1, 1], [-0.04298243, 0.99337274, -0.10659786], [0, 1, 0], [-1, 0, 0]])
@@ -334,9 +338,6 @@ class TestNumpyVectors(envtest.PyTissueTestCase):
         else:
             r = True
         self.assertTrue(r)
-
-    def testSetItem(self):
-        pass
 
     def testAdd(self):
         vecs = NumpyVectors([[1, 1, 1], [0, 1, 0], [-1, 0, 0]])
@@ -368,7 +369,7 @@ class TestNumpyVectors(envtest.PyTissueTestCase):
             r = True
         self.assertTrue(r)
 
-    def testMul(self):
+    def testMulFloat(self):
         vecs = NumpyVectors([[-1, -1, -1], [2, 2, 2], [0, 0, 0]])
         r = vecs * 2.0
         r = np.equal(r.v, [[-2, -2, -2], [4, 4, 4], [0, 0, 0]])
@@ -378,8 +379,27 @@ class TestNumpyVectors(envtest.PyTissueTestCase):
             r = True
         self.assertTrue(r)
 
+    def testMulScalars(self):
+        vecs = NumpyVectors([[-1, -1, -1], [2, 2, 2], [0, 0, 0]])
+        r = vecs * NumpyScalars([2, 1, 1])
+        r = np.equal(r.v, [[-2, -2, -2], [2, 2, 2], [0, 0, 0]])
+        if False in r:
+            r = False
+        else:
+            r = True
+        self.assertTrue(r)
+
+    def testMulVectors(self):
+        self.assertTrue(False)
+
+    def testMulMatrix(self):
+        self.assertTrue(False)
+
     def testNeg(self):
-        pass
+        vecs = NumpyVectors([[-1, -1, -1], [2, 2, 2], [0, 0, 0]])
+        vecs = -vecs
+        r = np.all(np.equal(vecs.v, [[1, 1, 1], [-2, -2, -2], [0, 0, 0]]))
+        self.assertTrue(r)
 
     def testLen(self):
         vecs = NumpyVectors([[1, 1, 1], [1, 1, 1], [1, 1, 1], [1, 1, 1]])
@@ -512,10 +532,10 @@ class TestNumpyVectors(envtest.PyTissueTestCase):
         self.assertTrue(r)
 
     def testIsParallelToTrue(self):
-        pass
+        self.assertTrue(False)
 
     def testIsPerpendicularTo(self):
-        pass
+        self.assertTrue(False)
 
     def testDot(self):
         vecs3 = NumpyVectors([[0, 0, 1], [1, 1, 1], [-2, -2, -2]])
@@ -525,34 +545,73 @@ class TestNumpyVectors(envtest.PyTissueTestCase):
         self.assertTrue(r)
 
     def testCross(self):
-        pass
+        self.assertTrue(False)
+
+    def testAnyPerpendicularMasks(self):
+        vecs = NumpyVectors([[0, 0, 1], [1, 1, 1], [2, 2, 0], [0, 0, 0], [1, 0, 0]])
+        convA = np.array([1, 1, 0]).transpose()
+        convB = np.array([0, 0, 1]).transpose()
+        YZ0 = vecs * convA
+        Z0 = vecs * convB
+        maskXY0 = np.all(YZ0.v == 0, axis=1)
+        maskZ0 = np.all(Z0.v == 0, axis=1)
+        maskXYZ0 = np.logical_and(maskXY0, maskZ0)
+        maskXYZ1 = np.invert(np.logical_or(maskXYZ0, maskZ0))
+        verify = [[True,False,False,True,False],[False,False,True,True,True],[False,False,False,True,False],[True,True,False,False,False]]
+        r = np.all([np.equal(verify[0], maskXY0), np.equal(verify[1], maskZ0), np.equal(verify[2], maskXYZ0), np.equal(verify[3], maskXYZ1)])
+        self.assertTrue(r)
 
     def testAnyPerpendicular(self):
-        pass
+        vecs4 = NumpyVectors([[0, 0, 1], [1, 1, 1], [2, 2, 0], [0, 0, 0], [1, 0, 0]])
+        r = vecs4.anyPerpendicular()
+        verify = [[0,  1,  0], [-1,  0,  1], [0,  0,  2], [0,  0,  0], [0,  0,  1]]
+        r = np.all(np.equal(r.v, verify))
+        self.assertTrue(r)
 
     def testAnyUnitaryPerpendicular(self):
-        pass
+        vecs4 = NumpyVectors([[0, 0, 1], [1, 1, 1], [2, 2, 0], [0, 0, 0], [1, 0, 0]])
+        r = vecs4.anyUnitaryPerpendicular()
+        r = np.all(r.isUnitary)
+        self.assertTrue(r)
 
     def testIsInXYPlane(self):
-        pass
+        self.assertTrue(False)
 
     def testIsInYZPlane(self):
-        pass
+        self.assertTrue(False)
 
     def testIsInZXPlane(self):
-        pass
+        self.assertTrue(False)
 
     def testIsInPlane(self):
-        pass
+        self.assertTrue(False)
 
     def testNormalize(self):
-        pass
+        vecs = NumpyVectors([[1, 1, 1], [-0.04298243, 0.99337274, -0.10659786], [0, 1, 0], [-1, 0, 0], [0, 0, 0]])
+        norm1 = vecs.norm().v
+        verify = np.where(norm1 != 0, 1, 0)
+        vecs.normalize()
+        norm2 = vecs.norm().v
+        r = np.all(np.equal(norm2, verify))
+        self.assertTrue(r)
 
-    def testNormalized(self):
-        pass
+    def testNormalizedIndependantObject(self):
+        v1 = NumpyVectors([[1, 1, 1], [-0.04298243, 0.99337274, -0.10659786], [0, 2, 0], [-1, 0, 0], [0, 0, 0]])
+        v2 = v1.normalized()
+        v2Norm = v2.norm().v
+        print(v2Norm)
+        v1Norm = v1.norm().v
+        print(v1Norm)
+        verify = np.isclose(v1Norm, v2Norm, atol=1e-8)
+        print(verify)
+        r = np.all(np.equal([0, 1, 0, 1, 1], verify))
+        self.assertTrue(r)
+
 
     def testNormalizedCrossProduct(self):
-        pass
+        vecs = NumpyVectors([[1, 1, 1], [-0.04298243, 0.99337274, -0.10659786], [0, 2, 0], [-1, 0, 0], [0, 0, 0]])
+        self.assertTrue(False)
+
 
     def testNormalizedDotProduct(self):
         vecs = NumpyVectors([[1, 1, 1], [-0.04298243, 0.99337274, -0.10659786], [0, 1, 0], [-1, 0, 0]])
@@ -561,18 +620,17 @@ class TestNumpyVectors(envtest.PyTissueTestCase):
         print(r.v)
         self.assertTrue(np.equal(vecs.v.all(), r.all()))
 
-
     def testAngleWith(self):
-        pass
+        self.assertTrue(False)
 
     def testPlaneOfIncidence(self):
-        pass
+        self.assertTrue(False)
 
     def testAngleOfIncidence(self):
-        pass
+        self.assertTrue(False)
 
     def testRotateAround(self):
-        pass
+        self.assertTrue(False)
 
 
 if __name__ == '__main__':

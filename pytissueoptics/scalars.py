@@ -1,9 +1,9 @@
 import numpy as np
-
+import cupy as cp
 import pytissueoptics.vectors as vc
 
 
-class Scalars:
+class NativeScalars:
     """ An array of scalars that is compatible with operations on Vectors 
     There is a reason for not using numpy.array directly: we want to
     add new functions that will be specific to our problem here,
@@ -100,6 +100,9 @@ class NumpyScalars:
         if array is not None:
             if type(array) == np.ndarray:
                 self.v = array.astype('float64')
+
+            elif type(array) == cp.ndarray:
+                self.v = array.astype(np.float64)
             else:
                 self.v = np.asarray(array, dtype=np.float64)
         elif N is not None:
@@ -177,10 +180,12 @@ class NumpyScalars:
 
     @classmethod
     def random(cls, N: int):
+        """Random number between [0, 1]"""
         return NumpyScalars(np.random.rand(1, N))
 
     @classmethod
     def random2(cls, N: int):
+        """Random number between [-1, 1]"""
         return NumpyScalars((np.random.rand(1, N) * 2) - 1)
 
     def isEqualTo(self, other):
@@ -188,3 +193,106 @@ class NumpyScalars:
             return NumpyScalars(np.less_equal(np.abs(np.subtract(self.v, other.v)), 1e-9))
         else:
             return NumpyScalars(np.less_equal(np.abs(np.subtract(self.v, other)), 1e-9))
+
+
+class CupyScalars:
+    def __init__(self, array=None, N=None):
+        if array is not None:
+            if type(array) == cp.ndarray:
+                self.v = array.astype('float64')
+
+            elif type(array) == cp.ndarray:
+                self.v = array.astype(cp.float64)
+            else:
+                self.v = cp.asarray(array, dtype=cp.float64)
+        elif N is not None:
+            self.v = cp.zeros((1, N), dtype=cp.float64)
+
+        self._iteration = 0
+
+    def __len__(self):
+        return self.v.shape[1]
+
+    def __add__(self, other):
+        if isinstance(other, CupyScalars):
+            return CupyScalars(cp.add(self.v, other.v))
+        else:
+            return CupyScalars(cp.add(self.v, other))
+
+    def __sub__(self, other):
+        if isinstance(other, CupyScalars):
+            return CupyScalars(cp.subtract(self.v, other.v))
+        else:
+            return CupyScalars(cp.subtract(self.v, other))
+
+    def __mul__(self, other):
+        if isinstance(other, CupyScalars):
+            return CupyScalars(cp.multiply(self.v, other.v))
+        elif isinstance(other, vc.CupyVectors):
+            return CupyScalars(cp.multiply(self.v[:, None], other.v))
+        else:
+            return CupyScalars(cp.multiply(self.v, other))
+
+    def __truediv__(self, other):
+        if isinstance(other, CupyScalars):
+            return CupyScalars(cp.true_divide(self.v, other.v))
+        elif isinstance(other, vc.CupyVectors):
+            return CupyScalars(cp.multiply(self.v[:, None], other.v))
+        else:
+            return CupyScalars(cp.true_divide(self.v, other))
+
+    def __neg__(self):
+        return CupyScalars(cp.negative(self.v))
+
+    def __getitem__(self, item):
+        return self.v[item]
+
+    def __setitem__(self, key, value: cp.float32):
+        self.v[key] = value
+
+    def __eq__(self, other):
+        if isinstance(other, CupyScalars):
+            return cp.equal(self.v, other.v)
+        else:
+            return cp.equal(self.v, other)
+
+    def __iter__(self):
+        self._iteration = 0
+        return self
+
+    def __next__(self):
+        if self._iteration < len(self):
+            result = self.v[:, self._iteration]
+            self._iteration += 1
+            return result
+        else:
+            raise StopIteration
+
+    def __contains__(self, item):
+        if item in self.v:
+            return True
+        else:
+            return False
+
+    @classmethod
+    def setAll(cls, value, N):
+        return CupyScalars(cp.full((1, N), value))
+
+    @classmethod
+    def random(cls, N: int):
+        """Random number between [0, 1]"""
+        return CupyScalars(cp.random.rand(1, N))
+
+    @classmethod
+    def random2(cls, N: int):
+        """Random number between [-1, 1]"""
+        return CupyScalars((cp.random.rand(1, N) * 2) - 1)
+
+    def isEqualTo(self, other):
+        if isinstance(other, CupyScalars):
+            return CupyScalars(cp.less_equal(cp.abs(cp.subtract(self.v, other.v)), 1e-9))
+        else:
+            return CupyScalars(cp.less_equal(cp.abs(cp.subtract(self.v, other)), 1e-9))
+
+
+Scalars = NumpyScalars
