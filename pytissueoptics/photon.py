@@ -89,8 +89,8 @@ class Photons:
         self.ez = Vectors(direction)  # Propagation direction vector
         self.er = Vectors( [Vector(0, 1, 0)]*n )
 
-        self.er.select(self.er.isPerpendicularTo(self.ez))
-        self.er = self.ez.anyPerpendicular()
+        self.er.select(logicalNot(self.er.isPerpendicularTo(self.ez)))
+        self.er.replaceSelected(self.ez.anyPerpendicular())
         self.er.selectAll()
 
         # We don't need to keep el, because it is obtainable from ez and er
@@ -125,12 +125,12 @@ class Photons:
 
     def roulette(self):
         n = len(self.position)
-        chance = 0.1
-        factor = [1]*n
-        rouletteMask = (self.weight.v < 1e-4)
-        dontTouchMask = not rouletteMask
 
-        live = (Scalars.random(n) < chance)
-        die = Scalars(not live.v)
+        chance = 0.1
+
+        rouletteMask = (self.weight.v < 1e-4)
+
+        live = (Scalars.random(n) > chance)
+        die = logicalNot(live)
         factor = dontTouchMask + rouletteMask * live/chance
 

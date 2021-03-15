@@ -13,12 +13,17 @@ class Scalars:
     """
 
     def __init__(self, array=None, N=None):
+        """
+
+        @rtype: object
+        """
         if array is not None:
             self.v = np.array(array)
         elif N is not None:
             self.v = np.array([0] * N)
         else:
             raise ValueError("You must provide an array or N")
+        self.selected = [True]*len(self.v)
         self._iteration = 0
 
     @classmethod
@@ -71,14 +76,14 @@ class Scalars:
             each = [v1 == v2 for (v1, v2) in list(zip(self.v, rhs))]
         return np.array(each).all()
 
-    def not_(self) -> 'Scalars':
+    def logicalNot(self) -> 'Scalars':
         return Scalars([not bool(v1) for v1 in self.v])
 
-    def and_(self, rhs) -> 'Scalars':
-        return Scalars([v1 and v2 for v1, v2 in list(zip(self.v, rhs))])
+    def logicalAnd(self, rhs) -> 'Scalars':
+        return Scalars([bool(v1) and bool(v2) for v1, v2 in list(zip(self.v, rhs))])
 
-    def or_(self, rhs) -> 'Scalars':
-        return Scalars([v1 or v2 for v1, v2 in list(zip(self.v, rhs))])
+    def logicalOr(self, rhs) -> 'Scalars':
+        return Scalars([bool(v1) or bool(v2) for v1, v2 in list(zip(self.v, rhs))])
 
     def all(self) -> bool:
         return self.v.all()

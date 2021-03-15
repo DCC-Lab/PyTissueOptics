@@ -76,6 +76,14 @@ class NativeVectors:
             vectors.append(Vector(x, y, z).normalized())
         return Vectors(vectors)
 
+    def replaceSelected(self, v, selected=None):
+        if selected is None:
+            selected = self.selected
+
+        for i in range(len(self.v)):
+            if selected[i]:
+                self.v[i] = v[i]
+
     @classmethod
     def fromScaledSum(cls, a, b, scale):
         return a.addScaled(b, scale)
@@ -149,6 +157,9 @@ class NativeVectors:
     def isParallelTo(self, rhs, epsilon=1e-7):
         return Scalars([False if not e or v1 is None else v1.isParallelTo(v2) for (v1, v2,e) in list(zip(self.v, rhs, self.selected))])
 
+    def isPerpendicularTo(self, rhs, epsilon=1e-7):
+        return Scalars([False if not e or v1 is None else v1.isPerpendicularTo(v2) for (v1, v2,e) in list(zip(self.v, rhs, self.selected))])
+
     def anyPerpendicular(self):
         return Vectors([oHat if not e or v1 is None else v1.anyPerpendicular() for v1,e in list(zip(self.v, self.selected))])
 
@@ -179,9 +190,6 @@ class NativeVectors:
 
     def normalized(self):
         return Vectors([v1.normalized() if e else v1 for v1,e in list(zip(self.v, self.selected))])
-
-    def isPerpendicularTo(self, rhs, epsilon=1e-7):
-        return Scalars([v1.isPerpendicularTo(v2) if e else False for (v1, v2, e) in list(zip(self.v, rhs, self.selected))])
 
     def cross(self, rhs):
         return Vectors([v1.cross(v2) if e else v1 for (v1, v2, e) in list(zip(self.v, rhs, self.selected))])

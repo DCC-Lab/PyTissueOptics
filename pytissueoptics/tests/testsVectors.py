@@ -30,6 +30,16 @@ class TestVectors(envtest.PyTissueTestCase):
         vs = Vectors(self.randomVectors(N=1000))
         self.assertEqual(len(vs), vs.count)
 
+    def testReplaceSomeVectors(self):
+        vs = Vectors(self.randomVectors(N=1000))
+        vr = Vectors(N=1000)
+
+        vs.select([False]*1000)
+        vs.selected[0] = True
+        vs.replaceSelected(vr)
+        self.assertEqual(vs[0], vr[0])
+        self.assertNotEqual(vs[1], vr[1])
+
     def testAddVectors(self):
         v1 = Vectors(vectors=[Vector(1,1,1)]*1000)
         v2 = Vectors(vectors=[Vector(1,2,3)]*1000)
@@ -272,21 +282,6 @@ class TestVectors(envtest.PyTissueTestCase):
 
         self.assertTrue(np.array(isPerp).all())
         self.assertTrue(np.array(isUnitary).all())
-
-    # def testIsInKnownPlane(self):
-    #     v = Vector(1,2,3)
-    #     self.assertTrue(v.isInXYPlane(atZ=3))
-    #     self.assertTrue(v.isInYZPlane(atX=1))
-    #     self.assertTrue(v.isInZXPlane(atY=2))
-
-    #     self.assertFalse(v.isInXYPlane(atZ=3.1))
-    #     self.assertFalse(v.isInYZPlane(atX=1.1))
-    #     self.assertFalse(v.isInZXPlane(atY=2.1))
-
-    # def testIsInSomePlane(self):
-    #     v = Vector(1,1,0)
-    #     self.assertTrue(v.isInPlane(origin=Vector(0,0,0), normal=zHat))
-    #     self.assertFalse(v.isInPlane(origin=Vector(1,1,1), normal=zHat))
 
     def randomVector(self):
         x = random.random()*2-1

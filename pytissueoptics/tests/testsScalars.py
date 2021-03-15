@@ -14,14 +14,14 @@ class TestScalars(envtest.PyTissueTestCase):
     def testScalarsNot(self):
         s = Scalars(N=100)
         self.assertIsNotNone(s)
-        s = s.not_()
+        s = s.logicalNot()
         self.assertTrue(s.all())
 
     def testScalarsOrAnd(self):
         s1 = Scalars([True, False, True, False])
         s2 = Scalars([True, False, False, True])
-        s3 = s1.and_(s2)
-        s4 = s1.or_(s2)
+        s3 = s1.logicalAnd(s2)
+        s4 = s1.logicalOr(s2)
         self.assertTrue(s3 == Scalars([True, False, False, False]))
         self.assertTrue(s4 == Scalars([True, False, True, True]))
 
