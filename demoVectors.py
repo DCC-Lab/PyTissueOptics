@@ -28,9 +28,10 @@ def getScatteringAngle(N):
         phi.append(random.random() * 2 * np.pi)
     return theta, phi
 
+
 time0 = time_ns()
 batches = 10
-N = 500000
+N = 5000
 position = Vectors(N=N)
 
 # direction = Vectors([zHat]*N)
