@@ -1,5 +1,9 @@
 import numpy as np
-import cupy as cp
+try:
+    import cupy as cp
+except:
+    cp = np
+
 import random
 from .vector import Vector, oHat
 from .scalars import *

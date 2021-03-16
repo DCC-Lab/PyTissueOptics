@@ -1,8 +1,12 @@
 import numpy as np
-import cupy as cp
+try:
+    import cupy as cp
+    from cupyx import optimizing
+except:
+    pass
+
 import random
 from pytissueoptics import *
-from cupyx import optimizing
 from time import time_ns
 
 

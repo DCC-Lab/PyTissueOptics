@@ -1,5 +1,10 @@
 import numpy as np
-import cupy as cp
+try:
+    import cupy as cp
+except:
+    cp = np
+    #CupyScalars = NumpyScalars
+
 import pytissueoptics.vectors as vc
 
 
@@ -100,7 +105,6 @@ class NumpyScalars:
         if array is not None:
             if type(array) == np.ndarray:
                 self.v = array.astype('float64')
-
             elif type(array) == cp.ndarray:
                 self.v = array.astype(np.float64)
             else:
@@ -193,7 +197,6 @@ class NumpyScalars:
             return NumpyScalars(np.less_equal(np.abs(np.subtract(self.v, other.v)), 1e-9))
         else:
             return NumpyScalars(np.less_equal(np.abs(np.subtract(self.v, other)), 1e-9))
-
 
 class CupyScalars:
     def __init__(self, array=None, N=None):
@@ -293,6 +296,5 @@ class CupyScalars:
             return CupyScalars(cp.less_equal(cp.abs(cp.subtract(self.v, other.v)), 1e-9))
         else:
             return CupyScalars(cp.less_equal(cp.abs(cp.subtract(self.v, other)), 1e-9))
-
 
 Scalars = NumpyScalars
