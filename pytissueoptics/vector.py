@@ -54,11 +54,11 @@ class Vector:
 
     @property
     def isUnitary(self) -> bool:
-        return abs(self.norm()-1) < 1e-7
+        return abs(self.normSquared() - 1) < 1e-7
 
     @property
     def isNull(self) -> bool:
-        return self.norm() < 1e-7
+        return self.normSquared() < 1e-7
 
     def __repr__(self):
         return "({0:.4f},{1:.4f},{2:.4f})".format(self.x, self.y, self.z)
@@ -153,7 +153,7 @@ class Vector:
             return True
         return False
 
-    def norm(self):
+    def normSquared(self):
         ux = self._x
         uy = self._y
         uz = self._z
@@ -205,7 +205,7 @@ class Vector:
 
         It is twice as fast to use x**(-0.5) rather than 1/sqrt(x).
         """
-        productNorm = self.norm() * vector.norm()
+        productNorm = self.normSquared() * vector.normSquared()
         if productNorm == 0:
             return Vector(0,0,0)
 
@@ -217,7 +217,7 @@ class Vector:
 
         It is twice as fast to use x**(-0.5) rather than 1/sqrt(x)
         """
-        productNorm = self.norm() * vector.norm()
+        productNorm = self.normSquared() * vector.normSquared()
         if productNorm == 0:
             return 0
         return self.dot(vector) * (productNorm**(-0.5))
@@ -254,7 +254,7 @@ class Vector:
             normal = -normal
 
         planeOfIncidenceNormal = self.cross(normal)
-        if planeOfIncidenceNormal.norm() < 1e-7:
+        if planeOfIncidenceNormal.normSquared() < 1e-7:
             return self.anyUnitaryPerpendicular()
         else:
             return planeOfIncidenceNormal.normalized()
@@ -328,7 +328,7 @@ class ConstVector(Vector):
         self._norm = 0
         Vector.__init__(self, x, y, z)
         self._abs = self.abs()
-        self._norm = self.norm()
+        self._norm = self.normSquared()
 
     def normalize(self):
         if self._norm != 1:
@@ -336,7 +336,7 @@ class ConstVector(Vector):
         else:
             raise RuntimeError("You cannot normalize a constant vector: you can use ConstUnitVector instead for unit vectors, there is no need to normalize them.")
 
-    def norm(self):
+    def normSquared(self):
         return self._norm
 
     def abs(self):
@@ -369,13 +369,13 @@ class ConstVector(Vector):
 class ConstUnitVector(UnitVector):
     def __init__(self, x: float = 0, y: float = 0, z: float = 0):
         Vector.__init__(self, x, y, z)
-        if self.norm() != 1.0:
+        if self.normSquared() != 1.0:
             raise ValueError("Vector must be created with proper normalized values")
 
     def normalize(self):
         return self
 
-    def norm(self):
+    def normSquared(self):
         return 1.0
 
     def abs(self):

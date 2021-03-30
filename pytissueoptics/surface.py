@@ -137,7 +137,7 @@ class FresnelIntersect:
             self.indexOut = self.surface.indexOutside
 
         plane = direction.cross(self.actualNormal)
-        if plane.norm() < 1e-7:
+        if plane.normSquared() < 1e-7:
             # Normal incidence: any plane will
             self.incidencePlane = self.direction.anyUnitaryPerpendicular()
         else:

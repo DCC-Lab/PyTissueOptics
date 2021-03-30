@@ -183,7 +183,7 @@ class NativeVectors:
         return Scalars([v1.isInPlane(origin, normal, epsilon) if e else False for v1,e in list(zip(self.v, self.selected))])
 
     def norm(self):
-        return Scalars([v1.norm() if e else 0 for v1,e in list(zip(self.v, self.selected))])
+        return Scalars([v1.normSquared() if e else 0 for v1, e in list(zip(self.v, self.selected))])
 
     def abs(self):
         return Scalars([v1.abs() if e else 0 for v1,e in list(zip(self.v, self.selected))])
@@ -462,14 +462,14 @@ class NumpyVectors:
     """ TODO: Test Function """
     def normalizedCrossProduct(self, other):
         '''TODO:  Is this OK'''
-        productNorm = self.norm() * other.norm()
+        productNorm = self.norm() * other.normSquared()
         output = self.cross(other) * productNorm * np.exp(-0.5)
         return output
 
     """ TODO: Test Function """
     def normalizedDotProduct(self, other):
         '''TODO:  find way to calculate the zeors'''
-        invAbs = np.power((self.norm() * other.norm()).v, -0.5)
+        invAbs = np.power((self.norm() * other.normSquared()).v, -0.5)
         dot = self.dot(other)
         output = dot / invAbs
         return output
@@ -776,14 +776,14 @@ class CupyVectors:
 
     def normalizedCrossProduct(self, other):
         '''TODO:  Is this OK'''
-        productNorm = self.norm() * other.norm()
+        productNorm = self.norm() * other.normSquared()
         return self.cross(other) * productNorm * cp.exp(-0.5)
 
     """ TODO: Test Function """
 
     def normalizedDotProduct(self, other):
         '''TODO:  find way to calculate the zeors'''
-        productNorm = self.norm() * other.norm()
+        productNorm = self.norm() * other.normSquared()
         return self.dot(other) * productNorm * cp.exp(-0.5)
 
     """ TODO: Test Function """
@@ -1099,14 +1099,14 @@ class OpenCLVectors:
 
     def normalizedCrossProduct(self, other):
         '''TODO:  Is this OK'''
-        productNorm = self.norm() * other.norm()
+        productNorm = self.norm() * other.normSquared()
         return self.cross(other) * productNorm * cp.exp(-0.5)
 
     """ TODO: Test Function """
 
     def normalizedDotProduct(self, other):
         '''TODO:  find way to calculate the zeors'''
-        productNorm = self.norm() * other.norm()
+        productNorm = self.norm() * other.normSquared()
         return self.dot(other) * productNorm * cp.exp(-0.5)
 
     """ TODO: Test Function """

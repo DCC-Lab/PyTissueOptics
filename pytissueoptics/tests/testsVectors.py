@@ -625,7 +625,7 @@ class TestNumpyVectors(envtest.PyTissueTestCase):
     def testNormalizedIndependantObject(self):
         v1 = NumpyVectors([[1, 1, 1], [-0.04298243, 0.99337274, -0.10659786], [0, 2, 0], [-1, 0, 0], [0, 0, 0]])
         v2 = v1.normalized()
-        v2Norm = v2.norm().v
+        v2Norm = v2.normSquared().v
         print(v2Norm)
         v1Norm = v1.norm().v
         print(v1Norm)

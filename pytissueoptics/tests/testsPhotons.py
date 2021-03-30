@@ -23,7 +23,7 @@ class TestPhoton(envtest.PyTissueTestCase):
 
         thetaIn, planeOfIncidenceNormal, actualNormal = p.ez.angleOfIncidence(s.normal)
         p.ez.rotateAround(planeOfIncidenceNormal, 2*thetaIn-np.pi)
-        self.assertAlmostEqual((p.ez - -zHat).norm(), 0, 6)
+        self.assertAlmostEqual((p.ez - -zHat).normSquared(), 0, 6)
 
     def testReflectPlus45Incidence(self):
         s = Surface(origin=oHat, a=xHat, b=yHat, normal=zHat)
@@ -31,7 +31,7 @@ class TestPhoton(envtest.PyTissueTestCase):
 
         thetaIn, planeOfIncidenceNormal, actualNormal = p.ez.angleOfIncidence(s.normal)
         p.ez.rotateAround(planeOfIncidenceNormal, 2*thetaIn-np.pi)
-        self.assertAlmostEqual((p.ez - Vector(0,1,-1).normalized()).norm(), 0, 6)
+        self.assertAlmostEqual((p.ez - Vector(0,1,-1).normalized()).normSquared(), 0, 6)
 
     def testReflectMinus45Incidence(self):
         s = Surface(origin=oHat, a=xHat, b=yHat, normal=zHat)
@@ -39,14 +39,14 @@ class TestPhoton(envtest.PyTissueTestCase):
 
         thetaIn, planeOfIncidenceNormal, actualNormal = p.ez.angleOfIncidence(s.normal)
         p.ez.rotateAround(planeOfIncidenceNormal, 2*thetaIn-np.pi)
-        self.assertAlmostEqual((p.ez - Vector(0,-1,-1).normalized()).norm(), 0, 6)
+        self.assertAlmostEqual((p.ez - Vector(0,-1,-1).normalized()).normSquared(), 0, 6)
 
     def testReflectNormalIncidence(self):
         s = Surface(origin=oHat, a=xHat, b=yHat, normal=zHat)
         p = Photon(position=Vector(0,0,0), direction=zHat)
         intersect = FresnelIntersect(p.ez, s, distance=0)
         p.reflect(intersect)
-        self.assertTrue( (p.ez+zHat).norm() < 1e-6)
+        self.assertTrue((p.ez+zHat).normSquared() < 1e-6)
 
     def testNoRefract(self):
         s = Surface(origin=oHat, a=xHat, b=yHat, normal=-zHat)
