@@ -31,7 +31,7 @@ def getScatteringAngle(N):
 
 time0 = time_ns()
 batches = 10
-N = 5000
+N = 50000
 position = Vectors(N=N)
 
 # direction = Vectors([zHat]*N)
@@ -39,9 +39,7 @@ position = Vectors(N=N)
 # weight = Scalars([1.0]*N)
 
 direction = Vectors([[0, 0, 1]]*N)
-# direction = Vectors([zHat]*N)
 er = Vectors([[1, 0, 0]]*N)
-# er = Vectors([xHat]*N)
 weight = Scalars([1.0]*N)
 
 isAlive = True
@@ -73,3 +71,4 @@ for i in range(batches):
 time5 = time_ns()
 print(f"Calculations Only    ::  {N*batches/1000000}M photons    ::  {(time5-time2)/1000000000}s")
 print(f"Complete Process    ::  {N*batches/1000000}M photons    ::  {(time5-time0)/1000000000}s")
+print(f"Performances    ::  {((time5-time0)/1000)/(N*batches)} us/photon")

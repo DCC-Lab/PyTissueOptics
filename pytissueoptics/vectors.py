@@ -364,11 +364,12 @@ class NumpyVectors:
 
     """ TODO: Test Function """
     def isParallelTo(self, other, epsilon=1e-9):
-        return np.less(self.normalizedDotProduct(other.v) - 1, epsilon)
+        r = (self.normalizedDotProduct(other) - 1).v
+        return np.less_equal(r, epsilon)
 
     """ TODO: Test Function """
     def isPerpendicularTo(self, other, epsilon=1e-9):
-        return np.less(self.normalizedDotProduct(other.v), epsilon)
+        return np.less_equal(self.normalizedDotProduct(other).v, epsilon)
 
     def anyPerpendicular(self):
         # check if x or y is zero, if yes, cross yHat elif z is 0: set to none, if not, cross with xHat
@@ -462,13 +463,16 @@ class NumpyVectors:
     def normalizedCrossProduct(self, other):
         '''TODO:  Is this OK'''
         productNorm = self.norm() * other.norm()
-        return self.cross(other) * productNorm * np.exp(-0.5)
+        output = self.cross(other) * productNorm * np.exp(-0.5)
+        return output
 
     """ TODO: Test Function """
     def normalizedDotProduct(self, other):
         '''TODO:  find way to calculate the zeors'''
-        invAbs = np.power((self.norm() * other.norm()).v,0.5)
-        return self.dot(other) / invAbs
+        invAbs = np.power((self.norm() * other.norm()).v, -0.5)
+        dot = self.dot(other)
+        output = dot / invAbs
+        return output
 
     """ TODO: Test Function """
     def angleWith(self, v, axis):
@@ -1183,4 +1187,4 @@ class OpenCLVectors:
         return self
 
 
-Vectors = NativeVectors
+Vectors = NumpyVectors

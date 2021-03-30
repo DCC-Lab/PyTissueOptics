@@ -184,7 +184,7 @@ class TestVectors(envtest.PyTissueTestCase):
         actual = v1.angleWith(v2, axes)
         angles= [0, np.pi/2, -np.pi/4]
         for i in range(3):
-            self.assertAlmostEqual(angles[i], actual[i] )
+            self.assertAlmostEqual(angles[i], actual[i])
 
     def testNormalizedDotProduct(self):
         v1 = Vectors([xHat, yHat, zHat])
@@ -202,7 +202,7 @@ class TestVectors(envtest.PyTissueTestCase):
         actual = v3.angleWith(v1, axis)
 
         for i in range(3):
-            self.assertAlmostEqual(angle[i], actual[i],3,"Error at {0}".format(i))
+            self.assertAlmostEqual(angle[i], actual[i], 3, "Error at {0}".format(i))
 
     def testRotatedAround(self):
         v1 = Vectors([xHat, yHat, zHat])
@@ -214,10 +214,10 @@ class TestVectors(envtest.PyTissueTestCase):
         actual = v1.angleWith(v3, axis)
 
         for i in range(3):
-            self.assertAlmostEqual(angle[i], actual[i],3,"Error at {0}".format(i))
+            self.assertAlmostEqual(angle[i], actual[i], 3, "Error at {0}".format(i))
 
     def testPlaneAndAngleOfIncidence(self):
-        v1 = Vectors([Vector(0,1,1), Vector(0,-1,1), Vector(1,0,1)])
+        v1 = Vectors([Vector(0,1,1), Vector(0, -1, 1), Vector(1, 0, 1)])
         normal = Vectors([zHat, zHat, -zHat])
 
         expectedAngles = [np.pi/4, np.pi/4, np.pi/4]
@@ -229,12 +229,12 @@ class TestVectors(envtest.PyTissueTestCase):
             self.assertAlmostEqual(actualAngles[i], expectedAngles[i])
 
     def testNormAbs(self):
-        v1 = Vectors([Vector(1,1,1), Vector(1,0,1),Vector(0,1,1)]) 
-        self.assertEqual(v1.norm(), [3,2,2])
-        self.assertEqual(v1.abs(), [np.sqrt(3),np.sqrt(2),np.sqrt(2)])
+        v1 = Vectors([Vector(1, 1, 1), Vector(1, 0, 1),Vector(0, 1, 1)])
+        self.assertEqual(v1.norm(), [3, 2, 2])
+        self.assertEqual(v1.abs(), [np.sqrt(3), np.sqrt(2), np.sqrt(2)])
 
     def testNormalize(self):
-        v1 = Vectors([Vector(1,1,1), Vector(1,0,1),Vector(0,1,1)]) 
+        v1 = Vectors([Vector(1, 1, 1), Vector(1, 0, 1),Vector(0, 1, 1)])
         v2 = v1.normalized()
         self.assertTrue(np.array(v2.isUnitary).all())
 
@@ -242,25 +242,25 @@ class TestVectors(envtest.PyTissueTestCase):
         self.assertTrue(np.array(v1.isUnitary).all())
 
     def testNormalizeWithMask(self):
-        v1 = Vectors([Vector(1,1,1), Vector(1,0,1),Vector(0,1,1)])
+        v1 = Vectors([Vector(1, 1, 1), Vector(1, 0, 1),Vector(0, 1, 1)])
         v1.selected = [False, True, True]
         v2 = v1.normalized()
 
         v1.normalize()
-        self.assertEqual(v1[0], Vector(1,1,1))
+        self.assertEqual(v1[0], Vector(1, 1, 1))
 
     def testScaledSum(self):
-        v1 = Vectors([Vector(1,2,3), Vector(4,5,6),Vector(7,8,9)])
+        v1 = Vectors([Vector(1, 2, 3), Vector(4, 5, 6),Vector(7, 8, 9)])
         v1.selected = [False, True, True]
-        v2 = Vectors([Vector(1,2,3), Vector(4,5,6),Vector(7,8,9)]) 
-        s  = [1,2,3]
-        v3 = Vectors([Vector(1,2,3), Vector(12,15,18),Vector(28,32,36)])
+        v2 = Vectors([Vector(1, 2, 3), Vector(4, 5, 6),Vector(7, 8, 9)])
+        s = [1, 2, 3]
+        v3 = Vectors([Vector(1, 2, 3), Vector(12, 15, 18), Vector(28, 32, 36)])
         r = Vectors.fromScaledSum(v1, v2, s)
         self.assertEqual(r, v3)
         self.assertEqual(v1.addScaled(v2, s), v3)
 
     def testAnyPerpendicular(self):
-        vectors = Vectors([Vector(1,2,3), Vector(-1,-2-3), xHat, yHat, zHat])
+        vectors = Vectors([Vector(1, 2, 3), Vector(-1, -2, -3), xHat, yHat, zHat])
         for v in vectors:
             self.assertTrue(v.anyPerpendicular().isPerpendicularTo(v))
 
@@ -287,21 +287,21 @@ class TestVectors(envtest.PyTissueTestCase):
         x = random.random()*2-1
         y = random.random()*2-1
         z = random.random()*2-1
-        return Vector(x,y,z)
+        return Vector(x, y, z)
 
     def randomAngles(self, N):
         scalar = []
         for i in range(N):
-            scalar.append( (random.random()-0.5)*2*np.pi)
+            scalar.append((random.random() - 0.5) * 2 * np.pi)
         return scalar
 
     def randomVectors(self, N):
         vectors = []
         for i in range(N):
-            x = random.random()*2-1
-            y = random.random()*2-1
-            z = random.random()*2-1
-            vectors.append( Vector(x,y,z) )
+            x = random.random() * 2 - 1
+            y = random.random() * 2 - 1
+            z = random.random() * 2 - 1
+            vectors.append(Vector(x, y, z))
         return vectors
 
     def randomUnitVectors(self, N):
@@ -310,8 +310,9 @@ class TestVectors(envtest.PyTissueTestCase):
             x = random.random()*2-1
             y = random.random()*2-1
             z = random.random()*2-1
-            vectors.append( UnitVector(x,y,z) )
+            vectors.append(UnitVector(x, y, z))
         return vectors
+
 
 class TestNumpyVectors(envtest.PyTissueTestCase):
 
@@ -532,6 +533,27 @@ class TestNumpyVectors(envtest.PyTissueTestCase):
         self.assertTrue(r)
 
     def testIsParallelToTrue(self):
+        vecs3 = NumpyVectors([[2, 2, 2], [1, 1, 1], [-1, 1, 1]])
+        vecs4 = NumpyVectors([[2, 2, 2], [-1, -1, -1], [1, -1, 1]])
+        r = vecs3.isParallelTo(vecs4)
+        print(r)
+        r = np.all(np.equal([True, True, True], r))
+        self.assertTrue(r)
+
+    def testIsParallelToNull(self):
+        vecs3 = NumpyVectors([[0, 0, 1], [1, 1, 1], [0, 0, 0]])
+        vecs4 = NumpyVectors([[1, 0, 0], [-1, -1, -1], [0, 0, 0]])
+        r = vecs3.dot(vecs4)
+        r = np.all(np.equal([0, 3, -12], r.v))
+        self.assertTrue(r)
+        self.assertTrue(False)
+
+    def testIsParallelToFalse(self):
+        vecs3 = NumpyVectors([[0, 0, 1], [1, 1, 1], [0, 0, 0]])
+        vecs4 = NumpyVectors([[1, 0, 0], [-1, -1, -1], [0, 0, 0]])
+        r = vecs3.dot(vecs4)
+        r = np.all(np.equal([0, 3, -12], r.v))
+        self.assertTrue(r)
         self.assertTrue(False)
 
     def testIsPerpendicularTo(self):
@@ -545,7 +567,12 @@ class TestNumpyVectors(envtest.PyTissueTestCase):
         self.assertTrue(r)
 
     def testCross(self):
-        self.assertTrue(False)
+        vecs0 = NumpyVectors([[0, 0, 1], [1, 1, 1], [-2, -2, -2]])
+        vecs1 = NumpyVectors([[1, 0, 0], [-1, -1, -1], [1, 0, 0]])
+        r = vecs0.cross(vecs1)
+        print(r.v)
+        r = np.all(np.equal([[0, 1, 0], [0, 0, 0], [0, -2, 2]], r.v))
+        self.assertTrue(r)
 
     def testAnyPerpendicularMasks(self):
         vecs = NumpyVectors([[0, 0, 1], [1, 1, 1], [2, 2, 0], [0, 0, 0], [1, 0, 0]])
