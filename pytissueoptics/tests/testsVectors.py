@@ -625,7 +625,7 @@ class TestNumpyVectors(envtest.PyTissueTestCase):
     def testNormalizedIndependantObject(self):
         v1 = NumpyVectors([[1, 1, 1], [-0.04298243, 0.99337274, -0.10659786], [0, 2, 0], [-1, 0, 0], [0, 0, 0]])
         v2 = v1.normalized()
-        v2Norm = v2.normSquared().v
+        v2Norm = v2.norm().v
         print(v2Norm)
         v1Norm = v1.norm().v
         print(v1Norm)
@@ -634,18 +634,19 @@ class TestNumpyVectors(envtest.PyTissueTestCase):
         r = np.all(np.equal([0, 1, 0, 1, 1], verify))
         self.assertTrue(r)
 
-
     def testNormalizedCrossProduct(self):
         vecs = NumpyVectors([[1, 1, 1], [-0.04298243, 0.99337274, -0.10659786], [0, 2, 0], [-1, 0, 0], [0, 0, 0]])
-        self.assertTrue(False)
-
+        vecs2 = NumpyVectors([[1, 1, 0], [-0.04298243, 0.99337274, -0.10659786], [0, 0, 1], [0, -2, 0], [1, 1, 1]])
+        r = vecs.normalizedCrossProduct(vecs2)
+        print(r.v)
+        print(np.isclose([[-0.4082482905, 0.4082482905, 0], [0, 0, 0], [1, 0, 0], [0, 0, 1], [0, 0, 0]], r.v, atol=1e-9))
+        self.assertTrue(np.all(np.isclose([[-0.4082482905, 0.4082482905, 0], [0, 0, 0], [1, 0, 0], [0, 0, 1], [0, 0, 0]], r.v, atol=1e-9)))
 
     def testNormalizedDotProduct(self):
         vecs = NumpyVectors([[1, 1, 1], [-0.04298243, 0.99337274, -0.10659786], [0, 1, 0], [-1, 0, 0]])
         vecs2 = NumpyVectors([[1, 1, 0], [-0.04298243, 0.99337274, -0.10659786], [0, 0, 1], [0, -2, 0]])
         r = vecs.normalizedDotProduct(vecs2)
-        print(r.v)
-        self.assertTrue(np.equal(vecs.v.all(), r.all()))
+        self.assertTrue(np.all(np.isclose([0.8164965809, 1, 0, 0], r.v, atol=1e-9)))
 
     def testAngleWith(self):
         self.assertTrue(False)

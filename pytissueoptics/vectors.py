@@ -259,7 +259,7 @@ class NumpyVectors:
         if isinstance(other, NumpyVectors):
             return NumpyVectors(np.multiply(self.v, other.v))
         elif isinstance(other, NumpyScalars):
-            return NumpyVectors(np.multiply(self.v, other.v[0][:, None]))
+            return NumpyVectors(np.multiply(self.v, other.v[:, None]))
         # elif isinstance(other, np.ndarray):
         #     if len(other.shape) == 1:
         #         return NumpyVectors(self.v * other[:, None])
@@ -428,6 +428,9 @@ class NumpyVectors:
     def norm(self):
         return NumpyScalars(np.linalg.norm(self.v, axis=1))
 
+    def normSquared(self):
+        return NumpyScalars(self.abs)
+
     def abs(self):
         return NumpyVectors(np.abs(self.v))
 
@@ -462,14 +465,16 @@ class NumpyVectors:
     """ TODO: Test Function """
     def normalizedCrossProduct(self, other):
         '''TODO:  Is this OK'''
-        productNorm = self.norm() * other.normSquared()
-        output = self.cross(other) * productNorm * np.exp(-0.5)
+        productNorm = (self.norm() * other.norm()).v
+        productNorm = np.where(productNorm != 0, productNorm, 1)
+        output = self.cross(other) / productNorm[:, None]
         return output
 
     """ TODO: Test Function """
     def normalizedDotProduct(self, other):
         '''TODO:  find way to calculate the zeors'''
-        invAbs = np.power((self.norm() * other.normSquared()).v, -0.5)
+        invAbs = (self.norm() * other.norm()).v
+        invAbs = np.where(invAbs != 0, invAbs, 1)
         dot = self.dot(other)
         output = dot / invAbs
         return output
