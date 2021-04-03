@@ -483,9 +483,9 @@ class NumpyVectors:
     def angleWith(self, v, axis):
         """ will v and axis be Vectors Array too or single vectors??"""
         sinPhi = self.normalizedCrossProduct(v)
-        sinPhiAbs = sinPhi.abs()
-        phi = np.asin(sinPhiAbs.v)  # what happens here?
-        piMinusPhi = np.pi - phi  # and here ?
+        sinPhiAbs = sinPhi.norm()
+        phi = np.arcsin(sinPhiAbs.v)
+        piMinusPhi = np.pi - phi
         dotV = self.dot(v)
         dotAxis = sinPhi.dot(axis)
 
@@ -494,7 +494,7 @@ class NumpyVectors:
         phi = np.where(dotAxis.v <= 0, minusPhi, phi)
 
         # print(phi)
-        return phi  # What's supposed to be the return type?
+        return NumpyScalars(phi)  # What's supposed to be the return type?
 
     """ TODO: Test Function """
     def planeOfIncidence(self, normal):
@@ -1192,4 +1192,4 @@ class OpenCLVectors:
         return self
 
 
-Vectors = NumpyVectors
+Vectors = NativeVectors
