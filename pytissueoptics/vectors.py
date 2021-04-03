@@ -500,7 +500,7 @@ class NumpyVectors:
     def planeOfIncidence(self, normal):
 
         dotNormal = self.dot(normal)
-        normal = np.where(dotNormal.v < 0, -normal.v, normal.v)
+        normal = np.where(dotNormal.v[:, None] < 0, -normal.v, normal.v)
 
         planeOfIncidenceNormal = self.cross(normal)
         planeNorm = planeOfIncidenceNormal.norm()
@@ -508,13 +508,13 @@ class NumpyVectors:
         anyPerp = self.anyPerpendicular()
         planeNormalized = planeOfIncidenceNormal.normalized()
 
-        output = np.where(planeNorm.v < 1e-7, anyPerp.v, planeNormalized.v)
+        output = np.where(planeNorm.v[:, None] < 1e-3, anyPerp.v, planeNormalized.v)
         return NumpyVectors(output)
 
     """ TODO: Test Function """
     def angleOfIncidence(self, normal):
         dotNormal = self.dot(normal)
-        normal = NumpyVectors(np.where(dotNormal.v < 0, -normal, normal))
+        normal = NumpyVectors(np.where(dotNormal.v[:, None] < 0, -normal.v, normal.v))
 
         planeNormal = self.planeOfIncidence(normal)
         return self.angleWith(normal, axis=planeNormal), planeNormal, normal

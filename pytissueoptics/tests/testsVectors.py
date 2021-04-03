@@ -658,10 +658,21 @@ class TestNumpyVectors(envtest.PyTissueTestCase):
         self.assertTrue(np.all(np.isclose([0.61547971, 0, -1.57079633, -1.57079633, -3.14159265], r.v, atol=1e-7)))
 
     def testPlaneOfIncidence(self):
-        self.assertTrue(False)
+        vecs = NumpyVectors([[1, 1, 1], [-0.04298243, 0.99337274, -0.10659786], [0, 2, 0], [-1, 0, 0]])
+        axis = NumpyVectors([[0, 1, 0], [0, 1, 0], [0, 1, 0], [0, 1, 0]])
+        r = vecs.planeOfIncidence(axis)
+        print(r.v)
+        self.assertTrue(np.all(np.isclose([[-0.70710678, 0.0000, 0.70710678], [0.92744322, 0.0000, -0.37396401], [0.0000, 0.0000, -1.0000], [0.0000, 0.0000, -1.0000]], r.v, atol=1e-7)))
+        
 
     def testAngleOfIncidence(self):
-        self.assertTrue(False)
+        v1 = NumpyVectors([[1, 1, 1], [-0.04298243, 0.99337274, -0.10659786], [0, 2, 0], [-1, 0, 0]])
+        plane = NumpyVectors([[0, 1, 0], [0, 1, 0], [0, 1, 0], [0, 1, 0]])
+        r = v1.angleOfIncidence(plane)
+        print(r[0].v)
+        # le dernier -3.14 is the same for Vector, but seems an error, cause it should probably be 0.
+        self.assertTrue(np.all(np.isclose([0.95531662, 0.11519193, 0, 1.57079633], r[0].v, atol=1e-7)))
+
 
     def testRotateAround(self):
         self.assertTrue(False)
