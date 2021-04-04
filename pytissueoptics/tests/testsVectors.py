@@ -658,6 +658,7 @@ class TestNumpyVectors(envtest.PyTissueTestCase):
         self.assertTrue(np.all(np.isclose([0.61547971, 0, -1.57079633, -1.57079633, -3.14159265], r.v, atol=1e-7)))
 
     def testPlaneOfIncidence(self):
+        '''TEST NOT PASSING BECAUSE OF CONDITION (Why in reference vectors randomPerpendicular when np.cross is 0!?)'''
         vecs = NumpyVectors([[1, 1, 1], [-0.04298243, 0.99337274, -0.10659786], [0, 2, 0], [-1, 0, 0]])
         axis = NumpyVectors([[0, 1, 0], [0, 1, 0], [0, 1, 0], [0, 1, 0]])
         r = vecs.planeOfIncidence(axis)
@@ -675,7 +676,14 @@ class TestNumpyVectors(envtest.PyTissueTestCase):
 
 
     def testRotateAround(self):
-        self.assertTrue(False)
+        v1 = NumpyVectors([[1, 1, 1], [-0.04298243, 0.99337274, -0.10659786], [0, 2, 0], [-1, 0, 0]])
+        axis = NumpyVectors([[0, 1, 0], [0, -1, 0], [1, 1, 0], [0, 1, 0]])
+        theta = NumpyScalars([3.1415, 1.1618, 0.1, 1])
+        r = v1.rotateAround(axis, theta)
+        print(r.v)
+        # le dernier -3.14 is the same for Vector, but seems an error, cause it should probably be 0.
+        self.assertTrue(np.all(np.isclose([[-0.9999,1.0000,-1.0001], [0.1085,0.9934,-0.0379], [0.0050,1.9950,0.1412], [-0.5403,0.0000,0.8415]], r.v, atol=1e-5)))
+
 
 
 if __name__ == '__main__':

@@ -447,7 +447,6 @@ class NumpyVectors:
         v = copy.deepcopy(self)
         return v.normalize()
 
-    """ TODO: Test Function """
     def cross(self, other):
         if isinstance(other, NumpyVectors):
             return NumpyVectors(np.cross(self.v, other.v))
@@ -462,7 +461,6 @@ class NumpyVectors:
         else:
             return NumpyScalars(np.einsum('ij,ij->i', self.v, other))
 
-    """ TODO: Test Function """
     def normalizedCrossProduct(self, other):
         '''TODO:  Is this OK'''
         productNorm = (self.norm() * other.norm()).v
@@ -470,7 +468,6 @@ class NumpyVectors:
         output = self.cross(other) / productNorm[:, None]
         return output
 
-    """ TODO: Test Function """
     def normalizedDotProduct(self, other):
         '''TODO:  find way to calculate the zeors'''
         invAbs = (self.norm() * other.norm()).v
@@ -479,7 +476,6 @@ class NumpyVectors:
         output = dot / invAbs
         return output
 
-    """ TODO: Test Function """
     def angleWith(self, v, axis):
         """ will v and axis be Vectors Array too or single vectors??"""
         sinPhi = self.normalizedCrossProduct(v)
@@ -493,12 +489,9 @@ class NumpyVectors:
         minusPhi = -phi
         phi = np.where(dotAxis.v <= 0, minusPhi, phi)
 
-        # print(phi)
         return NumpyScalars(phi)  # What's supposed to be the return type?
 
-    """ TODO: Test Function """
     def planeOfIncidence(self, normal):
-
         dotNormal = self.dot(normal)
         normal = np.where(dotNormal.v[:, None] < 0, -normal.v, normal.v)
 
@@ -511,7 +504,6 @@ class NumpyVectors:
         output = np.where(planeNorm.v[:, None] < 1e-3, anyPerp.v, planeNormalized.v)
         return NumpyVectors(output)
 
-    """ TODO: Test Function """
     def angleOfIncidence(self, normal):
         dotNormal = self.dot(normal)
         normal = NumpyVectors(np.where(dotNormal.v[:, None] < 0, -normal.v, normal.v))
@@ -523,8 +515,8 @@ class NumpyVectors:
     def rotateAround(self, u, theta):
         u.normalize()
         #print(theta.v)
-        cost = (np.cos(theta.v))[0]
-        sint = (np.sin(theta.v))[0]
+        cost = (np.cos(theta.v))
+        sint = (np.sin(theta.v))
         one_cost = (1 - cost)
 
         ux = u.v[:, 0]
@@ -540,7 +532,6 @@ class NumpyVectors:
         z = (uz * ux * one_cost - uy * sint) * X + (uz * uy * one_cost + ux * sint) * Y + (cost + uz * uz * one_cost) * Z
 
         self.v = np.stack((x, y, z), axis=-1)
-        #print(self.v)
 
         return self
 
