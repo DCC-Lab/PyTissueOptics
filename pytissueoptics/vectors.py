@@ -364,12 +364,13 @@ class NumpyVectors:
 
     """ TODO: Test Function """
     def isParallelTo(self, other, epsilon=1e-9):
-        r = (self.normalizedDotProduct(other) - 1).v
+        r = self.normalizedCrossProduct(other).norm().v
         return np.less_equal(r, epsilon)
 
     """ TODO: Test Function """
     def isPerpendicularTo(self, other, epsilon=1e-9):
-        return np.less_equal(self.normalizedDotProduct(other).v, epsilon)
+        r = np.abs(self.normalizedDotProduct(other).v)
+        return np.less_equal(r, epsilon)
 
     def anyPerpendicular(self):
         # check if x or y is zero, if yes, cross yHat elif z is 0: set to none, if not, cross with xHat
