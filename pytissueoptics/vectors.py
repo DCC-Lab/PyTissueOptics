@@ -362,14 +362,12 @@ class NumpyVectors:
         else:
             return NumpyScalars(np.less_equal(np.abs(np.subtract(self.v, other)), epsilon))
 
-    """ TODO: Test Function """
     def isParallelTo(self, other, epsilon=1e-9):
         r = self.normalizedCrossProduct(other).norm().v
         a = np.less_equal(r, epsilon)
         r = np.where(self.isNull | other.isNull, False, a)
         return r
 
-    """ TODO: Test Function """
     def isPerpendicularTo(self, other, epsilon=1e-9):
         r = np.abs(self.normalizedDotProduct(other).v)
         a = np.less_equal(r, epsilon)
@@ -442,13 +440,15 @@ class NumpyVectors:
     def normalize(self):
         """MUST verify that norm is 0."""
         norm = self.norm().v
-        normNot0 = np.where(norm != 0, norm, 1)
-        normalizedVectors = self.v / normNot0[:, None]
+        if not np.all(norm):
+            raise ValueError("Normalizing the zero vector (0,0,0) is ambiguous.")
+
+        normalizedVectors = self.v / norm[:, None]
         self.v = normalizedVectors
         return self
 
     def normalized(self):
-        """Watch out, does this modifies the self also?, yes which is why I deepcopy"""
+        # Watch out, does this modifies the self also?, yes which is why I deepcopy()
         v = copy.deepcopy(self)
         return v.normalize()
 
