@@ -116,6 +116,8 @@ class Vector:
         return True
 
     def isParallelTo(self, vector, epsilon=1e-7):
+        if self.isNull or vector.isNull:
+            return False
         return self.normalizedCrossProduct(vector).abs() < epsilon
 
     def isPerpendicularTo(self, vector, epsilon=1e-7):

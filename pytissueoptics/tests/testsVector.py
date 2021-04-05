@@ -207,6 +207,15 @@ class TestVector(envtest.PyTissueTestCase):
         self.assertFalse(v1.isParallelTo(yHat))
         self.assertFalse(v1.isParallelTo(zHat))
 
+    def testVectorIsNotParallelToNull(self):     
+        v1 = Vector(0,0,0)
+        v2 = Vector(1,2,3)
+
+        self.assertFalse(v1.isParallelTo(v2))
+        self.assertFalse(v1.isParallelTo(xHat))
+        self.assertFalse(v1.isParallelTo(yHat))
+        self.assertFalse(v1.isParallelTo(zHat))
+
     def testVectorIsAlmostParallel(self):     
         v1 = Vector(1,2,3)
         v3 = Vector(1,2,3.0000001)
