@@ -153,12 +153,12 @@ class TestVectors(envtest.PyTissueTestCase):
     def testVectorParallel(self):
         v1 = Vectors([oHat, xHat, yHat])
         v2 = Vectors([oHat, xHat, xHat])
-        self.assertEqual(v1.isParallelTo(v2,epsilon=1e-6), [True, True, False])
+        self.assertEqual(v1.isParallelTo(v2, epsilon=1e-6), [True, True, False])
 
     def testVectorPerpendicular2(self):
         v1 = Vectors([zHat, xHat, yHat])
-        v2 = Vectors([Vector(1,1,1), zHat, xHat])
-        self.assertEqual(v1.isPerpendicularTo(v2,epsilon=1e-6), [False, True, True])
+        v2 = Vectors([Vector(1, 1, 1), zHat, xHat])
+        self.assertEqual(v1.isPerpendicularTo(v2, epsilon=1e-6), [False, True, True])
 
     def testCrossProduct(self):
         v1 = Vectors([xHat, yHat, zHat,xHat, yHat, zHat])
@@ -501,7 +501,7 @@ class TestNumpyVectors(envtest.PyTissueTestCase):
         v1 = NumpyVectors([[0, 0, 0], [1, 1, 1]])
         v2 = NumpyVectors([[2, 2, 2], [0, 0, 0]])
         r = v1.isParallelTo(v2)
-        r = np.all(np.equal([True, True], r))
+        r = np.all(np.equal([False, False], r))
         self.assertTrue(r)
 
     def testIsPerpendicularToTrue(self):
@@ -615,7 +615,7 @@ class TestNumpyVectors(envtest.PyTissueTestCase):
         r = np.all(np.equal(norm1, [0]))
         self.assertTrue(r)
 
-    def testNormalizedIndependantObject(self):
+    def testNormalizedIndependentObject(self):
         v1 = NumpyVectors([[1, 1, 1], [-0.04298243, 0.99337274, -0.10659786], [0, 2, 0], [-1, 0, 0], [0, 0, 0]])
         v2 = v1.normalized()
         v2Norm = v2.norm().v
@@ -661,15 +661,14 @@ class TestNumpyVectors(envtest.PyTissueTestCase):
         v2 = NumpyVectors([[0, 0, 0], [1, 1, 1]])
         axis = NumpyVectors([[1, 1, 1], [1, 1, 1]])
         r = v1.angleWith(v2, axis)
-        print(r.v)
-
-        self.assertTrue(np.all(np.isclose([0.61547971, 0, -1.57079633, -1.57079633, -3.14159265], r.v, atol=1e-7)))
+        # Check that angle is very close to <(1e-7) 0 or +-pi
+        self.assertTrue(np.all(np.logical_or(np.isclose([3.14159265, 3.14159265], np.abs(r.v), atol=1e-7), np.isclose([0, 0], r.v, atol=1e-7))))
 
     def testPlaneOfIncidence(self):
         '''TEST NOT PASSING BECAUSE OF CONDITION (Why in reference vectors randomPerpendicular when np.cross is 0!?)'''
-        vecs = NumpyVectors([[1, 1, 1], [-0.04298243, 0.99337274, -0.10659786], [0, 2, 0], [-1, 0, 0]])
-        axis = NumpyVectors([[0, 1, 0], [0, 1, 0], [0, 1, 0], [0, 1, 0]])
-        r = vecs.planeOfIncidence(axis)
+        v1 = NumpyVectors([[1, 1, 1], [-0.04298243, 0.99337274, -0.10659786], [0, 2, 0], [-1, 0, 0], [1, 0, 0]])
+        axis = NumpyVectors([[0, 1, 0], [0, 1, 0], [0, 1, 0], [0, 1, 0], [1, 0, 0]])
+        r = v1.planeOfIncidence(axis)
         print(r.v)
         self.assertTrue(np.all(np.isclose([[-0.70710678, 0.0000, 0.70710678], [0.92744322, 0.0000, -0.37396401], [0.0000, 0.0000, -1.0000], [0.0000, 0.0000, -1.0000]], r.v, atol=1e-7)))
 
