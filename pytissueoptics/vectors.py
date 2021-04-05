@@ -365,12 +365,16 @@ class NumpyVectors:
     """ TODO: Test Function """
     def isParallelTo(self, other, epsilon=1e-9):
         r = self.normalizedCrossProduct(other).norm().v
-        return np.less_equal(r, epsilon)
+        a = np.less_equal(r, epsilon)
+        r = np.where(self.isNull | other.isNull, False, a)
+        return r
 
     """ TODO: Test Function """
     def isPerpendicularTo(self, other, epsilon=1e-9):
         r = np.abs(self.normalizedDotProduct(other).v)
-        return np.less_equal(r, epsilon)
+        a = np.less_equal(r, epsilon)
+        r = np.where(self.isNull | other.isNull, False, a)
+        return r
 
     def anyPerpendicular(self):
         # check if x or y is zero, if yes, cross yHat elif z is 0: set to none, if not, cross with xHat

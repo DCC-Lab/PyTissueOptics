@@ -529,7 +529,7 @@ class TestNumpyVectors(envtest.PyTissueTestCase):
         v1 = NumpyVectors([[1, 1, 1], [0, 0, 0]])
         v2 = NumpyVectors([[0, 0, 0], [1, 1, 1]])
         r = v1.isPerpendicularTo(v2)
-        r = np.all(np.equal([True, True], r))
+        r = np.all(np.equal([False, False], r))
         self.assertTrue(r)
 
     def testDot(self):
