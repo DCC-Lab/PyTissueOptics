@@ -678,12 +678,13 @@ class TestNumpyVectors(envtest.PyTissueTestCase):
     def testRotateAround(self):
         v1 = NumpyVectors([[1, 1, 1], [-0.04298243, 0.99337274, -0.10659786], [0, 2, 0], [-1, 0, 0]])
         axis = NumpyVectors([[0, 1, 0], [0, -1, 0], [1, 1, 0], [0, 1, 0]])
-        theta = NumpyScalars([3.1415, 1.1618, 0.1, 1])
+        theta = NumpyScalars([3.1415, 1.618, 0.1, 1])
         r = v1.rotateAround(axis, theta)
-        print(r.v)
-        # le dernier -3.14 is the same for Vector, but seems an error, cause it should probably be 0.
-        self.assertTrue(np.all(np.isclose([[-0.9999,1.0000,-1.0001], [0.1085,0.9934,-0.0379], [0.0050,1.9950,0.1412], [-0.5403,0.0000,0.8415]], r.v, atol=1e-5)))
-
+        self.assertTrue(np.all(np.isclose(
+            [[-0.99990734,  1,         -1.00009265],
+             [0.1085073,   0.99337274, -0.03790461],
+             [0.00499583,  1.99500417,  0.14118577],
+             [-0.54030231,  0,          0.84147098]], r.v, atol=1e-7)))
 
 
 if __name__ == '__main__':
