@@ -289,8 +289,7 @@ class TestVector(envtest.PyTissueTestCase):
         for v in vectors:
             self.assertTrue(v.anyPerpendicular().isPerpendicularTo(v),"{0} {1}".format(v, v.anyPerpendicular()))
             self.assertIsNotNone(v.anyPerpendicular())
-            
-        self.assertIsNone(oHat.anyPerpendicular())
+
         self.assertIsNone(oHat.anyPerpendicular())
 
     def testIsInKnownPlane(self):
