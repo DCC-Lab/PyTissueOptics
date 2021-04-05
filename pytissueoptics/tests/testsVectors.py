@@ -665,20 +665,25 @@ class TestNumpyVectors(envtest.PyTissueTestCase):
         self.assertTrue(np.all(np.logical_or(np.isclose([3.14159265, 3.14159265], np.abs(r.v), atol=1e-7), np.isclose([0, 0], r.v, atol=1e-7))))
 
     def testPlaneOfIncidence(self):
-        '''TEST NOT PASSING BECAUSE OF CONDITION (Why in reference vectors randomPerpendicular when np.cross is 0!?)'''
-        v1 = NumpyVectors([[1, 1, 1], [-0.04298243, 0.99337274, -0.10659786], [0, 2, 0], [-1, 0, 0], [1, 0, 0]])
-        axis = NumpyVectors([[0, 1, 0], [0, 1, 0], [0, 1, 0], [0, 1, 0], [1, 0, 0]])
-        r = v1.planeOfIncidence(axis)
+        v1 = NumpyVectors([[1, 1,  1], [-0.04298243, 0.99337274, -0.10659786], [0, 2, 0], [-1, 0, 0], [1, 0, 0]])
+        normal = NumpyVectors([[0, 1, 0], [0, 1, 0], [0, 1, 0], [0, 1, 0], [1, 0, 0]])
+        r = v1.planeOfIncidence(normal)
+        print(r.v)
+        self.assertTrue(np.all(np.isclose([[-0.70710678, 0.0000, 0.70710678], [0.92744322, 0.0000, -0.37396401], [0.0000, 0.0000, -1.0000], [0.0000, 0.0000, -1.0000]], r.v, atol=1e-7)))
+
+    def testPlaneOfIncidenceParallelVector(self):
+        v1 = NumpyVectors([[1, 1, 1], [-1, -1, -1], [-1, -1, -1]])
+        normal = NumpyVectors([[1, 1, 1], [1, 1, 1], [-1, -1, -1]])
+        r = v1.planeOfIncidence(normal)
         print(r.v)
         self.assertTrue(np.all(np.isclose([[-0.70710678, 0.0000, 0.70710678], [0.92744322, 0.0000, -0.37396401], [0.0000, 0.0000, -1.0000], [0.0000, 0.0000, -1.0000]], r.v, atol=1e-7)))
 
     def testPlaneOfIncidenceNullVectors(self):
-        '''TEST NOT PASSING BECAUSE OF CONDITION (Why in reference vectors randomPerpendicular when np.cross is 0!?)'''
-        vecs = NumpyVectors([[1, 1, 1], [-0.04298243, 0.99337274, -0.10659786], [0, 2, 0], [-1, 0, 0]])
-        axis = NumpyVectors([[0, 1, 0], [0, 1, 0], [0, 1, 0], [0, 1, 0]])
-        r = vecs.planeOfIncidence(axis)
+        v1 = NumpyVectors([[1, 1, 1], [0, 0, 0]])
+        normal = NumpyVectors([[0, 0, 0], [1, 1, 1]])
+        r = v1.planeOfIncidence(normal)
         print(r.v)
-        self.assertTrue(np.all(np.isclose([[-0.70710678, 0.0000, 0.70710678], [0.92744322, 0.0000, -0.37396401], [0.0000, 0.0000, -1.0000], [0.0000, 0.0000, -1.0000]], r.v, atol=1e-7)))
+        self.assertTrue(np.all(np.isclose([[0, 0, 0], [0, 0, 0]], r.v, atol=1e-7)))
 
     def testAngleOfIncidence(self):
         v1 = NumpyVectors([[1, 1, 1], [-0.04298243, 0.99337274, -0.10659786], [0, 2, 0], [-1, 0, 0]])
@@ -707,16 +712,22 @@ class TestNumpyVectors(envtest.PyTissueTestCase):
              [0.00499583,  1.99500417,  0.14118577],
              [-0.54030231,  0,          0.84147098]], r.v, atol=1e-7)))
 
-    def testRotateAroundNullVectors(self):
-        v1 = NumpyVectors([[1, 1, 1], [-0.04298243, 0.99337274, -0.10659786], [0, 2, 0], [-1, 0, 0]])
-        axis = NumpyVectors([[0, 1, 0], [0, -1, 0], [1, 1, 0], [0, 1, 0]])
-        theta = NumpyScalars([3.1415, 1.618, 0.1, 1])
+    def testRotateAroundParallel(self):
+        v1 = NumpyVectors([[1, 1, 1]])
+        axis = NumpyVectors([[1, 1, 1]])
+        theta = NumpyScalars([3.14159265])
         r = v1.rotateAround(axis, theta)
         self.assertTrue(np.all(np.isclose(
-            [[-0.99990734,  1,         -1.00009265],
-             [0.1085073,   0.99337274, -0.03790461],
-             [0.00499583,  1.99500417,  0.14118577],
-             [-0.54030231,  0,          0.84147098]], r.v, atol=1e-7)))
+            [[1, 1, 1]], r.v, atol=1e-7)))
+
+    def testRotateAroundNullVectors(self):
+        v1 = NumpyVectors([[1, 1, 1], [1, 1, 1], [0, 0, 0]])
+        axis = NumpyVectors([[1, 1, 1], [0, 0, 0], [1, 1, 1]])
+        theta = NumpyScalars([0, 1, 1])
+        r = v1.rotateAround(axis, theta)
+        print(r.v)
+        # AMBIGUE LORSQUE AXIS = (0, 0, 0)
+        self.assertTrue(np.all(np.isclose([[1, 1, 1], [1, 1, 1], [0, 0, 0]], r.v, atol=1e-7)))
 
 
 if __name__ == '__main__':
