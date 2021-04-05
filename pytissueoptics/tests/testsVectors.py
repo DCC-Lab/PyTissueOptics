@@ -267,7 +267,7 @@ class TestVectors(envtest.PyTissueTestCase):
         self.assertIsNone(oHat.anyPerpendicular())
         self.assertIsNone(oHat.anyPerpendicular())
 
-    def testAnyPerpendicular(self):
+    def testAnyPerpendicularRandom(self):
         vectors = Vectors(vectors=self.randomVectors(N=10000))
         perp = vectors.anyPerpendicular()
         isPerp = vectors.isPerpendicularTo(perp)
