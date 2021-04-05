@@ -121,15 +121,21 @@ class Vector:
         return self.normalizedCrossProduct(vector).abs() < epsilon
 
     def isPerpendicularTo(self, vector, epsilon=1e-7):
+        if self.isNull or vector.isNull:
+            return False
+        return abs(self.normalizedDotProduct(vector)) < epsilon
+
+    def isOrthogonalTo(self, vector, epsilon=1e-7):
         return abs(self.normalizedDotProduct(vector)) < epsilon
 
     def anyPerpendicular(self):
-        if self._x == 0 and self.y == 0:
-            if self._z == 0:
-                return None
-            else:
-                return self.cross(yHat)
-        return self.cross(xHat)
+        if self.isNull:
+            return None
+
+        if self.z < self.x:
+            return Vector(self.y, -self.x, 0)
+
+        return Vector(0, -self.z, self.y)
 
     def anyUnitaryPerpendicular(self):
         return self.anyPerpendicular().normalized()

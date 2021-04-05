@@ -239,6 +239,11 @@ class TestVector(envtest.PyTissueTestCase):
         self.assertTrue(zHat.isPerpendicularTo(yHat))
         self.assertFalse(zHat.isPerpendicularTo(zHat))
 
+    def testVectorIsNotPerpendicularToNull(self):     
+        self.assertFalse(Vector(1,2,3).isPerpendicularTo(oHat))
+        self.assertFalse(oHat.isPerpendicularTo(Vector(1,2,3)))
+
+
     def testManyPerpendicularVectors(self):
         for i in range(10000):
             v1 = Vector(random.random()*2-1, random.random()*2-1, random.random()*2-1)
@@ -282,8 +287,9 @@ class TestVector(envtest.PyTissueTestCase):
     def testAnyPerpendicular(self):
         vectors = (Vector(1,2,3), Vector(-1,-2-3), xHat, yHat, zHat )
         for v in vectors:
-            self.assertTrue(v.anyPerpendicular().isPerpendicularTo(v))
-
+            self.assertTrue(v.anyPerpendicular().isPerpendicularTo(v),"{0} {1}".format(v, v.anyPerpendicular()))
+            self.assertIsNotNone(v.anyPerpendicular())
+            
         self.assertIsNone(oHat.anyPerpendicular())
         self.assertIsNone(oHat.anyPerpendicular())
 
