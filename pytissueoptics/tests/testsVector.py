@@ -135,6 +135,10 @@ class TestVector(envtest.PyTissueTestCase):
     def testVectorIsNull(self):
         self.assertTrue(oHat.isNull)
 
+    def testVectorNullCantBeNormalized(self):
+        with self.assertRaises(ValueError):
+            Vector(0,0,0).normalize()
+
     def testVectorIsUnitary(self):
         self.assertTrue(xHat.isUnitary)
         self.assertTrue(yHat.isUnitary)

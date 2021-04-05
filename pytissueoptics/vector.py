@@ -184,6 +184,9 @@ class Vector:
             self.x *= invLength
             self.y *= invLength
             self.z *= invLength
+        else:
+            raise ValueError("You cannot nomralize the null vector")
+
         return self
 
     def normalized(self):
@@ -258,6 +261,9 @@ class Vector:
         return sinPhi.abs()
 
     def planeOfIncidence(self, normal):
+        if self.isNull or normal.isNull:
+            return None
+
         if self.dot(normal) < 0:
             normal = -normal
 
