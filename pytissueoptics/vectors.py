@@ -444,14 +444,12 @@ class NumpyVectors:
             return NumpyScalars(np.einsum('ij,ij->i', self.v, other))
 
     def normalizedCrossProduct(self, other):
-        '''TODO:  Is this OK'''
         productNorm = (self.norm() * other.norm()).v
         productNorm = np.where(productNorm != 0, productNorm, 1)
         output = self.cross(other) / productNorm[:, None]
         return output
 
     def normalizedDotProduct(self, other):
-        '''TODO:  find way to calculate the zeors'''
         invAbs = (self.norm() * other.norm()).v
         invAbs = np.where(invAbs != 0, invAbs, 1)
         dot = self.dot(other)
@@ -474,17 +472,19 @@ class NumpyVectors:
         return NumpyScalars(phi)  # What's supposed to be the return type?
 
     def planeOfIncidence(self, normal):
+        normVector = self.norm().v
+        normPlane = normal.norm().v
+        if not (np.all(normVector) and np.all(normPlane)):
+            raise ValueError("The direction of incidence or the normal cannot be null")
+
         dotNormal = self.dot(normal)
         normal = np.where(dotNormal.v[:, None] < 0, -normal.v, normal.v)
-
         planeOfIncidenceNormal = self.cross(normal)
         planeNorm = planeOfIncidenceNormal.norm()
-
         anyPerp = self.anyPerpendicular()
-        planeNormalized = planeOfIncidenceNormal.normalized()
+        output = np.where(planeNorm.v[:, None] < 1e-3, anyPerp.v, planeOfIncidenceNormal.v)
 
-        output = np.where(planeNorm.v[:, None] < 1e-3, anyPerp.v, planeNormalized.v)
-        return NumpyVectors(output)
+        return NumpyVectors(output).normalized()
 
     def angleOfIncidence(self, normal):
         dotNormal = self.dot(normal)

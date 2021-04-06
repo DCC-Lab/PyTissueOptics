@@ -575,7 +575,7 @@ class TestNumpyVectors(envtest.PyTissueTestCase):
         self.assertTrue(r)
 
     def testAnyPerpendicular(self):
-        v1 = NumpyVectors([[1, 0, 0], [0, 1, 0], [0, 0, 1], [1, 2, 3], [-1, -2, -3]])
+        v1 = NumpyVectors([[1, 0, 0], [0, 1, 0], [0, 0, 1], [1, 2, 3], [-1, -2, -3], [1, 1, 1], [-1, -1, -1]])
         r = v1.anyPerpendicular()
         r = np.all(r.isPerpendicularTo(v1))
         self.assertTrue(r)
@@ -673,37 +673,60 @@ class TestNumpyVectors(envtest.PyTissueTestCase):
         self.assertTrue(np.all(np.logical_or(np.isclose([3.14159265, 3.14159265], np.abs(r.v), atol=1e-7), np.isclose([0, 0], r.v, atol=1e-7))))
 
     def testPlaneOfIncidence(self):
-        v1 = NumpyVectors([[1, 1,  1], [-0.04298243, 0.99337274, -0.10659786], [0, 2, 0], [-1, 0, 0], [1, 0, 0]])
-        normal = NumpyVectors([[0, 1, 0], [0, 1, 0], [0, 1, 0], [0, 1, 0], [1, 0, 0]])
+        v1 = NumpyVectors([[1, 1,  1], [-0.04298243, 0.99337274, -0.10659786], [-1, 1, 0]])
+        normal = NumpyVectors([[0, 1, 0], [0, 1, 0], [0, 1, 0]])
         r = v1.planeOfIncidence(normal)
-        print(r.v)
-        self.assertTrue(np.all(np.isclose([[-0.70710678, 0.0000, 0.70710678], [0.92744322, 0.0000, -0.37396401], [0.0000, 0.0000, -1.0000], [0.0000, 0.0000, -1.0000]], r.v, atol=1e-7)))
 
-    def testPlaneOfIncidenceParallelVector(self):
-        v1 = NumpyVectors([[1, 1, 1], [-1, -1, -1], [-1, -1, -1]])
-        normal = NumpyVectors([[1, 1, 1], [1, 1, 1], [-1, -1, -1]])
+        self.assertTrue(np.all(np.isclose(
+            [[-0.70710678, 0, 0.70710678],
+             [0.92744322,  0, -0.37396401],
+             [0,           0,          -1]], r.v, atol=1e-7)))
+
+    def testPlaneOfIncidenceIsUnitary(self):
+        v1 = NumpyVectors([[1, 1,  1], [-0.04298243, 0.99337274, -0.10659786], [-1, 1, 0]])
+        normal = NumpyVectors([[0, 1, 0], [0, 1, 0], [0, 1, 0]])
         r = v1.planeOfIncidence(normal)
-        print(r.v)
-        self.assertTrue(np.all(np.isclose([[-0.70710678, 0.0000, 0.70710678], [0.92744322, 0.0000, -0.37396401], [0.0000, 0.0000, -1.0000], [0.0000, 0.0000, -1.0000]], r.v, atol=1e-7)))
+        self.assertTrue(np.all(r.isUnitary))
+
+    def testPlaneOfIncidenceParallelToNormal(self):
+        v1 = NumpyVectors([[1, 1, 1], [-1, -1, -1], [-1, -1, -1], [1, 1, 1]])
+        normal = NumpyVectors([[1, 1, 1], [1, 1, 1], [-1, -1, -1], [-1, -1, -1]])
+        r = v1.planeOfIncidence(normal)
+        self.assertTrue(np.all(np.isclose(
+            [[0, -0.70710678,  0.70710678],
+             [0,  0.70710678, -0.70710678],
+             [0,  0.70710678, -0.70710678],
+             [0, -0.70710678,  0.70710678]], r.v, atol=1e-7)))
+
+    def testPlaneOfIncidencePerpendicularToNormal(self):
+        v1 = NumpyVectors([[1, 0, 0]])
+        normal = NumpyVectors([[0, 1, 0]])
+        r = v1.planeOfIncidence(normal)
+        self.assertTrue(np.all(np.isclose([[0, 0, 1]], r.v, atol=1e-7)))
 
     def testPlaneOfIncidenceNullVectors(self):
-        v1 = NumpyVectors([[1, 1, 1], [0, 0, 0]])
-        normal = NumpyVectors([[0, 0, 0], [1, 1, 1]])
-        r = v1.planeOfIncidence(normal)
-        print(r.v)
-        self.assertTrue(np.all(np.isclose([[0, 0, 0], [0, 0, 0]], r.v, atol=1e-7)))
+        with self.assertRaises(ValueError):
+            v1 = NumpyVectors([[1, 1, 1], [0, 0, 0]])
+            normal = NumpyVectors([[0, 0, 0], [1, 1, 1]])
+            r = v1.planeOfIncidence(normal)
 
     def testAngleOfIncidence(self):
         v1 = NumpyVectors([[1, 1, 1], [-0.04298243, 0.99337274, -0.10659786], [0, 2, 0], [-1, 0, 0]])
         plane = NumpyVectors([[0, 1, 0], [0, 1, 0], [0, 1, 0], [0, 1, 0]])
         r = v1.angleOfIncidence(plane)
+        self.assertTrue(np.all(np.isclose([0.95531662, 0.11519193, 0, 1.57079633], r[0].v, atol=1e-7)))
+
+    def testAngleOfIncidenceParallel(self):
+        v1 = NumpyVectors([[1, 1, 1], [1, 1, 1], [-1, -1, -1], [-1, -1, -1]])
+        plane = NumpyVectors([[1, 1, 1], [-1, -1, -1], [1, 1, 1], [-1, -1, -1]])
+        r = v1.angleOfIncidence(plane)
         print(r[0].v)
         # le dernier -3.14 is the same for Vector, but seems an error, cause it should probably be 0.
         self.assertTrue(np.all(np.isclose([0.95531662, 0.11519193, 0, 1.57079633], r[0].v, atol=1e-7)))
 
-    def testAngleOfIncidenceNullVectors(self):
-        v1 = NumpyVectors([[1, 1, 1], [-0.04298243, 0.99337274, -0.10659786], [0, 2, 0], [-1, 0, 0]])
-        plane = NumpyVectors([[0, 1, 0], [0, 1, 0], [0, 1, 0], [0, 1, 0]])
+    def testAngleOfIncidenceNull(self):
+        v1 = NumpyVectors([[1, 1, 1], [0, 0, 0]])
+        plane = NumpyVectors([[0, 0, 0], [1, 1, 1]])
         r = v1.angleOfIncidence(plane)
         print(r[0].v)
         # le dernier -3.14 is the same for Vector, but seems an error, cause it should probably be 0.
