@@ -781,49 +781,66 @@ class TestCupyVectors(envtest.PyTissueTestCase):
 
     def testCheckInitTypeFloat64(self):
         v1 = CupyVectors([[1, 1, 1], [-0.04298243, 0.99337274, -0.10659786], [0, 1, 0], [-1, 0, 0]])
-        print(v1.v[0, 0])
-        self.assertEqual(cp.float64, type(v1.v[0, 0]))
+        self.assertEqual(cp.dtype("float64").type, v1.v[0, 0].dtype)
 
     def testGetItem(self):
         v1 = CupyVectors([[1, 1, 1], [-0.04298243, 0.99337274, -0.10659786], [0, 1, 0], [-1, 0, 0]])
         r = v1[0]
-        r = cp.all(cp.equal(r, [1, 1, 1]))
+        r = np.all(np.equal(cp.asnumpy(r), [1, 1, 1]))
         self.assertTrue(r)
 
     def testAdd(self):
         v1 = CupyVectors([[1, 1, 1], [0, 1, 0], [-1, 0, 0]])
         r = v1 + 1
-        r = cp.all(cp.equal(r.v, [[2, 2, 2], [1, 2, 1], [0, 1, 1]]))
+        r = np.all(np.equal(cp.asnumpy(r.v), [[2, 2, 2], [1, 2, 1], [0, 1, 1]]))
+        self.assertTrue(r)
+
+    def testAddList(self):
+        v1 = CupyVectors([[1, 1, 1], [0, 1, 0], [-1, 0, 0]])
+        r = v1 + [1, 2, 3]
+        r = np.all(np.equal(cp.asnumpy(r.v), [[2, 2, 2], [2, 3, 2], [2, 3, 3]]))
+        self.assertTrue(r)
+
+    def testAddScalars1D(self):
+        v1 = CupyVectors([[1, 1, 1], [0, 1, 0], [-1, 0, 0]])
+        r = v1 + [1, 2, 3]
+        r = np.all(np.equal(cp.asnumpy(r.v), [[2, 2, 2], [2, 3, 2], [2, 3, 3]]))
+        self.assertTrue(r)
+
+    def testAddScalars2D(self):
+        v1 = CupyVectors([[1, 1, 1], [0, 1, 0], [-1, 0, 0]])
+        r = v1 + [1, 2, 3]
+        r = np.all(np.equal(cp.asnumpy(r.v), [[2, 2, 2], [2, 3, 2], [2, 3, 3]]))
         self.assertTrue(r)
 
     def testSubtract(self):
         v1 = CupyVectors([[2, 2, 2], [1, 2, 2], [2, 2, 3]])
         r = v1 - 1
-        r = cp.all(cp.equal(r.v, [[1, 1, 1], [0, 1, 1], [1, 1, 2]]))
+        r = np.all(np.equal(cp.asnumpy(r.v), [[1, 1, 1], [0, 1, 1], [1, 1, 2]]))
         self.assertTrue(r)
 
     def testDivide(self):
         v1 = CupyVectors([[1, 1, 1], [-2, -2, -2], [3, 3, 3], [0, 0, 0]])
         r = v1/2.0
-        r = cp.all(cp.equal(r.v, [[0.5, 0.5, 0.5], [-1, -1, -1], [1.5, 1.5, 1.5], [0, 0, 0]]))
+        r = np.all(np.equal(cp.asnumpy(r.v), [[0.5, 0.5, 0.5], [-1, -1, -1], [1.5, 1.5, 1.5], [0, 0, 0]]))
         self.assertTrue(r)
 
     def testMulFloat(self):
         v1 = CupyVectors([[-1, -1, -1], [2, 2, 2], [0, 0, 0]])
         r = v1 * 2.0
-        r = cp.all(cp.equal(r.v, [[-2, -2, -2], [4, 4, 4], [0, 0, 0]]))
+        r = np.all(np.equal(cp.asnumpy(r.v), [[-2, -2, -2], [4, 4, 4], [0, 0, 0]]))
         self.assertTrue(r)
 
     def testMulScalars(self):
         v1 = CupyVectors([[-1, -1, -1], [2, 2, 2], [0, 0, 0]])
-        r = v1 * NumpyScalars([2, 1, 1])
-        r = cp.all(cp.equal(r.v, [[-2, -2, -2], [2, 2, 2], [0, 0, 0]]))
+        r = v1 * CupyScalars([2, 1, 1])
+        r = np.all(np.equal(cp.asnumpy(r.v), [[-2, -2, -2], [2, 2, 2], [0, 0, 0]]))
         self.assertTrue(r)
 
     def testMulVectorsUnique(self):
         v1 = CupyVectors([[-1, -1, -1], [2, 2, 2], [0, 0, 0]])
         r = v1 * CupyVectors([2, 1, 1])
-        r = cp.all(cp.equal(r.v, [[-2, -1, -1], [4, 2, 2], [0, 0, 0]]))
+        r = np.all(np.equal(cp.asnumpy(r.v), [[-2, -1, -1], [4, 2, 2], [0, 0, 0]]))
         self.assertTrue(r)
 
     def testMulVectorsMultiple(self):
