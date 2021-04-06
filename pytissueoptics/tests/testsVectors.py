@@ -5,6 +5,7 @@ import random
 
 inf = float("+inf")
 
+
 class TestVectorsBase(envtest.PyTissueTestCase):
     def setUp(self):
         self.count = 1000
