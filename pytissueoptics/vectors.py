@@ -375,39 +375,16 @@ class NumpyVectors:
         return r
 
     def anyPerpendicular(self):
-        # check if x or y is zero, if yes, cross yHat elif z is 0: set to none, if not, cross with xHat
-        xHat = np.array([1, 0, 0]).transpose()
-        yHat = np.array([0, 1, 0]).transpose()
-        convA = np.array([1, 1, 0]).transpose()
-        convB = np.array([0, 0, 1]).transpose()
-        YZ0 = self * convA
-        Z0 = self * convB
-        P = np.all(YZ0.v == 0, axis=1)
-        Q = np.all(Z0.v == 0, axis=1)
-        not_P = np.logical_not(P)
-        P_and_Q = np.logical_and(P, Q)
-        maskXY0 = np.logical_xor(P, P_and_Q)
-        maskXYZ0 = P_and_Q
-        maskXY1 = not_P
+        ux = self.v[:, 0]
+        uy = self.v[:, 1]
+        uz = self.v[:, 2]
 
-        aXY0 = self * maskXY0[:, None]
-        aXYZ0 = self * maskXYZ0[:, None]
-        aXY1 = self * maskXY1[:, None]
+        a = np.stack((uy, -ux, np.zeros(len(ux))), axis=-1)
+        b = np.stack((np.zeros(len(ux)), -uz, uy), axis=-1)
+        c = np.where(uz[:, None] < ux[:, None], a, b)
+        r = np.where(np.linalg.norm(c, axis=1)[:, None] != 0, c, None)
 
-        aXY0Cross = aXY0.cross(xHat)
-        aXY1Cross = aXY1.cross(yHat)
-
-        output = aXY0Cross + aXY1Cross
-
-        # print("X=0, Y=0 :\n{}\n".format(aXY0))
-        # print("X!=0, Y!=0 ; \n{}\n".format(aXY1))
-        #
-        # print("X=0, Y=0 :\n{}\n".format(aXY0Cross))
-        # print("X!=0, Y!=0 ; \n{}\n".format(aXY1Cross))
-        #
-        # print("OUTPUT:\n{}\n".format(output))
-
-        return output
+        return NumpyVectors(r)
 
     def anyUnitaryPerpendicular(self):
         return self.anyPerpendicular().normalized()
