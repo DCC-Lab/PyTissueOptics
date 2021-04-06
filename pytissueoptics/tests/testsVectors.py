@@ -586,9 +586,15 @@ class TestNumpyVectors(envtest.PyTissueTestCase):
         self.assertTrue(np.all(np.isnan(r.v)))
 
     def testAnyUnitaryPerpendicular(self):
-        v1 = NumpyVectors([[0, 0, 1], [1, 1, 1], [2, 2, 0], [0, 0, 0], [1, 0, 0]])
+        v1 = NumpyVectors([[0, 0, 1], [1, 1, 1], [2, 2, 0], [1, 0, 0]])
         r = v1.anyUnitaryPerpendicular()
         r = np.all(r.isUnitary)
+        self.assertTrue(r)
+
+    def testAnyUnitaryPerpendicularNull(self):
+        v1 = NumpyVectors([[0, 0, 0]])
+        r = v1.anyUnitaryPerpendicular()
+        r = np.all(np.isnan(r.v))
         self.assertTrue(r)
 
     def testIsInXYPlane(self):
