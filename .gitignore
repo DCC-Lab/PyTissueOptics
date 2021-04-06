@@ -125,3 +125,4 @@ dmypy.json
 .pyre/
 output.json
 test.py
+test.py

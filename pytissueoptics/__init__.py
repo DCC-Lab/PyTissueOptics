@@ -10,11 +10,14 @@ import math
 namespace because it is simpler for everyone """
 
 from .vector import *
+from .vectors import *
+from .scalars import *
 from .surface import *
 from .material import *
 from .photon import *
 from .source import *
 from .geometry import *
+from .detector import *
 from .world import *
 from .stats import *
 

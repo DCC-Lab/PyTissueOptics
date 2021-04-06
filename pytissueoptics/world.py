@@ -1,12 +1,6 @@
-import numpy as np
-import matplotlib.pyplot as plt
 import signal
-import sys
-import time
-from .surface import *
-from .photon import *
-from .source import *
-from .geometry import *
+from .detector import *
+
 
 class World:
     geometries = set()
@@ -14,42 +8,64 @@ class World:
     verbose = False
 
     @classmethod
-    def compute(self, graphs):
+    def totalSourcePhotons(cls) -> float:
+        total = 0
+        for source in cls.sources:
+            total += source.maxCount
+        return total
+
+    @classmethod
+    def compute(cls, graphs):
         World.startCalculation()
         N = 0
         for source in World.sources:
             N += source.maxCount
 
             for i, photon in enumerate(source):
+                currentGeometry = World.contains(photon.r)
                 while photon.isAlive:
-                    currentGeometry = World.contains(photon.r)
                     if currentGeometry is not None:
+                        # We are in an object, propagate in it
                         currentGeometry.propagate(photon)
+                        # Then check if we are in another adjacent object
+                        currentGeometry = World.contains(photon.r)
                     else:
-                        distance, surface, nextGeometry = World.nextObstacle(photon)
-                        if surface is not None:
-                            # Moving to next object in air
-                            photon.moveBy(distance)
-                            R = photon.fresnelCoefficient(surface)
-                            photon.refract(surface)
-                            photon.decreaseWeightBy(R*photon.weight)
-                            photon.moveBy(1e-4)
+                        # We are in free space (World). Find next object
+                        intersection = World.nextObstacle(photon)
+                        if intersection is not None:
+                            # We are hitting something, moving to surface
+                            photon.moveBy(intersection.distance)
+                            # At surface, determine if reflected or not 
+                            if intersection.isReflected():
+                                # reflect photon and keep propagating
+                                photon.reflect(intersection)
+                                # Move away from surface to avoid getting stuck there
+                                photon.moveBy(d=1e-3)
+                            else:
+                                # transmit, score, and enter (at top of this loop)
+                                photon.refract(intersection)
+                                intersection.geometry.scoreWhenEntering(photon, intersection.surface)
+                                # Move away from surface to avoid getting stuck there
+                                photon.moveBy(d=1e-3)
+                                currentGeometry = intersection.geometry
                         else:
                             photon.weight = 0
-
-                World.showProgress(i+1, maxCount=source.maxCount, graphs=graphs)
+                World.showProgress(i + 1, maxCount=source.maxCount, graphs=graphs)
 
         duration = World.completeCalculation()
-        print("{0:.1f} ms per photon\n".format(duration*1000/N))
+        print("{0:.1f} ms per photon\n".format(duration * 1000 / N))
 
     @classmethod
     def place(cls, anObject, position):
-        if isinstance(anObject, Geometry):
+        if isinstance(anObject, Geometry) or isinstance(anObject, Detector):
             anObject.origin = position
             World.geometries.add(anObject)
         elif isinstance(anObject, Source):
             anObject.origin = position
             World.sources.add(anObject)
+        elif isinstance(anObject, Detector):
+            anObject.origin = position
+            World.detector.add(anObject)
 
     @classmethod
     def contains(cls, worldCoordinates):
@@ -62,18 +78,17 @@ class World:
     @classmethod
     def nextObstacle(cls, photon):
         distance = 1e7
-        intersect = None
-        sGeometry = None
+        closestIntersect = None
         for geometry in World.geometries:
             photon.transformToLocalCoordinates(geometry.origin)
-            distanceToSurface, surface = geometry.nextEntranceInterface(photon.r, photon.ez, distance=1e4)
-            if distanceToSurface < distance:
-                distance = distanceToSurface
-                intersect = surface
-                sGeometry = geometry
+            someIntersection = geometry.nextEntranceInterface(photon.r, photon.ez, distance=distance)
+            if someIntersection is not None:
+                if someIntersection.distance < distance:
+                    closestIntersect = someIntersection
+                    
             photon.transformFromLocalCoordinates(geometry.origin)
 
-        return distance, intersect, sGeometry
+        return closestIntersect
 
     @classmethod
     def startCalculation(self):
@@ -90,7 +105,7 @@ class World:
         for geometry in World.geometries:
             for surface in geometry.surfaces:
                 surface.indexInside = geometry.material.index
-                surface.indexOutside = 1.0 # Index outside
+                surface.indexOutside = 1.0  # Index outside
 
         if len(World.sources) == 0:
             raise LogicalError("No sources: you must create sources")
@@ -123,15 +138,15 @@ class World:
             while steps < i:
                 steps *= 10
 
-        if i  % steps == 0:
-            print("{2} Photon {0}/{1}".format(i, maxCount, time.ctime()) )
+        if i % steps == 0:
+            print("{2} Photon {0}/{1}".format(i, maxCount, time.ctime()))
 
             if graphs:
                 for geometry in World.geometries:
                     if geometry.stats is not None:
-                        geometry.stats.showEnergy2D(plane='xz', integratedAlong='y', title="{0} photons".format(i)) 
+                        geometry.stats.showEnergy2D(plane='xz', integratedAlong='y', title="{0} photons".format(i))
 
     @classmethod
     def report(cls):
         for geometry in World.geometries:
-            geometry.report()
+            geometry.report(totalSourcePhotons=World.totalSourcePhotons())

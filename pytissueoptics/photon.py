@@ -2,8 +2,10 @@ import numpy as np
 import time
 import warnings
 from .vector import *
+from .vectors import *
 from math import acos, asin, cos, sin, atan, tan, sqrt, pi
 import random
+
 
 class Photon:
     def __init__(self, position=Vector(0, 0, 0), direction=UnitVector(0, 0, 1)):
@@ -51,53 +53,13 @@ class Photon:
         if self.weight < 0:
             self.weight = 0
 
-    def fresnelCoefficient(self, surface):
-        """ Fresnel reflection coefficient, directly from MCML code in 
-        Wang, L-H, S.L. Jacques, L-Q Zheng: 
-        MCML - Monte Carlo modeling of photon transport in multi-layered
-        tissues. Computer Methods and Programs in Biomedicine 47:131-146, 1995. 
+    def deflect(self, deflectionAngle, incidencePlane):
+        self.ez.rotateAround(incidencePlane, deflectionAngle)
 
-        """
-        if self.ez.dot(surface.normal) > 0:
-            normal = surface.normal
-            n1 = surface.indexInside
-            n2 = surface.indexOutside
-        else:
-            normal = -surface.normal
-            n1 = surface.indexOutside
-            n2 = surface.indexInside
+    def reflect(self, intersection):
+        self.ez.rotateAround(intersection.incidencePlane, intersection.reflectionDeflection)
 
-        if n1 == n2:
-            return 0
-
-        planeOfIncidenceNormal = self.ez.normalizedCrossProduct(normal)
-        if planeOfIncidenceNormal.isNull:
-            R = (n2-n1)/(n2+n1)
-            return R*R
-
-        thetaIn = self.ez.angleWith(normal, axis=planeOfIncidenceNormal)
-
-        sa1 = math.sin(thetaIn)
-        if sa1*n1/n2 > 1:
-            return 1
-        sa2 = sa1*n1/n2
-        ca1 = math.sqrt(1-sa1*sa1)
-        ca2 = math.sqrt(1-sa2*sa2)
-
-        cap = ca1*ca2 - sa1*sa2 # c+ = cc - ss.
-        cam = ca1*ca2 + sa1*sa2 # c- = cc + ss. 
-        sap = sa1*ca2 + ca1*sa2 # s+ = sc + cs. 
-        sam = sa1*ca2 - ca1*sa2 # s- = sc - cs. 
-        r = 0.5*sam*sam*(cam*cam+cap*cap)/(sap*sap*cam*cam); 
-        return r
-
-    def reflect(self, surface):
-        planeOfIncidenceNormal = self.ez.normalizedCrossProduct(surface.normal)
-        thetaIn = self.ez.angleWith(surface.normal, axis=planeOfIncidenceNormal)
-
-        self.ez.rotateAround(planeOfIncidenceNormal, 2*thetaIn-np.pi)
-
-    def refract(self, surface):
+    def refract(self, intersection):
         """ Refract the photon when going through surface.  The surface
         normal in the class Surface always points outward for the object.
         Hence, to simplify the math, we always flip the normal to have 
@@ -107,31 +69,8 @@ class Photon:
         know there is no refraction, and we simply return.
         """
 
-        if surface.indexInside == surface.indexOutside:
-            return
+        self.ez.rotateAround(intersection.incidencePlane, intersection.refractionDeflection)
 
-        normal = None
-
-        if self.ez.dot(surface.normal) > 0:
-            # Going out
-            n1 = surface.indexInside
-            n2 = surface.indexOutside
-            normal = surface.normal
-        else:
-            # Going in, we flip normal
-            n1 = surface.indexOutside
-            n2 = surface.indexInside
-            normal = -surface.normal
-
-        planeOfIncidenceNormal = self.ez.normalizedCrossProduct(normal)
-        if planeOfIncidenceNormal.norm() == 0:
-            # Normal incidence
-            return
-
-        thetaIn = self.ez.angleWith(normal, axis=planeOfIncidenceNormal)
-        thetaOut = math.asin(n1*math.sin(thetaIn)/n2)
-
-        self.ez.rotateAround(planeOfIncidenceNormal, thetaOut-thetaIn)
 
     def roulette(self):
         chance = 0.1
@@ -141,3 +80,57 @@ class Photon:
             self.weight /= chance
         else:
             self.weight = 0
+
+
+class Photons:
+    def __init__(self, position=None, direction=None):
+        n = len(position)
+        self.r = Vectors(position)
+        self.ez = Vectors(direction)  # Propagation direction vector
+        self.er = Vectors( [Vector(0, 1, 0)]*n )
+
+        self.er.select(logicalNot(self.er.isPerpendicularTo(self.ez)))
+        self.er.replaceSelected(self.ez.anyPerpendicular())
+        self.er.selectAll()
+
+        # We don't need to keep el, because it is obtainable from ez and er
+        self.weight = Scalars([1.0]*n)
+        self.path = None
+
+    @property
+    def el(self) -> Vectors:
+        return self.ez.cross(self.er)
+
+    @property
+    def isAlive(self) -> bool:
+        return (self.weight.v > 0).all()
+
+    def transformToLocalCoordinates(self, origin):
+        self.r = self.r - [origin]* len(self.r)
+
+    def transformFromLocalCoordinates(self, origin):
+        self.r = self.r + [origin]* len(self.r)
+
+    def moveBy(self, d):
+        self.r.addScaled(self.ez, d)
+
+    def scatterBy(self, theta, phi):
+        self.er.rotateAround(self.ez, phi)
+        self.ez.rotateAround(self.er, theta)
+
+    def decreaseWeightBy(self, delta):
+        self.weight -= delta
+        if self.weight < 0:
+            self.weight = 0
+
+    def roulette(self):
+        n = len(self.position)
+
+        chance = 0.1
+
+        rouletteMask = (self.weight.v < 1e-4)
+
+        live = (Scalars.random(n) > chance)
+        die = logicalNot(live)
+        factor = dontTouchMask + rouletteMask * live/chance
+
