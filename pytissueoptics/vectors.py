@@ -441,7 +441,7 @@ class NumpyVectors:
         """MUST verify that norm is 0."""
         norm = self.norm().v
         if not np.all(norm):
-            raise ValueError("Normalizing the zero vector (0,0,0) is ambiguous.")
+            raise ValueError("Normalizing the null vector is impossible.")
 
         normalizedVectors = self.v / norm[:, None]
         self.v = normalizedVectors
