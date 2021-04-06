@@ -583,7 +583,7 @@ class TestNumpyVectors(envtest.PyTissueTestCase):
     def testAnyPerpendicularNull(self):
         v1 = NumpyVectors([[0, 0, 0]])
         r = v1.anyPerpendicular()
-        self.assertTrue(r.v)
+        self.assertTrue(np.all(np.isnan(r.v)))
 
     def testAnyUnitaryPerpendicular(self):
         v1 = NumpyVectors([[0, 0, 1], [1, 1, 1], [2, 2, 0], [0, 0, 0], [1, 0, 0]])
