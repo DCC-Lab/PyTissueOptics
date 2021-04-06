@@ -4,7 +4,7 @@ from time import time_ns
 time0 = time_ns()
 
 batches = 6
-N = 5000000
+N = 500000
 
 position = CupyVectors(N=N)
 direction = CupyVectors([[0, 0, 1]]*N)

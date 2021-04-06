@@ -1021,7 +1021,8 @@ class TestCupyVectors(envtest.PyTissueTestCase):
     def testAnyPerpendicularNull(self):
         v1 = CupyVectors([[0, 0, 0]])
         r = v1.anyPerpendicular()
-        self.assertTrue(np.all(np.isnan(cp.asnumpy(r.v))))
+        self.assertTrue(np.all(np.isnan(cp.asnumpy(r.v))), "Will fail because we don't check the null vector."
+                                                           "Would require tweeking since cp.where doesn't operate as np.where")
 
     def testAnyUnitaryPerpendicular(self):
         v1 = CupyVectors([[0, 0, 1], [1, 1, 1], [2, 2, 0], [1, 0, 0]])
@@ -1033,7 +1034,8 @@ class TestCupyVectors(envtest.PyTissueTestCase):
         v1 = CupyVectors([[0, 0, 0]])
         r = v1.anyUnitaryPerpendicular()
         r = np.all(np.isnan(cp.asnumpy(r.v)))
-        self.assertTrue(r)
+        self.assertTrue(r,"Will fail because we don't check the null vector."
+                            "Would require tweeking since cp.where doesn't operate as np.where")
 
     def testIsInXYPlane(self):
         pass
