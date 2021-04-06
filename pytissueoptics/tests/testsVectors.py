@@ -440,7 +440,7 @@ class TestNumpyVectors(envtest.PyTissueTestCase):
     def testIsAlmostEqualToFalse(self):
         v1 = NumpyVectors([[1, 1, 1], [-0.04298243, 0.99337274, -0.10659786], [1, 1, 3]])
         v2 = NumpyVectors([[1, 1, 1], [-0.04288243, 0.99337274, -0.10659786], [1, 1, 3]])
-        r = np.all(v1.isAlmostEqualTo(v2, 0.000000001))
+        r = np.all(v1.isAlmostEqualTo(v2, 0.000000001).v)
         self.assertFalse(r)
 
     def testIsAlmostEqualToTrue(self):
@@ -875,31 +875,31 @@ class TestCupyVectors(envtest.PyTissueTestCase):
     def testIsEqualToFalse(self):
         v1 = CupyVectors([[1, 1, 1], [-0.04298243, 0.99337274, -0.10659786], [1, 1, 3]])
         v2 = CupyVectors([[0, 1, 1], [-0.0429843, 0.99337274, -0.10659786], [1, 1, 3]])
-        r = np.all(v1.isEqualTo(v2))
+        r = cp.all(v1.isEqualTo(v2).v)
         self.assertFalse(r)
 
     def testIsEqualToTrue(self):
         v1 = CupyVectors([[1, 1, 1], [-0.04298243, 0.99337274, -0.10659786], [1, 1, 3]])
         v2 = CupyVectors([[1, 1, 1], [-0.04298243, 0.99337274, -0.10659786], [1, 1, 3]])
-        r = np.all(v1.isEqualTo(v2))
+        r = cp.all(v1.isEqualTo(v2).v)
         self.assertTrue(r)
 
     def testIsAlmostEqualToFalse(self):
         v1 = CupyVectors([[1, 1, 1], [-0.04298243, 0.99337274, -0.10659786], [1, 1, 3]])
         v2 = CupyVectors([[1, 1, 1], [-0.04288243, 0.99337274, -0.10659786], [1, 1, 3]])
-        r = np.all(v1.isAlmostEqualTo(v2, 0.000000001))
+        r = cp.all(v1.isAlmostEqualTo(v2, 0.000000001).v)
         self.assertFalse(r)
 
     def testIsAlmostEqualToTrue(self):
         v1 = CupyVectors([[1, 1, 1], [-0.04298243, 0.99337274, -0.10659786], [1, 1, 3]])
         v2 = CupyVectors([[1, 1, 1], [-0.04298343, 0.99337274, -0.10659786], [1, 1, 3]])
-        r = np.all(v1.isAlmostEqualTo(v2, 0.00001))
+        r = cp.all(v1.isAlmostEqualTo(v2, 0.00001).v)
         self.assertTrue(r)
 
     def testNormOutputTypeFloat64(self):
         v1 = CupyVectors([[1, 1, 1], [-0.04298243, 0.99337274, -0.10659786], [1, 1, 3]])
         v1norms = v1.norm()
-        self.assertEqual(np.float64, type(v1norms[0]))
+        self.assertEqual(np.dtype("float64").type, v1norms[0].dtype)
 
     def testNorm(self):
         v1 = CupyVectors([[1, 1, 1], [0.866539324968574, -0.49677441419390916, 0.04821596919389434], [1, 1, 3]])
@@ -908,25 +908,25 @@ class TestCupyVectors(envtest.PyTissueTestCase):
         norm2 = 1
         norm3 = np.sqrt(1 + 1 + 3**2)
         norms = [norm1, norm2, norm3]
-        r = np.all(np.isclose(norms, v1norms.v, atol=1e-7))
+        r = np.all(np.isclose(norms, cp.asnumpy(v1norms.v), atol=1e-7))
         self.assertTrue(r)
 
     def testNormNegative(self):
         v1 = CupyVectors([[-1, -1, -1]])
         v1norms = v1.norm()
-        r = np.all(np.isclose([np.sqrt(3)], v1norms.v, atol=1e-7))
+        r = np.all(np.isclose([np.sqrt(3)], cp.asnumpy(v1norms.v), atol=1e-7))
         self.assertTrue(r)
 
     def testNormNull(self):
         v1 = CupyVectors([[0, 0, 0]])
         v1norms = v1.norm()
-        r = np.all(np.isclose([0], v1norms.v, atol=1e-7))
+        r = np.all(np.isclose([0], cp.asnumpy(v1norms.v), atol=1e-7))
         self.assertTrue(r)
 
     def testAbs(self):
         v1 = CupyVectors([[-1, 1, 1], [0.866539324968574, -0.49677441419390916, 0.04821596919389434], [1, 1, 3]])
         r = v1.abs()
-        r = np.all(np.greater_equal(r.v, np.zeros((3, 3))))
+        r = np.all(np.greater_equal(cp.asnumpy(r.v), np.zeros((3, 3))))
         self.assertTrue(r)
 
     def testIsParallelToTrue(self):
