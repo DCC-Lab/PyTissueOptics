@@ -575,11 +575,15 @@ class TestNumpyVectors(envtest.PyTissueTestCase):
         self.assertTrue(r)
 
     def testAnyPerpendicular(self):
-        v1 = NumpyVectors([[0, 0, 1], [1, 1, 1], [2, 2, 0], [0, 0, 0], [1, 0, 0]])
+        v1 = NumpyVectors([[1, 0, 0], [0, 1, 0], [0, 0, 1], [1, 2, 3], [-1, -2, -3]])
         r = v1.anyPerpendicular()
-        verify = [[0,  1,  0], [-1,  0,  1], [0,  0,  2], [0,  0,  0], [0,  0,  1]]
-        r = np.all(np.equal(r.v, verify))
+        r = np.all(r.isPerpendicularTo(v1))
         self.assertTrue(r)
+
+    def testAnyPerpendicularNull(self):
+        v1 = NumpyVectors([[0, 0, 0]])
+        r = v1.anyPerpendicular()
+        self.assertTrue(r.v)
 
     def testAnyUnitaryPerpendicular(self):
         v1 = NumpyVectors([[0, 0, 1], [1, 1, 1], [2, 2, 0], [0, 0, 0], [1, 0, 0]])
@@ -612,7 +616,6 @@ class TestNumpyVectors(envtest.PyTissueTestCase):
         with self.assertRaises(ValueError):
             v1 = NumpyVectors([[0, 0, 0]])
             v1.normalize()
-
 
     def testNormalizedIndependentObject(self):
         v1 = NumpyVectors([[1, 1, 1], [-0.04298243, 0.99337274, -0.10659786], [0, 2, 0], [-1, 0, 0], [0, 0, 0]])
