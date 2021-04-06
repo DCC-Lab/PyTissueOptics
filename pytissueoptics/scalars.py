@@ -198,18 +198,18 @@ class NumpyScalars:
         else:
             return NumpyScalars(np.less_equal(np.abs(np.subtract(self.v, other)), 1e-9))
 
+
 class CupyScalars:
     def __init__(self, array=None, N=None):
         if array is not None:
             if type(array) == cp.ndarray:
                 self.v = array.astype('float64')
-
             elif type(array) == cp.ndarray:
                 self.v = array.astype(cp.float64)
             else:
                 self.v = cp.asarray(array, dtype=cp.float64)
         elif N is not None:
-            self.v = cp.zeros((N), dtype=cp.float64)
+            self.v = cp.zeros((1, N), dtype=cp.float64)
 
         self._iteration = 0
 
