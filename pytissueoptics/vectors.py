@@ -389,21 +389,25 @@ class NumpyVectors:
     def anyUnitaryPerpendicular(self):
         return self.anyPerpendicular().normalized()
 
-    """ TODO: Make Function """
     def isInXYPlane(self, atZ, epsilon=0.001):
-        pass
+        uz = self.v[:, 2]
+        r = np.where(np.abs(uz - atZ) < epsilon, True, False)
+        return r
 
-    """ TODO: Make Function """
     def isInYZPlane(self, atX, epsilon=0.001):
-        pass
+        ux = self.v[:, 0]
+        r = np.where(np.abs(ux - atX) < epsilon, True, False)
+        return r
 
-    """ TODO: Make Function """
     def isInZXPlane(self, atY, epsilon=0.001):
-        pass
+        uy = self.v[:, 1]
+        r = np.where(np.abs(uy - atY) < epsilon, True, False)
+        return r
 
-    """ TODO: Make Function """
-    def isInPlane(self, origin: 'Vector', normal: 'Vector', epsilon=0.001):
-        pass
+    def isInPlane(self, origin: 'NumpyVectors', normal: 'NumpyVectors', epsilon=0.001):
+        local = self - origin
+        r = np.where(np.abs(local.normalizedDotProduct(normal)) < epsilon, True, False)
+        return r
 
     def norm(self):
         return NumpyScalars(np.linalg.norm(self.v, axis=1))
@@ -493,7 +497,6 @@ class NumpyVectors:
 
         return self.angleWith(normal, axis=planeNormal), planeNormal, normal
 
-    """ TODO: Test Function """
     def rotateAround(self, u, theta):
         u.normalize()
         #print(theta.v)
