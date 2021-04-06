@@ -667,9 +667,9 @@ class CupyVectors:
         a = cp.stack((uy, -ux, cp.zeros(len(ux))), axis=-1)
         b = cp.stack((cp.zeros(len(ux)), -uz, uy), axis=-1)
         c = cp.where(uz[:, None] < ux[:, None], a, b)
-        r = cp.where(cp.linalg.norm(c, axis=1)[:, None] != 0, c, None)
+        # not verifying the null vector as it should never happen and cupy doesn't like this syntax
 
-        return CupyVectors(r)
+        return CupyVectors(c)
 
     def anyUnitaryPerpendicular(self):
         return self.anyPerpendicular().normalized()

@@ -1016,7 +1016,7 @@ class TestCupyVectors(envtest.PyTissueTestCase):
     def testAnyPerpendicular(self):
         v1 = CupyVectors([[1, 0, 0], [0, 1, 0], [0, 0, 1], [1, 2, 3], [-1, -2, -3], [1, 1, 1], [-1, -1, -1]])
         r = v1.anyPerpendicular()
-        self.assertTrue(np.all(cp.asnumpy(r.isPerpendicularTo(v1).v)))
+        self.assertTrue(np.all(cp.asnumpy(r.isPerpendicularTo(v1))))
 
     def testAnyPerpendicularNull(self):
         v1 = CupyVectors([[0, 0, 0]])
@@ -1175,18 +1175,18 @@ class TestCupyVectors(envtest.PyTissueTestCase):
     def testRotateAround(self):
         v1 = CupyVectors([[1, 1, 1], [-0.04298243, 0.99337274, -0.10659786], [0, 2, 0], [-1, 0, 0]])
         axis = CupyVectors([[0, 1, 0], [0, -1, 0], [1, 1, 0], [0, 1, 0]])
-        theta = NumpyScalars([3.1415, 1.618, 0.1, 1])
+        theta = CupyScalars([3.1415, 1.618, 0.1, 1])
         r = v1.rotateAround(axis, theta)
         self.assertTrue(np.all(np.isclose(
             [[-0.99990734,  1,         -1.00009265],
              [0.1085073,   0.99337274, -0.03790461],
              [0.00499583,  1.99500417,  0.14118577],
-             [-0.54030231,  0,          0.84147098]], r.v, atol=1e-7)))
+             [-0.54030231,  0,          0.84147098]], cp.asnumpy(r.v), atol=1e-7)))
 
     def testRotateAroundParallel(self):
         v1 = CupyVectors([[1, 1, 1]])
         axis = CupyVectors([[1, 1, 1]])
-        theta = NumpyScalars([3.14159265])
+        theta = CupyScalars([3.14159265])
         r = v1.rotateAround(axis, theta)
         self.assertTrue(np.all(np.isclose(
             [[1, 1, 1]], r.v, atol=1e-7)))
@@ -1195,7 +1195,7 @@ class TestCupyVectors(envtest.PyTissueTestCase):
         with self.assertRaises(ValueError):
             v1 = CupyVectors([[1, 1, 1], [0, 0, 0]])
             axis = CupyVectors([[0, 0, 0], [1, 1, 1]])
-            theta = NumpyScalars([1, 1])
+            theta = CupyScalars([1, 1])
             v1.rotateAround(axis, theta)
 
 
