@@ -489,8 +489,8 @@ class NumpyVectors:
     def angleOfIncidence(self, normal):
         dotNormal = self.dot(normal)
         normal = NumpyVectors(np.where(dotNormal.v[:, None] < 0, -normal.v, normal.v))
-
         planeNormal = self.planeOfIncidence(normal)
+
         return self.angleWith(normal, axis=planeNormal), planeNormal, normal
 
     """ TODO: Test Function """

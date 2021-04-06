@@ -629,12 +629,12 @@ class TestNumpyVectors(envtest.PyTissueTestCase):
             v1.normalize()
 
     def testNormalizedIndependentObject(self):
-        v1 = NumpyVectors([[1, 1, 1], [-0.04298243, 0.99337274, -0.10659786], [0, 2, 0], [-1, 0, 0], [0, 0, 0]])
+        v1 = NumpyVectors([[1, 1, 1], [-0.04298243, 0.99337274, -0.10659786], [0, 2, 0], [-1, 0, 0]])
         v2 = v1.normalized()
         v2Norm = v2.norm().v
         v1Norm = v1.norm().v
         verify = np.isclose(v1Norm, v2Norm, atol=1e-8)
-        r = np.all(np.equal([0, 1, 0, 1, 1], verify))
+        r = np.all(np.equal([0, 1, 0, 1], verify))
         self.assertTrue(r)
 
     def testNormalizedCrossProduct(self):
@@ -721,21 +721,23 @@ class TestNumpyVectors(envtest.PyTissueTestCase):
         r = v1.angleOfIncidence(plane)
         self.assertTrue(np.all(np.isclose([0.95531662, 0.11519193, 0, 1.57079633], r[0].v, atol=1e-7)))
 
-    def testAngleOfIncidenceParallel(self):
+    def testAngleOfIncidenceParallelToNormal(self):
         v1 = NumpyVectors([[1, 1, 1], [1, 1, 1], [-1, -1, -1], [-1, -1, -1]])
         plane = NumpyVectors([[1, 1, 1], [-1, -1, -1], [1, 1, 1], [-1, -1, -1]])
         r = v1.angleOfIncidence(plane)
-        print(r[0].v)
-        # le dernier -3.14 is the same for Vector, but seems an error, cause it should probably be 0.
-        self.assertTrue(np.all(np.isclose([0.95531662, 0.11519193, 0, 1.57079633], r[0].v, atol=1e-7)))
+        self.assertTrue(np.all(np.isclose([0, 0, 0, 0], r[0].v, atol=1e-7)))
+
+    def testAngleOfIncidencePerpendicularToNormal(self):
+        v1 = NumpyVectors([[1, 0, 0]])
+        plane = NumpyVectors([[0, 1, 0]])
+        r = v1.angleOfIncidence(plane)
+        self.assertTrue(np.all(np.isclose([1.57079632679], np.abs(r[0].v), atol=1e-7)))
 
     def testAngleOfIncidenceNull(self):
-        v1 = NumpyVectors([[1, 1, 1], [0, 0, 0]])
-        plane = NumpyVectors([[0, 0, 0], [1, 1, 1]])
-        r = v1.angleOfIncidence(plane)
-        print(r[0].v)
-        # le dernier -3.14 is the same for Vector, but seems an error, cause it should probably be 0.
-        self.assertTrue(np.all(np.isclose([0.95531662, 0.11519193, 0, 1.57079633], r[0].v, atol=1e-7)))
+        with self.assertRaises(ValueError):
+            v1 = NumpyVectors([[1, 1, 1], [0, 0, 0]])
+            plane = NumpyVectors([[0, 0, 0], [1, 1, 1]])
+            v1.angleOfIncidence(plane)
 
     def testRotateAround(self):
         v1 = NumpyVectors([[1, 1, 1], [-0.04298243, 0.99337274, -0.10659786], [0, 2, 0], [-1, 0, 0]])
@@ -757,13 +759,11 @@ class TestNumpyVectors(envtest.PyTissueTestCase):
             [[1, 1, 1]], r.v, atol=1e-7)))
 
     def testRotateAroundNullVectors(self):
-        v1 = NumpyVectors([[1, 1, 1], [1, 1, 1], [0, 0, 0]])
-        axis = NumpyVectors([[1, 1, 1], [0, 0, 0], [1, 1, 1]])
-        theta = NumpyScalars([0, 1, 1])
-        r = v1.rotateAround(axis, theta)
-        print(r.v)
-        # AMBIGUE LORSQUE AXIS = (0, 0, 0)
-        self.assertTrue(np.all(np.isclose([[1, 1, 1], [1, 1, 1], [0, 0, 0]], r.v, atol=1e-7)))
+        with self.assertRaises(ValueError):
+            v1 = NumpyVectors([[1, 1, 1], [0, 0, 0]])
+            axis = NumpyVectors([[0, 0, 0], [1, 1, 1]])
+            theta = NumpyScalars([1, 1])
+            v1.rotateAround(axis, theta)
 
 
 if __name__ == '__main__':
