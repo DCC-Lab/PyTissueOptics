@@ -522,7 +522,7 @@ class CupyVectors:
     """ This is the Reference Cupy Vectors Class for cupy-like calculations.
     This architecture will be used to do GPU calculations on hosts
     that have CUDA libraries and cupy. This requires a NVIDIA GPU. Will fallback
-    to OpenCLVectors or NumpyVectors depending on requirements met.
+    to OpenCLVectors or CupyVectors depending on requirements met.
     """
 
     def __init__(self, vectors=None, N=None):
@@ -544,7 +544,7 @@ class CupyVectors:
         if isinstance(other, CupyVectors):
             return CupyVectors(cp.multiply(self.v, other.v))
         elif isinstance(other, CupyScalars):
-            return CupyVectors(cp.multiply(self.v, other.v[0][:, None]))
+            return CupyVectors(cp.multiply(self.v, other.v[:, None]))
         # elif isinstance(other, cp.ndarray):
         #     if len(other.shape) == 1:
         #         return CupyVectors(self.v * other[:, None])
@@ -647,50 +647,29 @@ class CupyVectors:
         else:
             return CupyScalars(cp.less_equal(cp.abs(cp.subtract(self.v, other)), epsilon))
 
-    """ TODO: Test Function """
-
     def isParallelTo(self, other, epsilon=1e-9):
-        return cp.less(self.normalizedDotProduct(other.v) - 1, epsilon)
-
-    """ TODO: Test Function """
+        r = self.normalizedCrossProduct(other).norm().v
+        a = cp.less_equal(r, epsilon)
+        r = cp.where(self.isNull | other.isNull, False, a)
+        return r
 
     def isPerpendicularTo(self, other, epsilon=1e-9):
-        return cp.less(self.normalizedDotProduct(other.v), epsilon)
+        r = cp.abs(self.normalizedDotProduct(other).v)
+        a = cp.less_equal(r, epsilon)
+        r = cp.where(self.isNull | other.isNull, False, a)
+        return r
 
     def anyPerpendicular(self):
-        # check if x or y is zero, if yes, cross yHat elif z is 0: set to none, if not, cross with xHat
-        xHat = cp.array([1, 0, 0]).transpose()
-        yHat = cp.array([0, 1, 0]).transpose()
-        convA = cp.array([1, 1, 0]).transpose()
-        convB = cp.array([0, 0, 1]).transpose()
-        YZ0 = self * convA
-        Z0 = self * convB
-        P = cp.all(YZ0.v == 0, axis=1)
-        Q = cp.all(Z0.v == 0, axis=1)
-        not_P = cp.logical_not(P)
-        P_and_Q = cp.logical_and(P, Q)
-        maskXY0 = cp.logical_xor(P, P_and_Q)
-        maskXYZ0 = P_and_Q
-        maskXY1 = not_P
+        ux = self.v[:, 0]
+        uy = self.v[:, 1]
+        uz = self.v[:, 2]
 
-        aXY0 = self * maskXY0[:, None]
-        aXYZ0 = self * maskXYZ0[:, None]
-        aXY1 = self * maskXY1[:, None]
+        a = cp.stack((uy, -ux, cp.zeros(len(ux))), axis=-1)
+        b = cp.stack((cp.zeros(len(ux)), -uz, uy), axis=-1)
+        c = cp.where(uz[:, None] < ux[:, None], a, b)
+        # not verifying the null vector as it should never happen and cupy doesn't like this syntax
 
-        aXY0Cross = aXY0.cross(xHat)
-        aXY1Cross = aXY1.cross(yHat)
-
-        output = aXY0Cross + aXY1Cross
-
-        # print("X=0, Y=0 :\n{}\n".format(aXY0))
-        # print("X!=0, Y!=0 ; \n{}\n".format(aXY1))
-        #
-        # print("X=0, Y=0 :\n{}\n".format(aXY0Cross))
-        # print("X!=0, Y!=0 ; \n{}\n".format(aXY1Cross))
-        #
-        # print("OUTPUT:\n{}\n".format(output))
-
-        return output
+        return CupyVectors(c)
 
     def anyUnitaryPerpendicular(self):
         return self.anyPerpendicular().normalized()
@@ -712,11 +691,14 @@ class CupyVectors:
 
     """ TODO: Make Function """
 
-    def isInPlane(self, origin: 'Vector', normal: 'Vector', epsilon=0.001):
+    def isIcplane(self, origin: 'Vector', normal: 'Vector', epsilon=0.001):
         pass
 
     def norm(self):
         return CupyScalars(cp.linalg.norm(self.v, axis=1))
+
+    def normSquared(self):
+        return CupyScalars(self.abs)
 
     def abs(self):
         return CupyVectors(cp.abs(self.v))
@@ -724,17 +706,17 @@ class CupyVectors:
     def normalize(self):
         """MUST verify that norm is 0."""
         norm = self.norm().v
-        normNot0 = cp.where(norm != 0, norm, 1)
-        normalizedVectors = self.v / normNot0[:, None]
+        if not cp.all(norm):
+            raise ValueError("Normalizing the null vector is impossible.")
+
+        normalizedVectors = self.v / norm[:, None]
         self.v = normalizedVectors
         return self
 
     def normalized(self):
-        """Watch out, does this modifies the self also?, yes which is why I deepcopy"""
+        # Watch out, does this modifies the self also?, yes which is why I deepcopy()
         v = copy.deepcopy(self)
         return v.normalize()
-
-    """ TODO: Test Function """
 
     def cross(self, other):
         if isinstance(other, CupyVectors):
@@ -750,61 +732,54 @@ class CupyVectors:
         else:
             return CupyScalars(cp.einsum('ij,ij->i', self.v, other))
 
-    """ TODO: Test Function """
-
     def normalizedCrossProduct(self, other):
-        '''TODO:  Is this OK'''
-        productNorm = self.norm() * other.normSquared()
-        return self.cross(other) * productNorm * cp.exp(-0.5)
-
-    """ TODO: Test Function """
+        productNorm = (self.norm() * other.norm()).v
+        productNorm = cp.where(productNorm != 0, productNorm, 1)
+        output = self.cross(other) / productNorm[:, None]
+        return output
 
     def normalizedDotProduct(self, other):
-        '''TODO:  find way to calculate the zeors'''
-        productNorm = self.norm() * other.normSquared()
-        return self.dot(other) * productNorm * cp.exp(-0.5)
-
-    """ TODO: Test Function """
+        invAbs = (self.norm() * other.norm()).v
+        invAbs = cp.where(invAbs != 0, invAbs, 1)
+        dot = self.dot(other)
+        output = dot / invAbs
+        return output
 
     def angleWith(self, v, axis):
         """ will v and axis be Vectors Array too or single vectors??"""
-        sinPhi = self.normalizedCrossProduct(v)
-        sinPhiAbs = sinPhi.abs()
-        phi = cp.asin(sinPhiAbs.v)  # what happens here?
-        piMinusPhi = cp.pi - phi  # and here ?
+        sicphi = self.normalizedCrossProduct(v)
+        sicphiAbs = sicphi.norm()
+        phi = cp.arcsin(sicphiAbs.v)
+        piMinusPhi = cp.pi - phi
         dotV = self.dot(v)
-        dotAxis = sinPhi.dot(axis)
+        dotAxis = sicphi.dot(axis)
 
         phi = cp.where(dotV.v <= 0, piMinusPhi, phi)
         minusPhi = -phi
         phi = cp.where(dotAxis.v <= 0, minusPhi, phi)
 
-        # print(phi)
-        return phi  # What's supposed to be the return type?
-
-    """ TODO: Test Function """
+        return CupyScalars(phi)  # What's supposed to be the return type?
 
     def planeOfIncidence(self, normal):
+        normVector = self.norm().v
+        normPlane = normal.norm().v
+        if not (cp.all(normVector) and cp.all(normPlane)):
+            raise ValueError("The direction of incidence or the normal cannot be null")
 
         dotNormal = self.dot(normal)
-        normal = cp.where(dotNormal.v < 0, -normal, normal)
-
+        normal = cp.where(dotNormal.v[:, None] < 0, -normal.v, normal.v)
         planeOfIncidenceNormal = self.cross(normal)
         planeNorm = planeOfIncidenceNormal.norm()
-
         anyPerp = self.anyPerpendicular()
-        planeNormalized = planeOfIncidenceNormal.normalized()
+        output = cp.where(planeNorm.v[:, None] < 1e-3, anyPerp.v, planeOfIncidenceNormal.v)
 
-        output = cp.where(planeNorm.v < 1e-7, anyPerp.v, planeNormalized.v)
-        return CupyVectors(output)
-
-    """ TODO: Test Function """
+        return CupyVectors(output).normalized()
 
     def angleOfIncidence(self, normal):
         dotNormal = self.dot(normal)
-        normal = CupyVectors(cp.where(dotNormal.v < 0, -normal, normal))
-
+        normal = CupyVectors(cp.where(dotNormal.v[:, None] < 0, -normal.v, normal.v))
         planeNormal = self.planeOfIncidence(normal)
+
         return self.angleWith(normal, axis=planeNormal), planeNormal, normal
 
     """ TODO: Test Function """
@@ -812,13 +787,8 @@ class CupyVectors:
     def rotateAround(self, u, theta):
         u.normalize()
         # print(theta.v)
-        if type(theta) == np.ndarray:
-            theta = cp.array(theta)
-        elif type(theta) == CupyScalars:
-            theta = theta.v
-
-        cost = (cp.cos(theta))[0]
-        sint = (cp.sin(theta))[0]
+        cost = (cp.cos(theta.v))
+        sint = (cp.sin(theta.v))
         one_cost = (1 - cost)
 
         ux = u.v[:, 0]
@@ -837,7 +807,6 @@ class CupyVectors:
                     cost + uz * uz * one_cost) * Z
 
         self.v = cp.stack((x, y, z), axis=-1)
-        # print(self.v)
 
         return self
 
