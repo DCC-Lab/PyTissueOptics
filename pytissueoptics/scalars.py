@@ -209,7 +209,7 @@ class CupyScalars:
             else:
                 self.v = cp.asarray(array, dtype=cp.float64)
         elif N is not None:
-            self.v = cp.zeros((1, N), dtype=cp.float64)
+            self.v = cp.zeros((N), dtype=cp.float64)
 
         self._iteration = 0
 
@@ -279,17 +279,17 @@ class CupyScalars:
 
     @classmethod
     def setAll(cls, value, N):
-        return CupyScalars(cp.full((1, N), value))
+        return CupyScalars(cp.full((N), value))
 
     @classmethod
     def random(cls, N: int):
         """Random number between [0, 1]"""
-        return CupyScalars(cp.random.rand(1, N))
+        return CupyScalars(cp.random.rand(N))
 
     @classmethod
     def random2(cls, N: int):
         """Random number between [-1, 1]"""
-        return CupyScalars((cp.random.rand(1, N) * 2) - 1)
+        return CupyScalars((cp.random.rand(N) * 2) - 1)
 
     def isEqualTo(self, other):
         if isinstance(other, CupyScalars):

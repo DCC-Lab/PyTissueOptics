@@ -522,7 +522,7 @@ class CupyVectors:
     """ This is the Reference Cupy Vectors Class for cupy-like calculations.
     This architecture will be used to do GPU calculations on hosts
     that have CUDA libraries and cupy. This requires a NVIDIA GPU. Will fallback
-    to OpenCLVectors or NumpyVectors depending on requirements met.
+    to OpenCLVectors or CupyVectors depending on requirements met.
     """
 
     def __init__(self, vectors=None, N=None):
@@ -541,44 +541,44 @@ class CupyVectors:
         return self.v.shape[0]
 
     def __mul__(self, other):
-        if isinstance(other, NumpyVectors):
-            return NumpyVectors(cp.multiply(self.v, other.v))
-        elif isinstance(other, NumpyScalars):
-            return NumpyVectors(cp.multiply(self.v, other.v[:, None]))
+        if isinstance(other, CupyVectors):
+            return CupyVectors(cp.multiply(self.v, other.v))
+        elif isinstance(other, CupyScalars):
+            return CupyVectors(cp.multiply(self.v, other.v[:, None]))
         # elif isinstance(other, cp.ndarray):
         #     if len(other.shape) == 1:
-        #         return NumpyVectors(self.v * other[:, None])
+        #         return CupyVectors(self.v * other[:, None])
         else:
-            return NumpyVectors(cp.multiply(self.v, other))
+            return CupyVectors(cp.multiply(self.v, other))
 
     def __truediv__(self, other):
-        if isinstance(other, NumpyVectors):
-            return NumpyVectors(cp.true_divide(self.v, other.v))
-        elif isinstance(other, NumpyScalars):
-            return NumpyVectors(cp.true_divide(self.v, other.v[:, None]))
+        if isinstance(other, CupyVectors):
+            return CupyVectors(cp.true_divide(self.v, other.v))
+        elif isinstance(other, CupyScalars):
+            return CupyVectors(cp.true_divide(self.v, other.v[:, None]))
         else:
-            return NumpyVectors(cp.true_divide(self.v, other))
+            return CupyVectors(cp.true_divide(self.v, other))
 
     def __add__(self, other):
-        if isinstance(other, NumpyVectors):
-            return NumpyVectors(cp.add(self.v, other.v))
+        if isinstance(other, CupyVectors):
+            return CupyVectors(cp.add(self.v, other.v))
         else:
-            return NumpyVectors(cp.add(self.v, other))
+            return CupyVectors(cp.add(self.v, other))
 
     def __sub__(self, other):
-        if isinstance(other, NumpyVectors):
-            return NumpyVectors(cp.subtract(self.v, other.v))
+        if isinstance(other, CupyVectors):
+            return CupyVectors(cp.subtract(self.v, other.v))
         else:
-            return NumpyVectors(cp.subtract(self.v, other))
+            return CupyVectors(cp.subtract(self.v, other))
 
     def __neg__(self):
-        return NumpyVectors(cp.negative(self.v))
+        return CupyVectors(cp.negative(self.v))
 
     def __eq__(self, other):
-        if isinstance(other, NumpyVectors):
-            return NumpyVectors(cp.equal(self.v, other.v))
+        if isinstance(other, CupyVectors):
+            return CupyVectors(cp.equal(self.v, other.v))
         else:
-            return NumpyVectors(cp.subtract(self.v, other))
+            return CupyVectors(cp.subtract(self.v, other))
 
     def __str__(self):
         return str(self.v)
@@ -622,7 +622,7 @@ class CupyVectors:
         x = r * cp.sin(phi) * cp.cos(theta)
         y = r * cp.sin(phi) * cp.sin(theta)
         z = r * cp.cos(phi)
-        return NumpyVectors(cp.stack((x, y, z), axis=-1))
+        return CupyVectors(cp.stack((x, y, z), axis=-1))
 
     @classmethod
     def randomUniformUnitary(cls, N):
@@ -631,21 +631,21 @@ class CupyVectors:
         x = cp.sin(phi) * cp.cos(theta)
         y = cp.sin(phi) * cp.sin(theta)
         z = cp.cos(phi)
-        output = NumpyVectors(cp.stack((x, y, z), axis=-1))
+        output = CupyVectors(cp.stack((x, y, z), axis=-1))
         print(output)
         return output
 
     def isEqualTo(self, other):
-        if isinstance(other, NumpyVectors):
-            return NumpyScalars(cp.less_equal(cp.abs(cp.subtract(self.v, other.v)), 1e-9))
+        if isinstance(other, CupyVectors):
+            return CupyScalars(cp.less_equal(cp.abs(cp.subtract(self.v, other.v)), 1e-9))
         else:
-            return NumpyScalars(cp.less_equal(cp.abs(cp.subtract(self.v, other)), 1e-9))
+            return CupyScalars(cp.less_equal(cp.abs(cp.subtract(self.v, other)), 1e-9))
 
     def isAlmostEqualTo(self, other, epsilon):
-        if isinstance(other, NumpyVectors):
-            return NumpyScalars(cp.less_equal(cp.abs(cp.subtract(self.v, other.v)), epsilon))
+        if isinstance(other, CupyVectors):
+            return CupyScalars(cp.less_equal(cp.abs(cp.subtract(self.v, other.v)), epsilon))
         else:
-            return NumpyScalars(cp.less_equal(cp.abs(cp.subtract(self.v, other)), epsilon))
+            return CupyScalars(cp.less_equal(cp.abs(cp.subtract(self.v, other)), epsilon))
 
     def isParallelTo(self, other, epsilon=1e-9):
         r = self.normalizedCrossProduct(other).norm().v
@@ -669,7 +669,7 @@ class CupyVectors:
         c = cp.where(uz[:, None] < ux[:, None], a, b)
         r = cp.where(cp.linalg.norm(c, axis=1)[:, None] != 0, c, None)
 
-        return NumpyVectors(r)
+        return CupyVectors(r)
 
     def anyUnitaryPerpendicular(self):
         return self.anyPerpendicular().normalized()
@@ -695,13 +695,13 @@ class CupyVectors:
         pass
 
     def norm(self):
-        return NumpyScalars(cp.linalg.norm(self.v, axis=1))
+        return CupyScalars(cp.linalg.norm(self.v, axis=1))
 
     def normSquared(self):
-        return NumpyScalars(self.abs)
+        return CupyScalars(self.abs)
 
     def abs(self):
-        return NumpyVectors(cp.abs(self.v))
+        return CupyVectors(cp.abs(self.v))
 
     def normalize(self):
         """MUST verify that norm is 0."""
@@ -719,18 +719,18 @@ class CupyVectors:
         return v.normalize()
 
     def cross(self, other):
-        if isinstance(other, NumpyVectors):
-            return NumpyVectors(cp.cross(self.v, other.v))
+        if isinstance(other, CupyVectors):
+            return CupyVectors(cp.cross(self.v, other.v))
         else:
-            return NumpyVectors(cp.cross(self.v, other))
+            return CupyVectors(cp.cross(self.v, other))
 
     def dot(self, other):
         # element-wise dot product(fake cp.dot)
         # https://stackoverflow.com/questions/41443444/numpy-element-wise-dot-product
-        if isinstance(other, NumpyVectors):
-            return NumpyScalars(cp.einsum('ij,ij->i', self.v, other.v))
+        if isinstance(other, CupyVectors):
+            return CupyScalars(cp.einsum('ij,ij->i', self.v, other.v))
         else:
-            return NumpyScalars(cp.einsum('ij,ij->i', self.v, other))
+            return CupyScalars(cp.einsum('ij,ij->i', self.v, other))
 
     def normalizedCrossProduct(self, other):
         productNorm = (self.norm() * other.norm()).v
@@ -758,7 +758,7 @@ class CupyVectors:
         minusPhi = -phi
         phi = cp.where(dotAxis.v <= 0, minusPhi, phi)
 
-        return NumpyScalars(phi)  # What's supposed to be the return type?
+        return CupyScalars(phi)  # What's supposed to be the return type?
 
     def planeOfIncidence(self, normal):
         normVector = self.norm().v
@@ -773,11 +773,11 @@ class CupyVectors:
         anyPerp = self.anyPerpendicular()
         output = cp.where(planeNorm.v[:, None] < 1e-3, anyPerp.v, planeOfIncidenceNormal.v)
 
-        return NumpyVectors(output).normalized()
+        return CupyVectors(output).normalized()
 
     def angleOfIncidence(self, normal):
         dotNormal = self.dot(normal)
-        normal = NumpyVectors(cp.where(dotNormal.v[:, None] < 0, -normal.v, normal.v))
+        normal = CupyVectors(cp.where(dotNormal.v[:, None] < 0, -normal.v, normal.v))
         planeNormal = self.planeOfIncidence(normal)
 
         return self.angleWith(normal, axis=planeNormal), planeNormal, normal
