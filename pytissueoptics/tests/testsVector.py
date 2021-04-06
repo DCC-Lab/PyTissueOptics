@@ -178,6 +178,7 @@ class TestVector(envtest.PyTissueTestCase):
         self.assertTrue( (v1-2*v1).isAlmostEqualTo(Vector(-1,-2,-3)))
         self.assertTrue( (-v1).isAlmostEqualTo(Vector(-1,-2,-3)))
 
+
     def testRotateAround(self):
         v1 = Vector(1,2,3)
         axis = v1.anyUnitaryPerpendicular()
@@ -242,6 +243,27 @@ class TestVector(envtest.PyTissueTestCase):
         self.assertTrue(zHat.isPerpendicularTo(xHat))
         self.assertTrue(zHat.isPerpendicularTo(yHat))
         self.assertFalse(zHat.isPerpendicularTo(zHat))
+
+    def testVectorIsOrthogonal(self):     
+        self.assertTrue(xHat.isOrthogonalTo(yHat))
+        self.assertTrue(xHat.isOrthogonalTo(zHat))
+        self.assertFalse(xHat.isOrthogonalTo(xHat))
+
+        self.assertTrue(yHat.isOrthogonalTo(zHat))
+        self.assertTrue(yHat.isOrthogonalTo(xHat))
+        self.assertFalse(yHat.isOrthogonalTo(yHat))
+
+        self.assertTrue(zHat.isOrthogonalTo(xHat))
+        self.assertTrue(zHat.isOrthogonalTo(yHat))
+        self.assertFalse(zHat.isOrthogonalTo(zHat))
+
+        self.assertTrue(oHat.isOrthogonalTo(xHat))
+        self.assertTrue(oHat.isOrthogonalTo(yHat))
+        self.assertTrue(oHat.isOrthogonalTo(zHat))
+
+        self.assertTrue(xHat.isOrthogonalTo(oHat))
+        self.assertTrue(yHat.isOrthogonalTo(oHat))
+        self.assertTrue(zHat.isOrthogonalTo(oHat))
 
     def testVectorIsNotPerpendicularToNull(self):     
         self.assertFalse(Vector(1,2,3).isPerpendicularTo(oHat))
@@ -373,6 +395,13 @@ class TestVector(envtest.PyTissueTestCase):
         self.assertTrue(plane.isPerpendicularTo(zHat))
         self.assertTrue(plane.isUnitary)
 
+    def testPlaneOfIncidenceException(self):
+        v1 = Vector(0,0,0)
+        with self.assertRaises(ValueError):
+            v1.planeOfIncidence(normal=zHat)
+        with self.assertRaises(ValueError):
+            zHat.planeOfIncidence(normal=v1)
+
     def testAngleOfIncidence(self):
         ez = Vector(0,1,1).normalized()
         surfaceNormal = Vector(0,0,1)
@@ -411,6 +440,21 @@ class TestVector(envtest.PyTissueTestCase):
         angle, planeNormal, actualNormal = ez.angleOfIncidence(surfaceNormal)
         self.assertAlmostEqual(angle, 0,6)
         self.assertTrue(planeNormal.isUnitary)
+
+    def testSinAngleBetweenVectors(self):
+        v1 = Vector(0,1,1).normalized()
+        v2 = Vector(0,0,1)
+        v3 = Vector(1,0,0)
+        self.assertAlmostEqual(v1.sinAngleWith(v2, v3), np.sqrt(2)/2,6)
+
+        v1 = Vector(0,-1,1).normalized()
+        self.assertAlmostEqual(v1.sinAngleWith(v2, v3), -np.sqrt(2)/2,6)
+
+        v1 = Vector(0,1,-1).normalized()
+        self.assertAlmostEqual(v1.sinAngleWith(v2, v3), np.sqrt(2)/2,6)
+
+        v1 = Vector(0,-1,-1).normalized()
+        self.assertAlmostEqual(v1.sinAngleWith(v2, v3), -np.sqrt(2)/2,6)
 
 
 if __name__ == '__main__':

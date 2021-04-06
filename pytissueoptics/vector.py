@@ -121,11 +121,17 @@ class Vector:
         return self.normalizedCrossProduct(vector).abs() < epsilon
 
     def isPerpendicularTo(self, vector, epsilon=1e-7):
+        """ Perpendicularity is a geometrical concept: it means 90° between
+        the vectors.  The null vector is not perpendicular to anything.
+        It is however, othogonal to everything."""
+
         if self.isNull or vector.isNull:
             return False
-        return abs(self.normalizedDotProduct(vector)) < epsilon
+        return self.isOrthogonalTo(vector, epsilon)
 
     def isOrthogonalTo(self, vector, epsilon=1e-7):
+        """ Orthogonal means the dot product is zero. It does not 
+        imply perpendicular."""
         return abs(self.normalizedDotProduct(vector)) < epsilon
 
     def anyPerpendicular(self):
@@ -262,7 +268,7 @@ class Vector:
 
     def planeOfIncidence(self, normal):
         if self.isNull or normal.isNull:
-            return None
+            raise ValueError("The direction of incidence and the normal cannot be null")
 
         if self.dot(normal) < 0:
             normal = -normal
