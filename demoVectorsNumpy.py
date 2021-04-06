@@ -3,13 +3,15 @@ from time import time_ns
 
 
 time0 = time_ns()
-batches = 6
-N = 5000
 
-position = NativeVectors(N=N)
-direction = NativeVectors([zHat]*N)
-er = NativeVectors([xHat]*N)
-weight = NativeScalars([1.0]*N)
+batches = 6
+N = 50000
+
+position = NumpyVectors(N=N)
+direction = NumpyVectors([[0, 0, 1]]*N)
+er = NumpyVectors([[1, 0, 0]]*N)
+weight = NumpyScalars([1.0]*N)
+
 
 isAlive = True
 time1 = time_ns()
@@ -22,12 +24,11 @@ for i in range(batches):
     count = 0
 
     while isAlive:
-
         count += 1
 
-        theta = NativeScalars.random(N=N) * 2 * np.pi
-        phi = NativeScalars.random(N=N) * 2 * np.pi
-        d = NativeScalars.random(N=N)
+        theta = NumpyScalars.random(N=N) * 2 * np.pi
+        phi = NumpyScalars.random(N=N) * 2 * np.pi
+        d = NumpyScalars.random(N=N)
 
         er.rotateAround(direction, phi)
         direction.rotateAround(er, theta)
@@ -35,10 +36,10 @@ for i in range(batches):
         weight *= 0.9
         isAlive = (weight.v > 0.001).any()
 
-    position = NativeVectors(N=N)
-    direction = NativeVectors([zHat] * N)
-    er = NativeVectors([xHat] * N)
-    weight = NativeScalars([1.0] * N)
+    position = NumpyVectors(N=N)
+    direction = NumpyVectors([[0, 0, 1]] * N)
+    er = NumpyVectors([[1, 0, 0]] * N)
+    weight = NumpyScalars([1.0] * N)
     isAlive = True
 
     time4 = time_ns()

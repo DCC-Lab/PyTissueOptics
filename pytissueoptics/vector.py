@@ -386,6 +386,7 @@ class ConstVector(Vector):
     def z(self, value):
         raise RuntimeError("You cannot change a constant vector")
 
+
 class ConstUnitVector(UnitVector):
     def __init__(self, x: float = 0, y: float = 0, z: float = 0):
         Vector.__init__(self, x, y, z)
@@ -425,7 +426,8 @@ class ConstUnitVector(UnitVector):
     def z(self, value):
         raise RuntimeError("You cannot change a constant vector")
 
-oHat = ConstVector(0, 0, 0)    
+
+oHat = ConstVector(0, 0, 0)
 xHat = ConstUnitVector(1, 0, 0)
 yHat = ConstUnitVector(0, 1, 0)
 zHat = ConstUnitVector(0, 0, 1)

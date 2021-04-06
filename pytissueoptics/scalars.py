@@ -180,17 +180,17 @@ class NumpyScalars:
 
     @classmethod
     def setAll(cls, value, N):
-        return NumpyScalars(np.full((1, N), value))
+        return NumpyScalars(np.full((N), value))
 
     @classmethod
     def random(cls, N: int):
         """Random number between [0, 1]"""
-        return NumpyScalars(np.random.rand(1, N))
+        return NumpyScalars(np.random.rand(N))
 
     @classmethod
     def random2(cls, N: int):
         """Random number between [-1, 1]"""
-        return NumpyScalars((np.random.rand(1, N) * 2) - 1)
+        return NumpyScalars((np.random.rand(N) * 2) - 1)
 
     def isEqualTo(self, other):
         if isinstance(other, NumpyScalars):
