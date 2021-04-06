@@ -5,34 +5,39 @@ import random
 
 inf = float("+inf")
 
-class TestVectors(envtest.PyTissueTestCase):
-    def testNullVector(self):
-        vs = Vectors(N=1000)
-        self.assertIsNotNone(vs)
-        self.assertEqual(vs.count, 1000)
+class TestVectorsBase(envtest.PyTissueTestCase):
+    def setUp(self):
+        self.count = 1000
+        self.vnull = Vectors(N=self.count)
+        self.vRandom = Vectors(self.randomVectors(N=1000))
 
-        for v in vs:        
+    def tearDown(self):
+        pass
+
+    def testNullVector(self):
+        self.assertIsNotNone(self.vnull)
+        self.assertEqual(self.vnull.count, self.count)
+
+        for v in self.vnull:        
             self.assertEqual(v.x, 0)
             self.assertEqual(v.y, 0)
             self.assertEqual(v.z, 0)
 
     def testSomeVectors(self):
-        vs = Vectors(self.randomVectors(N=1000))
-        self.assertIsNotNone(vs)
-        self.assertEqual(vs.count, 1000)
+        self.assertIsNotNone(self.vRandom)
+        self.assertEqual(self.vRandom.count, 1000)
 
-        for v in vs:        
+        for v in self.vRandom:        
             self.assertTrue(abs(v.x) <= 1)
             self.assertTrue(abs(v.y) <= 1)
             self.assertTrue(abs(v.z) <= 1)
 
     def testSomeVectors(self):
-        vs = Vectors(self.randomVectors(N=1000))
-        self.assertEqual(len(vs), vs.count)
+        self.assertEqual(len(self.vRandom), self.vRandom.count)
 
     def testReplaceSomeVectors(self):
-        vs = Vectors(self.randomVectors(N=1000))
-        vr = Vectors(N=1000)
+        vs = self.vRandom
+        vr = self.vnull
 
         vs.select([False]*1000)
         vs.selected[0] = True
