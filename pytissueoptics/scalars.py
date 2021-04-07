@@ -156,9 +156,39 @@ class NumpyScalars:
 
     def __eq__(self, other):
         if isinstance(other, NumpyScalars):
-            return np.equal(self.v, other.v)
+            return np.where(self.v == other.v, 1, 0)
         else:
-            return np.equal(self.v, other)
+            return np.where(self.v == other, 1, 0)
+
+    def __ne__(self, other):
+        if isinstance(other, NumpyScalars):
+            return np.where(self.v != other.v, 1, 0)
+        else:
+            return np.where(self.v != other, 1, 0)
+
+    def __lt__(self, other):
+        if isinstance(other, NumpyScalars):
+            return np.where(self.v < other.v, 1, 0)
+        else:
+            return np.where(self.v < other, 1, 0)
+
+    def __gt__(self, other):
+        if isinstance(other, NumpyScalars):
+            return np.where(self.v > other.v, 1, 0)
+        else:
+            return np.where(self.v > other, 1, 0)
+
+    def __le__(self, other):
+        if isinstance(other, NumpyScalars):
+            return np.where(self.v <= other.v, 1, 0)
+        else:
+            return np.where(self.v <= other, 1, 0)
+
+    def __ge__(self, other):
+        if isinstance(other, NumpyScalars):
+            return np.where(self.v >= other.v, 1, 0)
+        else:
+            return np.where(self.v >= other, 1, 0)
 
     def __iter__(self):
         self._iteration = 0
