@@ -291,39 +291,39 @@ class NumpyVectors:
 
     def __eq__(self, other):
         if isinstance(other, (NumpyVectors, NumpyScalars)):
-            return NumpyVectors(np.where(self.v == other.v, 1, 0))
+            return np.where(self.v == other.v, 1, 0)
         else:
-            return NumpyVectors(np.where(self.v == other, 1, 0))
+            return np.where(self.v == other, 1, 0)
 
     def __ne__(self, other):
         if isinstance(other, (NumpyVectors, NumpyScalars)):
-            return NumpyVectors(np.where(self.v != other.v, 1, 0))
+            return np.where(self.v != other.v, 1, 0)
         else:
-            return NumpyVectors(np.where(self.v != other, 1, 0))
+            return np.where(self.v != other, 1, 0)
 
     def __lt__(self, other):
         if isinstance(other, (NumpyVectors, NumpyScalars)):
-            return NumpyVectors(np.where(self.v < other.v, 1, 0))
+            return np.where(self.v < other.v, 1, 0)
         else:
-            return NumpyVectors(np.where(self.v < other, 1, 0))
+            return np.where(self.v < other, 1, 0)
 
     def __gt__(self, other):
         if isinstance(other, (NumpyVectors, NumpyScalars)):
-            return NumpyVectors(np.where(self.v > other.v, 1, 0))
+            return np.where(self.v > other.v, 1, 0)
         else:
-            return NumpyVectors(np.where(self.v > other, 1, 0))
+            return np.where(self.v > other, 1, 0)
 
     def __le__(self, other):
         if isinstance(other, (NumpyVectors, NumpyScalars)):
-            return NumpyVectors(np.where(self.v <= other.v, 1, 0))
+            return np.where(self.v <= other.v, 1, 0)
         else:
-            return NumpyVectors(np.where(self.v <= other, 1, 0))
+            return np.where(self.v <= other, 1, 0)
 
     def __ge__(self, other):
         if isinstance(other, (NumpyVectors, NumpyScalars)):
-            return NumpyVectors(np.where(self.v >= other.v, 1, 0))
+            return np.where(self.v >= other.v, 1, 0)
         else:
-            return NumpyVectors(np.where(self.v >= other, 1, 0))
+            return np.where(self.v >= other, 1, 0)
 
     def __str__(self):
         return str(self.v)
