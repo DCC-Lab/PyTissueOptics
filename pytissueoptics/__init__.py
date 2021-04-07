@@ -15,6 +15,7 @@ from .scalars import *
 from .surface import *
 from .material import *
 from .photon import *
+from .photons import *
 from .source import *
 from .geometry import *
 from .detector import *
