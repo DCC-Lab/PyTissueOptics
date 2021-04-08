@@ -21,13 +21,13 @@ class World:
             N += source.maxCount
 
             for i, photon in enumerate(source):
-                currentGeometry = self.contains(photon.r)
+                currentGeometry = self.contains(photon.globalPosition)
                 while photon.isAlive:
                     if currentGeometry is not None:
                         # We are in an object, propagate in it
                         currentGeometry.propagate(photon)
                         # Then check if we are in another adjacent object
-                        currentGeometry = self.contains(photon.r)
+                        currentGeometry = self.contains(photon.globalPosition)
                     else:
                         # We are in free space (World). Find next object
                         intersection = self.nextObstacle(photon)

@@ -9,7 +9,7 @@ import random
 
 class Photon:
     def __init__(self, position=Vector(0, 0, 0), direction=UnitVector(0, 0, 1)):
-        self.r = Vector(position)
+        self.r = Vector(position) # local coordinate position
         self.ez = UnitVector(direction)  # Propagation direction vector
         self.er = UnitVector(0, 1, 0)
 
@@ -20,7 +20,16 @@ class Photon:
         # We don't need to keep el, because it is obtainable from ez and er
         self.weight = 1.0
         self.path = None
+        self.origin = Vector(0,0,0) # The global coordinates of the local origin
 
+    @property
+    def localPosition(self):
+        return self.r
+
+    @property
+    def globalPosition(self):
+        return self.r + self.origin
+    
     @property
     def el(self) -> UnitVector:
         return self.ez.cross(self.er) 
@@ -34,9 +43,11 @@ class Photon:
 
     def transformToLocalCoordinates(self, origin):
         self.r = self.r - origin
+        self.origin = origin
 
     def transformFromLocalCoordinates(self, origin):
         self.r = self.r + origin
+        self.origin = Vector(0,0,0)
 
     def moveBy(self, d):
         self.r.addScaled(self.ez, d)

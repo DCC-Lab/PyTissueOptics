@@ -5,7 +5,7 @@ from .vector import *
 
 
 class Stats:
-    def __init__(self, min=(-1, -1, 0), max=(1, 1, 0.5), size=(21, 21, 21)):
+    def __init__(self, globalVolumeStats=True, min=(-1, -1, 0), max=(1, 1, 0.5), size=(21, 21, 21)):
         self.min = min
         self.max = max
         self.L = (self.max[0] - self.min[0], self.max[1] - self.min[1], self.max[2] - self.min[2])
@@ -15,6 +15,7 @@ class Stats:
                          float(self.size[2] - 1) / self.L[2])
 
         self.energy = np.zeros(size)
+        self.globalVolumeStats = globalVolumeStats
         self.surfaceFig = None
         self.volumeFig = None
         self.volume = []
@@ -84,8 +85,12 @@ class Stats:
         print('{0:.1f} s for {2} photons, {1:.1f} ms per photon'.format(elapsed, elapsed / N * 1000, N))
 
     def scoreInVolume(self, photon, delta):
-        self.volume.append((Vector(photon.r), delta))
-        position = photon.r
+        if self.globalVolumeStats:
+            self.volume.append((Vector(photon.globalPosition), delta))
+            position = photon.globalPosition
+        else:
+            self.volume.append((Vector(photon.r), delta))
+            position = photon.r
 
         i = int(self.binSizes[0] * (position.x - self.min[0]) + 0.5)
         j = int(self.binSizes[1] * (position.y - self.min[1]) + 0.5)
