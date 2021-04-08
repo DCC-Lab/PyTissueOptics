@@ -112,7 +112,7 @@ class Geometry:
                 if surface.contains(finalPosition):
                     distanceToSurface = (finalPosition - position).abs()
                     return FresnelIntersect(direction, surface, distanceToSurface)
-        
+
         return distance, None
 
     def nextEntranceInterface(self, position, direction, distance) -> FresnelIntersect:
@@ -170,7 +170,7 @@ class Geometry:
             self.stats.scoreWhenFinal(photon)
 
     def report(self, totalSourcePhotons):
-        print("{0}\n".format(self.label))
+        print("{0}".format(self.label))
         print("=====================\n")
         print("Geometry and material")
         print("---------------------")
@@ -255,16 +255,26 @@ class Layer(Geometry):
         finalPosition = Vector.fromScaledSum(position, direction, distance)
         if self.contains(finalPosition):
             return None
-        assert(self.contains(position) == True)
+        # assert(self.contains(position) == True)
 
         if direction.z > 0:
             d = (self.thickness - position.z) / direction.z
             if d <= distance:
-                return FresnelIntersect(direction, self.surfaces[0], d, geometry=self) 
+                s = self.surfaces[1]
+                intersect = FresnelIntersect(direction, self.surfaces[1], d, geometry=self) 
+                # assert(s.indexInside)
+                # print(s.indexInside, s.indexOutside)
+                # print(intersect.indexIn, intersect.indexOut)
+                return intersect
         elif direction.z < 0:
             d = - position.z / direction.z
             if d <= distance:
-                return FresnelIntersect(direction, self.surfaces[1], d, geometry=self) 
+                s = self.surfaces[0]
+                intersect = FresnelIntersect(direction, self.surfaces[0], d, geometry=self) 
+                # print(s.indexInside, s.indexOutside)
+                # print(intersect.indexIn, intersect.indexOut)
+                return intersect
+
 
         return None
 
