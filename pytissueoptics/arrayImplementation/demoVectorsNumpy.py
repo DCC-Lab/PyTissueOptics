@@ -1,15 +1,16 @@
-from pytissueoptics import *
+from vectors import *
 from time import time_ns
 
+Vectors = NumpyVectors
 
 time0 = time_ns()
 
-batches = 6
-N = 50000
+batches = 25
+N = 10000
 
-position = NumpyVectors(N=N)
-direction = NumpyVectors([[0, 0, 1]]*N)
-er = NumpyVectors([[1, 0, 0]]*N)
+position = Vectors(N=N)
+direction = Vectors([[0, 0, 1]]*N)
+er = Vectors([[1, 0, 0]]*N)
 weight = NumpyScalars([1.0]*N)
 
 
@@ -36,9 +37,9 @@ for i in range(batches):
         weight *= 0.9
         isAlive = (weight.v > 0.001).any()
 
-    position = NumpyVectors(N=N)
-    direction = NumpyVectors([[0, 0, 1]] * N)
-    er = NumpyVectors([[1, 0, 0]] * N)
+    position = Vectors(N=N)
+    direction = Vectors([[0, 0, 1]] * N)
+    er = Vectors([[1, 0, 0]] * N)
     weight = NumpyScalars([1.0] * N)
     isAlive = True
 
