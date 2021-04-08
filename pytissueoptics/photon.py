@@ -8,9 +8,17 @@ import random
 
 
 class Photon:
-    def __init__(self, position=Vector(0, 0, 0), direction=UnitVector(0, 0, 1)):
-        self.r = Vector(position) # local coordinate position
-        self.ez = UnitVector(direction)  # Propagation direction vector
+    def __init__(self, position=None, direction=None):
+        if position is not None:
+            self.r = Vector(position) # local coordinate position
+        else:
+            self.r = Vector(0, 0, 0)
+
+        if direction is not None:
+            self.ez = UnitVector(direction)  # Propagation direction vector
+        else:
+            self.ez = UnitVector(zHat)  # Propagation direction vector
+
         self.er = UnitVector(0, 1, 0)
 
         if not self.er.isPerpendicularTo(self.ez):

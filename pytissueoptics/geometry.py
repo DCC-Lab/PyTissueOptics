@@ -92,6 +92,8 @@ class Geometry:
         if self.contains(finalPosition):
             return distance, None
 
+        # At this point, we know we will cross an interface: position is inside
+        # finalPosition is outside.
         wasInside = True
         finalPosition = Vector(position)  # Copy
         delta = 0.5 * distance
@@ -110,7 +112,7 @@ class Geometry:
                 if surface.contains(finalPosition):
                     distanceToSurface = (finalPosition - position).abs()
                     return FresnelIntersect(direction, surface, distanceToSurface)
-
+        
         return distance, None
 
     def nextEntranceInterface(self, position, direction, distance) -> FresnelIntersect:
@@ -253,13 +255,16 @@ class Layer(Geometry):
         finalPosition = Vector.fromScaledSum(position, direction, distance)
         if self.contains(finalPosition):
             return None
+        assert(self.contains(position) == True)
 
         if direction.z > 0:
             d = (self.thickness - position.z) / direction.z
-            return FresnelIntersect(direction, self.surfaces[0], d, geometry=self) 
+            if d <= distance:
+                return FresnelIntersect(direction, self.surfaces[0], d, geometry=self) 
         elif direction.z < 0:
             d = - position.z / direction.z
-            return FresnelIntersect(direction, self.surfaces[1], d, geometry=self) 
+            if d <= distance:
+                return FresnelIntersect(direction, self.surfaces[1], d, geometry=self) 
 
         return None
 
@@ -287,10 +292,12 @@ class SemiInfiniteLayer(Geometry):
         finalPosition = position + distance * direction
         if self.contains(finalPosition):
             return None
+        assert(self.contains(position) == True)
 
         if direction.z < 0:
             d = - position.z / direction.z
-            return FresnelIntersect(direction, self.surfaces[0], d, geometry=self) 
+            if d <= distance:
+                return FresnelIntersect(direction, self.surfaces[0], d, geometry=self) 
 
         return None
 

@@ -61,9 +61,6 @@ class World:
         elif isinstance(anObject, Source):
             anObject.origin = position
             self.sources.add(anObject)
-        elif isinstance(anObject, Detector):
-            anObject.origin = position
-            self.detector.add(anObject)
 
     def contains(self, worldCoordinates):
         for geometry in self.geometries:
@@ -74,14 +71,16 @@ class World:
 
     def nextObstacle(self, photon):
         distance = 1e7
+        shortestDistance = distance
         closestIntersect = None
         for geometry in self.geometries:
             photon.transformToLocalCoordinates(geometry.origin)
-            someIntersection = geometry.nextEntranceInterface(photon.r, photon.ez, distance=distance)
+            someIntersection = geometry.nextEntranceInterface(photon.r, photon.ez, distance=shortestDistance)
             if someIntersection is not None:
-                if someIntersection.distance < distance:
+                if someIntersection.distance < shortestDistance:
+                    shortestDistance = someIntersection.distance
                     closestIntersect = someIntersection
-                    
+
             photon.transformFromLocalCoordinates(geometry.origin)
 
         return closestIntersect
