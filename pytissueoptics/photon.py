@@ -1,10 +1,5 @@
-import numpy as np
-import time
-import warnings
 from .vector import *
-from .vectors import *
-from math import acos, asin, cos, sin, atan, tan, sqrt, pi
-import random
+from arrayImplementation.vectors import *
 
 
 class Photon:
@@ -70,7 +65,6 @@ class Photon:
         """
 
         self.ez.rotateAround(intersection.incidencePlane, intersection.refractionDeflection)
-
 
     def roulette(self):
         chance = 0.1

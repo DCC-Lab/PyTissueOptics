@@ -5,7 +5,7 @@ except:
     cp = np
     #CupyScalars = NumpyScalars
 
-import pytissueoptics.vectors as vc
+import arrayImplementation.vectors as vc
 
 
 class NativeScalars:

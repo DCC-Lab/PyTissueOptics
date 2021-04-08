@@ -1,5 +1,6 @@
 import numpy as np
 
+
 def isIterable(someObject):
     try:
         iter(someObject)

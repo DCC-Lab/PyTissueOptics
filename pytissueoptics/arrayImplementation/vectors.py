@@ -5,8 +5,8 @@ except:
     cp = np
 
 import random
-from .vector import Vector, oHat
-from .scalars import *
+from vector import Vector, oHat
+from scalars import *
 import copy
 
 """
