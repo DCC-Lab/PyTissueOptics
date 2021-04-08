@@ -10,7 +10,7 @@ class World:
 
     def totalSourcePhotons(self) -> float:
         total = 0
-        for source in cls.sources:
+        for source in self.sources:
             total += source.maxCount
         return total
 
