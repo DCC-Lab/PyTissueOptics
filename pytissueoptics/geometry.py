@@ -13,6 +13,7 @@ class Geometry:
 
         self.epsilon = 1e-5
         self.startTime = None  # We are not calculating anything
+        self.center = None
 
     def propagate(self, photon):
         photon.transformToLocalCoordinates(self.origin)
@@ -75,6 +76,40 @@ class Geometry:
         very frequently. See implementations for Box, Sphere and Layer
         """
         return True
+
+    def validateGeometrySurfaceNormals(self):
+        manyPhotons = IsotropicSource(maxCount = 10000)
+        assert(self.contains(self.center))
+        maxDist = 1000000
+        for photon in manyPhotons:
+            direction = Vector(photon.ez)
+            origin = Vector(self.center)
+            final = origin + direction*maxDist
+
+            # We trace a line from the center to far away.
+            intersect = self.nextEntranceInterface(position=origin, direction=direction, distance=maxDist)
+            assert(intersect is None) # Because we are leaving, not entering
+
+            intersect = self.nextExitInterface(position=origin, direction=direction, distance=maxDist)
+            assert(intersect is not None) 
+            assert(intersect.surface.contains(self.center + intersect.distance*direction))
+            assert(intersect.indexIn == intersect.surface.indexInside)
+            assert(intersect.indexOut == 1.0)
+            assert(intersect.geometry == self)
+
+            # We trace a line from far away to the center
+            origin = final
+            direction = -direction
+
+            intersect = self.nextExitInterface(position=origin, direction=direction, distance=maxDist)
+            assert(intersect is None) # Because we are entering, not leaving
+
+            intersect = self.nextEntranceInterface(position=origin, direction=direction, distance=maxDist)
+            assert(intersect is not None)
+            assert(intersect.surface.contains(origin + intersect.distance*direction))
+            assert(intersect.indexIn == intersect.surface.indexOutside)
+            assert(intersect.indexOut == intersect.surface.indexInside)
+            assert(intersect.geometry == self)
 
     def nextExitInterface(self, position, direction, distance) -> FresnelIntersect:
         """ Is this line segment from position to distance*direction leaving
@@ -219,6 +254,7 @@ class Box(Geometry):
                          YZPlane(atX=self.size[0] / 2, description="Right"),
                          -ZXPlane(atY=-self.size[1] / 2, description="Bottom"),
                          ZXPlane(atY=self.size[1] / 2, description="Top")]
+        self.center = ConstVector(0,0,0)
 
     def contains(self, localPosition) -> bool:
         if abs(localPosition.z) > self.size[2] / 2 + self.epsilon:
@@ -242,6 +278,7 @@ class Layer(Geometry):
         self.thickness = thickness
         self.surfaces = [-XYPlane(atZ=0, description="Front"),
                          XYPlane(atZ=self.thickness, description="Back")]
+        self.center = ConstVector(0,0,thickness/2)
 
     def contains(self, localPosition) -> bool:
         if localPosition.z < -self.epsilon:
@@ -291,6 +328,7 @@ class SemiInfiniteLayer(Geometry):
     def __init__(self, material, stats=None, label="Semi-infinite layer"):
         super(SemiInfiniteLayer, self).__init__(material, stats, label)
         self.surfaces = [-XYPlane(atZ=0, description="Front")]
+        self.center = ConstVector(0,0,1)
 
     def contains(self, localPosition) -> bool:
         if localPosition.z < -self.epsilon:

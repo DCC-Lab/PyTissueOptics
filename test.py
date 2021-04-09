@@ -8,7 +8,7 @@ mat = Material(mu_s=30, mu_a=0.1, g=0.8, index=1.4)
 stats = Stats(min=(-2, -2, -1), max=(2, 2, 4), size=(50, 50, 50), opaqueBoundaries=False)
 # stats2 = Stats(min=(-2, -2, -1), max=(2, 2, 4), size=(50, 50, 50), opaqueBoundaries=False)
 # We pick a light source
-source = PencilSource(direction=zHat, maxCount=1000)
+source = PencilSource(direction=zHat, maxCount=10000)
 detector = Detector(NA=0.5)
 # We pick a geometry
 tissue = Layer(thickness=1, material=mat, stats=stats, label="Layer 1")

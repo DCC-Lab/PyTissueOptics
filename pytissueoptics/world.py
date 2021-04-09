@@ -100,6 +100,10 @@ class World:
             for surface in geometry.surfaces:
                 surface.indexInside = geometry.material.index
                 surface.indexOutside = 1.0  # Index outside
+            try:
+                geometry.validateGeometrySurfaceNormals()
+            except Exception as err:
+                print("The geometry {0} appears invalid.".format(geometry))
 
         if len(self.sources) == 0:
             raise LogicalError("No sources: you must create sources")
