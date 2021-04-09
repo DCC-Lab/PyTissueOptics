@@ -43,7 +43,6 @@ class World:
                             else:
                                 # transmit, score, and enter (at top of this loop)
                                 photon.refract(intersection)
-                                intersection.geometry.scoreWhenEntering(photon, intersection.surface)
                                 # Move away from surface to avoid getting stuck there
                                 photon.moveBy(d=1e-3)
                                 currentGeometry = intersection.geometry
@@ -139,7 +138,8 @@ class World:
             if graphs:
                 for geometry in self.geometries:
                     if geometry.stats is not None:
-                        geometry.stats.showEnergy2D(plane='xz', integratedAlong='y', title="{0} photons".format(i))
+                        if geometry.stats.isMonitoringEnergy:
+                            geometry.stats.showEnergy2D(plane='xz', integratedAlong='y', title="{0} photons".format(i))
 
     def report(self):
         for geometry in self.geometries:

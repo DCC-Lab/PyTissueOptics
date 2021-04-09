@@ -30,6 +30,15 @@ class Photon:
         self.path = None
         self.origin = Vector(0,0,0) # The global coordinates of the local origin
 
+    def snapshot(self):
+        copy = Photon(self.r, self.ez)
+        copy.er = self.er
+        copy.wavelength = self.wavelength
+        copy.weight = self.weight
+        copy.origin = self.origin
+        copy.path = self.path
+        return copy
+
     @property
     def localPosition(self):
         return self.r

@@ -1,9 +1,25 @@
 import matplotlib.pyplot as plt
 import time
 import os
-from numpy import histogram2d, log10
+from numpy import histogram2d, log10, linspace, array
 from .vector import *
 
+from typing import NamedTuple
+
+class Photon:
+    pass
+
+class SurfaceScore(NamedTuple):
+    u:float = 0
+    v:float = 0
+    r:Vector = Vector(0,0,0)
+    weight:float = 0
+    photon:Photon = None
+
+class VolumeScore(NamedTuple):
+    r:Vector = Vector(0,0,0)
+    delta:float = 0
+    photon:Photon = None
 
 class Stats:
     def __init__(self, globalVolumeStats=True, min=(-1, -1, 0), max=(1, 1, 0.5), size=(21, 21, 21), opaqueBoundaries=False):
@@ -26,6 +42,9 @@ class Stats:
         self.crossing = []
         self.final = []
         self.startTime = time.time()
+        self.isMonitoringEnergy = True
+        self.isMonitoringVolume = True
+        self.isMonitoringSurfaces = True
 
     @property
     def inputWeight(self):
@@ -161,9 +180,6 @@ class Stats:
         raise NotImplementedError()
 
     def energy2D(self, plane: str, cutAt: int = None, integratedAlong: str = None):
-        if len(self.volume) == 0:
-            return None
-
         if integratedAlong is None and cutAt is None:
             raise ValueError("You must provide cutAt= or integratedAlong=")
         elif integratedAlong is not None and cutAt is not None:
@@ -267,13 +283,20 @@ class Stats:
         N = maxPhotons
         for surface in surfaces:
             a, b, weights = self.photonsCrossingPlane(surface)
-            hist = histogram2d(a, b, weights=weights, bins=bins)
+            xlim, ylim = surface.limits
+            edgesA = linspace(xlim[0], xlim[1], bins+1)
+            edgesB = linspace(ylim[0], ylim[1], bins+1)
+
+            hist = histogram2d(a, b, weights=weights, bins=(edgesA, edgesB))
             intensities.append( (surface, hist) )
         return intensities
 
     def showSurfaceIntensities(self, surfaces, maxPhotons, bins=21):
         N = maxPhotons
         intensities = self.surfaceIntensities(surfaces, maxPhotons, bins)
+        if intensities is None:
+            return
+
         nRows = 2
         nCols = max(1, len(intensities) // 2)
 
@@ -283,7 +306,8 @@ class Stats:
             axes = self.surfaceFig.add_subplot( nRows, nCols, i+1)
             axes.set_title('Intensity at {0} [T={1:.1f}%]'.format(surface, 100 * sum(sum(values)) / N))
             X, Y = np.meshgrid(list(reversed(xedges)), yedges)
-            axes.pcolormesh(X,Y, log10(values+0.0001),shading='flat')
+            axes.pcolormesh(X,Y, log10(values+0.00001),shading='flat')
+            axes.set_aspect('auto')
 
         plt.ioff()
         self.surfaceFig.show()
