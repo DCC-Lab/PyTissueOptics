@@ -103,7 +103,7 @@ class World:
             try:
                 geometry.validateGeometrySurfaceNormals()
             except Exception as err:
-                print("The geometry {0} appears invalid.".format(geometry))
+                print("The geometry {0} appears invalid. Advancing cautiously.".format(geometry))
 
         if len(self.sources) == 0:
             raise LogicalError("No sources: you must create sources")
