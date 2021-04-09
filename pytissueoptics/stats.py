@@ -46,6 +46,13 @@ class Stats:
         return coords
 
     @property
+    def xEdges(self):
+        coords = []
+        for i in range(self.size[0]+1):
+            coords.append(self.min[0] + i * (self.max[0] - self.min[0]) / self.size[0])
+        return coords
+
+    @property
     def yCoords(self):
         coords = []
         for i in range(self.size[1]):
@@ -53,9 +60,24 @@ class Stats:
         return coords
 
     @property
+    def yEdges(self):
+        coords = []
+        for i in range(self.size[1]+1):
+            coords.append(self.min[1] + i * (self.max[1] - self.min[1]) / self.size[1])
+        return coords
+
+    @property
     def zCoords(self):
         coords = []
         for i in range(self.size[2]):
+            coords.append(self.min[2] + i * (self.max[2] - self.min[2]) / self.size[2])
+
+        return coords
+
+    @property
+    def zEdges(self):
+        coords = []
+        for i in range(self.size[2]+1):
             coords.append(self.min[2] + i * (self.max[2] - self.min[2]) / self.size[2])
 
         return coords
@@ -156,18 +178,18 @@ class Stats:
 
         if cutAt is not None:
             if plane == 'xy':
-                return self.energy[:, :, cutAt], [self.xCoords, self.yCoords]
+                return self.energy[:, :, cutAt], [self.xEdges, self.yEdges]
             elif plane == 'yz':
-                return self.energy[cutAt, :, :], [self.yCoords, self.zCoords]
+                return self.energy[cutAt, :, :], [self.yEdges, self.zEdges]
             elif plane == 'xz':
-                return self.energy[:, cutAt, :], [self.xCoords, self.zCoords]
+                return self.energy[:, cutAt, :], [self.xEdges, self.zEdges]
         else:
             if plane == 'xy':
-                return self.energy.sum(axis=2), [self.xCoords, self.yCoords]
+                return self.energy.sum(axis=2), [self.xEdges, self.yEdges]
             elif plane == 'yz':
-                return self.energy.sum(axis=0), [self.yCoords, self.zCoords]
+                return self.energy.sum(axis=0), [self.yEdges, self.zEdges]
             elif plane == 'xz':
-                return self.energy.sum(axis=1), [self.xCoords, self.zCoords]
+                return self.energy.sum(axis=1), [self.xEdges, self.zEdges]
 
     def showEnergy2D(self, plane: str, cutAt: int = None, integratedAlong: str = None, title="", realtime=True):
         values, (uCoords, vCoords) = self.energy2D(plane, cutAt, integratedAlong)
@@ -175,7 +197,7 @@ class Stats:
         axis = self.volumeFig.axes[0]
         plt.figure(self.volumeFig.number)
         plt.title("Energy in {0} with {1:.0f} photons".format(plane, self.inputWeight))
-        axis.pcolormesh(vCoords, uCoords, log10(values+0.0001))
+        axis.pcolormesh(vCoords, uCoords, log10(values+0.0001),shading='flat')
         
         # axis.imshow(np.log(values + 0.0001), cmap='viridis', extent=extent, aspect='auto')
 
@@ -260,8 +282,8 @@ class Stats:
         for i, (surface, (values, xedges, yedges) ) in enumerate(intensities):
             axes = self.surfaceFig.add_subplot( nRows, nCols, i+1)
             axes.set_title('Intensity at {0} [T={1:.1f}%]'.format(surface, 100 * sum(sum(values)) / N))
-            X, Y = np.meshgrid(xedges, yedges)
-            axes.pcolormesh(X,Y, log10(values+0.0001))
+            X, Y = np.meshgrid(list(reversed(xedges)), yedges)
+            axes.pcolormesh(X,Y, log10(values+0.0001),shading='flat')
 
         plt.ioff()
         self.surfaceFig.show()
