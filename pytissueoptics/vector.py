@@ -138,10 +138,12 @@ class Vector:
         if self.isNull:
             return None
 
-        if self.z < self.x:
-            return Vector(self.y, -self.x, 0)
-
-        return Vector(0, -self.z, self.y)
+        if self.z != 0:
+            return Vector(1, 1, -(self.x + self.y)/self.z)
+        elif self.y != 0:
+            return Vector(1, -(self.x + self.z)/self.y, 1)
+        else:
+            return Vector(-(self.y + self.z)/self.x, 1, 1)
 
     def anyUnitaryPerpendicular(self):
         return self.anyPerpendicular().normalized()
@@ -191,7 +193,7 @@ class Vector:
             self.y *= invLength
             self.z *= invLength
         else:
-            raise ValueError("You cannot nomralize the null vector")
+            raise ValueError("You cannot normalize the null vector")
 
         return self
 
