@@ -67,6 +67,7 @@ The code is in fact so simple, here is the complete code that can create graphs 
 ```python
 from pytissueoptics import *
 
+world = World()
 # We choose a material with scattering properties
 mat    = Material(mu_s=30, mu_a = 0.1, g = 0.8, index = 1.4)
 
@@ -80,13 +81,13 @@ source = PencilSource(direction=UnitVector(0,0,1), maxCount=10000)
 tissue = Layer(thickness=1, material=mat, stats=stats)
 
 # We propagate the photons from the source inside the geometry
-World.place(source, position=Vector(0,0,-1))
-World.place(tissue, position=Vector(0,0,0))
+world.place(source, position=Vector(0,0,-1))
+world.place(tissue, position=Vector(0,0,0))
 
-World.compute(graphs=True)
+world.compute(graphs=True)
 
 # Report the results for all geometries
-World.report()
+world.report()
 ```
 
 The main function where the physics is *hidden* is `Geometry.propagate()`. `World.compute()` is a helper to call the function several times, and could possibly be parallelized:

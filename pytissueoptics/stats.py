@@ -5,7 +5,7 @@ from .vector import *
 
 
 class Stats:
-    def __init__(self, min=(-1, -1, 0), max=(1, 1, 0.5), size=(21, 21, 21)):
+    def __init__(self, globalVolumeStats=True, min=(-1, -1, 0), max=(1, 1, 0.5), size=(21, 21, 21), opaqueBoundaries=False):
         self.min = min
         self.max = max
         self.L = (self.max[0] - self.min[0], self.max[1] - self.min[1], self.max[2] - self.min[2])
@@ -15,6 +15,8 @@ class Stats:
                          float(self.size[2] - 1) / self.L[2])
 
         self.energy = np.zeros(size)
+        self.globalVolumeStats = globalVolumeStats
+        self.opaqueBoundaries = opaqueBoundaries
         self.surfaceFig = None
         self.volumeFig = None
         self.volume = []
@@ -85,27 +87,41 @@ class Stats:
         print('{0:.1f} s for {2} photons, {1:.1f} ms per photon'.format(elapsed, elapsed / N * 1000, N))
 
     def scoreInVolume(self, photon, delta):
-        self.volume.append((Vector(photon.r), delta))
-        position = photon.r
+        if self.globalVolumeStats:
+            self.volume.append((Vector(photon.globalPosition), delta))
+            position = photon.globalPosition
+        else:
+            self.volume.append((Vector(photon.r), delta))
+            position = photon.r
 
         i = int(self.binSizes[0] * (position.x - self.min[0]) + 0.5)
         j = int(self.binSizes[1] * (position.y - self.min[1]) + 0.5)
         k = int(self.binSizes[2] * (position.z - self.min[2]) + 0.5)
 
-        if i < 0:
-            i = 0
-        if i > self.size[0] - 1:
-            i = self.size[0] - 1
+        if self.opaqueBoundaries:
+            if i < 0:
+                i = 0
+            if i > self.size[0] - 1:
+                i = self.size[0] - 1
 
-        if j < 0:
-            j = 0
-        if j > self.size[1] - 1:
-            j = self.size[1] - 1
+            if j < 0:
+                j = 0
+            if j > self.size[1] - 1:
+                j = self.size[1] - 1
 
-        if k < 0:
-            k = 0
-        if k > self.size[2] - 1:
-            k = self.size[2] - 1
+            if k < 0:
+                k = 0
+            if k > self.size[2] - 1:
+                k = self.size[2] - 1
+        else:
+            if i < 0 or i > self.size[0] - 1:
+                return
+
+            if j < 0 or j > self.size[1] - 1:
+                return
+
+            if k < 0 or  k > self.size[2] - 1:
+                return
 
         self.energy[i, j, k] += delta
 

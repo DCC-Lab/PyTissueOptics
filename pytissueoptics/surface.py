@@ -125,6 +125,8 @@ class FresnelIntersect:
         self.distance = distance
         self.geometry = geometry
 
+        assert(self.surface.indexOutside != self.surface.indexInside)
+
         if direction.dot(surface.normal) < 0:
             # We are going towards inside of the object
             self.actualNormal = -self.surface.normal

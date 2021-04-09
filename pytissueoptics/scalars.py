@@ -198,12 +198,12 @@ class NumpyScalars:
         else:
             return NumpyScalars(np.less_equal(np.abs(np.subtract(self.v, other)), 1e-9))
 
+
 class CupyScalars:
     def __init__(self, array=None, N=None):
         if array is not None:
             if type(array) == cp.ndarray:
                 self.v = array.astype('float64')
-
             elif type(array) == cp.ndarray:
                 self.v = array.astype(cp.float64)
             else:
@@ -279,17 +279,17 @@ class CupyScalars:
 
     @classmethod
     def setAll(cls, value, N):
-        return CupyScalars(cp.full((1, N), value))
+        return CupyScalars(cp.full((N), value))
 
     @classmethod
     def random(cls, N: int):
         """Random number between [0, 1]"""
-        return CupyScalars(cp.random.rand(1, N))
+        return CupyScalars(cp.random.rand(N))
 
     @classmethod
     def random2(cls, N: int):
         """Random number between [-1, 1]"""
-        return CupyScalars((cp.random.rand(1, N) * 2) - 1)
+        return CupyScalars((cp.random.rand(N) * 2) - 1)
 
     def isEqualTo(self, other):
         if isinstance(other, CupyScalars):

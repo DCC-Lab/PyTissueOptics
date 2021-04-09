@@ -5,6 +5,7 @@ import random
 
 inf = float("+inf")
 
+
 class TestVectorsBase(envtest.PyTissueTestCase):
     def setUp(self):
         self.count = 1000
@@ -439,7 +440,7 @@ class TestNumpyVectors(envtest.PyTissueTestCase):
     def testIsAlmostEqualToFalse(self):
         v1 = NumpyVectors([[1, 1, 1], [-0.04298243, 0.99337274, -0.10659786], [1, 1, 3]])
         v2 = NumpyVectors([[1, 1, 1], [-0.04288243, 0.99337274, -0.10659786], [1, 1, 3]])
-        r = np.all(v1.isAlmostEqualTo(v2, 0.000000001))
+        r = np.all(v1.isAlmostEqualTo(v2, 0.000000001).v)
         self.assertFalse(r)
 
     def testIsAlmostEqualToTrue(self):
@@ -763,6 +764,440 @@ class TestNumpyVectors(envtest.PyTissueTestCase):
             v1 = NumpyVectors([[1, 1, 1], [0, 0, 0]])
             axis = NumpyVectors([[0, 0, 0], [1, 1, 1]])
             theta = NumpyScalars([1, 1])
+            v1.rotateAround(axis, theta)
+
+
+class TestCupyVectors(envtest.PyTissueTestCase):
+
+    def testInitWithList(self):
+        v1 = CupyVectors([[1, 1, 1], [-0.04298243, 0.99337274, -0.10659786], [0, 1, 0], [-1, 0, 0]])
+        r = cp.all(cp.equal(v1.v, cp.asarray([[1, 1, 1], [-0.04298243, 0.99337274, -0.10659786], [0, 1, 0], [-1, 0, 0]])))
+        self.assertTrue(r)
+
+    def testInitWithNumpyArray(self):
+        v1 = CupyVectors(cp.array([[1, 1, 1], [-0.04298243, 0.99337274, -0.10659786], [0, 1, 0], [-1, 0, 0]]))
+        r = cp.all(cp.equal(v1.v, cp.asarray([[1, 1, 1], [-0.04298243, 0.99337274, -0.10659786], [0, 1, 0], [-1, 0, 0]])))
+        self.assertTrue(r)
+
+    def testCheckInitTypeFloat64(self):
+        v1 = CupyVectors([[1, 1, 1], [-0.04298243, 0.99337274, -0.10659786], [0, 1, 0], [-1, 0, 0]])
+        self.assertEqual(cp.dtype("float64").type, v1.v[0, 0].dtype)
+
+    def testGetItem(self):
+        v1 = CupyVectors([[1, 1, 1], [-0.04298243, 0.99337274, -0.10659786], [0, 1, 0], [-1, 0, 0]])
+        r = v1[0]
+        r = np.all(np.equal(cp.asnumpy(r), [1, 1, 1]))
+        self.assertTrue(r)
+
+    def testAdd(self):
+        v1 = CupyVectors([[1, 1, 1], [0, 1, 0], [-1, 0, 0]])
+        r = v1 + 1
+        r = np.all(np.equal(cp.asnumpy(r.v), [[2, 2, 2], [1, 2, 1], [0, 1, 1]]))
+        self.assertTrue(r)
+
+    def testSubtract(self):
+        v1 = CupyVectors([[2, 2, 2], [1, 2, 2], [2, 2, 3]])
+        r = v1 - 1
+        r = np.all(np.equal(cp.asnumpy(r.v), [[1, 1, 1], [0, 1, 1], [1, 1, 2]]))
+        self.assertTrue(r)
+
+    def testDivide(self):
+        v1 = CupyVectors([[1, 1, 1], [-2, -2, -2], [3, 3, 3], [0, 0, 0]])
+        r = v1/2.0
+        r = np.all(np.equal(cp.asnumpy(r.v), [[0.5, 0.5, 0.5], [-1, -1, -1], [1.5, 1.5, 1.5], [0, 0, 0]]))
+        self.assertTrue(r)
+
+    def testMulFloat(self):
+        v1 = CupyVectors([[-1, -1, -1], [2, 2, 2], [0, 0, 0]])
+        r = v1 * 2.0
+        r = np.all(np.equal(cp.asnumpy(r.v), [[-2, -2, -2], [4, 4, 4], [0, 0, 0]]))
+        self.assertTrue(r)
+
+    def testMulScalars(self):
+        v1 = CupyVectors([[-1, -1, -1], [2, 2, 2], [0, 0, 0]])
+        r = v1 * CupyScalars([2, 1, 1])
+        r = np.all(np.equal(cp.asnumpy(r.v), [[-2, -2, -2], [2, 2, 2], [0, 0, 0]]))
+        self.assertTrue(r)
+
+    def testMulVectorsUnique(self):
+        v1 = CupyVectors([[-1, -1, -1], [2, 2, 2], [0, 0, 0]])
+        r = v1 * CupyVectors([2, 1, 1])
+        r = np.all(np.equal(cp.asnumpy(r.v), [[-2, -1, -1], [4, 2, 2], [0, 0, 0]]))
+        self.assertTrue(r)
+
+    def testMulVectorsMultiple(self):
+        v1 = CupyVectors([[-1, -1, -1], [2, 2, 2], [0, 0, 0]])
+        r = v1 * CupyVectors([[2, 1, 1], [0, 0, 1], [1, 1, 1]])
+        r = np.all(np.equal(cp.asnumpy(r.v), [[-2, -1, -1], [0, 0, 2], [0, 0, 0]]))
+        self.assertTrue(r)
+
+    def testNeg(self):
+        v1 = CupyVectors([[-1, -1, -1], [2, 2, 2], [0, 0, 0]])
+        r = -v1
+        r = np.all(np.equal(cp.asnumpy(r.v), [[1, 1, 1], [-2, -2, -2], [0, 0, 0]]))
+        self.assertTrue(r)
+
+    def testLen(self):
+        v1 = CupyVectors([[1, 1, 1], [1, 1, 1], [1, 1, 1], [1, 1, 1]])
+        r = len(v1)
+        self.assertEqual(r, 4)
+
+    def testIsNullTrue(self):
+        v1 = CupyVectors([[0, 0, 0], [0, 0, 0]])
+        r = np.all(v1.isNull)
+        self.assertTrue(r)
+
+    def testIsNullFalse(self):
+        v1 = CupyVectors([[0, 0, 0], [0.0001, 0, 0]])
+        r = np.all(v1.isNull)
+        self.assertFalse(r)
+
+    def testIsUnitaryTrue(self):
+        v1 = CupyVectors([[1, 1, 1], [-0.04298243, 0.99337274, -0.10659786], [0, 1, 0], [-1, 0, 0]])
+        verify = np.count_nonzero(v1.isUnitary)
+        self.assertEqual(verify, 3)
+
+    def testIsUnitaryFalse(self):
+        v1 = CupyVectors([[1, 1, 1], [-0.04298243, 0.99337274, -0.10659786], [0, 1, 0], [-1, 0, 0]])
+        verify = 4 - np.count_nonzero(v1.isUnitary)
+        self.assertEqual(verify, 1)
+
+    def testRandomVectors(self):
+        v1 = CupyVectors.randomUniform(3, 3)
+        r = np.all(np.less_equal(np.subtract(np.linalg.norm(cp.asnumpy(v1.v), axis=1), (np.ones((3, 3))*3).astype('float64')), 1e-9))
+        self.assertTrue(r)
+
+    def testRandomUnitVectors(self):
+        v1 = CupyVectors.randomUniformUnitary(3)
+        r = np.all(v1.isUnitary)
+        self.assertTrue(r)
+
+    def testIsEqualToFalse(self):
+        v1 = CupyVectors([[1, 1, 1], [-0.04298243, 0.99337274, -0.10659786], [1, 1, 3]])
+        v2 = CupyVectors([[0, 1, 1], [-0.0429843, 0.99337274, -0.10659786], [1, 1, 3]])
+        r = cp.all(v1.isEqualTo(v2).v)
+        self.assertFalse(r)
+
+    def testIsEqualToTrue(self):
+        v1 = CupyVectors([[1, 1, 1], [-0.04298243, 0.99337274, -0.10659786], [1, 1, 3]])
+        v2 = CupyVectors([[1, 1, 1], [-0.04298243, 0.99337274, -0.10659786], [1, 1, 3]])
+        r = cp.all(v1.isEqualTo(v2).v)
+        self.assertTrue(r)
+
+    def testIsAlmostEqualToFalse(self):
+        v1 = CupyVectors([[1, 1, 1], [-0.04298243, 0.99337274, -0.10659786], [1, 1, 3]])
+        v2 = CupyVectors([[1, 1, 1], [-0.04288243, 0.99337274, -0.10659786], [1, 1, 3]])
+        r = cp.all(v1.isAlmostEqualTo(v2, 0.000000001).v)
+        self.assertFalse(r)
+
+    def testIsAlmostEqualToTrue(self):
+        v1 = CupyVectors([[1, 1, 1], [-0.04298243, 0.99337274, -0.10659786], [1, 1, 3]])
+        v2 = CupyVectors([[1, 1, 1], [-0.04298343, 0.99337274, -0.10659786], [1, 1, 3]])
+        r = cp.all(v1.isAlmostEqualTo(v2, 0.00001).v)
+        self.assertTrue(r)
+
+    def testNormOutputTypeFloat64(self):
+        v1 = CupyVectors([[1, 1, 1], [-0.04298243, 0.99337274, -0.10659786], [1, 1, 3]])
+        v1norms = v1.norm()
+        self.assertEqual(np.dtype("float64").type, v1norms[0].dtype)
+
+    def testNorm(self):
+        v1 = CupyVectors([[1, 1, 1], [0.866539324968574, -0.49677441419390916, 0.04821596919389434], [1, 1, 3]])
+        v1norms = v1.norm()
+        norm1 = np.sqrt(1 + 1 + 1)
+        norm2 = 1
+        norm3 = np.sqrt(1 + 1 + 3**2)
+        norms = [norm1, norm2, norm3]
+        r = np.all(np.isclose(norms, cp.asnumpy(v1norms.v), atol=1e-7))
+        self.assertTrue(r)
+
+    def testNormNegative(self):
+        v1 = CupyVectors([[-1, -1, -1]])
+        v1norms = v1.norm()
+        r = np.all(np.isclose([np.sqrt(3)], cp.asnumpy(v1norms.v), atol=1e-7))
+        self.assertTrue(r)
+
+    def testNormNull(self):
+        v1 = CupyVectors([[0, 0, 0]])
+        v1norms = v1.norm()
+        r = np.all(np.isclose([0], cp.asnumpy(v1norms.v), atol=1e-7))
+        self.assertTrue(r)
+
+    def testAbs(self):
+        v1 = CupyVectors([[-1, 1, 1], [0.866539324968574, -0.49677441419390916, 0.04821596919389434], [1, 1, 3]])
+        r = v1.abs()
+        r = np.all(np.greater_equal(cp.asnumpy(r.v), np.zeros((3, 3))))
+        self.assertTrue(r)
+
+    def testIsParallelToTrue(self):
+        v1 = CupyVectors([[2, 2, 2], [1, 1, 1], [-1, 1, 1]])
+        v2 = CupyVectors([[2, 2, 2], [-1, -1, -1], [-2, 2, 2]])
+        r = v1.isParallelTo(v2)
+        r = np.all(np.equal([True, True, True], cp.asnumpy(r)))
+        self.assertTrue(r)
+
+    def testIsParallelToFalse(self):
+        v1 = CupyVectors([[-1, 1, 1], [1, 1, 1], [-2, -2, -2]])
+        v2 = CupyVectors([[2, 2, 2], [-0.04, 1, -1], [1, 0.001, 0.001]])
+        r = v1.isParallelTo(v2)
+        r = np.all(np.equal([False, False, False], cp.asnumpy(r)))
+        self.assertTrue(r)
+
+    def testIsParallelToLimit(self):
+        v1 = CupyVectors([[1, 1, 1], [-1, -1, -1]])
+        v2 = CupyVectors([[0.99999, 0.99999, 0.99999], [-0.999, -1.0001, -1]])
+        r = v1.isParallelTo(v2, epsilon=1e-5)
+        r = np.all(np.equal([True, False], cp.asnumpy(r)))
+        self.assertTrue(r)
+
+    def testIsParallelToNull(self):
+        v1 = CupyVectors([[0, 0, 0], [1, 1, 1]])
+        v2 = CupyVectors([[2, 2, 2], [0, 0, 0]])
+        r = v1.isParallelTo(v2)
+        r = np.all(np.equal([False, False], cp.asnumpy(r)))
+        self.assertTrue(r)
+
+    def testIsPerpendicularToTrue(self):
+        v1 = CupyVectors([[1, 1, 1], [0, 0, 1], [-1, 0, 0]])
+        v2 = CupyVectors([[-2, 1, 1], [1, 0, 0], [0, 1, 0]])
+        r = v1.isPerpendicularTo(v2)
+        r = np.all(np.equal([True, True, True], cp.asnumpy(r)))
+        self.assertTrue(r)
+
+    def testIsPerpendicularToFalse(self):
+        v1 = CupyVectors([[1, 1, 1], [0, 0, 1], [-1, 0, 0]])
+        v2 = CupyVectors([[-1.999, 1, 1], [0.999, 0, 0.1], [0.1, 0.999, 0]])
+        r = v1.isPerpendicularTo(v2)
+        r = np.all(np.equal([False, False, False], cp.asnumpy(r)))
+        self.assertTrue(r)
+
+    def testIsPerpendicularToLimit(self):
+        v1 = CupyVectors([[1, 1, 1], [0, 0, 1], [-1, 0, 0]])
+        v2 = CupyVectors([[-1.999999999, 1, 1], [0.000000001, 1, 0.000000001], [0.000000001, 1, 0]])
+        r = v1.isPerpendicularTo(v2)
+        r = np.all(np.equal([True, True, True], cp.asnumpy(r)))
+        self.assertTrue(r)
+
+    def testIsPerpendicularToNull(self):
+        v1 = CupyVectors([[1, 1, 1], [0, 0, 0]])
+        v2 = CupyVectors([[0, 0, 0], [1, 1, 1]])
+        r = v1.isPerpendicularTo(v2)
+        r = np.all(np.equal([False, False], cp.asnumpy(r)))
+        self.assertTrue(r)
+
+    def testDot(self):
+        v1 = CupyVectors([[0, 0, 1], [1, 1, 1], [-2, -2, -2]])
+        v2 = CupyVectors([[1, 0, 0], [1, 1, 1], [2, 2, 2]])
+        r = v1.dot(v2)
+        r = np.all(np.equal([0, 3, -12], cp.asnumpy(r.v)))
+        self.assertTrue(r)
+
+    def testDotNull(self):
+        v1 = CupyVectors([[0, 0, 0], [1, 1, 1]])
+        v2 = CupyVectors([[1, 1, 1], [0, 0, 0]])
+        r = v1.dot(v2)
+        r = np.all(np.equal([0, 0], cp.asnumpy(r.v)))
+        self.assertTrue(r)
+
+    def testCross(self):
+        v1 = CupyVectors([[0, 0, 1], [1, 1, 1], [-2, -2, -2]])
+        v2 = CupyVectors([[1, 0, 0], [-1, -1, -1], [1, 0, 0]])
+        r = v1.cross(v2)
+        r = np.all(np.equal([[0, 1, 0], [0, 0, 0], [0, -2, 2]], cp.asnumpy(r.v)))
+        self.assertTrue(r)
+
+    def testCrossNull(self):
+        v1 = CupyVectors([[0, 0, 0], [1, 1, 1]])
+        v2 = CupyVectors([[1, 1, 1], [0, 0, 0]])
+        r = v1.cross(v2)
+        r = np.all(np.equal([[0, 0, 0], [0, 0, 0]], cp.asnumpy(r.v)))
+        self.assertTrue(r)
+
+    def testAnyPerpendicular(self):
+        v1 = CupyVectors([[1, 0, 0], [0, 1, 0], [0, 0, 1], [1, 2, 3], [-1, -2, -3], [1, 1, 1], [-1, -1, -1]])
+        r = v1.anyPerpendicular()
+        self.assertTrue(np.all(cp.asnumpy(r.isPerpendicularTo(v1))))
+
+    def testAnyPerpendicularNull(self):
+        v1 = CupyVectors([[0, 0, 0]])
+        r = v1.anyPerpendicular()
+        self.assertTrue(np.all(np.isnan(cp.asnumpy(r.v))), "Will fail because we don't check the null vector."
+                                                           "Would require tweeking since cp.where doesn't operate as np.where")
+
+    def testAnyUnitaryPerpendicular(self):
+        v1 = CupyVectors([[0, 0, 1], [1, 1, 1], [2, 2, 0], [1, 0, 0]])
+        r = v1.anyUnitaryPerpendicular()
+        r = np.all(r.isUnitary)
+        self.assertTrue(r)
+
+    def testAnyUnitaryPerpendicularNull(self):
+        v1 = CupyVectors([[0, 0, 0]])
+        r = v1.anyUnitaryPerpendicular()
+        r = np.all(np.isnan(cp.asnumpy(r.v)))
+        self.assertTrue(r,"Will fail because we don't check the null vector."
+                            "Would require tweeking since cp.where doesn't operate as np.where")
+
+    def testIsInXYPlane(self):
+        pass
+
+    def testIsInYZPlane(self):
+        pass
+
+    def testIsInZXPlane(self):
+        pass
+
+    def testIsInplane(self):
+        pass
+
+    def testNormalize(self):
+        v1 = CupyVectors([[1, 1, 1], [-0.04298243, 0.99337274, -0.10659786], [0, 1, 0], [-1, 0, 0]])
+        norm1 = v1.norm().v
+        verify = np.where(norm1 != 0, 1, 0)
+        v1.normalize()
+        norm2 = v1.norm().v
+        r = np.all(np.equal(norm2, verify))
+        self.assertTrue(r)
+
+    def testNormalizeNullVector(self):
+        with self.assertRaises(ValueError):
+            v1 = CupyVectors([[0, 0, 0]])
+            v1.normalize()
+
+    def testNormalizedIndependentObject(self):
+        v1 = CupyVectors([[1, 1, 1], [-0.04298243, 0.99337274, -0.10659786], [0, 2, 0], [-1, 0, 0]])
+        v2 = v1.normalized()
+        v2Norm = v2.norm().v
+        v1Norm = v1.norm().v
+        verify = np.isclose(v1Norm, v2Norm, atol=1e-8)
+        r = np.all(np.equal([0, 1, 0, 1], cp.asnumpy(verify)))
+        self.assertTrue(r)
+
+    def testNormalizedCrossProduct(self):
+        v1 = CupyVectors([[1, 1, 1], [-0.04298243, 0.99337274, -0.10659786], [0, 2, 0], [-1, 0, 0], [0, 0, 0]])
+        v2 = CupyVectors([[1, 1, 0], [-0.04298243, 0.99337274, -0.10659786], [0, 0, 1], [0, -2, 0], [1, 1, 1]])
+        r = v1.normalizedCrossProduct(v2)
+        self.assertTrue(np.all(np.isclose([[-0.4082482905, 0.4082482905, 0], [0, 0, 0], [1, 0, 0], [0, 0, 1], [0, 0, 0]], r.v, atol=1e-9)))
+
+    def testNormalizedCrossProductNullVectors(self):
+        v1 = CupyVectors([[1, 1, 1], [0, 0, 0]])
+        v2 = CupyVectors([[0, 0, 0], [1, 1, 1]])
+        r = v1.normalizedCrossProduct(v2)
+        self.assertTrue(np.all(np.isclose([[0, 0, 0], [0, 0, 0]], r.v, atol=1e-9)))
+
+    def testNormalizedDotProduct(self):
+        v1 = CupyVectors([[1, 1, 1], [-0.04298243, 0.99337274, -0.10659786], [0, 1, 0], [-1, 0, 0]])
+        v2 = CupyVectors([[1, 1, 0], [-0.04298243, 0.99337274, -0.10659786], [0, 0, 1], [0, -2, 0]])
+        r = v1.normalizedDotProduct(v2)
+        self.assertTrue(np.all(np.isclose([0.8164965809, 1, 0, 0], r.v, atol=1e-9)))
+
+    def testNormalizedDotProductNullVectors(self):
+        v1 = CupyVectors([[1, 1, 1], [0, 0, 0]])
+        v2 = CupyVectors([[0, 0, 0], [1, 1, 1]])
+        r = v1.normalizedDotProduct(v2)
+        self.assertTrue(np.all(np.isclose([0, 0], r.v, atol=1e-9)))
+
+    def testAngleWith(self):
+        v1 = CupyVectors([[1, 1, 1], [-0.04298243, 0.99337274, -0.10659786], [0, 2, 0], [-1, 0, 0], [0, 0, 0]])
+        v2 = CupyVectors([[1, 1, 0], [-0.04298243, 0.99337274, -0.10659786], [0, 0, 1], [0, -2, 0], [1, 1, 1]])
+        axis = CupyVectors([[0, 1, 0], [0, 1, 0], [0, 1, 0], [0, 1, 0], [0, 1, 0]])
+        r = v1.angleWith(v2, axis)
+        # le dernier -3.14 is the same for Vector, but seems an error, cause it should probably be 0.
+        self.assertTrue(np.all(np.isclose([0.61547971, 0, -1.57079633, -1.57079633, -3.14159265], r.v, atol=1e-7)))
+
+    def testAngleWithNullVectors(self):
+        v1 = CupyVectors([[1, 1, 1], [0, 0, 0]])
+        v2 = CupyVectors([[0, 0, 0], [1, 1, 1]])
+        axis = CupyVectors([[1, 1, 1], [1, 1, 1]])
+        r = v1.angleWith(v2, axis)
+        # Check that angle is very close to <(1e-7) 0 or +-pi
+        self.assertTrue(np.all(np.logical_or(np.isclose([3.14159265, 3.14159265], np.abs(r.v), atol=1e-7), np.isclose([0, 0], r.v, atol=1e-7))))
+
+    def testPlaneOfIncidence(self):
+        v1 = CupyVectors([[1, 1,  1], [-0.04298243, 0.99337274, -0.10659786], [-1, 1, 0]])
+        normal = CupyVectors([[0, 1, 0], [0, 1, 0], [0, 1, 0]])
+        r = v1.planeOfIncidence(normal)
+
+        self.assertTrue(np.all(np.isclose(
+            [[-0.70710678, 0, 0.70710678],
+             [0.92744322,  0, -0.37396401],
+             [0,           0,          -1]], r.v, atol=1e-7)))
+
+    def testPlaneOfIncidenceIsUnitary(self):
+        v1 = CupyVectors([[1, 1,  1], [-0.04298243, 0.99337274, -0.10659786], [-1, 1, 0]])
+        normal = CupyVectors([[0, 1, 0], [0, 1, 0], [0, 1, 0]])
+        r = v1.planeOfIncidence(normal)
+        self.assertTrue(np.all(r.isUnitary))
+
+    def testPlaneOfIncidenceParallelToNormal(self):
+        v1 = CupyVectors([[1, 1, 1], [-1, -1, -1], [-1, -1, -1], [1, 1, 1]])
+        normal = CupyVectors([[1, 1, 1], [1, 1, 1], [-1, -1, -1], [-1, -1, -1]])
+        r = v1.planeOfIncidence(normal)
+        self.assertTrue(np.all(np.isclose(
+            [[0, -0.70710678,  0.70710678],
+             [0,  0.70710678, -0.70710678],
+             [0,  0.70710678, -0.70710678],
+             [0, -0.70710678,  0.70710678]], r.v, atol=1e-7)))
+
+    def testPlaneOfIncidencePerpendicularToNormal(self):
+        v1 = CupyVectors([[1, 0, 0]])
+        normal = CupyVectors([[0, 1, 0]])
+        r = v1.planeOfIncidence(normal)
+        self.assertTrue(np.all(np.isclose([[0, 0, 1]], r.v, atol=1e-7)))
+
+    def testPlaneOfIncidenceNullVectors(self):
+        with self.assertRaises(ValueError):
+            v1 = CupyVectors([[1, 1, 1], [0, 0, 0]])
+            normal = CupyVectors([[0, 0, 0], [1, 1, 1]])
+            r = v1.planeOfIncidence(normal)
+
+    def testAngleOfIncidence(self):
+        v1 = CupyVectors([[1, 1, 1], [-0.04298243, 0.99337274, -0.10659786], [0, 2, 0], [-1, 0, 0]])
+        plane = CupyVectors([[0, 1, 0], [0, 1, 0], [0, 1, 0], [0, 1, 0]])
+        r = v1.angleOfIncidence(plane)
+        self.assertTrue(np.all(np.isclose([0.95531662, 0.11519193, 0, 1.57079633], cp.asnumpy(r[0].v), atol=1e-7)))
+
+    def testAngleOfIncidenceParallelToNormal(self):
+        v1 = CupyVectors([[1, 1, 1], [1, 1, 1], [-1, -1, -1], [-1, -1, -1]])
+        plane = CupyVectors([[1, 1, 1], [-1, -1, -1], [1, 1, 1], [-1, -1, -1]])
+        r = v1.angleOfIncidence(plane)
+        self.assertTrue(np.all(np.isclose([0, 0, 0, 0], r[0].v, atol=1e-7)))
+
+    def testAngleOfIncidencePerpendicularToNormal(self):
+        v1 = CupyVectors([[1, 0, 0]])
+        plane = CupyVectors([[0, 1, 0]])
+        r = v1.angleOfIncidence(plane)
+        self.assertTrue(np.all(np.isclose([1.57079632679], np.abs(r[0].v), atol=1e-7)))
+
+    def testAngleOfIncidenceNull(self):
+        with self.assertRaises(ValueError):
+            v1 = CupyVectors([[1, 1, 1], [0, 0, 0]])
+            plane = CupyVectors([[0, 0, 0], [1, 1, 1]])
+            v1.angleOfIncidence(plane)
+
+    def testRotateAround(self):
+        v1 = CupyVectors([[1, 1, 1], [-0.04298243, 0.99337274, -0.10659786], [0, 2, 0], [-1, 0, 0]])
+        axis = CupyVectors([[0, 1, 0], [0, -1, 0], [1, 1, 0], [0, 1, 0]])
+        theta = CupyScalars([3.1415, 1.618, 0.1, 1])
+        r = v1.rotateAround(axis, theta)
+        self.assertTrue(np.all(np.isclose(
+            [[-0.99990734,  1,         -1.00009265],
+             [0.1085073,   0.99337274, -0.03790461],
+             [0.00499583,  1.99500417,  0.14118577],
+             [-0.54030231,  0,          0.84147098]], cp.asnumpy(r.v), atol=1e-7)))
+
+    def testRotateAroundParallel(self):
+        v1 = CupyVectors([[1, 1, 1]])
+        axis = CupyVectors([[1, 1, 1]])
+        theta = CupyScalars([3.14159265])
+        r = v1.rotateAround(axis, theta)
+        self.assertTrue(np.all(np.isclose(
+            [[1, 1, 1]], r.v, atol=1e-7)))
+
+    def testRotateAroundNullVectors(self):
+        with self.assertRaises(ValueError):
+            v1 = CupyVectors([[1, 1, 1], [0, 0, 0]])
+            axis = CupyVectors([[0, 0, 0], [1, 1, 1]])
+            theta = CupyScalars([1, 1])
             v1.rotateAround(axis, theta)
 
 
