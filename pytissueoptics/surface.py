@@ -17,6 +17,13 @@ class Surface:
         else:
             self.description = description
 
+    @property
+    def limits(self):
+        if self.size is None:
+            return ((-1, 1), (-1, 1))
+        else:
+            return ((0, 1), (0, 1))
+    
     def contains(self, position, epsilon=0.001) -> (bool, float, float):
         # Convert to position in surface coordinates
         local = position - self.origin
@@ -124,8 +131,6 @@ class FresnelIntersect:
         self.direction = direction
         self.distance = distance
         self.geometry = geometry
-
-        assert(self.surface.indexOutside != self.surface.indexInside)
 
         if direction.dot(surface.normal) < 0:
             # We are going towards inside of the object
