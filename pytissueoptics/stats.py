@@ -1,6 +1,7 @@
 import matplotlib.pyplot as plt
 import time
 import os
+from numpy import histogram2d, log10
 from .vector import *
 
 
@@ -18,7 +19,8 @@ class Stats:
         self.globalVolumeStats = globalVolumeStats
         self.opaqueBoundaries = opaqueBoundaries
         self.surfaceFig = None
-        self.volumeFig = None
+        self.volumeFig = plt.figure()
+        self.volumeFig.add_subplot()
         self.volume = []
         self.starting = []
         self.crossing = []
@@ -136,9 +138,9 @@ class Stats:
     def showEnergy3D(self):
         raise NotImplementedError()
 
-    def showEnergy2D(self, plane: str, cutAt: int = None, integratedAlong: str = None, title="", realtime=True):
+    def energy2D(self, plane: str, cutAt: int = None, integratedAlong: str = None):
         if len(self.volume) == 0:
-            return
+            return None
 
         if integratedAlong is None and cutAt is None:
             raise ValueError("You must provide cutAt= or integratedAlong=")
@@ -152,42 +154,41 @@ class Stats:
             elif plane == 'xz':
                 cutAt = int((self.size[1] - 1) / 2)
 
-        if self.volumeFig is None:
-            plt.ion()
-            self.volumeFig = plt.figure()
-
-        plt.title("Energy in {0} with {1:.0f} photons".format(plane, self.inputWeight))
         if cutAt is not None:
             if plane == 'xy':
-                plt.imshow(np.log(self.energy[:, :, cutAt] + 0.0001), cmap='viridis',
-                           extent=[self.min[0], self.max[0], self.min[1], self.max[1]], aspect='auto')
+                return self.energy[:, :, cutAt], [self.xCoords, self.yCoords]
             elif plane == 'yz':
-                plt.imshow(np.log(self.energy[cutAt, :, :] + 0.0001), cmap='viridis',
-                           extent=[self.min[1], self.max[1], self.min[2], self.max[2]], aspect='auto')
+                return self.energy[cutAt, :, :], [self.yCoords, self.zCoords]
             elif plane == 'xz':
-                plt.imshow(np.log(self.energy[:, cutAt, :] + 0.0001), cmap='viridis',
-                           extent=[self.min[0], self.max[0], self.min[2], self.max[2]], aspect='auto')
+                return self.energy[:, cutAt, :], [self.xCoords, self.zCoords]
         else:
             if plane == 'xy':
-                sum = self.energy.sum(axis=2)
-                plt.imshow(np.log(sum + 0.0001), cmap='viridis',
-                           extent=[self.min[0], self.max[0], self.min[1], self.max[1]], aspect='auto')
+                return self.energy.sum(axis=2), [self.xCoords, self.yCoords]
             elif plane == 'yz':
-                sum = self.energy.sum(axis=0)
-                plt.imshow(np.log(sum + 0.0001), cmap='viridis',
-                           extent=[self.min[1], self.max[1], self.min[2], self.max[2]], aspect='auto')
+                return self.energy.sum(axis=0), [self.yCoords, self.zCoords]
             elif plane == 'xz':
-                sum = self.energy.sum(axis=1)
-                plt.imshow(np.log(sum + 0.0001), cmap='viridis',
-                           extent=[self.min[2], self.max[2], self.min[0], self.max[0]], aspect='auto')
+                return self.energy.sum(axis=1), [self.xCoords, self.zCoords]
+
+    def showEnergy2D(self, plane: str, cutAt: int = None, integratedAlong: str = None, title="", realtime=True):
+        values, (uCoords, vCoords) = self.energy2D(plane, cutAt, integratedAlong)
+
+        axis = self.volumeFig.axes[0]
+        plt.figure(self.volumeFig.number)
+        plt.title("Energy in {0} with {1:.0f} photons".format(plane, self.inputWeight))
+        axis.pcolormesh(vCoords, uCoords, log10(values+0.0001))
+        
+        # axis.imshow(np.log(values + 0.0001), cmap='viridis', extent=extent, aspect='auto')
 
         if realtime:
+            # plt.ion()
             self.volumeFig.show()
             plt.pause(0.1)
-            plt.clf()
+            # plt.clf()
         else:
-            plt.ioff()
+            # plt.ion()
+            #plt.ioff()
             self.volumeFig.show()
+            plt.show()
 
     def showEnergy1D(self, axis: str, cutAt=None, integratedAlong=None, title="", realtime=True):
         if len(self.volume) == 0:
@@ -230,35 +231,40 @@ class Stats:
                 plt.plot(self.xCoords, np.log10(sum + 0.0001), 'ko--')
 
         if realtime:
-            plt.show()
+            self.volumeFig.show()
             plt.pause(0.0001)
             plt.clf()
         else:
             plt.ioff()
-            plt.show()
+            self.volumeFig.show()
 
-    def showSurfaceIntensities(self, surfaces, maxPhotons, bins=21):
+    def surfaceIntensities(self, surfaces, maxPhotons, bins=21):
         if len(self.crossing) == 0:
             return
-
-        self.surfaceFig, axes = plt.subplots(nrows=2, ncols=max(1, len(surfaces) // 2), figsize=(14, 8))
+        intensities = []
         N = maxPhotons
-
-        for i, surface in enumerate(surfaces):
+        for surface in surfaces:
             a, b, weights = self.photonsCrossingPlane(surface)
-            if len(surfaces) > 2:
-                axes[i % 2, i // 2].set_title('Intensity at {0} [T={1:.1f}%]'.format(surface, 100 * sum(weights) / N))
-                axes[i % 2, i // 2].hist2d(a, b, weights=weights, bins=bins)
-            elif len(surfaces) == 1:
-                axes[0].set_title('Intensity at {0} [T={1:.1f}%]'.format(surface, 100 * sum(weights) / N))
-                axes[0].hist2d(a, b, weights=weights, bins=bins)
-            else:
-                self.surfaceFig.set_size_inches(4, 8)
-                axes[i % 2].set_title('Intensity at {0} [T={1:.1f}%]'.format(surface, 100 * sum(weights) / N))
-                axes[i % 2].hist2d(a, b, weights=weights, bins=bins)
+            hist = histogram2d(a, b, weights=weights, bins=bins)
+            intensities.append( (surface, hist) )
+        return intensities
+
+    def showSurfaceIntensities(self, surfaces, maxPhotons, bins=21):
+        N = maxPhotons
+        intensities = self.surfaceIntensities(surfaces, maxPhotons, bins)
+        nRows = 2
+        nCols = max(1, len(intensities) // 2)
+
+        self.surfaceFig = plt.figure()
+
+        for i, (surface, (values, xedges, yedges) ) in enumerate(intensities):
+            axes = self.surfaceFig.add_subplot( nRows, nCols, i+1)
+            axes.set_title('Intensity at {0} [T={1:.1f}%]'.format(surface, 100 * sum(sum(values)) / N))
+            X, Y = np.meshgrid(xedges, yedges)
+            axes.pcolormesh(X,Y, log10(values+0.0001))
 
         plt.ioff()
-        plt.show()
+        self.surfaceFig.show()
 
     @property
     def hasDisplay(self):
