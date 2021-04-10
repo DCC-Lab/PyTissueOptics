@@ -19,9 +19,10 @@ tissue = Layer(thickness=1, material=mat, stats=stats)
 # We propagate the photons from the source inside the geometry
 world.place(source, position=Vector(0, 0, -1))
 world.place(tissue, position=Vector(0, 0, 0))
-# world.place(detector, position=Vector(0, 0, -2))
+world.place(detector, position=Vector(0, 0, -2))
 
 world.compute(graphs=True)
 
 # Report the results for all geometries
-world.report()
+detector.report()
+#world.report()
