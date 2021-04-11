@@ -231,7 +231,7 @@ class Geometry:
             totalCheck = totalWeightAcrossAllSurfaces + self.stats.totalWeightAbsorbed()
             print("Absorbance + Transmittance = {0:.1f}%".format(100 * totalCheck / self.stats.inputWeight))
 
-            self.stats.showEnergy2D(plane='xz', integratedAlong='y', title="Final photons", realtime=False)
+            self.stats.showEnergy2D(plane='xz', integratedAlong='y', title="Absorbed energy in {0}".format(self.label), realtime=False)
             if len(self.surfaces) != 0:
                 self.stats.showSurfaceIntensities(self.surfaces, maxPhotons=totalSourcePhotons)
 
@@ -279,6 +279,22 @@ class Layer(Geometry):
         self.surfaces = [-XYPlane(atZ=0, description="Front"),
                          XYPlane(atZ=self.thickness, description="Back")]
         self.center = ConstVector(0,0,thickness/2)
+
+    @property
+    def frontSurface(self):
+        for surface in self.surfaces:
+            if surface.normal == -zHat:
+                return surface
+
+        return None
+
+    @property
+    def backSurface(self):
+        for surface in self.surfaces:
+            if surface.normal == zHat:
+                return surface
+
+        return None
 
     def contains(self, localPosition) -> bool:
         if localPosition.z < -self.epsilon:
@@ -329,6 +345,39 @@ class SemiInfiniteLayer(Geometry):
         super(SemiInfiniteLayer, self).__init__(material, stats, label)
         self.surfaces = [-XYPlane(atZ=0, description="Front")]
         self.center = ConstVector(0,0,1)
+
+    def contains(self, localPosition) -> bool:
+        if localPosition.z < -self.epsilon:
+            return False
+
+        return True
+
+    def nextExitInterface(self, position, direction, distance) -> FresnelIntersect:
+        finalPosition = position + distance * direction
+        if self.contains(finalPosition):
+            return None
+        assert(self.contains(position) == True)
+
+        if direction.z < 0:
+            d = - position.z / direction.z
+            if d <= distance:
+                return FresnelIntersect(direction, self.surfaces[0], d, geometry=self) 
+
+        return None
+
+class Stack(Geometry):
+    """ This class is actually a bad idea: the photons don't exit
+    on the other side and will just take a long time to propagate.
+    It is better to use a finite layer with a thickness a bit larger
+    than what you are interested in."""
+
+    def __init__(self, stats=None, label="Stack"):
+        super(Stack, self).__init__(stats, label)
+        self.center = None
+        self.layers = []
+
+    def add(self, layer):
+        self.layers.append(layer)
 
     def contains(self, localPosition) -> bool:
         if localPosition.z < -self.epsilon:

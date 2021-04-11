@@ -61,6 +61,18 @@ class World:
             anObject.origin = position
             self.sources.add(anObject)
 
+    def stack(self, layer, ontoLayer):
+        if isinstance(layer, Layer) and isinstance(ontoLayer, Layer):
+            whatZ = ontoLayer.origin.z + ontoLayer.thickness
+            self.place(layer, Vector(0,0, whatZ))
+            # We need to match the indices of refraction
+            frontSurface = layer.frontSurface
+            backSurface = ontoLayer.backSurface
+            frontSurface.indexoutside = backSurface.indexInside
+            backSurface.indexoutside = frontSurface.indexInside
+        else:
+            print("We can only stack Layers, and only in ẑ")
+
     def contains(self, worldCoordinates):
         for geometry in self.geometries:
             localCoordinates = worldCoordinates - geometry.origin
@@ -139,7 +151,7 @@ class World:
                 for geometry in self.geometries:
                     if geometry.stats is not None:
                         if geometry.stats.isMonitoringEnergy:
-                            geometry.stats.showEnergy2D(plane='xz', integratedAlong='y', title="{0} photons".format(i))
+                            geometry.stats.showEnergy2D(plane='xz', integratedAlong='y', title="Absorbed energy in {0} after {1} photons".format(geometry.label, i))
 
     def report(self):
         for geometry in self.geometries:

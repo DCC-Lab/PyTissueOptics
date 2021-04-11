@@ -207,12 +207,15 @@ class Stats:
             elif plane == 'xz':
                 return self.energy.sum(axis=1), [self.xEdges, self.zEdges]
 
-    def showEnergy2D(self, plane: str, cutAt: int = None, integratedAlong: str = None, title="", realtime=True):
+    def showEnergy2D(self, plane: str, cutAt: int = None, integratedAlong: str = None, title=None, realtime=True):
         values, (uCoords, vCoords) = self.energy2D(plane, cutAt, integratedAlong)
 
         axis = self.volumeFig.axes[0]
         plt.figure(self.volumeFig.number)
-        plt.title("Energy in {0} with {1:.0f} photons".format(plane, self.inputWeight))
+        if title is None:
+            plt.title("Energy in {0} with {1:.0f} photons".format(plane, self.inputWeight))
+        else:
+            plt.title(title)
         axis.pcolormesh(vCoords, uCoords, log10(values+0.0001),shading='flat')
         
         # axis.imshow(np.log(values + 0.0001), cmap='viridis', extent=extent, aspect='auto')
