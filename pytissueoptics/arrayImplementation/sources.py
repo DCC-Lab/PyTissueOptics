@@ -1,6 +1,6 @@
 from abc import ABC
-from vectors import *
-from .photons import Photons
+from arrayImplementation.vectors import *
+from arrayImplementation.photons import Photons
 
 
 class Source(ABC):

@@ -1,9 +1,10 @@
 import numpy as np
+
 try:
     import cupy as cp
 except:
     cp = np
-    #CupyScalars = NumpyScalars
+    # CupyScalars = NumpyScalars
 
 import arrayImplementation.vectors as vc
 
@@ -28,7 +29,7 @@ class NativeScalars:
             self.v = np.array([0] * N)
         else:
             raise ValueError("You must provide an array or N")
-        self.selected = [True]*len(self.v)
+        self.selected = [True] * len(self.v)
         self._iteration = 0
 
     @classmethod
@@ -327,4 +328,5 @@ class CupyScalars:
         else:
             return CupyScalars(cp.less_equal(cp.abs(cp.subtract(self.v, other)), 1e-9))
 
-Scalars = NativeScalars
+
+Scalars = NumpyScalars

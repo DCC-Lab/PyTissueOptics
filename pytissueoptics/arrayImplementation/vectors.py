@@ -6,7 +6,7 @@ except:
 
 import random
 from vector import Vector, oHat
-from scalars import *
+from arrayImplementation.scalars import *
 import copy
 
 """
@@ -337,7 +337,7 @@ class NumpyVectors:
     Can be used to unit test """
 
     def __getitem__(self, index):
-        return self.v[index, :]
+        return self.v[index]
 
     def __iter__(self):
         self._iteration = 0
@@ -841,4 +841,4 @@ class CupyVectors:
         return self
 
 
-Vectors = NativeVectors
+Vectors = NumpyVectors

@@ -1,9 +1,9 @@
 from arrayImplementation.vectors import *
-from scalars import *
+from arrayImplementation.scalars import *
 
 
 class Photons:
-    def __init__(self, positions=Vectors(1000), directions=Vectors([[0, 0, 1]]*1000)):
+    def __init__(self, positions=Vectors(N=1000), directions=Vectors([[0, 0, 1]]*1000)):
         self.N = len(positions)
         self.r = positions
         self.ez = directions
