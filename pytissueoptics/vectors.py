@@ -677,25 +677,25 @@ class CupyVectors:
     def anyUnitaryPerpendicular(self):
         return self.anyPerpendicular().normalized()
 
-    """ TODO: Make Function """
-
     def isInXYPlane(self, atZ, epsilon=0.001):
-        pass
-
-    """ TODO: Make Function """
+        uz = self.v[:, 2]
+        r = cp.where(cp.abs(uz - atZ) < epsilon, True, False)
+        return r
 
     def isInYZPlane(self, atX, epsilon=0.001):
-        pass
-
-    """ TODO: Make Function """
+        ux = self.v[:, 0]
+        r = cp.where(cp.abs(ux - atX) < epsilon, True, False)
+        return r
 
     def isInZXPlane(self, atY, epsilon=0.001):
-        pass
+        uy = self.v[:, 1]
+        r = cp.where(cp.abs(uy - atY) < epsilon, True, False)
+        return r
 
-    """ TODO: Make Function """
-
-    def isIcplane(self, origin: 'Vector', normal: 'Vector', epsilon=0.001):
-        pass
+    def isInPlane(self, origin: 'NumpyVectors', normal: 'NumpyVectors', epsilon=0.001):
+        local = self - origin
+        r = cp.where(cp.abs(local.normalizedDotProduct(normal)) < epsilon, True, False)
+        return r
 
     def norm(self):
         return CupyScalars(cp.linalg.norm(self.v, axis=1))
