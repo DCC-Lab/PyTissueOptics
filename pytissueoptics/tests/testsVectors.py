@@ -322,15 +322,68 @@ class TestVectorsBase(envtest.PyTissueTestCase):
 
 class TestNumpyVectors(envtest.PyTissueTestCase):
 
-    def testInitWithList(self):
-        v1 = NumpyVectors([[1, 1, 1], [-0.04298243, 0.99337274, -0.10659786], [0, 1, 0], [-1, 0, 0]])
-        r = np.all(np.equal(v1.v, [[1, 1, 1], [-0.04298243, 0.99337274, -0.10659786], [0, 1, 0], [-1, 0, 0]]))
+    def testInitNull(self):
+        v1 = NumpyVectors(N=2)
+        r = np.all(np.equal(v1.v, [[0, 0, 0], [0, 0, 0]]))
         self.assertTrue(r)
 
+    def testInitWithList(self):
+        with self.subTest("Double Nested List, Multiple Vectors, N=None"):
+            v1 = NumpyVectors([[1, -1, 1], [0, 0, 0]])
+            r = np.all(np.equal(v1.v, [[1, -1, 1], [0, 0, 0]]))
+            self.assertTrue(r)
+
+        with self.subTest("Double Nested List, Single Vector, N=None"):
+            v1 = NumpyVectors([[1, 1, 1]]*2)
+            r = np.all(np.equal(v1.v, [[1, 1, 1], [1, 1, 1]]))
+            self.assertTrue(r)
+
+        with self.subTest("Double Nested List, Single Vector, N=2"):
+            v1 = NumpyVectors([[1, 1, 1]], N=2)
+            r = np.all(np.equal(v1.v, [[1, 1, 1], [1, 1, 1]]))
+            self.assertTrue(r)
+
+        with self.subTest("Double Nested List, Single Vector, N=2"):
+            v1 = NumpyVectors([[1, 1, 1]], N=2)
+            r = np.all(np.equal(v1.v, [[1, 1, 1], [1, 1, 1]]))
+            self.assertTrue(r)
+
+        with self.subTest("Single List, Single Vector, N=2"):
+            v1 = NumpyVectors([1, 1, 1], N=2)
+            r = np.all(np.equal(v1.v, [[1, 1, 1], [1, 1, 1]]))
+            self.assertTrue(r)
+
     def testInitWithNumpyArray(self):
-        v1 = NumpyVectors(np.array([[1, 1, 1], [-0.04298243, 0.99337274, -0.10659786], [0, 1, 0], [-1, 0, 0]]))
-        r = np.all(np.equal(v1.v, [[1, 1, 1], [-0.04298243, 0.99337274, -0.10659786], [0, 1, 0], [-1, 0, 0]]))
-        self.assertTrue(r)
+        with self.subTest("Numpy Array, Multiple Vectors, N==None"):
+            v1 = NumpyVectors(np.array([[1, 1, 1], [0, 0, 0]]))
+            r = np.all(np.equal(v1.v, [[1, 1, 1], [0, 0, 0]]))
+            self.assertTrue(r)
+
+        with self.subTest("Numpy Array, Vectors, N==None"):
+            v1 = NumpyVectors(np.array([[1, 1, 1]]*2))
+            r = np.all(np.equal(v1.v, [[1, 1, 1], [1, 1, 1]]))
+            self.assertTrue(r)
+
+        with self.subTest("Numpy Array, Vectors, N=2"):
+            v1 = NumpyVectors(np.array([[1, 1, 1]]), N=2)
+            r = np.all(np.equal(v1.v, [[1, 1, 1], [1, 1, 1]]))
+            self.assertTrue(r)
+
+    def testInitWithVector(self):
+        with self.subTest("Single Vector, N==None"):
+            v1 = NumpyVectors(Vector(1, 1, 1))
+            r = np.all(np.equal(v1.v, [[1, 1, 1]]))
+            self.assertTrue(r)
+
+        with self.subTest("Multiple Vector, N==None"):
+            v1 = NumpyVectors([Vector(1, -1, 0)]*2)
+            r = np.all(np.equal(v1.v, [[1, -1, 0], [1, -1, 0]]))
+            self.assertTrue(r)
+
+        with self.subTest("Single Vector, N=2"):
+            v1 = NumpyVectors(Vector(1, -1, 0), N=2)
+            r = np.all(np.equal(v1.v, [[1, -1, 0], [1, -1, 0]]))
+            self.assertTrue(r)
 
     def testCheckInitTypeFloat64(self):
         v1 = NumpyVectors([[1, 1, 1], [-0.04298243, 0.99337274, -0.10659786], [0, 1, 0], [-1, 0, 0]])
@@ -769,15 +822,68 @@ class TestNumpyVectors(envtest.PyTissueTestCase):
 
 class TestCupyVectors(envtest.PyTissueTestCase):
 
-    def testInitWithList(self):
-        v1 = CupyVectors([[1, 1, 1], [-0.04298243, 0.99337274, -0.10659786], [0, 1, 0], [-1, 0, 0]])
-        r = cp.all(cp.equal(v1.v, cp.asarray([[1, 1, 1], [-0.04298243, 0.99337274, -0.10659786], [0, 1, 0], [-1, 0, 0]])))
+    def testInitNull(self):
+        v1 = CupyVectors(N=2)
+        r = cp.all(cp.equal(v1.v, cp.asarray([[0, 0, 0], [0, 0, 0]])))
         self.assertTrue(r)
 
+    def testInitWithList(self):
+        with self.subTest("Double Nested List, Multiple Vectors, N=None"):
+            v1 = CupyVectors([[1, -1, 1], [0, 0, 0]])
+            r = cp.all(cp.equal(v1.v, cp.asarray([[1, -1, 1], [0, 0, 0]])))
+            self.assertTrue(r)
+
+        with self.subTest("Double Nested List, Single Vector, N=None"):
+            v1 = CupyVectors([[1, 1, 1]]*2)
+            r = cp.all(cp.equal(v1.v, cp.asarray([[1, 1, 1], [1, 1, 1]])))
+            self.assertTrue(r)
+
+        with self.subTest("Double Nested List, Single Vector, N=2"):
+            v1 = CupyVectors([[1, 1, 1]], N=2)
+            r = cp.all(cp.equal(v1.v, cp.asarray([[1, 1, 1], [1, 1, 1]])))
+            self.assertTrue(r)
+
+        with self.subTest("Double Nested List, Single Vector, N=2"):
+            v1 = CupyVectors([[1, 1, 1]], N=2)
+            r = cp.all(cp.equal(v1.v, cp.asarray([[1, 1, 1], [1, 1, 1]])))
+            self.assertTrue(r)
+
+        with self.subTest("Single List, Single Vector, N=2"):
+            v1 = CupyVectors([1, 1, 0], N=2)
+            r = cp.all(cp.equal(v1.v, cp.asarray([[1, 1, 0], [1, 1, 0]])))
+            self.assertTrue(r)
+
     def testInitWithNumpyArray(self):
-        v1 = CupyVectors(cp.array([[1, 1, 1], [-0.04298243, 0.99337274, -0.10659786], [0, 1, 0], [-1, 0, 0]]))
-        r = cp.all(cp.equal(v1.v, cp.asarray([[1, 1, 1], [-0.04298243, 0.99337274, -0.10659786], [0, 1, 0], [-1, 0, 0]])))
-        self.assertTrue(r)
+        with self.subTest("Numpy Array, Multiple Vectors, N==None"):
+            v1 = CupyVectors(np.array([[1, 1, 1], [0, 0, 0]]))
+            r = cp.all(cp.equal(v1.v, cp.asarray([[1, 1, 1], [0, 0, 0]])))
+            self.assertTrue(r)
+
+        with self.subTest("Numpy Array, Vectors, N==None"):
+            v1 = CupyVectors(np.array([[1, 1, 1]]*2))
+            r = cp.all(cp.equal(v1.v, cp.asarray([[1, 1, 1], [1, 1, 1]])))
+            self.assertTrue(r)
+
+        with self.subTest("Numpy Array, Vectors, N=2"):
+            v1 = CupyVectors(np.array([[1, 1, 1]]), N=2)
+            r = cp.all(cp.equal(v1.v, cp.asarray([[1, 1, 1], [1, 1, 1]])))
+            self.assertTrue(r)
+
+    def testInitWithVector(self):
+        with self.subTest("Single Vector, N==None"):
+            v1 = CupyVectors(Vector(1, 1, 1))
+            r = cp.all(cp.equal(v1.v, cp.asarray([[1, 1, 1]])))
+            self.assertTrue(r)
+
+        with self.subTest("Single Vector, N=2"):
+            v1 = CupyVectors(Vector(1, -1, 0), N=2)
+            r = cp.all(cp.equal(v1.v, cp.asarray([[1, -1, 0], [1, -1, 0]])))
+            self.assertTrue(r)
+
+        with self.subTest("Multiple Vector, N==None"):
+            v1 = CupyVectors([Vector(1, -1, 0)]*2)
+            r = cp.all(cp.equal(v1.v, cp.asarray([[1, -1, 0], [1, -1, 0]])))
+            self.assertTrue(r)
 
     def testCheckInitTypeFloat64(self):
         v1 = CupyVectors([[1, 1, 1], [-0.04298243, 0.99337274, -0.10659786], [0, 1, 0], [-1, 0, 0]])

@@ -241,13 +241,36 @@ class NumpyVectors:
     """
 
     def __init__(self, vectors=None, N=None):
-        if vectors is not None:
+        if vectors is not None and N is None:
             if type(vectors) == np.ndarray:
                 self.v = vectors.astype('float64')
 
+            elif type(vectors) == Vector:
+                self.v = np.asarray([[vectors.x, vectors.y, vectors.z]], dtype=np.float64)
+
+            elif type(vectors) == list and type(vectors[0]) == Vector:
+                x = [v.x for v in vectors]
+                y = [v.y for v in vectors]
+                z = [v.z for v in vectors]
+                self.v = np.stack((x, y, z), axis=-1)
+
             else:
                 self.v = np.asarray(vectors, dtype=np.float64)
-        elif N is not None:
+
+        elif vectors is not None and N is not None:
+            if type(vectors) == Vector:
+                self.v = np.asarray([[vectors.x, vectors.y, vectors.z]]*N, dtype=np.float64)
+
+            elif type(vectors) == list and type(vectors[0]) != list:
+                self.v = np.asarray([vectors] * N, dtype=np.float64)
+
+            elif type(vectors) == np.ndarray:
+                self.v = np.tile(vectors, (N, 1))
+
+            else:
+                self.v = np.asarray(vectors*N, dtype=np.float64)
+
+        elif vectors is None and N is not None:
             self.v = np.zeros((N, 3), dtype=np.float64)
             
         self._iteration = 0
@@ -526,13 +549,39 @@ class CupyVectors:
     """
 
     def __init__(self, vectors=None, N=None):
-        if vectors is not None:
-            if type(vectors) == cp.ndarray:
+        if vectors is not None and N is None:
+            if type(vectors) == np.ndarray:
+                self.v = cp.asarray(vectors, dtype=cp.float64)
+
+            elif type(vectors) == cp.ndarray:
                 self.v = vectors.astype('float64')
+
+            elif type(vectors) == Vector:
+                self.v = cp.asarray([[vectors.x, vectors.y, vectors.z]], dtype=cp.float64)
+
+            elif type(vectors) == list and type(vectors[0]) == Vector:
+                x = cp.asarray([v.x for v in vectors])
+                y = cp.asarray([v.y for v in vectors])
+                z = cp.asarray([v.z for v in vectors])
+                self.v = cp.stack((x, y, z), axis=-1)
 
             else:
                 self.v = cp.asarray(vectors, dtype=cp.float64)
-        elif N is not None:
+
+        elif vectors is not None and N is not None:
+            if type(vectors) == Vector:
+                self.v = cp.asarray([[vectors.x, vectors.y, vectors.z]] * N, dtype=cp.float64)
+
+            elif type(vectors) == list and type(vectors[0]) != list:
+                self.v = cp.asarray([vectors] * N, dtype=cp.float64)
+
+            elif type(vectors) == np.ndarray:
+                self.v = cp.asarray(np.tile(vectors, (N, 1)))
+
+            else:
+                self.v = cp.asarray(vectors * N, dtype=cp.float64)
+
+        elif vectors is None and N is not None:
             self.v = cp.zeros((N, 3), dtype=cp.float64)
 
         self._iteration = 0
