@@ -2,7 +2,7 @@ import matplotlib
 import os
 # must be before importing matplotlib.pyplot or pylab!
 if os.name == 'posix' and "DISPLAY" not in os.environ:
-    matplotlib.use('Agg')
+    matplotlib.use('tkagg')
 
 import math
 
