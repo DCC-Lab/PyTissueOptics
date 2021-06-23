@@ -120,6 +120,37 @@ class ZXRect(Surface):
 
 
 class AsphericSurface(Surface):
+    """
+    An aspheric dielectric interface of radius R, and a conical factor kappa.
+    The plan here is simple: in the paraxial approximation, any conical
+    surface will look like a spherical surface, therefore we set the elements
+    the exactly that: a spherical surface of radius R. For all calculations
+    involving aperture stops, image conjuagtes, etc... we will always use the
+    paraxial form of this matrix (the non-paraxial rays are just a
+    correction). However, when we trace the rays, then that's a different
+    story: we will use the mul_ray_nonparaxial function that is not a matrix
+    multiplication but close to the axis, it gives similar results to the
+    mul_ray_paraxial function.
+
+    We use the following definitions:
+    https://en.wikipedia.org/wiki/Aspheric_lens
+
+    Parameters
+    ----------
+    R : float (Optional, default infinity)
+        The radius of the dielectric interface
+    kappa : float (default 0, sphere)
+        The conical parameter of the interface
+        kappa < -1    : hyperbola
+        kappa == -1   : parabola
+        -1 < kappa < 0: prolate ellipse
+        kappa == 0    : sphere
+        kappa > 0     : oblate ellipse
+    Notes
+    -----
+    A convex interface from the perspective of the ray has R > 0
+    """
+
     def __init__(self, R, kappa, description=None):
         super(AsphericSurface, self).__init__(origin=oHat, a=xHat, b=yHat, normal=zHat, size=(1,1), description=description)
         self.kappa = kappa
