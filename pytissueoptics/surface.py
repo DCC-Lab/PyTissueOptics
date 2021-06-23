@@ -1,5 +1,5 @@
 from .vector import *
-
+from numpy import sqrt, isnan, arctan2
 
 class Surface:
     def __init__(self, origin, a, b, normal, size=None, description=None):
@@ -117,6 +117,72 @@ class ZXRect(Surface):
         if description is None:
             description = "ZX at y={0:.1f}".format(origin)
         super(ZXRect, self).__init__(origin, zHat, xHat, yHat, size, description)
+
+
+class AsphericSurface(Surface):
+    def __init__(self, R, kappa, description=None):
+        super(AsphericSurface, self).__init__(origin=oHat, a=xHat, b=yHat, normal=zHat, size=(1,1), description=description)
+        self.kappa = kappa
+        self.R = R
+
+    def contains(self, position, epsilon=0.001) -> (bool, float, float):
+        raise NotImplemented("Implement contains for ConicSurface")
+
+    def intersection(self, position, direction, maxDistance) -> (bool, float):
+        raise NotImplemented("Implement intersection for ConicSurface")
+
+    def z(self, r):
+        """ This z represents the surface of the interface 
+        as a function of r, the distance from the axis.  
+
+        Obtained from https://en.wikipedia.org/wiki/Aspheric_lens
+
+        """
+        # r = np.sqrt(x*x+y*y)
+        z = r*r/(self.R*(1+sqrt(1-(1+self.kappa)*r*r/self.R/self.R)))   
+        if isnan(z):
+            return None
+        else:
+            return z
+
+    def dzdr(self, r):
+        """ This approximates the slope of the surface which 
+        we can then use to calculate the tangent or normal 
+        to the surface.
+
+        An analytical expression is possible and should be derived.
+        """
+
+        if self.z(r) is None:
+            return None, None
+
+        dy1 = 0.000001
+        dy2 = 0.000001
+        z1 = self.z(r+dy1)
+        if z1 is None:
+            dy1 = 0
+            z1 = self.z(r) 
+
+        z2 = self.z(r-dy2) 
+        if z2 is None:
+            dy2 = 0
+            z2 = self.z(r) 
+
+        dz = z1-z2
+        return dz, dy1+dy2
+
+    def surfaceNormal(self, r):
+        """ Returns the surface normal at r, pointing backward.
+        (between -pi/2 and pi/2).
+        The angle is measured with respect to the optical axis
+        (i.e. the propagation axis).  For incidence on a convex
+        interface above axis (y>0), the angle will be negative.
+        """ 
+        dz, dy = self.dzdr(r)
+        if dz is not None:
+            return -arctan2(dz, dy)        
+        return None
+
 
 class FresnelIntersect:
     def __init__(self, direction, surface, distance, geometry=None):
