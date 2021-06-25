@@ -160,7 +160,6 @@ class AsphericSurface(Surface):
         self.R = R
 
     def normal(self, position=None):
-        
         return self._normal
 
     def contains(self, position, epsilon=0.001) -> (bool, float, float):
@@ -235,6 +234,8 @@ class AsphericSurface(Surface):
                 return (False, None, None)
 
             t += delta
+
+            # We must limit t within the range because we do not know if it is valid outside
             if t > tMax:
                 t = tMax
             if t < tMin:
@@ -257,6 +258,7 @@ class AsphericSurface(Surface):
 
         Obtained from https://en.wikipedia.org/wiki/Aspheric_lens
 
+        The apex is at z=0
         """
         try:
             r2 = x*x+y*y
