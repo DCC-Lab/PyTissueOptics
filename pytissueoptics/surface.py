@@ -6,7 +6,7 @@ class Surface:
         self.origin = ConstVector(origin)
         self.a = ConstVector(a)
         self.b = ConstVector(b)
-        self.normal = ConstUnitVector(normal)
+        self._normal = ConstUnitVector(normal)
         self.size = size
         self.indexInside = 1.0
         self.indexOutside = 1.0
@@ -16,6 +16,9 @@ class Surface:
             self.description = "Surface"
         else:
             self.description = description
+
+    def normal(self, position=None):
+        return self._normal
 
     def contains(self, position, epsilon=0.001) -> (bool, float, float):
         # Convert to position in surface coordinates
@@ -156,6 +159,10 @@ class AsphericSurface(Surface):
         self.kappa = kappa
         self.R = R
 
+    def normal(self, position=None):
+        
+        return self._normal
+
     def contains(self, position, epsilon=0.001) -> (bool, float, float):
         local = position - self.origin
         x = local.x
@@ -163,10 +170,10 @@ class AsphericSurface(Surface):
         z = local.z
 
         zSurface = self.z(x,y)
-        if zSurface > z:
-            return True
+        if abs(zSurface - z) < 1e-4:
+            return True, x, y
         else:
-            return False
+            return False, None, None
 
     def segmentValidityAboveSurface(self, position, direction, maxDistance):
         d = direction*maxDistance
@@ -184,7 +191,7 @@ class AsphericSurface(Surface):
         delta = b*b-4*a*c
 
         # Because of roundoff errors, I need to add a small espilon.
-        epsilon = 0.0000001
+        epsilon = 0.00001
 
         validRange = [0,1]
 
@@ -208,51 +215,41 @@ class AsphericSurface(Surface):
         return validRange
 
     def intersection(self, position, direction, maxDistance) -> (bool, float, Vector):
-        wasBelow = None
-        startingPointOnSurface = self.z(position.x, position.y)
-        if startingPointOnSurface is not None:
-            wasBelow = position.z < startingPointOnSurface
-
-        if wasBelow is None or wasBelow is False:
+        validRange = self.segmentValidityAboveSurface(position, direction, maxDistance)
+        if validRange is None:
             return (False, None, None)
-        current = Vector(position)  # Copy
-        delta = 0.1
-        t = 0
-        while abs(delta) > 0.0000001:
+        tMin, tMax = validRange
+
+        current = position + tMin * direction * maxDistance
+        surfaceHeightAtStart = self.z(current.x, current.y)
+        wasBelow = current.z < surfaceHeightAtStart
+
+        if wasBelow is False:
+            return (False, None, None)
+
+        delta = (tMax-tMin)/10
+        t = tMin
+        while abs(delta) > 0.000000001:
+            # We have not crossed yet but we have reach the limit of validity, we will never cross
+            if t == tMax:
+                return (False, None, None)
+
             t += delta
+            if t > tMax:
+                t = tMax
+            if t < tMin:
+                t = tMin
+
             current = position + t * direction * maxDistance
             surfaceZ = self.z(current.x, current.y)
-            isBelow = None
-            if surfaceZ is not None:
-                isBelow = (current.z < surfaceZ)
+            isBelow = (current.z < surfaceZ)
 
-            if wasBelow is None or isBelow is None:
-                pass
-            elif wasBelow != isBelow:
+            if wasBelow != isBelow:
                 delta = -delta * 0.5
 
-            # print(position, current, wasBelow, isBelow, t)
             wasBelow = isBelow
 
-        if t >= 0 and t <= 1.0:
-            return (True, t * maxDistance, current)
-        else:
-            return (False, None, None)
-
-    def smallestValidT(self, tm, tp):
-        valid = []
-        if tm >= 0 and tm <= 1:
-            valid.append(tm)
-        if tp >= 0 and tp <= 1:
-            valid.append(tp)
-
-        if len(valid) == 0:
-            return None
-        elif len(valid) == 1:
-            return valid[0]
-        elif len(valid) == 2:
-            return min(valid)
-
+        return (True, t * maxDistance, current)
 
     def z(self, x, y):
         """ This z represents the surface of the interface 
@@ -261,48 +258,15 @@ class AsphericSurface(Surface):
         Obtained from https://en.wikipedia.org/wiki/Aspheric_lens
 
         """
-        r = np.sqrt(x*x+y*y)
-        z = r*r/(self.R*(1+sqrt(1-(1+self.kappa)*r*r/self.R/self.R)))   
-        return z
+        try:
+            r2 = x*x+y*y
+            value =  r2/(self.R*(1+sqrt(1-(1+self.kappa)*r2/self.R/self.R)))
 
-    def dzdr(self, r):
-        """ This approximates the slope of the surface which 
-        we can then use to calculate the tangent or normal 
-        to the surface.
-
-        An analytical expression is possible and should be derived.
-        """
-
-        if self.z(r) is None:
-            return None, None
-
-        dy1 = 0.000001
-        dy2 = 0.000001
-        z1 = self.z(r+dy1)
-        if z1 is None:
-            dy1 = 0
-            z1 = self.z(r) 
-
-        z2 = self.z(r-dy2) 
-        if z2 is None:
-            dy2 = 0
-            z2 = self.z(r) 
-
-        dz = z1-z2
-        return dz, dy1+dy2
-
-    def surfaceNormal(self, r):
-        """ Returns the surface normal at r, pointing backward.
-        (between -pi/2 and pi/2).
-        The angle is measured with respect to the optical axis
-        (i.e. the propagation axis).  For incidence on a convex
-        interface above axis (y>0), the angle will be negative.
-        """ 
-        dz, dy = self.dzdr(r)
-        if dz is not None:
-            return -arctan2(dz, dy)        
-        return None
-
+            if isnan(value):
+                return None
+            return value
+        except:
+            return None
 
 class FresnelIntersect:
     def __init__(self, direction, surface, distance, geometry=None):

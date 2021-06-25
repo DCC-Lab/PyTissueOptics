@@ -354,7 +354,7 @@ class TestIntersection(envtest.PyTissueTestCase):
         I took a picture of my development, it is in this folder.
         """
         M = 10
-        I = 1000
+        I = 100
         for i in range(I):
             if (i+1) % M == 0:
                 print("Iteration: {0}/{1}".format(i+1,I))
@@ -439,7 +439,7 @@ class TestIntersection(envtest.PyTissueTestCase):
                 self.assertIsNone(value, msg="{0}".format(t))
 
 
-    def testDomainOfValidityAboveSurfaceWithSurfaceIMplementation(self):        
+    def testDomainOfValidityAboveSurfaceWithSurfaceImplementation(self):        
         """
         Given a line, I want to know the values of the parameter t that are such that the value of the surface is defined
         Said diffirently, I need the domain of validity for t above the surface f(x,y).
@@ -449,7 +449,7 @@ class TestIntersection(envtest.PyTissueTestCase):
         I took a picture of my development, it is in this folder.
         """
         M = 10
-        I = 10000
+        I = 100
         for i in range(I):
             if (i+1) % M == 0:
                 print("Iteration: {0}/{1}".format(i+1,I))
@@ -474,7 +474,7 @@ class TestIntersection(envtest.PyTissueTestCase):
                 # Never valid
                 for t in linspace(0, 1, N, endpoint=True):
                     pt = self.line(position, d, t)
-                    value = self.f(pt.x, pt.y, R=R, kappa=k)
+                    value = surface.z(pt.x, pt.y)
                     self.assertIsNone(value, msg="{0}".format(t))
                 continue # Nothing else to validate
 
@@ -482,8 +482,148 @@ class TestIntersection(envtest.PyTissueTestCase):
             # the actual limit of the segment, where f(x,y) must be defined
             for t in linspace(validRange[0], validRange[1], N, endpoint=True):
                 pt = self.line(position, d, t)
-                value = self.f(pt.x, pt.y, R=R, kappa=k)
+                value = surface.z(pt.x, pt.y)
                 self.assertIsNotNone(value, msg="{0}".format(t))
+
+    @envtest.skip("Not useful")
+    def testFindIntersectionWithValidRangeAndFit(self):
+        M = 10
+        I = 100
+        for i in range(I):
+            if (i+1) % M == 0:
+                print("Iteration: {0}/{1}".format(i+1,I))
+                M *= 10
+
+            R = 11
+            k = 0.5
+            surface = AsphericSurface(R=R,kappa=k)
+
+            position = self.randomVector()*2*R
+            final = self.randomVector()*2*R
+            d = final-position
+            distance = d.abs()
+            direction = d.normalized()
+
+            validRange = surface.segmentValidityAboveSurface(position, direction, distance)
+            print(validRange)
+            if validRange is None:
+                continue
+
+            ts = linspace(validRange[0], validRange[1], 100, endpoint=True)
+
+            xs = []
+            ys = []
+            for t in ts:
+                pt = position + t*d
+                surfaceZ = surface.z(pt.x, pt.y)
+                ys.append( pt.z-surfaceZ )
+                xs.append( t )
+
+            # The curves are not quadratic, I cannot use a 2nd order fit for this.
+            plt.plot(xs,ys)
+            plt.show()
+
+            # (a,b,c) = polyfit(xs, ys, deg=2)
+            # delta = b*b-4*a*c
+            # if delta < 0:
+            #     pass
+            # else:
+            #     t1 = (-b-sqrt(delta))/2/a
+            #     t2 = (-b+sqrt(delta))/2/a
+            #     print(t1, t2)
+            #     if t1 >= validRange[0] and t1 <= validRange[1]:
+            #         pt = position + t1*d
+            #         surfaceZ = surface.z(pt.x, pt.y)
+            #         print(pt, surfaceZ, t1, validRange)
+            #         self.assertAlmostEqual(pt.z-surfaceZ, 0)
+            #     elif t2 >= validRange[0] and t2 <= validRange[1]:
+            #         pt = position + t2*d
+            #         surfaceZ = surface.z(pt.x, pt.y)
+            #         print(pt, surfaceZ, t2, validRange)
+            #         self.assertAlmostEqual(pt.z-surfaceZ, 0)
+
+    def testFindIntersectionWithValidRange(self):
+        M = 10
+        I = 1000
+        for i in range(I):
+            if (i+1) % M == 0:
+                print("Iteration: {0}/{1}".format(i+1,I))
+                M *= 10
+
+            R = 11
+            k = 0.5
+            surface = AsphericSurface(R=R,kappa=k)
+
+            position = self.randomVector()*2*R
+            final = self.randomVector()*2*R
+            d = final-position
+            distance = d.abs()
+            direction = d.normalized()
+
+            validRange = surface.segmentValidityAboveSurface(position, direction, distance)
+            if validRange is None:
+                continue
+            else:
+                isIntersecting, dToSurface, pointOnSurface = self.algo2(position, direction, distance, validRange, surface)
+                if isIntersecting:
+                    self.assertAlmostEqual(surface.z(pointOnSurface.x, pointOnSurface.y) - pointOnSurface.z, 0, 4)
+
+
+    def algo2(self, position, direction, maxDistance, validRange, surface) -> (bool, float, Vector):
+        tMin, tMax = validRange
+        current = position + tMin * direction * maxDistance
+        surfaceHeightAtStart = surface.z(current.x, current.y)
+        wasBelow = current.z < surfaceHeightAtStart
+
+        if wasBelow is False:
+            return (False, None, None)
+
+        delta = 0.1
+        t = tMin
+        while abs(delta) > 0.000000001:
+            t += delta
+            current = position + t * direction * maxDistance
+            surfaceZ = surface.z(current.x, current.y)
+            isBelow = None
+            if surfaceZ is not None:
+                isBelow = (current.z < surfaceZ)
+
+            if wasBelow is None or isBelow is None:
+                pass
+            elif wasBelow != isBelow:
+                delta = -delta * 0.5
+
+            wasBelow = isBelow
+            if t > tMax+0.3 or t < tMin-0.3:
+                return (False, None, None)
+
+        if t >= 0 and t <= 1.0:
+            return (True, t * maxDistance, current)
+        else:
+            return (False, None, None)
+
+
+    def testFindIntersectionWithValidRangeSurfaceImplementation(self):
+        M = 10
+        I = 100000
+        for i in range(I):
+            if (i+1) % M == 0:
+                print("Iteration: {0}/{1}".format(i+1,I))
+                M *= 10
+
+            R = 11
+            k = 0.5
+            surface = AsphericSurface(R=R,kappa=k)
+
+            position = self.randomVector()*2*R
+            final = self.randomVector()*2*R
+            d = final-position
+            distance = d.abs()
+            direction = d.normalized()
+
+            isIntersecting, dToSurface, pointOnSurface = surface.intersection(position, direction, distance)
+            if isIntersecting:
+                self.assertAlmostEqual(surface.z(pointOnSurface.x, pointOnSurface.y) - pointOnSurface.z, 0, 4)
 
 
 if __name__ == '__main__':
