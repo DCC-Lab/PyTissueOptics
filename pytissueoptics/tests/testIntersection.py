@@ -46,7 +46,7 @@ class TestIntersection(envtest.PyTissueTestCase):
         z = r*r/(R*(1+sqrt(1-(1+kappa)*r*r/R/R)))   
 
     def testIntersectionPoint(self):
-        position = self.randomNegativeVector()
+        position = self.randomNegativeZVector()
         final = Vector(0,0,0.1)
 
         d = final-position
@@ -65,7 +65,7 @@ class TestIntersection(envtest.PyTissueTestCase):
 
     def testIntersectionManyPoints(self):
         for i in range(1000):
-            position = self.randomNegativeVector() 
+            position = self.randomNegativeZVector() 
             final = Vector(0,0,1)
 
             d = final-position
@@ -120,13 +120,13 @@ class TestIntersection(envtest.PyTissueTestCase):
         z = random.random()*2-1
         return Vector(x,y,z)
 
-    def randomPositiveVector(self):
+    def randomPositiveZVector(self):
         x = random.random()*2-1
         y = random.random()*2-1
         z = random.random()*2
         return Vector(x,y,z)
 
-    def randomNegativeVector(self):
+    def randomNegativeZVector(self):
         x = random.random()*2-1
         y = random.random()*2-1
         z = -random.random()*2
@@ -151,7 +151,7 @@ class TestIntersection(envtest.PyTissueTestCase):
     # def testRandomIntersectionPoint(self):
     #     for i in range(100):
 
-    #         position = self.randomNegativeVector()+Vector(0,0,-1.1)
+    #         position = self.randomNegativeZVector()+Vector(0,0,-1.1)
     #         final = Vector(0,0,0.5)
     #         d = final-position
     #         distance = d.abs()
@@ -199,7 +199,7 @@ class TestIntersection(envtest.PyTissueTestCase):
     # def testRandomIntersectionPointAlgorithm2(self):
     #     ts = linspace(0,1,5)
     #     for i in range(10000):
-    #         position = 2*self.randomPositiveVector()
+    #         position = 2*self.randomPositiveZVector()
     #         final = Vector(0,0,0)
     #         direction = final-position
 
@@ -253,7 +253,7 @@ class TestIntersection(envtest.PyTissueTestCase):
 
     # def testAlgo3(self):
 
-    #     position = self.randomPositiveVector()+Vector(0,0,1.1)
+    #     position = self.randomPositiveZVector()+Vector(0,0,1.1)
     #     final = Vector(0,0,0)
     #     direction = final-position
     #     surfacet0 = self.f(position.x, position.y)
@@ -282,7 +282,7 @@ class TestIntersection(envtest.PyTissueTestCase):
     #     surface = AsphericSurface(R=1,kappa=0)
 
     #     for i in range(100):
-    #         position = self.randomNegativeVector()
+    #         position = self.randomNegativeZVector()
     #         self.assertTrue(position.z < 0)
     #         final = Vector(0,0,0.5)
     #         d = final-position
