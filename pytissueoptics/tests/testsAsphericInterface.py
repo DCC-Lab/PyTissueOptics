@@ -1,6 +1,6 @@
 import envtest  # modifies path
 from pytissueoptics import *
-from numpy import linspace, pi
+from numpy import linspace, pi, sqrt
 
 inf = float("+inf")
 

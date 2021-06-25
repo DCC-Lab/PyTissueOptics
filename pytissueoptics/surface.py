@@ -1,5 +1,5 @@
 from .vector import *
-from numpy import sqrt, isnan, arctan2
+from numpy import sqrt, isnan, arctan2, linspace, polyfit
 
 class Surface:
     def __init__(self, origin, a, b, normal, size=None, description=None):
@@ -157,24 +157,74 @@ class AsphericSurface(Surface):
         self.R = R
 
     def contains(self, position, epsilon=0.001) -> (bool, float, float):
-        raise NotImplemented("Implement contains for ConicSurface")
+        local = position - self.origin
+        x = local.x
+        y = local.y
+        z = local.z
 
-    def intersection(self, position, direction, maxDistance) -> (bool, float):
-        raise NotImplemented("Implement intersection for ConicSurface")
+        zSurface = self.z(x,y)
+        if zSurface > z:
+            return True
+        else:
+            return False
 
-    def z(self, r):
+    def intersection(self, position, direction, maxDistance) -> (bool, float, Vector):
+        wasBelow = None
+        startingPointOnSurface = self.z(position.x, position.y)
+        if startingPointOnSurface is not None:
+            wasBelow = position.z < startingPointOnSurface
+
+        if wasBelow is None or wasBelow is False:
+            return (False, None, None)
+        current = Vector(position)  # Copy
+        delta = 0.1
+        t = 0
+        while abs(delta) > 0.0000001:
+            t += delta
+            current = position + t * direction * maxDistance
+            surfaceZ = self.z(current.x, current.y)
+            isBelow = None
+            if surfaceZ is not None:
+                isBelow = (current.z < surfaceZ)
+
+            if wasBelow is None or isBelow is None:
+                pass
+            elif wasBelow != isBelow:
+                delta = -delta * 0.5
+
+            # print(position, current, wasBelow, isBelow, t)
+            wasBelow = isBelow
+
+        if t >= 0 and t <= 1.0:
+            return (True, t * maxDistance, current)
+        else:
+            return (False, None, None)
+
+    def smallestValidT(self, tm, tp):
+        valid = []
+        if tm >= 0 and tm <= 1:
+            valid.append(tm)
+        if tp >= 0 and tp <= 1:
+            valid.append(tp)
+
+        if len(valid) == 0:
+            return None
+        elif len(valid) == 1:
+            return valid[0]
+        elif len(valid) == 2:
+            return min(valid)
+
+
+    def z(self, x, y):
         """ This z represents the surface of the interface 
         as a function of r, the distance from the axis.  
 
         Obtained from https://en.wikipedia.org/wiki/Aspheric_lens
 
         """
-        # r = np.sqrt(x*x+y*y)
+        r = np.sqrt(x*x+y*y)
         z = r*r/(self.R*(1+sqrt(1-(1+self.kappa)*r*r/self.R/self.R)))   
-        if isnan(z):
-            return None
-        else:
-            return z
+        return z
 
     def dzdr(self, r):
         """ This approximates the slope of the surface which 
