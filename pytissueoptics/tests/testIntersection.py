@@ -6,6 +6,44 @@ import matplotlib.pyplot as plt
 
 inf = float("+inf")
 
+"""
+I have a programming problem, and I return it to you as a programming challenge. I have found various solutions, but they are either 1) ugly, 2) don’t work perfectly all the time or 3) both.  I worked in PyTIssueOptics, branch curvedSurfaces at https://github.com/DCC-Lab/PyTissueOptics/tree/curvedSurfaces
+
+Intersection of a finite quadratic surface with a line segment
+=============================================
+
+You can use the Vector class in PyTissueOptics for all vector calculations.
+I have a line segment from point A to point B. It could be anywhere in space. I have a surface above the xy plane defined with z=f(x,y).  The function f(x,y) is quadratic and is the equation of a conic (R, kappa, typical):
+
+def f(x,y):
+    R = 10         # anything positive or negative
+    kappa = -0.5   # values mostly between -1 and 1, but can be anything including zero
+    r = np.sqrt(x*x+y*y)
+    z = r*r/(R*(1+sqrt(1-(1+kappa)*r*r/R/R)))
+
+    return z
+It could also be extremely general and a polynomial of any degree (you can look at https://en.wikipedia.org/wiki/Aspheric_lens)
+
+
+Requirements
+==========
+
+I want  a function :
+def intersection(self, position, direction, maxDistance) -> (bool, float, Vector):
+where position  = point A
+direction is (OB-OA).normalized()
+maxDistance == (OB-OA).abs()
+
+The function must return:
+True/False if the segment intersects
+a float with the distance from point A
+the exact point where they intersect (to within 1e-6).
+
+Performance is a concern in general but at this point, I need a reference function that works all the time, regardless of speed.
+
+Submit your solution in python!
+
+"""
 class TestIntersection(envtest.PyTissueTestCase):
 
     def testAbritraryF(self):
