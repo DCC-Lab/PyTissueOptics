@@ -605,7 +605,7 @@ class TestIntersection(envtest.PyTissueTestCase):
 
     def testFindIntersectionWithValidRangeSurfaceImplementation(self):
         M = 10
-        I = 100000
+        I = 1000
         for i in range(I):
             if (i+1) % M == 0:
                 print("Iteration: {0}/{1}".format(i+1,I))
@@ -625,6 +625,13 @@ class TestIntersection(envtest.PyTissueTestCase):
             if isIntersecting:
                 self.assertAlmostEqual(surface.z(pointOnSurface.x, pointOnSurface.y) - pointOnSurface.z, 0, 4)
 
+    def testNormalSurfaceCurved(self):
+        R = -15
+        k = 0.5
+        surface = AsphericSurface(R=R,kappa=k)
+        validRange = surface.segmentValidityAboveSurface(Vector(-10,0,0), Vector(1,0,0), 20)
+        for x in linspace(-10,10,100):
+            print(x, surface.normal(position=Vector(x,0,0)))
 
 if __name__ == '__main__':
     envtest.main()

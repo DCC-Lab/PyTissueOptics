@@ -159,9 +159,6 @@ class AsphericSurface(Surface):
         self.kappa = kappa
         self.R = R
 
-    def normal(self, position=None):
-        return self._normal
-
     def contains(self, position, epsilon=0.001) -> (bool, float, float):
         local = position - self.origin
         x = local.x
@@ -269,6 +266,72 @@ class AsphericSurface(Surface):
             return value
         except:
             return None
+
+    def normal(self, position=None):
+        dz, dx = self.dzdx(position.x, position.y)
+        if dz is None:
+            return None
+        dzAlongX = Vector(dx,0,dz)
+        dz, dy = self.dzdy(position.x, position.y)
+        if dz is None:
+            return None
+        dzAlongY = Vector(0,dy,dz)
+
+        perpendicular = dzAlongX.cross(dzAlongY)
+        return perpendicular.normalized()
+
+    def dzdy(self, x, y):
+        """ This approximates the slope of the surface which 
+        we can then use to calculate the tangent or normal 
+        to the surface.
+
+        An analytical expression is possible and should be derived.
+        """
+
+        if self.z(x, y) is None:
+            return None, None
+
+        dy1 = 0.000001
+        dy2 = 0.000001
+        z1 = self.z(x, y+dy1)
+        if z1 is None:
+            dy1 = 0
+            z1 = self.z(x, y) 
+
+        z2 = self.z(x, y-dy2) 
+        if z2 is None:
+            dy2 = 0
+            z2 = self.z(x, y) 
+
+        dz = z1-z2
+        return dz, dy1+dy2
+
+    def dzdx(self, x, y):
+        """ This approximates the slope of the surface which 
+        we can then use to calculate the tangent or normal 
+        to the surface.
+
+        An analytical expression is possible and should be derived.
+        """
+
+        if self.z(x, y) is None:
+            return None, None
+
+        dx1 = 0.000001
+        dx2 = 0.000001
+        z1 = self.z(x+dx1, y)
+        if z1 is None:
+            dx1 = 0
+            z1 = self.z(x, y) 
+
+        z2 = self.z(x-dx2, y) 
+        if z2 is None:
+            dx2 = 0
+            z2 = self.z(x, y) 
+
+        dz = z1-z2
+        return dz, dx1+dx2
+
 
 class FresnelIntersect:
     def __init__(self, direction, surface, distance, geometry=None):
