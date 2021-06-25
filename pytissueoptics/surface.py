@@ -140,7 +140,7 @@ class AsphericSurface(Surface):
 
     Parameters
     ----------
-    R : float (Optional, default infinity)
+    R : float
         The radius of the dielectric interface
     kappa : float (default 0, sphere)
         The conical parameter of the interface
@@ -149,15 +149,21 @@ class AsphericSurface(Surface):
         -1 < kappa < 0: prolate ellipse
         kappa == 0    : sphere
         kappa > 0     : oblate ellipse
+    normal : Vector 
+        The normal pointing outward at the center.  It is currrently only possible to have +z or -z
+
     Notes
     -----
     A convex interface from the perspective of the ray has R > 0
     """
 
-    def __init__(self, R, kappa, description=None):
-        super(AsphericSurface, self).__init__(origin=oHat, a=xHat, b=yHat, normal=zHat, size=(1,1), description=description)
+    def __init__(self, R, kappa, normal, description=None):
+        super(AsphericSurface, self).__init__(origin=oHat, a=xHat, b=yHat, normal=normal, size=(1,1), description=description)
         self.kappa = kappa
         self.R = R
+
+        if normal != zHat and normal != -zHat:
+            raise ValueError("Normal can only be along +z or -z") 
 
     def contains(self, position, epsilon=0.001) -> (bool, float, float):
         local = position - self.origin
@@ -278,7 +284,10 @@ class AsphericSurface(Surface):
         dzAlongY = Vector(0,dy,dz)
 
         perpendicular = dzAlongX.cross(dzAlongY)
-        return perpendicular.normalized()
+        if perpendicular.dot(self._normal) < 0:
+            return -perpendicular.normalized()
+        else:
+            return perpendicular.normalized()
 
     def dzdy(self, x, y):
         """ This approximates the slope of the surface which 

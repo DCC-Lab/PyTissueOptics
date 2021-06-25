@@ -465,7 +465,7 @@ class TestIntersection(envtest.PyTissueTestCase):
             distance = d.abs()
             direction = d.normalized()
 
-            surface = AsphericSurface(R=R,kappa=k)
+            surface = AsphericSurface(R=R,kappa=k, normal=-zHat)
 
             validRange =surface.segmentValidityAboveSurface(position, direction, distance)
 
@@ -552,7 +552,7 @@ class TestIntersection(envtest.PyTissueTestCase):
 
             R = 11
             k = 0.5
-            surface = AsphericSurface(R=R,kappa=k)
+            surface = AsphericSurface(R=R,kappa=k, normal=-zHat)
 
             position = self.randomVector()*2*R
             final = self.randomVector()*2*R
@@ -613,7 +613,7 @@ class TestIntersection(envtest.PyTissueTestCase):
 
             R = 11
             k = 0.5
-            surface = AsphericSurface(R=R,kappa=k)
+            surface = AsphericSurface(R=R,kappa=k, normal=-zHat)
 
             position = self.randomVector()*2*R
             final = self.randomVector()*2*R
@@ -626,9 +626,9 @@ class TestIntersection(envtest.PyTissueTestCase):
                 self.assertAlmostEqual(surface.z(pointOnSurface.x, pointOnSurface.y) - pointOnSurface.z, 0, 4)
 
     def testNormalSurfaceCurved(self):
-        R = -15
+        R = 15
         k = 0.5
-        surface = AsphericSurface(R=R,kappa=k)
+        surface = AsphericSurface(R=R,kappa=k, normal=-zHat)
         validRange = surface.segmentValidityAboveSurface(Vector(-10,0,0), Vector(1,0,0), 20)
         for x in linspace(-10,10,100):
             print(x, surface.normal(position=Vector(x,0,0)))
