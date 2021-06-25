@@ -168,6 +168,45 @@ class AsphericSurface(Surface):
         else:
             return False
 
+    def segmentValidityAboveSurface(self, position, direction, maxDistance):
+        d = direction*maxDistance
+        distance = d.abs()
+        direction = d.normalized()
+
+        (u,v,w) = (d.x, d.y, d.z)
+        (xo, yo, zo) = (position.x, position.y, position.z)
+
+        # quadratic equation domain validity
+        a = u*u+v*v
+        b = (2*xo*u + 2*yo*v)
+        c = (xo*xo + yo*yo - self.R*self.R/(1+self.kappa))
+
+        delta = b*b-4*a*c
+
+        # Because of roundoff errors, I need to add a small espilon.
+        epsilon = 0.0000001
+
+        validRange = [0,1]
+
+        if delta < 0:
+            tMinus = None
+            tPlus = None
+            validRange = None
+        else:
+            # tMinus is always smaller than tPlus
+            tMinus = (-b-sqrt(delta))/2/a
+            tPlus = (-b+sqrt(delta))/2/a
+            
+            if tMinus > 1 or tPlus < 0:
+                validRange = None
+            else:
+                if tMinus > 0:
+                    validRange[0] = tMinus+epsilon
+                if tPlus < 1:
+                    validRange[1] = tPlus-epsilon
+
+        return validRange
+
     def intersection(self, position, direction, maxDistance) -> (bool, float, Vector):
         wasBelow = None
         startingPointOnSurface = self.z(position.x, position.y)

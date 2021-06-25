@@ -354,10 +354,10 @@ class TestIntersection(envtest.PyTissueTestCase):
         I took a picture of my development, it is in this folder.
         """
         M = 10
-        I = 10000
+        I = 1000
         for i in range(I):
             if (i+1) % M == 0:
-                print("Iteration: {0}/{1}".format(i,I))
+                print("Iteration: {0}/{1}".format(i+1,I))
                 M *= 10
 
             R = 11
@@ -438,6 +438,52 @@ class TestIntersection(envtest.PyTissueTestCase):
                 value = self.f(pt.x, pt.y, R=R, kappa=k)
                 self.assertIsNone(value, msg="{0}".format(t))
 
+
+    def testDomainOfValidityAboveSurfaceWithSurfaceIMplementation(self):        
+        """
+        Given a line, I want to know the values of the parameter t that are such that the value of the surface is defined
+        Said diffirently, I need the domain of validity for t above the surface f(x,y).
+
+        I did this analytically, because it simply means that the value under the square root must be positive.
+        We can replace the x,y from the line into the equation and get an analytical answer.
+        I took a picture of my development, it is in this folder.
+        """
+        M = 10
+        I = 10000
+        for i in range(I):
+            if (i+1) % M == 0:
+                print("Iteration: {0}/{1}".format(i+1,I))
+                M *= 10
+
+            R = 11
+            k = 0.5
+
+            position = self.randomVector()*2*R
+            final = self.randomVector()*2*R
+
+            d = final-position
+            distance = d.abs()
+            direction = d.normalized()
+
+            surface = AsphericSurface(R=R,kappa=k)
+
+            validRange =surface.segmentValidityAboveSurface(position, direction, distance)
+
+            N = 100
+            if validRange is None:
+                # Never valid
+                for t in linspace(0, 1, N, endpoint=True):
+                    pt = self.line(position, d, t)
+                    value = self.f(pt.x, pt.y, R=R, kappa=k)
+                    self.assertIsNone(value, msg="{0}".format(t))
+                continue # Nothing else to validate
+
+            # Our line is really only valid between t=[0,1], so we check
+            # the actual limit of the segment, where f(x,y) must be defined
+            for t in linspace(validRange[0], validRange[1], N, endpoint=True):
+                pt = self.line(position, d, t)
+                value = self.f(pt.x, pt.y, R=R, kappa=k)
+                self.assertIsNotNone(value, msg="{0}".format(t))
 
 
 if __name__ == '__main__':
