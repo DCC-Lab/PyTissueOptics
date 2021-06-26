@@ -167,12 +167,12 @@ class Conic(Surface):
         if diameter > maxDiameter:
             raise ValueError("The surface is not defined up to requested diameter. Requested {0} > {1:.2f}".format(diameter, maxDiameter))
 
+        self.sag = 0
         apex = self.z(x=0, y=0)
         edge = self.z(x=self.halfDiameter, y=0)
-        if apex is None or edge is None:
-            raise ValueError("The surface is not defined up to requested diameter. Requested {0} > {1:.2f}".format(diameter, maxDiameter))
         self.sag = edge-apex
-
+        self.center = Vector(0,0,R-self.sag)
+        
         if normal != zHat and normal != -zHat:
             raise ValueError("Normal can only be along +z or -z") 
 
@@ -319,7 +319,7 @@ class Conic(Surface):
 
             if isnan(value):
                 return None
-            return value
+            return value + self.sag
         except:
             return None
 

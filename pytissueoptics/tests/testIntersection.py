@@ -636,12 +636,12 @@ class TestIntersection(envtest.PyTissueTestCase):
 
     def testNormalSurfaceSphereFromNegativeSide(self):
         R = 10
-        k = 0.5
+        k = 0.2
         surface = Conic(R=R, kappa=k, diameter=abs(R), normal=-zHat)
 
         for i in range (1000):
             position = self.randomNegativeZVector()
-            final = Vector(0,0,R) # center of surface
+            final = surface.center
             d = final-position
             distance = d.abs()
             direction = d.normalized()
@@ -649,16 +649,16 @@ class TestIntersection(envtest.PyTissueTestCase):
             isIntersecting, dToSurface, pointOnSurface = surface.intersection(position, direction, distance)
             if isIntersecting:
                 self.assertAlmostEqual(surface.z(pointOnSurface.x, pointOnSurface.y) - pointOnSurface.z, 0, 4)
-                self.assertAlmostEqual((-direction.dot(surface.normal(position=pointOnSurface))), 1, 4)
+                self.assertAlmostEqual((-direction.dot(surface.normal(position=pointOnSurface))), 1, 2)
 
     def testNormalSurfaceSphereFromPositiveSide(self):
         R = -10
-        k = 0.5
+        k = 0.2
         surface = Conic(R=R, kappa=k, diameter=abs(R), normal=zHat)
 
         for i in range (1000):
             position = self.randomPositiveZVector()
-            final = Vector(0,0,R) # center of surface
+            final = surface.center
             d = final-position
             distance = d.abs()
             direction = d.normalized()
@@ -666,7 +666,7 @@ class TestIntersection(envtest.PyTissueTestCase):
             isIntersecting, dToSurface, pointOnSurface = surface.intersection(position, direction, distance)
             if isIntersecting:
                 self.assertAlmostEqual(surface.z(pointOnSurface.x, pointOnSurface.y) - pointOnSurface.z, 0, 4)
-                self.assertAlmostEqual((direction.dot(surface.normal(position=pointOnSurface))), -1, 4)
+                self.assertAlmostEqual((direction.dot(surface.normal(position=pointOnSurface))), -1, 2)
 
 if __name__ == '__main__':
     envtest.main()
