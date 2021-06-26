@@ -1,7 +1,7 @@
 import envtest  # modifies path
 from pytissueoptics import *
 from numpy import linspace, pi, sqrt, polyfit
-from pytissueoptics.surface import AsphericSurface
+from pytissueoptics.surface import Conic
 import matplotlib.pyplot as plt
 
 inf = float("+inf")
@@ -327,7 +327,7 @@ class TestIntersection(envtest.PyTissueTestCase):
     #             xs.append( t )
         
     # def testAspheric(self):
-    #     surface = AsphericSurface(R=1,kappa=0)
+    #     surface = Conic(R=1,kappa=0)
 
     #     for i in range(100):
     #         position = self.randomNegativeZVector()
@@ -456,7 +456,7 @@ class TestIntersection(envtest.PyTissueTestCase):
                 M *= 10
 
             R = 11
-            k = 0.5
+            k = 0
 
             position = self.randomVector()*2*R
             final = self.randomVector()*2*R
@@ -465,7 +465,7 @@ class TestIntersection(envtest.PyTissueTestCase):
             distance = d.abs()
             direction = d.normalized()
 
-            surface = AsphericSurface(R=R,kappa=k, normal=-zHat)
+            surface = Conic(R=R,kappa=k, diameter=2*R, normal=-zHat)
 
             validRange =surface.segmentValidityAboveSurface(position, direction, distance)
 
@@ -495,8 +495,8 @@ class TestIntersection(envtest.PyTissueTestCase):
                 M *= 10
 
             R = 11
-            k = 0.5
-            surface = AsphericSurface(R=R,kappa=k)
+            k = 0
+            surface = Conic(R=R,kappa=k, diameter=2*R)
 
             position = self.randomVector()*2*R
             final = self.randomVector()*2*R
@@ -551,8 +551,8 @@ class TestIntersection(envtest.PyTissueTestCase):
                 M *= 10
 
             R = 11
-            k = 0.5
-            surface = AsphericSurface(R=R,kappa=k, normal=-zHat)
+            k = 0
+            surface = Conic(R=R,kappa=k, diameter=2*R, normal=-zHat)
 
             position = self.randomVector()*2*R
             final = self.randomVector()*2*R
@@ -612,8 +612,8 @@ class TestIntersection(envtest.PyTissueTestCase):
                 M *= 10
 
             R = 11
-            k = 0.5
-            surface = AsphericSurface(R=R,kappa=k, normal=-zHat)
+            k = 0
+            surface = Conic(R=R,kappa=k, diameter=2*R, normal=-zHat)
 
             position = self.randomVector()*2*R
             final = self.randomVector()*2*R
@@ -629,15 +629,15 @@ class TestIntersection(envtest.PyTissueTestCase):
     def testNormalSurfaceCurved(self):
         R = 15
         k = 0
-        surface = AsphericSurface(R=R,kappa=k, normal=-zHat)
+        surface = Conic(R=R,kappa=k, diameter=2*R, normal=-zHat)
         validRange = surface.segmentValidityAboveSurface(Vector(-10,0,0), Vector(1,0,0), 20)
         for x in linspace(-10,10,100):
             print(x, surface.normal(position=Vector(x,0,0)))
 
-    def testNormalSurfaceSphere(self):
+    def testNormalSurfaceSphereFromNegativeSide(self):
         R = 10
         k = 0.5
-        surface = AsphericSurface(R=R, kappa=k, normal=-zHat)
+        surface = Conic(R=R, kappa=k, diameter=abs(R), normal=-zHat)
 
         for i in range (1000):
             position = self.randomNegativeZVector()
@@ -650,6 +650,23 @@ class TestIntersection(envtest.PyTissueTestCase):
             if isIntersecting:
                 self.assertAlmostEqual(surface.z(pointOnSurface.x, pointOnSurface.y) - pointOnSurface.z, 0, 4)
                 self.assertAlmostEqual((-direction.dot(surface.normal(position=pointOnSurface))), 1, 4)
+
+    def testNormalSurfaceSphereFromPositiveSide(self):
+        R = -10
+        k = 0.5
+        surface = Conic(R=R, kappa=k, diameter=abs(R), normal=zHat)
+
+        for i in range (1000):
+            position = self.randomPositiveZVector()
+            final = Vector(0,0,R) # center of surface
+            d = final-position
+            distance = d.abs()
+            direction = d.normalized()
+
+            isIntersecting, dToSurface, pointOnSurface = surface.intersection(position, direction, distance)
+            if isIntersecting:
+                self.assertAlmostEqual(surface.z(pointOnSurface.x, pointOnSurface.y) - pointOnSurface.z, 0, 4)
+                self.assertAlmostEqual((direction.dot(surface.normal(position=pointOnSurface))), -1, 4)
 
 if __name__ == '__main__':
     envtest.main()

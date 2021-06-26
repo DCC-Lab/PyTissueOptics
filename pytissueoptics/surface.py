@@ -122,7 +122,7 @@ class ZXRect(Surface):
         super(ZXRect, self).__init__(origin, zHat, xHat, yHat, size, description)
 
 
-class AsphericSurface(Surface):
+class Conic(Surface):
     """
     An aspheric dielectric interface of radius R, and a conical factor kappa.
     The plan here is simple: in the paraxial approximation, any conical
@@ -157,10 +157,21 @@ class AsphericSurface(Surface):
     A convex interface from the perspective of the ray has R > 0
     """
 
-    def __init__(self, R, kappa, normal, description=None):
-        super(AsphericSurface, self).__init__(origin=oHat, a=xHat, b=yHat, normal=normal, size=(1,1), description=description)
+    def __init__(self, R, kappa, normal, diameter, description=None):
+        super(Conic, self).__init__(origin=oHat, a=xHat, b=yHat, normal=normal, size=(1,1), description=description)
         self.kappa = kappa
         self.R = R
+        self.halfDiameter = diameter/2.0
+
+        maxDiameter = abs(2*R*sqrt(1/(1+kappa)))
+        if diameter > maxDiameter:
+            raise ValueError("The surface is not defined up to requested diameter. Requested {0} > {1:.2f}".format(diameter, maxDiameter))
+
+        apex = self.z(x=0, y=0)
+        edge = self.z(x=self.halfDiameter, y=0)
+        if apex is None or edge is None:
+            raise ValueError("The surface is not defined up to requested diameter. Requested {0} > {1:.2f}".format(diameter, maxDiameter))
+        self.sag = edge-apex
 
         if normal != zHat and normal != -zHat:
             raise ValueError("Normal can only be along +z or -z") 
@@ -216,8 +227,47 @@ class AsphericSurface(Surface):
 
         return validRange
 
+    def segmentValidityWithinDiameter(self, position, direction, maxDistance):
+        d = direction*maxDistance
+        distance = d.abs()
+        direction = d.normalized()
+
+        (u,v,w) = (d.x, d.y, d.z)
+        (xo, yo, zo) = (position.x, position.y, position.z)
+
+        # quadratic equation domain validity
+        a = u*u+v*v
+        b = (2*xo*u + 2*yo*v)
+        c = (xo*xo + yo*yo - self.halfDiameter*self.halfDiameter)
+
+        delta = b*b-4*a*c
+
+        # Because of roundoff errors, I need to add a small espilon.
+        epsilon = 0.00001
+
+        validRange = [0,1]
+
+        if delta < 0:
+            tMinus = None
+            tPlus = None
+            validRange = None
+        else:
+            # tMinus is always smaller than tPlus
+            tMinus = (-b-sqrt(delta))/2/a
+            tPlus = (-b+sqrt(delta))/2/a
+            
+            if tMinus > 1 or tPlus < 0:
+                validRange = None
+            else:
+                if tMinus > 0:
+                    validRange[0] = tMinus+epsilon
+                if tPlus < 1:
+                    validRange[1] = tPlus-epsilon
+
+        return validRange
+
     def intersection(self, position, direction, maxDistance) -> (bool, float, Vector):
-        validRange = self.segmentValidityAboveSurface(position, direction, maxDistance)
+        validRange = self.segmentValidityWithinDiameter(position, direction, maxDistance)
         if validRange is None:
             return (False, None, None)
         tMin, tMax = validRange
@@ -233,7 +283,7 @@ class AsphericSurface(Surface):
         t = tMin
         while abs(delta) > 0.000000001:
             # We have not crossed yet but we have reach the limit of validity, we will never cross
-            if t == tMax:
+            if t == tMax :
                 return (False, None, None)
 
             t += delta
