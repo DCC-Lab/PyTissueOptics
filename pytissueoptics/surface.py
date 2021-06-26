@@ -300,8 +300,8 @@ class AsphericSurface(Surface):
         if self.z(x, y) is None:
             return None, None
 
-        dy1 = 0.000001
-        dy2 = 0.000001
+        dy1 = 1e-14
+        dy2 = 1e-14
         z1 = self.z(x, y+dy1)
         if z1 is None:
             dy1 = 0
@@ -326,8 +326,8 @@ class AsphericSurface(Surface):
         if self.z(x, y) is None:
             return None, None
 
-        dx1 = 0.000001
-        dx2 = 0.000001
+        dx1 = 1e-14
+        dx2 = 1e-14
         z1 = self.z(x+dx1, y)
         if z1 is None:
             dx1 = 0

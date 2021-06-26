@@ -625,13 +625,31 @@ class TestIntersection(envtest.PyTissueTestCase):
             if isIntersecting:
                 self.assertAlmostEqual(surface.z(pointOnSurface.x, pointOnSurface.y) - pointOnSurface.z, 0, 4)
 
+    @envtest.skip("")
     def testNormalSurfaceCurved(self):
         R = 15
-        k = 0.5
+        k = 0
         surface = AsphericSurface(R=R,kappa=k, normal=-zHat)
         validRange = surface.segmentValidityAboveSurface(Vector(-10,0,0), Vector(1,0,0), 20)
         for x in linspace(-10,10,100):
             print(x, surface.normal(position=Vector(x,0,0)))
+
+    def testNormalSurfaceSphere(self):
+        R = 10
+        k = 0.5
+        surface = AsphericSurface(R=R, kappa=k, normal=-zHat)
+
+        for i in range (1000):
+            position = self.randomNegativeZVector()
+            final = Vector(0,0,R) # center of surface
+            d = final-position
+            distance = d.abs()
+            direction = d.normalized()
+
+            isIntersecting, dToSurface, pointOnSurface = surface.intersection(position, direction, distance)
+            if isIntersecting:
+                self.assertAlmostEqual(surface.z(pointOnSurface.x, pointOnSurface.y) - pointOnSurface.z, 0, 4)
+                self.assertAlmostEqual((-direction.dot(surface.normal(position=pointOnSurface))), 1, 4)
 
 if __name__ == '__main__':
     envtest.main()
