@@ -1,10 +1,23 @@
+# append module root directory to sys.path
 import sys
 import os
+sys.path.insert(0,
+                os.path.dirname(
+                    os.path.dirname(
+                        os.path.dirname(
+                            os.path.abspath(__file__)
+                        )
+                    )
+                )
+                )
+
 import io
 from contextlib import redirect_stdout
 import unittest
 import tempfile
 import matplotlib.pyplot as plt
+import random
+from pytissueoptics.vector import Vector
 
 
 class PyTissueTestCase(unittest.TestCase):
@@ -42,6 +55,47 @@ class PyTissueTestCase(unittest.TestCase):
         if stripOutput:
             value = value.strip()
         self.assertEqual(value, out)
+
+    def randomVector(self):
+        x = random.random()*2-1
+        y = random.random()*2-1
+        z = random.random()*2-1
+        return Vector(x,y,z)
+
+    def randomUnitVector(self):
+        x = random.random()*2-1
+        y = random.random()*2-1
+        z = random.random()*2-1
+        return Vector(x,y,z).normalized()
+
+    def randomPositiveZVector(self):
+        x = random.random()*2-1
+        y = random.random()*2-1
+        z = random.random()*2
+        return Vector(x,y,z)
+
+    def randomNegativeZVector(self):
+        x = random.random()*2-1
+        y = random.random()*2-1
+        z = -random.random()*2
+        return Vector(x,y,z)
+
+    def randomVectors(self, N):
+        vectors = []
+        for i in range(N):
+            x = random.random()*2-1
+            y = random.random()*2-1
+            z = random.random()*2-1
+            vectors.append( Vector(x,y,z) )
+
+    def randomUnitVectors(self, N):
+        vectors = []
+        for i in range(N):
+            x = random.random()*2-1
+            y = random.random()*2-1
+            z = random.random()*2-1
+            vectors.append( UnitVector(x,y,z) )
+
 
 
     @classmethod
@@ -107,13 +161,3 @@ def expectedFailure(func):
     return unittest.expectedFailure(func)
 
 
-# append module root directory to sys.path
-sys.path.insert(0,
-                os.path.dirname(
-                    os.path.dirname(
-                        os.path.dirname(
-                            os.path.abspath(__file__)
-                        )
-                    )
-                )
-                )

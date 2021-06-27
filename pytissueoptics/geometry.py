@@ -350,16 +350,18 @@ class SemiInfiniteLayer(Geometry):
         return None
 
 
-# class Sphere(Geometry):
-#     def __init__(self, radius, material, stats=None, label="Sphere"):
-#         super(Sphere, self).__init__(position, material, stats, label)
-#         self.radius = radius
+class Sphere(Geometry):
+    def __init__(self, radius, material, stats=None, label="Sphere"):
+        super(Sphere, self).__init__(material, stats, label)
+        self.radius = radius
+        self.surfaces = [ Conic(R=radius, kappa=0, normal=-zHat, diameter=2*radius, description="Front"),
+                          Conic(R=-radius, kappa=0, normal=zHat, diameter=2*radius, description="Back")]
 
-#     def contains(self, localPosition) -> bool:
-#         if localPosition.abs() > self.radius + self.epsilon:
-#             return False
+    def contains(self, localPosition) -> bool:
+        if localPosition.x*localPosition.x+localPosition.y*localPosition.y > self.radius*self.radius:
+            return False
 
-#         return True
+        return True
 
 class KleinBottle(Geometry):
     def __init__(self, position, material, stats=None):

@@ -172,19 +172,20 @@ class Conic(Surface):
         edge = self.z(x=self.halfDiameter, y=0)
         self.sag = edge-apex
         self.center = Vector(0,0,R-self.sag)
-        
+
         if normal != zHat and normal != -zHat:
             raise ValueError("Normal can only be along +z or -z") 
 
     def contains(self, position, epsilon=0.001) -> (bool, float, float):
         local = position - self.origin
-        x = local.x
-        y = local.y
-        z = local.z
 
-        zSurface = self.z(x,y)
-        if abs(zSurface - z) < 1e-4:
-            return True, x, y
+        if local.x*local.x+local.y*local.y > self.halfDiameter*self.halfDiameter:
+            return False, None, None
+
+        zSurface = self.z(local.x,local.y)
+
+        if abs(zSurface - local.z) < epsilon:
+            return True, local.x, local.y
         else:
             return False, None, None
 
@@ -311,15 +312,17 @@ class Conic(Surface):
 
         Obtained from https://en.wikipedia.org/wiki/Aspheric_lens
 
-        The apex is at z=0
         """
         try:
             r2 = x*x+y*y
-            value =  r2/(self.R*(1+sqrt(1-(1+self.kappa)*r2/self.R/self.R)))
+            if r2 <= self.halfDiameter*self.halfDiameter:
+                value =  r2/(self.R*(1+sqrt(1-(1+self.kappa)*r2/self.R/self.R)))
+            else:
+                return None                
 
             if isnan(value):
                 return None
-            return value + self.sag
+            return value - self.sag
         except:
             return None
 

@@ -162,40 +162,6 @@ class TestIntersection(envtest.PyTissueTestCase):
         else:
             return (False, None, None)
 
-    def randomVector(self):
-        x = random.random()*2-1
-        y = random.random()*2-1
-        z = random.random()*2-1
-        return Vector(x,y,z)
-
-    def randomPositiveZVector(self):
-        x = random.random()*2-1
-        y = random.random()*2-1
-        z = random.random()*2
-        return Vector(x,y,z)
-
-    def randomNegativeZVector(self):
-        x = random.random()*2-1
-        y = random.random()*2-1
-        z = -random.random()*2
-        return Vector(x,y,z)
-
-    def randomVectors(self, N):
-        vectors = []
-        for i in range(N):
-            x = random.random()*2-1
-            y = random.random()*2-1
-            z = random.random()*2-1
-            vectors.append( Vector(x,y,z) )
-
-    def randomUnitVectors(self, N):
-        vectors = []
-        for i in range(N):
-            x = random.random()*2-1
-            y = random.random()*2-1
-            z = random.random()*2-1
-            vectors.append( UnitVector(x,y,z) )
-
     # def testRandomIntersectionPoint(self):
     #     for i in range(100):
 
@@ -667,6 +633,16 @@ class TestIntersection(envtest.PyTissueTestCase):
             if isIntersecting:
                 self.assertAlmostEqual(surface.z(pointOnSurface.x, pointOnSurface.y) - pointOnSurface.z, 0, 4)
                 self.assertAlmostEqual((direction.dot(surface.normal(position=pointOnSurface))), -1, 2)
+
+    def testSurfaceContains(self):
+        R = 1
+        k = 0
+        surface = Conic(R=R, kappa=k, diameter=abs(R)*2, normal=-zHat)
+        self.assertEqual(surface.origin, oHat)
+        for i in range (1000):
+            position = self.randomNegativeZVector().normalized()
+            isOnSurface, x,y = surface.contains(position)
+            self.assertTrue(isOnSurface)
 
 if __name__ == '__main__':
     envtest.main()
