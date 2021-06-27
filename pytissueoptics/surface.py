@@ -23,7 +23,7 @@ class Surface:
     def contains(self, position, epsilon=0.001) -> (bool, float, float):
         # Convert to position in surface coordinates
         local = position - self.origin
-        if abs(local.normalizedDotProduct(self.normal)) < epsilon:
+        if abs(local.normalizedDotProduct(self.normal(position))) < epsilon:
             # We're in the plane of the surface element
             # Compute u,v coordinates
             u = local.dot(self.a)
@@ -40,24 +40,24 @@ class Surface:
 
         return False, None, None
 
-    def intersection(self, position, direction, maxDistance) -> (bool, float):
+    def intersection(self, position, direction, maxDistance) -> (bool, float, Vector):
         # This function is not as efficient as the Geometry implementation
         # So we don't really use it, but it is still available
         # https://en.wikipedia.org/wiki/Line–plane_intersection
 
-        dotProduct = direction.dot(self.normal)
+        dotProduct = direction.dot(self.normal())
         if dotProduct == 0:
-            return False, maxDistance
+            return False, maxDistance, None
 
-        d = (self.origin - position).dot(self.normal) / dotProduct
+        d = (self.origin - position).dot(self.normal()) / dotProduct
         if 0 <= d <= maxDistance:
             inPlane = (position - self.origin) + d * direction
             if self.contains(inPlane):
-                return True, d
+                return True, d, inPlane
             else:
-                return False, maxDistance
+                return False, maxDistance, None
         else:
-            return False, maxDistance
+            return False, maxDistance, None
 
     def totalWeightCrossing(self):
         weights = []
@@ -68,13 +68,13 @@ class Surface:
         return sum(weights)
 
     def __repr__(self):
-        return "'{0}' normal:{1}".format(self.description, self.normal)
+        return "'{0}' normal:{1}".format(self.description, self.normal())
 
     def __str__(self):
-        return "{0}".format(self.description, self.normal)
+        return "{0}".format(self.description, self.normal())
 
     def __neg__(self):
-        s = Surface(Vector(self.origin), Vector(self.b), Vector(self.a), -Vector(self.normal), self.size)
+        s = Surface(Vector(self.origin), Vector(self.b), Vector(self.a), -Vector(self.normal()), self.size)
         s.description = self.description
         return s
 
@@ -275,6 +275,9 @@ class Conic(Surface):
 
         current = position + tMin * direction * maxDistance
         surfaceHeightAtStart = self.z(current.x, current.y)
+        if surfaceHeightAtStart is None: #FIXME: should not happen
+            return (False, None, None)
+
         wasBelow = current.z < surfaceHeightAtStart
 
         if wasBelow is False:
@@ -327,6 +330,9 @@ class Conic(Surface):
             return None
 
     def normal(self, position=None):
+        if position is None:
+            return self._normal
+
         dz, dx = self.dzdx(position.x, position.y)
         if dz is None:
             return None
@@ -404,14 +410,14 @@ class FresnelIntersect:
 
         # assert(self.surface.indexOutside != self.surface.indexInside)
 
-        if direction.dot(surface.normal) < 0:
+        if direction.dot(surface.normal()) < 0:
             # We are going towards inside of the object
-            self.actualNormal = -self.surface.normal
+            self.actualNormal = -self.surface.normal()
             self.indexIn = self.surface.indexOutside
             self.indexOut = self.surface.indexInside
         else:
             # We are going towards outside of the object
-            self.actualNormal = self.surface.normal
+            self.actualNormal = self.surface.normal()
             self.indexIn = self.surface.indexInside
             self.indexOut = self.surface.indexOutside
 

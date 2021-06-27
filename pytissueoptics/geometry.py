@@ -125,13 +125,13 @@ class Geometry:
 
         finalPosition = Vector.fromScaledSum(position, direction, distance)
         if self.contains(finalPosition):
-            return distance, None
+            return None
 
         # At this point, we know we will cross an interface: position is inside
         # finalPosition is outside.
         wasInside = True
         finalPosition = Vector(position)  # Copy
-        delta = 0.5 * distance
+        delta = 0.1
 
         while abs(delta) > 0.00001:
             finalPosition += delta * direction
@@ -143,12 +143,16 @@ class Geometry:
             wasInside = isInside
 
         for surface in self.surfaces:
-            if surface.normal.dot(direction) > 0:
+            surfaceNormal = surface.normal(finalPosition)
+            if surfaceNormal is None:
+                return None
+
+            if surfaceNormal.dot(direction) > 0:
                 if surface.contains(finalPosition):
                     distanceToSurface = (finalPosition - position).abs()
                     return FresnelIntersect(direction, surface, distanceToSurface)
 
-        return distance, None
+        return None
 
     def nextEntranceInterface(self, position, direction, distance) -> FresnelIntersect:
         """ Is this line segment from position to distance*direction crossing
@@ -165,11 +169,13 @@ class Geometry:
         minDistance = distance
         intersectSurface = None
         for surface in self.surfaces:
-            if direction.dot(surface.normal) >= 0:
-                # Parallel or outward, does not apply
+            surfaceNormal = surface.normal()
+            if surfaceNormal is None:
+                continue
+            elif surfaceNormal.dot(direction) > 0:
                 continue
             # Going inward, against surface normal
-            isIntersecting, distanceToSurface = surface.intersection(position, direction, distance)
+            isIntersecting, distanceToSurface, positionOnSurface = surface.intersection(position, direction, distance)
             if isIntersecting and distanceToSurface < minDistance:
                 intersectSurface = surface
                 minDistance = distanceToSurface
@@ -356,12 +362,28 @@ class Sphere(Geometry):
         self.radius = radius
         self.surfaces = [ Conic(R=radius, kappa=0, normal=-zHat, diameter=2*radius, description="Front"),
                           Conic(R=-radius, kappa=0, normal=zHat, diameter=2*radius, description="Back")]
+        self.center = ConstVector(0,0,0)
 
     def contains(self, localPosition) -> bool:
         if localPosition.x*localPosition.x+localPosition.y*localPosition.y > self.radius*self.radius:
             return False
 
         return True
+
+    def nextExitInterface(self, position, direction, distance) -> FresnelIntersect:
+        """ Is this line segment from position to distance*direction leaving
+        the object through any surface elements? Valid only from inside the object.
+        
+        """
+
+        for surface in self.surfaces:
+            isIntersecting, distanceToSurface, pointOnSurface = surface.intersection(position, direction, distance)
+
+            if isIntersecting:
+                return FresnelIntersect(direction, surface, distanceToSurface)
+
+        return None
+
 
 class KleinBottle(Geometry):
     def __init__(self, position, material, stats=None):

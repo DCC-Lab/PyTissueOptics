@@ -3,6 +3,7 @@ from .detector import *
 
 
 class World:
+    skipGeometryValidation = True
     def __init__(self):
         self.geometries = set()
         self.sources = set()
@@ -101,7 +102,8 @@ class World:
                 surface.indexInside = geometry.material.index
                 surface.indexOutside = 1.0  # Index outside
             try:
-                geometry.validateGeometrySurfaceNormals()
+                if not World.skipGeometryValidation:
+                    geometry.validateGeometrySurfaceNormals()
             except Exception as err:
                 print("The geometry {0} appears invalid. Advancing cautiously.".format(geometry, err))
 
