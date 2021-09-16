@@ -435,6 +435,23 @@ class NumpyVectors:
     def isInPlane(self, origin: 'Vector', normal: 'Vector', epsilon=0.001):
         pass
 
+    def addScaled(self, other, scale):
+        ux = other.v[:, 0]
+        uy = other.v[:, 1]
+        uz = other.v[:, 2]
+
+        X = self.v[:, 0]
+        Y = self.v[:, 1]
+        Z = self.v[:, 2]
+
+        x = X + ux
+        y = Y + uy
+        z = Z + uz
+
+        self.v = np.stack((x, y, z), axis=-1)
+
+        return self
+
     def norm(self):
         return NumpyScalars(np.linalg.norm(self.v, axis=1))
 
