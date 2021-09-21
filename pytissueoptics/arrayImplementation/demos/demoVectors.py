@@ -1,4 +1,4 @@
-from pytissueoptics import *
+from pytissueoptics.arrayImplementation.vectors import *
 from time import time_ns
 
 

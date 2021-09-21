@@ -349,6 +349,21 @@ class NumpyVectors:
         return result
 
     @property
+    def x(self):
+        x = self.v[:, 0]
+        return x
+
+    @property
+    def y(self):
+        y = self.v[:, 1]
+        return y
+
+    @property
+    def z(self):
+        z = self.v[:, 2]
+        return z
+
+    @property
     def isUnitary(self):
         return np.less(np.abs(np.linalg.norm(self.v, axis=1))-1, 1e-9)
 

@@ -1,5 +1,6 @@
-from arrayImplementation.vectors import *
-from arrayImplementation.scalars import *
+from arrayImplementation.vectors import Vectors
+from arrayImplementation.scalars import Scalars
+import numpy as np
 
 
 class Photons:
@@ -37,5 +38,16 @@ class Photons:
         self.weight -= delta
         if self.weight < 0:
             self.weight = 0
+
+    def roulette(self):
+        chance = 0.1
+        rouletteMask = (self.weight <= 1e-4)
+        photonsKillMask = Scalars().random(self.N) > chance
+        photonsKillMask = rouletteMask.logical_and(photonsKillMask)
+        self.removePhotonsWeights(photonsKillMask)
+
+    def removePhotonsWeights(self, killMask):
+        self.weight = self.weight * ~killMask
+
 
 
