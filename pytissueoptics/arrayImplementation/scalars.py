@@ -111,12 +111,15 @@ class NumpyScalars:
             else:
                 self.v = np.asarray(array, dtype=np.float64)
         elif N is not None:
-            self.v = np.zeros((1, N), dtype=np.float64)
+            self.v = np.zeros((N), dtype=np.float64)
 
         self._iteration = 0
 
+    def __repr__(self):
+        return str(self.v)
+
     def __len__(self):
-        return self.v.shape[1]
+        return self.v.shape[0]
 
     def __add__(self, other):
         if isinstance(other, NumpyScalars):
@@ -200,7 +203,7 @@ class NumpyScalars:
 
     def __next__(self):
         if self._iteration < len(self):
-            result = self.v[:, self._iteration]
+            result = self.v[self._iteration]
             self._iteration += 1
             return result
         else:
@@ -212,8 +215,56 @@ class NumpyScalars:
         else:
             return False
 
+    def __or__(self, other):
+        return self.logical_or(other)
+
     def logical_and(self, other):
-        return NumpyScalars(np.logical_and(self.v, other.v))
+        if isinstance(other, NumpyScalars):
+            return NumpyScalars(np.logical_and(self.v, other.v))
+
+    def logical_or(self, other):
+        if isinstance(other, NumpyScalars):
+            return NumpyScalars(np.logical_or(self.v, other.v))
+
+    def logical_xor(self, other):
+        if isinstance(other, NumpyScalars):
+            return NumpyScalars(np.logical_xor(self.v, other.v))
+
+    def conditional_le(self, other, a, b):
+        if isinstance(other, NumpyScalars):
+            pass
+        elif type(other) in (int, float):
+            return NumpyScalars(np.where(self.v <= other, a, b))
+
+    def conditional_lt(self, other, a, b):
+        if isinstance(other, NumpyScalars):
+            pass
+        elif type(other) in (int, float):
+            return NumpyScalars(np.where(self.v < other, a, b))
+
+    def conditional_gt(self, other, a, b):
+        if isinstance(other, NumpyScalars):
+            pass
+        elif type(other) in (int, float):
+            return NumpyScalars(np.where(self.v > other, a, b))
+
+    def conditional_ge(self, other, a, b):
+        if isinstance(other, NumpyScalars):
+            pass
+        elif type(other) in (int, float):
+            return NumpyScalars(np.where(self.v >= other, a, b))
+
+    def conditional_eq(self, other, a, b):
+        if isinstance(other, NumpyScalars):
+            pass
+        elif type(other) in (int, float):
+            return NumpyScalars(np.where(self.v == other, a, b))
+
+    def conditional_neq(self, other, a, b):
+        if isinstance(other, NumpyScalars):
+            pass
+        elif type(other) in (int, float):
+            return NumpyScalars(np.where(self.v != other, a, b))
 
     @classmethod
     def setAll(cls, value, N):
@@ -235,15 +286,8 @@ class NumpyScalars:
         else:
             return NumpyScalars(np.less_equal(np.abs(np.subtract(self.v, other)), 1e-9))
 
-    def condition(self, condition, value, a="same", b="same"):
-        if condition == ">=":
-            np.where(self.v >= value,)
-        elif condition == "==":
-            pass
-        elif condition == "<=":
-            pass
-        elif condition == "!=":
-            pass
+    def all(self):
+        return np.all(self.v)
 
 
 class CupyScalars:

@@ -85,17 +85,17 @@ class Stats:
         N = self.photonCount
         print('{0:.1f} s for {2} photons, {1:.1f} ms per photon'.format(elapsed, elapsed / N * 1000, N))
 
-    def scoreInVolume(self, photon, delta):
+    def scoreInVolume(self, photons, deltas):
         if self.globalVolumeStats:
-            self.volume.append((Vector(photon.globalPosition), delta))
-            position = photon.globalPosition
+            self.volume.append(photons.globalPosition, deltas)
+            positions = photons.globalPosition
         else:
-            self.volume.append((Vector(photon.r), delta))
-            position = photon.r
+            self.volume.append(photons.r, deltas)
+            positions = photons.r
 
-        i = int(self.binSizes[0] * (position.x - self.min[0]) + 0.5)
-        j = int(self.binSizes[1] * (position.y - self.min[1]) + 0.5)
-        k = int(self.binSizes[2] * (position.z - self.min[2]) + 0.5)
+        i = int(((positions.x - self.min[0]) * self.binSizes[0]) + 0.5)
+        j = int(((positions.y - self.min[1]) * self.binSizes[1]) + 0.5)
+        k = int(((positions.z - self.min[2]) * self.binSizes[2]) + 0.5)
 
         if self.opaqueBoundaries:
             if i < 0:

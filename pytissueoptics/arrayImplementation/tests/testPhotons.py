@@ -17,7 +17,7 @@ class TestPhotons(unittest.TestCase):
         """For test purposes, we cannot test with random values. The logic is the same than in the Photon class."""
         self.photons.weight[0:499] = 1e-6
         weightTooLowMask = self.photons.weight <= 1e-4
-        photonsKillMask = Scalars([False]*self.photons.N) == True
+        photonsKillMask = Scalars([False]*self.photons.N)
         photonsKillMask[250:750] = True
         photonsKillMask = weightTooLowMask.logical_and(photonsKillMask)
         self.photons.removePhotonsWeights(photonsKillMask)

@@ -12,6 +12,15 @@ class Photons:
         self.wavelength = None
         self.weight = Scalars([1]*self.N)
         self.path = None
+        self.origin = Vectors([0, 0, 0]*self.N)
+
+    @property
+    def localPosition(self):
+        return self.r
+
+    @property
+    def globalPosition(self):
+        return self.r + self.origin
 
     @property
     def el(self):
@@ -48,6 +57,16 @@ class Photons:
 
     def removePhotonsWeights(self, killMask):
         self.weight = self.weight * ~killMask
+
+    def deflect(self):
+        pass
+
+    def reflect(self):
+        pass
+
+    def refract(self):
+        pass
+
 
 
 
