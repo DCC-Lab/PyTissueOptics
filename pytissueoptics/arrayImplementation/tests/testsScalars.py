@@ -351,6 +351,18 @@ class TestScalars(unittest.TestCase):
         with self.subTest("OpenclScalar"):
             pass
 
+    def testScalarsToIntegers(self):
+        with self.subTest("NumpyScalar"):
+            s = NumpyScalars([1.2, 0.6, 1.5, 0.9])
+            g = s.toIntegers()
+            self.assertTrue(np.all(np.equal(g.v, [1, 0, 1, 0])))
+
+        with self.subTest("CupyScalar"):
+            pass
+
+        with self.subTest("OpenclScalar"):
+            pass
+
     def testScalarsLogical_and(self):
         with self.subTest("NumpyScalar"):
             s = NumpyScalars([1, 0, 1, 0])

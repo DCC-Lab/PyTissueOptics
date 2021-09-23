@@ -320,6 +320,10 @@ class NumpyScalars:
     def isBool(self):
         return np.all(np.array_equal(self.v, self.v.astype(bool)))
 
+    def toIntegers(self):
+        return NumpyScalars(self.v.astype(np.int32))
+
+
 class CupyScalars:
     def __init__(self, array=None, N=None):
         if array is not None:

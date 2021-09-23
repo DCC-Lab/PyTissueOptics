@@ -93,15 +93,13 @@ class Stats:
             self.volume.append(photons.r, deltas)
             positions = photons.r
 
-        i = int(((positions.x - self.min[0]) * self.binSizes[0]) + 0.5)
-        j = int(((positions.y - self.min[1]) * self.binSizes[1]) + 0.5)
-        k = int(((positions.z - self.min[2]) * self.binSizes[2]) + 0.5)
+        i = (((positions.x - self.min[0]) * self.binSizes[0]) + 0.5).toIntegers()
+        j = (((positions.y - self.min[1]) * self.binSizes[1]) + 0.5).toIntegers()
+        k = (((positions.z - self.min[2]) * self.binSizes[2]) + 0.5).toIntegers()
 
         if self.opaqueBoundaries:
-            if i < 0:
-                i = 0
-            if i > self.size[0] - 1:
-                i = self.size[0] - 1
+            i = i.conditional_lt(0, 0, i)
+            i = i.conditional_gt(self.size[0] - 1, self.size[0] - 1, i)
 
             if j < 0:
                 j = 0
