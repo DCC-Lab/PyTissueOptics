@@ -124,28 +124,43 @@ class NumpyScalars:
     def __add__(self, other):
         if isinstance(other, NumpyScalars):
             return NumpyScalars(np.add(self.v, other.v))
+        elif isinstance(other, vc.NumpyVectors):
+            return ArithmeticError
         else:
             return NumpyScalars(np.add(self.v, other))
 
     def __sub__(self, other):
         if isinstance(other, NumpyScalars):
             return NumpyScalars(np.subtract(self.v, other.v))
-        else:
+        elif isinstance(other, vc.NumpyVectors):
+            return ArithmeticError
+        elif type(other) in (float, int):
             return NumpyScalars(np.subtract(self.v, other))
 
     def __mul__(self, other):
         if isinstance(other, NumpyScalars):
-            return NumpyScalars(np.multiply(self.v, other.v))
+            if len(self) == len(other):
+                return NumpyScalars(np.multiply(self.v, other.v))
         elif isinstance(other, vc.NumpyVectors):
-            return NumpyScalars(np.multiply(self.v[:, None], other.v))
-        else:
+            if len(self) == len(other):
+                return vc.NumpyVectors(np.multiply(self.v[:, None], other.v))
+        elif type(other) in (float, int):
+            return NumpyScalars(np.multiply(self.v, other))
+
+    def __rmul__(self, other):
+        if isinstance(other, NumpyScalars):
+            if len(self) == len(other):
+                return NumpyScalars(np.multiply(self.v, other.v))
+        elif isinstance(other, vc.NumpyVectors):
+            return ArithmeticError
+        elif type(other) in (float, int):
             return NumpyScalars(np.multiply(self.v, other))
 
     def __truediv__(self, other):
         if isinstance(other, NumpyScalars):
             return NumpyScalars(np.true_divide(self.v, other.v))
         elif isinstance(other, vc.NumpyVectors):
-            return NumpyScalars(np.multiply(self.v[:, None], other.v))
+            return ArithmeticError
         else:
             return NumpyScalars(np.true_divide(self.v, other))
 
@@ -156,7 +171,7 @@ class NumpyScalars:
         return NumpyScalars(np.logical_not(self.v))
 
     def __getitem__(self, item):
-        return self.v[item]
+        return NumpyScalars(self.v[item])
 
     def __setitem__(self, key, value: np.float32):
         self.v[key] = value
@@ -322,7 +337,7 @@ class CupyScalars:
     def __mul__(self, other):
         if isinstance(other, CupyScalars):
             return CupyScalars(cp.multiply(self.v, other.v))
-        elif isinstance(other, vc.CupyVectors):
+        elif isinstance(other, CupyVectors):
             return CupyScalars(cp.multiply(self.v[:, None], other.v))
         else:
             return CupyScalars(cp.multiply(self.v, other))
@@ -330,7 +345,7 @@ class CupyScalars:
     def __truediv__(self, other):
         if isinstance(other, CupyScalars):
             return CupyScalars(cp.true_divide(self.v, other.v))
-        elif isinstance(other, vc.CupyVectors):
+        elif isinstance(other, CupyVectors):
             return CupyScalars(cp.multiply(self.v[:, None], other.v))
         else:
             return CupyScalars(cp.true_divide(self.v, other))

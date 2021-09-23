@@ -1,5 +1,6 @@
 import unittest
 from arrayImplementation.scalars import *
+from arrayImplementation.vectors import *
 
 
 class TestScalars(unittest.TestCase):
@@ -37,15 +38,22 @@ class TestScalars(unittest.TestCase):
 
     def testScalarsAdd(self):
         with self.subTest("NumpyScalar"):
-            s1 = NumpyScalars([1]*1000)
-            s2 = NumpyScalars([2]*1000)
-            sf = s1 + s2
-            self.assertTrue(np.all(np.equal(sf, 3)))
+            with self.subTest("with Scalars"):
+                s1 = NumpyScalars([1]*1000)
+                s2 = NumpyScalars([2]*1000)
+                sf = s1 + s2
+                self.assertTrue(np.all(np.equal(sf, 3)))
 
-            s1 = NumpyScalars([1, 2, 3])
-            s2 = NumpyScalars([3, 4, 5])
-            sf = s1 + s2
-            self.assertTrue(np.all(np.equal(sf, [4, 6, 8])))
+                s1 = NumpyScalars([1, 2, 3])
+                s2 = NumpyScalars([3, 4, 5])
+                sf = s1 + s2
+                self.assertTrue(np.all(np.equal(sf, [4, 6, 8])))
+
+            with self.subTest("with Vectors"):
+                s1 = NumpyScalars([1, 2, 3])
+                s2 = NumpyVectors([[1, 1, 1], [2, 2, 2], [3, 3, 3]])
+                sf = s1 - s2
+                self.assertEqual(sf, ArithmeticError)
 
         with self.subTest("CupyScalar"):
             pass
@@ -55,20 +63,27 @@ class TestScalars(unittest.TestCase):
 
     def testScalarsSubtract(self):
         with self.subTest("NumpyScalar"):
-            s1 = NumpyScalars([1]*1000)
-            s2 = NumpyScalars([2]*1000)
-            sf = s1 - s2
-            self.assertTrue(np.all(np.equal(sf, -1)))
+            with self.subTest("with Scalars"):
+                s1 = NumpyScalars([1]*1000)
+                s2 = NumpyScalars([2]*1000)
+                sf = s1 - s2
+                self.assertTrue(np.all(np.equal(sf, -1)))
 
-            s1 = NumpyScalars([1, 2, 3])
-            s2 = NumpyScalars([3, 4, 3])
-            sf = s1 - s2
-            self.assertTrue(np.all(np.equal(sf, [-2, -2, 0])))
+                s1 = NumpyScalars([1, 2, 3])
+                s2 = NumpyScalars([3, 4, 3])
+                sf = s1 - s2
+                self.assertTrue(np.all(np.equal(sf, [-2, -2, 0])))
 
-            s1 = NumpyScalars([1, 2, 3])
-            s2 = 1
-            sf = s1 - s2
-            self.assertTrue(np.all(np.equal(sf, [0, 1, 2])))
+                s1 = NumpyScalars([1, 2, 3])
+                s2 = 1
+                sf = s1 - s2
+                self.assertTrue(np.all(np.equal(sf, [0, 1, 2])))
+
+            with self.subTest("with Vectors"):
+                s1 = NumpyScalars([1, 2, 3])
+                s2 = NumpyVectors([[1, 1, 1], [2, 2, 2], [3, 3, 3]])
+                sf = s1 - s2
+                self.assertEqual(sf, ArithmeticError)
 
         with self.subTest("CupyScalar"):
             pass
@@ -96,9 +111,13 @@ class TestScalars(unittest.TestCase):
 
             with self.subTest("with Vectors"):
                 s1 = NumpyScalars([1, 2, 3])
-                s2 = NumpyScalars([3, 4, 5])
+                s2 = NumpyVectors([[1, 1, 1], [2, 2, 2], [3, 3, 3]])
                 sf = s1 * s2
-                self.assertTrue(np.all(np.equal(sf, [3, 8, 15])))
+                self.assertTrue(isinstance(sf, NumpyVectors))
+                self.assertTrue(np.all(np.equal(sf.v, [[1, 1, 1], [4, 4, 4], [9, 9, 9]])))
+
+                sf = s2*s1
+                self.assertEqual(sf, ArithmeticError)
 
         with self.subTest("CupyScalar"):
             pass
@@ -106,22 +125,95 @@ class TestScalars(unittest.TestCase):
         with self.subTest("OpenclScalar"):
             pass
 
-    def testScalarsTruediv(self):
+    def testScalarsTrueDiv(self):
         with self.subTest("NumpyScalar"):
-            s1 = NumpyScalars([2]*1000)
-            s2 = NumpyScalars([2]*1000)
-            sf = s1 * s2
-            self.assertTrue(np.all(np.equal(sf, 4)))
+            with self.subTest("with Scalars"):
+                s1 = NumpyScalars([2]*1000)
+                s2 = NumpyScalars([2]*1000)
+                sf = s1 / s2
+                self.assertTrue(np.all(np.equal(sf, 1)))
 
-            s1 = NumpyScalars([1, 2, 3])
-            s2 = NumpyScalars([3, 4, 5])
-            sf = s1 * s2
-            self.assertTrue(np.all(np.equal(sf, [3, 8, 15])))
+                s1 = NumpyScalars([1, 2, 3])
+                s2 = NumpyScalars([3, 4, 5])
+                sf = s1 / s2
+                self.assertTrue(np.all(np.equal(sf, [1/3, 2/4, 3/5])))
 
-            s1 = NumpyScalars([1, 2, 3])
-            s2 = 2
-            sf = s1 * s2
-            self.assertTrue(np.all(np.equal(sf, [2, 4, 6])))
+                s1 = NumpyScalars([1, 2, 3])
+                s2 = 2
+                sf = s1 / s2
+                self.assertTrue(np.all(np.equal(sf, [1/2, 1, 3/2])))
+
+            with self.subTest("with Vectors"):
+                s1 = NumpyScalars([1, 2, 3])
+                s2 = NumpyVectors([[1, 1, 1], [2, 2, 2], [3, 3, 3]])
+                sf = s1 / s2
+                self.assertEqual(sf, ArithmeticError)
+
+        with self.subTest("CupyScalar"):
+            pass
+
+        with self.subTest("OpenclScalar"):
+            pass
+
+    def testScalarsNeg(self):
+        with self.subTest("NumpyScalar"):
+            with self.subTest("with Scalars"):
+                s1 = NumpyScalars([2] * 1000)
+                s2 = NumpyScalars([-2] * 1000)
+                s1 = -s1
+                self.assertTrue(np.all(np.equal(s1, s2)))
+
+                s1 = NumpyScalars([1] * 1000)
+                s2 = NumpyScalars([0] * 1000)
+                s1 = -s1
+                self.assertFalse(np.all(np.equal(s1, s2)))
+
+        with self.subTest("CupyScalar"):
+            pass
+
+        with self.subTest("OpenclScalar"):
+            pass
+
+    def testScalarsInvert(self):
+        with self.subTest("NumpyScalar"):
+            s = NumpyScalars([0]*1000)
+            self.assertFalse(s.all())
+            s = ~s
+            self.assertTrue(s.all())
+
+        with self.subTest("CupyScalar"):
+            pass
+
+        with self.subTest("OpenclScalar"):
+            pass
+
+    def testScalarsGetItem(self):
+        with self.subTest("NumpyScalar"):
+            s = NumpyScalars([1,2,3,4])
+            g = s[3]
+            self.assertTrue(np.all(np.equal(g.v, 4)))
+
+            s = NumpyScalars([1, 2, 3, 4])
+            print(s)
+            g = s[1:5]
+            print(g)
+            self.assertTrue(np.all(np.equal(g.v, [2, 3, 4])))
+
+        with self.subTest("CupyScalar"):
+            pass
+
+        with self.subTest("OpenclScalar"):
+            pass
+
+    def testScalarsSetItem(self):
+        with self.subTest("NumpyScalar"):
+            s = NumpyScalars([1,2,3,4])
+            s[3] = 0
+            self.assertTrue(np.all(np.equal(s.v, [1,2,3,0])))
+
+            s = NumpyScalars([1, 2, 3, 4])
+            s[0:2] = [0, 0]
+            self.assertTrue(np.all(np.equal(s.v, [0, 0, 3, 4])))
 
         with self.subTest("CupyScalar"):
             pass
@@ -140,17 +232,6 @@ class TestScalars(unittest.TestCase):
         with self.subTest("OpenclScalar"):
             pass
 
-    def testScalarsNot(self):
-        with self.subTest("NumpyScalar"):
-            s = NumpyScalars([0]*1000)
-            self.assertFalse(s.all())
-            s = ~s
-            self.assertTrue(s.all())
 
-        with self.subTest("CupyScalar"):
-            pass
-
-        with self.subTest("OpenclScalar"):
-            pass
 
 

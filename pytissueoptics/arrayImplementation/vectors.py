@@ -6,7 +6,7 @@ except:
 
 import random
 from vector import Vector, oHat
-from arrayImplementation.scalars import *
+import arrayImplementation.scalars as sc
 import copy
 
 """
@@ -258,18 +258,23 @@ class NumpyVectors:
     def __mul__(self, other):
         if isinstance(other, NumpyVectors):
             return NumpyVectors(np.multiply(self.v, other.v))
-        elif isinstance(other, NumpyScalars):
+        elif isinstance(other, sc.NumpyScalars):
+            return ArithmeticError
+        elif type(other) in (float, int):
+            return NumpyVectors(np.multiply(self.v, other))
+
+    def __rmul__(self, other):
+        if isinstance(other, NumpyVectors):
+            return NumpyVectors(np.multiply(other.v, self.v))
+        elif isinstance(other, sc.NumpyScalars):
             return NumpyVectors(np.multiply(self.v, other.v[:, None]))
-        # elif isinstance(other, np.ndarray):
-        #     if len(other.shape) == 1:
-        #         return NumpyVectors(self.v * other[:, None])
-        else:
+        elif type(other) in (float, int):
             return NumpyVectors(np.multiply(self.v, other))
 
     def __truediv__(self, other):
         if isinstance(other, NumpyVectors):
             return NumpyVectors(np.true_divide(self.v, other.v))
-        elif isinstance(other, NumpyScalars):
+        elif isinstance(other, sc.NumpyScalars):
             return NumpyVectors(np.true_divide(self.v, other.v[:, None]))
         else:
             return NumpyVectors(np.true_divide(self.v, other))
@@ -283,6 +288,8 @@ class NumpyVectors:
     def __sub__(self, other):
         if isinstance(other, NumpyVectors):
             return NumpyVectors(np.subtract(self.v, other.v))
+        elif isinstance(other, sc.NumpyScalars):
+            return NumpyVectors(np.subtract(self.v, other.v))
         else:
             return NumpyVectors(np.subtract(self.v, other))
 
@@ -290,40 +297,40 @@ class NumpyVectors:
         return NumpyVectors(np.negative(self.v))
 
     def __eq__(self, other):
-        if isinstance(other, (NumpyVectors, NumpyScalars)):
-            return NumpyScalars(np.where(self.v == other.v, 1, 0))
+        if isinstance(other, (NumpyVectors, sc.NumpyScalars)):
+            return sc.NumpyScalars(np.where(self.v == other.v, 1, 0))
         else:
-            return NumpyScalars(np.where(self.v == other, 1, 0))
+            return sc.NumpyScalars(np.where(self.v == other, 1, 0))
 
     def __ne__(self, other):
-        if isinstance(other, (NumpyVectors, NumpyScalars)):
-            return NumpyScalars(np.where(self.v != other.v, 1, 0))
+        if isinstance(other, (NumpyVectors, sc.NumpyScalars)):
+            return sc.NumpyScalars(np.where(self.v != other.v, 1, 0))
         else:
-            return NumpyScalars(np.where(self.v != other, 1, 0))
+            return sc.NumpyScalars(np.where(self.v != other, 1, 0))
 
     def __lt__(self, other):
-        if isinstance(other, (NumpyVectors, NumpyScalars)):
-            return NumpyScalars(np.where(self.v < other.v, 1, 0))
+        if isinstance(other, (NumpyVectors, sc.NumpyScalars)):
+            return sc.NumpyScalars(np.where(self.v < other.v, 1, 0))
         else:
-            return NumpyScalars(np.where(self.v < other, 1, 0))
+            return sc.NumpyScalars(np.where(self.v < other, 1, 0))
 
     def __gt__(self, other):
-        if isinstance(other, (NumpyVectors, NumpyScalars)):
-            return NumpyScalars(np.where(self.v > other.v, 1, 0))
+        if isinstance(other, (NumpyVectors, sc.NumpyScalars)):
+            return sc.NumpyScalars(np.where(self.v > other.v, 1, 0))
         else:
-            return NumpyScalars(np.where(self.v > other, 1, 0))
+            return sc.NumpyScalars(np.where(self.v > other, 1, 0))
 
     def __le__(self, other):
-        if isinstance(other, (NumpyVectors, NumpyScalars)):
-            return NumpyScalars(np.where(self.v <= other.v, 1, 0))
+        if isinstance(other, (NumpyVectors, sc.NumpyScalars)):
+            return sc.NumpyScalars(np.where(self.v <= other.v, 1, 0))
         else:
-            return NumpyScalars(np.where(self.v <= other, 1, 0))
+            return sc.NumpyScalars(np.where(self.v <= other, 1, 0))
 
     def __ge__(self, other):
-        if isinstance(other, (NumpyVectors, NumpyScalars)):
-            return NumpyScalars(np.where(self.v >= other.v, 1, 0))
+        if isinstance(other, (NumpyVectors, sc.NumpyScalars)):
+            return sc.NumpyScalars(np.where(self.v >= other.v, 1, 0))
         else:
-            return NumpyScalars(np.where(self.v >= other, 1, 0))
+            return sc.NumpyScalars(np.where(self.v >= other, 1, 0))
 
     def __str__(self):
         return str(self.v)
@@ -344,32 +351,32 @@ class NumpyVectors:
         return self
 
     def __next__(self):
-        result = self.v[:, self._iteration]
+        result = self.v[self._iteration, :]
         self._iteration += 1
         return result
 
     @property
     def x(self):
         x = self.v[:, 0]
-        return NumpyScalars(x)
+        return sc.NumpyScalars(x)
 
     @property
     def y(self):
         y = self.v[:, 1]
-        return NumpyScalars(y)
+        return sc.NumpyScalars(y)
 
     @property
     def z(self):
         z = self.v[:, 2]
-        return NumpyScalars(z)
+        return sc.NumpyScalars(z)
 
     @property
     def isUnitary(self):
-        return NumpyScalars(np.less(np.abs(np.linalg.norm(self.v, axis=1))-1, 1e-9))
+        return sc.NumpyScalars(np.less(np.abs(np.linalg.norm(self.v, axis=1))-1, 1e-9))
 
     @property
     def isNull(self):
-        return NumpyScalars(np.less(np.linalg.norm(self.v, axis=1), 1e-9))
+        return sc.NumpyScalars(np.less(np.linalg.norm(self.v, axis=1), 1e-9))
 
     @property
     def count(self):
@@ -395,21 +402,21 @@ class NumpyVectors:
 
     def isEqualTo(self, other):
         if isinstance(other, NumpyVectors):
-            return NumpyScalars(np.less_equal(np.abs(np.subtract(self.v, other.v)), 1e-9))
+            return sc.NumpyScalars(np.less_equal(np.abs(np.subtract(self.v, other.v)), 1e-9))
         else:
-            return NumpyScalars(np.less_equal(np.abs(np.subtract(self.v, other)), 1e-9))
+            return sc.NumpyScalars(np.less_equal(np.abs(np.subtract(self.v, other)), 1e-9))
 
     def isAlmostEqualTo(self, other, epsilon):
         if isinstance(other, NumpyVectors):
-            return NumpyScalars(np.less_equal(np.abs(np.subtract(self.v, other.v)), epsilon))
+            return sc.NumpyScalars(np.less_equal(np.abs(np.subtract(self.v, other.v)), epsilon))
         else:
-            return NumpyScalars(np.less_equal(np.abs(np.subtract(self.v, other)), epsilon))
+            return sc.NumpyScalars(np.less_equal(np.abs(np.subtract(self.v, other)), epsilon))
 
     def isParallelTo(self, other, epsilon=1e-9):
         r = self.normalizedCrossProduct(other).norm().v
         a = np.less_equal(r, epsilon)
         r = np.where(self.isNull | other.isNull, False, a)
-        return NumpyScalars(r)
+        return sc.NumpyScalars(r)
 
     def isPerpendicularTo(self, other, epsilon=1e-9):
         r = np.abs(self.normalizedDotProduct(other).v)
@@ -466,10 +473,10 @@ class NumpyVectors:
         return self
 
     def norm(self):
-        return NumpyScalars(np.linalg.norm(self.v, axis=1))
+        return sc.NumpyScalars(np.linalg.norm(self.v, axis=1))
 
     def normSquared(self):
-        return NumpyScalars(self.abs)
+        return sc.NumpyScalars(self.abs)
 
     def abs(self):
         return NumpyVectors(np.abs(self.v))
@@ -499,9 +506,9 @@ class NumpyVectors:
         # element-wise dot product(fake np.dot)
         # https://stackoverflow.com/questions/41443444/numpy-element-wise-dot-product
         if isinstance(other, NumpyVectors):
-            return NumpyScalars(np.einsum('ij,ij->i', self.v, other.v))
+            return sc.NumpyScalars(np.einsum('ij,ij->i', self.v, other.v))
         else:
-            return NumpyScalars(np.einsum('ij,ij->i', self.v, other))
+            return sc.NumpyScalars(np.einsum('ij,ij->i', self.v, other))
 
     def normalizedCrossProduct(self, other):
         productNorm = (self.norm() * other.norm()).v
@@ -529,7 +536,7 @@ class NumpyVectors:
         minusPhi = -phi
         phi = np.where(dotAxis.v <= 0, minusPhi, phi)
 
-        return NumpyScalars(phi)  # What's supposed to be the return type?
+        return sc.NumpyScalars(phi)  # What's supposed to be the return type?
 
     def planeOfIncidence(self, normal):
         normVector = self.norm().v
