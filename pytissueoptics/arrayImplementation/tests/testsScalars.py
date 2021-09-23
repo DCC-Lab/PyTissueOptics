@@ -232,6 +232,105 @@ class TestScalars(unittest.TestCase):
         with self.subTest("OpenclScalar"):
             pass
 
+    def testScalarsConditional_le(self):
+        with self.subTest("NumpyScalar"):
+            s = NumpyScalars([1,2,3,4])
+            g = s.conditional_le(3, 0, s)
+            self.assertTrue(np.all(np.equal(g.v, [0,0,0,4])))
 
+            s1 = NumpyScalars([1, 2, 3, 4])
+            s2 = NumpyScalars([5, 6, 7, 8])
+            g = s1.conditional_le(2, s2, s1)
+            self.assertTrue(np.all(np.equal(g.v, [5, 6, 3, 4])))
 
+        with self.subTest("CupyScalar"):
+            pass
 
+        with self.subTest("OpenclScalar"):
+            pass
+
+    def testScalarsConditional_lt(self):
+        with self.subTest("NumpyScalar"):
+            s = NumpyScalars([1,2,3,4])
+            g = s.conditional_lt(3, 0, s)
+            self.assertTrue(np.all(np.equal(g.v, [0,0,3,4])))
+
+            s1 = NumpyScalars([1, 2, 3, 4])
+            s2 = NumpyScalars([5, 6, 7, 8])
+            g = s1.conditional_lt(2, s2, s1)
+            self.assertTrue(np.all(np.equal(g.v, [5, 2, 3, 4])))
+
+        with self.subTest("CupyScalar"):
+            pass
+
+        with self.subTest("OpenclScalar"):
+            pass
+
+    def testScalarsConditional_gt(self):
+
+        with self.subTest("NumpyScalar"):
+            s = NumpyScalars([1,2,3,4])
+            g = s.conditional_gt(3, 0, s)
+            self.assertTrue(np.all(np.equal(g.v, [1,2,3,0])))
+
+            s1 = NumpyScalars([1, 2, 3, 4])
+            s2 = NumpyScalars([5, 6, 7, 8])
+            g = s1.conditional_gt(2, s2, s1)
+            self.assertTrue(np.all(np.equal(g.v, [1,2,7,8])))
+
+        with self.subTest("CupyScalar"):
+            pass
+
+        with self.subTest("OpenclScalar"):
+            pass
+
+    def testScalarsConditional_ge(self):
+        with self.subTest("NumpyScalar"):
+            s = NumpyScalars([1,2,3,4])
+            g = s.conditional_ge(3, 0, s)
+            self.assertTrue(np.all(np.equal(g.v, [1, 2, 0, 0])))
+
+            s1 = NumpyScalars([1, 2, 3, 4])
+            s2 = NumpyScalars([5, 6, 7, 8])
+            g = s1.conditional_ge(2, s2, s1)
+            self.assertTrue(np.all(np.equal(g.v, [1, 6, 7, 8])))
+
+        with self.subTest("CupyScalar"):
+            pass
+
+        with self.subTest("OpenclScalar"):
+            pass
+
+    def testScalarsConditional_eq(self):
+        with self.subTest("NumpyScalar"):
+            s = NumpyScalars([1,2,3,4])
+            g = s.conditional_eq(3, 0, s)
+            self.assertTrue(np.all(np.equal(g.v, [1, 2, 0, 4])))
+
+            s1 = NumpyScalars([1, 2, 3, 4])
+            s2 = NumpyScalars([5, 6, 7, 8])
+            g = s1.conditional_eq(2, s2, s1)
+            self.assertTrue(np.all(np.equal(g.v, [1, 6, 3, 4])))
+
+        with self.subTest("CupyScalar"):
+            pass
+
+        with self.subTest("OpenclScalar"):
+            pass
+
+    def testScalarsConditional_neq(self):
+        with self.subTest("NumpyScalar"):
+            s = NumpyScalars([1,2,3,4])
+            g = s.conditional_neq(3, 0, s)
+            self.assertTrue(np.all(np.equal(g.v, [0, 0, 3, 0])))
+
+            s1 = NumpyScalars([1, 2, 3, 4])
+            s2 = NumpyScalars([5, 6, 7, 8])
+            g = s1.conditional_neq(2, s2, s1)
+            self.assertTrue(np.all(np.equal(g.v, [5, 2, 7, 8])))
+
+        with self.subTest("CupyScalar"):
+            pass
+
+        with self.subTest("OpenclScalar"):
+            pass

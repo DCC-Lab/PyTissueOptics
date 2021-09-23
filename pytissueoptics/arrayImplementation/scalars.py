@@ -247,7 +247,7 @@ class NumpyScalars:
 
     def conditional_le(self, other, a, b):
         if isinstance(other, NumpyScalars):
-            pass
+            return NumpyScalars(np.where(self.v <= other, a, b))
         elif type(other) in (int, float):
             return NumpyScalars(np.where(self.v <= other, a, b))
 
