@@ -101,26 +101,13 @@ class Stats:
             i = i.conditional_lt(0, 0, i)
             i = i.conditional_gt(self.size[0] - 1, self.size[0] - 1, i)
 
-            if j < 0:
-                j = 0
-            if j > self.size[1] - 1:
-                j = self.size[1] - 1
+            j = j.conditional_lt(0, 0, j)
+            j = j.conditional_gt(self.size[1] - 1, self.size[1] - 1, j)
 
-            if k < 0:
-                k = 0
-            if k > self.size[2] - 1:
-                k = self.size[2] - 1
-        else:
-            if i < 0 or i > self.size[0] - 1:
-                return
+            k = k.conditional_lt(0, 0, k)
+            k = k.conditional_gt(self.size[2] - 1, self.size[2] - 1, k)
 
-            if j < 0 or j > self.size[1] - 1:
-                return
-
-            if k < 0 or  k > self.size[2] - 1:
-                return
-
-        self.energy[i, j, k] += delta
+        self.energy[i, j, k] += deltas
 
     def scoreWhenCrossing(self, photon, surface):
         self.crossing.append((Vector(photon.r), photon.weight))
