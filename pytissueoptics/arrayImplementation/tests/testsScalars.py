@@ -334,3 +334,67 @@ class TestScalars(unittest.TestCase):
 
         with self.subTest("OpenclScalar"):
             pass
+
+    def testScalarsIsBool(self):
+        with self.subTest("NumpyScalar"):
+            s = NumpyScalars([1, 0, 1, 0])
+            g = s.isBool
+            self.assertTrue(g)
+
+            s = NumpyScalars([2, 0, 1, 0])
+            g = s.isBool
+            self.assertFalse(g)
+
+        with self.subTest("CupyScalar"):
+            pass
+
+        with self.subTest("OpenclScalar"):
+            pass
+
+    def testScalarsLogical_and(self):
+        with self.subTest("NumpyScalar"):
+            s = NumpyScalars([1, 0, 1, 0])
+            g = s.logical_and([1, 1, 1, 0])
+            self.assertTrue(np.all(np.equal(g.v, [1, 0, 1, 0])))
+
+            s = NumpyScalars([1, 0, 1, 0])
+            g = s.logical_and(1)
+            self.assertTrue(np.all(np.equal(g.v, [1, 0, 1, 0])))
+
+        with self.subTest("CupyScalar"):
+            pass
+
+        with self.subTest("OpenclScalar"):
+            pass
+
+    def testScalarsLogical_or(self):
+        with self.subTest("NumpyScalar"):
+            s = NumpyScalars([1, 0, 1, 0])
+            g = s.logical_or([0, 1, 1, 0])
+            self.assertTrue(np.all(np.equal(g.v, [1, 1, 1, 0])))
+
+            s = NumpyScalars([1, 0, 1, 0])
+            g = s.logical_or(1)
+            self.assertTrue(np.all(np.equal(g.v, [1, 1, 1, 1])))
+
+        with self.subTest("CupyScalar"):
+            pass
+
+        with self.subTest("OpenclScalar"):
+            pass
+
+    def testScalarsLogical_xor(self):
+        with self.subTest("NumpyScalar"):
+            s = NumpyScalars([1, 0, 1, 0])
+            g = s.logical_xor([0, 1, 1, 0])
+            self.assertTrue(np.all(np.equal(g.v, [1, 1, 0, 0])))
+
+            s = NumpyScalars([1, 0, 1, 0])
+            g = s.logical_xor(1)
+            self.assertTrue(np.all(np.equal(g.v, [0, 1, 0, 1])))
+
+        with self.subTest("CupyScalar"):
+            pass
+
+        with self.subTest("OpenclScalar"):
+            pass

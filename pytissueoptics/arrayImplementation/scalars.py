@@ -235,15 +235,27 @@ class NumpyScalars:
 
     def logical_and(self, other):
         if isinstance(other, NumpyScalars):
-            return NumpyScalars(np.logical_and(self.v, other.v))
+            if self.isBool and other.isBool:
+                return NumpyScalars(np.logical_and(self.v, other.v))
+        else:
+            if self.isBool:
+                return NumpyScalars(np.logical_and(self.v, other))
 
     def logical_or(self, other):
         if isinstance(other, NumpyScalars):
-            return NumpyScalars(np.logical_or(self.v, other.v))
+            if self.isBool and other.isBool:
+                return NumpyScalars(np.logical_or(self.v, other.v))
+        else:
+            if self.isBool:
+                return NumpyScalars(np.logical_or(self.v, other))
 
     def logical_xor(self, other):
         if isinstance(other, NumpyScalars):
-            return NumpyScalars(np.logical_xor(self.v, other.v))
+            if self.isBool and other.isBool:
+                return NumpyScalars(np.logical_xor(self.v, other.v))
+        else:
+            if self.isBool:
+                return NumpyScalars(np.logical_xor(self.v, other))
 
     def conditional_le(self, other, a, b):
         if isinstance(other, NumpyScalars):
@@ -304,6 +316,9 @@ class NumpyScalars:
     def all(self):
         return np.all(self.v)
 
+    @property
+    def isBool(self):
+        return np.all(np.array_equal(self.v, self.v.astype(bool)))
 
 class CupyScalars:
     def __init__(self, array=None, N=None):
