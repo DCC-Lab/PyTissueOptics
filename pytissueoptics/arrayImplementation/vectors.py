@@ -456,9 +456,9 @@ class NumpyVectors:
         pass
 
     def addScaled(self, other, scale):
-        ux = other.v[:, 0]
-        uy = other.v[:, 1]
-        uz = other.v[:, 2]
+        ux = other.v[:, 0]*scale
+        uy = other.v[:, 1]*scale
+        uz = other.v[:, 2]*scale
 
         X = self.v[:, 0]
         Y = self.v[:, 1]
@@ -610,7 +610,7 @@ class CupyVectors:
     def __mul__(self, other):
         if isinstance(other, CupyVectors):
             return CupyVectors(cp.multiply(self.v, other.v))
-        elif isinstance(other, CupyScalars):
+        elif isinstance(other, sc.CupyScalarsTest):
             return CupyVectors(cp.multiply(self.v, other.v[:, None]))
         # elif isinstance(other, cp.ndarray):
         #     if len(other.shape) == 1:
@@ -621,7 +621,7 @@ class CupyVectors:
     def __truediv__(self, other):
         if isinstance(other, CupyVectors):
             return CupyVectors(cp.true_divide(self.v, other.v))
-        elif isinstance(other, CupyScalars):
+        elif isinstance(other, sc.CupyScalarsTest):
             return CupyVectors(cp.true_divide(self.v, other.v[:, None]))
         else:
             return CupyVectors(cp.true_divide(self.v, other))
@@ -671,6 +671,21 @@ class CupyVectors:
         return result
 
     @property
+    def x(self):
+        x = self.v[:, 0]
+        return sc.CupyScalarsTest(x)
+
+    @property
+    def y(self):
+        y = self.v[:, 1]
+        return sc.CupyScalarsTest(y)
+
+    @property
+    def z(self):
+        z = self.v[:, 2]
+        return sc.CupyScalarsTest(z)
+
+    @property
     def isUnitary(self):
         return cp.less(cp.abs(cp.linalg.norm(self.v, axis=1)) - 1, 1e-9)
 
@@ -704,15 +719,15 @@ class CupyVectors:
 
     def isEqualTo(self, other):
         if isinstance(other, CupyVectors):
-            return CupyScalars(cp.less_equal(cp.abs(cp.subtract(self.v, other.v)), 1e-9))
+            return sc.CupyScalarsTest(cp.less_equal(cp.abs(cp.subtract(self.v, other.v)), 1e-9))
         else:
-            return CupyScalars(cp.less_equal(cp.abs(cp.subtract(self.v, other)), 1e-9))
+            return sc.CupyScalarsTest(cp.less_equal(cp.abs(cp.subtract(self.v, other)), 1e-9))
 
     def isAlmostEqualTo(self, other, epsilon):
         if isinstance(other, CupyVectors):
-            return CupyScalars(cp.less_equal(cp.abs(cp.subtract(self.v, other.v)), epsilon))
+            return sc.CupyScalarsTest(cp.less_equal(cp.abs(cp.subtract(self.v, other.v)), epsilon))
         else:
-            return CupyScalars(cp.less_equal(cp.abs(cp.subtract(self.v, other)), epsilon))
+            return sc.CupyScalarsTest(cp.less_equal(cp.abs(cp.subtract(self.v, other)), epsilon))
 
     def isParallelTo(self, other, epsilon=1e-9):
         r = self.normalizedCrossProduct(other).norm().v
@@ -762,13 +777,30 @@ class CupyVectors:
         pass
 
     def norm(self):
-        return CupyScalars(cp.linalg.norm(self.v, axis=1))
+        return sc.CupyScalarsTest(cp.linalg.norm(self.v, axis=1))
 
     def normSquared(self):
-        return CupyScalars(self.abs)
+        return sc.CupyScalarsTest(self.abs)
 
     def abs(self):
         return CupyVectors(cp.abs(self.v))
+
+    def addScaled(self, other, scale):
+        ux = other.v[:, 0]*scale.v
+        uy = other.v[:, 1]*scale.v
+        uz = other.v[:, 2]*scale.v
+
+        X = self.v[:, 0]
+        Y = self.v[:, 1]
+        Z = self.v[:, 2]
+
+        x = X + ux
+        y = Y + uy
+        z = Z + uz
+
+        self.v = cp.stack((x, y, z), axis=-1)
+
+        return self
 
     def normalize(self):
         """MUST verify that norm is 0."""
@@ -795,9 +827,9 @@ class CupyVectors:
         # element-wise dot product(fake cp.dot)
         # https://stackoverflow.com/questions/41443444/numpy-element-wise-dot-product
         if isinstance(other, CupyVectors):
-            return CupyScalars(cp.einsum('ij,ij->i', self.v, other.v))
+            return sc.CupyScalarsTest(cp.einsum('ij,ij->i', self.v, other.v))
         else:
-            return CupyScalars(cp.einsum('ij,ij->i', self.v, other))
+            return sc.CupyScalarsTest(cp.einsum('ij,ij->i', self.v, other))
 
     def normalizedCrossProduct(self, other):
         productNorm = (self.norm() * other.norm()).v
@@ -825,7 +857,7 @@ class CupyVectors:
         minusPhi = -phi
         phi = cp.where(dotAxis.v <= 0, minusPhi, phi)
 
-        return CupyScalars(phi)  # What's supposed to be the return type?
+        return sc.CupyScalarsTest(phi)  # What's supposed to be the return type?
 
     def planeOfIncidence(self, normal):
         normVector = self.norm().v
@@ -878,4 +910,4 @@ class CupyVectors:
         return self
 
 
-Vectors = NumpyVectors
+Vectors = CupyVectors

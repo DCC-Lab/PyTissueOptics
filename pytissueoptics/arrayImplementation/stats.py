@@ -1,11 +1,14 @@
 import matplotlib.pyplot as plt
 import time
 import os
-from .vectors import *
+from .vectors import Vectors
+from .scalars import Scalars
+import cupy as cp
+import numpy as np
 
 
 class Stats:
-    def __init__(self, globalVolumeStats=True, min=(-1, -1, 0), max=(1, 1, 0.5), size=(21, 21, 21), opaqueBoundaries=False):
+    def __init__(self, globalVolumeStats=True, min=(-1, -1, 0), max=(1, 1, 10), size=(51, 51, 51), opaqueBoundaries=True):
         self.min = min
         self.max = max
         self.L = (self.max[0] - self.min[0], self.max[1] - self.min[1], self.max[2] - self.min[2])
@@ -14,7 +17,7 @@ class Stats:
                          float(self.size[1] - 1) / self.L[1],
                          float(self.size[2] - 1) / self.L[2])
 
-        self.energy = np.zeros(size)
+        self.energy = cp.zeros(size)
         self.globalVolumeStats = globalVolumeStats
         self.opaqueBoundaries = opaqueBoundaries
         self.surfaceFig = None
@@ -87,27 +90,29 @@ class Stats:
 
     def scoreInVolume(self, photons, deltas):
         if self.globalVolumeStats:
-            self.volume.append(photons.globalPosition, deltas)
+            self.volume.append((photons.globalPosition, deltas))
             positions = photons.globalPosition
         else:
-            self.volume.append(photons.r, deltas)
+            self.volume.append((photons.r, deltas))
             positions = photons.r
 
-        i = (((positions.x - self.min[0]) * self.binSizes[0]) + 0.5).toIntegers()
-        j = (((positions.y - self.min[1]) * self.binSizes[1]) + 0.5).toIntegers()
-        k = (((positions.z - self.min[2]) * self.binSizes[2]) + 0.5).toIntegers()
+        x = (((positions.x - self.min[0]) * self.binSizes[0]) + 0.5).toIntegers()
+        y = (((positions.y - self.min[1]) * self.binSizes[1]) + 0.5).toIntegers()
+        z = (((positions.z - self.min[2]) * self.binSizes[2]) + 0.5).toIntegers()
 
         if self.opaqueBoundaries:
-            i = i.conditional_lt(0, 0, i)
-            i = i.conditional_gt(self.size[0] - 1, self.size[0] - 1, i)
+            x = x.conditional_lt(0, 0, x.v)
+            x = x.conditional_gt(self.size[0] - 1, self.size[0] - 1, x.v)
 
-            j = j.conditional_lt(0, 0, j)
-            j = j.conditional_gt(self.size[1] - 1, self.size[1] - 1, j)
+            y = y.conditional_lt(0, 0, y.v)
+            y = y.conditional_gt(self.size[1] - 1, self.size[1] - 1, y.v)
 
-            k = k.conditional_lt(0, 0, k)
-            k = k.conditional_gt(self.size[2] - 1, self.size[2] - 1, k)
+            z = z.conditional_lt(0, 0, z.v)
+            z = z.conditional_gt(self.size[2] - 1, self.size[2] - 1, z.v)
 
-        self.energy[i, j, k] += deltas
+            #print(x)
+
+        self.energy[x.v, y.v, z.v] += deltas
 
     def scoreWhenCrossing(self, photon, surface):
         self.crossing.append((Vector(photon.r), photon.weight))
@@ -144,25 +149,25 @@ class Stats:
         plt.title("Energy in {0} with {1:.0f} photons".format(plane, self.inputWeight))
         if cutAt is not None:
             if plane == 'xy':
-                plt.imshow(np.log(self.energy[:, :, cutAt] + 0.0001), cmap='viridis',
+                plt.imshow(np.log(self.energy.get()[:, :, cutAt] + 0.0001), cmap='viridis',
                            extent=[self.min[0], self.max[0], self.min[1], self.max[1]], aspect='auto')
             elif plane == 'yz':
-                plt.imshow(np.log(self.energy[cutAt, :, :] + 0.0001), cmap='viridis',
+                plt.imshow(np.log(self.energy.get()[cutAt, :, :] + 0.0001), cmap='viridis',
                            extent=[self.min[1], self.max[1], self.min[2], self.max[2]], aspect='auto')
             elif plane == 'xz':
-                plt.imshow(np.log(self.energy[:, cutAt, :] + 0.0001), cmap='viridis',
+                plt.imshow(np.log(self.energy.get()[:, cutAt, :] + 0.0001), cmap='viridis',
                            extent=[self.min[0], self.max[0], self.min[2], self.max[2]], aspect='auto')
         else:
             if plane == 'xy':
-                sum = self.energy.sum(axis=2)
+                sum = self.energy.get().sum(axis=2)
                 plt.imshow(np.log(sum + 0.0001), cmap='viridis',
                            extent=[self.min[0], self.max[0], self.min[1], self.max[1]], aspect='auto')
             elif plane == 'yz':
-                sum = self.energy.sum(axis=0)
+                sum = self.energy.get().sum(axis=0)
                 plt.imshow(np.log(sum + 0.0001), cmap='viridis',
                            extent=[self.min[1], self.max[1], self.min[2], self.max[2]], aspect='auto')
             elif plane == 'xz':
-                sum = self.energy.sum(axis=1)
+                sum = self.energy.get().sum(axis=1)
                 plt.imshow(np.log(sum + 0.0001), cmap='viridis',
                            extent=[self.min[2], self.max[2], self.min[0], self.max[0]], aspect='auto')
 

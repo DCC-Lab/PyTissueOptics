@@ -12,7 +12,7 @@ class Photons:
         self.wavelength = None
         self.weight = Scalars([1]*self.N)
         self.path = None
-        self.origin = Vectors([0, 0, 0]*self.N)
+        self.origin = Vectors([[0, 0, 0]]*self.N)
 
     @property
     def localPosition(self):
@@ -43,15 +43,14 @@ class Photons:
         self.er.rotateAround(self.ez, phi)
         self.ez.rotateAround(self.er, theta)
 
-    def decreaseWeightBy(self, delta):
-        self.weight -= delta
-        if self.weight < 0:
-            self.weight = 0
+    def decreaseWeightBy(self, deltas):
+        self.weight -= deltas
+        self.weight.conditional_lt(0, 0, self.weight.v)
 
     def roulette(self):
         chance = 0.1
-        rouletteMask = (self.weight <= 1e-4)
-        photonsKillMask = Scalars().random(self.N) > chance
+        rouletteMask = self.weight <= 1e-4
+        photonsKillMask = (Scalars().random(self.N)) > chance
         photonsKillMask = rouletteMask.logical_and(photonsKillMask)
         self.removePhotonsWeights(photonsKillMask)
 

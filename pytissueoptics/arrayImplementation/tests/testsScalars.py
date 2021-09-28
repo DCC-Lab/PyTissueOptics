@@ -232,6 +232,20 @@ class TestScalars(unittest.TestCase):
         with self.subTest("OpenclScalar"):
             pass
 
+    def testScalarsAny(self):
+        with self.subTest("NumpyScalar"):
+            s = NumpyScalars([0]*1000)
+            self.assertFalse(s.any())
+
+            s[0] = 1
+            self.assertTrue(s.any())
+
+        with self.subTest("CupyScalar"):
+            pass
+
+        with self.subTest("OpenclScalar"):
+            pass
+
     def testScalarsConditional_le(self):
         with self.subTest("NumpyScalar"):
             s = NumpyScalars([1,2,3,4])
@@ -356,6 +370,7 @@ class TestScalars(unittest.TestCase):
             s = NumpyScalars([1.2, 0.6, 1.5, 0.9])
             g = s.toIntegers()
             self.assertTrue(np.all(np.equal(g.v, [1, 0, 1, 0])))
+            self.assertTrue(np.equal(np.dtype("int32"), g.v.dtype))
 
         with self.subTest("CupyScalar"):
             pass
@@ -410,3 +425,17 @@ class TestScalars(unittest.TestCase):
 
         with self.subTest("OpenclScalar"):
             pass
+
+    def testNumpyAdvancedIndexing(self):
+        a = np.array([[[1,2,3],[1,2,3],[1,2,3]],[[1,2,3],[1,2,3],[1,2,3]],[[1,2,3],[1,2,3],[1,2,3]]])
+        i = np.array([0,1])
+        j = np.array([2,2])
+        k = np.array([2,0])
+        deltas = np.array([45, 1102])
+        a[k, j, i] = deltas
+        print(a)
+
+    def testNumpyZeroCreation(self):
+        a = np.zeros((2, 3, 4))
+        print(a)
+        print(a[1, 1, 3])
