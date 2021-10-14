@@ -380,10 +380,36 @@ class Sphere(Geometry):
             isIntersecting, distanceToSurface, pointOnSurface = surface.intersection(position, direction, distance)
 
             if isIntersecting:
-                return FresnelIntersect(direction, surface, distanceToSurface)
+                surfaceNormal = surface.normal(pointOnSurface)
+                if surfaceNormal is None:
+                    continue #FIXME: Edge case
+                elif direction.dot(surfaceNormal) > 0: #going out
+                    return FresnelIntersect(direction, surface, distanceToSurface)
 
         return None
 
+    def nextEntranceInterface(self, position, direction, distance) -> FresnelIntersect:
+        """ Is this line segment from position to distance*direction leaving
+        the object through any surface elements? Valid only from inside the object.
+        
+        """
+
+        minDistance = distance
+        intersectSurface = None
+        for surface in self.surfaces:
+            isIntersecting, distanceToSurface, positionOnSurface = surface.intersection(position, direction, distance)
+
+            if isIntersecting:
+                surfaceNormal = surface.normal(pointOnSurface)
+                if surfaceNormal is None:
+                    continue #FIXME: Edge case
+                elif direction.dot(surfaceNormal) < 0 and distanceToSurface < minDistance: #going in and closest
+                    intersectSurface = surface
+                    minDistance = distanceToSurface
+
+        if intersectSurface is None:
+            return None
+        return FresnelIntersect(direction, intersectSurface, minDistance, self)
 
 class KleinBottle(Geometry):
     def __init__(self, position, material, stats=None):
