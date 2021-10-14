@@ -77,8 +77,24 @@ class Stats:
 
         return sum(weights)
 
+    def totalWeightAcrossAllSurfaces(self, surfaces) -> float:
+        totalWeightAcrossAllSurfaces = 0
+        for surface in surfaces:
+            totalWeightAcrossAllSurfaces += self.totalWeightCrossingPlane(surface)
+        return totalWeightAcrossAllSurfaces
+
     def totalWeightAbsorbed(self) -> float:
         return sum(sum(sum(self.energy)))
+
+    def absorbance(self, referenceWeight=None) -> float:
+        if referenceWeight is None:
+            referenceWeight = self.inputWeight
+        return self.totalWeightAbsorbed() / referenceWeight
+
+    def transmittance(self, surfaces, referenceWeight=None) -> float:
+        if referenceWeight is None:
+            referenceWeight = self.inputWeight
+        return self.totalWeightAcrossAllSurfaces(surfaces) / referenceWeight
 
     def report(self):
         elapsed = time.time() - self.startTime
