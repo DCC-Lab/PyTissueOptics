@@ -83,7 +83,7 @@ class Stats:
 
         return coords
 
-    def energyVolume(self):
+    def energyRMSVolume(self):
         (xWidth, yWidth, zWidth) = self.energyRMSWidths()
 
         return xWidth*yWidth*zWidth

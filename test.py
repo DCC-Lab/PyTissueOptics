@@ -6,7 +6,6 @@ M = 20
 musValues = [10**i for i in linspace(0,2,M)]
 muaValues = [10**i for i in linspace(-2,0,M)]
 
-
 results = []
 
 for mu_s in musValues:
@@ -24,12 +23,12 @@ for mu_s in musValues:
         world.place(tissue, position=Vector(0, 0, 0))
         world.compute(graphs=False, progress=False)
 
-        results.append((mu_s, mu_a, stats.absorbance(), stats.energyVolume()))
-        print("{0:03.2f}\t{1:03.2f}\t{2:03.2f}\t{3:03.2f}".format(mu_s, mu_a, stats.absorbance(), stats.energyVolume()))
+        results.append((mu_s, mu_a, stats.absorbance(), stats.energyRMSVolume(), stats.absorbance()/stats.energyRMSVolume()))
+        print("{0:03.2f}\t{1:03.2f}\t{2:03.2f}\t{3:03.2f}\t{4:03.2f}".format(mu_s, mu_a, stats.absorbance(), stats.energyRMSVolume(), stats.absorbance()/stats.energyRMSVolume()))
 
-mus, mua, E, vol = zip(*results)
-plt.plot(mua, vol, 'ko')
-plt.xlabel("Absorption $\mu_a$ [cm$^{-1}$]")
-plt.ylabel("Volume [cm$^3$]")
-# plt.plot(mua, E, 'ko')
-plt.show()
+# mus, mua, E, vol = zip(*results)
+# plt.plot(mua, vol, 'ko')
+# plt.xlabel("Absorption $\mu_a$ [cm$^{-1}$]")
+# plt.ylabel("Volume [cm$^3$]")
+# # plt.plot(mua, E, 'ko')
+# plt.show()
