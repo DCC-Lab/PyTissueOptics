@@ -58,6 +58,32 @@ class Stats:
 
         return coords
 
+    def energyVolume(self):
+        (xWidth, yWidth, zWidth) = self.energyRMSWidths()
+
+        return xWidth*yWidth*zWidth
+
+    def energyRMSWidths(self):
+        xWidth = self.rms(self.xCoords, self.energy.sum(axis=(1, 2)))
+        yWidth = self.rms(self.yCoords, self.energy.sum(axis=(0, 2)))
+        zWidth = self.rms(self.zCoords, self.energy.sum(axis=(0, 1)))
+
+        return (xWidth, yWidth, zWidth)
+
+    def rms(self, xs, values):
+        vX  = 0
+        vX2 = 0
+        vSum = 0
+        for x, value in zip(xs, values):
+            vX += value*x
+            vX2 += value*x*x
+            vSum += value
+
+        xMean = vX/vSum
+        x2Mean = vX2/vSum
+
+        return np.sqrt(x2Mean-xMean*xMean)
+
     def photonsCrossingPlane(self, surface):
         a = []
         b = []
