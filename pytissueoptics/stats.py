@@ -58,15 +58,40 @@ class Stats:
 
         return coords
 
+    @property
+    def xBinCenters(self):
+        coords = []
+        delta = (self.max[0] - self.min[0]) / self.size[0]
+        for i in range(self.size[0]):
+            coords.append(self.min[0] + (i +0.5) * delta)
+        return coords
+
+    @property
+    def yBinCenters(self):
+        coords = []
+        delta = (self.max[1] - self.min[1]) / self.size[1]
+        for i in range(self.size[1]):
+            coords.append(self.min[1] + (i + 0.5) * delta)
+        return coords
+
+    @property
+    def zBinCenters(self):
+        coords = []
+        delta = (self.max[2] - self.min[2]) / self.size[2]
+        for i in range(self.size[2]):
+            coords.append(self.min[2] + (i + 0.5)* delta)
+
+        return coords
+
     def energyVolume(self):
         (xWidth, yWidth, zWidth) = self.energyRMSWidths()
 
         return xWidth*yWidth*zWidth
 
     def energyRMSWidths(self):
-        xWidth = self.rms(self.xCoords, self.energy.sum(axis=(1, 2)))
-        yWidth = self.rms(self.yCoords, self.energy.sum(axis=(0, 2)))
-        zWidth = self.rms(self.zCoords, self.energy.sum(axis=(0, 1)))
+        xWidth = self.rms(self.xBinCenters, self.energy.sum(axis=(1, 2)))
+        yWidth = self.rms(self.yBinCenters, self.energy.sum(axis=(0, 2)))
+        zWidth = self.rms(self.zBinCenters, self.energy.sum(axis=(0, 1)))
 
         return (xWidth, yWidth, zWidth)
 
