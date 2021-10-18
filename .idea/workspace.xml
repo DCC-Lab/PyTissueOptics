@@ -6,7 +6,6 @@
   <component name="ChangeListManager">
     <list default="true" id="8983ea63-de14-4660-8709-1cd6a77a88d4" name="Default Changelist" comment="">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/test.py" beforeDir="false" afterPath="$PROJECT_DIR$/test.py" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -161,7 +160,8 @@
       <workItem from="1617740223136" duration="1230000" />
       <workItem from="1617742485468" duration="605000" />
       <workItem from="1617745058895" duration="1438000" />
-      <workItem from="1634235113543" duration="8158000" />
+      <workItem from="1634235113543" duration="9569000" />
+      <workItem from="1634314715023" duration="25000" />
     </task>
     <servers />
   </component>
@@ -173,7 +173,7 @@
       <breakpoints>
         <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
           <url>file://$PROJECT_DIR$/pytissueoptics/stats.py</url>
-          <line>107</line>
+          <line>132</line>
           <option name="timeStamp" value="2" />
         </line-breakpoint>
       </breakpoints>
