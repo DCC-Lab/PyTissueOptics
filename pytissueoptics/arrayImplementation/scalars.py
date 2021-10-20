@@ -34,7 +34,7 @@ class NativeScalars:
 
     @classmethod
     def random(cls, N):
-        return Scalars([np.random.random() for i in range(N)])
+        return NativeScalars([np.random.random() for i in range(N)])
 
     def __iter__(self):
         self._iteration = 0
@@ -52,22 +52,22 @@ class NativeScalars:
         return len(self.v)
 
     def __mul__(self, scale) -> 'Scalars':
-        return Scalars(self.v * scale)
+        return NativeScalars(self.v * scale)
 
     def __rmul__(self, scale) -> 'Scalars':
-        return Scalars(self.v * scale)
+        return NativeScalars(self.v * scale)
 
     def __truediv__(self, scale) -> 'Scalars':
-        return Scalars(self.v / scale)
+        return NativeScalars(self.v / scale)
 
     def __add__(self, rhs) -> 'Scalars':
-        return Scalars([v1 + v2 for (v1, v2) in list(zip(self.v, rhs.v))])
+        return NativeScalars([v1 + v2 for (v1, v2) in list(zip(self.v, rhs.v))])
 
     def __neg__(self) -> 'Scalars':
-        return Scalars([-v1 for v1 in self.v])
+        return NativeScalars([-v1 for v1 in self.v])
 
     def __sub__(self, rhs) -> 'Scalars':
-        return Scalars([v1 - v2 for (v1, v2) in list(zip(self.v, rhs.v))])
+        return NativeScalars([v1 - v2 for (v1, v2) in list(zip(self.v, rhs.v))])
 
     def __getitem__(self, index):
         return self.v[index]
@@ -75,21 +75,41 @@ class NativeScalars:
     def __setitem__(self, index, newvalue):
         self.v[index] = newvalue
 
-    def __eq__(self, rhs) -> bool:
-        if isinstance(rhs, Scalars):
-            each = [v1 == v2 for (v1, v2) in list(zip(self.v, rhs.v))]
+    def __eq__(self, other):
+        if isinstance(other, NumpyScalars):
+            return NumpyScalars(np.where(self.v == other.v, 1, 0))
         else:
-            each = [v1 == v2 for (v1, v2) in list(zip(self.v, rhs))]
-        return np.array(each).all()
+            return NumpyScalars(np.where(self.v == other, 1, 0))
 
-    def logicalNot(self) -> 'Scalars':
-        return Scalars([not bool(v1) for v1 in self.v])
+    def __ne__(self, other):
+        if isinstance(other, NumpyScalars):
+            return NumpyScalars(np.where(self.v != other.v, 1, 0))
+        else:
+            return NumpyScalars(np.where(self.v != other, 1, 0))
 
-    def logicalAnd(self, rhs) -> 'Scalars':
-        return Scalars([bool(v1) and bool(v2) for v1, v2 in list(zip(self.v, rhs))])
+    def __lt__(self, other):
+        if isinstance(other, NumpyScalars):
+            return NumpyScalars(np.where(self.v < other.v, 1, 0))
+        else:
+            return NumpyScalars(np.where(self.v < other, 1, 0))
 
-    def logicalOr(self, rhs) -> 'Scalars':
-        return Scalars([bool(v1) or bool(v2) for v1, v2 in list(zip(self.v, rhs))])
+    def __gt__(self, other):
+        if isinstance(other, NumpyScalars):
+            return NumpyScalars(np.where(self.v > other.v, 1, 0))
+        else:
+            return NumpyScalars(np.where(self.v > other, 1, 0))
+
+    def __le__(self, other):
+        if isinstance(other, NumpyScalars):
+            return NumpyScalars(np.where(self.v <= other.v, 1, 0))
+        else:
+            return NumpyScalars(np.where(self.v <= other, 1, 0))
+
+    def __ge__(self, other):
+        if isinstance(other, NumpyScalars):
+            return NumpyScalars(np.where(self.v >= other.v, 1, 0))
+        else:
+            return NumpyScalars(np.where(self.v >= other, 1, 0))
 
     def all(self) -> bool:
         return self.v.all()
@@ -100,6 +120,74 @@ class NativeScalars:
     def none(self) -> bool:
         return not self.v.any()
 
+    @property
+    def isBool(self):
+        for v in self.v:
+            if v != 0 and v != 1:
+                return False
+            else:
+                continue
+        return True
+
+    def logical_and(self, other):
+        if isinstance(other, NativeScalars):
+            if self.isBool and other.isBool:
+                return NativeScalars([bool(v1) and bool(v2) for v1, v2 in list(zip(self.v, other.v))])
+        else:
+            if self.isBool:
+                return CupyScalarsTest(cp.logical_and(self.v, other))
+
+    def logical_or(self, other):
+        if isinstance(other, NativeScalars):
+            if self.isBool and other.isBool:
+                return NativeScalars([bool(v1) or bool(v2) for v1, v2 in list(zip(self.v, other.v))])
+        else:
+            if self.isBool:
+                return NativeScalars([bool(v1) or bool(v2) for v1, v2 in list(zip(self.v, other))])
+
+    def logical_xor(self, other):
+        if isinstance(other, NativeScalars):
+            if self.isBool and other.isBool:
+                return NativeScalars([bool(v1) != bool(v2) for v1, v2 in list(zip(self.v, other.v))])
+        else:
+            if self.isBool:
+                return NativeScalars([bool(v1) != bool(v2) for v1, v2 in list(zip(self.v, other))])
+
+    def conditional_le(self, other, a: list, b: list):
+        if isinstance(other, NativeScalars):
+            return NativeScalars([a[i] if self.v[i]<=other[i] else b[i] for i in range(len(self.v))])
+        elif type(other) in (int, float):
+            return NativeScalars([a[i] if self.v[i]<=other else b[i] for i in range(len(self.v))])
+
+    def conditional_lt(self, other, a, b):
+        if isinstance(other, NativeScalars):
+            return NativeScalars([a[i] if self.v[i] < other[i] else b[i] for i in range(len(self.v))])
+        elif type(other) in (int, float):
+            return NativeScalars([a[i] if self.v[i] < other else b[i] for i in range(len(self.v))])
+
+    def conditional_gt(self, other, a, b):
+        if isinstance(other, NativeScalars):
+            return NativeScalars([a[i] if self.v[i] > other[i] else b[i] for i in range(len(self.v))])
+        elif type(other) in (int, float):
+            return NativeScalars([a[i] if self.v[i] > other else b[i] for i in range(len(self.v))])
+
+    def conditional_ge(self, other, a, b):
+        if isinstance(other, NativeScalars):
+            return NativeScalars([a[i] if self.v[i] >= other[i] else b[i] for i in range(len(self.v))])
+        elif type(other) in (int, float):
+            return NativeScalars([a[i] if self.v[i] >= other else b[i] for i in range(len(self.v))])
+
+    def conditional_eq(self, other, a, b):
+        if isinstance(other, NativeScalars):
+            return NativeScalars([a[i] if self.v[i] == other[i] else b[i] for i in range(len(self.v))])
+        elif type(other) in (int, float):
+            return NativeScalars([a[i] if self.v[i] == other else b[i] for i in range(len(self.v))])
+
+    def conditional_neq(self, other, a, b):
+        if isinstance(other, NativeScalars):
+            return NativeScalars([a[i] if self.v[i] != other[i] else b[i] for i in range(len(self.v))])
+        elif type(other) in (int, float):
+            return NativeScalars([a[i] if self.v[i] != other else b[i] for i in range(len(self.v))])
 
 class NumpyScalars:
     def __init__(self, array=None, N=None, ndtype="float64"):
@@ -664,4 +752,4 @@ class CupyScalars:
             return CupyScalars(cp.less_equal(cp.abs(cp.subtract(self.v, other)), 1e-9))
 
 
-Scalars = CupyScalarsTest
+Scalars = NativeScalars

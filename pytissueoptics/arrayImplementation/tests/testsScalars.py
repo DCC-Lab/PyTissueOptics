@@ -194,9 +194,9 @@ class TestScalars(unittest.TestCase):
             self.assertTrue(np.all(np.equal(g.v, 4)))
 
             s = NumpyScalars([1, 2, 3, 4])
-            print(s)
+            #print(s)
             g = s[1:5]
-            print(g)
+            #print(g)
             self.assertTrue(np.all(np.equal(g.v, [2, 3, 4])))
 
         with self.subTest("CupyScalar"):
@@ -433,9 +433,9 @@ class TestScalars(unittest.TestCase):
         k = np.array([2,0])
         deltas = np.array([45, 1102])
         a[k, j, i] = deltas
-        print(a)
+        #print(a)
 
     def testNumpyZeroCreation(self):
         a = np.zeros((2, 3, 4))
-        print(a)
-        print(a[1, 1, 3])
+        #print(a)
+        #print(a[1, 1, 3])

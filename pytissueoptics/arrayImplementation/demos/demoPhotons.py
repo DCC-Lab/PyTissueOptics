@@ -12,7 +12,7 @@ from time import time_ns
 time0 = time_ns()
 
 batches = 10
-N = 50000
+N = 5000
 mat = Material(mu_s=300, mu_a=5, index=1.3)
 stats = Stats()
 isAlive = True

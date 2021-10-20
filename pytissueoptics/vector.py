@@ -14,9 +14,17 @@ class Vector:
         elif isinstance(x, Vector):
             self._x = x.x
             self._y = x.y 
-            self._z = x.z 
+            self._z = x.z
+        elif isinstance(x, np.ndarray):
+            self._x = x[0]
+            self._y = x[1]
+            self._z = x[2]
+        elif isinstance(x, list):
+            self._x = x[0]
+            self._y = x[1]
+            self._z = x[2]
         else:
-            raise ValueError("No valid input for Vector")
+            raise ValueError(f"Object {type(x)} is not a valid input for Vector")
 
     @property
     def x(self):
