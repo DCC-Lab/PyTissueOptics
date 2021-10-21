@@ -1,68 +1,48 @@
 import numpy as np
 from numpy.random import rand
 import time
+import unittest
 
 
-# TEST 1
-N = 10000000
-v1 = list(rand(N))
-v2 = list(rand(N))
-v3 = list(rand(N))
+class TestEfficiency(unittest.TestCase):
 
-v1n = np.array(v1)
-v2n = np.array(v2)
-v3n = np.array(v3)
+    def setUp(self):
+        self.N = 10000000
+        self.v1 = list(rand(self.N))
+        self.v2 = list(rand(self.N))
+        self.v3 = list(rand(self.N))
+        self.v1n = np.array(self.v1)
+        self.v2n = np.array(self.v2)
+        self.v3n = np.array(self.v3)
+        self.b = 9
 
-b = 9
+    @staticmethod
+    def report(m: str, arrays, N, namesAndTimes):
+        print(f"Function efficiency report of {m} with {N:.2e} random numbers.\n ==========")
+        print(f"Verification between answers is: {np.all(np.equal(arrays[0], arrays[1])) and np.all(np.equal(arrays[0], arrays[2]))}")
+        for i in range(len(namesAndTimes)):
+            print(f"{namesAndTimes[i][0]}::{namesAndTimes[i][1]}")
 
-t0 = time.time_ns()
-v3f = [v3[i] if v1[i]==v2[i] else b for i in range(len(v1))]
-t1 = time.time_ns()
-v4f = np.where(v1n==v2, v3, b)
-t2 = time.time_ns()
-v5f = []
-for value1, value2, value3 in list(zip(v1, v2, v3)):
-    if value1==value2:
-        v5f.append(value3)
-    else:
-        v5f.append(b)
-t3 = time.time_ns()
+    def test_Conditions(self):
+        with self.subTest("=="):
+            t0 = time.time_ns()
+            vf1 = [self.v3[i] if self.v1[i] == self.v2[i] else self.b for i in range(len(self.v1))]
+            t1 = time.time_ns()
+            vf2 = np.where(self.v1n == self.v2, self.v3, self.b)
+            t2 = time.time_ns()
+            vf3 = []
+            for value1, value2, value3 in list(zip(self.v1, self.v2, self.v3)):
+                if value1 == value2:
+                    vf3.append(value3)
+                else:
+                    vf3.append(self.b)
+            t3 = time.time_ns()
 
-print("Function efficiency of (==) Operator.\n ==========")
-print(f"Verification between answers is: {np.all(np.equal(v3f, v4f)) and np.all(np.equal(v4f, v5f))}")
-print(f"Efficiency comparison between methods with {N:.2e} numbers")
-print("List Comprehension (==):", str((t1-t0)/1000000)+"ms")
-print("Numpy Where Function (==):", str((t2-t1)/1000000)+"ms")
-print("Explicit loops (==):", str((t3-t2)/1000000)+"ms")
+            self.report("==", [vf1, vf2, vf3], self.N, [("list comprehension", str((t1 - t0) / 1000000) + "ms"),
+                                                        ("numpy.where", str((t2 - t1) / 1000000) + "ms"),
+                                                        ("explicit loop", str((t3 - t2) / 1000000) + "ms")])
 
+            self.assertTrue(np.all(np.equal(vf1, vf2)) and np.all(np.equal(vf2, vf3)))
 
-# TEST 2 (>=)
-v1 = list(rand(N))
-v2 = list(rand(N))
-v3 = list(rand(N))
-
-v1n = np.array(v1)
-v2n = np.array(v2)
-v3n = np.array(v3)
-
-b = 9
-
-t0 = time.time_ns()
-v3f = [v3[i] if v1[i]!=v2[i] else b for i in range(len(v1))]
-t1 = time.time_ns()
-v4f = np.where(v1n!=v2, v3, b)
-t2 = time.time_ns()
-v5f = []
-for value1, value2, value3 in list(zip(v1, v2, v3)):
-    if value1!=value2:
-        v5f.append(value3)
-    else:
-        v5f.append(b)
-t3 = time.time_ns()
-
-print("\nFunction efficiency of (!=) Operator.\n ==========")
-print(f"Verification between answers is: {np.all(np.equal(v3f, v4f)) and np.all(np.equal(v4f, v5f))}")
-print(f"Efficiency comparison between methods with {N:.2e} numbers")
-print("List Comprehension (!=):", str((t1-t0)/1000000)+"ms")
-print("Numpy Where Function (!=):", str((t2-t1)/1000000)+"ms")
-print("Explicit loops (!=):", str((t3-t2)/1000000)+"ms")
+        with self.subTest("dos"):
+            self.assertTrue(1)
