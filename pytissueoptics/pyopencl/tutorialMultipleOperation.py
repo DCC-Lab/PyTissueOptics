@@ -11,6 +11,29 @@ def create_read_write_memory(context, arrays):
                                 size=array.nbytes))
             for array in arrays]
 
+
+@timeit
+def executeWithoutBufferMovement(itterations):
+    for i in range(itterations):
+        program.sum(queue, (N,), (32,), *[c_buf, b_buf, c_buf])
+
+
+@timeit
+def executeWithBufferMovement(itterations):
+    for i in range(itterations):
+        memTuples = create_read_write_memory(context, [a, b, c])
+        for (array, buffer) in memTuples:
+            pycl.enqueue_copy(queue, src=array, dest=buffer)
+        a_buf, b_buf, c_buf = [memTuple[1] for memTuple in memTuples]
+
+        program.sum(queue, (N,), (32,), *[c_buf, b_buf, c_buf])
+        for (arr, buffer) in memTuples:
+            pycl.enqueue_copy(queue, src=buffer, dest=arr)
+
+        queue.finish()
+
+print("testing 1000 successive (+) operations on (1, 6.0E+6) scalar arrays")
+
 nvidia_platform = [platform for platform in pycl.get_platforms()if platform.name == "NVIDIA CUDA"][0]
 nvidia_devices = nvidia_platform.get_devices()
 context = pycl.Context(devices=nvidia_devices)
@@ -44,20 +67,29 @@ memTuples = create_read_write_memory(context, [a, b, c])
 queue = pycl.CommandQueue(context)
 for (array, buffer) in memTuples:
     pycl.enqueue_copy(queue, src=array, dest=buffer)
-
 a_buf, b_buf, c_buf = [memTuple[1] for memTuple in memTuples]
 
+
 program.sum(queue, (N,), (32,), *[a_buf, b_buf, c_buf])
-program.sum(queue, (N,), (32,), *[c_buf, b_buf, c_buf])
-program.sum(queue, (N,), (32,), *[c_buf, b_buf, c_buf])
-program.sum(queue, (N,), (32,), *[c_buf, b_buf, c_buf])
-program.sum(queue, (N,), (32,), *[c_buf, b_buf, c_buf])
+
+executeWithoutBufferMovement(1000)
 
 for (arr, buffer) in memTuples:
     pycl.enqueue_copy(queue, src=buffer, dest=arr)
 
 queue.finish()
 
+
+
+print(a)
+print(b)
+print(c)
+
+a = numpy.ones(N).astype(numpy.float32)
+b = numpy.ones(N).astype(numpy.float32)
+c = numpy.empty_like(a)
+
+executeWithBufferMovement(1000)
 print(a)
 print(b)
 print(c)
