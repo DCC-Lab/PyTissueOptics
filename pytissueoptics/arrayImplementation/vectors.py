@@ -8,6 +8,7 @@ import random
 from vector import Vector, oHat
 import arrayImplementation.scalars as sc
 import copy
+import pyopencl as pycl
 
 """
 Vectors and Scalars are arrays of Vector and scalars (float, int, etc...).
@@ -910,4 +911,51 @@ class CupyVectors:
         return self
 
 
-Vectors = NativeVectors
+class GPUManager:
+    def __init__(self):
+        self.platforms = [platform for platform in pycl.get_platforms()]
+        self.devices = self.platforms[0].get_devices()
+        self.context = pycl.Context(devices=self.devices)
+        program_source = """
+              kernel void sum(global float *a, 
+                              global float *b,
+                              global float *c){
+                int gid = get_global_id(0);
+                c[gid] = a[gid] + b[gid];
+              }
+
+                kernel void multiply(global float *a, 
+                              global float *b,
+                              global float *c){
+                int gid = get_global_id(0);
+                c[gid] = a[gid] * b[gid];
+              }
+            """
+        program_source = pycl.Program(self.context, program_source)
+        self.program = program_source.build()
+
+    def createReadWriteMemoryBuffer(self, context, arrays):
+        return [(array, pycl.Buffer(context,
+                                    flags=pycl.mem_flags.WRITE_ONLY,
+                                    size=array.nbytes))
+                for array in arrays]
+
+
+    def copyNewVectorAndLinkPointer(self, newVector):
+        pass
+
+class OpenclVectors:
+    def __init__(self, vectors=None, N=None):
+        if vectors is not None:
+            if type(vectors) == np.ndarray:
+                self.v = vectors.astype('float32')
+
+            else:
+                self.v = np.asarray(vectors, dtype=np.float64)
+        elif N is not None:
+            self.v = np.zeros((N, 3), dtype=np.float64)
+
+        self._iteration = 0
+
+
+Vectors = NumpyVectors

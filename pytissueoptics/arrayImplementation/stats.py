@@ -115,7 +115,7 @@ class Stats:
         self.energy[x.v, y.v, z.v] += deltas
 
     def scoreWhenCrossing(self, photon, surface):
-        self.crossing.append((Vector(photon.r), photon.weight))
+        self.crossing.append((photon.r, photon.weight))
 
     def scoreWhenStarting(self, photon):
         self.starting.append(photon.weight)

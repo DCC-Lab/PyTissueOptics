@@ -1,5 +1,4 @@
 from .vector import *
-from arrayImplementation.vectors import *
 
 
 class Photon:

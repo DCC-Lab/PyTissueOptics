@@ -50,7 +50,7 @@ class Photons:
     def roulette(self):
         chance = 0.1
         rouletteMask = self.weight <= 1e-4
-        photonsKillMask = (Scalars().random(self.N)) > chance
+        photonsKillMask = (Scalars.random(self.N)) > chance
         photonsKillMask = rouletteMask.logical_and(photonsKillMask)
         self.removePhotonsWeights(photonsKillMask)
 

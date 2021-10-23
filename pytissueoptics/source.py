@@ -1,5 +1,6 @@
 from .photon import *
-
+import time
+from numpy import random, pi, cos, sin, tan
 
 class Source:
     def __init__(self, maxCount):
