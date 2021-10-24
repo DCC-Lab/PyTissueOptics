@@ -225,6 +225,8 @@ class TestOpenCL(unittest.TestCase):
         The plan was simple: manipulate arrays in numpy and opencl, show it is much faster in Opencl.
         Well, it is not.
         """
+
+        # Set up basic OpenCl things
         queue = pycl.CommandQueue(TestOpenCL.context)
         allocator = pycl.tools.ImmediateAllocator(queue)
         mempool = pycl.tools.MemoryPool(allocator)
@@ -232,6 +234,7 @@ class TestOpenCL(unittest.TestCase):
         N = 2<< 8
         M = 1000
 
+        # Pre-allocate all arrays
         a_n = np.array(object=[0.0]*(N), dtype=pycl.cltypes.float)
         for i in range(a_n.size):
             a_n[i] = float(i)
@@ -239,24 +242,26 @@ class TestOpenCL(unittest.TestCase):
         for i in range(b_n.size):
             b_n[i] = float(2*i)
 
+        # Pre-allocate opencl arrays with MemoryPool to reuse memory
         a = pycl.array.to_device(queue=queue, ary=a_n, allocator=mempool)
         b = pycl.array.to_device(queue=queue, ary=b_n, allocator=mempool)
 
         startTime = time.time()        
-        for _ in range(M):
-            c = a + b + a + b
+        for i in range(M):
+            c = i*a + b + a + b
         calcTimeOpenCL1 = (time.time()-startTime)*1000
 
         startTime = time.time()        
-        for _ in range(M):
-            c = a_n + b_n + a_n + b_n
+        for i in range(M):
+            c = i*a_n + b_n + a_n + b_n
         calcTimeNumpy = (time.time()-startTime)*1000
 
+        # Often, OpenCL is faster on the second attempt.
         startTime = time.time()        
-        for _ in range(M):
-            c = a + b + a + b
-
+        for i in range(M):
+            c = i*a + b + a + b
         calcTimeOpenCL2 = (time.time()-startTime)*1000
+        
         self.assertTrue(calcTimeOpenCL2 < calcTimeNumpy,msg="\nNumpy is faster than OpenCL: CL1 {0:.1f} ms NP {1:.1f} ms CL2 {2:.1f} ms".format(calcTimeOpenCL1, calcTimeNumpy, calcTimeOpenCL2))
 
 if __name__ == "__main__":
