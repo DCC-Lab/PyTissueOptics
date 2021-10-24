@@ -189,6 +189,7 @@ class TestOpenCL(unittest.TestCase):
         for i, e in enumerate(b):
             self.assertEqual(e, 2*i)
 
+    @unittest.skip("Skipping for now")
     def test001ScalarMultiplicationOfOpenCLArrays(self):
         queue = pycl.CommandQueue(TestOpenCL.context)
         a = clArray(cq=queue, shape=(2<<12,), dtype=pycl.cltypes.float)
@@ -332,7 +333,7 @@ class TestOpenCL(unittest.TestCase):
         queue = pycl.CommandQueue(context)
 
         program_source = """
-        kernel void product(global float *mat, int M, 
+        kernel void product(global const float *mat, int M, 
                             global float *vec,
                             global float *res)
                       {
@@ -350,21 +351,21 @@ class TestOpenCL(unittest.TestCase):
 
         """
         program_source_floats = """
-        kernel void product(global float4 *mat, int M, 
+        kernel void product(global const float4 *mat, int M, 
                             global float2 *vec,
                             global float2 *res)
                       {
                       int i    = get_global_id(0); // the vector index
                       int j;                       // the matrix index
-
+                      int N    = get_global_size(0);
                       float2 v = vec[i];
-                      res[0] = v;
+                      res[i] = v;
                       for (j = 0; j < M; j++) {
                           float4 m = mat[j];
 
                           v.x = m.x * v.x + m.y * v.y;
                           v.y = m.z * v.x + m.w * v.y;
-                          res[i+M*(j+1)] = v;
+                          res[i+N*(j+1)] = v;
                           }
                       }
 
@@ -374,12 +375,12 @@ class TestOpenCL(unittest.TestCase):
 
 
         startTime = time.time()        
-        M = np.int32(4)     # M 2x2 matrices in path
-        N = np.int32(3)  # N 2x1 rays to propagate
+        M = np.int32(40)     # M 2x2 matrices in path
+        N = np.int32(1000000)  # N 2x1 rays to propagate  
         # Pre-allocate opencl arrays, with MemoryPool to reuse memory
-        matrix_n = np.random.rand(2,2,M).astype(np.float32)
-        vector_n = np.random.rand(2,N).astype(np.float32)
-        result_n = np.zeros((2,M+1,N)).astype(np.float32)
+        matrix_n = np.random.rand(M,2,2).astype(np.float32)
+        vector_n = np.random.rand(N,2).astype(np.float32)
+        result_n = np.zeros((M+1,N,2)).astype(np.float32)
 
         matrix = pycl.array.to_device(queue=queue, ary=matrix_n)
         vector = pycl.array.to_device(queue=queue, ary=vector_n)
@@ -389,7 +390,10 @@ class TestOpenCL(unittest.TestCase):
 
 
         print("\n{0:0.1f} ms".format((time.time()-startTime)*1000))
-        print(result.get().reshape(N,M+1,2))
+        # print(result.shape)
+        print(vector.get())
+        print(result.get())
+        # print(result.get().reshape(2*(M+1)*N,1,1))
 
 
 if __name__ == "__main__":
