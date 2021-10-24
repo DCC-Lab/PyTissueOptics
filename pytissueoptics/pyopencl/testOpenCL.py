@@ -376,7 +376,7 @@ class TestOpenCL(unittest.TestCase):
 
         startTime = time.time()        
         M = np.int32(40)     # M 2x2 matrices in path
-        N = np.int32(1000000)  # N 2x1 rays to propagate  
+        N = np.int32(2^24)  # N 2x1 rays to propagate  
         # Pre-allocate opencl arrays, with MemoryPool to reuse memory
         matrix_n = np.random.rand(M,2,2).astype(np.float32)
         vector_n = np.random.rand(N,2).astype(np.float32)
@@ -389,10 +389,13 @@ class TestOpenCL(unittest.TestCase):
         knl(queue, (N,), None, matrix.data, M, vector.data, result.data)
 
 
+        print(result.shape)
+        # print(vector.get())
+        print(result.get())
         print("\n{0:0.1f} ms".format((time.time()-startTime)*1000))
         # print(result.shape)
-        print(vector.get())
-        print(result.get())
+        # print(vector.get())
+        # print(result.get())
         # print(result.get().reshape(2*(M+1)*N,1,1))
 
 
