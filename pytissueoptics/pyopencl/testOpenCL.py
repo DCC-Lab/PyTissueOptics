@@ -268,7 +268,7 @@ class TestOpenCL(unittest.TestCase):
 
     def test003PerformanceVsSize(self):
         """
-        I really expected this to work.  Performance is more complicate than I expected.
+        I really expected this to work.  Performance is more complicated than I expected.
         The OpenCL calculation is much slower than the numpy version regardless of parameters 
         I used.
 
