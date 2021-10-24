@@ -752,4 +752,4 @@ class CupyScalars:
             return CupyScalars(cp.less_equal(cp.abs(cp.subtract(self.v, other)), 1e-9))
 
 
-Scalars = NativeScalars
+Scalars = NumpyScalars

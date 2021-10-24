@@ -1,5 +1,5 @@
 import pyopencl as pycl
-import numpy
+import numpy as np
 import time
 import sys
 from tools.tools import *
@@ -19,6 +19,11 @@ def executeWithoutBufferMovement(itterations):
 
 
 @timeit
+def executeNonParrallel(itterations, a, b):
+    for i in range(itterations):
+        b = np.add(a, b)
+
+@timeit
 def executeWithBufferMovement(itterations):
     for i in range(itterations):
         memTuples = create_read_write_memory(context, [a, b, c])
@@ -32,7 +37,8 @@ def executeWithBufferMovement(itterations):
 
         queue.finish()
 
-print("testing 1000 successive (+) operations on (1, 6.0E+6) scalar arrays")
+N = int(2 ** 25)
+print("testing 100 successive (+) operations on (1, 6.0E+6) scalar arrays")
 
 nvidia_platform = [platform for platform in pycl.get_platforms()if platform.name == "NVIDIA CUDA"][0]
 nvidia_devices = nvidia_platform.get_devices()
@@ -57,10 +63,10 @@ program_source = pycl.Program(context, program_source)
 program = program_source.build()
 
 # Synthetic data setup
-N = int(2 ** 22)
-a = numpy.ones(N).astype(numpy.float32)
-b = numpy.ones(N).astype(numpy.float32)
-c = numpy.empty_like(a)
+
+a = np.ones(N).astype(np.float32)
+b = np.ones(N).astype(np.float32)
+c = np.empty_like(a)
 
 # Device Memory setup
 memTuples = create_read_write_memory(context, [a, b, c])
@@ -68,11 +74,11 @@ queue = pycl.CommandQueue(context)
 for (array, buffer) in memTuples:
     pycl.enqueue_copy(queue, src=array, dest=buffer)
 a_buf, b_buf, c_buf = [memTuple[1] for memTuple in memTuples]
-
+print(a_buf, b_buf, c_buf)
 
 program.sum(queue, (N,), (32,), *[a_buf, b_buf, c_buf])
 
-executeWithoutBufferMovement(1000)
+executeWithoutBufferMovement(100)
 
 for (arr, buffer) in memTuples:
     pycl.enqueue_copy(queue, src=buffer, dest=arr)
@@ -80,16 +86,12 @@ for (arr, buffer) in memTuples:
 queue.finish()
 
 
+a = np.ones(N).astype(np.float32)
+b = np.ones(N).astype(np.float32)
+c = np.empty_like(a)
+executeWithBufferMovement(100)
 
-print(a)
-print(b)
-print(c)
 
-a = numpy.ones(N).astype(numpy.float32)
-b = numpy.ones(N).astype(numpy.float32)
-c = numpy.empty_like(a)
-
-executeWithBufferMovement(1000)
-print(a)
-print(b)
-print(c)
+a = np.ones(N).astype(np.float32)
+b = np.ones(N).astype(np.float32)
+executeNonParrallel(100, a, b)

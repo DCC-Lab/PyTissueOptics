@@ -1,16 +1,13 @@
-import numpy as np
 import matplotlib.pyplot as plt
-
 from arrayImplementation.photons import Photons
 from arrayImplementation.material import Material
 from arrayImplementation.stats import Stats
 from arrayImplementation.vectors import Vectors
-from arrayImplementation.scalars import Scalars
 from time import time_ns
 
 
-time0 = time_ns()
 
+time0 = time_ns()
 batches = 10
 N = 5000
 mat = Material(mu_s=300, mu_a=5, index=1.3)
@@ -29,7 +26,6 @@ for i in range(batches):
         photons.moveBy(d)
         deltas = photons.weight * mat.albedo
         photons.decreaseWeightBy(deltas)
-        #stats.scoreInVolume(photons, deltas.v)
         theta, phi = mat.getScatteringAngles(photons.N)
         photons.scatterBy(theta, phi)
         photons.roulette()

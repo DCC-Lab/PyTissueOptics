@@ -1,12 +1,13 @@
-import envtest # modifies path
-from pytissueoptics import *
+import unittest
 import numpy as np
 import random
+from vectors import Vectors
+from vector import Vector, oHat, xHat, yHat, zHat, UnitVector
 
 inf = float("+inf")
 
 
-class TestVectorsBase(envtest.PyTissueTestCase):
+class TestVectorsBase(unittest.TestCase):
     def setUp(self):
         self.count = 1000
         self.vnull = Vectors(N=self.count)
