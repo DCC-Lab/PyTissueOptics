@@ -143,7 +143,7 @@ class TestOpenCL(unittest.TestCase):
     @classmethod
     def setUpClass(cls):
         super().setUpClass()
-        devices = pycl.get_platforms()[0].get_devices()
+        devices = pycl.get_platforms()[0].get_devices(device_type=pycl.device_type.GPU)
         TestOpenCL.context = pycl.Context(devices=devices)
 
     @classmethod
@@ -186,6 +186,75 @@ class TestOpenCL(unittest.TestCase):
         b = 2*a
         for i, e in enumerate(b):
             self.assertEqual(e, 2*i)
+
+    def test001ScalarMultiplicationOfOpenCLArrays(self):
+        queue = pycl.CommandQueue(TestOpenCL.context)
+        a = clArray(cq=queue, shape=(2<<12,), dtype=pycl.cltypes.float)
+        for i in range(a.size):
+            a[i] = i
+
+        startTime = time.time()        
+        b = a+a
+        calcTime = (time.time()-startTime)*1000
+        print("\nOpenCL 1 scalar: {0:.1f} ms ".format(calcTime))
+
+        a = np.array(object=[0]*(2<<14), dtype=pycl.cltypes.float)
+        for i in range(a.size):
+            a[i] = i
+
+        startTime = time.time()        
+        b = a+a
+        calcTime = (time.time()-startTime)*1000
+        print("\nnumpy: {0:.1f} ms ".format(calcTime))
+
+        a = clArray(cq=queue, shape=(2<<14,), dtype=pycl.cltypes.float)
+        for i in range(a.size):
+            a[i] = i
+
+        startTime = time.time()        
+        b = a+a
+        calcTime = (time.time()-startTime)*1000
+        print("\nOpenCL 2 scalar: {0:.1f} ms ".format(calcTime))
+
+    def test002ArraysWithAllocator(self):
+        """
+        I really expected this to work.  Performance is more complicate than I expected.
+        The OpenCL calculation is much slower than the numpy version regardless of parameters 
+        I used.
+        """
+        queue = pycl.CommandQueue(TestOpenCL.context)
+        allocator = pycl.tools.ImmediateAllocator(queue)
+        mempool = pycl.tools.MemoryPool(allocator)
+
+        N = 2<< 8
+        M = 1000
+
+        a_n = np.array(object=[0.0]*(N), dtype=pycl.cltypes.float)
+        for i in range(a_n.size):
+            a_n[i] = float(i)
+        b_n = np.array(object=[0.0]*(N), dtype=pycl.cltypes.float)
+        for i in range(b_n.size):
+            b_n[i] = float(2*i)
+
+        a = pycl.array.to_device(queue=queue, ary=a_n, allocator=mempool)
+        b = pycl.array.to_device(queue=queue, ary=b_n, allocator=mempool)
+
+        startTime = time.time()        
+        for _ in range(M):
+            c = a + b + a + b
+        calcTimeOpenCL1 = (time.time()-startTime)*1000
+
+        startTime = time.time()        
+        for _ in range(M):
+            c = a_n + b_n + a_n + b_n
+        calcTimeNumpy = (time.time()-startTime)*1000
+
+        startTime = time.time()        
+        for _ in range(M):
+            c = a + b + a + b
+
+        calcTimeOpenCL2 = (time.time()-startTime)*1000
+        self.assertTrue(calcTimeOpenCL2 < calcTimeNumpy,msg="\nNumpy is faster than OpenCL: CL1 {0:.1f} ms NP {1:.1f} ms CL2 {2:.1f} ms".format(calcTimeOpenCL1, calcTimeNumpy, calcTimeOpenCL2))
 
 if __name__ == "__main__":
     unittest.main()
