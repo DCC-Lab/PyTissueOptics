@@ -221,6 +221,9 @@ class TestOpenCL(unittest.TestCase):
         I really expected this to work.  Performance is more complicate than I expected.
         The OpenCL calculation is much slower than the numpy version regardless of parameters 
         I used.
+
+        The plan was simple: manipulate arrays in numpy and opencl, show it is much faster in Opencl.
+        Well, it is not.
         """
         queue = pycl.CommandQueue(TestOpenCL.context)
         allocator = pycl.tools.ImmediateAllocator(queue)
