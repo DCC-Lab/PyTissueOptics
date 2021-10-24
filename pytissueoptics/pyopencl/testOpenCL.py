@@ -5,6 +5,7 @@ import unittest
 import time
 import pyopencl.cltypes
 from pyopencl.array import Array as clArray
+import pyopencl.clmath
 
 class TestOpenCL(unittest.TestCase):
     context = None
@@ -224,6 +225,8 @@ class TestOpenCL(unittest.TestCase):
 
         The plan was simple: manipulate arrays in numpy and opencl, show it is much faster in Opencl.
         Well, it is not.
+
+        UPDATE: yes it is, with VERY large arrays (2^20 or more)
         """
 
         # Set up basic OpenCl things
@@ -231,16 +234,12 @@ class TestOpenCL(unittest.TestCase):
         allocator = pycl.tools.ImmediateAllocator(queue)
         mempool = pycl.tools.MemoryPool(allocator)
 
-        N = 2<< 8
+        N = 1<<22  
         M = 1000
 
         # Pre-allocate all arrays
-        a_n = np.array(object=[0.0]*(N), dtype=pycl.cltypes.float)
-        for i in range(a_n.size):
-            a_n[i] = float(i)
-        b_n = np.array(object=[0.0]*(N), dtype=pycl.cltypes.float)
-        for i in range(b_n.size):
-            b_n[i] = float(2*i)
+        a_n = np.random.rand(N).astype(np.float32)
+        b_n = np.random.rand(N).astype(np.float32)
 
         # Pre-allocate opencl arrays with MemoryPool to reuse memory
         a = pycl.array.to_device(queue=queue, ary=a_n, allocator=mempool)
@@ -248,21 +247,22 @@ class TestOpenCL(unittest.TestCase):
 
         startTime = time.time()        
         for i in range(M):
-            c = i*a + b + a + b
+            c = i*a + b + a + b + a + a + a
         calcTimeOpenCL1 = (time.time()-startTime)*1000
 
         startTime = time.time()        
         for i in range(M):
-            c = i*a_n + b_n + a_n + b_n
+            c = i*a_n + b_n + a_n + b_n + a_n + a_n + a_n 
         calcTimeNumpy = (time.time()-startTime)*1000
 
         # Often, OpenCL is faster on the second attempt.
         startTime = time.time()        
         for i in range(M):
-            c = i*a + b + a + b
+            c = i*a + b + a + b + a + a + a
         calcTimeOpenCL2 = (time.time()-startTime)*1000
-        
+
         self.assertTrue(calcTimeOpenCL2 < calcTimeNumpy,msg="\nNumpy is faster than OpenCL: CL1 {0:.1f} ms NP {1:.1f} ms CL2 {2:.1f} ms".format(calcTimeOpenCL1, calcTimeNumpy, calcTimeOpenCL2))
+        print("\nCL1 {0:.1f} ms NP {1:.1f} ms".format(calcTimeOpenCL2, calcTimeNumpy))
 
 if __name__ == "__main__":
     unittest.main()
