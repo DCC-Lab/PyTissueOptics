@@ -1,8 +1,14 @@
 import pyopencl as pycl
+import pyopencl as cl
+import numpy as np
 import unittest
-
+import time
+import pyopencl.cltypes
+from pyopencl.array import Array as clArray
 
 class TestOpenCL(unittest.TestCase):
+    context = None
+
     def test01Import(self):
         """
         Is it installed?
@@ -44,7 +50,7 @@ class TestOpenCL(unittest.TestCase):
             gpuDevice = [ device for device in gpuDevices if device.vendor == 'Intel']
         self.assertIsNotNone(gpuDevice)
 
-    def testProgramSource(self):
+    def test06ProgramSource(self):
         gpuDevices = pycl.get_platforms()[0].get_devices(pycl.device_type.GPU)
         context = pycl.Context(devices=gpuDevices)
         queue = pycl.CommandQueue(context)
@@ -68,6 +74,118 @@ class TestOpenCL(unittest.TestCase):
         """
         program = pycl.Program(context, program_source).build()
 
+    def test07CopyingBuffersFromHostToGPU(self):
+        """
+        If I run this several times, I sometimes get 1 ms or 1000 ms.
+        I suspect there is some stsartup time for PyOpenCL.
+        I will write a setup function for the test
+
+        I did, it is now much more stable at 1-2 ms.
+        """
+
+        # gpuDevices = pycl.get_platforms()[0].get_devices(pycl.device_type.GPU)
+        context = TestOpenCL.context
+
+        N = 10000000
+        a_np = np.random.rand(N).astype(np.float32)
+        b_np = np.random.rand(N).astype(np.float32)
+        self.assertIsNotNone(a_np)
+        self.assertIsNotNone(b_np)
+        mf = pycl.mem_flags
+        a_g = pycl.Buffer(context, mf.READ_ONLY | mf.COPY_HOST_PTR, hostbuf=a_np)
+        b_g = pycl.Buffer(context, mf.READ_ONLY | mf.COPY_HOST_PTR, hostbuf=b_np)
+        self.assertIsNotNone(a_g)
+        self.assertIsNotNone(b_g)
+        res_g = pycl.Buffer(context, mf.WRITE_ONLY, a_np.nbytes)
+
+
+        queue = pycl.CommandQueue(context)
+
+        program_source = """
+        kernel void sum(global float *a, 
+                      global float *b,
+                      global float *c)
+                      {
+                      int gid = get_global_id(0);
+                      c[gid] = a[gid] + b[gid];
+                      }
+
+        kernel void multiply(global float *a, 
+                      global float *b,
+                      global float *c)
+                      {
+                      int gid = get_global_id(0);
+                      c[gid] = a[gid] * b[gid];
+                      }
+        """
+        program = pycl.Program(context, program_source).build()
+
+
+        knlSum = program.sum  # Use this Kernel object for repeated calls
+        knlProd = program.multiply  # Use this Kernel object for repeated calls
+
+        for i in range(10):
+            startTime = time.time()
+            knlSum(queue, a_np.shape, None, a_g, b_g, res_g)
+            knlProd(queue, a_np.shape, None, res_g, b_g, res_g)
+            calcTime = time.time()-startTime
+            res_np = np.empty_like(a_np)
+            pycl.enqueue_copy(queue, res_np, res_g)
+            copyTime = time.time()-startTime
+            #print("\nCalculation time {0:.1f} ms, with copy {1:.1f} ms".format( 1000*calcTime, 1000*copyTime))
+
+        # Check on CPU with Numpy:
+        startTime = time.time()
+        answer = (a_np + b_np)*b_np
+        npTime = time.time() - startTime
+        # print("Numpy {0:0.1f} ms".format(1000*npTime))
+        assert np.allclose(res_np, answer)
+    @classmethod
+    def setUpClass(cls):
+        super().setUpClass()
+        devices = pycl.get_platforms()[0].get_devices()
+        TestOpenCL.context = pycl.Context(devices=devices)
+
+    @classmethod
+    def tearDownClass(cls):
+        super().tearDownClass()
+
+    def testNumpyVectorsWithOpenCLLayout(self):
+        vectors = np.empty((128,), dtype=pycl.cltypes.float3) # array of float16
+        self.assertIsNotNone(vectors)
+
+    def testCreateOpenCLArray(self):
+        queue = pycl.CommandQueue(TestOpenCL.context)
+
+        a = clArray(cq=queue, shape=(1024,), dtype=pycl.cltypes.float)
+        self.assertIsNotNone(a)
+        self.assertIsNotNone(a.data)
+
+    def testCreateOpenCLArray(self):
+        queue = pycl.CommandQueue(TestOpenCL.context)
+
+        a = clArray(cq=queue, shape=(1024,), dtype=pycl.cltypes.float)
+        self.assertIsNotNone(a)
+        self.assertIsNotNone(a.data)
+        for i in range(a.size):
+            a[i] = i
+
+        for i, e in enumerate(a):
+            self.assertEqual(e, i)
+
+    def testScalarMultiplicationOfOpenCLArrays(self):
+        queue = pycl.CommandQueue(TestOpenCL.context)
+
+        a = clArray(cq=queue, shape=(1024,), dtype=pycl.cltypes.float)
+        self.assertIsNotNone(a)
+        self.assertIsNotNone(a.data)
+
+        for i in range(a.size):
+            a[i] = i
+
+        b = 2*a
+        for i, e in enumerate(b):
+            self.assertEqual(e, 2*i)
 
 if __name__ == "__main__":
     unittest.main()
