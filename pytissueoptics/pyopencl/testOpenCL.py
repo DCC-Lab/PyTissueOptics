@@ -6,6 +6,7 @@ import time
 import pyopencl.cltypes
 from pyopencl.array import Array as clArray
 import pyopencl.clmath
+import matplotlib.pyplot as plt
 
 class TestOpenCL(unittest.TestCase):
     context = None
@@ -226,7 +227,8 @@ class TestOpenCL(unittest.TestCase):
         The plan was simple: manipulate arrays in numpy and opencl, show it is much faster in Opencl.
         Well, it is not.
 
-        UPDATE: yes it is, with VERY large arrays (2^20 or more)
+        UPDATE: yes it is, with VERY large arrays (2^18 or more). See next test.
+
         """
 
         # Set up basic OpenCl things
@@ -234,7 +236,7 @@ class TestOpenCL(unittest.TestCase):
         allocator = pycl.tools.ImmediateAllocator(queue)
         mempool = pycl.tools.MemoryPool(allocator)
 
-        N = 1<<22  
+        N = 1<<10
         M = 1000
 
         # Pre-allocate all arrays
@@ -263,6 +265,60 @@ class TestOpenCL(unittest.TestCase):
 
         self.assertTrue(calcTimeOpenCL2 < calcTimeNumpy,msg="\nNumpy is faster than OpenCL: CL1 {0:.1f} ms NP {1:.1f} ms CL2 {2:.1f} ms".format(calcTimeOpenCL1, calcTimeNumpy, calcTimeOpenCL2))
         print("\nCL1 {0:.1f} ms NP {1:.1f} ms".format(calcTimeOpenCL2, calcTimeNumpy))
+
+    def test003PerformanceVsSize(self):
+        """
+        I really expected this to work.  Performance is more complicate than I expected.
+        The OpenCL calculation is much slower than the numpy version regardless of parameters 
+        I used.
+
+        The plan was simple: manipulate arrays in numpy and opencl, show it is much faster in Opencl.
+        Well, it is not.
+
+        UPDATE: yes it is, with VERY large arrays (2^20 or more)
+        """
+
+        # Set up basic OpenCl things
+        queue = pycl.CommandQueue(TestOpenCL.context)
+        allocator = pycl.tools.ImmediateAllocator(queue)
+        mempool = pycl.tools.MemoryPool(allocator)
+
+        N = 1
+        M = 10
+        P = 27
+        nptimes = []
+        cltimes = []
+        for j in range(P):
+            # Pre-allocate all arrays
+            N = 1 << j
+            a_n = np.random.rand(N).astype(np.float32)
+            b_n = np.random.rand(N).astype(np.float32)
+
+            # Pre-allocate opencl arrays with MemoryPool to reuse memory
+            a = pycl.array.to_device(queue=queue, ary=a_n, allocator=mempool)
+            b = pycl.array.to_device(queue=queue, ary=b_n, allocator=mempool)
+
+            startTime = time.time()        
+            calcTimeOpenCL1 = []
+            for i in range(M):
+                c = i*a + b + a + b + a + a * a
+            calcTimeOpenCL1.append((time.time()-startTime)*1000)
+            cltimes.append(np.mean(calcTimeOpenCL1))
+
+            startTime = time.time()        
+            calcTimeOpenNP = []
+            for i in range(M):
+                c = i*a_n + b_n + a_n + b_n + a_n + a_n * a_n
+            calcTimeOpenNP.append((time.time()-startTime)*1000)
+            nptimes.append(np.mean(calcTimeOpenNP))
+
+
+        plt.plot(range(P), cltimes, label="OpenCL")
+        plt.plot(range(P), nptimes, label="Numpy")
+        plt.xlabel("Size of array 2^x")
+        plt.ylabel("Computation time [ms]")
+        plt.legend()
+        plt.show()
 
 if __name__ == "__main__":
     unittest.main()
