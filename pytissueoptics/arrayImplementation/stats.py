@@ -3,8 +3,12 @@ import time
 import os
 from .vectors import Vectors
 from .scalars import Scalars
-import cupy as cp
 import numpy as np
+try:
+    import cupy as cp
+except:
+    cp = np
+
 
 
 class Stats:
@@ -17,7 +21,7 @@ class Stats:
                          float(self.size[1] - 1) / self.L[1],
                          float(self.size[2] - 1) / self.L[2])
 
-        self.energy = cp.zeros(size)
+        self.energy = np.zeros(size)
         self.globalVolumeStats = globalVolumeStats
         self.opaqueBoundaries = opaqueBoundaries
         self.surfaceFig = None

@@ -40,8 +40,10 @@ def executeWithBufferMovement(itterations):
 N = int(2 ** 25)
 print("testing 100 successive (+) operations on (1, 6.0E+6) scalar arrays")
 
-nvidia_platform = [platform for platform in pycl.get_platforms()if platform.name == "NVIDIA CUDA"][0]
+nvidia_platform = pycl.get_platforms()[0]
+print(nvidia_platform)
 nvidia_devices = nvidia_platform.get_devices()
+print(nvidia_devices)
 context = pycl.Context(devices=nvidia_devices)
 
 program_source = """

@@ -1,4 +1,4 @@
-import pyopencl
+import opencl
 import numpy
 import time
 import sys
@@ -13,7 +13,7 @@ def run_ocl_kernel(queue, kernel, global_size, input_tuples, output_tuples, loca
     """
     # copying data onto the device
     for (array, buffer) in input_tuples:
-        pyopencl.enqueue_copy(queue, src=array, dest=buffer)
+        opencl.enqueue_copy(queue, src=array, dest=buffer)
 
     # running program on the device
     kernel_arguments = [buffer for (_, buffer) in input_tuples]
@@ -25,23 +25,23 @@ def run_ocl_kernel(queue, kernel, global_size, input_tuples, output_tuples, loca
     # copying data off the device
     if output_data:
         for (arr, buffer) in output_tuples:
-            pyopencl.enqueue_copy(queue, src=buffer, dest=arr)
+            opencl.enqueue_copy(queue, src=buffer, dest=arr)
 
     # waiting for everything to finish
     queue.finish()
 
 # VERIFY WHAT INTERFACE YOU CAN USE
 ocl_platforms = (platform.name
-                 for platform in pyopencl.get_platforms())
+                 for platform in opencl.get_platforms())
 print("\n".join(ocl_platforms))
 
 # GET YOUR INTERFACE/DEVICE
 nvidia_platform = [platform
-                   for platform in pyopencl.get_platforms()
+                   for platform in opencl.get_platforms()
                    if platform.name == "NVIDIA CUDA"][0]
 nvidia_devices = nvidia_platform.get_devices()
 
-nvidia_context = pyopencl.Context(devices=nvidia_devices)
+nvidia_context = opencl.Context(devices=nvidia_devices)
 
 program_source = """
       kernel void sum(global float *a, 
@@ -51,10 +51,10 @@ program_source = """
         c[gid] = a[gid] + b[gid];
       }
     """
-nvidia_program_source = pyopencl.Program(nvidia_context, program_source)
+nvidia_program_source = opencl.Program(nvidia_context, program_source)
 nvidia_program = nvidia_program_source.build()
 
-program_kernel_names = nvidia_program.get_info(pyopencl.program_info.KERNEL_NAMES)
+program_kernel_names = nvidia_program.get_info(opencl.program_info.KERNEL_NAMES)
 print("Kernel Names: {}".format(program_kernel_names))
 
 # Synthetic data setup
@@ -64,32 +64,32 @@ b = numpy.random.rand(N).astype(numpy.float32)
 c = numpy.empty_like(a)
 
 # Device Memory setup
-a_nvidia_buffer = pyopencl.Buffer(nvidia_context,
-                                  flags=pyopencl.mem_flags.READ_ONLY,
-                                  size=a.nbytes)
-b_nvidia_buffer = pyopencl.Buffer(nvidia_context,
-                                  flags=pyopencl.mem_flags.READ_ONLY,
-                                  size=b.nbytes)
-c_nvidia_buffer = pyopencl.Buffer(nvidia_context,
-                                  flags=pyopencl.mem_flags.WRITE_ONLY,
-                                  size=c.nbytes)
+a_nvidia_buffer = opencl.Buffer(nvidia_context,
+                                flags=opencl.mem_flags.READ_ONLY,
+                                size=a.nbytes)
+b_nvidia_buffer = opencl.Buffer(nvidia_context,
+                                flags=opencl.mem_flags.READ_ONLY,
+                                size=b.nbytes)
+c_nvidia_buffer = opencl.Buffer(nvidia_context,
+                                flags=opencl.mem_flags.WRITE_ONLY,
+                                size=c.nbytes)
 
-nvidia_queue = pyopencl.CommandQueue(nvidia_context)
+nvidia_queue = opencl.CommandQueue(nvidia_context)
 
 input_tuples = ((a, a_nvidia_buffer), (b, b_nvidia_buffer), )
 output_tuples = ((c, c_nvidia_buffer),)
 run_ocl_kernel(nvidia_queue, nvidia_program.sum, (N,), input_tuples, output_tuples)
 
 def create_input_memory(context, input_arrays):
-    return [(array, pyopencl.Buffer(context,
-                                flags=pyopencl.mem_flags.READ_ONLY,
-                                size=array.nbytes))
+    return [(array, opencl.Buffer(context,
+                                  flags=opencl.mem_flags.READ_ONLY,
+                                  size=array.nbytes))
         for array in input_arrays]
 
 def create_output_memory(context, output_arrays):
-    return [(array, pyopencl.Buffer(context,
-                                flags=pyopencl.mem_flags.WRITE_ONLY,
-                                size=array.nbytes))
+    return [(array, opencl.Buffer(context,
+                                  flags=opencl.mem_flags.WRITE_ONLY,
+                                  size=array.nbytes))
         for array in output_arrays]
 
 

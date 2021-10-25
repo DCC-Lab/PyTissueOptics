@@ -254,7 +254,8 @@ class Box(Geometry):
                          YZPlane(atX=self.size[0] / 2, description="Right"),
                          -ZXPlane(atY=-self.size[1] / 2, description="Bottom"),
                          ZXPlane(atY=self.size[1] / 2, description="Top")]
-        self.center = ConstVector(0,0,0)
+
+        self.center = ConstVector(0, 0, 0)
 
     def contains(self, localPosition) -> bool:
         if abs(localPosition.z) > self.size[2] / 2 + self.epsilon:

@@ -1,15 +1,17 @@
 import pyopencl as pycl
 import numpy as np
 import ctypes
+from collections import namedtuple
 
 
 N = 10000
+
+BufferTuple = namedtuple("BufferTuple", ["objectId", "bufferObject", "objectShape"])
 
 class GPUManager:
     def __init__(self):
         if GPUManager.instance is None:
             GPUManager.instance = self
-
         self.platforms = [platform for platform in pycl.get_platforms()]
         self.devices = self.platforms[0].get_devices()
         self.context = pycl.Context(devices=self.devices)
@@ -31,7 +33,7 @@ class GPUManager:
             """
         programSource = pycl.Program(self.context, programSource)
         self.program = programSource.build()
-        self.ids = []
+        self.bufferTuples = []
 
     def createReadWriteMemoryBuffer(self, array):
         return pycl.Buffer(self.context,flags=pycl.mem_flags.READ_WRITE,size=array.nbytes)
@@ -44,30 +46,47 @@ class GPUManager:
         pass
 
     def isInBufferMemory(self, objectId):
-        if objectId in self.ids:
+        if objectId in self.bufferTuples:
             print("id is in buffer memory")
+            self.getBufferTupleContaining(objectId)
         else:
             try:
                 array = ctypes.cast(objectId, ctypes.py_object).value.v
                 buffer = self.createReadWriteMemoryBuffer(array)
                 self.copyBufferToGPUDevice(array, buffer)
-                self.ids.append((objectId, id(buffer), buffer))
+                self.bufferTuples.append(BufferTuple(objectId, buffer, array.shape))
+                return buffer
 
             except Exception as e:
                 print("An error occured during buffer handling.")
 
-        print("")
+        print("you are here.")
 
-    def createResultBuffer
+    def getBufferTupleContaining(self, item):
+        for i, tuple in enumerate(self.bufferTuples):
+            if item in tuple:
+                return item
+            else:
+                continue
 
-    def getBuffer(self, id):
+    def createEmptyLikeBufferFromId(self, id):
+        arrayShape = self.getBufferTupleContaining(id).arrayShape
+        emptyArray = np.empty_like(arrayShape)
+        buffer = self.createReadWriteMemoryBuffer(emptyArray)
+        self.copyBufferToGPUDevice(emptyArray, buffer)
+        self.bufferTuples.append(BufferTuple(None, id(buffer), buffer, emptyArray.shape))
+        return buffer, emptyArray.shape
 
+    def getBufferContaining(self, item):
+        tuple = self.getBufferTupleContaining(item)
+        return tuple.bufferObject
 
     def add(self, id_1, id_2):
-        self.isInBufferMemory(id_1)
-        self.isInBufferMemory(id_2)
-        self.createResultBuffer()
-
+        buffer1 = self.isInBufferMemory(id_1)
+        buffer2 = self.isInBufferMemory(id_2)
+        resultBuffer, arrayShape = self.createEmptyLikeBufferFromId(id_1)
+        self.program.sum(self.queue, (arrayShape[0],), (32,), *[buffer1, buffer2, resultBuffer])
+        self.queue.finish()
 
 
 class OpenclVectors:
@@ -100,6 +119,4 @@ class OpenclVectors:
         GPUManager().copyToHost(id(self))
 
 a = OpenclVectors(np.ones(N))
-b = a+a
-
-
+b = a + a
