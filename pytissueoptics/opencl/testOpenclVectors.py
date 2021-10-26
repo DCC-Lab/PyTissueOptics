@@ -10,8 +10,6 @@ BufferTuple = namedtuple("BufferTuple", ["objectId", "bufferObject", "objectShap
 
 class GPUManager:
     def __init__(self):
-        if GPUManager.instance is None:
-            GPUManager.instance = self
         self.platforms = [platform for platform in pycl.get_platforms()]
         self.devices = self.platforms[0].get_devices()
         self.context = pycl.Context(devices=self.devices)
@@ -36,7 +34,7 @@ class GPUManager:
         self.bufferTuples = []
 
     def createReadWriteMemoryBuffer(self, array):
-        return pycl.Buffer(self.context,flags=pycl.mem_flags.READ_WRITE,size=array.nbytes)
+        return pycl.Buffer(self.context, flags=pycl.mem_flags.READ_WRITE, size=array.nbytes)
 
     def copyBufferToGPUDevice(self, array, buffer):
         pycl.enqueue_copy(self.queue, src=array, dest=buffer)
@@ -65,16 +63,16 @@ class GPUManager:
     def getBufferTupleContaining(self, item):
         for i, tuple in enumerate(self.bufferTuples):
             if item in tuple:
-                return item
+                return tuple
             else:
                 continue
 
     def createEmptyLikeBufferFromId(self, id):
-        arrayShape = self.getBufferTupleContaining(id).arrayShape
+        arrayShape = self.getBufferTupleContaining(id).objectShape
         emptyArray = np.empty_like(arrayShape)
         buffer = self.createReadWriteMemoryBuffer(emptyArray)
         self.copyBufferToGPUDevice(emptyArray, buffer)
-        self.bufferTuples.append(BufferTuple(None, id(buffer), buffer, emptyArray.shape))
+        self.bufferTuples.append(BufferTuple(None, buffer, emptyArray.shape))
         return buffer, emptyArray.shape
 
     def getBufferContaining(self, item):
