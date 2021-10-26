@@ -189,35 +189,36 @@ class TestOpenCL(unittest.TestCase):
         for i, e in enumerate(b):
             self.assertEqual(e, 2*i)
 
-    @unittest.skip("Skipping for now")
     def test001ScalarMultiplicationOfOpenCLArrays(self):
         queue = pycl.CommandQueue(TestOpenCL.context)
-        a = clArray(cq=queue, shape=(2<<12,), dtype=pycl.cltypes.float)
+        size1 = 12
+        size2 = 17
+        a = clArray(cq=queue, shape=(2<<size1,), dtype=pycl.cltypes.float)
         for i in range(a.size):
             a[i] = i
 
         startTime = time.time()        
         b = a+a
         calcTime = (time.time()-startTime)*1000
-        print("\nOpenCL 1 scalar: {0:.1f} ms ".format(calcTime))
+        print("\nOpenCL {0:.2e} array: {1:.1f} ms ".format(2**size1, calcTime))
 
-        a = np.array(object=[0]*(2<<14), dtype=pycl.cltypes.float)
+        a = np.array(object=[0]*(2<<size2), dtype=pycl.cltypes.float)
         for i in range(a.size):
             a[i] = i
 
         startTime = time.time()        
         b = a+a
         calcTime = (time.time()-startTime)*1000
-        print("\nnumpy: {0:.1f} ms ".format(calcTime))
+        print("\nnumpy {0:.2e} array: {1:.1f} ms ".format(2**size2, calcTime))
 
-        a = clArray(cq=queue, shape=(2<<14,), dtype=pycl.cltypes.float)
+        a = clArray(cq=queue, shape=(2<<size2,), dtype=pycl.cltypes.float)
         for i in range(a.size):
             a[i] = i
 
         startTime = time.time()        
         b = a+a
         calcTime = (time.time()-startTime)*1000
-        print("\nOpenCL 2 scalar: {0:.1f} ms ".format(calcTime))
+        print("\nOpenCL {0:.2e} array: {1:.1f} ms ".format(2**size2, calcTime))
 
     @unittest.skip("Skipping for now")
     def test002ArraysWithAllocator(self):
@@ -268,7 +269,7 @@ class TestOpenCL(unittest.TestCase):
         self.assertTrue(calcTimeOpenCL2 < calcTimeNumpy,msg="\nNumpy is faster than OpenCL: CL1 {0:.1f} ms NP {1:.1f} ms CL2 {2:.1f} ms".format(calcTimeOpenCL1, calcTimeNumpy, calcTimeOpenCL2))
         print("\nCL1 {0:.1f} ms NP {1:.1f} ms".format(calcTimeOpenCL2, calcTimeNumpy))
 
-    @unittest.skip("Skipping for now")
+    #@unittest.skip("Skipping for now")
     def test003PerformanceVsSize(self):
         """
         I really expected this to work.  Performance is more complicated than I expected.
@@ -288,10 +289,10 @@ class TestOpenCL(unittest.TestCase):
 
         N = 1
         M = 10
-        P = 27
+        P = 32
         nptimes = []
         cltimes = []
-        for j in range(P):
+        for j in range(16, P):
             # Pre-allocate all arrays
             N = 1 << j
             a_n = np.random.rand(N).astype(np.float32)

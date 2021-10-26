@@ -10,8 +10,9 @@ BufferTuple = namedtuple("BufferTuple", ["objectId", "bufferObject", "objectShap
 
 class GPUManager:
     def __init__(self):
-        self.platforms = [platform for platform in pycl.get_platforms()]
-        self.devices = self.platforms[0].get_devices()
+        self.platforms = pycl.get_platforms()
+        self.devices = self.platforms[0].get_devices(pycl.device_type.GPU)
+        print(self.platforms, self.devices)
         self.context = pycl.Context(devices=self.devices)
         self.queue = pycl.CommandQueue(self.context)
         programSource = """
@@ -40,8 +41,9 @@ class GPUManager:
         pycl.enqueue_copy(self.queue, src=array, dest=buffer)
         self.queue.finish()
 
-    def copyBufferToHostDevice(self, id):
-        pass
+    def copyBufferToHostDevice(self, arrayObject, buffer):
+        pycl.enqueue_copy(self.queue, src=buffer, dest=arrayObject)
+        self.queue.finish()
 
     def isInBufferMemory(self, objectId):
         if objectId in self.bufferTuples:
@@ -52,8 +54,9 @@ class GPUManager:
                 array = ctypes.cast(objectId, ctypes.py_object).value.v
                 buffer = self.createReadWriteMemoryBuffer(array)
                 self.copyBufferToGPUDevice(array, buffer)
-                self.bufferTuples.append(BufferTuple(objectId, buffer, array.shape))
-                return buffer
+                bufferTuple = BufferTuple(objectId, buffer, array.shape)
+                self.bufferTuples.append(bufferTuple)
+                return bufferTuple
 
             except Exception as e:
                 print("An error occured during buffer handling.")
@@ -67,28 +70,42 @@ class GPUManager:
             else:
                 continue
 
-    def createEmptyLikeBufferFromId(self, id):
-        arrayShape = self.getBufferTupleContaining(id).objectShape
-        emptyArray = np.empty_like(arrayShape)
+    def createEmptyLikeBufferWithId(self, objectShape, id):
+        emptyArray = np.empty_like(objectShape)
         buffer = self.createReadWriteMemoryBuffer(emptyArray)
         self.copyBufferToGPUDevice(emptyArray, buffer)
-        self.bufferTuples.append(BufferTuple(None, buffer, emptyArray.shape))
-        return buffer, emptyArray.shape
+        self.bufferTuples.append(BufferTuple(id, buffer, objectShape))
+        return buffer, objectShape
 
     def getBufferContaining(self, item):
         tuple = self.getBufferTupleContaining(item)
         return tuple.bufferObject
 
-    def add(self, id_1, id_2):
-        buffer1 = self.isInBufferMemory(id_1)
-        buffer2 = self.isInBufferMemory(id_2)
-        resultBuffer, arrayShape = self.createEmptyLikeBufferFromId(id_1)
-        self.program.sum(self.queue, (arrayShape[0],), (32,), *[buffer1, buffer2, resultBuffer])
+    def add(self, id_1, id_2, id_result):
+        bufferTuple1 = self.isInBufferMemory(id_1)
+        bufferTuple2 = self.isInBufferMemory(id_2)
+        resultBuffer, arrayShape = self.createEmptyLikeBufferWithId(bufferTuple1.objectShape, id_result)
+        self.program.sum(self.queue, (9, 10), (9, 1), *[bufferTuple1.bufferObject, bufferTuple2.bufferObject, resultBuffer])
         self.queue.finish()
+        return
+
+    def copyToHostArray(self, id):
+        tuple = self.getBufferTupleContaining(id)
+        array = ctypes.cast(id, ctypes.py_object).value.v
+        self.copyBufferToHostDevice(array, tuple.bufferObject)
 
 
 class OpenclVectors:
     def __init__(self, vectors=None, N=None, vectorsId=None):
+        self.set_v(vectors, N)
+        if vectorsId is not None:
+            self.id = vectorsId
+        else:
+            self.id = id(self)
+
+        self._iteration = 0
+
+    def set_v(self, vectors=None, N=None):
         if vectors is not None:
             if type(vectors) == np.ndarray:
                 self.v = vectors.astype('float32')
@@ -98,23 +115,25 @@ class OpenclVectors:
         elif N is not None:
             self.v = np.zeros((N, 3), dtype=np.float64)
 
-        self._iteration = 0
-
-        if vectorsId is not None:
-            self.id = vectorsId
         else:
-            self.id = id(self)
-
-        # find the instance of GPUManager on its own
-        # self.GPUManager = findGPUManager()
+            self.v = None
 
     def __add__(self, other):
-        resultId = GPUManager().add(id(self), id(other))
-        return OpenclVectors(vectorsId=resultId)
-        # send the 2 object (self and other) object ID to the GPU Manager and send the add function.
+        resultObject = OpenclVectors()
+        GPUManager().add(id(self), id(other), id(resultObject))
+        return resultObject
 
-    def stdOut(self):
-        GPUManager().copyToHost(id(self))
+    def __repr__(self):
+        print(str(self.v))
+
+    def update(self):
+        GPUManager().copyToHostArray(id(self))
+
+
 
 a = OpenclVectors(np.ones(N))
 b = a + a
+b.update()
+print(b)
+
+
