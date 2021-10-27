@@ -242,13 +242,36 @@ class NumpyVectors:
     """
 
     def __init__(self, vectors=None, N=None):
-        if vectors is not None:
+        if vectors is not None and N is None:
             if type(vectors) == np.ndarray:
                 self.v = vectors.astype('float64')
 
+            elif type(vectors) == Vector:
+                self.v = np.asarray([[vectors.x, vectors.y, vectors.z]], dtype=np.float64)
+
+            elif type(vectors) == list and type(vectors[0]) == Vector:
+                x = [v.x for v in vectors]
+                y = [v.y for v in vectors]
+                z = [v.z for v in vectors]
+                self.v = np.stack((x, y, z), axis=-1)
+
             else:
                 self.v = np.asarray(vectors, dtype=np.float64)
-        elif N is not None:
+
+        elif vectors is not None and N is not None:
+            if type(vectors) == Vector:
+                self.v = np.asarray([[vectors.x, vectors.y, vectors.z]]*N, dtype=np.float64)
+
+            elif type(vectors) == list and type(vectors[0]) != list:
+                self.v = np.asarray([vectors] * N, dtype=np.float64)
+
+            elif type(vectors) == np.ndarray:
+                self.v = np.tile(vectors, (N, 1))
+
+            else:
+                self.v = np.asarray(vectors*N, dtype=np.float64)
+
+        elif vectors is None and N is not None:
             self.v = np.zeros((N, 3), dtype=np.float64)
             
         self._iteration = 0
@@ -440,21 +463,25 @@ class NumpyVectors:
     def anyUnitaryPerpendicular(self):
         return self.anyPerpendicular().normalized()
 
-    """ TODO: Make Function """
     def isInXYPlane(self, atZ, epsilon=0.001):
-        pass
+        uz = self.v[:, 2]
+        r = np.where(np.abs(uz - atZ) < epsilon, True, False)
+        return r
 
-    """ TODO: Make Function """
     def isInYZPlane(self, atX, epsilon=0.001):
-        pass
+        ux = self.v[:, 0]
+        r = np.where(np.abs(ux - atX) < epsilon, True, False)
+        return r
 
-    """ TODO: Make Function """
     def isInZXPlane(self, atY, epsilon=0.001):
-        pass
+        uy = self.v[:, 1]
+        r = np.where(np.abs(uy - atY) < epsilon, True, False)
+        return r
 
-    """ TODO: Make Function """
-    def isInPlane(self, origin: 'Vector', normal: 'Vector', epsilon=0.001):
-        pass
+    def isInPlane(self, origin: 'NumpyVectors', normal: 'NumpyVectors', epsilon=0.001):
+        local = self - origin
+        r = np.where(np.abs(local.normalizedDotProduct(normal)) < epsilon, True, False)
+        return r
 
     def addScaled(self, other, scale):
         ux = other.v[:, 0]*scale
@@ -561,7 +588,6 @@ class NumpyVectors:
 
         return self.angleWith(normal, axis=planeNormal), planeNormal, normal
 
-    """ TODO: Test Function """
     def rotateAround(self, u, theta):
         u.normalize()
         #print(theta.v)
@@ -594,13 +620,39 @@ class CupyVectors:
     """
 
     def __init__(self, vectors=None, N=None):
-        if vectors is not None:
-            if type(vectors) == cp.ndarray:
+        if vectors is not None and N is None:
+            if type(vectors) == np.ndarray:
+                self.v = cp.asarray(vectors, dtype=cp.float64)
+
+            elif type(vectors) == cp.ndarray:
                 self.v = vectors.astype('float64')
+
+            elif type(vectors) == Vector:
+                self.v = cp.asarray([[vectors.x, vectors.y, vectors.z]], dtype=cp.float64)
+
+            elif type(vectors) == list and type(vectors[0]) == Vector:
+                x = cp.asarray([v.x for v in vectors])
+                y = cp.asarray([v.y for v in vectors])
+                z = cp.asarray([v.z for v in vectors])
+                self.v = cp.stack((x, y, z), axis=-1)
 
             else:
                 self.v = cp.asarray(vectors, dtype=cp.float64)
-        elif N is not None:
+
+        elif vectors is not None and N is not None:
+            if type(vectors) == Vector:
+                self.v = cp.asarray([[vectors.x, vectors.y, vectors.z]] * N, dtype=cp.float64)
+
+            elif type(vectors) == list and type(vectors[0]) != list:
+                self.v = cp.asarray([vectors] * N, dtype=cp.float64)
+
+            elif type(vectors) == np.ndarray:
+                self.v = cp.asarray(np.tile(vectors, (N, 1)))
+
+            else:
+                self.v = cp.asarray(vectors * N, dtype=cp.float64)
+
+        elif vectors is None and N is not None:
             self.v = cp.zeros((N, 3), dtype=cp.float64)
 
         self._iteration = 0
@@ -757,25 +809,25 @@ class CupyVectors:
     def anyUnitaryPerpendicular(self):
         return self.anyPerpendicular().normalized()
 
-    """ TODO: Make Function """
-
     def isInXYPlane(self, atZ, epsilon=0.001):
-        pass
-
-    """ TODO: Make Function """
+        uz = self.v[:, 2]
+        r = cp.where(cp.abs(uz - atZ) < epsilon, True, False)
+        return r
 
     def isInYZPlane(self, atX, epsilon=0.001):
-        pass
-
-    """ TODO: Make Function """
+        ux = self.v[:, 0]
+        r = cp.where(cp.abs(ux - atX) < epsilon, True, False)
+        return r
 
     def isInZXPlane(self, atY, epsilon=0.001):
-        pass
+        uy = self.v[:, 1]
+        r = cp.where(cp.abs(uy - atY) < epsilon, True, False)
+        return r
 
-    """ TODO: Make Function """
-
-    def isIcplane(self, origin: 'Vector', normal: 'Vector', epsilon=0.001):
-        pass
+    def isInPlane(self, origin: 'NumpyVectors', normal: 'NumpyVectors', epsilon=0.001):
+        local = self - origin
+        r = cp.where(cp.abs(local.normalizedDotProduct(normal)) < epsilon, True, False)
+        return r
 
     def norm(self):
         return sc.CupyScalarsTest(cp.linalg.norm(self.v, axis=1))
