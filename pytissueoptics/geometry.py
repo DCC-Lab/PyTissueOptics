@@ -68,6 +68,67 @@ class Geometry:
         self.scoreWhenFinal(photon)
         photon.transformFromLocalCoordinates(self.origin)
 
+    def propagateMany(self, photons):
+        """
+        Photons represents a group of photons that will propagate in an object.
+        We will treat photons as "groups": some will propagate unimpeded and some 
+        will hit an obstacle.  Those that hit an obstacle may reflect or transmit through it.
+
+        We continue until all photons have died within the geometry or transmitted through 
+        some interface. We will return the photons that have exited the geometry.
+        """
+
+        allTransmittedPhotons = []
+
+        photons.transformToLocalCoordinates(self.origin)
+        self.scoreWhenStarting(photons)
+
+        while not photons.areAllDead():
+            # Get distance to interaction point
+            distances = self.material.getManyScatteringDistances(photons)
+
+            # Split photons into two groups: those freely propagating and those hitting some interface.
+            # We determine the groups based on the photons (and their positions) and the interaction
+            # distances (calculated above). For those hitting an interface, we provide a list of 
+            # corresponding interfaces
+            unimpededPhotons, (impededPhotons, interfaces) = self.getPossibleIntersections(photons, distances)
+
+            # We now deal with both groups (unimpeded and impeded photons) independently
+            # ==========================================
+            # 1. Unimpeded photons: they simply propagate through the geometry without anything special
+            unimpededPhotons.moveBy(distances)
+            deltas = unimpededPhotons.decreaseWeight(self.material.albedo)
+            self.scoreManyInVolume(unimpededPhotons, deltas) #optional
+            thetas, phis = self.material.getManyScatteringAngles(unimpededPhotons)
+            unimpededPhotons.scatterBy(thetas, phis)
+
+            # 2. Impeded photons: they propagate to the interface, then will either be reflected or transmitted
+            remainingDistances = impededPhotons.moveToInterface(interfaces)
+            reflectedPhotons, transmittedPhotons = impededPhotons.areReflected(interfaces)
+
+            # 2.1 Reflected photons change their direction following Fresnel reflection, then move inside 
+            #     object
+            reflectedPhotons.reflect(interfaces)
+            reflectedPhotons.moveBy(remainingDistances) #FIXME: there couldbe another interface
+
+            # 2.2 Transmitted photons change their direction following the law of refraction, then move 
+            #     outside the object and are stored to be returned and propagated into another object.
+            transmittedPhotons.refract(interfaces)
+            self.scoreWhenExiting(transmittedPhotons) #optional
+            allTransmittedPhotons.append(transmittedPhotons)
+
+            # 3. Low-weight photons are randomly killed while keeping energy constant.
+            photons.roulette()
+
+
+        # Because the code will not typically calculate millions of photons, it is
+        # inexpensive to keep all the propagated photons.  This allows users
+        # to go through the list after the fact for a calculation of their choice
+        self.scoreWhenFinal(photons)
+        photons.transformFromLocalCoordinates(self.origin)
+
+        return allTransmittedPhotons
+
     def contains(self, position) -> bool:
         """ The base object is infinite. Subclasses override this method
         with their specific geometry. 
