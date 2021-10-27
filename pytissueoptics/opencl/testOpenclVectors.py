@@ -70,10 +70,15 @@ class GPUManager:
             else:
                 continue
 
+    def createEmptyLikeBufferFromId(self, id):
+        arrayShape = self.getBufferTupleContaining(id).objectShape
+        emptyArray = np.empty_like(arrayShape)
     def createEmptyLikeBufferWithId(self, objectShape, id):
         emptyArray = np.empty_like(objectShape)
         buffer = self.createReadWriteMemoryBuffer(emptyArray)
         self.copyBufferToGPUDevice(emptyArray, buffer)
+        self.bufferTuples.append(BufferTuple(None, id(buffer), buffer, arrayShape))
+        return buffer, emptyArray.shape
         self.bufferTuples.append(BufferTuple(id, buffer, objectShape))
         return buffer, objectShape
 
