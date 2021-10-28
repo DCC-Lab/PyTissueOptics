@@ -151,8 +151,6 @@ class Photons:
     def moveBy(self, d):
         map(lambda photon: photon.moveBy(d), self._photons)
 
-    def moveToInterface(self, interfaces):
-
     def scatterBy(self, theta, phi):
         map(lambda photon: photon.scatterBy(theta, phi), self._photons)
 

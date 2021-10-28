@@ -5,10 +5,7 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="8983ea63-de14-4660-8709-1cd6a77a88d4" name="Default Changelist" comment="">
-      <change beforePath="$PROJECT_DIR$/.idea/PyTissueOptics.iml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/PyTissueOptics.iml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/.idea/misc.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/misc.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/pytissueoptics/geometry.py" beforeDir="false" afterPath="$PROJECT_DIR$/pytissueoptics/geometry.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/pytissueoptics/photon.py" beforeDir="false" afterPath="$PROJECT_DIR$/pytissueoptics/photon.py" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
@@ -159,7 +156,7 @@
       <workItem from="1617740223136" duration="1230000" />
       <workItem from="1617742485468" duration="605000" />
       <workItem from="1617745058895" duration="1438000" />
-      <workItem from="1635450680418" duration="4585000" />
+      <workItem from="1635450680418" duration="5544000" />
     </task>
     <servers />
   </component>
