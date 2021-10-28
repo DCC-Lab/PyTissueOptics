@@ -4,7 +4,7 @@ import numpy as np
 
 
 class Photons:
-    def __init__(self, positions=Vectors(N=1000), directions=Vectors([[0, 0, 1]]*1000)):
+    def __init__(self, positions=Vectors(N=1000), directions=Vectors([zHat]*1000)):
         self.N = len(positions)
         self.r = positions
         self.ez = directions
@@ -12,7 +12,34 @@ class Photons:
         self.wavelength = None
         self.weight = Scalars([1]*self.N)
         self.path = None
-        self.origin = Vectors([[0, 0, 0]]*self.N)
+        self.origin = Vectors(N=self.N)
+        self._iteration = 0
+
+    def __len__(self):
+        return self.N
+
+    def __getitem__(self, index):
+        return Photon(position=self.r[index], direction=self.ez[index], weight=self.weight[index])
+
+    def __setitem__(self, index, photon):
+        self.r[index] = photon.r
+        self.z[index] = photon.z
+        self.ez[index] = photon.ez
+        self.er[index] = photon.er
+        self.weight[index] = photon.weight
+        self.origin[index] = photon.origin
+
+    def __iter__(self):
+        self._iteration = 0
+        return self
+
+    def __next__(self):
+        if self._iteration < self.N:
+            result = self[self._iteration]
+            self._iteration += 1
+            return result
+        else:
+            raise StopIteration
 
     @property
     def localPosition(self):
@@ -25,6 +52,10 @@ class Photons:
     @property
     def el(self):
         return self.ez.cross(self.er)
+
+    @property
+    def areAllDead(self):
+        return all(self.weight == 0)
 
     @property
     def isAlive(self):
@@ -65,7 +96,3 @@ class Photons:
 
     def refract(self):
         pass
-
-
-
-

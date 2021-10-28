@@ -2,7 +2,7 @@ from .vector import *
 
 
 class Photon:
-    def __init__(self, position=None, direction=None):
+    def __init__(self, position=None, direction=None, weight=None):
         if position is not None:
             self.r = Vector(position) # local coordinate position
         else:
@@ -18,11 +18,14 @@ class Photon:
         if not self.er.isPerpendicularTo(self.ez):
             self.er = self.ez.anyPerpendicular()
 
+        if weight is None:
+            self.weight = 1.0
+        else:
+            self.weight = weight
+
         self.wavelength = None
-        # We don't need to keep el, because it is obtainable from ez and er
-        self.weight = 1.0
         self.path = None
-        self.origin = Vector(0,0,0) # The global coordinates of the local origin
+        self.origin = Vector(0, 0, 0) # The global coordinates of the local origin
 
     @property
     def localPosition(self):
