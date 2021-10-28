@@ -105,7 +105,65 @@ class Photon:
             self.weight = 0
 
 
+"""
+Photons is essentially an abstract class, but a basic implementation is provided.  It offers a model for
+all children classes.
+
+"""
 class Photons:
+    def __init__(self, N, position=None, direction=None, N):
+        self._photons = []
+        for i in range(N):
+            self._photons.append(Photon(position=position, direction=direction))
+        self.iteration = None
+
+    def __getitem__(self, item):
+        return self._photons[item]
+
+    def __len__(self):
+        return len(self._photons)
+
+    def __iter__(self):
+        self.iteration = 0
+        return self
+
+    def __next__(self) -> Ray:
+        if self._photons is None:
+            raise StopIteration
+
+        if self.iteration < len(self):  # We really want to use len(self) to be compatible with CompactRays
+            photon = self[self.iteration]  # Again we want to use __getitem__ for self for CompactRays
+            self.iteration += 1
+            return photon
+
+        raise StopIteration
+
+    @property
+    def areAllDead(self) -> bool:
+        return not [ photon.isAlive() for photon in self._photons].any()
+
+    def transformToLocalCoordinates(self, origin):
+        map(lambda photon: photon.transformToLocalCoordinates(self.origin), self._photons)
+
+    def transformFromLocalCoordinates(self, origin):
+        map(lambda photon: photon.transformFromLocalCoordinates(self.origin), self._photons)
+
+    def moveBy(self, d):
+        map(lambda photon: photon.moveBy(d), self._photons)
+
+    def moveToInterface(self, interfaces):
+
+    def scatterBy(self, theta, phi):
+        map(lambda photon: photon.scatterBy(theta, phi), self._photons)
+
+    def decreaseWeightBy(self, delta):
+        map(lambda photon: photon.decreaseWeightBy(delta), self._photons)
+
+    def roulette(self):
+        map(lambda photon: photon.roulette(), self._photons)
+
+
+class NativePhotons(Photons):
     def __init__(self, positions=Vectors(N=1000), directions=Vectors([zHat] * 1000)):
         self.N = len(positions)
         self.r = positions
@@ -117,11 +175,14 @@ class Photons:
         self.origin = Vectors(N=self.N)
         self._iteration = 0
 
+
     def __len__(self):
         return self.N
 
+
     def __getitem__(self, index):
         return Photon(position=self.r[index], direction=self.ez[index], weight=self.weight[index])
+
 
     def __setitem__(self, index, photon):
         self.r[index] = photon.r
@@ -131,9 +192,11 @@ class Photons:
         self.weight[index] = photon.weight
         self.origin[index] = photon.origin
 
+
     def __iter__(self):
         self._iteration = 0
         return self
+
 
     def __next__(self):
         if self._iteration < self.N:

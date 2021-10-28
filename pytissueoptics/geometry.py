@@ -89,7 +89,7 @@ class Geometry:
         allTransmittedPhotons = []
 
         photons.transformToLocalCoordinates(self.origin)
-        self.scoreWhenStarting(photons)
+        self.scoreManyWhenStarting(photons)
 
         while not photons.areAllDead():
             # Get distance to interaction point
@@ -111,7 +111,7 @@ class Geometry:
             unimpededPhotons.scatterBy(thetas, phis)
 
             # 2. Impeded photons: they propagate to the interface, then will either be reflected or transmitted
-            remainingDistances = impededPhotons.moveToInterface(interfaces)
+            remainingDistances = impededPhotons.moveBy(interfaces.distance)
             reflectedPhotons, transmittedPhotons = impededPhotons.areReflected(interfaces)
 
             # 2.1 Reflected photons change their direction following Fresnel reflection, then move inside 
@@ -122,7 +122,7 @@ class Geometry:
             # 2.2 Transmitted photons change their direction following the law of refraction, then move 
             #     outside the object and are stored to be returned and propagated into another object.
             transmittedPhotons.refract(interfaces)
-            self.scoreWhenExiting(transmittedPhotons) #optional
+            self.scoreManyWhenExiting(transmittedPhotons) #optional
             allTransmittedPhotons.append(transmittedPhotons)
 
             # 3. Low-weight photons are randomly killed while keeping energy constant.
