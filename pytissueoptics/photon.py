@@ -90,7 +90,6 @@ class Photon:
 
         self.ez.rotateAround(intersection.incidencePlane, intersection.refractionDeflection)
 
-
     def roulette(self):
         chance = 0.1
         if self.weight >= 1e-4 or self.weight == 0:

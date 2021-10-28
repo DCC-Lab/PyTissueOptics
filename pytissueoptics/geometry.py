@@ -2,6 +2,14 @@ from .surface import *
 from .source import *
 
 
+def isIterable(someObject):
+    try:
+        iter(someObject)
+    except TypeError as te:
+        return False
+    return True
+
+
 class Geometry:
     def __init__(self, material=None, stats=None, label=""):
         self.material = material
@@ -98,7 +106,7 @@ class Geometry:
             # 1. Unimpeded photons: they simply propagate through the geometry without anything special
             unimpededPhotons.moveBy(distances)
             deltas = unimpededPhotons.decreaseWeight(self.material.albedo)
-            self.scoreManyInVolume(unimpededPhotons, deltas) #optional
+            # self.scoreManyInVolume(unimpededPhotons, deltas) # optional
             thetas, phis = self.material.getManyScatteringAngles(unimpededPhotons)
             unimpededPhotons.scatterBy(thetas, phis)
 
@@ -186,7 +194,7 @@ class Geometry:
 
         finalPosition = Vector.fromScaledSum(position, direction, distance)
         if self.contains(finalPosition):
-            return distance, None
+            return None
 
         # At this point, we know we will cross an interface: position is inside
         # finalPosition is outside.
@@ -209,7 +217,7 @@ class Geometry:
                     distanceToSurface = (finalPosition - position).abs()
                     return FresnelIntersect(direction, surface, distanceToSurface)
 
-        return distance, None
+        return None
 
     def nextEntranceInterface(self, position, direction, distance) -> FresnelIntersect:
         """ Is this line segment from position to distance*direction crossing
@@ -238,6 +246,28 @@ class Geometry:
         if intersectSurface is None:
             return None
         return FresnelIntersect(direction, intersectSurface, minDistance, self)
+
+    def getPossibleIntersections(self, photons, distances):
+        if isIterable(photons):
+
+            unimpededPhotons = Photons()
+            impededPhotons = Photons()
+            interfaces = []
+
+            for i, p in enumerate(photons):
+                interface = self.nextExitInterface(p.r, p.ez, distances[i])
+                if interface is not None:
+                    interfaces.append(interface)
+                    impededPhotons.append(p)
+
+                else:
+                    unimpededPhotons.append(p)
+
+            return unimpededPhotons, (impededPhotons, interfaces)
+
+        else:
+            raise TypeError("Must be a Photons itterable object.")
+
 
     @staticmethod
     def isReflected(photon, surface) -> bool:

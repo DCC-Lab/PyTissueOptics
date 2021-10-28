@@ -1,5 +1,6 @@
 import numpy as np
 
+
 def isIterable(someObject):
     try:
         iter(someObject)
@@ -25,30 +26,36 @@ class Material:
         self.index = index
 
     def getScatteringDistance(self, photon):
-        if isIterable(photon):
-            return Scalars([self.getScatteringDistance(p) for p in photon])
-        else:
-            if self.mu_t == 0:
-                return Material.veryFar
+        if self.mu_t == 0:
+            return Material.veryFar
 
-            rnd = 0
-            while rnd == 0:
-                rnd = np.random.random()
-            return -np.log(rnd) / self.mu_t
+        rnd = 0
+        while rnd == 0:
+            rnd = np.random.random()
+        return -np.log(rnd) / self.mu_t
+
+    def getManyScatteringDistances(self, photons):
+        if isIterable(photons):
+            return Scalars([self.getScatteringDistance(p) for p in photons])
+        else:
+            raise TypeError("Must be a Photons itterable object.")
 
     def getScatteringAngles(self, photon):
-        if isIterable(photon):
-            theta, phi = zip(*[self.getScatteringAngles(p) for p in photon])
+        phi = np.random.random() * 2 * np.pi
+        g = self.g
+        if g == 0:
+            cost = 2 * np.random.random() - 1
+        else:
+            temp = (1 - g * g) / (1 - g + 2 * g * np.random.random())
+            cost = (1 + g * g - temp * temp) / (2 * g)
+        return np.arccos(cost), phi
+
+    def getManyScatteringAngles(self, photons):
+        if isIterable(photons):
+            theta, phi = zip(*[self.getScatteringAngles(p) for p in photons])
             return Scalars(theta), Scalars(phi)
         else:
-            phi = np.random.random() * 2 * np.pi
-            g = self.g
-            if g == 0:
-                cost = 2 * np.random.random() - 1
-            else:
-                temp = (1 - g * g) / (1 - g + 2 * g * np.random.random())
-                cost = (1 + g * g - temp * temp) / (2 * g)
-            return np.arccos(cost), phi
+            raise TypeError("Must be a Photons itterable object.")
 
     def __repr__(self):
         return "Material: µs={0} µa={1} g={2} n={3}".format(self.mu_s, self.mu_a, self.g, self.index)
