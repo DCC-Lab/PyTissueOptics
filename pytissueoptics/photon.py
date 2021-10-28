@@ -111,7 +111,7 @@ all children classes.
 
 """
 class Photons:
-    def __init__(self, N, position=None, direction=None, N):
+    def __init__(self, N, position=None, direction=None):
         self._photons = []
         for i in range(N):
             self._photons.append(Photon(position=position, direction=direction))
@@ -127,7 +127,7 @@ class Photons:
         self.iteration = 0
         return self
 
-    def __next__(self) -> Ray:
+    def __next__(self) -> Photon:
         if self._photons is None:
             raise StopIteration
 
