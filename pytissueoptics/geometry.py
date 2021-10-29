@@ -124,7 +124,7 @@ class Geometry:
             #     outside the object and are stored to be returned and propagated into another object.
             transmittedPhotons.refract(interfaces)
             self.scoreManyWhenExiting(transmittedPhotons, interfaces) #optional
-            allTransmittedPhotons.append(transmittedPhotons)
+            allTransmittedPhotons.extend(transmittedPhotons)
             photons.remove(transmittedPhotons)
 
             # 3. Low-weight photons are randomly killed while keeping energy constant.

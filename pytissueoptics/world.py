@@ -54,6 +54,53 @@ class World:
         duration = self.completeCalculation()
         print("{0:.1f} ms per photon\n".format(duration * 1000 / N))
 
+    def computeMany(self, graphs):
+        self.startCalculation()
+        N = 0
+        for source in self.sources:
+            N += source.maxCount
+            photons = Photons(list(source))
+            while not photons.areAllDead:
+                photonsInWorld, geometries, photonsInGeometry = self.assignCurrentGeometries(photons)
+                unimpededPhotons, (impededPhotons, interfaces) = self.allNextObstacles(photonsInWorld)
+
+                # We now deal with both groups (unimpeded and impeded photons) independently
+                # ==========================================
+                # 1. Unimpeded photons: they simply propagate through the world without anything special
+                # Nothing to do, they are just flying through emptinesss and encoutering nothing.
+                unimpededPhotons.decreaseWeight(albedo=1.0)
+                # 2. Impeded photons: they propagate to an object, then will either be reflected or transmitted
+                impededPhotons.moveBy(interfaces.distance)
+                reflectedPhotons, transmittedPhotons = impededPhotons.areReflected(interfaces)
+
+                reflectedPhotons.reflect(interfaces) # still in world
+                transmittedPhotons.refract(interfaces) # the photon is then inside the object
+
+                # Then propagate whatever photons were already in an object
+                for i, geometry in enumerate(geometries):
+                    geometry.propagateMany(photonsInGeometry[i])
+
+
+    def getPossibleIntersections(self, photons):
+        if isIterable(photons):
+            unimpededPhotons = Photons()
+            impededPhotons = Photons()
+            interfaces = FresnelIntersects()
+
+            for i, p in enumerate(photons):
+                interface = self.nextExitInterface(p.r, p.ez, distances[i])
+                if interface is not None:
+                    interfaces.append(interface)
+                    impededPhotons.append(p)
+
+                else:
+                    unimpededPhotons.append(p)
+
+            return unimpededPhotons, (impededPhotons, interfaces)
+
+        else:
+            raise TypeError("Must be a Photons itterable object.")
+
     def place(self, anObject, position):
         if isinstance(anObject, Geometry) or isinstance(anObject, Detector):
             anObject.origin = position
@@ -68,6 +115,26 @@ class World:
             if geometry.contains(localCoordinates):
                 return geometry
         return None
+
+    def assignCurrentGeometries(self, photons):
+        assignments = {}
+        photonsInWorld = []
+        for photon in photons:
+            currentGeometry = self.contains(photon.globalPosition)
+
+            if currentGeometry is None:
+                photonsInWorld.append(photon)
+            elif currentGeometry not in assignments:
+                assignments[currentGeometry] = [photon]
+            else:
+                assignments[currentGeometry].append(photon)
+
+        geometries =  list(assignments.keys())
+        photonsInGeometries = []
+        for geometry in geometries:
+            photonsInGeometries.append(Photons(assignments[geometry]))
+
+        return Photons(photonsInWorld), geometries, photonsInGeometries
 
     def nextObstacle(self, photon):
         distance = 1e7
@@ -84,6 +151,21 @@ class World:
             photon.transformFromLocalCoordinates(geometry.origin)
 
         return closestIntersect
+
+    def allNextObstacles(self, photons):
+        impededPhotons = []
+        unimpededPhotons = []
+        intersects = []
+
+        for photon in photons:
+            intersect = self.nextObstacle(photon)
+            if intersect is not None:
+                intersects.append(intersect)
+                impededPhotons.append(photon)
+            else:
+                unimpededPhotons.append(photon)
+
+        return Photons(unimpededPhotons), (Photons(impededPhotons), FresnelIntersects(intersects))
 
     def startCalculation(self):
         if 'SIGUSR1' in dir(signal) and 'SIGUSR2' in dir(signal):

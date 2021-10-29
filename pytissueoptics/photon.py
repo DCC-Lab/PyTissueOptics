@@ -152,6 +152,7 @@ class Photons:
         for photon in somePhotons:
             self._photons.remove(photon)
 
+
     @property
     def areAllDead(self) -> bool:
         return np.array([ photon.isDead for photon in self._photons]).all()

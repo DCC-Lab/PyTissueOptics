@@ -212,8 +212,10 @@ class FresnelIntersect:
         return self.thetaIn - self.thetaOut
 
 class FresnelIntersects:
-    def __init__(self):
+    def __init__(self, array = None):
         self._intersects = []
+        if array is not None:
+            self._intersects = array
         self.iteration = None
 
     def __getitem__(self, item):
