@@ -91,15 +91,16 @@ class Geometry:
         photons.transformToLocalCoordinates(self.origin)
         self.scoreManyWhenStarting(photons)
 
-        while not photons.areAllDead:
+        photonsInside = photons
+        while not photonsInside.areAllDead:
             # Get distance to interaction point
-            distances = self.material.getManyScatteringDistances(photons)
+            distances = self.material.getManyScatteringDistances(photonsInside)
 
             # Split photons into two groups: those freely propagating and those hitting some interface.
             # We determine the groups based on the photons (and their positions) and the interaction
             # distances (calculated above). For those hitting an interface, we provide a list of 
             # corresponding interfaces
-            unimpededPhotons, (impededPhotons, interfaces) = self.getPossibleIntersections(photons, distances)
+            unimpededPhotons, (impededPhotons, interfaces) = self.getPossibleIntersections(photonsInside, distances)
 
             # We now deal with both groups (unimpeded and impeded photons) independently
             # ==========================================
@@ -125,11 +126,11 @@ class Geometry:
             transmittedPhotons.refract(interfaces)
             self.scoreManyWhenExiting(transmittedPhotons, interfaces) #optional
             allTransmittedPhotons.extend(transmittedPhotons)
-            photons.remove(transmittedPhotons)
+            photonsInside.remove(transmittedPhotons)
 
             # 3. Low-weight photons are randomly killed while keeping energy constant.
-            photons.roulette()
-            print("Looping {0}".format(len(photons)))
+            photonsInside.roulette()
+            print("Looping {0}".format(len(photonsInside)))
 
 
         # Because the code will not typically calculate millions of photons, it is
