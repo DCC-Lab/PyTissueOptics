@@ -106,7 +106,7 @@ class Geometry:
             # 1. Unimpeded photons: they simply propagate through the geometry without anything special
             unimpededPhotons.moveBy(distances)
             deltas = unimpededPhotons.decreaseWeight(self.material.albedo)
-            # self.scoreManyInVolume(unimpededPhotons, deltas) # optional
+            self.scoreManyInVolume(unimpededPhotons, deltas) # optional
             thetas, phis = self.material.getManyScatteringAngles(unimpededPhotons)
             unimpededPhotons.scatterBy(thetas, phis)
 
@@ -123,12 +123,13 @@ class Geometry:
             # 2.2 Transmitted photons change their direction following the law of refraction, then move 
             #     outside the object and are stored to be returned and propagated into another object.
             transmittedPhotons.refract(interfaces)
-            self.scoreManyWhenExiting(transmittedPhotons) #optional
+            self.scoreManyWhenExiting(transmittedPhotons, interfaces) #optional
             allTransmittedPhotons.append(transmittedPhotons)
             photons.remove(transmittedPhotons)
 
             # 3. Low-weight photons are randomly killed while keeping energy constant.
             photons.roulette()
+            print("Looping {0}".format(len(photons)))
 
 
         # Because the code will not typically calculate millions of photons, it is
@@ -284,19 +285,31 @@ class Geometry:
 
     def scoreManyWhenStarting(self, photons):
         if self.stats is not None:
-            map(lambda photon, delta: self.scoreWhenStarting(photon), photons)
+            for photon in photons:
+                self.scoreWhenStarting(photon)
+        # if self.stats is not None:
+        #     map(lambda photon, delta: self.scoreWhenStarting(photon), photons)
 
     def scoreInVolume(self, photon, delta):
         if self.stats is not None:
             self.stats.scoreInVolume(photon, delta)
 
+    def scoreManyInVolume(self, photons, deltas):
+        if self.stats is not None:
+            for photon, delta in zip(photons, deltas):
+                self.scoreInVolume(photon, delta)
+        # map(lambda photon, delta: self.scoreWhenStarting(photon), photons)
+
     def scoreWhenExiting(self, photon, surface):
         if self.stats is not None:
             self.stats.scoreWhenCrossing(photon, surface)
 
-    def scoreManyWhenExiting(self, photons):
+    def scoreManyWhenExiting(self, photons, intersects):
         if self.stats is not None:
-            map(lambda photon, delta: self.scoreWhenExiting(photon), photons)
+            for photon, intersect in zip(photons, intersects):
+                self.scoreWhenExiting(photon, intersect.surface)
+        # if self.stats is not None:
+        #     map(lambda photon, delta: self.scoreWhenExiting(photon), photons)
 
     def scoreWhenEntering(self, photon, surface):
         return

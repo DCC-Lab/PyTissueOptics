@@ -180,8 +180,13 @@ class Photons:
             photon.scatterBy(theta, phi)
 
     def decreaseWeight(self, albedo):
+        weightLoss = []
         for photon in self._photons:
-            photon.decreaseWeightBy(albedo * photon.weight)
+            delta = albedo * photon.weight
+            photon.decreaseWeightBy(delta)
+            weightLoss.append(delta)
+
+        return Scalars(weightLoss)
 
         # I don't understand why this does not work:
         # map(lambda photon : photon.decreaseWeightBy(albedo * photon.weight), self._photons)
