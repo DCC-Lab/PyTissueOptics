@@ -51,11 +51,22 @@ class Material:
         return np.arccos(cost), phi
 
     def getManyScatteringAngles(self, photons):
-        if isIterable(photons):
-            theta, phi = zip(*[self.getScatteringAngles(p) for p in photons])
-            return Scalars(theta), Scalars(phi)
-        else:
-            raise TypeError("Must be a Photons itterable object.")
+        thetas = []
+        phis = []
+
+        for photon in photons:
+            theta, phi = self.getScatteringAngles(photon)
+            thetas.append(theta)
+            phis.append(phi)
+
+        return Scalars(thetas), Scalars(phis)
+
+        # This does not work:
+        # if isIterable(photons):
+        #     theta, phi = zip(*[self.getScatteringAngles(p) for p in photons])
+        #     return Scalars(theta), Scalars(phi)
+        # else:
+        #     raise TypeError("Must be a Photons itterable object.")
 
     def __repr__(self):
         return "Material: µs={0} µa={1} g={2} n={3}".format(self.mu_s, self.mu_a, self.g, self.index)

@@ -149,7 +149,8 @@ class Photons:
         self._photons.append(photon)
 
     def remove(self, somePhotons):
-        map(lambda somePhoton: self._photons.remove(somePhoton), somePhotons)
+        for photon in somePhotons:
+            self._photons.remove(photon)
 
     @property
     def areAllDead(self) -> bool:
@@ -168,14 +169,22 @@ class Photons:
     def transformFromLocalCoordinates(self, origin):
         map(lambda photon: photon.transformFromLocalCoordinates(origin), self._photons)
 
-    def moveBy(self, d):
-        map(lambda photon: photon.moveBy(d), self._photons)
+    def moveBy(self, distances):
+        for photon, d in zip(self._photons, distances):
+            photon.moveBy(d)
+        # I don't understand why this does not work:
+        # map(lambda photon, d: photon.moveBy(d), zip(self._photons, distances))
 
     def scatterBy(self, thetas, phis):
-        map(lambda photon, theta, phi: photon.scatterBy(theta, phi), self._photons, thetas, phis)
+        for photon, theta, phi in zip(self._photons, thetas, phis):
+            photon.scatterBy(theta, phi)
 
     def decreaseWeight(self, albedo):
-        map(lambda photon : photon.decreaseWeightBy(albedo * photon.weight), self._photons)
+        for photon in self._photons:
+            photon.decreaseWeightBy(albedo * photon.weight)
+
+        # I don't understand why this does not work:
+        # map(lambda photon : photon.decreaseWeightBy(albedo * photon.weight), self._photons)
 
     def decreaseWeightBy(self, deltas):
         map(lambda photon, delta: photon.decreaseWeightBy(delta), self._photons, deltas)
