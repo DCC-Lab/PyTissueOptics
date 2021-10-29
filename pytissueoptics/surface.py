@@ -1,5 +1,5 @@
 from .vector import *
-
+from scalars import Scalars
 
 class Surface:
     def __init__(self, origin, a, b, normal, size=None, description=None):
@@ -210,3 +210,51 @@ class FresnelIntersect:
 
         self.thetaOut = np.arcsin(sinThetaOut)
         return self.thetaIn - self.thetaOut
+
+class FresnelIntersects:
+    def __init__(self):
+        self._intersects = []
+        self.iteration = None
+
+    def __getitem__(self, item):
+        return self._intersects[item]
+
+    def __len__(self):
+        return len(self._intersects)
+
+    def __iter__(self):
+        self.iteration = 0
+        return self
+
+    def __next__(self) -> FresnelIntersect:
+        if self._intersects is None:
+            raise StopIteration
+
+        if self.iteration < len(self):  # We really want to use len(self) to be compatible with CompactRays
+            photon = self[self.iteration]  # Again we want to use __getitem__ for self for CompactRays
+            self.iteration += 1
+            return photon
+
+        raise StopIteration
+
+
+    @property
+    def distance(self):
+        return Scalars(map(lambda intersect: intersect.distance, self._intersects))
+
+    def append(self, intersect):
+        self._intersects.append(intersect)
+
+    def reflectionCoefficient(self, theta) -> Scalars:
+        return Scalars(map(lambda intersect, theta: intersect.reflectionCoefficient(theta), self._intersects, thetas))
+
+    def isReflected(self) -> Scalars:
+        return Scalars(map(lambda intersect: intersect.isReflected(), self._intersects))
+
+    @property
+    def reflectionDeflection(self) -> Scalars:
+        return Scalars(map(lambda intersect: intersect.reflectionDeflection(), self._intersects))
+
+    @property
+    def refractionDeflection(self) -> Scalars:
+        return Scalars(map(lambda intersect: intersect.refractionDeflection(), self._intersects))

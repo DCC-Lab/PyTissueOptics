@@ -252,7 +252,7 @@ class Geometry:
 
             unimpededPhotons = Photons()
             impededPhotons = Photons()
-            interfaces = []
+            interfaces = FresnelIntersects()
 
             for i, p in enumerate(photons):
                 interface = self.nextExitInterface(p.r, p.ez, distances[i])
