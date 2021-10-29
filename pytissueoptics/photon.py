@@ -115,11 +115,14 @@ all children classes.
 
 """
 class Photons:
-    def __init__(self, N=0, position=None, direction=None):
-        self._photons = []
-        for i in range(N):
-            self._photons.append(Photon(position=position, direction=direction))
+    def __init__(self, array=None, N=0, position=None, direction=None):
         self.iteration = None
+        self._photons = []
+        if array is not None:
+            self._photons = array
+        else:
+            for i in range(N):
+                self._photons.append(Photon(position=position, direction=direction))
 
     def __getitem__(self, item):
         return self._photons[item]
@@ -149,6 +152,13 @@ class Photons:
     def areAllDead(self) -> bool:
         return np.array([ photon.isDead for photon in self._photons]).all()
 
+    def areReflected(self, interfaces):
+        areReflected = [ photon.isReflected(interface) for photon, interface in zip(self._photons, interfaces) ]
+
+        reflectedPhotons = Photons([ photon for photon, isReflected in zip(self._photons, areReflected) if isReflected ])
+        transmittedPhotons = Photons([ photon for photon, isReflected in zip(self._photons, areReflected) if not isReflected ])
+        return (reflectedPhotons, transmittedPhotons)
+
     def transformToLocalCoordinates(self, origin):
         map(lambda photon: photon.transformToLocalCoordinates(origin), self._photons)
 
@@ -166,6 +176,15 @@ class Photons:
 
     def decreaseWeightBy(self, deltas):
         map(lambda photon, delta: photon.decreaseWeightBy(delta), self._photons, deltas)
+
+    def deflect(self):
+        pass
+
+    def reflect(self, interfaces):
+        map(lambda photon, interface: photon.reflect(intersect), self._photons, interfaces)
+
+    def refract(self, interfaces):
+        map(lambda photon, interface: photon.refract(intersect), self._photons, interfaces)
 
     def roulette(self):
         map(lambda photon: photon.roulette(), self._photons)

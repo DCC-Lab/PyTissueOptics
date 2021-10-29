@@ -240,7 +240,7 @@ class FresnelIntersects:
 
     @property
     def distance(self):
-        return Scalars(map(lambda intersect: intersect.distance, self._intersects))
+        return Scalars(list(map(lambda intersect: intersect.distance, self._intersects)))
 
     def append(self, intersect):
         self._intersects.append(intersect)

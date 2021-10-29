@@ -292,6 +292,10 @@ class Geometry:
         if self.stats is not None:
             self.stats.scoreWhenCrossing(photon, surface)
 
+    def scoreManyWhenExiting(self, photons):
+        if self.stats is not None:
+            map(lambda photon, delta: self.scoreWhenExiting(photon), photons)
+
     def scoreWhenEntering(self, photon, surface):
         return
 
