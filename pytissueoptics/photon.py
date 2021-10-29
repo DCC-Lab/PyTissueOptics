@@ -148,12 +148,15 @@ class Photons:
     def append(self, photon):
         self._photons.append(photon)
 
+    def remove(self, somePhotons):
+        map(lambda somePhoton: self._photons.remove(somePhoton), somePhotons)
+
     @property
     def areAllDead(self) -> bool:
         return np.array([ photon.isDead for photon in self._photons]).all()
 
     def areReflected(self, interfaces):
-        areReflected = [ photon.isReflected(interface) for photon, interface in zip(self._photons, interfaces) ]
+        areReflected = [ interface.isReflected() for photon, interface in zip(self._photons, interfaces) ]
 
         reflectedPhotons = Photons([ photon for photon, isReflected in zip(self._photons, areReflected) if isReflected ])
         transmittedPhotons = Photons([ photon for photon, isReflected in zip(self._photons, areReflected) if not isReflected ])
@@ -172,7 +175,7 @@ class Photons:
         map(lambda photon, theta, phi: photon.scatterBy(theta, phi), self._photons, thetas, phis)
 
     def decreaseWeight(self, albedo):
-        map(lambda photon, delta: photon.decreaseWeightBy(albedo*photon.weight()), self._photons)
+        map(lambda photon : photon.decreaseWeightBy(albedo * photon.weight), self._photons)
 
     def decreaseWeightBy(self, deltas):
         map(lambda photon, delta: photon.decreaseWeightBy(delta), self._photons, deltas)

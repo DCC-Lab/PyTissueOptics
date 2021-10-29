@@ -124,6 +124,7 @@ class Geometry:
             transmittedPhotons.refract(interfaces)
             self.scoreManyWhenExiting(transmittedPhotons) #optional
             allTransmittedPhotons.append(transmittedPhotons)
+            photons.remove(transmittedPhotons)
 
             # 3. Low-weight photons are randomly killed while keeping energy constant.
             photons.roulette()

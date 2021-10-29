@@ -2,7 +2,7 @@ from pytissueoptics import *
 
 world = World()
 # We choose a material with scattering properties
-mat = Material(mu_s=30, mu_a=0.1, g=0.8, index=1.4)
+mat = Material(mu_s=3, mu_a=1, g=0.8, index=1.4)
 # mat2 = Material(mu_s=0.1, mu_a=10, g=0.8, index=1.0)
 # We want stats: we must determine over what volume we want the energy
 stats = Stats(min=(-2, -2, -1), max=(2, 2, 4), size=(50, 50, 50), opaqueBoundaries=False)
