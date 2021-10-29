@@ -1,5 +1,5 @@
 import numpy as np
-
+from scalars import Scalars
 
 def isIterable(someObject):
     try:

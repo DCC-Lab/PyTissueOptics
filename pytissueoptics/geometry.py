@@ -91,7 +91,7 @@ class Geometry:
         photons.transformToLocalCoordinates(self.origin)
         self.scoreManyWhenStarting(photons)
 
-        while not photons.areAllDead():
+        while not photons.areAllDead:
             # Get distance to interaction point
             distances = self.material.getManyScatteringDistances(photons)
 
@@ -279,6 +279,10 @@ class Geometry:
     def scoreWhenStarting(self, photon):
         if self.stats is not None:
             self.stats.scoreWhenStarting(photon)
+
+    def scoreManyWhenStarting(self, photons):
+        if self.stats is not None:
+            map(lambda photon, delta: self.scoreWhenStarting(photon), photons)
 
     def scoreInVolume(self, photon, delta):
         if self.stats is not None:

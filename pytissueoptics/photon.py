@@ -51,6 +51,10 @@ class Photon:
     def isAlive(self) -> bool :
         return self.weight > 0
 
+    @property
+    def isDead(self) -> bool :
+        return self.weight == 0
+
     def keepPathStatistics(self):
         self.path = [Vector(self.r)]  # Will continue every move
 
@@ -111,7 +115,7 @@ all children classes.
 
 """
 class Photons:
-    def __init__(self, N, position=None, direction=None):
+    def __init__(self, N=0, position=None, direction=None):
         self._photons = []
         for i in range(N):
             self._photons.append(Photon(position=position, direction=direction))
@@ -138,9 +142,12 @@ class Photons:
 
         raise StopIteration
 
+    def append(self, photon):
+        self._photons.append(photon)
+
     @property
     def areAllDead(self) -> bool:
-        return [ photon.isDead() for photon in self._photons].all()
+        return np.array([ photon.isDead for photon in self._photons]).all()
 
     def transformToLocalCoordinates(self, origin):
         map(lambda photon: photon.transformToLocalCoordinates(origin), self._photons)
@@ -153,6 +160,9 @@ class Photons:
 
     def scatterBy(self, thetas, phis):
         map(lambda photon, theta, phi: photon.scatterBy(theta, phi), self._photons, thetas, phis)
+
+    def decreaseWeight(self, albedo):
+        map(lambda photon, delta: photon.decreaseWeightBy(albedo*photon.weight()), self._photons)
 
     def decreaseWeightBy(self, deltas):
         map(lambda photon, delta: photon.decreaseWeightBy(delta), self._photons, deltas)

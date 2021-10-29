@@ -14,11 +14,11 @@ detector = Detector(NA=0.5)
 tissue = Layer(thickness=1, material=mat, stats=stats, label="Layer 1")
 # tissue2 = Layer(thickness=1, material=mat2, stats=stats2, label="Layer 2")
 # We propagate the photons from the source inside the geometry
-world.place(source, position=Vector(0, 0, -1))
+world.place(source, position=Vector(0, 0, 0.5))
 world.place(tissue, position=Vector(0, 0, 0))
 #world.place(tissue2, position=Vector(0, 0, 2))
 #world.place(detector, position=Vector(0, 0, -2))
-world.compute(graphs=True)
+tissue.propagateMany(photons=Photons(N=10))
 # Report the results for all geometries
 world.report()
 
