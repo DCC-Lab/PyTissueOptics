@@ -60,8 +60,10 @@ class World:
         for source in self.sources:
             N += source.maxCount
             photons = Photons(list(source))
+
+            photonsInWorld, geometries, photonsInGeometry = self.assignCurrentGeometries(photons)
+
             while not photons.areAllDead:
-                photonsInWorld, geometries, photonsInGeometry = self.assignCurrentGeometries(photons)
                 unimpededPhotons, (impededPhotons, interfaces) = self.allNextObstacles(photonsInWorld)
 
                 # We now deal with both groups (unimpeded and impeded photons) independently
@@ -69,37 +71,38 @@ class World:
                 # 1. Unimpeded photons: they simply propagate through the world without anything special
                 # Nothing to do, they are just flying through emptinesss and encoutering nothing.
                 unimpededPhotons.decreaseWeight(albedo=1.0)
+
                 # 2. Impeded photons: they propagate to an object, then will either be reflected or transmitted
                 impededPhotons.moveBy(interfaces.distance)
                 reflectedPhotons, transmittedPhotons = impededPhotons.areReflected(interfaces)
 
                 reflectedPhotons.reflect(interfaces) # still in world
-                transmittedPhotons.refract(interfaces) # the photon is then inside the object
+                transmittedPhotons.refract(interfaces) # the photon is then inside the object (set by refract)
 
                 # Then propagate whatever photons were already in an object
                 for i, geometry in enumerate(geometries):
-                    geometry.propagateMany(photonsInGeometry[i])
+                    photonsInGeometry = Photons(list(filter(lambda photon: photon.currentGeometry == geometry, photons)))
+                    geometry.propagateMany(photonsInGeometry)
 
 
     def getPossibleIntersections(self, photons):
-        if isIterable(photons):
-            unimpededPhotons = Photons()
-            impededPhotons = Photons()
-            interfaces = FresnelIntersects()
+        unimpededPhotonsOrDead = Photons()
+        impededPhotons = Photons()
+        interfaces = FresnelIntersects()
 
-            for i, p in enumerate(photons):
+        for i, p in enumerate(photons):
+            if p.isAlive:
                 interface = self.nextExitInterface(p.r, p.ez, distances[i])
                 if interface is not None:
                     interfaces.append(interface)
                     impededPhotons.append(p)
 
                 else:
-                    unimpededPhotons.append(p)
+                    unimpededPhotonsOrDead.append(p)
+            else:
+                unimpededPhotonsOrDead.append(p)
 
-            return unimpededPhotons, (impededPhotons, interfaces)
-
-        else:
-            raise TypeError("Must be a Photons itterable object.")
+        return unimpededPhotonsOrDead, (impededPhotons, interfaces)
 
     def place(self, anObject, position):
         if isinstance(anObject, Geometry) or isinstance(anObject, Detector):
@@ -120,14 +123,15 @@ class World:
         assignments = {}
         photonsInWorld = []
         for photon in photons:
-            currentGeometry = self.contains(photon.globalPosition)
-
-            if currentGeometry is None:
-                photonsInWorld.append(photon)
-            elif currentGeometry not in assignments:
-                assignments[currentGeometry] = [photon]
-            else:
-                assignments[currentGeometry].append(photon)
+            if photon.isAlive:
+                currentGeometry = self.contains(photon.globalPosition)
+                photon.currentGeometry = currentGeometry
+                if currentGeometry is None:
+                    photonsInWorld.append(photon)
+                elif currentGeometry not in assignments:
+                    assignments[currentGeometry] = [photon]
+                else:
+                    assignments[currentGeometry].append(photon)
 
         geometries =  list(assignments.keys())
         photonsInGeometries = []
@@ -137,6 +141,8 @@ class World:
         return Photons(photonsInWorld), geometries, photonsInGeometries
 
     def nextObstacle(self, photon):
+        if not photon.isAlive:
+            return None
         distance = 1e7
         shortestDistance = distance
         closestIntersect = None

@@ -86,13 +86,11 @@ class Geometry:
         some interface. We will return the photons that have exited the geometry.
         """
 
-        allTransmittedPhotons = []
-
         photons.transformToLocalCoordinates(self.origin)
         self.scoreManyWhenStarting(photons)
 
         photonsInside = photons
-        while not photonsInside.areAllDead:
+        while (not photonsInside.areAllDead) and (len(photonsInside) != 0):
             # Get distance to interaction point
             distances = self.material.getManyScatteringDistances(photonsInside)
 
@@ -125,13 +123,12 @@ class Geometry:
             #     outside the object and are stored to be returned and propagated into another object.
             transmittedPhotons.refract(interfaces)
             self.scoreManyWhenExiting(transmittedPhotons, interfaces) #optional
-            allTransmittedPhotons.extend(transmittedPhotons)
             photonsInside.remove(transmittedPhotons)
 
             # 3. Low-weight photons are randomly killed while keeping energy constant.
             photonsInside.roulette()
-            print("Looping {0}".format(len(photonsInside)))
 
+            print(len(photonsInside))
 
         # Because the code will not typically calculate millions of photons, it is
         # inexpensive to keep all the propagated photons.  This allows users
@@ -139,7 +136,7 @@ class Geometry:
         self.scoreWhenFinal(photons)
         photons.transformFromLocalCoordinates(self.origin)
 
-        return allTransmittedPhotons
+        return
 
     def contains(self, position) -> bool:
         """ The base object is infinite. Subclasses override this method

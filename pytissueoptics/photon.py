@@ -34,6 +34,7 @@ class Photon:
         self.wavelength = None
         self.path = None
         self.origin = Vector(0, 0, 0) # The global coordinates of the local origin
+        self.currentGeometry = None
 
     @property
     def localPosition(self):
@@ -155,6 +156,8 @@ class Photons:
 
     @property
     def areAllDead(self) -> bool:
+        if len(self._photons) == 0:
+            return True
         return np.array([ photon.isDead for photon in self._photons]).all()
 
     def areReflected(self, interfaces):
@@ -165,10 +168,12 @@ class Photons:
         return (reflectedPhotons, transmittedPhotons)
 
     def transformToLocalCoordinates(self, origin):
-        map(lambda photon: photon.transformToLocalCoordinates(origin), self._photons)
+        for photon in self._photons:
+            photon.transformToLocalCoordinates(origin)
 
     def transformFromLocalCoordinates(self, origin):
-        map(lambda photon: photon.transformFromLocalCoordinates(origin), self._photons)
+        for photon in self._photons:
+            photon.transformFromLocalCoordinates(origin)
 
     def moveBy(self, distances):
         for photon, d in zip(self._photons, distances):
@@ -199,13 +204,19 @@ class Photons:
         pass
 
     def reflect(self, interfaces):
-        map(lambda photon, interface: photon.reflect(intersect), self._photons, interfaces)
+        for photon, interface in zip(self._photons, interfaces):
+            photon.reflect(interface)
+            photon.moveBy(1e-6)
 
     def refract(self, interfaces):
-        map(lambda photon, interface: photon.refract(intersect), self._photons, interfaces)
+        for photon, interface in zip(self._photons, interfaces):
+            photon.refract(interface)
+            photon.moveBy(1e-6)
+            photon.currentGeometry = interface.geometry
 
     def roulette(self):
-        map(lambda photon: photon.roulette(), self._photons)
+        for photon in self._photons:
+            photon.roulette()
 
 
 class NativePhotons(Photons):

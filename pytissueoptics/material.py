@@ -36,7 +36,7 @@ class Material:
 
     def getManyScatteringDistances(self, photons):
         if isIterable(photons):
-            return Scalars([self.getScatteringDistance(p) for p in photons])
+            return Scalars([self.getScatteringDistance(p) for p in photons ])
         else:
             raise TypeError("Must be a Photons itterable object.")
 
