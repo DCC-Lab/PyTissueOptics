@@ -140,22 +140,22 @@ class Photons:
 
     @property
     def areAllDead(self) -> bool:
-        return not [ photon.isAlive() for photon in self._photons].any()
+        return [ photon.isDead() for photon in self._photons].all()
 
     def transformToLocalCoordinates(self, origin):
-        map(lambda photon: photon.transformToLocalCoordinates(self.origin), self._photons)
+        map(lambda photon: photon.transformToLocalCoordinates(origin), self._photons)
 
     def transformFromLocalCoordinates(self, origin):
-        map(lambda photon: photon.transformFromLocalCoordinates(self.origin), self._photons)
+        map(lambda photon: photon.transformFromLocalCoordinates(origin), self._photons)
 
     def moveBy(self, d):
         map(lambda photon: photon.moveBy(d), self._photons)
 
-    def scatterBy(self, theta, phi):
-        map(lambda photon: photon.scatterBy(theta, phi), self._photons)
+    def scatterBy(self, thetas, phis):
+        map(lambda photon, theta, phi: photon.scatterBy(theta, phi), self._photons, thetas, phis)
 
-    def decreaseWeightBy(self, delta):
-        map(lambda photon: photon.decreaseWeightBy(delta), self._photons)
+    def decreaseWeightBy(self, deltas):
+        map(lambda photon, delta: photon.decreaseWeightBy(delta), self._photons, deltas)
 
     def roulette(self):
         map(lambda photon: photon.roulette(), self._photons)
