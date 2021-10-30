@@ -61,29 +61,44 @@ class World:
             N += source.maxCount
             photons = Photons(list(source))
 
-            photonsInWorld, geometries, photonsInGeometry = self.assignCurrentGeometries(photons)
-
-            while not photons.areAllDead:
-                unimpededPhotons, (impededPhotons, interfaces) = self.allNextObstacles(photonsInWorld)
-
-                # We now deal with both groups (unimpeded and impeded photons) independently
-                # ==========================================
-                # 1. Unimpeded photons: they simply propagate through the world without anything special
-                # Nothing to do, they are just flying through emptinesss and encoutering nothing.
-                unimpededPhotons.decreaseWeight(albedo=1.0)
-
-                # 2. Impeded photons: they propagate to an object, then will either be reflected or transmitted
-                impededPhotons.moveBy(interfaces.distance)
-                reflectedPhotons, transmittedPhotons = impededPhotons.areReflected(interfaces)
-
-                reflectedPhotons.reflect(interfaces) # still in world
-                transmittedPhotons.refract(interfaces) # the photon is then inside the object (set by refract)
-
-                # Then propagate whatever photons were already in an object
+            while photons.liveCount() != 0:
+                geometries = self.assignCurrentGeometries(photons)
                 for i, geometry in enumerate(geometries):
-                    photonsInGeometry = Photons(list(filter(lambda photon: photon.currentGeometry == geometry, photons)))
-                    geometry.propagateMany(photonsInGeometry)
+                    if geometry is not None:
+                        photonsInGeometry = photons.livePhotonsInGeometry(geometry)
+                        print(photonsInGeometry.liveCount(), geometry)
+                        geometry.propagateMany(photonsInGeometry)
 
+    def propagate(self, photon):
+        if photon.currentGeometry != self:
+            print("I should not be here")
+            photon.weight = 0
+            return
+
+        while photon.isAlive and photon.currentGeometry == self:
+            intersection = self.nextObstacle(photon)
+            if intersection is not None:
+                # We are hitting something, moving to surface
+                photon.moveBy(intersection.distance)
+                # At surface, determine if reflected or not
+                if intersection.isReflected():
+                    # reflect photon and keep propagating
+                    photon.reflect(intersection)
+                    # Move away from surface to avoid getting stuck there
+                    photon.moveBy(d=1e-3)
+                else:
+                    # transmit, score, and enter (at top of this loop)
+                    photon.refract(intersection)
+                    intersection.geometry.scoreWhenEntering(photon, intersection.surface)
+                    # Move away from surface to avoid getting stuck there
+                    photon.moveBy(d=1e-3)
+                    photon.currentGeometry = intersection.geometry
+            else:
+                photon.weight = 0
+
+    def propagateMany(self, photons):
+        for photon in photons:
+            self.propagate(photon)
 
     def getPossibleIntersections(self, photons):
         unimpededPhotonsOrDead = Photons()
@@ -96,7 +111,6 @@ class World:
                 if interface is not None:
                     interfaces.append(interface)
                     impededPhotons.append(p)
-
                 else:
                     unimpededPhotonsOrDead.append(p)
             else:
@@ -117,28 +131,23 @@ class World:
             localCoordinates = worldCoordinates - geometry.origin
             if geometry.contains(localCoordinates):
                 return geometry
-        return None
+        return self
+
+    def assignCurrentGeometry(self, photon):
+        if photon.isAlive:
+            currentGeometry = self.contains(photon.globalPosition)
+            photon.currentGeometry = currentGeometry
+        else:
+            photon.currentGeometry = None
+        return photon.currentGeometry
 
     def assignCurrentGeometries(self, photons):
-        assignments = {}
-        photonsInWorld = []
+        geometries = set()
         for photon in photons:
-            if photon.isAlive:
-                currentGeometry = self.contains(photon.globalPosition)
-                photon.currentGeometry = currentGeometry
-                if currentGeometry is None:
-                    photonsInWorld.append(photon)
-                elif currentGeometry not in assignments:
-                    assignments[currentGeometry] = [photon]
-                else:
-                    assignments[currentGeometry].append(photon)
+            currentGeometry = self.assignCurrentGeometry(photon)
+            geometries.add(currentGeometry)
 
-        geometries =  list(assignments.keys())
-        photonsInGeometries = []
-        for geometry in geometries:
-            photonsInGeometries.append(Photons(assignments[geometry]))
-
-        return Photons(photonsInWorld), geometries, photonsInGeometries
+        return list(geometries)
 
     def nextObstacle(self, photon):
         if not photon.isAlive:

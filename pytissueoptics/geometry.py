@@ -89,8 +89,9 @@ class Geometry:
         photons.transformToLocalCoordinates(self.origin)
         self.scoreManyWhenStarting(photons)
 
-        photonsInside = photons
-        while (not photonsInside.areAllDead) and (len(photonsInside) != 0):
+        photonsInside = Photons(list(photons))
+
+        while (len(photonsInside) != 0):
             # Get distance to interaction point
             distances = self.material.getManyScatteringDistances(photonsInside)
 
@@ -122,21 +123,18 @@ class Geometry:
             # 2.2 Transmitted photons change their direction following the law of refraction, then move 
             #     outside the object and are stored to be returned and propagated into another object.
             transmittedPhotons.refract(interfaces)
+            transmittedPhotons.moveBy(1e-3)
             self.scoreManyWhenExiting(transmittedPhotons, interfaces) #optional
             photonsInside.remove(transmittedPhotons)
 
             # 3. Low-weight photons are randomly killed while keeping energy constant.
             photonsInside.roulette()
 
-            print(len(photonsInside))
-
         # Because the code will not typically calculate millions of photons, it is
         # inexpensive to keep all the propagated photons.  This allows users
         # to go through the list after the fact for a calculation of their choice
-        self.scoreWhenFinal(photons)
+        # self.scoreWhenFinal(photons)
         photons.transformFromLocalCoordinates(self.origin)
-
-        return
 
     def contains(self, position) -> bool:
         """ The base object is infinite. Subclasses override this method
@@ -369,11 +367,11 @@ class Box(Geometry):
         self.center = ConstVector(0,0,0)
 
     def contains(self, localPosition) -> bool:
-        if abs(localPosition.z) > self.size[2] / 2 + self.epsilon:
+        if abs(localPosition.z) > self.size[2] / 2:
             return False
-        if abs(localPosition.y) > self.size[1] / 2 + self.epsilon:
+        if abs(localPosition.y) > self.size[1] / 2:
             return False
-        if abs(localPosition.x) > self.size[0] / 2 + self.epsilon:
+        if abs(localPosition.x) > self.size[0] / 2:
             return False
 
         return True
@@ -393,9 +391,9 @@ class Layer(Geometry):
         self.center = ConstVector(0,0,thickness/2)
 
     def contains(self, localPosition) -> bool:
-        if localPosition.z < -self.epsilon:
+        if localPosition.z < 0:
             return False
-        if localPosition.z > self.thickness + self.epsilon:
+        if localPosition.z > self.thickness:
             return False
 
         return True
@@ -443,7 +441,7 @@ class SemiInfiniteLayer(Geometry):
         self.center = ConstVector(0,0,1)
 
     def contains(self, localPosition) -> bool:
-        if localPosition.z < -self.epsilon:
+        if localPosition.z < 0:
             return False
 
         return True

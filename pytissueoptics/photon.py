@@ -153,12 +153,29 @@ class Photons:
         for photon in somePhotons:
             self._photons.remove(photon)
 
+    def livePhotonsInGeometry(self, geometry):
+        return Photons(list(filter(lambda photon: (photon.currentGeometry == geometry) and photon.isAlive, self._photons)))
 
-    @property
     def areAllDead(self) -> bool:
-        if len(self._photons) == 0:
-            return True
-        return np.array([ photon.isDead for photon in self._photons]).all()
+        for photon in self._photons:
+            if photon.isAlive:
+                return False
+
+        return True
+
+    def deadCount(self):
+        count = 0
+        for photon in self._photons:
+            if photon.isDead:
+                count += 1
+        return count
+
+    def liveCount(self):
+        count = 0
+        for photon in self._photons:
+            if photon.isAlive:
+                count += 1
+        return count
 
     def areReflected(self, interfaces):
         areReflected = [ interface.isReflected() for photon, interface in zip(self._photons, interfaces) ]
@@ -176,8 +193,13 @@ class Photons:
             photon.transformFromLocalCoordinates(origin)
 
     def moveBy(self, distances):
-        for photon, d in zip(self._photons, distances):
-            photon.moveBy(d)
+        try:
+            for photon, d in zip(self._photons, distances):
+                photon.moveBy(d)
+        except TypeError as err:
+            for photon in self._photons:
+                photon.moveBy(distances)
+
         # I don't understand why this does not work:
         # map(lambda photon, d: photon.moveBy(d), zip(self._photons, distances))
 
