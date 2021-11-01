@@ -253,14 +253,11 @@ class NativePhotons(Photons):
         self.origin = Vectors(N=self.N)
         self._iteration = 0
 
-
     def __len__(self):
         return self.N
 
-
     def __getitem__(self, index):
         return Photon(position=self.r[index], direction=self.ez[index], weight=self.weight[index])
-
 
     def __setitem__(self, index, photon):
         self.r[index] = photon.r
@@ -270,11 +267,9 @@ class NativePhotons(Photons):
         self.weight[index] = photon.weight
         self.origin[index] = photon.origin
 
-
     def __iter__(self):
         self._iteration = 0
         return self
-
 
     def __next__(self):
         if self._iteration < self.N:

@@ -7,6 +7,7 @@ class World:
         self.geometries = set()
         self.sources = set()
         self.verbose = False
+        self.countNotSupposedToBeThere = 0
 
     def totalSourcePhotons(self) -> float:
         total = 0
@@ -52,6 +53,7 @@ class World:
                 self.showProgress(i + 1, maxCount=source.maxCount, graphs=graphs)
 
         duration = self.completeCalculation()
+        print("I should not be here: {}".format(self.countNotSupposedToBeThere))
         print("{0:.1f} ms per photon\n".format(duration * 1000 / N))
 
     def computeMany(self, graphs):
@@ -69,9 +71,13 @@ class World:
                         print(photonsInGeometry.liveCount(), geometry)
                         geometry.propagateMany(photonsInGeometry)
 
+        duration = self.completeCalculation()
+        print("I should not be here: {}".format(self.countNotSupposedToBeThere))
+        print("{0:.1f} ms per photon\n".format(duration * 1000 / N))
+
     def propagate(self, photon):
         if photon.currentGeometry != self:
-            print("I should not be here")
+            self.countNotSupposedToBeThere += 1
             photon.weight = 0
             return
 

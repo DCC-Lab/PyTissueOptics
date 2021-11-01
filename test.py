@@ -17,7 +17,7 @@ tissue = Layer(thickness=1, material=mat, stats=stats, label="Layer 1")
 world.place(source, position=Vector(0, 0, 0.5))
 world.place(tissue, position=Vector(0, 0, 0))
 # tissue.propagateMany(photons=Photons(list(source)))
-world.computeMany(graphs=True)
+world.compute(graphs=True)
 # Report the results for all geometries
 world.report()
 
