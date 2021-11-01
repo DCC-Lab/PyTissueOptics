@@ -330,7 +330,7 @@ class NumpyVectors:
     Can be used to unit test """
 
     def __getitem__(self, index):
-        return Vector(self.v[index, :])
+        return Vector(*self.v[index, :])
 
     def __iter__(self):
         self._iteration = 0

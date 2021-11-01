@@ -394,7 +394,7 @@ class TestNumpyVectors(envtest.PyTissueTestCase):
     def testGetItem(self):
         v1 = NumpyVectors([[1, 1, 1], [-0.04298243, 0.99337274, -0.10659786], [0, 1, 0], [-1, 0, 0]])
         r = v1[0]
-        r = np.all(np.equal(r, [1, 1, 1]))
+        r = np.all(np.equal(r, Vector(1, 1, 1)))
         self.assertTrue(r)
 
     def testAdd(self):
