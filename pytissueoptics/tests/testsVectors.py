@@ -159,7 +159,9 @@ class TestVectorsBase(envtest.PyTissueTestCase):
     def testVectorParallel(self):
         v1 = Vectors([oHat, xHat, yHat])
         v2 = Vectors([oHat, xHat, xHat])
-        self.assertEqual(v1.isParallelTo(v2, epsilon=1e-6), [True, True, False])
+        print(oHat.isNull)
+        print(v1.isParallelTo(v2, epsilon=1e-6).v)
+        self.assertEqual(v1.isParallelTo(v2, epsilon=1e-6), [False, True, False])
 
     def testVectorPerpendicular2(self):
         v1 = Vectors([zHat, xHat, yHat])
@@ -720,7 +722,7 @@ class TestNumpyVectors(envtest.PyTissueTestCase):
         v2 = NumpyVectors([[1, 1, 0], [-0.04298243, 0.99337274, -0.10659786], [0, 0, 1], [0, -2, 0], [1, 1, 1]])
         axis = NumpyVectors([[0, 1, 0], [0, 1, 0], [0, 1, 0], [0, 1, 0], [0, 1, 0]])
         r = v1.angleWith(v2, axis)
-        # le dernier -3.14 is the same for Vector, but seems an error, cause it should probably be 0.
+        # FIXME: le dernier -3.14 is the same for Vector, but seems an error, cause it should probably be 0.
         self.assertTrue(np.all(np.isclose([0.61547971, 0, -1.57079633, -1.57079633, -3.14159265], r.v, atol=1e-7)))
 
     def testAngleWithNullVectors(self):
