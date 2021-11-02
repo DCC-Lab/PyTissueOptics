@@ -1,36 +1,33 @@
 import numpy as np
+
 try:
     import cupy as cp
 except:
     cp = np
 
 import random
-from .vector import Vector, oHat
-from .scalars import *
+from vector import Vector, oHat
+import scalars as sc
 import copy
+import pyopencl as pycl
 
 """
 Vectors and Scalars are arrays of Vector and scalars (float, int, etc...).
 They appear as list of vectors or list of scalar, they are iterable.
-
 These classes are putting in place the structure to act on an array of values, 
 possibly in parallel.  Vectors is identical to Vector with its API but it always
 acts on an array of [Vector]. A possible implementation would use the GPU to perform
 the operations.
-
 This will permit expressive object-oriented code such as:
-
 a = Vectors(N=1000)
 b = Vectors(N=1000)
-
 c = a+b
-
 """
 
 
 class NativeVectors:
-    """ This is the reference implementation of Vectors. Other classes will
-    be created such as GPUVectors, NumpyVectors, CuPyVectors, and others to refine the
+    """ This is the reference implementation of NativeVectors. Other classes will
+    be created such as GPUNativeVectors, NumpyNativeVectors, CuPyNativeVectors, and others to refine the
     implementation for speed. 
     """
 
@@ -45,16 +42,16 @@ class NativeVectors:
         elif N is not None:
             self.v = [Vector(0, 0, 0)] * N
         self._iteration = 0
-        self.selected = Scalars([True]*len(self.v))
+        self.selected = sc.NativeScalars([True] * len(self.v))
 
     def selectAll(self):
-        self.selected = Scalars([True] * len(self.v))
+        self.selected = sc.NativeScalars([True] * len(self.v))
 
     def select(self, which):
-        self.selected = Scalars(which)
+        self.selected = sc.NativeScalars(which)
 
-    def selectedVectors(self):
-        return Vectors([v1 if e else None for (v1, e) in list(zip(self.v, self.selected))])
+    def selectedNativeVectors(self):
+        return NativeVectors([v1 if e else None for (v1, e) in list(zip(self.v, self.selected))])
 
     @property
     def count(self):
@@ -68,7 +65,7 @@ class NativeVectors:
             y = random.random() * 2 - 1
             z = random.random() * 2 - 1
             vectors.append(Vector(x, y, z))
-        return Vectors(vectors)
+        return NativeVectors(vectors)
 
     @classmethod
     def randomUnitary(cls, N):
@@ -78,7 +75,7 @@ class NativeVectors:
             y = random.random() * 2 - 1
             z = random.random() * 2 - 1
             vectors.append(Vector(x, y, z).normalized())
-        return Vectors(vectors)
+        return NativeVectors(vectors)
 
     def replaceSelected(self, v, selected=None):
         if selected is None:
@@ -93,11 +90,12 @@ class NativeVectors:
         return a.addScaled(b, scale)
 
     def addScaled(self, rhs, scale):
-        return Vectors([v1 if not e else v1 + v2 * s for (v1, v2, s, e) in list(zip(self.v, rhs, scale, self.selected))])
+        return NativeVectors(
+            [v1 if not e else v1 + v2 * s for (v1, v2, s, e) in list(zip(self.v, rhs, scale, self.selected))])
 
     @property
     def isUnitary(self) -> [bool]:
-        return [ v.isUnitary if e else False for v, e in list(zip(self.v, self.selected))]
+        return [v.isUnitary if e else False for v, e in list(zip(self.v, self.selected))]
 
     @property
     def isNull(self) -> [bool]:
@@ -113,22 +111,22 @@ class NativeVectors:
         return len(self.v)
 
     def __mul__(self, scale):
-        return Vectors([v1 * s if e else v1 for (v1, s, e) in list(zip(self.v, scale, self.selected))])
+        return NativeVectors([v1 * s if e else v1 for (v1, s, e) in list(zip(self.v, scale, self.selected))])
 
     def __rmul__(self, scale):
-        return Vectors([v1 * s if e else v1 for (v1, s, e) in list(zip(self.v, scale, self.selected))])
+        return NativeVectors([v1 * s if e else v1 for (v1, s, e) in list(zip(self.v, scale, self.selected))])
 
     def __truediv__(self, scale):
-        return Vectors([v1 / s if e else v1 for (v1, s, e) in list(zip(self.v, scale, self.selected))])
+        return NativeVectors([v1 / s if e else v1 for (v1, s, e) in list(zip(self.v, scale, self.selected))])
 
     def __add__(self, rhs):
-        return Vectors([v1 + v2 if e else v1 for (v1, v2, e) in list(zip(self.v, rhs.v, self.selected))])
+        return NativeVectors([v1 + v2 if e else v1 for (v1, v2, e) in list(zip(self.v, rhs.v, self.selected))])
 
     def __neg__(self):
-        return Vectors([-v1 if e else v1 for v1, e in list(zip(self.v, self.selected))])
+        return NativeVectors([-v1 if e else v1 for v1, e in list(zip(self.v, self.selected))])
 
     def __sub__(self, rhs):
-        return Vectors([v1 - v2 if e else v1 for (v1, v2, e) in list(zip(self.v, rhs.v, self.selected))])
+        return NativeVectors([v1 - v2 if e else v1 for (v1, v2, e) in list(zip(self.v, rhs.v, self.selected))])
 
     def __getitem__(self, index):
         return self.v[index]
@@ -137,7 +135,7 @@ class NativeVectors:
         self.v[index] = newvalue
 
     def __eq__(self, rhs):
-        each = [ v1 == v2 if e else False for (v1, v2, e) in list(zip(self.v, rhs, self.selected))]
+        each = [v1 == v2 if e else False for (v1, v2, e) in list(zip(self.v, rhs, self.selected))]
         return np.array(each).all()
 
     def __iter__(self):
@@ -153,66 +151,80 @@ class NativeVectors:
             raise StopIteration
 
     def isEqualTo(self, rhs):
-        return Scalars([False if not e or v1 is None or v2 is None else v1.isEqualTo(v2) for (v1, v2, e) in list(zip(self.v, rhs, self.selected))])
+        return sc.NativeScalars([False if not e or v1 is None or v2 is None else v1.isEqualTo(v2) for (v1, v2, e) in
+                                 list(zip(self.v, rhs, self.selected))])
 
     def isAlmostEqualTo(self, rhs, epsilon):
-        return Scalars([False if not e or v1 is None or v2 is None else v1.isAlmostEqualTo(v2, epsilon) for (v1,v2,e) in list(zip(self.v, rhs, self.selected))])
+        return sc.NativeScalars(
+            [False if not e or v1 is None or v2 is None else v1.isAlmostEqualTo(v2, epsilon) for (v1, v2, e) in
+             list(zip(self.v, rhs, self.selected))])
 
     def isParallelTo(self, rhs, epsilon=1e-7):
-        return Scalars([False if not e or v1 is None else v1.isParallelTo(v2) for (v1, v2,e) in list(zip(self.v, rhs, self.selected))])
+        return sc.NativeScalars([False if not e or v1 is None else v1.isParallelTo(v2) for (v1, v2, e) in
+                                 list(zip(self.v, rhs, self.selected))])
 
     def isPerpendicularTo(self, rhs, epsilon=1e-7):
-        return Scalars([False if not e or v1 is None else v1.isPerpendicularTo(v2) for (v1, v2,e) in list(zip(self.v, rhs, self.selected))])
+        return sc.NativeScalars([False if not e or v1 is None else v1.isPerpendicularTo(v2) for (v1, v2, e) in
+                                 list(zip(self.v, rhs, self.selected))])
 
     def anyPerpendicular(self):
-        return Vectors([oHat if not e or v1 is None else v1.anyPerpendicular() for v1,e in list(zip(self.v, self.selected))])
+        return NativeVectors(
+            [oHat if not e or v1 is None else v1.anyPerpendicular() for v1, e in list(zip(self.v, self.selected))])
 
     def anyUnitaryPerpendicular(self):
-        return Vectors([oHat if not e or v1 is None else v1.anyUnitaryPerpendicular() for v1,e in list(zip(self.v, self.selected))])
+        return NativeVectors([oHat if not e or v1 is None else v1.anyUnitaryPerpendicular() for v1, e in
+                              list(zip(self.v, self.selected))])
 
     def isInXYPlane(self, atZ, epsilon=0.001):
-        return Scalars([v1.isInXYPlane(atZ=atZ, epsilon=epsilon) if e else False for v1,e in list(zip(self.v, self.selected))])
+        return sc.NativeScalars(
+            [v1.isInXYPlane(atZ=atZ, epsilon=epsilon) if e else False for v1, e in list(zip(self.v, self.selected))])
 
     def isInYZPlane(self, atX, epsilon=0.001):
-        return Scalars([v1.isInYZPlane(atX=atX, epsilon=epsilon) if e else False for v1,e in list(zip(self.v, self.selected))])
+        return sc.NativeScalars(
+            [v1.isInYZPlane(atX=atX, epsilon=epsilon) if e else False for v1, e in list(zip(self.v, self.selected))])
 
     def isInZXPlane(self, atY, epsilon=0.001):
-        return Scalars([v1.isInZXPlane(atY=atY, epsilon=epsilon) if e else False for v1,e in list(zip(self.v, self.selected))])
+        return sc.NativeScalars(
+            [v1.isInZXPlane(atY=atY, epsilon=epsilon) if e else False for v1, e in list(zip(self.v, self.selected))])
 
     def isInPlane(self, origin: 'Vector', normal: 'Vector', epsilon=0.001) -> bool:
-        return Scalars([v1.isInPlane(origin, normal, epsilon) if e else False for v1,e in list(zip(self.v, self.selected))])
+        return sc.NativeScalars(
+            [v1.isInPlane(origin, normal, epsilon) if e else False for v1, e in list(zip(self.v, self.selected))])
 
     def norm(self):
-        return Scalars([v1.normSquared() if e else 0 for v1, e in list(zip(self.v, self.selected))])
+        return sc.NativeScalars([v1.normSquared() if e else 0 for v1, e in list(zip(self.v, self.selected))])
 
     def abs(self):
-        return Scalars([v1.abs() if e else 0 for v1,e in list(zip(self.v, self.selected))])
+        return sc.NativeScalars([v1.abs() if e else 0 for v1, e in list(zip(self.v, self.selected))])
 
     def normalize(self):
-        [v1.normalize() if e else v1 for v1,e in list(zip(self.v, self.selected))]
+        [v1.normalize() if e else v1 for v1, e in list(zip(self.v, self.selected))]
         return self
 
     def normalized(self):
-        return Vectors([v1.normalized() if e else v1 for v1,e in list(zip(self.v, self.selected))])
+        return NativeVectors([v1.normalized() if e else v1 for v1, e in list(zip(self.v, self.selected))])
 
     def cross(self, rhs):
-        return Vectors([v1.cross(v2) if e else v1 for (v1, v2, e) in list(zip(self.v, rhs, self.selected))])
+        return NativeVectors([v1.cross(v2) if e else v1 for (v1, v2, e) in list(zip(self.v, rhs, self.selected))])
 
     def dot(self, rhs):
-        return Scalars([v1.dot(v2) if e else 0 for (v1, v2, e) in list(zip(self.v, rhs, self.selected))])
+        return sc.NativeScalars([v1.dot(v2) if e else 0 for (v1, v2, e) in list(zip(self.v, rhs, self.selected))])
 
     def normalizedCrossProduct(self, rhs):
-        return Vectors([v1.normalizedCrossProduct(v2) if e else v1
-            for (v1,v2,e) in list(zip(self.v, rhs, self.selected))])
+        return NativeVectors([v1.normalizedCrossProduct(v2) if e else v1
+                              for (v1, v2, e) in list(zip(self.v, rhs, self.selected))])
 
     def normalizedDotProduct(self, rhs):
-        return Scalars([v1.normalizedDotProduct(v2) if e else 0 for (v1, v2, e) in list(zip(self.v, rhs, self.selected))])
+        return sc.NativeScalars(
+            [v1.normalizedDotProduct(v2) if e else 0 for (v1, v2, e) in list(zip(self.v, rhs, self.selected))])
 
     def angleWith(self, v, axis):
-        return Scalars([v1.angleWith(v=v2, axis=v3) if e else 0 for (v1, v2, v3, e) in list(zip(self.v, v, axis, self.selected))])
+        return sc.NativeScalars(
+            [v1.angleWith(v=v2, axis=v3) if e else 0 for (v1, v2, v3, e) in list(zip(self.v, v, axis, self.selected))])
 
     def planeOfIncidence(self, normal):
-        return Vectors([v1.planeOfIncidence(normal=v2) if e else oHat for (v1, v2, e) in list(zip(self.v, normal, self.selected))])
+        return NativeVectors(
+            [v1.planeOfIncidence(normal=v2) if e else oHat for (v1, v2, e) in list(zip(self.v, normal, self.selected))])
 
     def angleOfIncidence(self, normal):
         dotProduct = self.dot(normal)
@@ -220,7 +232,7 @@ class NativeVectors:
         correctedNormal = -normal
 
         planeNormal = self.planeOfIncidence(correctedNormal)
-        angles = Scalars(self.angleWith(correctedNormal, axis=planeNormal))
+        angles = sc.NativeScalars(self.angleWith(correctedNormal, axis=planeNormal))
         return angles, planeNormal, correctedNormal
 
     def rotateAround(self, u, theta):
@@ -228,8 +240,8 @@ class NativeVectors:
         return self
 
     def rotatedAround(self, u, theta):
-        v = Vectors(self) # copy
-        [v1.rotateAround(v2,t) if e else v1 for (v1,v2,t, e) in list(zip(v.v, u.v, theta, self.selected))]
+        v = NativeVectors(self)  # copy
+        [v1.rotateAround(v2, t) if e else v1 for (v1, v2, t, e) in list(zip(v.v, u.v, theta, self.selected))]
         return v
 
 
@@ -259,7 +271,7 @@ class NumpyVectors:
 
         elif vectors is not None and N is not None:
             if type(vectors) == Vector:
-                self.v = np.asarray([[vectors.x, vectors.y, vectors.z]]*N, dtype=np.float64)
+                self.v = np.asarray([[vectors.x, vectors.y, vectors.z]] * N, dtype=np.float64)
 
             elif type(vectors) == list and type(vectors[0]) != list:
                 self.v = np.asarray([vectors] * N, dtype=np.float64)
@@ -268,31 +280,36 @@ class NumpyVectors:
                 self.v = np.tile(vectors, (N, 1))
 
             else:
-                self.v = np.asarray(vectors*N, dtype=np.float64)
+                self.v = np.asarray(vectors * N, dtype=np.float64)
 
         elif vectors is None and N is not None:
             self.v = np.zeros((N, 3), dtype=np.float64)
-            
+
         self._iteration = 0
-    
+
     def __len__(self):
         return self.v.shape[0]
 
     def __mul__(self, other):
         if isinstance(other, NumpyVectors):
             return NumpyVectors(np.multiply(self.v, other.v))
-        elif isinstance(other, NumpyScalars):
+        elif isinstance(other, sc.NumpyScalars):
+            return ArithmeticError
+        elif type(other) in (float, int):
+            return NumpyVectors(np.multiply(self.v, other))
+
+    def __rmul__(self, other):
+        if isinstance(other, NumpyVectors):
+            return NumpyVectors(np.multiply(other.v, self.v))
+        elif isinstance(other, sc.NumpyScalars):
             return NumpyVectors(np.multiply(self.v, other.v[:, None]))
-        # elif isinstance(other, np.ndarray):
-        #     if len(other.shape) == 1:
-        #         return NumpyVectors(self.v * other[:, None])
-        else:
+        elif type(other) in (float, int):
             return NumpyVectors(np.multiply(self.v, other))
 
     def __truediv__(self, other):
         if isinstance(other, NumpyVectors):
             return NumpyVectors(np.true_divide(self.v, other.v))
-        elif isinstance(other, NumpyScalars):
+        elif isinstance(other, sc.NumpyScalars):
             return NumpyVectors(np.true_divide(self.v, other.v[:, None]))
         else:
             return NumpyVectors(np.true_divide(self.v, other))
@@ -306,6 +323,8 @@ class NumpyVectors:
     def __sub__(self, other):
         if isinstance(other, NumpyVectors):
             return NumpyVectors(np.subtract(self.v, other.v))
+        elif isinstance(other, sc.NumpyScalars):
+            return NumpyVectors(np.subtract(self.v, other.v))
         else:
             return NumpyVectors(np.subtract(self.v, other))
 
@@ -313,10 +332,40 @@ class NumpyVectors:
         return NumpyVectors(np.negative(self.v))
 
     def __eq__(self, other):
-        if isinstance(other, NumpyVectors):
-            return NumpyVectors(np.equal(self.v, other.v))
+        if isinstance(other, (NumpyVectors, sc.NumpyScalars)):
+            return sc.NumpyScalars(np.where(self.v == other.v, 1, 0))
         else:
-            return NumpyVectors(np.subtract(self.v, other))
+            return sc.NumpyScalars(np.where(self.v == other, 1, 0))
+
+    def __ne__(self, other):
+        if isinstance(other, (NumpyVectors, sc.NumpyScalars)):
+            return sc.NumpyScalars(np.where(self.v != other.v, 1, 0))
+        else:
+            return sc.NumpyScalars(np.where(self.v != other, 1, 0))
+
+    def __lt__(self, other):
+        if isinstance(other, (NumpyVectors, sc.NumpyScalars)):
+            return sc.NumpyScalars(np.where(self.v < other.v, 1, 0))
+        else:
+            return sc.NumpyScalars(np.where(self.v < other, 1, 0))
+
+    def __gt__(self, other):
+        if isinstance(other, (NumpyVectors, sc.NumpyScalars)):
+            return sc.NumpyScalars(np.where(self.v > other.v, 1, 0))
+        else:
+            return sc.NumpyScalars(np.where(self.v > other, 1, 0))
+
+    def __le__(self, other):
+        if isinstance(other, (NumpyVectors, sc.NumpyScalars)):
+            return sc.NumpyScalars(np.where(self.v <= other.v, 1, 0))
+        else:
+            return sc.NumpyScalars(np.where(self.v <= other, 1, 0))
+
+    def __ge__(self, other):
+        if isinstance(other, (NumpyVectors, sc.NumpyScalars)):
+            return sc.NumpyScalars(np.where(self.v >= other.v, 1, 0))
+        else:
+            return sc.NumpyScalars(np.where(self.v >= other, 1, 0))
 
     def __str__(self):
         return str(self.v)
@@ -330,24 +379,39 @@ class NumpyVectors:
     Can be used to unit test """
 
     def __getitem__(self, index):
-        return Vector(*self.v[index, :])
+        return self.v[index, :]
 
     def __iter__(self):
         self._iteration = 0
         return self
 
     def __next__(self):
-        result = self[self._iteration]
+        result = self.v[self._iteration, :]
         self._iteration += 1
         return result
 
     @property
+    def x(self):
+        x = self.v[:, 0]
+        return sc.NumpyScalars(x)
+
+    @property
+    def y(self):
+        y = self.v[:, 1]
+        return sc.NumpyScalars(y)
+
+    @property
+    def z(self):
+        z = self.v[:, 2]
+        return sc.NumpyScalars(z)
+
+    @property
     def isUnitary(self):
-        return np.less(np.abs(np.linalg.norm(self.v, axis=1))-1, 1e-9)
+        return sc.NumpyScalars(np.less(np.abs(np.linalg.norm(self.v, axis=1)) - 1, 1e-9))
 
     @property
     def isNull(self):
-        return np.less(np.linalg.norm(self.v, axis=1), 1e-9)
+        return sc.NumpyScalars(np.less(np.linalg.norm(self.v, axis=1), 1e-9))
 
     @property
     def count(self):
@@ -366,30 +430,28 @@ class NumpyVectors:
     def randomUniformUnitary(cls, N):
         theta = np.random.rand(N) * 2 * np.pi
         phi = np.random.rand(N) * np.pi
-        x = np.sin(phi)*np.cos(theta)
-        y = np.sin(phi)*np.sin(theta)
+        x = np.sin(phi) * np.cos(theta)
+        y = np.sin(phi) * np.sin(theta)
         z = np.cos(phi)
-        output = NumpyVectors(np.stack((x, y, z), axis=-1))
-        print(output)
-        return output
+        return NumpyVectors(np.stack((x, y, z), axis=-1))
 
     def isEqualTo(self, other):
         if isinstance(other, NumpyVectors):
-            return NumpyScalars(np.less_equal(np.abs(np.subtract(self.v, other.v)), 1e-9))
+            return sc.NumpyScalars(np.less_equal(np.abs(np.subtract(self.v, other.v)), 1e-9))
         else:
-            return NumpyScalars(np.less_equal(np.abs(np.subtract(self.v, other)), 1e-9))
+            return sc.NumpyScalars(np.less_equal(np.abs(np.subtract(self.v, other)), 1e-9))
 
     def isAlmostEqualTo(self, other, epsilon):
         if isinstance(other, NumpyVectors):
-            return NumpyScalars(np.less_equal(np.abs(np.subtract(self.v, other.v)), epsilon))
+            return sc.NumpyScalars(np.less_equal(np.abs(np.subtract(self.v, other.v)), epsilon))
         else:
-            return NumpyScalars(np.less_equal(np.abs(np.subtract(self.v, other)), epsilon))
+            return sc.NumpyScalars(np.less_equal(np.abs(np.subtract(self.v, other)), epsilon))
 
     def isParallelTo(self, other, epsilon=1e-9):
         r = self.normalizedCrossProduct(other).norm().v
         a = np.less_equal(r, epsilon)
         r = np.where(self.isNull | other.isNull, False, a)
-        return r
+        return sc.NumpyScalars(r)
 
     def isPerpendicularTo(self, other, epsilon=1e-9):
         r = np.abs(self.normalizedDotProduct(other).v)
@@ -432,11 +494,28 @@ class NumpyVectors:
         r = np.where(np.abs(local.normalizedDotProduct(normal)) < epsilon, True, False)
         return r
 
+    def addScaled(self, other, scale):
+        ux = other.v[:, 0] * scale
+        uy = other.v[:, 1] * scale
+        uz = other.v[:, 2] * scale
+
+        X = self.v[:, 0]
+        Y = self.v[:, 1]
+        Z = self.v[:, 2]
+
+        x = X + ux
+        y = Y + uy
+        z = Z + uz
+
+        self.v = np.stack((x, y, z), axis=-1)
+
+        return self
+
     def norm(self):
-        return NumpyScalars(np.linalg.norm(self.v, axis=1))
+        return sc.NumpyScalars(np.linalg.norm(self.v, axis=1))
 
     def normSquared(self):
-        return NumpyScalars(self.abs)
+        return sc.NumpyScalars(self.abs)
 
     def abs(self):
         return NumpyVectors(np.abs(self.v))
@@ -466,9 +545,9 @@ class NumpyVectors:
         # element-wise dot product(fake np.dot)
         # https://stackoverflow.com/questions/41443444/numpy-element-wise-dot-product
         if isinstance(other, NumpyVectors):
-            return NumpyScalars(np.einsum('ij,ij->i', self.v, other.v))
+            return sc.NumpyScalars(np.einsum('ij,ij->i', self.v, other.v))
         else:
-            return NumpyScalars(np.einsum('ij,ij->i', self.v, other))
+            return sc.NumpyScalars(np.einsum('ij,ij->i', self.v, other))
 
     def normalizedCrossProduct(self, other):
         productNorm = (self.norm() * other.norm()).v
@@ -496,7 +575,7 @@ class NumpyVectors:
         minusPhi = -phi
         phi = np.where(dotAxis.v <= 0, minusPhi, phi)
 
-        return NumpyScalars(phi)  # What's supposed to be the return type?
+        return sc.NumpyScalars(phi)  # What's supposed to be the return type?
 
     def planeOfIncidence(self, normal):
         normVector = self.norm().v
@@ -522,7 +601,7 @@ class NumpyVectors:
 
     def rotateAround(self, u, theta):
         u.normalize()
-        #print(theta.v)
+        # print(theta.v)
         cost = (np.cos(theta.v))
         sint = (np.sin(theta.v))
         one_cost = (1 - cost)
@@ -535,9 +614,12 @@ class NumpyVectors:
         Y = self.v[:, 1]
         Z = self.v[:, 2]
 
-        x = (cost + ux * ux * one_cost) * X + (ux * uy * one_cost - uz * sint) * Y + (ux * uz * one_cost + uy * sint) * Z
-        y = (uy * ux * one_cost + uz * sint) * X + (cost + uy * uy * one_cost) * Y + (uy * uz * one_cost - ux * sint) * Z
-        z = (uz * ux * one_cost - uy * sint) * X + (uz * uy * one_cost + ux * sint) * Y + (cost + uz * uz * one_cost) * Z
+        x = (cost + ux * ux * one_cost) * X + (ux * uy * one_cost - uz * sint) * Y + (
+                    ux * uz * one_cost + uy * sint) * Z
+        y = (uy * ux * one_cost + uz * sint) * X + (cost + uy * uy * one_cost) * Y + (
+                    uy * uz * one_cost - ux * sint) * Z
+        z = (uz * ux * one_cost - uy * sint) * X + (uz * uy * one_cost + ux * sint) * Y + (
+                    cost + uz * uz * one_cost) * Z
 
         self.v = np.stack((x, y, z), axis=-1)
 
@@ -595,7 +677,7 @@ class CupyVectors:
     def __mul__(self, other):
         if isinstance(other, CupyVectors):
             return CupyVectors(cp.multiply(self.v, other.v))
-        elif isinstance(other, CupyScalars):
+        elif isinstance(other, sc.CupyScalars):
             return CupyVectors(cp.multiply(self.v, other.v[:, None]))
         # elif isinstance(other, cp.ndarray):
         #     if len(other.shape) == 1:
@@ -606,7 +688,7 @@ class CupyVectors:
     def __truediv__(self, other):
         if isinstance(other, CupyVectors):
             return CupyVectors(cp.true_divide(self.v, other.v))
-        elif isinstance(other, CupyScalars):
+        elif isinstance(other, sc.CupyScalars):
             return CupyVectors(cp.true_divide(self.v, other.v[:, None]))
         else:
             return CupyVectors(cp.true_divide(self.v, other))
@@ -656,6 +738,21 @@ class CupyVectors:
         return result
 
     @property
+    def x(self):
+        x = self.v[:, 0]
+        return sc.CupyScalars(x)
+
+    @property
+    def y(self):
+        y = self.v[:, 1]
+        return sc.CupyScalars(y)
+
+    @property
+    def z(self):
+        z = self.v[:, 2]
+        return sc.CupyScalars(z)
+
+    @property
     def isUnitary(self):
         return cp.less(cp.abs(cp.linalg.norm(self.v, axis=1)) - 1, 1e-9)
 
@@ -689,15 +786,15 @@ class CupyVectors:
 
     def isEqualTo(self, other):
         if isinstance(other, CupyVectors):
-            return CupyScalars(cp.less_equal(cp.abs(cp.subtract(self.v, other.v)), 1e-9))
+            return sc.CupyScalars(cp.less_equal(cp.abs(cp.subtract(self.v, other.v)), 1e-9))
         else:
-            return CupyScalars(cp.less_equal(cp.abs(cp.subtract(self.v, other)), 1e-9))
+            return sc.CupyScalars(cp.less_equal(cp.abs(cp.subtract(self.v, other)), 1e-9))
 
     def isAlmostEqualTo(self, other, epsilon):
         if isinstance(other, CupyVectors):
-            return CupyScalars(cp.less_equal(cp.abs(cp.subtract(self.v, other.v)), epsilon))
+            return sc.CupyScalars(cp.less_equal(cp.abs(cp.subtract(self.v, other.v)), epsilon))
         else:
-            return CupyScalars(cp.less_equal(cp.abs(cp.subtract(self.v, other)), epsilon))
+            return sc.CupyScalars(cp.less_equal(cp.abs(cp.subtract(self.v, other)), epsilon))
 
     def isParallelTo(self, other, epsilon=1e-9):
         r = self.normalizedCrossProduct(other).norm().v
@@ -747,13 +844,30 @@ class CupyVectors:
         return r
 
     def norm(self):
-        return CupyScalars(cp.linalg.norm(self.v, axis=1))
+        return sc.CupyScalars(cp.linalg.norm(self.v, axis=1))
 
     def normSquared(self):
-        return CupyScalars(self.abs)
+        return sc.CupyScalars(self.abs)
 
     def abs(self):
         return CupyVectors(cp.abs(self.v))
+
+    def addScaled(self, other, scale):
+        ux = other.v[:, 0] * scale.v
+        uy = other.v[:, 1] * scale.v
+        uz = other.v[:, 2] * scale.v
+
+        X = self.v[:, 0]
+        Y = self.v[:, 1]
+        Z = self.v[:, 2]
+
+        x = X + ux
+        y = Y + uy
+        z = Z + uz
+
+        self.v = cp.stack((x, y, z), axis=-1)
+
+        return self
 
     def normalize(self):
         """MUST verify that norm is 0."""
@@ -780,9 +894,9 @@ class CupyVectors:
         # element-wise dot product(fake cp.dot)
         # https://stackoverflow.com/questions/41443444/numpy-element-wise-dot-product
         if isinstance(other, CupyVectors):
-            return CupyScalars(cp.einsum('ij,ij->i', self.v, other.v))
+            return sc.CupyScalars(cp.einsum('ij,ij->i', self.v, other.v))
         else:
-            return CupyScalars(cp.einsum('ij,ij->i', self.v, other))
+            return sc.CupyScalars(cp.einsum('ij,ij->i', self.v, other))
 
     def normalizedCrossProduct(self, other):
         productNorm = (self.norm() * other.norm()).v
@@ -810,7 +924,7 @@ class CupyVectors:
         minusPhi = -phi
         phi = cp.where(dotAxis.v <= 0, minusPhi, phi)
 
-        return CupyScalars(phi)  # What's supposed to be the return type?
+        return sc.CupyScalars(phi)  # What's supposed to be the return type?
 
     def planeOfIncidence(self, normal):
         normVector = self.norm().v
@@ -852,15 +966,60 @@ class CupyVectors:
         Z = self.v[:, 2]
 
         x = (cost + ux * ux * one_cost) * X + (ux * uy * one_cost - uz * sint) * Y + (
-                    ux * uz * one_cost + uy * sint) * Z
+                ux * uz * one_cost + uy * sint) * Z
         y = (uy * ux * one_cost + uz * sint) * X + (cost + uy * uy * one_cost) * Y + (
-                    uy * uz * one_cost - ux * sint) * Z
+                uy * uz * one_cost - ux * sint) * Z
         z = (uz * ux * one_cost - uy * sint) * X + (uz * uy * one_cost + ux * sint) * Y + (
-                    cost + uz * uz * one_cost) * Z
+                cost + uz * uz * one_cost) * Z
 
         self.v = cp.stack((x, y, z), axis=-1)
 
         return self
 
 
-Vectors = NativeVectors
+class GPUManager:
+    def __init__(self):
+        self.platforms = [platform for platform in pycl.get_platforms()]
+        self.devices = self.platforms[0].get_devices()
+        self.context = pycl.Context(devices=self.devices)
+        program_source = """
+              kernel void sum(global float *a, 
+                              global float *b,
+                              global float *c){
+                int gid = get_global_id(0);
+                c[gid] = a[gid] + b[gid];
+              }
+                kernel void multiply(global float *a, 
+                              global float *b,
+                              global float *c){
+                int gid = get_global_id(0);
+                c[gid] = a[gid] * b[gid];
+              }
+            """
+        program_source = pycl.Program(self.context, program_source)
+        self.program = program_source.build()
+
+    def createReadWriteMemoryBuffer(self, context, arrays):
+        return [(array, pycl.Buffer(context,
+                                    flags=pycl.mem_flags.WRITE_ONLY,
+                                    size=array.nbytes))
+                for array in arrays]
+
+    def copyNewVectorAndLinkPointer(self, newVector):
+        pass
+
+
+class OpenclVectors:
+    def __init__(self, vectors=None, N=None):
+        if vectors is not None:
+            if type(vectors) == np.ndarray:
+                self.v = vectors.astype('float32')
+
+            else:
+                self.v = np.asarray(vectors, dtype=np.float64)
+        elif N is not None:
+            self.v = np.zeros((N, 3), dtype=np.float64)
+
+        self._iteration = 0
+
+# Vectors = NumpyVectors
