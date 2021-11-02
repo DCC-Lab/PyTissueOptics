@@ -1,6 +1,5 @@
-from arrayImplementation.vectors import Vectors
-from arrayImplementation.scalars import Scalars
-import numpy as np
+from vectors import Vectors
+from scalars import Scalars
 
 
 class Photons:

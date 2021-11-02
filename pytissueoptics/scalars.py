@@ -135,7 +135,7 @@ class NativeScalars:
                 return NativeScalars([bool(v1) and bool(v2) for v1, v2 in list(zip(self.v, other.v))])
         else:
             if self.isBool:
-                return CupyScalarsTest(cp.logical_and(self.v, other))
+                return NativeScalars(cp.logical_and(self.v, other))
 
     def logical_or(self, other):
         if isinstance(other, NativeScalars):
@@ -188,6 +188,7 @@ class NativeScalars:
             return NativeScalars([a[i] if self.v[i] != other[i] else b[i] for i in range(len(self.v))])
         elif type(other) in (int, float):
             return NativeScalars([a[i] if self.v[i] != other else b[i] for i in range(len(self.v))])
+
 
 class NumpyScalars:
     def __init__(self, array=None, N=None, ndtype="float64"):
@@ -417,7 +418,7 @@ class NumpyScalars:
         return NumpyScalars(self.v.astype("int32"), ndtype="int32")
 
 
-class CupyScalarsTest:
+class CupyScalars:
     def __init__(self, array=None, N=None, ndtype="float64"):
 
         if array is not None:
@@ -447,95 +448,95 @@ class CupyScalarsTest:
         return self.v.shape[0]
 
     def __add__(self, other):
-        if isinstance(other, CupyScalarsTest):
-            return CupyScalarsTest(cp.add(self.v, other.v))
+        if isinstance(other, CupyScalars):
+            return CupyScalars(cp.add(self.v, other.v))
         elif isinstance(other, vc.CupyVectors):
             return ArithmeticError
         else:
-            return CupyScalarsTest(cp.add(self.v, other))
+            return CupyScalars(cp.add(self.v, other))
 
     def __sub__(self, other):
-        if isinstance(other, CupyScalarsTest):
-            return CupyScalarsTest(cp.subtract(self.v, other.v))
+        if isinstance(other, CupyScalars):
+            return CupyScalars(cp.subtract(self.v, other.v))
         elif isinstance(other, vc.CupyVectors):
             return ArithmeticError
         elif type(other) in (float, int):
-            return CupyScalarsTest(cp.subtract(self.v, other))
+            return CupyScalars(cp.subtract(self.v, other))
 
     def __mul__(self, other):
-        if isinstance(other, CupyScalarsTest):
+        if isinstance(other, CupyScalars):
             if len(self) == len(other):
-                return CupyScalarsTest(cp.multiply(self.v, other.v))
+                return CupyScalars(cp.multiply(self.v, other.v))
         elif isinstance(other, vc.CupyVectors):
             if len(self) == len(other):
                 return vc.CupyVectors(cp.multiply(self.v[:, None], other.v))
         elif type(other) in (float, int):
-            return CupyScalarsTest(cp.multiply(self.v, other))
+            return CupyScalars(cp.multiply(self.v, other))
 
     def __rmul__(self, other):
-        if isinstance(other, CupyScalarsTest):
+        if isinstance(other, CupyScalars):
             if len(self) == len(other):
-                return CupyScalarsTest(cp.multiply(self.v, other.v))
+                return CupyScalars(cp.multiply(self.v, other.v))
         elif isinstance(other, vc.CupyVectors):
             return ArithmeticError
         elif type(other) in (float, int):
-            return CupyScalarsTest(cp.multiply(self.v, other))
+            return CupyScalars(cp.multiply(self.v, other))
 
     def __truediv__(self, other):
-        if isinstance(other, CupyScalarsTest):
-            return CupyScalarsTest(cp.true_divide(self.v, other.v))
+        if isinstance(other, CupyScalars):
+            return CupyScalars(cp.true_divide(self.v, other.v))
         elif isinstance(other, vc.CupyVectors):
             return ArithmeticError
         else:
-            return CupyScalarsTest(cp.true_divide(self.v, other))
+            return CupyScalars(cp.true_divide(self.v, other))
 
     def __neg__(self):
-        return CupyScalarsTest(cp.negative(self.v))
+        return CupyScalars(cp.negative(self.v))
 
     def __invert__(self):
-        return CupyScalarsTest(cp.logical_not(self.v))
+        return CupyScalars(cp.logical_not(self.v))
 
     def __getitem__(self, item):
-        return CupyScalarsTest(self.v[item])
+        return CupyScalars(self.v[item])
 
     def __setitem__(self, key, value: cp.float32):
         self.v[key] = value
 
     def __eq__(self, other):
-        if isinstance(other, CupyScalarsTest):
-            return CupyScalarsTest(cp.where(self.v == other.v, self.binaryArrayTrue, self.binaryArrayFalse))
+        if isinstance(other, CupyScalars):
+            return CupyScalars(cp.where(self.v == other.v, self.binaryArrayTrue, self.binaryArrayFalse))
         else:
-            return CupyScalarsTest(cp.where(self.v == other, self.binaryArrayTrue, self.binaryArrayFalse))
+            return CupyScalars(cp.where(self.v == other, self.binaryArrayTrue, self.binaryArrayFalse))
 
     def __ne__(self, other):
-        if isinstance(other, CupyScalarsTest):
-            return CupyScalarsTest(cp.where(self.v != other.v, self.binaryArrayTrue, self.binaryArrayFalse))
+        if isinstance(other, CupyScalars):
+            return CupyScalars(cp.where(self.v != other.v, self.binaryArrayTrue, self.binaryArrayFalse))
         else:
-            return CupyScalarsTest(cp.where(self.v != other, self.binaryArrayTrue, self.binaryArrayFalse))
+            return CupyScalars(cp.where(self.v != other, self.binaryArrayTrue, self.binaryArrayFalse))
 
     def __lt__(self, other):
-        if isinstance(other, CupyScalarsTest):
-            return CupyScalarsTest(cp.where(self.v < other.v, self.binaryArrayTrue, self.binaryArrayFalse))
+        if isinstance(other, CupyScalars):
+            return CupyScalars(cp.where(self.v < other.v, self.binaryArrayTrue, self.binaryArrayFalse))
         else:
-            return CupyScalarsTest(cp.where(self.v < other, self.binaryArrayTrue, self.binaryArrayFalse))
+            return CupyScalars(cp.where(self.v < other, self.binaryArrayTrue, self.binaryArrayFalse))
 
     def __gt__(self, other):
-        if isinstance(other, CupyScalarsTest):
-            return CupyScalarsTest(cp.where(self.v > other.v, self.binaryArrayTrue, self.binaryArrayFalse))
+        if isinstance(other, CupyScalars):
+            return CupyScalars(cp.where(self.v > other.v, self.binaryArrayTrue, self.binaryArrayFalse))
         else:
-            return CupyScalarsTest(cp.where(self.v > other, self.binaryArrayTrue, self.binaryArrayFalse))
+            return CupyScalars(cp.where(self.v > other, self.binaryArrayTrue, self.binaryArrayFalse))
 
     def __le__(self, other):
-        if isinstance(other, CupyScalarsTest):
-            return CupyScalarsTest(cp.where(self.v <= other.v, self.binaryArrayTrue, self.binaryArrayFalse))
+        if isinstance(other, CupyScalars):
+            return CupyScalars(cp.where(self.v <= other.v, self.binaryArrayTrue, self.binaryArrayFalse))
         else:
-            return CupyScalarsTest(cp.where(self.v <= other, self.binaryArrayTrue, self.binaryArrayFalse))
+            return CupyScalars(cp.where(self.v <= other, self.binaryArrayTrue, self.binaryArrayFalse))
 
     def __ge__(self, other):
-        if isinstance(other, CupyScalarsTest):
-            return CupyScalarsTest(cp.where(self.v >= other.v, self.binaryArrayTrue, self.binaryArrayFalse))
+        if isinstance(other, CupyScalars):
+            return CupyScalars(cp.where(self.v >= other.v, self.binaryArrayTrue, self.binaryArrayFalse))
         else:
-            return CupyScalarsTest(cp.where(self.v >= other, self.binaryArrayTrue, self.binaryArrayFalse))
+            return CupyScalars(cp.where(self.v >= other, self.binaryArrayTrue, self.binaryArrayFalse))
 
     def __iter__(self):
         self._iteration = 0
@@ -559,177 +560,66 @@ class CupyScalarsTest:
         return self.logical_or(other)
 
     def logical_and(self, other):
-        if isinstance(other, CupyScalarsTest):
+        if isinstance(other, CupyScalars):
             if self.isBool and other.isBool:
-                return CupyScalarsTest(cp.logical_and(self.v, other.v))
+                return CupyScalars(cp.logical_and(self.v, other.v))
         else:
             if self.isBool:
-                return CupyScalarsTest(cp.logical_and(self.v, other))
+                return CupyScalars(cp.logical_and(self.v, other))
 
     def logical_or(self, other):
-        if isinstance(other, CupyScalarsTest):
+        if isinstance(other, CupyScalars):
             if self.isBool and other.isBool:
-                return CupyScalarsTest(cp.logical_or(self.v, other.v))
+                return CupyScalars(cp.logical_or(self.v, other.v))
         else:
             if self.isBool:
-                return CupyScalarsTest(cp.logical_or(self.v, other))
+                return CupyScalars(cp.logical_or(self.v, other))
 
     def logical_xor(self, other):
-        if isinstance(other, CupyScalarsTest):
+        if isinstance(other, CupyScalars):
             if self.isBool and other.isBool:
-                return CupyScalarsTest(cp.logical_xor(self.v, other.v))
+                return CupyScalars(cp.logical_xor(self.v, other.v))
         else:
             if self.isBool:
-                return CupyScalarsTest(cp.logical_xor(self.v, other))
+                return CupyScalars(cp.logical_xor(self.v, other))
 
     def conditional_le(self, other, a, b):
-        if isinstance(other, CupyScalarsTest):
-            return CupyScalarsTest(cp.where(self.v <= other, a, b))
+        if isinstance(other, CupyScalars):
+            return CupyScalars(cp.where(self.v <= other, a, b))
         elif type(other) in (int, float):
-            return CupyScalarsTest(cp.where(self.v <= other, a, b))
+            return CupyScalars(cp.where(self.v <= other, a, b))
 
     def conditional_lt(self, other, a, b):
-        if isinstance(other, CupyScalarsTest):
+        if isinstance(other, CupyScalars):
             pass
         elif type(other) in (int, float):
             arr = cp.where(self.v < other, a, b)
-            return CupyScalarsTest(arr, ndtype=arr.dtype)
+            return CupyScalars(arr, ndtype=arr.dtype)
 
     def conditional_gt(self, other, a, b):
-        if isinstance(other, CupyScalarsTest):
+        if isinstance(other, CupyScalars):
             pass
         elif type(other) in (int, float):
             arr = cp.where(self.v > other, a, b)
-            return CupyScalarsTest(arr, ndtype=arr.dtype)
+            return CupyScalars(arr, ndtype=arr.dtype)
 
     def conditional_ge(self, other, a, b):
-        if isinstance(other, CupyScalarsTest):
+        if isinstance(other, CupyScalars):
             pass
         elif type(other) in (int, float):
-            return CupyScalarsTest(cp.where(self.v >= other, a, b))
+            return CupyScalars(cp.where(self.v >= other, a, b))
 
     def conditional_eq(self, other, a, b):
-        if isinstance(other, CupyScalarsTest):
+        if isinstance(other, CupyScalars):
             pass
         elif type(other) in (int, float):
-            return CupyScalarsTest(cp.where(self.v == other, x=a, y=b))
+            return CupyScalars(cp.where(self.v == other, x=a, y=b))
 
     def conditional_neq(self, other, a, b):
-        if isinstance(other, CupyScalarsTest):
+        if isinstance(other, CupyScalars):
             pass
         elif type(other) in (int, float):
-            return CupyScalarsTest(cp.where(self.v != other, a, b))
-
-    @classmethod
-    def setAll(cls, value, N):
-        return CupyScalarsTest(cp.full((N), value))
-
-    @classmethod
-    def random(cls, N: int):
-        """Random number between [0, 1]"""
-        return CupyScalarsTest(cp.random.rand(N))
-
-    @classmethod
-    def random2(cls, N: int):
-        """Random number between [-1, 1]"""
-        return CupyScalarsTest((cp.random.rand(N) * 2) - 1)
-
-    def isEqualTo(self, other):
-        if isinstance(other, CupyScalarsTest):
-            return CupyScalarsTest(cp.less_equal(cp.abs(cp.subtract(self.v, other.v)), 1e-9))
-        else:
-            return CupyScalarsTest(cp.less_equal(cp.abs(cp.subtract(self.v, other)), 1e-9))
-
-    def all(self):
-        return cp.all(self.v)
-
-    def any(self):
-        return cp.any(self.v)
-
-    @property
-    def isBool(self):
-        return cp.all(cp.array_equal(self.v, self.v.astype(bool)))
-
-    def toIntegers(self):
-        return CupyScalarsTest(self.v.astype("int32"), ndtype="int32")
-
-class CupyScalars:
-    def __init__(self, array=None, N=None):
-        if array is not None:
-            if type(array) == cp.ndarray:
-                self.v = array.astype('float64')
-            elif type(array) == cp.ndarray:
-                self.v = array.astype(cp.float64)
-            else:
-                self.v = cp.asarray(array, dtype=cp.float64)
-        elif N is not None:
-            self.v = cp.zeros((1, N), dtype=cp.float64)
-
-        self._iteration = 0
-
-    def __len__(self):
-        return self.v.shape[1]
-
-    def __add__(self, other):
-        if isinstance(other, CupyScalars):
-            return CupyScalars(cp.add(self.v, other.v))
-        else:
-            return CupyScalars(cp.add(self.v, other))
-
-    def __sub__(self, other):
-        if isinstance(other, CupyScalars):
-            return CupyScalars(cp.subtract(self.v, other.v))
-        else:
-            return CupyScalars(cp.subtract(self.v, other))
-
-    def __mul__(self, other):
-        if isinstance(other, CupyScalars):
-            return CupyScalars(cp.multiply(self.v, other.v))
-        elif isinstance(other, CupyVectors):
-            return CupyScalars(cp.multiply(self.v[:, None], other.v))
-        else:
-            return CupyScalars(cp.multiply(self.v, other))
-
-    def __truediv__(self, other):
-        if isinstance(other, CupyScalars):
-            return CupyScalars(cp.true_divide(self.v, other.v))
-        elif isinstance(other, CupyVectors):
-            return CupyScalars(cp.multiply(self.v[:, None], other.v))
-        else:
-            return CupyScalars(cp.true_divide(self.v, other))
-
-    def __neg__(self):
-        return CupyScalars(cp.negative(self.v))
-
-    def __getitem__(self, item):
-        return self.v[item]
-
-    def __setitem__(self, key, value: cp.float32):
-        self.v[key] = value
-
-    def __eq__(self, other):
-        if isinstance(other, CupyScalars):
-            return cp.equal(self.v, other.v)
-        else:
-            return cp.equal(self.v, other)
-
-    def __iter__(self):
-        self._iteration = 0
-        return self
-
-    def __next__(self):
-        if self._iteration < len(self):
-            result = self.v[:, self._iteration]
-            self._iteration += 1
-            return result
-        else:
-            raise StopIteration
-
-    def __contains__(self, item):
-        if item in self.v:
-            return True
-        else:
-            return False
+            return CupyScalars(cp.where(self.v != other, a, b))
 
     @classmethod
     def setAll(cls, value, N):
@@ -751,5 +641,19 @@ class CupyScalars:
         else:
             return CupyScalars(cp.less_equal(cp.abs(cp.subtract(self.v, other)), 1e-9))
 
+    def all(self):
+        return cp.all(self.v)
 
-Scalars = NumpyScalars
+    def any(self):
+        return cp.any(self.v)
+
+    @property
+    def isBool(self):
+        return cp.all(cp.array_equal(self.v, self.v.astype(bool)))
+
+    def toIntegers(self):
+        return CupyScalars(self.v.astype("int32"), ndtype="int32")
+
+
+
+# Scalars = NumpyScalars

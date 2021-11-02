@@ -2,7 +2,7 @@ import matplotlib.pyplot as plt
 from arrayImplementation.photons import Photons
 from arrayImplementation.material import Material
 from arrayImplementation.stats import Stats
-from arrayImplementation.vectors import Vectors
+from vectors import Vectors
 from time import time_ns
 
 

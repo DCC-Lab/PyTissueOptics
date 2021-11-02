@@ -1,4 +1,4 @@
-from pytissueoptics.arrayImplementation.vectors import *
+from vectors import *
 from time import time_ns
 
 time0 = time_ns()

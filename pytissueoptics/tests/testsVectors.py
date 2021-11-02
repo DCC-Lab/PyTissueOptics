@@ -327,6 +327,7 @@ class TestNumpyVectors(unittest.TestCase):
     def testInitNull(self):
         v1 = NumpyVectors(N=2)
         r = np.all(np.equal(v1.v, [[0, 0, 0], [0, 0, 0]]))
+        print(dir(np))
         self.assertTrue(r)
 
     def testInitWithList(self):
@@ -910,7 +911,7 @@ class TestCupyVectors(unittest.TestCase):
 
     def testMulScalars(self):
         v1 = CupyVectors([[-1, -1, -1], [2, 2, 2], [0, 0, 0]])
-        r = v1 * CupyScalars([2, 1, 1])
+        r = CupyScalars([2, 1, 1]) * v1
         r = np.all(np.equal(cp.asnumpy(r.v), [[-2, -2, -2], [2, 2, 2], [0, 0, 0]]))
         self.assertTrue(r)
 
@@ -994,7 +995,7 @@ class TestCupyVectors(unittest.TestCase):
     def testNormOutputTypeFloat64(self):
         v1 = CupyVectors([[1, 1, 1], [-0.04298243, 0.99337274, -0.10659786], [1, 1, 3]])
         v1norms = v1.norm()
-        self.assertEqual(np.dtype("float64").type, v1norms[0].dtype)
+        self.assertEqual(np.dtype("float64").type, v1norms.v[0].dtype)
 
     def testNorm(self):
         v1 = CupyVectors([[1, 1, 1], [0.866539324968574, -0.49677441419390916, 0.04821596919389434], [1, 1, 3]])

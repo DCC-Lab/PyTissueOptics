@@ -1,5 +1,5 @@
 from abc import ABC
-from arrayImplementation.vectors import *
+from vectors import *
 from arrayImplementation.photons import Photons
 
 
