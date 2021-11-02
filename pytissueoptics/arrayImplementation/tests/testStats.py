@@ -1,8 +1,5 @@
 import unittest
 from arrayImplementation.photons import Photons
-from arrayImplementation.vectors import Vectors
-from arrayImplementation.scalars import Scalars
-import numpy as np
 
 
 class TestStats(unittest.TestCase):

@@ -1,8 +1,6 @@
 import matplotlib.pyplot as plt
 import time
 import os
-from .vectors import Vectors
-from .scalars import Scalars
 import numpy as np
 try:
     import cupy as cp
