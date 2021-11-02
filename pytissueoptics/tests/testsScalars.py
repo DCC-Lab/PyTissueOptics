@@ -1,6 +1,6 @@
 import unittest
-from arrayImplementation.scalars import *
-from arrayImplementation.vectors import *
+from scalars import *
+from vectors import *
 
 
 class TestScalars(unittest.TestCase):

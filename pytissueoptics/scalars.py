@@ -6,7 +6,7 @@ except:
     cp = np
     # CupyScalars = NumpyScalars
 
-import arrayImplementation.vectors as vc
+import vectors as vc
 
 
 class NativeScalars:

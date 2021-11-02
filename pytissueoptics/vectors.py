@@ -6,7 +6,7 @@ except:
 
 import random
 from vector import Vector, oHat
-import arrayImplementation.scalars as sc
+import scalars as sc
 import copy
 import pyopencl as pycl
 
@@ -30,8 +30,8 @@ c = a+b
 
 
 class NativeVectors:
-    """ This is the reference implementation of Vectors. Other classes will
-    be created such as GPUVectors, NumpyVectors, CuPyVectors, and others to refine the
+    """ This is the reference implementation of NativeVectors. Other classes will
+    be created such as GPUNativeVectors, NumpyNativeVectors, CuPyNativeVectors, and others to refine the
     implementation for speed. 
     """
 
@@ -46,16 +46,16 @@ class NativeVectors:
         elif N is not None:
             self.v = [Vector(0, 0, 0)] * N
         self._iteration = 0
-        self.selected = sc.Scalars([True]*len(self.v))
+        self.selected = sc.NativeScalars([True]*len(self.v))
 
     def selectAll(self):
-        self.selected = sc.Scalars([True] * len(self.v))
+        self.selected = sc.NativeScalars([True] * len(self.v))
 
     def select(self, which):
-        self.selected = sc.Scalars(which)
+        self.selected = sc.NativeScalars(which)
 
-    def selectedVectors(self):
-        return Vectors([v1 if e else None for (v1, e) in list(zip(self.v, self.selected))])
+    def selectedNativeVectors(self):
+        return NativeVectors([v1 if e else None for (v1, e) in list(zip(self.v, self.selected))])
 
     @property
     def count(self):
@@ -69,7 +69,7 @@ class NativeVectors:
             y = random.random() * 2 - 1
             z = random.random() * 2 - 1
             vectors.append(Vector(x, y, z))
-        return Vectors(vectors)
+        return NativeVectors(vectors)
 
     @classmethod
     def randomUnitary(cls, N):
@@ -79,7 +79,7 @@ class NativeVectors:
             y = random.random() * 2 - 1
             z = random.random() * 2 - 1
             vectors.append(Vector(x, y, z).normalized())
-        return Vectors(vectors)
+        return NativeVectors(vectors)
 
     def replaceSelected(self, v, selected=None):
         if selected is None:
@@ -94,7 +94,7 @@ class NativeVectors:
         return a.addScaled(b, scale)
 
     def addScaled(self, rhs, scale):
-        return Vectors([v1 if not e else v1 + v2 * s for (v1, v2, s, e) in list(zip(self.v, rhs, scale, self.selected))])
+        return NativeVectors([v1 if not e else v1 + v2 * s for (v1, v2, s, e) in list(zip(self.v, rhs, scale, self.selected))])
 
     @property
     def isUnitary(self) -> [bool]:
@@ -114,22 +114,22 @@ class NativeVectors:
         return len(self.v)
 
     def __mul__(self, scale):
-        return Vectors([v1 * s if e else v1 for (v1, s, e) in list(zip(self.v, scale, self.selected))])
+        return NativeVectors([v1 * s if e else v1 for (v1, s, e) in list(zip(self.v, scale, self.selected))])
 
     def __rmul__(self, scale):
-        return Vectors([v1 * s if e else v1 for (v1, s, e) in list(zip(self.v, scale, self.selected))])
+        return NativeVectors([v1 * s if e else v1 for (v1, s, e) in list(zip(self.v, scale, self.selected))])
 
     def __truediv__(self, scale):
-        return Vectors([v1 / s if e else v1 for (v1, s, e) in list(zip(self.v, scale, self.selected))])
+        return NativeVectors([v1 / s if e else v1 for (v1, s, e) in list(zip(self.v, scale, self.selected))])
 
     def __add__(self, rhs):
-        return Vectors([v1 + v2 if e else v1 for (v1, v2, e) in list(zip(self.v, rhs.v, self.selected))])
+        return NativeVectors([v1 + v2 if e else v1 for (v1, v2, e) in list(zip(self.v, rhs.v, self.selected))])
 
     def __neg__(self):
-        return Vectors([-v1 if e else v1 for v1, e in list(zip(self.v, self.selected))])
+        return NativeVectors([-v1 if e else v1 for v1, e in list(zip(self.v, self.selected))])
 
     def __sub__(self, rhs):
-        return Vectors([v1 - v2 if e else v1 for (v1, v2, e) in list(zip(self.v, rhs.v, self.selected))])
+        return NativeVectors([v1 - v2 if e else v1 for (v1, v2, e) in list(zip(self.v, rhs.v, self.selected))])
 
     def __getitem__(self, index):
         return self.v[index]
@@ -154,66 +154,66 @@ class NativeVectors:
             raise StopIteration
 
     def isEqualTo(self, rhs):
-        return sc.Scalars([False if not e or v1 is None or v2 is None else v1.isEqualTo(v2) for (v1, v2, e) in list(zip(self.v, rhs, self.selected))])
+        return sc.NativeScalars([False if not e or v1 is None or v2 is None else v1.isEqualTo(v2) for (v1, v2, e) in list(zip(self.v, rhs, self.selected))])
 
     def isAlmostEqualTo(self, rhs, epsilon):
-        return sc.Scalars([False if not e or v1 is None or v2 is None else v1.isAlmostEqualTo(v2, epsilon) for (v1,v2,e) in list(zip(self.v, rhs, self.selected))])
+        return sc.NativeScalars([False if not e or v1 is None or v2 is None else v1.isAlmostEqualTo(v2, epsilon) for (v1,v2,e) in list(zip(self.v, rhs, self.selected))])
 
     def isParallelTo(self, rhs, epsilon=1e-7):
-        return sc.Scalars([False if not e or v1 is None else v1.isParallelTo(v2) for (v1, v2,e) in list(zip(self.v, rhs, self.selected))])
+        return sc.NativeScalars([False if not e or v1 is None else v1.isParallelTo(v2) for (v1, v2,e) in list(zip(self.v, rhs, self.selected))])
 
     def isPerpendicularTo(self, rhs, epsilon=1e-7):
-        return sc.Scalars([False if not e or v1 is None else v1.isPerpendicularTo(v2) for (v1, v2,e) in list(zip(self.v, rhs, self.selected))])
+        return sc.NativeScalars([False if not e or v1 is None else v1.isPerpendicularTo(v2) for (v1, v2,e) in list(zip(self.v, rhs, self.selected))])
 
     def anyPerpendicular(self):
-        return Vectors([oHat if not e or v1 is None else v1.anyPerpendicular() for v1,e in list(zip(self.v, self.selected))])
+        return NativeVectors([oHat if not e or v1 is None else v1.anyPerpendicular() for v1,e in list(zip(self.v, self.selected))])
 
     def anyUnitaryPerpendicular(self):
-        return Vectors([oHat if not e or v1 is None else v1.anyUnitaryPerpendicular() for v1,e in list(zip(self.v, self.selected))])
+        return NativeVectors([oHat if not e or v1 is None else v1.anyUnitaryPerpendicular() for v1,e in list(zip(self.v, self.selected))])
 
     def isInXYPlane(self, atZ, epsilon=0.001):
-        return sc.Scalars([v1.isInXYPlane(atZ=atZ, epsilon=epsilon) if e else False for v1,e in list(zip(self.v, self.selected))])
+        return sc.NativeScalars([v1.isInXYPlane(atZ=atZ, epsilon=epsilon) if e else False for v1,e in list(zip(self.v, self.selected))])
 
     def isInYZPlane(self, atX, epsilon=0.001):
-        return sc.Scalars([v1.isInYZPlane(atX=atX, epsilon=epsilon) if e else False for v1,e in list(zip(self.v, self.selected))])
+        return sc.NativeScalars([v1.isInYZPlane(atX=atX, epsilon=epsilon) if e else False for v1,e in list(zip(self.v, self.selected))])
 
     def isInZXPlane(self, atY, epsilon=0.001):
-        return sc.Scalars([v1.isInZXPlane(atY=atY, epsilon=epsilon) if e else False for v1,e in list(zip(self.v, self.selected))])
+        return sc.NativeScalars([v1.isInZXPlane(atY=atY, epsilon=epsilon) if e else False for v1,e in list(zip(self.v, self.selected))])
 
     def isInPlane(self, origin: 'Vector', normal: 'Vector', epsilon=0.001) -> bool:
-        return sc.Scalars([v1.isInPlane(origin, normal, epsilon) if e else False for v1,e in list(zip(self.v, self.selected))])
+        return sc.NativeScalars([v1.isInPlane(origin, normal, epsilon) if e else False for v1,e in list(zip(self.v, self.selected))])
 
     def norm(self):
-        return sc.Scalars([v1.normSquared() if e else 0 for v1, e in list(zip(self.v, self.selected))])
+        return sc.NativeScalars([v1.normSquared() if e else 0 for v1, e in list(zip(self.v, self.selected))])
 
     def abs(self):
-        return sc.Scalars([v1.abs() if e else 0 for v1,e in list(zip(self.v, self.selected))])
+        return sc.NativeScalars([v1.abs() if e else 0 for v1,e in list(zip(self.v, self.selected))])
 
     def normalize(self):
         [v1.normalize() if e else v1 for v1,e in list(zip(self.v, self.selected))]
         return self
 
     def normalized(self):
-        return Vectors([v1.normalized() if e else v1 for v1,e in list(zip(self.v, self.selected))])
+        return NativeVectors([v1.normalized() if e else v1 for v1,e in list(zip(self.v, self.selected))])
 
     def cross(self, rhs):
-        return Vectors([v1.cross(v2) if e else v1 for (v1, v2, e) in list(zip(self.v, rhs, self.selected))])
+        return NativeVectors([v1.cross(v2) if e else v1 for (v1, v2, e) in list(zip(self.v, rhs, self.selected))])
 
     def dot(self, rhs):
-        return sc.Scalars([v1.dot(v2) if e else 0 for (v1, v2, e) in list(zip(self.v, rhs, self.selected))])
+        return sc.NativeScalars([v1.dot(v2) if e else 0 for (v1, v2, e) in list(zip(self.v, rhs, self.selected))])
 
     def normalizedCrossProduct(self, rhs):
-        return Vectors([v1.normalizedCrossProduct(v2) if e else v1
+        return NativeVectors([v1.normalizedCrossProduct(v2) if e else v1
             for (v1,v2,e) in list(zip(self.v, rhs, self.selected))])
 
     def normalizedDotProduct(self, rhs):
-        return sc.Scalars([v1.normalizedDotProduct(v2) if e else 0 for (v1, v2, e) in list(zip(self.v, rhs, self.selected))])
+        return sc.NativeScalars([v1.normalizedDotProduct(v2) if e else 0 for (v1, v2, e) in list(zip(self.v, rhs, self.selected))])
 
     def angleWith(self, v, axis):
-        return sc.Scalars([v1.angleWith(v=v2, axis=v3) if e else 0 for (v1, v2, v3, e) in list(zip(self.v, v, axis, self.selected))])
+        return sc.NativeScalars([v1.angleWith(v=v2, axis=v3) if e else 0 for (v1, v2, v3, e) in list(zip(self.v, v, axis, self.selected))])
 
     def planeOfIncidence(self, normal):
-        return Vectors([v1.planeOfIncidence(normal=v2) if e else oHat for (v1, v2, e) in list(zip(self.v, normal, self.selected))])
+        return NativeVectors([v1.planeOfIncidence(normal=v2) if e else oHat for (v1, v2, e) in list(zip(self.v, normal, self.selected))])
 
     def angleOfIncidence(self, normal):
         dotProduct = self.dot(normal)
@@ -221,7 +221,7 @@ class NativeVectors:
         correctedNormal = -normal
 
         planeNormal = self.planeOfIncidence(correctedNormal)
-        angles = sc.Scalars(self.angleWith(correctedNormal, axis=planeNormal))
+        angles = sc.NativeScalars(self.angleWith(correctedNormal, axis=planeNormal))
         return angles, planeNormal, correctedNormal
 
     def rotateAround(self, u, theta):
@@ -229,7 +229,7 @@ class NativeVectors:
         return self
 
     def rotatedAround(self, u, theta):
-        v = Vectors(self) # copy
+        v = NativeVectors(self) # copy
         [v1.rotateAround(v2,t) if e else v1 for (v1,v2,t, e) in list(zip(v.v, u.v, theta, self.selected))]
         return v
 
@@ -368,7 +368,7 @@ class NumpyVectors:
     Can be used to unit test """
 
     def __getitem__(self, index):
-        return self.v[index]
+        return self.v[index, :]
 
     def __iter__(self):
         self._iteration = 0
@@ -1010,4 +1010,4 @@ class OpenclVectors:
         self._iteration = 0
 
 
-Vectors = NumpyVectors
+#Vectors = NumpyVectors
