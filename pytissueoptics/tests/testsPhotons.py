@@ -1,7 +1,8 @@
 import envtest # modifies path
 from pytissueoptics import *
 import numpy as np
-import random
+from numpy import sqrt
+
 
 inf = float("+inf")
 

@@ -1,14 +1,10 @@
+import envtest
+from pytissueoptics import *
 import unittest
-import numpy as np
-import random
-from vectors import *
-from scalars import *
-from vector import Vector, oHat, xHat, yHat, zHat, UnitVector
-
 inf = float("+inf")
 
 
-class TestNativeVectorsBase(unittest.TestCase):
+class TestNativeVectorsBase(envtest.PyTissueTestCase):
     def setUp(self):
         self.count = 1000
         self.vnull = NativeVectors(N=self.count)
@@ -809,6 +805,7 @@ class TestNumpyVectors(unittest.TestCase):
             v1.rotateAround(axis, theta)
             self.assertTrue(np.all(np.isclose(
                 [[1, 1, 1], [0,0,0]], v1.v, atol=1e-7)))
+
 
 class TestCupyVectors(unittest.TestCase):
 

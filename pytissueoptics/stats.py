@@ -1,7 +1,4 @@
-import matplotlib.pyplot as plt
-import time
-import os
-from .vector import *
+from pytissueoptics import *
 
 
 class Stats:

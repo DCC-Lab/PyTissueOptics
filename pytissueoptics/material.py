@@ -1,12 +1,5 @@
+from pytissueoptics import *
 import numpy as np
-from scalars import Scalars
-
-def isIterable(someObject):
-    try:
-        iter(someObject)
-    except TypeError as te:
-        return False
-    return True
 
 
 class Material:
@@ -35,10 +28,7 @@ class Material:
         return -np.log(rnd) / self.mu_t
 
     def getManyScatteringDistances(self, photons):
-        if isIterable(photons):
-            return Scalars([self.getScatteringDistance(p) for p in photons ])
-        else:
-            raise TypeError("Must be a Photons itterable object.")
+        return Scalars([self.getScatteringDistance(p) for p in photons])
 
     def getScatteringAngles(self, photon):
         phi = np.random.random() * 2 * np.pi

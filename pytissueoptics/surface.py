@@ -1,5 +1,5 @@
-from .vector import *
-from scalars import Scalars
+from pytissueoptics import *
+
 
 class Surface:
     def __init__(self, origin, a, b, normal, size=None, description=None):

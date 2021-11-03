@@ -1,12 +1,9 @@
+
+from pytissueoptics import *
+from pytissueoptics.vectors import *
 import numpy as np
+import cupy as cp
 
-try:
-    import cupy as cp
-except:
-    cp = np
-    # CupyScalars = NumpyScalars
-
-import vectors as vc
 
 
 class NativeScalars:
@@ -211,7 +208,7 @@ class NumpyScalars:
     def __add__(self, other):
         if isinstance(other, NumpyScalars):
             return NumpyScalars(np.add(self.v, other.v))
-        elif isinstance(other, vc.NumpyVectors):
+        elif isinstance(other, NumpyVectors):
             return ArithmeticError
         else:
             return NumpyScalars(np.add(self.v, other))
@@ -219,7 +216,7 @@ class NumpyScalars:
     def __sub__(self, other):
         if isinstance(other, NumpyScalars):
             return NumpyScalars(np.subtract(self.v, other.v))
-        elif isinstance(other, vc.NumpyVectors):
+        elif isinstance(other, NumpyVectors):
             return ArithmeticError
         elif type(other) in (float, int):
             return NumpyScalars(np.subtract(self.v, other))
@@ -228,9 +225,9 @@ class NumpyScalars:
         if isinstance(other, NumpyScalars):
             if len(self) == len(other):
                 return NumpyScalars(np.multiply(self.v, other.v))
-        elif isinstance(other, vc.NumpyVectors):
+        elif isinstance(other, NumpyVectors):
             if len(self) == len(other):
-                return vc.NumpyVectors(np.multiply(self.v[:, None], other.v))
+                return NumpyVectors(np.multiply(self.v[:, None], other.v))
         elif type(other) in (float, int):
             return NumpyScalars(np.multiply(self.v, other))
 
@@ -238,7 +235,7 @@ class NumpyScalars:
         if isinstance(other, NumpyScalars):
             if len(self) == len(other):
                 return NumpyScalars(np.multiply(self.v, other.v))
-        elif isinstance(other, vc.NumpyVectors):
+        elif isinstance(other, NumpyVectors):
             return ArithmeticError
         elif type(other) in (float, int):
             return NumpyScalars(np.multiply(self.v, other))
@@ -246,7 +243,7 @@ class NumpyScalars:
     def __truediv__(self, other):
         if isinstance(other, NumpyScalars):
             return NumpyScalars(np.true_divide(self.v, other.v))
-        elif isinstance(other, vc.NumpyVectors):
+        elif isinstance(other, NumpyVectors):
             return ArithmeticError
         else:
             return NumpyScalars(np.true_divide(self.v, other))
@@ -448,7 +445,7 @@ class CupyScalars:
     def __add__(self, other):
         if isinstance(other, CupyScalars):
             return CupyScalars(cp.add(self.v, other.v))
-        elif isinstance(other, vc.CupyVectors):
+        elif isinstance(other, CupyVectors):
             return ArithmeticError
         else:
             return CupyScalars(cp.add(self.v, other))
@@ -456,7 +453,7 @@ class CupyScalars:
     def __sub__(self, other):
         if isinstance(other, CupyScalars):
             return CupyScalars(cp.subtract(self.v, other.v))
-        elif isinstance(other, vc.CupyVectors):
+        elif isinstance(other, CupyVectors):
             return ArithmeticError
         elif type(other) in (float, int):
             return CupyScalars(cp.subtract(self.v, other))
@@ -465,9 +462,9 @@ class CupyScalars:
         if isinstance(other, CupyScalars):
             if len(self) == len(other):
                 return CupyScalars(cp.multiply(self.v, other.v))
-        elif isinstance(other, vc.CupyVectors):
+        elif isinstance(other, CupyVectors):
             if len(self) == len(other):
-                return vc.CupyVectors(cp.multiply(self.v[:, None], other.v))
+                return CupyVectors(cp.multiply(self.v[:, None], other.v))
         elif type(other) in (float, int):
             return CupyScalars(cp.multiply(self.v, other))
 
@@ -475,7 +472,7 @@ class CupyScalars:
         if isinstance(other, CupyScalars):
             if len(self) == len(other):
                 return CupyScalars(cp.multiply(self.v, other.v))
-        elif isinstance(other, vc.CupyVectors):
+        elif isinstance(other, CupyVectors):
             return ArithmeticError
         elif type(other) in (float, int):
             return CupyScalars(cp.multiply(self.v, other))
@@ -483,7 +480,7 @@ class CupyScalars:
     def __truediv__(self, other):
         if isinstance(other, CupyScalars):
             return CupyScalars(cp.true_divide(self.v, other.v))
-        elif isinstance(other, vc.CupyVectors):
+        elif isinstance(other, CupyVectors):
             return ArithmeticError
         else:
             return CupyScalars(cp.true_divide(self.v, other))
@@ -654,4 +651,4 @@ class CupyScalars:
 
 
 
-# Scalars = NumpyScalars
+Scalars = NativeScalars

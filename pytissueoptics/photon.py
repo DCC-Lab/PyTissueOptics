@@ -1,16 +1,10 @@
-import numpy as np
-import time
-import warnings
-from .vector import *
-from .vectors import *
-from math import acos, asin, cos, sin, atan, tan, sqrt, pi
-import random
+from pytissueoptics import *
 
 
 class Photon:
     def __init__(self, position=None, direction=None, weight=None):
         if position is not None:
-            self.r = Vector(position) # local coordinate position
+            self.r = Vector(position)  # local coordinate position
         else:
             self.r = Vector(0, 0, 0)
 
@@ -33,7 +27,7 @@ class Photon:
 
         self.wavelength = None
         self.path = None
-        self.origin = Vector(0, 0, 0) # The global coordinates of the local origin
+        self.origin = Vector(0, 0, 0)  # The global coordinates of the local origin
         self.currentGeometry = None
 
     @property
@@ -43,17 +37,17 @@ class Photon:
     @property
     def globalPosition(self):
         return self.r + self.origin
-    
-    @property
-    def el(self) -> UnitVector:
-        return self.ez.cross(self.er) 
 
     @property
-    def isAlive(self) -> bool :
+    def el(self) -> UnitVector:
+        return self.ez.cross(self.er)
+
+    @property
+    def isAlive(self) -> bool:
         return self.weight > 0
 
     @property
-    def isDead(self) -> bool :
+    def isDead(self) -> bool:
         return self.weight == 0
 
     def keepPathStatistics(self):
@@ -65,11 +59,11 @@ class Photon:
 
     def transformFromLocalCoordinates(self, origin):
         self.r = self.r + origin
-        self.origin = Vector(0,0,0)
+        self.origin = Vector(0, 0, 0)
 
     def moveBy(self, d):
         self.r.addScaled(self.ez, d)
-        
+
         if self.path is not None:
             self.path.append(Vector(self.r))  # We must make a copy
 
@@ -115,6 +109,8 @@ Photons is essentially an abstract class, but a basic implementation is provided
 all children classes.
 
 """
+
+
 class Photons:
     def __init__(self, array=None, N=0, position=None, direction=None):
         self.iteration = None
@@ -154,7 +150,8 @@ class Photons:
             self._photons.remove(photon)
 
     def livePhotonsInGeometry(self, geometry):
-        return Photons(list(filter(lambda photon: (photon.currentGeometry == geometry) and photon.isAlive, self._photons)))
+        return Photons(
+            list(filter(lambda photon: (photon.currentGeometry == geometry) and photon.isAlive, self._photons)))
 
     def areAllDead(self) -> bool:
         for photon in self._photons:
@@ -178,10 +175,11 @@ class Photons:
         return count
 
     def areReflected(self, interfaces):
-        areReflected = [ interface.isReflected() for photon, interface in zip(self._photons, interfaces) ]
+        areReflected = [interface.isReflected() for photon, interface in zip(self._photons, interfaces)]
 
-        reflectedPhotons = Photons([ photon for photon, isReflected in zip(self._photons, areReflected) if isReflected ])
-        transmittedPhotons = Photons([ photon for photon, isReflected in zip(self._photons, areReflected) if not isReflected ])
+        reflectedPhotons = Photons([photon for photon, isReflected in zip(self._photons, areReflected) if isReflected])
+        transmittedPhotons = Photons(
+            [photon for photon, isReflected in zip(self._photons, areReflected) if not isReflected])
         return (reflectedPhotons, transmittedPhotons)
 
     def transformToLocalCoordinates(self, origin):
@@ -242,7 +240,7 @@ class Photons:
 
 
 class NativePhotons(Photons):
-    def __init__(self, positions=Vectors(N=1000), directions=Vectors([zHat] * 1000)):
+    def __init__(self, positions=None, directions=None):
         self.N = len(positions)
         self.r = positions
         self.ez = directions

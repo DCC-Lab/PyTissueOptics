@@ -1,5 +1,7 @@
-from .photon import *
-
+from pytissueoptics import *
+import time
+import numpy as np
+from numpy import random, cos, sin, tan, pi
 
 class Source:
     def __init__(self, maxCount):

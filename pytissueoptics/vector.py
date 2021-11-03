@@ -1,6 +1,5 @@
-import numpy as np
-import math
-import sys
+from pytissueoptics import *
+
 
 class Vector:
     def __init__(self, x: float = 0, y: float = 0, z: float = 0):

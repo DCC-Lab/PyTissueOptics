@@ -1,13 +1,4 @@
-from .surface import *
-from .source import *
-
-
-def isIterable(someObject):
-    try:
-        iter(someObject)
-    except TypeError as te:
-        return False
-    return True
+from pytissueoptics import *
 
 
 class Geometry:
@@ -247,25 +238,21 @@ class Geometry:
         return FresnelIntersect(direction, intersectSurface, minDistance, self)
 
     def getPossibleIntersections(self, photons, distances):
-        if isIterable(photons):
+        unimpededPhotons = Photons()
+        impededPhotons = Photons()
+        interfaces = FresnelIntersects()
 
-            unimpededPhotons = Photons()
-            impededPhotons = Photons()
-            interfaces = FresnelIntersects()
+        for i, p in enumerate(photons):
+            interface = self.nextExitInterface(p.r, p.ez, distances[i])
+            if interface is not None:
+                interfaces.append(interface)
+                impededPhotons.append(p)
 
-            for i, p in enumerate(photons):
-                interface = self.nextExitInterface(p.r, p.ez, distances[i])
-                if interface is not None:
-                    interfaces.append(interface)
-                    impededPhotons.append(p)
+            else:
+                unimpededPhotons.append(p)
 
-                else:
-                    unimpededPhotons.append(p)
+        return unimpededPhotons, (impededPhotons, interfaces)
 
-            return unimpededPhotons, (impededPhotons, interfaces)
-
-        else:
-            raise TypeError("Must be a Photons itterable object.")
 
 
     @staticmethod
