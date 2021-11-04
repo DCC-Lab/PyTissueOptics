@@ -288,40 +288,53 @@ class TestOpenCL(unittest.TestCase):
         mempool = pycl.tools.MemoryPool(allocator)
 
         N = 1
-        M = 10
-        P = 32
-        nptimes = []
-        cltimes = []
-        for j in range(16, P):
-            # Pre-allocate all arrays
-            N = 1 << j
-            a_n = np.random.rand(N).astype(np.float32)
-            b_n = np.random.rand(N).astype(np.float32)
+        M = [10, 20, 40]
+        start = 16
+        finish = 26
+        nptimes = [[],[],[]]
+        cltimes = [[],[],[]]
+        for k, m in enumerate(M):
+            for j in range(start, finish):
+                # Pre-allocate all arrays
+                N = 1 << j
+                a_n = np.random.rand(N).astype(np.float32)
+                b_n = np.random.rand(N).astype(np.float32)
 
-            # Pre-allocate opencl arrays, with MemoryPool to reuse memory
-            a = pycl.array.to_device(queue=queue, ary=a_n, allocator=mempool)
-            b = pycl.array.to_device(queue=queue, ary=b_n, allocator=mempool)
+                # Pre-allocate opencl arrays, with MemoryPool to reuse memory
+                a = pycl.array.to_device(queue=queue, ary=a_n, allocator=mempool)
+                b = pycl.array.to_device(queue=queue, ary=b_n, allocator=mempool)
 
-            startTime = time.time()        
-            calcTimeOpenCL1 = []
-            for i in range(M):
-                c = i*a + b + a + b + a + a * a
-            calcTimeOpenCL1.append((time.time()-startTime)*1000)
-            cltimes.append(np.mean(calcTimeOpenCL1))
+                startTime = time.time()
+                calcTimeOpenCL1 = []
+                for i in range(m):
+                    c = i*(a+b)*(a*b)
+                calcTimeOpenCL1.append((time.time()-startTime)*1000)
+                cltimes[k].append(np.mean(calcTimeOpenCL1))
 
-            startTime = time.time()        
-            calcTimeOpenNP = []
-            for i in range(M):
-                c = i*a_n + b_n + a_n + b_n + a_n + a_n * a_n
-            calcTimeOpenNP.append((time.time()-startTime)*1000)
-            nptimes.append(np.mean(calcTimeOpenNP))
+                startTime = time.time()
+                calcTimeOpenNP = []
+                for i in range(m):
+                    c = i*(a_n+b_n)*(a_n*b_n)
+                calcTimeOpenNP.append((time.time()-startTime)*1000)
+                nptimes[k].append(np.mean(calcTimeOpenNP))
 
-        plt.plot(range(P), cltimes, label="OpenCL")
-        plt.plot(range(P), nptimes, label="Numpy")
-        plt.xlabel("Size of array 2^x")
-        plt.ylabel("Computation time [ms]")
-        plt.legend()
-        plt.show()
+        fig = plt.figure()
+        ax = fig.add_subplot()
+        ax.plot(range(start, finish), cltimes[0], label="OpenCL M=10", c="cyan")
+        #ax.plot(range(start, finish), nptimes[0], label="Numpy, M=10", c="blue")
+
+        ax.plot(range(start, finish), cltimes[1], label="OpenCL, M=20", c="orange")
+        #ax.plot(range(start, finish), nptimes[1], label="Numpy, M=20", c="yellow")
+
+        ax.plot(range(start, finish), cltimes[2], label="OpenCL, M=40", c="red")
+        #ax.plot(range(start, finish), nptimes[2], label="Numpy, M=40", c="black")
+
+        ax.set_xlabel("[log$_2$(2$^{x}$)]")
+        ax.set_ylabel("Computation time [ms]")
+        ax.text(20, 5023, "Operation on array A, B:\nC = i*(A+B)+(A*B)")
+        ax.legend()
+        plt.tight_layout()
+        plt.savefig("opencl_m10_20_40.png", dpi=300)
 
     def test004_2x2Matrix_and_Vectors(self):
         """
