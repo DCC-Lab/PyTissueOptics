@@ -1,10 +1,12 @@
-import envtest
-from pytissueoptics import *
 import unittest
+import numpy as np
+from pytissueoptics import *
+
+
 inf = float("+inf")
 
 
-class TestNativeVectorsBase(envtest.PyTissueTestCase):
+class TestNativeVectorsBase(unittest.TestCase):
     def setUp(self):
         self.count = 1000
         self.vnull = NativeVectors(N=self.count)

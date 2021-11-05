@@ -1,6 +1,8 @@
+import envtest # modifies path
+from pytissueoptics import *
 import unittest
-from scalars import *
-from vectors import *
+from pytissueoptics.scalars import *
+from pytissueoptics.vectors import *
 
 
 class TestScalars(unittest.TestCase):
