@@ -20,7 +20,7 @@ class TestPhoton(envtest.PyTissueTestCase):
 
     def testReflectNormalIncidence(self):
         s = Surface(origin=oHat, a=xHat, b=yHat, normal=zHat)
-        p = Photon(position=Vector(0,0,0), direction=zHat)
+        p = Photon(position=Vector(0, 0, 0), direction=zHat)
 
         thetaIn, planeOfIncidenceNormal, actualNormal = p.ez.angleOfIncidence(s.normal)
         p.ez.rotateAround(planeOfIncidenceNormal, 2*thetaIn-np.pi)
@@ -28,7 +28,7 @@ class TestPhoton(envtest.PyTissueTestCase):
 
     def testReflectPlus45Incidence(self):
         s = Surface(origin=oHat, a=xHat, b=yHat, normal=zHat)
-        p = Photon(position=Vector(0,0,0), direction=Vector(0,1,1).normalized())
+        p = Photon(position=Vector(0, 0, 0), direction=Vector(0, 1, 1).normalized())
 
         thetaIn, planeOfIncidenceNormal, actualNormal = p.ez.angleOfIncidence(s.normal)
         p.ez.rotateAround(planeOfIncidenceNormal, 2*thetaIn-np.pi)

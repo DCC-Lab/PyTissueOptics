@@ -1,5 +1,5 @@
 from pytissueoptics import *
-
+from pytissueoptics.vector import Vector
 
 class Photon:
     def __init__(self, position=None, direction=None, weight=None):
@@ -111,15 +111,18 @@ all children classes.
 """
 
 
-class Photons:
-    def __init__(self, array=None, N=0, position=None, direction=None):
+class NativePhotons:
+    def __init__(self, array=None, positions=None, directions=None, N=0):
         self.iteration = None
         self._photons = []
         if array is not None:
             self._photons = array
-        else:
-            for i in range(N):
+        elif isinstance(positions, Vectors):
+            for position, direction in zip(positions, directions):
                 self._photons.append(Photon(position=position, direction=direction))
+        elif N > 0 and isinstance(positions, Vector):
+            for i in range(N):
+                self._photons.append(Photon(position=positions, direction=directions))
 
     def __getitem__(self, item):
         return self._photons[item]
@@ -239,16 +242,17 @@ class Photons:
             photon.roulette()
 
 
-class NativePhotons(Photons):
-    def __init__(self, positions=None, directions=None):
-        self.N = len(positions)
-        self.r = positions
-        self.ez = directions
-        self.er = self.ez.anyPerpendicular()
-        self.wavelength = None
-        self.weight = Scalars([1] * self.N)
-        self.path = None
-        self.origin = Vectors(N=self.N)
+class ArrayPhotons:
+    def __init__(self, array=None, positions=None, directions=None):
+        if array is None and positions is not None:
+            self.N = len(positions)
+            self.r = Vectors(positions)
+            self.ez = Vectors(directions)
+            self.er = self.ez.anyPerpendicular()
+            self.wavelength = None
+            self.weight = Scalars([1] * self.N)
+            self.path = None
+            self.origin = Vectors(N=self.N)
         self._iteration = 0
 
     def __len__(self):
@@ -332,3 +336,6 @@ class NativePhotons(Photons):
 
     def refract(self):
         pass
+
+
+Photons = NativePhotons

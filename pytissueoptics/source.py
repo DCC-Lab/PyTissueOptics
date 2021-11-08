@@ -1,4 +1,6 @@
 from pytissueoptics import *
+from pytissueoptics.vector import Vector, UnitVector, ConstVector
+from pytissueoptics.photon import Photon, Photons, NativePhotons
 import time
 import numpy as np
 from numpy import random, cos, sin, tan, pi
@@ -41,7 +43,16 @@ class Source:
         self.iteration += 1
         return photon
 
+    def getDirection(self):
+        raise NotImplementedError
+
+    def getPosition(self):
+        raise NotImplementedError
+
     def newPhoton(self) -> Photon:
+        raise NotImplementedError()
+
+    def newPhotons(self):
         raise NotImplementedError()
 
 
@@ -49,16 +60,30 @@ class IsotropicSource(Source):
     def __init__(self, maxCount):
         super(IsotropicSource, self).__init__(maxCount)
 
+    def getPosition(self):
+        return self.origin
+
+    def getDirection(self):
+        phi = np.random.random() * 2 * np.pi
+        theta = np.arccos(2 * np.random.random() - 1)
+
+        return theta, phi
+
     def newPhoton(self) -> Photon:
         p = Photon()
-        p.r = self.origin
-
-        phi = np.random.random() * 2 * np.pi
-        cost = 2 * np.random.random() - 1
-
-        p.scatterBy(np.arccos(cost), phi)
+        p.r = self.getPosition()
+        theta, phi = self.getDirection()
+        p.scatterBy(theta, phi)
         return p
 
+    def newPhotons(self):
+        positions = [self.origin]*self.maxCount
+        directions = []
+        for i in range(self.maxCount):
+            theta, phi = self.getDirection()
+            directions.append(UnitVector(theta=theta, phi=phi))
+
+        return Photons(positions=positions, directions=directions)
 
 class PencilSource(Source):
     def __init__(self, direction, maxCount):

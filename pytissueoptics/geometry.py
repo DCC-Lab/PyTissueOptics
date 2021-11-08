@@ -76,6 +76,8 @@ class Geometry:
         We continue until all photons have died within the geometry or transmitted through 
         some interface. We will return the photons that have exited the geometry.
         """
+        if isinstance(photons, Source):
+            photons = photons.newPhotons()
 
         photons.transformToLocalCoordinates(self.origin)
         self.scoreManyWhenStarting(photons)
