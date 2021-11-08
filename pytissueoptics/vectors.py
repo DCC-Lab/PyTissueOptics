@@ -416,8 +416,8 @@ class NumpyVectors:
 
     @classmethod
     def randomUniform(cls, N, r):
-        theta = (np.np.random.rand(N) * 2 * np.pi)
-        phi = (np.np.random.rand(N) * np.pi)
+        theta = (np.random.rand(N) * 2 * np.pi)
+        phi = (np.random.rand(N) * np.pi)
         x = r * np.sin(phi) * np.cos(theta)
         y = r * np.sin(phi) * np.sin(theta)
         z = r * np.cos(phi)
@@ -425,8 +425,8 @@ class NumpyVectors:
 
     @classmethod
     def randomUniformUnitary(cls, N):
-        theta = np.np.random.rand(N) * 2 * np.pi
-        phi = np.np.random.rand(N) * np.pi
+        theta = np.random.rand(N) * 2 * np.pi
+        phi = np.random.rand(N) * np.pi
         x = np.sin(phi) * np.cos(theta)
         y = np.sin(phi) * np.sin(theta)
         z = np.cos(phi)
