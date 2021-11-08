@@ -1,5 +1,5 @@
 from pytissueoptics import *
-
+import math
 
 class Vector:
     def __init__(self, x: float = 0, y: float = 0, z: float = 0):
@@ -325,8 +325,14 @@ class Vector:
 
 
 class UnitVector(Vector):
-    def __init__(self, x: float = 0, y: float = 0, z: float = 0):
-        Vector.__init__(self, Vector(x, y, z).normalized())
+    def __init__(self, x: float = 0, y: float = 0, z: float = 0, theta=None, phi=None):
+        if None in (phi, theta):
+            Vector.__init__(self, Vector(x, y, z).normalized())
+        else:
+            x = math.sin(phi)*math.cos(theta)
+            y = math.sin(phi)*math.sin(theta)
+            z = math.cos(phi)
+            Vector.__init__(self, Vector(x, y, z))
 
     def normalizedCrossProduct(self, vector):
         if isinstance(vector, UnitVector):
