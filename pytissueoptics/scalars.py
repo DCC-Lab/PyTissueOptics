@@ -199,6 +199,9 @@ class NumpyScalars:
 
         self._iteration = 0
 
+    def append(self, value):
+        self.v = np.append(self.v, value)
+
     def __repr__(self):
         return str(self.v)
 
@@ -255,7 +258,7 @@ class NumpyScalars:
         return NumpyScalars(np.logical_not(self.v))
 
     def __getitem__(self, item):
-        return NumpyScalars(self.v[item])
+        return self.v[item]
 
     def __setitem__(self, key, value: np.float32):
         self.v[key] = value
@@ -651,4 +654,4 @@ class CupyScalars:
 
 
 
-Scalars = NativeScalars
+Scalars = NumpyScalars

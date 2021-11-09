@@ -250,6 +250,7 @@ class NumpyVectors:
     """
 
     def __init__(self, vectors=None, N=None):
+        self.v = np.array([])
         if vectors is not None and N is None:
             if type(vectors) == np.ndarray:
                 self.v = vectors.astype('float64')
@@ -395,6 +396,9 @@ class NumpyVectors:
 
         else:
             raise StopIteration
+
+    def append(self, value):
+        self.v = np.append(self.v, value)
 
     @property
     def x(self):
