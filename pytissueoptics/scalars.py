@@ -1,7 +1,9 @@
 import pytissueoptics.vectors as vec
 import numpy as np
-import cupy as cp
-
+try:
+    import cupy as cp
+except:
+    cp = np
 
 
 class NativeScalars:
