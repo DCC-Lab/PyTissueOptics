@@ -8,7 +8,7 @@ class Vector:
         """ Access properties with x,y and z.
         Internally for speed, read access done with self._x """
 
-        if isinstance(x, (int, float)):
+        if isinstance(x, (int, float, np.int32, np.uint32, np.float32)):
             self._x = x
             self._y = y 
             self._z = z
@@ -22,6 +22,9 @@ class Vector:
             self._z = x[2]
         else:
             raise ValueError("Vector input is invalid.")
+
+        self._iteration = 0
+
     @property
     def x(self):
         return self._x
@@ -97,6 +100,18 @@ class Vector:
             return self.z
         else:
             raise ValueError("Out of range index: must be 0,1 or 2")
+
+    def __next__(self):
+        if self._iteration < 3:
+            result = self[self._iteration]
+            self._iteration += 1
+            return result
+        else:
+            raise StopIteration
+
+    def __iter__(self):
+        self._iteration = 0
+        return self
 
     def __eq__(self, vector):
         return self.isEqualTo(vector)
