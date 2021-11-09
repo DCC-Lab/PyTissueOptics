@@ -1,5 +1,7 @@
 from pytissueoptics import *
 import math
+from collections.abc import Iterable
+
 
 class Vector:
     def __init__(self, x: float = 0, y: float = 0, z: float = 0):
@@ -14,9 +16,12 @@ class Vector:
             self._x = x.x
             self._y = x.y 
             self._z = x.z 
+        elif isinstance(x, Iterable):
+            self._x = x[0]
+            self._y = x[1]
+            self._z = x[2]
         else:
-            raise ValueError("No valid input for Vector")
-
+            raise ValueError("Vector input is invalid.")
     @property
     def x(self):
         return self._x
