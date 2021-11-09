@@ -257,7 +257,7 @@ class NumpyVectors:
             elif type(vectors) == vec.Vector:
                 self.v = np.asarray([[vectors.x, vectors.y, vectors.z]], dtype=np.float64)
 
-            elif type(vectors) == list and type(vectors[0]) == vec.Vector:
+            elif type(vectors) == list and isinstance(vectors[0], vec.Vector):
                 x = [v.x for v in vectors]
                 y = [v.y for v in vectors]
                 z = [v.z for v in vectors]
@@ -1019,4 +1019,4 @@ class OpenclVectors:
 
         self._iteration = 0
 
-Vectors = NativeVectors
+Vectors = NumpyVectors

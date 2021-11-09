@@ -117,7 +117,9 @@ class NativePhotons:
         self._photons = []
         if array is not None:
             self._photons = array
-        elif isinstance(positions, Vectors):
+        elif not None in (positions, directions):
+            positions = Vectors(positions)
+            directions = Vectors(directions)
             for position, direction in zip(positions, directions):
                 self._photons.append(Photon(position=position, direction=direction))
         elif N > 0 and isinstance(positions, Vector):
