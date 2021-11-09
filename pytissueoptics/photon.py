@@ -1,5 +1,7 @@
 from pytissueoptics import *
 from pytissueoptics.vector import Vector, UnitVector
+import numpy as np
+
 
 class Photon:
     def __init__(self, position=None, direction=None, weight=None):
@@ -245,27 +247,32 @@ class NativePhotons:
 
 
 class ArrayPhotons:
-    def __init__(self, array=None, positions=None, directions=None):
-        if array is None and positions is not None:
-            self.N = len(positions)
-            self.r = Vectors(positions)
-            self.ez = Vectors(directions)
+    def __init__(self, positions=None, directions=None):
+
+        self.r = Vectors(positions)
+        self.ez = Vectors(directions)
+        N = len(self.r)
+        if N > 0:
             self.er = self.ez.anyPerpendicular()
-            self.wavelength = None
-            self.weight = Scalars([1] * self.N)
-            self.path = None
-            self.origin = Vectors(N=self.N)
+        else:
+            self.er = Vectors()
+
+        N = len(self.r)
+        self.wavelength = None
+        self.weight = Scalars([1] * N)
+        self.path = None
+        self.origin = Vectors(N=N)
+
         self._iteration = 0
 
     def __len__(self):
-        return self.N
+        return len(self.r)
 
     def __getitem__(self, index):
         return Photon(position=self.r[index], direction=self.ez[index], weight=self.weight[index])
 
     def __setitem__(self, index, photon):
         self.r[index] = photon.r
-        self.z[index] = photon.z
         self.ez[index] = photon.ez
         self.er[index] = photon.er
         self.weight[index] = photon.weight
@@ -276,12 +283,20 @@ class ArrayPhotons:
         return self
 
     def __next__(self):
-        if self._iteration < self.N:
+        if self._iteration < len(self):
             result = self[self._iteration]
             self._iteration += 1
             return result
         else:
             raise StopIteration
+
+    def append(self, photon):
+        if isinstance(photon, Photon):
+            self.r.append(photon.r)
+            self.ez.append(photon.ez)
+            self.er.append(photon.er)
+            self.weight.append(photon.weight)
+            self.origin.append(photon.origin)
 
     @property
     def localPosition(self):
@@ -323,7 +338,7 @@ class ArrayPhotons:
     def roulette(self):
         chance = 0.1
         rouletteMask = self.weight <= 1e-4
-        photonsKillMask = (Scalars.random(self.N)) > chance
+        photonsKillMask = (Scalars.random(len(self))) > chance
         photonsKillMask = rouletteMask.logical_and(photonsKillMask)
         self.removePhotonsWeights(photonsKillMask)
 
@@ -340,4 +355,4 @@ class ArrayPhotons:
         pass
 
 
-Photons = NativePhotons
+Photons = ArrayPhotons
