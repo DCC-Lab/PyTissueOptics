@@ -322,6 +322,8 @@ class NumpyVectors:
             return NumpyVectors(np.subtract(self.v, other.v))
         elif isinstance(other, sc.NumpyScalars):
             return NumpyVectors(np.subtract(self.v, other.v))
+        elif isinstance(other, vec.Vector):
+            return NumpyVectors(np.subtract(self.v, list(other)))
         else:
             return NumpyVectors(np.subtract(self.v, other))
 
@@ -383,9 +385,16 @@ class NumpyVectors:
         return self
 
     def __next__(self):
-        result = self.v[self._iteration, :]
-        self._iteration += 1
-        return result
+        if self.v is None:
+            raise StopIteration
+
+        if self._iteration < len(self.v):
+            result = self.v[self._iteration]
+            self._iteration += 1
+            return result
+
+        else:
+            raise StopIteration
 
     @property
     def x(self):
