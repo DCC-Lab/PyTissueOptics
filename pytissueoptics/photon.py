@@ -1,5 +1,5 @@
 from pytissueoptics import *
-from pytissueoptics.vector import Vector
+from pytissueoptics.vector import Vector, UnitVector
 
 class Photon:
     def __init__(self, position=None, direction=None, weight=None):
