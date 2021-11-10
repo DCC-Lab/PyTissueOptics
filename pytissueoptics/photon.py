@@ -122,6 +122,7 @@ class NativePhotons:
         elif not None in (positions, directions):
             positions = Vectors(positions)
             directions = Vectors(directions)
+            print(len(positions), len(directions))
             for position, direction in zip(positions, directions):
                 self._photons.append(Photon(position=position, direction=direction))
         elif N > 0 and isinstance(positions, Vector):
@@ -148,6 +149,14 @@ class NativePhotons:
             return photon
 
         raise StopIteration
+
+    @property
+    def isRowOptimized(self):
+        return True
+
+    @property
+    def isColumnOptimized(self):
+        return False
 
     def append(self, photon):
         self._photons.append(photon)
@@ -288,6 +297,14 @@ class ArrayPhotons:
             return result
         else:
             raise StopIteration
+
+    @property
+    def isRowOptimized(self):
+        return False
+
+    @property
+    def isColumnOptimized(self):
+        return True
 
     def append(self, photon):
         if isinstance(photon, Photon):
