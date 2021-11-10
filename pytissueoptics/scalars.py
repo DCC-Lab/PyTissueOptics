@@ -187,6 +187,7 @@ class NativeScalars:
 
 class NumpyScalars:
     def __init__(self, array=None, N=None, ndtype="float64"):
+        self.v = np.array([None])
         if array is not None:
             if type(array) == np.ndarray:
                 self.v = array.astype(ndtype)

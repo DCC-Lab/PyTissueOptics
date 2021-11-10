@@ -248,7 +248,6 @@ class NativePhotons:
 
 class ArrayPhotons:
     def __init__(self, positions=None, directions=None):
-
         self.r = Vectors(positions)
         self.ez = Vectors(directions)
         N = len(self.r)
@@ -292,11 +291,11 @@ class ArrayPhotons:
 
     def append(self, photon):
         if isinstance(photon, Photon):
-            self.r.append(photon.r)
-            self.ez.append(photon.ez)
-            self.er.append(photon.er)
+            self.r.append(list(photon.r))
+            self.ez.append(list(photon.ez))
+            self.er.append(list(photon.er))
             self.weight.append(photon.weight)
-            self.origin.append(photon.origin)
+            self.origin.append(list(photon.origin))
 
     @property
     def localPosition(self):

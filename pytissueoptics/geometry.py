@@ -79,10 +79,13 @@ class Geometry:
         if isinstance(photons, Source):
             photons = photons.newPhotons()
 
+        else:
+            photonsInside = Photons(list(photons))
+
         photons.transformToLocalCoordinates(self.origin)
         self.scoreManyWhenStarting(photons)
 
-        photonsInside = Photons(list(photons))
+        photonsInside = photons
 
         while (len(photonsInside) != 0):
             # Get distance to interaction point
@@ -240,20 +243,25 @@ class Geometry:
         return FresnelIntersect(direction, intersectSurface, minDistance, self)
 
     def getPossibleIntersections(self, photons, distances):
-        unimpededPhotons = Photons()
-        impededPhotons = Photons()
-        interfaces = FresnelIntersects()
+        # photons.getPossibleIntersection(self)
+        if photons.isRowOptimized():
+            unimpededPhotons = Photons()
+            impededPhotons = Photons()
+            interfaces = FresnelIntersects()
 
-        for i, p in enumerate(photons):
-            interface = self.nextExitInterface(p.r, p.ez, distances[i])
-            if interface is not None:
-                interfaces.append(interface)
-                impededPhotons.append(p)
+            for i, p in enumerate(photons):
+                interface = self.nextExitInterface(p.r, p.ez, distances[i])
+                if interface is not None:
+                    interfaces.append(interface)
+                    impededPhotons.append(p)
 
-            else:
-                unimpededPhotons.append(p)
+                else:
+                    unimpededPhotons.append(p)
 
-        return unimpededPhotons, (impededPhotons, interfaces)
+            return unimpededPhotons, (impededPhotons, interfaces)
+
+        elif photons.isColumnOptimized():
+            pass  # FIXME: IMPLEMENT
 
 
 

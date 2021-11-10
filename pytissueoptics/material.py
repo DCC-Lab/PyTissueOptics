@@ -28,7 +28,16 @@ class Material:
         return -np.log(rnd) / self.mu_t
 
     def getManyScatteringDistances(self, photons):
-        return Scalars([self.getScatteringDistance(p) for p in photons])
+        if photons.isRowOptimized():
+            return Scalars([self.getScatteringDistance(p) for p in photons])
+
+        elif photons.ifColumnOptimized():
+            rnd = False
+            d = Scalars(np.random.random(len(pĥotons)))
+            while rnd is False:
+                d.conditional_eq(0, np.random.random(), d.v)
+                rnd = d.all()
+            return Scalars(-np.log(d.v) / self.mu_t)
 
     def getScatteringAngles(self, photon):
         phi = np.random.random() * 2 * np.pi

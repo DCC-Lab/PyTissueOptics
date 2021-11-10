@@ -250,7 +250,7 @@ class NumpyVectors:
     """
 
     def __init__(self, vectors=None, N=None):
-        self.v = np.array([])
+        self.v = np.array([[None, None, None]])
         if vectors is not None and N is None:
             if type(vectors) == np.ndarray:
                 self.v = vectors.astype('float64')
