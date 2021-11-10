@@ -31,7 +31,7 @@ class Material:
         if photons.isRowOptimized():
             return Scalars([self.getScatteringDistance(p) for p in photons])
 
-        elif photons.ifColumnOptimized():
+        elif photons.isColumnOptimized():
             rnd = False
             d = Scalars(np.random.random(len(pĥotons)))
             while rnd is False:
