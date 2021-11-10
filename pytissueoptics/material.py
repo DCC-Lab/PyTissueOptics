@@ -40,14 +40,25 @@ class Material:
             return Scalars(-np.log(d.v) / self.mu_t)
 
     def getScatteringAngles(self, photon):
-        phi = np.random.random() * 2 * np.pi
-        g = self.g
-        if g == 0:
-            cost = 2 * np.random.random() - 1
-        else:
-            temp = (1 - g * g) / (1 - g + 2 * g * np.random.random())
-            cost = (1 + g * g - temp * temp) / (2 * g)
-        return np.arccos(cost), phi
+        if photons.isRowOptimized:
+            phi = np.random.random() * 2 * np.pi
+            g = self.g
+            if g == 0:
+                cost = 2 * np.random.random() - 1
+            else:
+                temp = (1 - g * g) / (1 - g + 2 * g * np.random.random())
+                cost = (1 + g * g - temp * temp) / (2 * g)
+            return np.arccos(cost), phi
+        elif photons.isColumnOptimized:
+            phi = np.random.random(N) * 2 * np.pi
+            g = self.g
+            if g == 0:
+                cost = 2 * np.random.random(N) - 1
+            else:
+                temp = (1 - g * g) / (1 - g + 2 * g * np.random.random(N))
+                cost = (1 + g * g - temp * temp) / (2 * g)
+            return Scalars(np.arccos(cost)), Scalars(phi)
+
 
     def getManyScatteringAngles(self, photons):
         thetas = []
