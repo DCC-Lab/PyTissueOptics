@@ -1,4 +1,6 @@
 from pytissueoptics import *
+from pytissueoptics.vector import Vector
+from pytissueoptics.vectors import Vectors
 
 
 class Geometry:
@@ -141,6 +143,9 @@ class Geometry:
         """
         return True
 
+    def containsMany(self, finalPositions, photons):
+        return Scalars([True]*len(photons))
+
     def validateGeometrySurfaceNormals(self):
         manyPhotons = IsotropicSource(maxCount = 10000)
         assert(self.contains(self.center))
@@ -244,7 +249,7 @@ class Geometry:
 
     def getPossibleIntersections(self, photons, distances):
         # photons.getPossibleIntersection(self)
-        if photons.isRowOptimized():
+        if photons.isRowOptimized:
             unimpededPhotons = Photons()
             impededPhotons = Photons()
             interfaces = FresnelIntersects()
@@ -260,10 +265,26 @@ class Geometry:
 
             return unimpededPhotons, (impededPhotons, interfaces)
 
-        elif photons.isColumnOptimized():
-            pass  # FIXME: IMPLEMENT
+        elif photons.isColumnOptimized:
+            finalPositions = Vectors.fromScaledSum(photons.r, photons.ez, distances)
+            contained, notContained = self.containsMany(finalPositions, photons)
 
+            wasInside = Scalars([True]*len(photons))
+            finalPositions = Vectors(photons.r)  # Copy
+            deltas = 0.5 * distances
 
+            while (abs(deltas) > 0.00001).any():
+                finalPositions += deltas * photons.ez
+                isInside = self.containsMany(finalPositions, photons)
+                deltas = wasInside.conditional_neq(isInside, -deltas*0.5, 0)
+
+            for surface in self.surfaces:
+                if surface.normal.dot(direction) > 0:
+                    if surface.contains(finalPosition):
+                        distanceToSurface = (finalPosition - position).abs()
+                        return FresnelIntersect(direction, surface, distanceToSurface)
+
+            return None
 
     @staticmethod
     def isReflected(photon, surface) -> bool:

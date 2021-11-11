@@ -403,11 +403,14 @@ class NumpyScalars:
         else:
             return NumpyScalars(np.less_equal(np.abs(np.subtract(self.v, other)), 1e-9))
 
+    def __abs__(self):
+        return Scalars(np.absolute(self.v))
+
     def all(self):
-        return np.all(self.v)
+        return Scalars(np.all(self.v))
 
     def any(self):
-        return np.any(self.v)
+        return Scalars(np.any(self.v))
 
     @property
     def isBool(self):

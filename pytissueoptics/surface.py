@@ -211,7 +211,7 @@ class FresnelIntersect:
         self.thetaOut = np.arcsin(sinThetaOut)
         return self.thetaIn - self.thetaOut
 
-class FresnelIntersects:
+class NativeFresnelIntersects:
     def __init__(self, array = None):
         self._intersects = []
         if array is not None:
@@ -260,3 +260,8 @@ class FresnelIntersects:
     @property
     def refractionDeflection(self) -> Scalars:
         return Scalars(map(lambda intersect: intersect.refractionDeflection(), self._intersects))
+
+class NumpyFresnelIntersects:
+    pass
+
+FresnelIntersects = NativeFresnelIntersects
