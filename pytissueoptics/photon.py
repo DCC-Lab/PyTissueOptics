@@ -1,5 +1,6 @@
 from pytissueoptics import *
 from pytissueoptics.vector import Vector, UnitVector
+from pytissueoptics.vectors import Vectors
 import numpy as np
 
 
@@ -259,8 +260,7 @@ class ArrayPhotons:
     def __init__(self, positions=None, directions=None):
         self.r = Vectors(positions)
         self.ez = Vectors(directions)
-        N = len(self.r)
-        if N > 0:
+        if not self.ez.isEmpty:
             self.er = self.ez.anyPerpendicular()
         else:
             self.er = Vectors()

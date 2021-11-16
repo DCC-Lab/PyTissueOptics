@@ -469,6 +469,20 @@ class TestNumpyVectors(unittest.TestCase):
         verify = 4 - np.count_nonzero(v1.isUnitary)
         self.assertEqual(verify, 1)
 
+    def testCreateEmptyVectors(self):
+        v1 = Vectors()
+        v2 = [None, None, None]
+        r = np.all(np.equal(v1.v, v2))
+        self.assertTrue(r)
+
+    def testEmptyVectorsAppend(self):
+        emptyVectors = NumpyVectors()
+        emptyVectors.append([0, 1, 1])
+        emptyVectors.append(Vector(1,0,1))
+        verifyVectors = Vectors([[0,1,1],[1,0,1]])
+        r = np.all(emptyVectors.isEqualTo(verifyVectors).v)
+        self.assertTrue(r)
+
     def testRandomVectors(self):
         v1 = NumpyVectors.randomUniform(3, 3)
         r = np.all(np.less_equal(np.subtract(np.linalg.norm(v1.v, axis=1), (np.ones((3, 3))*3).astype('float64')), 1e-9))

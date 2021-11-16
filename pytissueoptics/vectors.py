@@ -3,6 +3,7 @@ import pytissueoptics.scalars as sc
 import numpy as np
 import copy
 import pyopencl as pycl
+from collections.abc import Iterable
 try:
     import cupy as cp
 except:
@@ -251,9 +252,11 @@ class NumpyVectors:
 
     def __init__(self, vectors=None, N=None):
         self.v = np.array([[None, None, None]])
+
         if vectors is not None and N is None:
+
             if type(vectors) == np.ndarray:
-                self.v = vectors.astype('float64')
+                    self.v = np.atleast_2d(vectors.astype('float64'))
 
             elif type(vectors) == vec.Vector:
                 self.v = np.asarray([[vectors.x, vectors.y, vectors.z]], dtype=np.float64)
@@ -265,7 +268,7 @@ class NumpyVectors:
                 self.v = np.stack((x, y, z), axis=-1)
 
             else:
-                self.v = np.asarray(vectors, dtype=np.float64)
+                self.v = np.atleast_2d(np.asarray(vectors, dtype=np.float64))
 
         elif vectors is not None and N is not None:
             if type(vectors) == vec.Vector:
@@ -284,6 +287,16 @@ class NumpyVectors:
             self.v = np.zeros((N, 3), dtype=np.float64)
 
         self._iteration = 0
+
+    @property
+    def isEmpty(self):
+        if len(self) == 1:
+            if np.all(self.v[0] == [None, None, None]):
+                return True
+            else:
+                return False
+        else:
+            return False
 
     def __len__(self):
         return self.v.shape[0]
@@ -398,7 +411,13 @@ class NumpyVectors:
             raise StopIteration
 
     def append(self, value):
-        self.v = np.append(self.v, value)
+        if self.isEmpty:
+            refactoredValue = Vectors(value).v[0]
+            self.v[0] = refactoredValue
+            print("hello")
+        else:
+            refactoredValue = Vectors(value).v
+            self.v = np.append(self.v, refactoredValue, axis=0)
 
     @property
     def x(self):

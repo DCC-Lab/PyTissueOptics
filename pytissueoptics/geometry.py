@@ -1,6 +1,8 @@
 from pytissueoptics import *
 from pytissueoptics.vector import Vector
 from pytissueoptics.vectors import Vectors
+from pytissueoptics.scalars import Scalars
+from pytissueoptics.photon import Photons
 
 
 class Geometry:
@@ -97,14 +99,14 @@ class Geometry:
             # We determine the groups based on the photons (and their positions) and the interaction
             # distances (calculated above). For those hitting an interface, we provide a list of 
             # corresponding interfaces
-            unimpededPhotons, (impededPhotons, interfaces) = self.getPossibleIntersections(photonsInside, distances)
+            (unimpededPhotons, unimpededDistances), (impededPhotons, interfaces) = self.getPossibleIntersections(photonsInside, distances)
 
             # We now deal with both groups (unimpeded and impeded photons) independently
             # ==========================================
             # 1. Unimpeded photons: they simply propagate through the geometry without anything special
-            unimpededPhotons.moveBy(distances)
+            unimpededPhotons.moveBy(unimpededDistances)
             deltas = unimpededPhotons.decreaseWeight(self.material.albedo)
-            self.scoreManyInVolume(unimpededPhotons, deltas) # optional
+            self.scoreManyInVolume(unimpededPhotons, deltas)  # optional
             thetas, phis = self.material.getManyScatteringAngles(unimpededPhotons)
             unimpededPhotons.scatterBy(thetas, phis)
 
@@ -253,6 +255,7 @@ class Geometry:
             unimpededPhotons = Photons()
             impededPhotons = Photons()
             interfaces = FresnelIntersects()
+            unimpededDistances = Scalars()
 
             for i, p in enumerate(photons):
                 interface = self.nextExitInterface(p.r, p.ez, distances[i])
@@ -262,10 +265,29 @@ class Geometry:
 
                 else:
                     unimpededPhotons.append(p)
+                    unimpededDistances.append(distances[i])
 
-            return unimpededPhotons, (impededPhotons, interfaces)
+            return (unimpededPhotons, unimpededDistances), (impededPhotons, interfaces)
 
         elif photons.isColumnOptimized:
+            unimpededPhotons = Photons()
+            impededPhotons = Photons()
+            interfaces = FresnelIntersects()
+            unimpededDistances = Scalars()
+
+            for i, p in enumerate(photons):
+                interface = self.nextExitInterface(p.r, p.ez, distances[i])
+                if interface is not None:
+                    interfaces.append(interface)
+                    impededPhotons.append(p)
+
+                else:
+                    unimpededPhotons.append(p)
+                    unimpededDistances.append(distances[i])
+
+            return (unimpededPhotons, unimpededDistances), (impededPhotons, interfaces)
+
+        elif 0 == 1:
             finalPositions = Vectors.fromScaledSum(photons.r, photons.ez, distances)
             contained, notContained = self.containsMany(finalPositions, photons)
 
