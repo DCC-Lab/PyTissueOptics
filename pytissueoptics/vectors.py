@@ -413,9 +413,7 @@ class NumpyVectors:
     def append(self, value):
         #  FIXME: Problem with the type (Doesnt get recognized by numpy should force to float64)
         if self.isEmpty:
-            refactoredValue = Vectors(value).v[0]
-            self.v[0] = refactoredValue
-            print("hello")
+            self.v = Vectors(value).v
         else:
             refactoredValue = Vectors(value).v
             self.v = np.append(self.v, refactoredValue, axis=0)
