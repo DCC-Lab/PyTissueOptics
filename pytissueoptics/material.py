@@ -50,6 +50,7 @@ class Material:
         return np.arccos(cost), phi
 
     def getManyScatteringAngles(self, photons):
+        N = len(photons)
         if photons.isRowOptimized:
             thetas = []
             phis = []

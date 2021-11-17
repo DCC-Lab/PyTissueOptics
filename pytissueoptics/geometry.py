@@ -118,7 +118,7 @@ class Geometry:
             # 2.1 Reflected photons change their direction following Fresnel reflection, then move inside 
             #     object
             reflectedPhotons.reflect(interfaces)
-            # reflectedPhotons.moveBy(remainingDistances) #FIXME: there couldbe another interface
+            # reflectedPhotons.moveBy(remainingDistances) #FIXME: there could be another interface
 
             # 2.2 Transmitted photons change their direction following the law of refraction, then move 
             #     outside the object and are stored to be returned and propagated into another object.

@@ -193,13 +193,13 @@ class TestScalars(unittest.TestCase):
         with self.subTest("NumpyScalar"):
             s = NumpyScalars([1,2,3,4])
             g = s[3]
-            self.assertTrue(np.all(np.equal(g.v, 4)))
+            self.assertTrue(np.all(np.equal(g, 4)))
 
             s = NumpyScalars([1, 2, 3, 4])
             #print(s)
             g = s[1:5]
             #print(g)
-            self.assertTrue(np.all(np.equal(g.v, [2, 3, 4])))
+            self.assertTrue(np.all(np.equal(g, [2, 3, 4])))
 
         with self.subTest("CupyScalar"):
             pass
@@ -237,6 +237,7 @@ class TestScalars(unittest.TestCase):
     def testScalarsAny(self):
         with self.subTest("NumpyScalar"):
             s = NumpyScalars([0]*1000)
+            a = s.any()
             self.assertFalse(s.any())
 
             s[0] = 1

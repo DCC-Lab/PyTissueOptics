@@ -423,10 +423,10 @@ class NumpyScalars:
         return Scalars(np.absolute(self.v))
 
     def all(self):
-        return Scalars(np.all(self.v))
+        return np.all(self.v)
 
     def any(self):
-        return Scalars(np.any(self.v))
+        return np.any(self.v)
 
     @property
     def isBool(self):

@@ -349,6 +349,13 @@ class ArrayPhotons:
         self.er.rotateAround(self.ez, phi)
         self.ez.rotateAround(self.er, theta)
 
+    def decreaseWeight(self, albedo):
+        deltas = albedo * self.weight
+        self.weight -= deltas
+        self.weight.conditional_lt(0, 0, self.weight.v)
+        # FIXME: Porblem with deltas if it is negative, they wont be accurate anymore.
+        return deltas
+
     def decreaseWeightBy(self, deltas):
         self.weight -= deltas
         self.weight.conditional_lt(0, 0, self.weight.v)
