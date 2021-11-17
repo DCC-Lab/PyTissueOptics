@@ -411,6 +411,7 @@ class NumpyVectors:
             raise StopIteration
 
     def append(self, value):
+        #  FIXME: Problem with the type (Doesnt get recognized by numpy should force to float64)
         if self.isEmpty:
             refactoredValue = Vectors(value).v[0]
             self.v[0] = refactoredValue
