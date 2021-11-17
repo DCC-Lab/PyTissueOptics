@@ -190,18 +190,34 @@ class NumpyScalars:
         self.v = np.array([None])
         if array is not None:
             if type(array) == np.ndarray:
-                self.v = array.astype(ndtype)
+                self.v = np.atleast_1d(array.astype(ndtype))
             elif type(array) == cp.ndarray:
-                self.v = array.astype(ndtype)
+                self.v = np.atleast_1d(array.astype(ndtype))
             else:
-                self.v = np.asarray(array, dtype=ndtype)
+                self.v = np.atleast_1d(np.asarray(array, dtype=ndtype))
         elif N is not None:
             self.v = np.zeros((N), dtype=ndtype)
 
         self._iteration = 0
 
+    @property
+    def isEmpty(self):
+        if len(self) == 1:
+            if np.all(self.v[0] == None):
+                return True
+            else:
+                return False
+        else:
+            return False
+
     def append(self, value):
-        self.v = np.append(self.v, value)
+        if self.isEmpty:
+            refactoredValue = Scalars(value).v[0]
+            self.v[0] = refactoredValue
+            print("append Empty Scalar")
+        else:
+            refactoredValue = Scalars(value).v
+            self.v = np.append(self.v, refactoredValue)
 
     def __repr__(self):
         return str(self.v)

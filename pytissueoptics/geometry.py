@@ -289,9 +289,11 @@ class Geometry:
 
         elif 0 == 1:
             finalPositions = Vectors.fromScaledSum(photons.r, photons.ez, distances)
-            contained, notContained = self.containsMany(finalPositions, photons)
+            contained = self.containsMany(finalPositions, photons)
+            temporaryPhotons = photons.temporaryPhotonsMasking(contained)
+            
 
-            wasInside = Scalars([True]*len(photons))
+            wasInside = Scalars([True]*len(temporaryPhotons))
             finalPositions = Vectors(photons.r)  # Copy
             deltas = 0.5 * distances
 
@@ -300,6 +302,8 @@ class Geometry:
                 isInside = self.containsMany(finalPositions, photons)
                 deltas = wasInside.conditional_neq(isInside, -deltas*0.5, 0)
 
+
+            # FIXME: creates NativeSurfaces and ArraySurfaces Class
             for surface in self.surfaces:
                 if surface.normal.dot(direction) > 0:
                     if surface.contains(finalPosition):

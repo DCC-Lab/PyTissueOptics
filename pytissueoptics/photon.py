@@ -272,6 +272,8 @@ class ArrayPhotons:
         self.origin = Vectors(N=N)
 
         self._iteration = 0
+        self.maskedPhotons = None
+        self.mask = None
 
     def __len__(self):
         return len(self.r)
@@ -370,5 +372,10 @@ class ArrayPhotons:
     def refract(self):
         pass
 
+    def photonsTemporaryMasking(self, mask):
+        self.mask = mask
+
+    def unMask(self, newPhotons):
+        pass
 
 Photons = ArrayPhotons
