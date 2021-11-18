@@ -301,6 +301,16 @@ class ArrayPhotons:
             raise StopIteration
 
     @property
+    def isEmpty(self):
+        if len(self) == 1:
+            if np.all(self.r[0] == [None, None, None]):
+                return True
+            else:
+                return False
+        else:
+            return False
+
+    @property
     def isRowOptimized(self):
         return False
 
@@ -340,7 +350,7 @@ class ArrayPhotons:
         self.r = self.r - origin
 
     def transformFromLocalCoordinates(self, origin):
-        self.r = self.r + origin
+        self.r = self.r + Vectors(origin)
 
     def moveBy(self, d):
         self.r.addScaled(self.ez, d)

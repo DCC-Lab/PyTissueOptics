@@ -288,16 +288,6 @@ class NumpyVectors:
 
         self._iteration = 0
 
-    @property
-    def isEmpty(self):
-        if len(self) == 1:
-            if np.all(self.v[0] == [None, None, None]):
-                return True
-            else:
-                return False
-        else:
-            return False
-
     def __len__(self):
         return self.v.shape[0]
 
@@ -417,6 +407,16 @@ class NumpyVectors:
         else:
             refactoredValue = Vectors(value).v
             self.v = np.append(self.v, refactoredValue, axis=0)
+
+    @property
+    def isEmpty(self):
+        if len(self) == 1:
+            if np.all(self.v[0] == [None, None, None]):
+                return True
+            else:
+                return False
+        else:
+            return False
 
     @property
     def x(self):
