@@ -152,6 +152,13 @@ class NativePhotons:
         raise StopIteration
 
     @property
+    def isEmpty(self):
+        if len(self._photons) == 0:
+            return True
+        else:
+            return False
+
+    @property
     def isRowOptimized(self):
         return True
 
@@ -160,7 +167,11 @@ class NativePhotons:
         return False
 
     def append(self, photon):
-        self._photons.append(photon)
+        if isinstance(photon, Photon):
+            self._photons.append(photon)
+        elif isinstance(photon, NativePhotons):
+            for p in photon:
+                self._photons.append(p)
 
     def remove(self, somePhotons):
         for photon in somePhotons:
@@ -408,4 +419,4 @@ class ArrayPhotons:
         pass
 
 
-Photons = ArrayPhotons
+Photons = NativePhotons

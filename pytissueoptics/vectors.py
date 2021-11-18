@@ -42,6 +42,10 @@ class NativeVectors:
         self._iteration = 0
         self.selected = sc.NativeScalars([True] * len(self.v))
 
+    def append(self, value):
+        if value is not None:
+            self.v.append(vec.Vector(value))
+
     def selectAll(self):
         self.selected = sc.NativeScalars([True] * len(self.v))
 
@@ -50,6 +54,13 @@ class NativeVectors:
 
     def selectedNativeVectors(self):
         return NativeVectors([v1 if e else None for (v1, e) in list(zip(self.v, self.selected))])
+
+    @property
+    def isEmpty(self):
+        if len(self.v) == 0:
+            return True
+        else:
+            return False
 
     @property
     def count(self):
@@ -401,7 +412,6 @@ class NumpyVectors:
             raise StopIteration
 
     def append(self, value):
-        #  FIXME: Problem with the type (Doesnt get recognized by numpy should force to float64)
         if self.isEmpty:
             self.v = Vectors(value).v
         else:
@@ -1050,4 +1060,4 @@ class OpenclVectors:
 
         self._iteration = 0
 
-Vectors = NumpyVectors
+Vectors = NativeVectors

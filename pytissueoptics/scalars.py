@@ -18,14 +18,21 @@ class NativeScalars:
         """
         @rtype: object
         """
+        self.v = []
         if array is not None:
-            self.v = np.array(array)
+            self.v = np.atleast_1d(np.asarray(array, dtype=np.float32)).tolist()
         elif N is not None:
-            self.v = np.array([0] * N)
-        else:
-            raise ValueError("You must provide an array or N")
-        self.selected = [True] * len(self.v)
+            self.v = np.array([0] * N).tolist()
+
         self._iteration = 0
+
+    @property
+    def selected(self):
+        if len(self) == 0:
+            return None
+        else:
+            selected = [True] * len(self.v)
+            return selected
 
     @classmethod
     def random(cls, N):
@@ -106,6 +113,12 @@ class NativeScalars:
         else:
             return NumpyScalars(np.where(self.v >= other, 1, 0))
 
+    def append(self, value):
+        if value is not None:
+            a = NativeScalars(value)
+            for element in a:
+                self.v.append(element)
+
     def all(self) -> bool:
         return self.v.all()
 
@@ -114,6 +127,13 @@ class NativeScalars:
 
     def none(self) -> bool:
         return not self.v.any()
+
+    @property
+    def isEmpty(self):
+        if len(self) == 0:
+            return True
+        else:
+            return False
 
     @property
     def isBool(self):
@@ -672,6 +692,12 @@ class CupyScalars:
     def toIntegers(self):
         return CupyScalars(self.v.astype("int32"), ndtype="int32")
 
+    @property
+    def isEmpty(self):
+        if len(self.v) == 0:
+            return True
+        else:
+            return False
 
 
-Scalars = NumpyScalars
+Scalars = NativeScalars

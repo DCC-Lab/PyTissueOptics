@@ -1,4 +1,8 @@
 from pytissueoptics import *
+import matplotlib.pyplot as plt
+import matplotlib
+matplotlib.interactive(False)
+import numpy as np
 
 
 class Stats:
@@ -177,6 +181,7 @@ class Stats:
                 sum = self.energy.sum(axis=1)
                 plt.imshow(np.log(sum + 0.0001), cmap='viridis',
                            extent=[self.min[2], self.max[2], self.min[0], self.max[0]], aspect='auto')
+                plt.pause(1)
 
         if realtime:
             self.volumeFig.show()
