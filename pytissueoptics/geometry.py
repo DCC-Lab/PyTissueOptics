@@ -91,7 +91,7 @@ class Geometry:
 
         photonsInside = photons
 
-        while (len(photonsInside) != 0):
+        while not photonsInside.isEmpty:
             # Get distance to interaction point
             distances = self.material.getManyScatteringDistances(photonsInside)
 
@@ -117,14 +117,17 @@ class Geometry:
 
             # 2.1 Reflected photons change their direction following Fresnel reflection, then move inside 
             #     object
-            reflectedPhotons.reflect(interfaces)
-            # reflectedPhotons.moveBy(remainingDistances) #FIXME: there could be another interface
+            if not reflectedPhotons.isEmpty:
+                reflectedPhotons.reflect(interfaces)
+                # reflectedPhotons.moveBy(remainingDistances) #FIXME: there could be another interface
 
             # 2.2 Transmitted photons change their direction following the law of refraction, then move 
             #     outside the object and are stored to be returned and propagated into another object.
-            transmittedPhotons.refract(interfaces)
-            transmittedPhotons.moveBy(1e-6)
-            self.scoreManyWhenExiting(transmittedPhotons, interfaces) #optional
+            if not transmittedPhotons.isEmpty:
+                transmittedPhotons.refract(interfaces)
+                transmittedPhotons.moveBy(1e-6)
+                self.scoreManyWhenExiting(transmittedPhotons, interfaces)  # optional
+
             photonsInside = Photons()
             photonsInside.append(unimpededPhotons)
             photonsInside.append(reflectedPhotons)
