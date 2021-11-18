@@ -382,11 +382,11 @@ class ArrayPhotons:
         transmittedPhotons = Photons()
         for i, p in enumerate(self):
             if interfaces[i].isReflected():
-                 reflectedPhotons.append(p)
+                reflectedPhotons.append(p)
             else:
                 transmittedPhotons.append(p)
 
-        return (reflectedPhotons, transmittedPhotons)
+        return reflectedPhotons, transmittedPhotons
 
     def refract(self, interfaces):
         self.ez.rotateAround(interfaces.incidencePlane, interfaces.refractionDeflection)
@@ -396,5 +396,6 @@ class ArrayPhotons:
 
     def unMask(self, newPhotons):
         pass
+
 
 Photons = ArrayPhotons
