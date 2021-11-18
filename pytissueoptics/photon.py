@@ -373,11 +373,23 @@ class ArrayPhotons:
     def deflect(self):
         pass
 
-    def reflect(self):
-        pass
+    def reflect(self, interfaces):
+        self.ez.rotateAround(interfaces.incidencePlane, interfaces.reflectionDeflection)
+        self.moveBy(1e-6)
 
-    def refract(self):
-        pass
+    def areReflected(self, interfaces):
+        reflectedPhotons = Photons()
+        transmittedPhotons = Photons()
+        for i, p in enumerate(self):
+            if interfaces[i].isReflected():
+                 reflectedPhotons.append(p)
+            else:
+                transmittedPhotons.append(p)
+
+        return (reflectedPhotons, transmittedPhotons)
+
+    def refract(self, interfaces):
+        self.ez.rotateAround(interfaces.incidencePlane, interfaces.refractionDeflection)
 
     def photonsTemporaryMasking(self, mask):
         self.mask = mask

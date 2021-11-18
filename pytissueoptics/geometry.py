@@ -123,9 +123,11 @@ class Geometry:
             # 2.2 Transmitted photons change their direction following the law of refraction, then move 
             #     outside the object and are stored to be returned and propagated into another object.
             transmittedPhotons.refract(interfaces)
-            transmittedPhotons.moveBy(1e-3)
+            transmittedPhotons.moveBy(1e-6)
             self.scoreManyWhenExiting(transmittedPhotons, interfaces) #optional
-            photonsInside.remove(transmittedPhotons)
+            photonsInside = Photons()
+            photonsInside.append(unimpededPhotons)
+            photonsInside.append(reflectedPhotons)
 
             # 3. Low-weight photons are randomly killed while keeping energy constant.
             photonsInside.roulette()
