@@ -239,27 +239,30 @@ class NativeFresnelIntersects:
 
         raise StopIteration
 
-
     @property
     def distance(self):
         return Scalars(list(map(lambda intersect: intersect.distance, self._intersects)))
+
+    @property
+    def incidencePlane(self):
+        return Vectors(list(map(lambda intersect: intersect.incidencePlane, self._intersects)))
 
     def append(self, intersect):
         self._intersects.append(intersect)
 
     def reflectionCoefficient(self, theta) -> Scalars:
-        return Scalars(map(lambda intersect, theta: intersect.reflectionCoefficient(theta), self._intersects, thetas))
+        return Scalars(list(map(lambda intersect, theta: intersect.reflectionCoefficient(theta), self._intersects, theta)))
 
     def isReflected(self) -> Scalars:
-        return Scalars(map(lambda intersect: intersect.isReflected(), self._intersects))
+        return Scalars(list(map(lambda intersect: intersect.isReflected(), self._intersects)))
 
     @property
     def reflectionDeflection(self) -> Scalars:
-        return Scalars(map(lambda intersect: intersect.reflectionDeflection(), self._intersects))
+        return Scalars(list(map(lambda intersect: intersect.reflectionDeflection, self._intersects)))
 
     @property
     def refractionDeflection(self) -> Scalars:
-        return Scalars(map(lambda intersect: intersect.refractionDeflection(), self._intersects))
+        return Scalars(list(map(lambda intersect: intersect.refractionDeflection, self._intersects)))
 
 class NumpyFresnelIntersects:
     pass
