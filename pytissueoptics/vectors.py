@@ -262,14 +262,14 @@ class NumpyVectors:
     """
 
     def __init__(self, vectors=None, N=None):
-        self.v = np.array([[None, None, None]])
+        self.v = np.array([])
 
         if vectors is not None and N is None:
 
-            if type(vectors) == np.ndarray:
-                    self.v = np.atleast_2d(vectors.astype('float64'))
+            if isinstance(vectors, np.ndarray):
+                self.v = np.atleast_2d(vectors.astype('float64'))
 
-            elif type(vectors) == vec.Vector:
+            elif isinstance(vectors, vec.Vector):
                 self.v = np.asarray([[vectors.x, vectors.y, vectors.z]], dtype=np.float64)
 
             elif type(vectors) == list and isinstance(vectors[0], vec.Vector):
@@ -412,19 +412,22 @@ class NumpyVectors:
             raise StopIteration
 
     def append(self, value):
-        if self.isEmpty:
-            self.v = Vectors(value).v
+        valueNotEmpty = True
+        if isinstance(value, Vectors):
+            valueNotEmpty = not value.isEmpty
+        if valueNotEmpty:
+            if self.isEmpty:
+                self.v = Vectors(value).v
+            else:
+                refactoredValue = Vectors(value).v
+                self.v = np.append(self.v, refactoredValue, axis=0)
         else:
-            refactoredValue = Vectors(value).v
-            self.v = np.append(self.v, refactoredValue, axis=0)
+            pass
 
     @property
     def isEmpty(self):
-        if len(self) == 1:
-            if np.all(self.v[0] == [None, None, None]):
-                return True
-            else:
-                return False
+        if len(self) == 0:
+            return True
         else:
             return False
 
@@ -1060,4 +1063,4 @@ class OpenclVectors:
 
         self._iteration = 0
 
-Vectors = NativeVectors
+Vectors = NumpyVectors

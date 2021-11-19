@@ -1,4 +1,6 @@
 from pytissueoptics import *
+import numpy as np
+from pytissueoptics.vector import ConstUnitVector, ConstVector, Vector
 
 
 class Surface:
@@ -117,6 +119,7 @@ class ZXRect(Surface):
         if description is None:
             description = "ZX at y={0:.1f}".format(origin)
         super(ZXRect, self).__init__(origin, zHat, xHat, yHat, size, description)
+
 
 class FresnelIntersect:
     def __init__(self, direction, surface, distance, geometry=None):
@@ -238,6 +241,13 @@ class NativeFresnelIntersects:
             return photon
 
         raise StopIteration
+
+    @property
+    def isEmpty(self):
+        if len(self._intersect) == 0:
+            return True
+        else:
+            return False
 
     @property
     def distance(self):

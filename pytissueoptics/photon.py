@@ -206,9 +206,14 @@ class NativePhotons:
         areReflected = [interface.isReflected() for photon, interface in zip(self._photons, interfaces)]
 
         reflectedPhotons = Photons([photon for photon, isReflected in zip(self._photons, areReflected) if isReflected])
+        reflectedInterfaces = FresnelIntersects([intersect for intersect in interfaces if intersect.isReflected()])
+
         transmittedPhotons = Photons(
             [photon for photon, isReflected in zip(self._photons, areReflected) if not isReflected])
-        return (reflectedPhotons, transmittedPhotons)
+        transmittedInterfaces = FresnelIntersects([intersect for intersect in interfaces if not intersect.isReflected()])
+
+        return (reflectedPhotons, reflectedInterfaces),  (transmittedPhotons, transmittedInterfaces)
+
 
     def transformToLocalCoordinates(self, origin):
         for photon in self._photons:
@@ -273,10 +278,11 @@ class ArrayPhotons:
         self.ez = Vectors(directions)
         if not self.ez.isEmpty:
             self.er = self.ez.anyPerpendicular()
+            N = len(self.r)
         else:
             self.er = Vectors()
+            N = 0
 
-        N = len(self.r)
         self.wavelength = None
         self.weight = Scalars([1] * N)
         self.path = None
@@ -287,7 +293,10 @@ class ArrayPhotons:
         self.mask = None
 
     def __len__(self):
-        return len(self.r)
+        if not self.isEmpty:
+            return len(self.r)
+        else:
+            return 0
 
     def __getitem__(self, index):
         return Photon(position=self.r[index], direction=self.ez[index], weight=self.weight[index])
@@ -313,11 +322,8 @@ class ArrayPhotons:
 
     @property
     def isEmpty(self):
-        if len(self) == 1:
-            if np.all(self.r[0] == [None, None, None]):
-                return True
-            else:
-                return False
+        if len(self.r) == 0:
+            return True
         else:
             return False
 
@@ -330,12 +336,16 @@ class ArrayPhotons:
         return True
 
     def append(self, photon):
-        if isinstance(photon, Photon):
-            self.r.append(list(photon.r))
-            self.ez.append(list(photon.ez))
-            self.er.append(list(photon.er))
-            self.weight.append(photon.weight)
-            self.origin.append(list(photon.origin))
+        if isinstance(photon, Photons):
+            if photon.isEmpty:
+                return
+
+        self.r.append(photon.r)
+        self.ez.append(photon.ez)
+        self.er.append(photon.er)
+        self.weight.append(photon.weight)
+        self.origin.append(photon.origin)
+
 
     @property
     def localPosition(self):
@@ -364,29 +374,35 @@ class ArrayPhotons:
         self.r = self.r + Vectors(origin)
 
     def moveBy(self, d):
-        self.r.addScaled(self.ez, d)
+        if not self.isEmpty:
+            self.r.addScaled(self.ez, d)
 
     def scatterBy(self, theta, phi):
-        self.er.rotateAround(self.ez, phi)
-        self.ez.rotateAround(self.er, theta)
+        if not self.isEmpty:
+            self.er.rotateAround(self.ez, phi)
+            self.ez.rotateAround(self.er, theta)
 
     def decreaseWeight(self, albedo):
-        deltas = albedo * self.weight
-        self.weight -= deltas
-        self.weight.conditional_lt(0, 0, self.weight.v)
-        # FIXME: Porblem with deltas if it is negative, they wont be accurate anymore.
+        deltas = []
+        if not self.isEmpty:
+            deltas = albedo * self.weight
+            self.weight -= deltas
+            self.weight.conditional_lt(0, 0, self.weight.v)
+            # FIXME: Porblem with deltas if it is negative, they wont be accurate anymore.
         return deltas
 
     def decreaseWeightBy(self, deltas):
-        self.weight -= deltas
-        self.weight.conditional_lt(0, 0, self.weight.v)
+        if not self.isEmpty:
+            self.weight -= deltas
+            self.weight.conditional_lt(0, 0, self.weight.v)
 
     def roulette(self):
-        chance = 0.1
-        rouletteMask = self.weight <= 1e-4
-        photonsKillMask = (Scalars.random(len(self))) > chance
-        photonsKillMask = rouletteMask.logical_and(photonsKillMask)
-        self.removePhotonsWeights(photonsKillMask)
+        if not self.isEmpty:
+            chance = 0.1
+            rouletteMask = self.weight <= 1e-4
+            photonsKillMask = (Scalars.random(len(self))) > chance
+            photonsKillMask = rouletteMask.logical_and(photonsKillMask)
+            self.removePhotonsWeights(photonsKillMask)
 
     def removePhotonsWeights(self, killMask):
         self.weight = self.weight * ~killMask
@@ -395,22 +411,28 @@ class ArrayPhotons:
         pass
 
     def reflect(self, interfaces):
-        self.ez.rotateAround(interfaces.incidencePlane, interfaces.reflectionDeflection)
-        self.moveBy(1e-6)
+        if not self.isEmpty:
+            self.ez.rotateAround(interfaces.incidencePlane, interfaces.reflectionDeflection)
+            self.moveBy(1e-6)
 
     def areReflected(self, interfaces):
         reflectedPhotons = Photons()
+        reflectedInterfaces = FresnelIntersects()
         transmittedPhotons = Photons()
+        transmittedInterfaces = FresnelIntersects()
         for i, p in enumerate(self):
             if interfaces[i].isReflected():
                 reflectedPhotons.append(p)
+                reflectedInterfaces.append(interfaces[i])
             else:
                 transmittedPhotons.append(p)
+                transmittedInterfaces.append(interfaces[i])
 
-        return reflectedPhotons, transmittedPhotons
+        return (reflectedPhotons, reflectedInterfaces), (transmittedPhotons, transmittedInterfaces)
 
     def refract(self, interfaces):
-        self.ez.rotateAround(interfaces.incidencePlane, interfaces.refractionDeflection)
+        if not self.isEmpty:
+            self.ez.rotateAround(interfaces.incidencePlane, interfaces.refractionDeflection)
 
     def photonsTemporaryMasking(self, mask):
         self.mask = mask
@@ -419,4 +441,4 @@ class ArrayPhotons:
         pass
 
 
-Photons = NativePhotons
+Photons = ArrayPhotons

@@ -207,7 +207,7 @@ class NativeScalars:
 
 class NumpyScalars:
     def __init__(self, array=None, N=None, ndtype="float64"):
-        self.v = np.array([None])
+        self.v = np.array([])
         if array is not None:
             if type(array) == np.ndarray:
                 self.v = np.atleast_1d(array.astype(ndtype))
@@ -222,19 +222,14 @@ class NumpyScalars:
 
     @property
     def isEmpty(self):
-        if len(self) == 1:
-            if np.all(self.v[0] == None):
-                return True
-            else:
-                return False
+        if len(self) == 0:
+            return True
         else:
             return False
 
     def append(self, value):
         if self.isEmpty:
-            refactoredValue = Scalars(value).v[0]
-            self.v[0] = refactoredValue
-            print("append Empty Scalar")
+            self.v = Scalars(value).v
         else:
             refactoredValue = Scalars(value).v
             self.v = np.append(self.v, refactoredValue)
@@ -700,4 +695,4 @@ class CupyScalars:
             return False
 
 
-Scalars = NativeScalars
+Scalars = NumpyScalars

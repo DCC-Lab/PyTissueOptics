@@ -120,5 +120,26 @@ class TestPhoton(envtest.PyTissueTestCase):
             self.assertTrue( p.ez.isAlmostEqualTo(vOut), "ez: {0} vOut: {1} vIn {2}".format(p.ez, vOut, vIn))
 
 
+class TestPhotons(envtest.PyTissueTestCase):
+    def testPhotonInit(self):
+        pass
+
+    def testPhotonsInitNull(self):
+        with self.subTest("NativePhotons"):
+            pass
+        with self.subTest("ArrayPhotons"):
+            a = ArrayPhotons()
+            pass
+
+    def testAppend(self):
+        with self.subTest("NativePhotons"):
+            pass
+        with self.subTest("ArrayPhotons"):
+            with self.subTest("nonNull value"):
+                pass
+            with self.subTest("null value"):
+                pass
+
+
 if __name__ == '__main__':
     envtest.main()

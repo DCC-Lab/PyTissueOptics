@@ -3,6 +3,7 @@ from pytissueoptics.vector import Vector
 from pytissueoptics.vectors import Vectors
 from pytissueoptics.scalars import Scalars
 from pytissueoptics.photon import Photons
+import matplotlib.pyplot as plt
 
 
 class Geometry:
@@ -91,10 +92,15 @@ class Geometry:
 
         photonsInside = photons
 
+        tempCounter = 0
+
         while not photonsInside.isEmpty:
             # Get distance to interaction point
+            tempCounter += 1
+            print(tempCounter, len(photonsInside))
             distances = self.material.getManyScatteringDistances(photonsInside)
-
+            #plt.hist(distances.v, bins=100)
+            #plt.show()
             # Split photons into two groups: those freely propagating and those hitting some interface.
             # We determine the groups based on the photons (and their positions) and the interaction
             # distances (calculated above). For those hitting an interface, we provide a list of 
@@ -111,22 +117,20 @@ class Geometry:
             unimpededPhotons.scatterBy(thetas, phis)
 
             # 2. Impeded photons: they propagate to the interface, then will either be reflected or transmitted
-            # remainingDistances = impededPhotons.moveBy(interfaces.distance)
-            impededPhotons.moveBy(interfaces.distance)
-            reflectedPhotons, transmittedPhotons = impededPhotons.areReflected(interfaces)
 
-            # 2.1 Reflected photons change their direction following Fresnel reflection, then move inside 
-            #     object
-            if not reflectedPhotons.isEmpty:
-                reflectedPhotons.reflect(interfaces)
-                # reflectedPhotons.moveBy(remainingDistances) #FIXME: there could be another interface
+            impededPhotons.moveBy(interfaces.distance)
+            (reflectedPhotons, reflectedInterfaces), (transmittedPhotons, transmittedInterfaces) = impededPhotons.areReflected(interfaces)
+
+            # 2.1 Reflected photons change their direction following Fresnel reflection, then move inside
+
+            reflectedPhotons.reflect(reflectedInterfaces)
+            # reflectedPhotons.moveBy(remainingDistances) #FIXME: there could be another interface
 
             # 2.2 Transmitted photons change their direction following the law of refraction, then move 
             #     outside the object and are stored to be returned and propagated into another object.
-            if not transmittedPhotons.isEmpty:
-                transmittedPhotons.refract(interfaces)
-                transmittedPhotons.moveBy(1e-6)
-                self.scoreManyWhenExiting(transmittedPhotons, interfaces)  # optional
+            transmittedPhotons.refract(transmittedInterfaces)
+            transmittedPhotons.moveBy(1e-6)
+            self.scoreManyWhenExiting(transmittedPhotons, interfaces)  # optional
 
             photonsInside = Photons()
             photonsInside.append(unimpededPhotons)
@@ -255,7 +259,6 @@ class Geometry:
         return FresnelIntersect(direction, intersectSurface, minDistance, self)
 
     def getPossibleIntersections(self, photons, distances):
-        # photons.getPossibleIntersection(self)
         if photons.isRowOptimized:
             unimpededPhotons = Photons()
             impededPhotons = Photons()
@@ -292,37 +295,13 @@ class Geometry:
 
             return (unimpededPhotons, unimpededDistances), (impededPhotons, interfaces)
 
-        elif 0 == 1:
-            finalPositions = Vectors.fromScaledSum(photons.r, photons.ez, distances)
-            contained = self.containsMany(finalPositions, photons)
-            temporaryPhotons = photons.temporaryPhotonsMasking(contained)
-            
 
-            wasInside = Scalars([True]*len(temporaryPhotons))
-            finalPositions = Vectors(photons.r)  # Copy
-            deltas = 0.5 * distances
-
-            while (abs(deltas) > 0.00001).any():
-                finalPositions += deltas * photons.ez
-                isInside = self.containsMany(finalPositions, photons)
-                deltas = wasInside.conditional_neq(isInside, -deltas*0.5, 0)
-
-
-            # FIXME: creates NativeSurfaces and ArraySurfaces Class
-            for surface in self.surfaces:
-                if surface.normal.dot(direction) > 0:
-                    if surface.contains(finalPosition):
-                        distanceToSurface = (finalPosition - position).abs()
-                        return FresnelIntersect(direction, surface, distanceToSurface)
-
-            return None
-
-    @staticmethod
-    def isReflected(photon, surface) -> bool:
-        R = photon.fresnelCoefficient(surface)
-        if np.random.random() < R:
-            return True
-        return False
+    # @staticmethod
+    # def isReflected(photon, surface) -> bool:
+    #     R = photon.fresnelCoefficient(surface)
+    #     if np.random.random() < R:
+    #         return True
+    #    return False
 
     def scoreWhenStarting(self, photon):
         if self.stats is not None:
