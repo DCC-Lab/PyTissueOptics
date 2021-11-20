@@ -1,11 +1,11 @@
 from pytissueoptics import *
-from pytissueoptics.vector import Vector, UnitVector
+from pytissueoptics.vector import Vector, UnitVector, zHat
 from pytissueoptics.vectors import Vectors
 import numpy as np
 
 
 class Photon:
-    def __init__(self, position=None, direction=None, weight=None):
+    def __init__(self, position=None, direction=None, weight=1.0, origin=Vector(0,0,0), currentGeometry=None):
         if position is not None:
             self.r = Vector(position)  # local coordinate position
         else:
@@ -21,17 +21,15 @@ class Photon:
         if not self.er.isPerpendicularTo(self.ez):
             self.er = self.ez.anyPerpendicular()
 
+        self.origin = Vector(origin)
         # We don't need to keep el, because it is obtainable from ez and er
 
-        if weight is None:
-            self.weight = 1.0
-        else:
-            self.weight = weight
-
+        self.weight = weight
         self.wavelength = None
         self.path = None
-        self.origin = Vector(0, 0, 0)  # The global coordinates of the local origin
-        self.currentGeometry = None
+
+         # The global coordinates of the local origin
+        self.currentGeometry = currentGeometry
 
     @property
     def localPosition(self):
@@ -273,7 +271,7 @@ class NativePhotons:
 
 
 class ArrayPhotons:
-    def __init__(self, positions=None, directions=None):
+    def __init__(self, array=None, positions=None, directions=None,):
         self.r = Vectors(positions)
         self.ez = Vectors(directions)
         if not self.ez.isEmpty:
@@ -288,6 +286,10 @@ class ArrayPhotons:
         self.path = None
         self.origin = Vectors(N=N)
 
+        if array is not None and type(array) == list and isinstance(array[0], Photon):
+            for photon in array:
+                self.append(photon)
+
         self._iteration = 0
         self.maskedPhotons = None
         self.mask = None
@@ -299,7 +301,7 @@ class ArrayPhotons:
             return 0
 
     def __getitem__(self, index):
-        return Photon(position=self.r[index], direction=self.ez[index], weight=self.weight[index])
+        return Photon(position=self.r[index], direction=self.ez[index], weight=self.weight[index], origin=self.origin[index])
 
     def __setitem__(self, index, photon):
         self.r[index] = photon.r
@@ -369,9 +371,11 @@ class ArrayPhotons:
 
     def transformToLocalCoordinates(self, origin):
         self.r = self.r - origin
+        self.origin = Vectors([origin]*len(self))
 
     def transformFromLocalCoordinates(self, origin):
         self.r = self.r + Vectors(origin)
+        self.origin = Vectors([0, 0, 0]*len(self))
 
     def moveBy(self, d):
         if not self.isEmpty:
@@ -441,4 +445,4 @@ class ArrayPhotons:
         pass
 
 
-Photons = ArrayPhotons
+Photons = NativePhotons

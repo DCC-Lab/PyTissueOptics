@@ -1,7 +1,6 @@
 from pytissueoptics import *
+from pytissueoptics.vector import Vector
 import matplotlib.pyplot as plt
-import matplotlib
-matplotlib.interactive(False)
 import numpy as np
 
 

@@ -56,25 +56,6 @@ class World:
         print("I should not be here: {}".format(self.countNotSupposedToBeThere))
         print("{0:.1f} ms per photon\n".format(duration * 1000 / N))
 
-    def computeMany(self, graphs):
-        self.startCalculation()
-        N = 0
-        for source in self.sources:
-            N += source.maxCount
-            photons = Photons(list(source))
-
-            while photons.liveCount() != 0:
-                geometries = self.assignCurrentGeometries(photons)
-                for i, geometry in enumerate(geometries):
-                    if geometry is not None:
-                        photonsInGeometry = photons.livePhotonsInGeometry(geometry)
-                        print(photonsInGeometry.liveCount(), geometry)
-                        geometry.propagateMany(photonsInGeometry)
-
-        duration = self.completeCalculation()
-        print("I should not be here: {}".format(self.countNotSupposedToBeThere))
-        print("{0:.1f} ms per photon\n".format(duration * 1000 / N))
-
     def propagate(self, photon):
         if photon.currentGeometry != self:
             self.countNotSupposedToBeThere += 1
@@ -101,28 +82,6 @@ class World:
                     photon.currentGeometry = intersection.geometry
             else:
                 photon.weight = 0
-
-    def propagateMany(self, photons):
-        for photon in photons:
-            self.propagate(photon)
-
-    def getPossibleIntersections(self, photons):
-        unimpededPhotonsOrDead = Photons()
-        impededPhotons = Photons()
-        interfaces = FresnelIntersects()
-
-        for i, p in enumerate(photons):
-            if p.isAlive:
-                interface = self.nextExitInterface(p.r, p.ez, distances[i])
-                if interface is not None:
-                    interfaces.append(interface)
-                    impededPhotons.append(p)
-                else:
-                    unimpededPhotonsOrDead.append(p)
-            else:
-                unimpededPhotonsOrDead.append(p)
-
-        return unimpededPhotonsOrDead, (impededPhotons, interfaces)
 
     def place(self, anObject, position):
         if isinstance(anObject, Geometry) or isinstance(anObject, Detector):
@@ -197,7 +156,7 @@ class World:
             signal.signal(signal.SIGUSR2, self.processSignal)
 
         if len(self.geometries) == 0:
-            raise LogicalError("No geometries: you must create objects")
+            raise SyntaxError("No geometries: you must create objects")
 
         for geometry in self.geometries:
             for surface in geometry.surfaces:
@@ -209,7 +168,7 @@ class World:
                 print("The geometry {0} appears invalid. Advancing cautiously.".format(geometry, err))
 
         if len(self.sources) == 0:
-            raise LogicalError("No sources: you must create sources")
+            raise SyntaxError("No sources: you must create sources")
 
         self.startTime = time.time()
 

@@ -1,5 +1,5 @@
 from pytissueoptics import *
-from pytissueoptics.vector import Vector
+from pytissueoptics.vector import Vector, ConstVector
 from pytissueoptics.vectors import Vectors
 from pytissueoptics.scalars import Scalars
 from pytissueoptics.photon import Photons
@@ -81,26 +81,15 @@ class Geometry:
         We continue until all photons have died within the geometry or transmitted through 
         some interface. We will return the photons that have exited the geometry.
         """
-        if isinstance(photons, Source):
-            photons = photons.newPhotons()
 
-        else:
-            photonsInside = Photons(list(photons))
-
-        photons.transformToLocalCoordinates(self.origin)
-        self.scoreManyWhenStarting(photons)
 
         photonsInside = photons
-
-        tempCounter = 0
+        photonsInside.transformToLocalCoordinates(self.origin)
+        self.scoreManyWhenStarting(photonsInside)
+        photonsExited = Photons()
 
         while not photonsInside.isEmpty:
-            # Get distance to interaction point
-            tempCounter += 1
-            print(tempCounter, len(photonsInside))
             distances = self.material.getManyScatteringDistances(photonsInside)
-            #plt.hist(distances.v, bins=100)
-            #plt.show()
             # Split photons into two groups: those freely propagating and those hitting some interface.
             # We determine the groups based on the photons (and their positions) and the interaction
             # distances (calculated above). For those hitting an interface, we provide a list of 
@@ -138,12 +127,13 @@ class Geometry:
 
             # 3. Low-weight photons are randomly killed while keeping energy constant.
             photonsInside.roulette()
+            photonsExited.append(transmittedPhotons)
 
         # Because the code will not typically calculate millions of photons, it is
         # inexpensive to keep all the propagated photons.  This allows users
         # to go through the list after the fact for a calculation of their choice
         # self.scoreWhenFinal(photons)
-        photons.transformFromLocalCoordinates(self.origin)
+        photonsExited.transformFromLocalCoordinates(self.origin)
 
     def contains(self, position) -> bool:
         """ The base object is infinite. Subclasses override this method
