@@ -332,7 +332,7 @@ class Geometry:
         if self.stats is not None:
             self.stats.scoreWhenFinal(photon)
 
-    def report(self, totalSourcePhotons):
+    def report(self, totalSourcePhotons, graphs = True):
         print("{0}".format(self.label))
         print("=====================\n")
         print("Geometry and material")
@@ -342,26 +342,22 @@ class Geometry:
         print("\nPhysical quantities")
         print("---------------------")
         if self.stats is not None:
-            totalWeightAcrossAllSurfaces = 0
             for i, surface in enumerate(self.surfaces):
-                totalWeight = self.stats.totalWeightCrossingPlane(surface)
                 print("Transmittance [{0}] : {1:.1f}% of propagating light".format(surface,
-                                                                                   100 * totalWeight / self.stats.inputWeight))
+                                                                                   100 * self.stats.transmittance(self.surfaces)))
                 print("Transmittance [{0}] : {1:.1f}% of total power".format(surface,
-                                                                             100 * totalWeight / totalSourcePhotons))
-                totalWeightAcrossAllSurfaces += totalWeight
+                                                                             100 * self.stats.transmittance(self.surfaces, referenceWeight=totalSourcePhotons)))
 
-            print("Absorbance : {0:.1f}% of propagating light".format(
-                100 * self.stats.totalWeightAbsorbed() / self.stats.inputWeight))
-            print("Absorbance : {0:.1f}% of total power".format(
-                100 * self.stats.totalWeightAbsorbed() / totalSourcePhotons))
+            print("Absorbance : {0:.1f}% of propagating light".format( 100 * self.stats.absorbance()))
+            print("Absorbance : {0:.1f}% of total power".format( 100 * self.stats.absorbance(totalSourcePhotons)))
 
-            totalCheck = totalWeightAcrossAllSurfaces + self.stats.totalWeightAbsorbed()
+            totalCheck = self.stats.totalWeightAcrossAllSurfaces(self.surfaces) + self.stats.totalWeightAbsorbed()
             print("Absorbance + Transmittance = {0:.1f}%".format(100 * totalCheck / self.stats.inputWeight))
 
-            self.stats.showEnergy2D(plane='xz', integratedAlong='y', title="Final photons", realtime=False)
-            if len(self.surfaces) != 0:
-                self.stats.showSurfaceIntensities(self.surfaces, maxPhotons=totalSourcePhotons)
+            if graphs:
+                self.stats.showEnergy2D(plane='xz', integratedAlong='y', title="Final photons", realtime=False)
+                if len(self.surfaces) != 0:
+                    self.stats.showSurfaceIntensities(self.surfaces, maxPhotons=totalSourcePhotons)
 
     def __repr__(self):
         return "{0}".format(self)

@@ -15,7 +15,7 @@ class World:
             total += source.maxCount
         return total
 
-    def compute(self, graphs):
+    def compute(self, graphs, progress=False):
         self.startCalculation()
         N = 0
         for source in self.sources:
@@ -50,11 +50,12 @@ class World:
                                 currentGeometry = intersection.geometry
                         else:
                             photon.weight = 0
+            if progress:
                 self.showProgress(i + 1, maxCount=source.maxCount, graphs=graphs)
 
         duration = self.completeCalculation()
-        print("I should not be here: {}".format(self.countNotSupposedToBeThere))
-        print("{0:.1f} ms per photon\n".format(duration * 1000 / N))
+        if progress:
+            print("{0:.1f} ms per photon\n".format(duration * 1000 / N))
 
     def propagate(self, photon):
         if photon.currentGeometry != self:
@@ -203,6 +204,6 @@ class World:
                     if geometry.stats is not None:
                         geometry.stats.showEnergy2D(plane='xz', integratedAlong='y', title="{0} photons".format(i))
 
-    def report(self):
+    def report(self, graphs=True):
         for geometry in self.geometries:
-            geometry.report(totalSourcePhotons=self.totalSourcePhotons())
+            geometry.report(totalSourcePhotons=self.totalSourcePhotons(), graphs=graphs)

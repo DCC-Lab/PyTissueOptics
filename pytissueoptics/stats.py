@@ -58,6 +58,57 @@ class Stats:
 
         return coords
 
+    @property
+    def xBinCenters(self):
+        coords = []
+        delta = (self.max[0] - self.min[0]) / self.size[0]
+        for i in range(self.size[0]):
+            coords.append(self.min[0] + (i +0.5) * delta)
+        return coords
+
+    @property
+    def yBinCenters(self):
+        coords = []
+        delta = (self.max[1] - self.min[1]) / self.size[1]
+        for i in range(self.size[1]):
+            coords.append(self.min[1] + (i + 0.5) * delta)
+        return coords
+
+    @property
+    def zBinCenters(self):
+        coords = []
+        delta = (self.max[2] - self.min[2]) / self.size[2]
+        for i in range(self.size[2]):
+            coords.append(self.min[2] + (i + 0.5)* delta)
+
+        return coords
+
+    def energyRMSVolume(self):
+        (xWidth, yWidth, zWidth) = self.energyRMSWidths()
+
+        return xWidth*yWidth*zWidth
+
+    def energyRMSWidths(self):
+        xWidth = self.rms(self.xBinCenters, self.energy.sum(axis=(1, 2)))
+        yWidth = self.rms(self.yBinCenters, self.energy.sum(axis=(0, 2)))
+        zWidth = self.rms(self.zBinCenters, self.energy.sum(axis=(0, 1)))
+
+        return (xWidth, yWidth, zWidth)
+
+    def rms(self, xs, values):
+        vX  = 0
+        vX2 = 0
+        vSum = 0
+        for x, value in zip(xs, values):
+            vX += value*x
+            vX2 += value*x*x
+            vSum += value
+
+        xMean = vX/vSum
+        x2Mean = vX2/vSum
+
+        return np.sqrt(x2Mean-xMean*xMean)
+
     def photonsCrossingPlane(self, surface):
         a = []
         b = []
@@ -77,8 +128,24 @@ class Stats:
 
         return sum(weights)
 
+    def totalWeightAcrossAllSurfaces(self, surfaces) -> float:
+        totalWeightAcrossAllSurfaces = 0
+        for surface in surfaces:
+            totalWeightAcrossAllSurfaces += self.totalWeightCrossingPlane(surface)
+        return totalWeightAcrossAllSurfaces
+
     def totalWeightAbsorbed(self) -> float:
         return sum(sum(sum(self.energy)))
+
+    def absorbance(self, referenceWeight=None) -> float:
+        if referenceWeight is None:
+            referenceWeight = self.inputWeight
+        return self.totalWeightAbsorbed() / referenceWeight
+
+    def transmittance(self, surfaces, referenceWeight=None) -> float:
+        if referenceWeight is None:
+            referenceWeight = self.inputWeight
+        return self.totalWeightAcrossAllSurfaces(surfaces) / referenceWeight
 
     def report(self):
         elapsed = time.time() - self.startTime
