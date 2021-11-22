@@ -126,3 +126,7 @@ dmypy.json
 output.json
 test.py
 test.py
+
+.idea/workspace.xml
+
+.idea/

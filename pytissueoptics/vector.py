@@ -1,13 +1,15 @@
-import numpy as np
+from pytissueoptics import *
 import math
-import sys
+import numpy as np
+from collections.abc import Iterable
+
 
 class Vector:
     def __init__(self, x: float = 0, y: float = 0, z: float = 0):
         """ Access properties with x,y and z.
         Internally for speed, read access done with self._x """
 
-        if isinstance(x, (int, float)):
+        if isinstance(x, (int, float, np.int32, np.uint32, np.float32)):
             self._x = x
             self._y = y 
             self._z = z
@@ -15,8 +17,14 @@ class Vector:
             self._x = x.x
             self._y = x.y 
             self._z = x.z 
+        elif isinstance(x, Iterable):
+            self._x = x[0]
+            self._y = x[1]
+            self._z = x[2]
         else:
-            raise ValueError("No valid input for Vector")
+            raise ValueError("Vector input is invalid.")
+
+        self._iteration = 0
 
     @property
     def x(self):
@@ -93,6 +101,18 @@ class Vector:
             return self.z
         else:
             raise ValueError("Out of range index: must be 0,1 or 2")
+
+    def __next__(self):
+        if self._iteration < 3:
+            result = self[self._iteration]
+            self._iteration += 1
+            return result
+        else:
+            raise StopIteration
+
+    def __iter__(self):
+        self._iteration = 0
+        return self
 
     def __eq__(self, vector):
         return self.isEqualTo(vector)
@@ -326,8 +346,14 @@ class Vector:
 
 
 class UnitVector(Vector):
-    def __init__(self, x: float = 0, y: float = 0, z: float = 0):
-        Vector.__init__(self, Vector(x, y, z).normalized())
+    def __init__(self, x: float = 0, y: float = 0, z: float = 0, theta=None, phi=None):
+        if None in (phi, theta):
+            Vector.__init__(self, Vector(x, y, z).normalized())
+        else:
+            x = math.sin(phi)*math.cos(theta)
+            y = math.sin(phi)*math.sin(theta)
+            z = math.cos(phi)
+            Vector.__init__(self, Vector(x, y, z))
 
     def normalizedCrossProduct(self, vector):
         if isinstance(vector, UnitVector):

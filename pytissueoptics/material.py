@@ -1,11 +1,5 @@
+from pytissueoptics import *
 import numpy as np
-
-def isIterable(someObject):
-    try:
-        iter(someObject)
-    except TypeError as te:
-        return False
-    return True
 
 
 class Material:
@@ -25,30 +19,58 @@ class Material:
         self.index = index
 
     def getScatteringDistance(self, photon):
-        if isIterable(photon):
-            return Scalars([self.getScatteringDistance(p) for p in photon])
-        else:
-            if self.mu_t == 0:
-                return Material.veryFar
+        if self.mu_t == 0:
+            return Material.veryFar
 
-            rnd = 0
-            while rnd == 0:
-                rnd = np.random.random()
-            return -np.log(rnd) / self.mu_t
+        rnd = 0
+        while rnd == 0:
+            rnd = np.random.random()
+        return -np.log(rnd) / self.mu_t
+
+    def getManyScatteringDistances(self, photons):
+        if photons.isRowOptimized:
+            return Scalars([self.getScatteringDistance(p) for p in photons])
+
+        elif photons.isColumnOptimized:
+            rnd = False
+            d = Scalars(np.random.random(len(photons)))
+            while rnd is False:
+                d.conditional_eq(0, np.random.random(), d.v)
+                rnd = d.all()
+            return Scalars(-np.log(d.v) / self.mu_t)
 
     def getScatteringAngles(self, photon):
-        if isIterable(photon):
-            theta, phi = zip(*[self.getScatteringAngles(p) for p in photon])
-            return Scalars(theta), Scalars(phi)
+        phi = np.random.random() * 2 * np.pi
+        g = self.g
+        if g == 0:
+            cost = 2 * np.random.random() - 1
         else:
-            phi = np.random.random() * 2 * np.pi
+            temp = (1 - g * g) / (1 - g + 2 * g * np.random.random())
+            cost = (1 + g * g - temp * temp) / (2 * g)
+        return np.arccos(cost), phi
+
+    def getManyScatteringAngles(self, photons):
+        N = len(photons)
+        if photons.isRowOptimized:
+            thetas = []
+            phis = []
+
+            for photon in photons:
+                theta, phi = self.getScatteringAngles(photon)
+                thetas.append(theta)
+                phis.append(phi)
+            return Scalars(thetas), Scalars(phis)
+
+        elif photons.isColumnOptimized:
+            phi = np.random.random(N) * 2 * np.pi
             g = self.g
             if g == 0:
-                cost = 2 * np.random.random() - 1
+                cost = 2 * np.random.random(N) - 1
             else:
-                temp = (1 - g * g) / (1 - g + 2 * g * np.random.random())
+                temp = (1 - g * g) / (1 - g + 2 * g * np.random.random(N))
                 cost = (1 + g * g - temp * temp) / (2 * g)
-            return np.arccos(cost), phi
+            return Scalars(np.arccos(cost)), Scalars(phi)
+
 
     def __repr__(self):
         return "Material: µs={0} µa={1} g={2} n={3}".format(self.mu_s, self.mu_a, self.g, self.index)

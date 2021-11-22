@@ -1,7 +1,7 @@
+from pytissueoptics import *
+from pytissueoptics.vector import Vector
 import matplotlib.pyplot as plt
-import time
-import os
-from .vector import *
+import numpy as np
 
 
 class Stats:
@@ -203,7 +203,7 @@ class Stats:
     def showEnergy3D(self):
         raise NotImplementedError()
 
-    def showEnergy2D(self, plane: str, cutAt: int = None, integratedAlong: str = None, title="", realtime=True):
+    def showEnergy2D(self, plane: str, cutAt: int = None, integratedAlong: str = None, title=None, xLabel=None, yLabel=None, realtime=True):
         if len(self.volume) == 0:
             return
 
@@ -223,7 +223,11 @@ class Stats:
             plt.ion()
             self.volumeFig = plt.figure()
 
-        plt.title("Energy in {0} with {1:.0f} photons".format(plane, self.inputWeight))
+        if title is None:
+            plt.title("Energy in {0} with {1:.0f} photons".format(plane, self.inputWeight))
+        elif type(title) == str:
+            plt.title(title)
+
         if cutAt is not None:
             if plane == 'xy':
                 plt.imshow(np.log(self.energy[:, :, cutAt] + 0.0001), cmap='viridis',
@@ -247,14 +251,15 @@ class Stats:
                 sum = self.energy.sum(axis=1)
                 plt.imshow(np.log(sum + 0.0001), cmap='viridis',
                            extent=[self.min[2], self.max[2], self.min[0], self.max[0]], aspect='auto')
+                plt.pause(1)
 
         if realtime:
-            self.volumeFig.show()
+            #self.volumeFig.show()
             plt.pause(0.1)
             plt.clf()
         else:
             plt.ioff()
-            self.volumeFig.show()
+            #self.volumeFig.show()
 
     def showEnergy1D(self, axis: str, cutAt=None, integratedAlong=None, title="", realtime=True):
         if len(self.volume) == 0:

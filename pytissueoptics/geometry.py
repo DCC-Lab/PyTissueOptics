@@ -1,5 +1,9 @@
-from .surface import *
-from .source import *
+from pytissueoptics import *
+from pytissueoptics.vector import Vector, ConstVector
+from pytissueoptics.vectors import Vectors
+from pytissueoptics.scalars import Scalars
+from pytissueoptics.photon import Photons
+import matplotlib.pyplot as plt
 
 
 class Geometry:
@@ -68,6 +72,69 @@ class Geometry:
         self.scoreWhenFinal(photon)
         photon.transformFromLocalCoordinates(self.origin)
 
+    def propagateMany(self, photons):
+        """
+        Photons represents a group of photons that will propagate in an object.
+        We will treat photons as "groups": some will propagate unimpeded and some 
+        will hit an obstacle.  Those that hit an obstacle may reflect or transmit through it.
+
+        We continue until all photons have died within the geometry or transmitted through 
+        some interface. We will return the photons that have exited the geometry.
+        """
+
+
+        photonsInside = photons
+        photonsInside.transformToLocalCoordinates(self.origin)
+        self.scoreManyWhenStarting(photonsInside)
+        photonsExited = Photons()
+
+        while not photonsInside.isEmpty:
+            distances = self.material.getManyScatteringDistances(photonsInside)
+            # Split photons into two groups: those freely propagating and those hitting some interface.
+            # We determine the groups based on the photons (and their positions) and the interaction
+            # distances (calculated above). For those hitting an interface, we provide a list of 
+            # corresponding interfaces
+            (unimpededPhotons, unimpededDistances), (impededPhotons, interfaces) = self.getPossibleIntersections(photonsInside, distances)
+
+            # We now deal with both groups (unimpeded and impeded photons) independently
+            # ==========================================
+            # 1. Unimpeded photons: they simply propagate through the geometry without anything special
+            unimpededPhotons.moveBy(unimpededDistances)
+            deltas = unimpededPhotons.decreaseWeight(self.material.albedo)
+            self.scoreManyInVolume(unimpededPhotons, deltas)  # optional
+            thetas, phis = self.material.getManyScatteringAngles(unimpededPhotons)
+            unimpededPhotons.scatterBy(thetas, phis)
+
+            # 2. Impeded photons: they propagate to the interface, then will either be reflected or transmitted
+
+            impededPhotons.moveBy(interfaces.distance)
+            (reflectedPhotons, reflectedInterfaces), (transmittedPhotons, transmittedInterfaces) = impededPhotons.areReflected(interfaces)
+
+            # 2.1 Reflected photons change their direction following Fresnel reflection, then move inside
+
+            reflectedPhotons.reflect(reflectedInterfaces)
+            # reflectedPhotons.moveBy(remainingDistances) #FIXME: there could be another interface
+
+            # 2.2 Transmitted photons change their direction following the law of refraction, then move 
+            #     outside the object and are stored to be returned and propagated into another object.
+            transmittedPhotons.refract(transmittedInterfaces)
+            transmittedPhotons.moveBy(1e-6)
+            self.scoreManyWhenExiting(transmittedPhotons, interfaces)  # optional
+
+            photonsInside = Photons()
+            photonsInside.append(unimpededPhotons)
+            photonsInside.append(reflectedPhotons)
+
+            # 3. Low-weight photons are randomly killed while keeping energy constant.
+            photonsInside.roulette()
+            photonsExited.append(transmittedPhotons)
+
+        # Because the code will not typically calculate millions of photons, it is
+        # inexpensive to keep all the propagated photons.  This allows users
+        # to go through the list after the fact for a calculation of their choice
+        # self.scoreWhenFinal(photons)
+        photonsExited.transformFromLocalCoordinates(self.origin)
+
     def contains(self, position) -> bool:
         """ The base object is infinite. Subclasses override this method
         with their specific geometry. 
@@ -76,6 +143,9 @@ class Geometry:
         very frequently. See implementations for Box, Sphere and Layer
         """
         return True
+
+    def containsMany(self, finalPositions, photons):
+        return Scalars([True]*len(photons))
 
     def validateGeometrySurfaceNormals(self):
         manyPhotons = IsotropicSource(maxCount = 10000)
@@ -125,7 +195,7 @@ class Geometry:
 
         finalPosition = Vector.fromScaledSum(position, direction, distance)
         if self.contains(finalPosition):
-            return distance, None
+            return None
 
         # At this point, we know we will cross an interface: position is inside
         # finalPosition is outside.
@@ -148,7 +218,7 @@ class Geometry:
                     distanceToSurface = (finalPosition - position).abs()
                     return FresnelIntersect(direction, surface, distanceToSurface)
 
-        return distance, None
+        return None
 
     def nextEntranceInterface(self, position, direction, distance) -> FresnelIntersect:
         """ Is this line segment from position to distance*direction crossing
@@ -178,24 +248,82 @@ class Geometry:
             return None
         return FresnelIntersect(direction, intersectSurface, minDistance, self)
 
-    @staticmethod
-    def isReflected(photon, surface) -> bool:
-        R = photon.fresnelCoefficient(surface)
-        if np.random.random() < R:
-            return True
-        return False
+    def getPossibleIntersections(self, photons, distances):
+        if photons.isRowOptimized:
+            unimpededPhotons = Photons()
+            impededPhotons = Photons()
+            interfaces = FresnelIntersects()
+            unimpededDistances = Scalars()
+
+            for i, p in enumerate(photons):
+                interface = self.nextExitInterface(p.r, p.ez, distances[i])
+                if interface is not None:
+                    interfaces.append(interface)
+                    impededPhotons.append(p)
+
+                else:
+                    unimpededPhotons.append(p)
+                    unimpededDistances.append(distances[i])
+
+            return (unimpededPhotons, unimpededDistances), (impededPhotons, interfaces)
+
+        elif photons.isColumnOptimized:
+            unimpededPhotons = Photons()
+            impededPhotons = Photons()
+            interfaces = FresnelIntersects()
+            unimpededDistances = Scalars()
+
+            for i, p in enumerate(photons):
+                interface = self.nextExitInterface(p.r, p.ez, distances[i])
+                if interface is not None:
+                    interfaces.append(interface)
+                    impededPhotons.append(p)
+
+                else:
+                    unimpededPhotons.append(p)
+                    unimpededDistances.append(distances[i])
+
+            return (unimpededPhotons, unimpededDistances), (impededPhotons, interfaces)
+
+
+    # @staticmethod
+    # def isReflected(photon, surface) -> bool:
+    #     R = photon.fresnelCoefficient(surface)
+    #     if np.random.random() < R:
+    #         return True
+    #    return False
 
     def scoreWhenStarting(self, photon):
         if self.stats is not None:
             self.stats.scoreWhenStarting(photon)
 
+    def scoreManyWhenStarting(self, photons):
+        if self.stats is not None:
+            for photon in photons:
+                self.scoreWhenStarting(photon)
+        # if self.stats is not None:
+        #     map(lambda photon, delta: self.scoreWhenStarting(photon), photons)
+
     def scoreInVolume(self, photon, delta):
         if self.stats is not None:
             self.stats.scoreInVolume(photon, delta)
 
+    def scoreManyInVolume(self, photons, deltas):
+        if self.stats is not None:
+            for photon, delta in zip(photons, deltas):
+                self.scoreInVolume(photon, delta)
+        # map(lambda photon, delta: self.scoreWhenStarting(photon), photons)
+
     def scoreWhenExiting(self, photon, surface):
         if self.stats is not None:
             self.stats.scoreWhenCrossing(photon, surface)
+
+    def scoreManyWhenExiting(self, photons, intersects):
+        if self.stats is not None:
+            for photon, intersect in zip(photons, intersects):
+                self.scoreWhenExiting(photon, intersect.surface)
+        # if self.stats is not None:
+        #     map(lambda photon, delta: self.scoreWhenExiting(photon), photons)
 
     def scoreWhenEntering(self, photon, surface):
         return
@@ -253,11 +381,11 @@ class Box(Geometry):
         self.center = ConstVector(0,0,0)
 
     def contains(self, localPosition) -> bool:
-        if abs(localPosition.z) > self.size[2] / 2 + self.epsilon:
+        if abs(localPosition.z) > self.size[2] / 2:
             return False
-        if abs(localPosition.y) > self.size[1] / 2 + self.epsilon:
+        if abs(localPosition.y) > self.size[1] / 2:
             return False
-        if abs(localPosition.x) > self.size[0] / 2 + self.epsilon:
+        if abs(localPosition.x) > self.size[0] / 2:
             return False
 
         return True
@@ -277,9 +405,9 @@ class Layer(Geometry):
         self.center = ConstVector(0,0,thickness/2)
 
     def contains(self, localPosition) -> bool:
-        if localPosition.z < -self.epsilon:
+        if localPosition.z < 0:
             return False
-        if localPosition.z > self.thickness + self.epsilon:
+        if localPosition.z > self.thickness:
             return False
 
         return True
@@ -327,7 +455,7 @@ class SemiInfiniteLayer(Geometry):
         self.center = ConstVector(0,0,1)
 
     def contains(self, localPosition) -> bool:
-        if localPosition.z < -self.epsilon:
+        if localPosition.z < 0:
             return False
 
         return True

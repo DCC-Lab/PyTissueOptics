@@ -1,17 +1,19 @@
 import envtest # modifies path
 from pytissueoptics import *
 import numpy as np
-import random
+from numpy import sqrt
+
 
 inf = float("+inf")
+
 
 class TestPhoton(envtest.PyTissueTestCase):
 
     def testPhoton(self):
         p = Photon()
         self.assertIsNotNone(p)
-        self.assertEqual(p.r, Vector(0,0,0))
-        self.assertEqual(p.ez, Vector(0,0,1))
+        self.assertEqual(p.r, Vector(0, 0, 0))
+        self.assertEqual(p.ez, Vector(0, 0, 1))
 
     def testSurface(self):
         s=Surface(origin=oHat, a=xHat, b=yHat, normal=zHat)
@@ -19,7 +21,7 @@ class TestPhoton(envtest.PyTissueTestCase):
 
     def testReflectNormalIncidence(self):
         s = Surface(origin=oHat, a=xHat, b=yHat, normal=zHat)
-        p = Photon(position=Vector(0,0,0), direction=zHat)
+        p = Photon(position=Vector(0, 0, 0), direction=zHat)
 
         thetaIn, planeOfIncidenceNormal, actualNormal = p.ez.angleOfIncidence(s.normal)
         p.ez.rotateAround(planeOfIncidenceNormal, 2*thetaIn-np.pi)
@@ -27,7 +29,7 @@ class TestPhoton(envtest.PyTissueTestCase):
 
     def testReflectPlus45Incidence(self):
         s = Surface(origin=oHat, a=xHat, b=yHat, normal=zHat)
-        p = Photon(position=Vector(0,0,0), direction=Vector(0,1,1).normalized())
+        p = Photon(position=Vector(0, 0, 0), direction=Vector(0, 1, 1).normalized())
 
         thetaIn, planeOfIncidenceNormal, actualNormal = p.ez.angleOfIncidence(s.normal)
         p.ez.rotateAround(planeOfIncidenceNormal, 2*thetaIn-np.pi)
@@ -116,6 +118,27 @@ class TestPhoton(envtest.PyTissueTestCase):
             p.refract(intersect)
 
             self.assertTrue( p.ez.isAlmostEqualTo(vOut), "ez: {0} vOut: {1} vIn {2}".format(p.ez, vOut, vIn))
+
+
+class TestPhotons(envtest.PyTissueTestCase):
+    def testPhotonInit(self):
+        pass
+
+    def testPhotonsInitNull(self):
+        with self.subTest("NativePhotons"):
+            pass
+        with self.subTest("ArrayPhotons"):
+            a = ArrayPhotons()
+            pass
+
+    def testAppend(self):
+        with self.subTest("NativePhotons"):
+            pass
+        with self.subTest("ArrayPhotons"):
+            with self.subTest("nonNull value"):
+                pass
+            with self.subTest("null value"):
+                pass
 
 
 if __name__ == '__main__':
