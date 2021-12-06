@@ -6,8 +6,8 @@ from math import cos
 
 inf = float("+inf")
 
-class TestVector(envtest.PyTissueTestCase):
-    def testMateiralInit(self):
+class TestMaterial(envtest.PyTissueTestCase):
+    def testMaterialInit(self):
         mat = Material()
         self.assertIsNotNone(mat)
 
