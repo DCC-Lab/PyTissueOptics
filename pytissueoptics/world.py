@@ -1,11 +1,13 @@
-from .detector import *
+from pytissueoptics import Geometry, Source, Detector
+from typing import MutableSet
 import signal
+import time
 
 
 class World:
     def __init__(self):
-        self.geometries = set()
-        self.sources = set()
+        self.geometries: MutableSet[Geometry] = set()
+        self.sources: MutableSet[Source] = set()
         self.verbose = False
         self.countNotSupposedToBeThere = 0
 
