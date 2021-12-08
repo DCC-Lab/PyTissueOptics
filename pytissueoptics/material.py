@@ -18,7 +18,7 @@ class Material:
         self.g = g
         self.index = index
 
-    def getScatteringDistance(self, photon):
+    def getScatteringDistance(self):
         if self.mu_t == 0:
             return Material.veryFar
 
@@ -29,7 +29,7 @@ class Material:
 
     def getManyScatteringDistances(self, photons):
         if photons.isRowOptimized:
-            return Scalars([self.getScatteringDistance(p) for p in photons])
+            return Scalars([self.getScatteringDistance() for p in photons])
 
         elif photons.isColumnOptimized:
             rnd = False
@@ -39,7 +39,7 @@ class Material:
                 rnd = d.all()
             return Scalars(-np.log(d.v) / self.mu_t)
 
-    def getScatteringAngles(self, photon):
+    def getScatteringAngles(self):
         phi = np.random.random() * 2 * np.pi
         g = self.g
         if g == 0:
@@ -55,8 +55,8 @@ class Material:
             thetas = []
             phis = []
 
-            for photon in photons:
-                theta, phi = self.getScatteringAngles(photon)
+            for _ in range(N):
+                theta, phi = self.getScatteringAngles()
                 thetas.append(theta)
                 phis.append(phi)
             return Scalars(thetas), Scalars(phis)
@@ -70,7 +70,6 @@ class Material:
                 temp = (1 - g * g) / (1 - g + 2 * g * np.random.random(N))
                 cost = (1 + g * g - temp * temp) / (2 * g)
             return Scalars(np.arccos(cost)), Scalars(phi)
-
 
     def __repr__(self):
         return "Material: µs={0} µa={1} g={2} n={3}".format(self.mu_s, self.mu_a, self.g, self.index)

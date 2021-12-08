@@ -21,7 +21,7 @@ class Geometry:
         while photon.isAlive and self.contains(photon.r):
             # Pick distance to scattering point
             if d <= 0:
-                d = self.material.getScatteringDistance(photon)
+                d = self.material.getScatteringDistance()
 
             intersection = self._nextExitInterface(photon.r, photon.ez, d)
 
@@ -39,7 +39,7 @@ class Geometry:
                 self._scoreInVolume(photon, delta)
 
                 # Scatter within volume
-                theta, phi = self.material.getScatteringAngles(photon)
+                theta, phi = self.material.getScatteringAngles()
                 photon.scatterBy(theta, phi)
             else:
                 # If the photon crosses an interface, we move to the surface
