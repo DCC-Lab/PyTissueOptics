@@ -2,7 +2,7 @@ from pytissueoptics import *
 
 
 class Geometry:
-    def __init__(self, material=None, stats: Stats = None, label=""):
+    def __init__(self, material=None, stats=None, label=""):
         self.material = material
         self.origin = Vector(0, 0, 0)
         self.stats = stats
@@ -172,7 +172,7 @@ class Geometry:
 
     def scoreWhenEntering(self, photon, surface):
         return
-    
+
     def validateGeometrySurfaceNormals(self):
         manyPhotons = IsotropicSource(maxCount = 10000)
         assert(self.contains(self.center))
