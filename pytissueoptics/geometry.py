@@ -1,9 +1,4 @@
 from pytissueoptics import *
-from pytissueoptics.vector import Vector, ConstVector
-from pytissueoptics.vectors import Vectors
-from pytissueoptics.scalars import Scalars
-from pytissueoptics.photon import Photons
-import matplotlib.pyplot as plt
 
 
 class Geometry:
