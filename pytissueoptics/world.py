@@ -72,22 +72,6 @@ class World:
                 return geometry
         return self
 
-    def assignCurrentGeometry(self, photon):
-        if photon.isAlive:
-            currentGeometry = self.contains(photon.globalPosition)
-            photon.currentGeometry = currentGeometry
-        else:
-            photon.currentGeometry = None
-        return photon.currentGeometry
-
-    def assignCurrentGeometries(self, photons):
-        geometries = set()
-        for photon in photons:
-            currentGeometry = self.assignCurrentGeometry(photon)
-            geometries.add(currentGeometry)
-
-        return list(geometries)
-
     def nextObstacle(self, photon):
         if not photon.isAlive:
             return None
