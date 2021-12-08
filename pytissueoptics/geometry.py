@@ -2,7 +2,7 @@ from pytissueoptics import *
 
 
 class Geometry:
-    def __init__(self, material=None, stats=None, label=""):
+    def __init__(self, material=None, stats: Stats = None, label=""):
         self.material = material
         self.origin = Vector(0, 0, 0)
         self.stats = stats
@@ -16,14 +16,14 @@ class Geometry:
 
     def propagate(self, photon):
         photon.transformToLocalCoordinates(self.origin)
-        self.scoreWhenStarting(photon)
+        self._scoreWhenStarting(photon)
         d = 0
         while photon.isAlive and self.contains(photon.r):
             # Pick distance to scattering point
             if d <= 0:
                 d = self.material.getScatteringDistance(photon)
 
-            intersection = self.nextExitInterface(photon.r, photon.ez, d)
+            intersection = self._nextExitInterface(photon.r, photon.ez, d)
 
             if intersection is None:
                 # If the scattering point is still inside, we simply move
@@ -36,7 +36,7 @@ class Geometry:
                 # for other behaviour
                 delta = photon.weight * self.material.albedo
                 photon.decreaseWeightBy(delta)
-                self.scoreInVolume(photon, delta)
+                self._scoreInVolume(photon, delta)
 
                 # Scatter within volume
                 theta, phi = self.material.getScatteringAngles(photon)
@@ -54,7 +54,7 @@ class Geometry:
                 else:
                     # transmit, score, and leave
                     photon.refract(intersection)
-                    self.scoreWhenExiting(photon, intersection.surface)
+                    self._scoreWhenExiting(photon, intersection.surface)
                     photon.moveBy(d=1e-3)  # We make sure we are out
                     break
 
@@ -64,7 +64,7 @@ class Geometry:
         # Because the code will not typically calculate millions of photons, it is
         # inexpensive to keep all the propagated photons.  This allows users
         # to go through the list after the fact for a calculation of their choice
-        self.scoreWhenFinal(photon)
+        self._scoreWhenFinal(photon)
         photon.transformFromLocalCoordinates(self.origin)
 
     def propagateMany(self, photons):
@@ -80,7 +80,7 @@ class Geometry:
 
         photonsInside = photons
         photonsInside.transformToLocalCoordinates(self.origin)
-        self.scoreManyWhenStarting(photonsInside)
+        self._scoreManyWhenStarting(photonsInside)
         photonsExited = Photons()
 
         while not photonsInside.isEmpty:
@@ -89,14 +89,14 @@ class Geometry:
             # We determine the groups based on the photons (and their positions) and the interaction
             # distances (calculated above). For those hitting an interface, we provide a list of 
             # corresponding interfaces
-            (unimpededPhotons, unimpededDistances), (impededPhotons, interfaces) = self.getPossibleIntersections(photonsInside, distances)
+            (unimpededPhotons, unimpededDistances), (impededPhotons, interfaces) = self._getPossibleIntersections(photonsInside, distances)
 
             # We now deal with both groups (unimpeded and impeded photons) independently
             # ==========================================
             # 1. Unimpeded photons: they simply propagate through the geometry without anything special
             unimpededPhotons.moveBy(unimpededDistances)
             deltas = unimpededPhotons.decreaseWeight(self.material.albedo)
-            self.scoreManyInVolume(unimpededPhotons, deltas)  # optional
+            self._scoreManyInVolume(unimpededPhotons, deltas)  # optional
             thetas, phis = self.material.getManyScatteringAngles(unimpededPhotons)
             unimpededPhotons.scatterBy(thetas, phis)
 
@@ -114,7 +114,7 @@ class Geometry:
             #     outside the object and are stored to be returned and propagated into another object.
             transmittedPhotons.refract(transmittedInterfaces)
             transmittedPhotons.moveBy(1e-6)
-            self.scoreManyWhenExiting(transmittedPhotons, interfaces)  # optional
+            self._scoreManyWhenExiting(transmittedPhotons, interfaces)  # optional
 
             photonsInside = Photons()
             photonsInside.append(unimpededPhotons)
@@ -142,6 +142,37 @@ class Geometry:
     def containsMany(self, finalPositions, photons):
         return Scalars([True]*len(photons))
 
+    def nextEntranceInterface(self, position, direction, distance) -> FresnelIntersect:
+        """ Is this line segment from position to distance*direction crossing
+        any surface elements of this object? Valid from outside the object.
+
+        This will be very slow: going through all elements to check for
+        an intersection is abysmally slow
+        and increases linearly with the number of surface elements
+        There are tons of strategies to improve this (axis-aligned boxes,
+        oriented boxes but most importantly KDTree and OCTrees).
+        It is not done here, we are already very slow: what's more slowdown
+        amongst friends? """
+
+        minDistance = distance
+        intersectSurface = None
+        for surface in self.surfaces:
+            if direction.dot(surface.normal) >= 0:
+                # Parallel or outward, does not apply
+                continue
+            # Going inward, against surface normal
+            isIntersecting, distanceToSurface = surface.intersection(position, direction, distance)
+            if isIntersecting and distanceToSurface < minDistance:
+                intersectSurface = surface
+                minDistance = distanceToSurface
+
+        if intersectSurface is None:
+            return None
+        return FresnelIntersect(direction, intersectSurface, minDistance, self)
+
+    def scoreWhenEntering(self, photon, surface):
+        return
+    
     def validateGeometrySurfaceNormals(self):
         manyPhotons = IsotropicSource(maxCount = 10000)
         assert(self.contains(self.center))
@@ -155,8 +186,8 @@ class Geometry:
             intersect = self.nextEntranceInterface(position=origin, direction=direction, distance=maxDist)
             assert(intersect is None) # Because we are leaving, not entering
 
-            intersect = self.nextExitInterface(position=origin, direction=direction, distance=maxDist)
-            assert(intersect is not None) 
+            intersect = self._nextExitInterface(position=origin, direction=direction, distance=maxDist)
+            assert(intersect is not None)
             assert(intersect.surface.contains(self.center + intersect.distance*direction))
             assert(intersect.indexIn == intersect.surface.indexInside)
             assert(intersect.indexOut == 1.0)
@@ -166,7 +197,7 @@ class Geometry:
             origin = final
             direction = -direction
 
-            intersect = self.nextExitInterface(position=origin, direction=direction, distance=maxDist)
+            intersect = self._nextExitInterface(position=origin, direction=direction, distance=maxDist)
             assert(intersect is None) # Because we are entering, not leaving
 
             intersect = self.nextEntranceInterface(position=origin, direction=direction, distance=maxDist)
@@ -176,7 +207,34 @@ class Geometry:
             assert(intersect.indexOut == intersect.surface.indexInside)
             assert(intersect.geometry == self)
 
-    def nextExitInterface(self, position, direction, distance) -> FresnelIntersect:
+    def report(self, totalSourcePhotons, graphs = True):
+        print("{0}".format(self.label))
+        print("=====================\n")
+        print("Geometry and material")
+        print("---------------------")
+        print(self)
+
+        print("\nPhysical quantities")
+        print("---------------------")
+        if self.stats is not None:
+            for i, surface in enumerate(self.surfaces):
+                print("Transmittance [{0}] : {1:.1f}% of propagating light".format(surface,
+                                                                                   100 * self.stats.transmittance(self.surfaces)))
+                print("Transmittance [{0}] : {1:.1f}% of total power".format(surface,
+                                                                             100 * self.stats.transmittance(self.surfaces, referenceWeight=totalSourcePhotons)))
+
+            print("Absorbance : {0:.1f}% of propagating light".format( 100 * self.stats.absorbance()))
+            print("Absorbance : {0:.1f}% of total power".format( 100 * self.stats.absorbance(totalSourcePhotons)))
+
+            totalCheck = self.stats.totalWeightAcrossAllSurfaces(self.surfaces) + self.stats.totalWeightAbsorbed()
+            print("Absorbance + Transmittance = {0:.1f}%".format(100 * totalCheck / self.stats.inputWeight))
+
+            if graphs:
+                self.stats.showEnergy2D(plane='xz', integratedAlong='y', title="Final photons", realtime=False)
+                if len(self.surfaces) != 0:
+                    self.stats.showSurfaceIntensities(self.surfaces, maxPhotons=totalSourcePhotons)
+
+    def _nextExitInterface(self, position, direction, distance) -> FresnelIntersect:
         """ Is this line segment from position to distance*direction leaving
         the object through any surface elements? Valid only from inside the object.
         
@@ -215,35 +273,7 @@ class Geometry:
 
         return None
 
-    def nextEntranceInterface(self, position, direction, distance) -> FresnelIntersect:
-        """ Is this line segment from position to distance*direction crossing
-        any surface elements of this object? Valid from outside the object.
-
-        This will be very slow: going through all elements to check for
-        an intersection is abysmally slow
-        and increases linearly with the number of surface elements
-        There are tons of strategies to improve this (axis-aligned boxes,
-        oriented boxes but most importantly KDTree and OCTrees).
-        It is not done here, we are already very slow: what's more slowdown
-        amongst friends? """
-
-        minDistance = distance
-        intersectSurface = None
-        for surface in self.surfaces:
-            if direction.dot(surface.normal) >= 0:
-                # Parallel or outward, does not apply
-                continue
-            # Going inward, against surface normal
-            isIntersecting, distanceToSurface = surface.intersection(position, direction, distance)
-            if isIntersecting and distanceToSurface < minDistance:
-                intersectSurface = surface
-                minDistance = distanceToSurface
-
-        if intersectSurface is None:
-            return None
-        return FresnelIntersect(direction, intersectSurface, minDistance, self)
-
-    def getPossibleIntersections(self, photons, distances):
+    def _getPossibleIntersections(self, photons, distances):
         if photons.isRowOptimized:
             unimpededPhotons = Photons()
             impededPhotons = Photons()
@@ -251,7 +281,7 @@ class Geometry:
             unimpededDistances = Scalars()
 
             for i, p in enumerate(photons):
-                interface = self.nextExitInterface(p.r, p.ez, distances[i])
+                interface = self._nextExitInterface(p.r, p.ez, distances[i])
                 if interface is not None:
                     interfaces.append(interface)
                     impededPhotons.append(p)
@@ -269,7 +299,7 @@ class Geometry:
             unimpededDistances = Scalars()
 
             for i, p in enumerate(photons):
-                interface = self.nextExitInterface(p.r, p.ez, distances[i])
+                interface = self._nextExitInterface(p.r, p.ez, distances[i])
                 if interface is not None:
                     interfaces.append(interface)
                     impededPhotons.append(p)
@@ -280,79 +310,41 @@ class Geometry:
 
             return (unimpededPhotons, unimpededDistances), (impededPhotons, interfaces)
 
-
-    # @staticmethod
-    # def isReflected(photon, surface) -> bool:
-    #     R = photon.fresnelCoefficient(surface)
-    #     if np.random.random() < R:
-    #         return True
-    #    return False
-
-    def scoreWhenStarting(self, photon):
+    def _scoreWhenStarting(self, photon):
         if self.stats is not None:
             self.stats.scoreWhenStarting(photon)
 
-    def scoreManyWhenStarting(self, photons):
+    def _scoreManyWhenStarting(self, photons):
         if self.stats is not None:
             for photon in photons:
-                self.scoreWhenStarting(photon)
+                self._scoreWhenStarting(photon)
         # if self.stats is not None:
         #     map(lambda photon, delta: self.scoreWhenStarting(photon), photons)
 
-    def scoreInVolume(self, photon, delta):
+    def _scoreInVolume(self, photon, delta):
         if self.stats is not None:
             self.stats.scoreInVolume(photon, delta)
 
-    def scoreManyInVolume(self, photons, deltas):
+    def _scoreManyInVolume(self, photons, deltas):
         if self.stats is not None:
             for photon, delta in zip(photons, deltas):
-                self.scoreInVolume(photon, delta)
+                self._scoreInVolume(photon, delta)
         # map(lambda photon, delta: self.scoreWhenStarting(photon), photons)
 
-    def scoreWhenExiting(self, photon, surface):
+    def _scoreWhenExiting(self, photon, surface):
         if self.stats is not None:
             self.stats.scoreWhenCrossing(photon, surface)
 
-    def scoreManyWhenExiting(self, photons, intersects):
+    def _scoreManyWhenExiting(self, photons, intersects):
         if self.stats is not None:
             for photon, intersect in zip(photons, intersects):
-                self.scoreWhenExiting(photon, intersect.surface)
+                self._scoreWhenExiting(photon, intersect.surface)
         # if self.stats is not None:
         #     map(lambda photon, delta: self.scoreWhenExiting(photon), photons)
 
-    def scoreWhenEntering(self, photon, surface):
-        return
-
-    def scoreWhenFinal(self, photon):
+    def _scoreWhenFinal(self, photon):
         if self.stats is not None:
             self.stats.scoreWhenFinal(photon)
-
-    def report(self, totalSourcePhotons, graphs = True):
-        print("{0}".format(self.label))
-        print("=====================\n")
-        print("Geometry and material")
-        print("---------------------")
-        print(self)
-
-        print("\nPhysical quantities")
-        print("---------------------")
-        if self.stats is not None:
-            for i, surface in enumerate(self.surfaces):
-                print("Transmittance [{0}] : {1:.1f}% of propagating light".format(surface,
-                                                                                   100 * self.stats.transmittance(self.surfaces)))
-                print("Transmittance [{0}] : {1:.1f}% of total power".format(surface,
-                                                                             100 * self.stats.transmittance(self.surfaces, referenceWeight=totalSourcePhotons)))
-
-            print("Absorbance : {0:.1f}% of propagating light".format( 100 * self.stats.absorbance()))
-            print("Absorbance : {0:.1f}% of total power".format( 100 * self.stats.absorbance(totalSourcePhotons)))
-
-            totalCheck = self.stats.totalWeightAcrossAllSurfaces(self.surfaces) + self.stats.totalWeightAbsorbed()
-            print("Absorbance + Transmittance = {0:.1f}%".format(100 * totalCheck / self.stats.inputWeight))
-
-            if graphs:
-                self.stats.showEnergy2D(plane='xz', integratedAlong='y', title="Final photons", realtime=False)
-                if len(self.surfaces) != 0:
-                    self.stats.showSurfaceIntensities(self.surfaces, maxPhotons=totalSourcePhotons)
 
     def __repr__(self):
         return "{0}".format(self)
@@ -407,7 +399,7 @@ class Layer(Geometry):
 
         return True
 
-    def nextExitInterface(self, position, direction, distance) -> FresnelIntersect:
+    def _nextExitInterface(self, position, direction, distance) -> FresnelIntersect:
         finalPosition = Vector.fromScaledSum(position, direction, distance)
         if self.contains(finalPosition):
             return None
@@ -455,7 +447,7 @@ class SemiInfiniteLayer(Geometry):
 
         return True
 
-    def nextExitInterface(self, position, direction, distance) -> FresnelIntersect:
+    def _nextExitInterface(self, position, direction, distance) -> FresnelIntersect:
         finalPosition = position + distance * direction
         if self.contains(finalPosition):
             return None
