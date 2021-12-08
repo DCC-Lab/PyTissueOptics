@@ -42,19 +42,12 @@ class Photon:
         return self.r + self.origin
 
     @property
-    def el(self) -> UnitVector:
-        return self.ez.cross(self.er)
-
-    @property
     def isAlive(self) -> bool:
         return self.weight > 0
 
     @property
     def isDead(self) -> bool:
         return self.weight == 0
-
-    def keepPathStatistics(self):
-        self.path = [Vector(self.r)]  # Will continue every move
 
     def transformToLocalCoordinates(self, origin):
         self.r = self.r - origin
@@ -79,9 +72,6 @@ class Photon:
         if self.weight < 0:
             self.weight = 0
 
-    def deflect(self, deflectionAngle, incidencePlane):
-        self.ez.rotateAround(incidencePlane, deflectionAngle)
-
     def reflect(self, intersection):
         self.ez.rotateAround(intersection.incidencePlane, intersection.reflectionDeflection)
 
@@ -105,6 +95,17 @@ class Photon:
             self.weight /= chance
         else:
             self.weight = 0
+
+    # unused methods that we keep for now
+    @property
+    def _el(self) -> UnitVector:
+        return self.ez.cross(self.er)
+
+    def _deflect(self, deflectionAngle, incidencePlane):
+        self.ez.rotateAround(incidencePlane, deflectionAngle)
+
+    def _keepPathStatistics(self):
+        self.path = [Vector(self.r)]  # Will continue every move
 
 
 """
