@@ -34,20 +34,12 @@ class Photon:
         self.currentGeometry = currentGeometry
 
     @property
-    def localPosition(self):
-        return self.r
-
-    @property
     def globalPosition(self):
         return self.r + self.origin
 
     @property
     def isAlive(self) -> bool:
         return self.weight > 0
-
-    @property
-    def isDead(self) -> bool:
-        return self.weight == 0
 
     def transformToLocalCoordinates(self, origin):
         self.r = self.r - origin
