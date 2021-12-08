@@ -32,26 +32,7 @@ class World:
                         # Then check if we are in another adjacent object
                         currentGeometry = self._contains(photon.globalPosition)
                     else:
-                        # We are in free space (World). Find next object
-                        intersection = self._nextObstacle(photon)
-                        if intersection is not None:
-                            # We are hitting something, moving to surface
-                            photon.moveBy(intersection.distance)
-                            # At surface, determine if reflected or not 
-                            if intersection.isReflected():
-                                # reflect photon and keep propagating
-                                photon.reflect(intersection)
-                                # Move away from surface to avoid getting stuck there
-                                photon.moveBy(d=1e-3)
-                            else:
-                                # transmit, score, and enter (at top of this loop)
-                                photon.refract(intersection)
-                                intersection.geometry.scoreWhenEntering(photon, intersection.surface)
-                                # Move away from surface to avoid getting stuck there
-                                photon.moveBy(d=1e-3)
-                                currentGeometry = intersection.geometry
-                        else:
-                            photon.weight = 0
+                        self._propagate(photon)
             if progress:
                 self._showProgress(i + 1, maxCount=source.maxCount, graphs=graphs)
 
@@ -68,6 +49,33 @@ class World:
         for source in self.sources:
             total += source.maxCount
         return total
+
+    def _propagate(self, photon):
+        if photon.currentGeometry != self:
+            self.countNotSupposedToBeThere += 1
+            photon.weight = 0
+            return
+
+        while photon.isAlive and photon.currentGeometry == self:
+            intersection = self._nextObstacle(photon)
+            if intersection is not None:
+                # We are hitting something, moving to surface
+                photon.moveBy(intersection.distance)
+                # At surface, determine if reflected or not
+                if intersection.isReflected():
+                    # reflect photon and keep propagating
+                    photon.reflect(intersection)
+                    # Move away from surface to avoid getting stuck there
+                    photon.moveBy(d=1e-3)
+                else:
+                    # transmit, score, and enter (at top of this loop)
+                    photon.refract(intersection)
+                    intersection.geometry.scoreWhenEntering(photon, intersection.surface)
+                    # Move away from surface to avoid getting stuck there
+                    photon.moveBy(d=1e-3)
+                    photon.currentGeometry = intersection.geometry
+            else:
+                photon.weight = 0
 
     def _contains(self, worldCoordinates):
         for geometry in self.geometries:
