@@ -1,3 +1,5 @@
+from typing import List
+
 from pytissueoptics import *
 from pytissueoptics.vector import Vector, UnitVector, zHat
 from pytissueoptics.vectors import Vectors
@@ -115,7 +117,7 @@ all children classes.
 class NativePhotons:
     def __init__(self, array=None, positions=None, directions=None, N=0):
         self.iteration = None
-        self._photons = []
+        self._photons: List[Photon] = []
         if array is not None:
             self._photons = array
         elif not None in (positions, directions):
@@ -179,27 +181,6 @@ class NativePhotons:
         return Photons(
             list(filter(lambda photon: (photon.currentGeometry == geometry) and photon.isAlive, self._photons)))
 
-    def areAllDead(self) -> bool:
-        for photon in self._photons:
-            if photon.isAlive:
-                return False
-
-        return True
-
-    def deadCount(self):
-        count = 0
-        for photon in self._photons:
-            if photon.isDead:
-                count += 1
-        return count
-
-    def liveCount(self):
-        count = 0
-        for photon in self._photons:
-            if photon.isAlive:
-                count += 1
-        return count
-
     def areReflected(self, interfaces):
         areReflected = [interface.isReflected() for photon, interface in zip(self._photons, interfaces)]
 
@@ -211,7 +192,6 @@ class NativePhotons:
         transmittedInterfaces = FresnelIntersects([intersect for intersect in interfaces if not intersect.isReflected()])
 
         return (reflectedPhotons, reflectedInterfaces),  (transmittedPhotons, transmittedInterfaces)
-
 
     def transformToLocalCoordinates(self, origin):
         for photon in self._photons:
