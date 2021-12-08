@@ -57,33 +57,6 @@ class World:
         if progress:
             print("{0:.1f} ms per photon\n".format(duration * 1000 / N))
 
-    def propagate(self, photon):
-        if photon.currentGeometry != self:
-            self.countNotSupposedToBeThere += 1
-            photon.weight = 0
-            return
-
-        while photon.isAlive and photon.currentGeometry == self:
-            intersection = self.nextObstacle(photon)
-            if intersection is not None:
-                # We are hitting something, moving to surface
-                photon.moveBy(intersection.distance)
-                # At surface, determine if reflected or not
-                if intersection.isReflected():
-                    # reflect photon and keep propagating
-                    photon.reflect(intersection)
-                    # Move away from surface to avoid getting stuck there
-                    photon.moveBy(d=1e-3)
-                else:
-                    # transmit, score, and enter (at top of this loop)
-                    photon.refract(intersection)
-                    intersection.geometry.scoreWhenEntering(photon, intersection.surface)
-                    # Move away from surface to avoid getting stuck there
-                    photon.moveBy(d=1e-3)
-                    photon.currentGeometry = intersection.geometry
-            else:
-                photon.weight = 0
-
     def place(self, anObject, position):
         if isinstance(anObject, Geometry) or isinstance(anObject, Detector):
             anObject.origin = position
