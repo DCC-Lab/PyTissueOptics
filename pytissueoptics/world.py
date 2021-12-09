@@ -6,18 +6,18 @@ import time
 
 class World:
     def __init__(self):
-        self.geometries: MutableSet[Geometry] = set()
-        self.sources: MutableSet[Source] = set()
+        self.geometries: List[Geometry] = []
+        self.sources: List[Source] = []
         self.verbose = False
         self.countNotSupposedToBeThere = 0
 
     def place(self, anObject, position):
         if isinstance(anObject, Geometry) or isinstance(anObject, Detector):
             anObject.origin = position
-            self.geometries.add(anObject)
+            self.geometries.append(anObject)
         elif isinstance(anObject, Source):
             anObject.origin = position
-            self.sources.add(anObject)
+            self.sources.append(anObject)
 
     def compute(self, graphs, progress=False):
         self._startCalculation()
