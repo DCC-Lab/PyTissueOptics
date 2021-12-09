@@ -1,6 +1,6 @@
 from typing import List
 
-from pytissueoptics import Geometry
+from pytissueoptics import Geometry, FresnelIntersect
 
 
 class IntersectionFinder:
@@ -9,14 +9,15 @@ class IntersectionFinder:
 
 
 class SimpleIntersectionFinder(IntersectionFinder):
-
-    def search(self, position, direction, distance):  # todo: search(Line)
-        geometry = self._geometryAt(position)
+    def search(self, position, direction, distance) -> FresnelIntersect:  # todo: search(Line)
+        geometry = self.geometryAt(position)
         if geometry is None:
             return self._worldSearch(position, direction, distance)
-        return geometry.nextExitInterface(position, direction, distance)
 
-    def _geometryAt(self, position):  # or materialAt ?
+        intersect = geometry.nextExitInterface(position, direction, distance)
+        return intersect
+
+    def geometryAt(self, position):
         for geometry in self.geometries:
             localCoordinates = position - geometry.origin
             if geometry.contains(localCoordinates):
