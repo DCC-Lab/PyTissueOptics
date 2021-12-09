@@ -19,7 +19,7 @@ class World:
             anObject.origin = position
             self.sources.append(anObject)
 
-    def compute(self, graphs, progress=False):
+    def compute_old(self, graphs, progress=False):
         self._startCalculation()
         N = 0
         for source in self.sources:
@@ -41,6 +41,23 @@ class World:
         duration = self._completeCalculation()
         if progress:
             print("{0:.1f} ms per photon\n".format(duration * 1000 / N))
+
+    def compute(self):
+        """ New implementation of self.compute using richer domain.
+            This method acts as an application context. """
+        self._startCalculation()
+
+        for photon in self.photons:
+            currentGeometry = self._contains(photon.globalPosition)
+
+            while photon.isAlive:
+                if currentGeometry is not None:
+                    # We are in an object, propagate in it
+                    currentGeometry.propagate(photon)
+                    # Then check if we are in another adjacent object
+                    currentGeometry = self._contains(photon.globalPosition)
+                else:
+                    self._propagate(photon)
 
     @property
     def photons(self) -> List[Photon]:
