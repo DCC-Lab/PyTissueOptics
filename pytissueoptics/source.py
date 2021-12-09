@@ -56,8 +56,7 @@ class Source:
     def newPhotons(self):
         raise NotImplementedError()
 
-    @property
-    def photons(self):
+    def getPhotons(self):
         while len(self._photons) < self.maxCount:
             self._photons.append(self.newPhoton())
         return self._photons
@@ -78,7 +77,7 @@ class IsotropicSource(Source):
 
     def newPhoton(self) -> Photon:
         p = Photon()
-        p.r = self.getPosition()
+        p.r = Vector(self.getPosition())
         theta, phi = self.getDirection()
         p.scatterBy(theta, phi)
         return p
@@ -91,6 +90,7 @@ class IsotropicSource(Source):
             directions.append(UnitVector(theta=theta, phi=phi))
 
         return Photons(positions=positions, directions=directions)
+
 
 class PencilSource(Source):
     def __init__(self, direction, maxCount):

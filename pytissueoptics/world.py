@@ -60,7 +60,7 @@ class World:
     def photons(self) -> List[Photon]:
         photons = []
         for source in self.sources:
-            photons.extend(source.photons)
+            photons.extend(source.getPhotons())
         return photons
 
     def report(self, graphs=True):
