@@ -3,6 +3,8 @@ from typing import List
 import signal
 import time
 
+from pytissueoptics.interactionFinder import SimpleInteractionFinder
+
 
 class World:
     def __init__(self):
@@ -47,7 +49,13 @@ class World:
             This method acts as an application context. """
         self._startCalculation()
 
+        initialMaterial = Material()
+        interactionFinder = SimpleInteractionFinder(geometries=self.geometries)
+
         for photon in self.photons:
+            photon.setContext(initialMaterial, interactionFinder)
+            photon.propagate()
+
             currentGeometry = self._contains(photon.globalPosition)
 
             while photon.isAlive:

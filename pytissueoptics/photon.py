@@ -1,6 +1,8 @@
 from typing import List
 
 from pytissueoptics import *
+from pytissueoptics import Material
+from pytissueoptics.interactionFinder import InteractionFinder
 from pytissueoptics.vector import Vector, UnitVector, zHat
 from pytissueoptics.vectors import Vectors
 import numpy as np
@@ -32,6 +34,18 @@ class Photon:
 
          # The global coordinates of the local origin
         self.currentGeometry = currentGeometry
+
+        self.material = None
+        self.interactionFinder = None
+
+    def setContext(self, initialMaterial: Material, interactionFinder: InteractionFinder):
+        self.material = initialMaterial
+        self.interactionFinder = interactionFinder
+
+    def propagate(self):
+        while self.isAlive:
+
+            self.weight -= 0.1
 
     @property
     def globalPosition(self):
