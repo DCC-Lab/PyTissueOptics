@@ -56,17 +56,6 @@ class World:
             photon.setContext(initialMaterial, intersectionFinder)
             photon.propagate()
 
-            currentGeometry = self._contains(photon.globalPosition)
-
-            while photon.isAlive:
-                if currentGeometry is not None:
-                    # We are in an object, propagate in it
-                    currentGeometry.propagate(photon)
-                    # Then check if we are in another adjacent object
-                    currentGeometry = self._contains(photon.globalPosition)
-                else:
-                    self._propagate(photon)
-
     @property
     def photons(self) -> List[Photon]:
         photons = []

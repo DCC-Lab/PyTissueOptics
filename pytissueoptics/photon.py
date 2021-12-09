@@ -50,6 +50,28 @@ class Photon:
 
             intersection = self.intersectionFinder.search(self.globalPosition, self.ez, d)
 
+            if intersection is None:
+                self.moveBy(d)
+                d = 0
+                delta = self.weight * self.material.albedo
+                self.decreaseWeightBy(delta)
+                # self._scoreInVolume(photon, delta)
+                theta, phi = self.material.getScatteringAngles()
+                self.scatterBy(theta, phi)
+            else:
+                self.moveBy(d=intersection.distance)
+
+                if intersection.isReflected():
+                    self.reflect(intersection)
+                    self.moveBy(d=1e-3)  # Move away from surface
+                    d -= intersection.distance
+                else:
+                    self.refract(intersection)
+                    # self._scoreWhenExiting(photon)
+                    self.moveBy(d=1e-3)  # We make sure we are out
+                    break
+
+            self.roulette()
 
     @property
     def globalPosition(self):
