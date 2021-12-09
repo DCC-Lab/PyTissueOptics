@@ -14,7 +14,7 @@ class Geometry:
         self.startTime = None  # We are not calculating anything
         self.center = None
 
-    def propagate(self, photon):
+    def propagate(self, photon: Photon):
         photon.transformToLocalCoordinates(self.origin)
         self._scoreWhenStarting(photon)
         d = 0
@@ -54,11 +54,11 @@ class Geometry:
                 else:
                     # transmit, score, and leave
                     photon.refract(intersection)
-                    self._scoreWhenExiting(photon, intersection.surface)
+                    self._scoreWhenExiting(photon)
                     photon.moveBy(d=1e-3)  # We make sure we are out
                     break
 
-            # And go again    
+            # And go again
             photon.roulette()
 
         # Because the code will not typically calculate millions of photons, it is
@@ -335,14 +335,14 @@ class Geometry:
                 self._scoreInVolume(photon, delta)
         # map(lambda photon, delta: self.scoreWhenStarting(photon), photons)
 
-    def _scoreWhenExiting(self, photon, surface):
+    def _scoreWhenExiting(self, photon):
         if self.stats is not None:
-            self.stats.scoreWhenCrossing(photon, surface)
+            self.stats.scoreWhenCrossing(photon)
 
     def _scoreManyWhenExiting(self, photons, intersects):
         if self.stats is not None:
             for photon, intersect in zip(photons, intersects):
-                self._scoreWhenExiting(photon, intersect.surface)
+                self._scoreWhenExiting(photon)
         # if self.stats is not None:
         #     map(lambda photon, delta: self.scoreWhenExiting(photon), photons)
 
