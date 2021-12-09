@@ -37,8 +37,8 @@ class World:
                         currentGeometry = self._contains(photon.globalPosition)
                     else:
                         self._propagate(photon)
-            if progress:
-                self._showProgress(i + 1, maxCount=source.maxCount, graphs=graphs)
+                if progress:
+                    self._showProgress(i + 1, maxCount=source.maxCount, graphs=graphs)
 
         duration = self._completeCalculation()
         if progress:
