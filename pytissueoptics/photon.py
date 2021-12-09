@@ -43,9 +43,13 @@ class Photon:
         self.intersectionFinder = intersectionFinder
 
     def propagate(self):
+        d = 0
         while self.isAlive:
+            if d <= 0:
+                d = self.material.getScatteringDistance()
 
-            self.weight -= 0.1
+            intersection = self.intersectionFinder.search(self.globalPosition, self.ez, d)
+
 
     @property
     def globalPosition(self):
