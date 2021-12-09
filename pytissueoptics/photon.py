@@ -83,7 +83,11 @@ class Photon:
                 else:
                     self.refract(intersection)
                     self.moveBy(d=1e-3)  # We make sure we are out
-                    break
+
+                    if intersection.nextMaterial is None:
+                        self.material = self._worldMaterial
+                    else:
+                        self.material = intersection.nextMaterial
 
             self.roulette()
 
