@@ -325,7 +325,6 @@ class TestNumpyVectors(unittest.TestCase):
     def testInitNull(self):
         v1 = NumpyVectors(N=2)
         r = np.all(np.equal(v1.v, [[0, 0, 0], [0, 0, 0]]))
-        print(dir(np))
         self.assertTrue(r)
 
     def testInitWithList(self):

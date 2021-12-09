@@ -77,7 +77,6 @@ class Geometry:
         some interface. We will return the photons that have exited the geometry.
         """
 
-
         photonsInside = photons
         photonsInside.transformToLocalCoordinates(self.origin)
         self._scoreManyWhenStarting(photonsInside)
@@ -89,7 +88,8 @@ class Geometry:
             # We determine the groups based on the photons (and their positions) and the interaction
             # distances (calculated above). For those hitting an interface, we provide a list of 
             # corresponding interfaces
-            (unimpededPhotons, unimpededDistances), (impededPhotons, interfaces) = self._getPossibleIntersections(photonsInside, distances)
+            (unimpededPhotons, unimpededDistances), (impededPhotons, interfaces) = self._getPossibleIntersections(
+                photonsInside, distances)
 
             # We now deal with both groups (unimpeded and impeded photons) independently
             # ==========================================
@@ -103,7 +103,8 @@ class Geometry:
             # 2. Impeded photons: they propagate to the interface, then will either be reflected or transmitted
 
             impededPhotons.moveBy(interfaces.distance)
-            (reflectedPhotons, reflectedInterfaces), (transmittedPhotons, transmittedInterfaces) = impededPhotons.areReflected(interfaces)
+            (reflectedPhotons, reflectedInterfaces), (
+                transmittedPhotons, transmittedInterfaces) = impededPhotons.areReflected(interfaces)
 
             # 2.1 Reflected photons change their direction following Fresnel reflection, then move inside
 
@@ -140,7 +141,7 @@ class Geometry:
         return True
 
     def containsMany(self, finalPositions, photons):
-        return Scalars([True]*len(photons))
+        return Scalars([True] * len(photons))
 
     def nextEntranceInterface(self, position, direction, distance) -> FresnelIntersect:
         """ Is this line segment from position to distance*direction crossing
@@ -174,40 +175,40 @@ class Geometry:
         return
 
     def validateGeometrySurfaceNormals(self):
-        manyPhotons = IsotropicSource(maxCount = 10000)
-        assert(self.contains(self.center))
+        manyPhotons = IsotropicSource(maxCount=10000)
+        assert (self.contains(self.center))
         maxDist = 1000000
         for photon in manyPhotons:
             direction = Vector(photon.ez)
             origin = Vector(self.center)
-            final = origin + direction*maxDist
+            final = origin + direction * maxDist
 
             # We trace a line from the center to far away.
             intersect = self.nextEntranceInterface(position=origin, direction=direction, distance=maxDist)
-            assert(intersect is None) # Because we are leaving, not entering
+            assert (intersect is None)  # Because we are leaving, not entering
 
             intersect = self._nextExitInterface(position=origin, direction=direction, distance=maxDist)
-            assert(intersect is not None)
-            assert(intersect.surface.contains(self.center + intersect.distance*direction))
-            assert(intersect.indexIn == intersect.surface.indexInside)
-            assert(intersect.indexOut == 1.0)
-            assert(intersect.geometry == self)
+            assert (intersect is not None)
+            assert (intersect.surface.contains(self.center + intersect.distance * direction))
+            assert (intersect.indexIn == intersect.surface.indexInside)
+            assert (intersect.indexOut == 1.0)
+            assert (intersect.geometry == self)
 
             # We trace a line from far away to the center
             origin = final
             direction = -direction
 
             intersect = self._nextExitInterface(position=origin, direction=direction, distance=maxDist)
-            assert(intersect is None) # Because we are entering, not leaving
+            assert (intersect is None)  # Because we are entering, not leaving
 
             intersect = self.nextEntranceInterface(position=origin, direction=direction, distance=maxDist)
-            assert(intersect is not None)
-            assert(intersect.surface.contains(origin + intersect.distance*direction))
-            assert(intersect.indexIn == intersect.surface.indexOutside)
-            assert(intersect.indexOut == intersect.surface.indexInside)
-            assert(intersect.geometry == self)
+            assert (intersect is not None)
+            assert (intersect.surface.contains(origin + intersect.distance * direction))
+            assert (intersect.indexIn == intersect.surface.indexOutside)
+            assert (intersect.indexOut == intersect.surface.indexInside)
+            assert (intersect.geometry == self)
 
-    def report(self, totalSourcePhotons, graphs = True):
+    def report(self, totalSourcePhotons, graphs=True):
         print("{0}".format(self.label))
         print("=====================\n")
         print("Geometry and material")
@@ -219,12 +220,15 @@ class Geometry:
         if self.stats is not None:
             for i, surface in enumerate(self.surfaces):
                 print("Transmittance [{0}] : {1:.1f}% of propagating light".format(surface,
-                                                                                   100 * self.stats.transmittance(self.surfaces)))
+                                                                                   100 * self.stats.transmittance(
+                                                                                       self.surfaces)))
                 print("Transmittance [{0}] : {1:.1f}% of total power".format(surface,
-                                                                             100 * self.stats.transmittance(self.surfaces, referenceWeight=totalSourcePhotons)))
+                                                                             100 * self.stats.transmittance(
+                                                                                 self.surfaces,
+                                                                                 referenceWeight=totalSourcePhotons)))
 
-            print("Absorbance : {0:.1f}% of propagating light".format( 100 * self.stats.absorbance()))
-            print("Absorbance : {0:.1f}% of total power".format( 100 * self.stats.absorbance(totalSourcePhotons)))
+            print("Absorbance : {0:.1f}% of propagating light".format(100 * self.stats.absorbance()))
+            print("Absorbance : {0:.1f}% of total power".format(100 * self.stats.absorbance(totalSourcePhotons)))
 
             totalCheck = self.stats.totalWeightAcrossAllSurfaces(self.surfaces) + self.stats.totalWeightAbsorbed()
             print("Absorbance + Transmittance = {0:.1f}%".format(100 * totalCheck / self.stats.inputWeight))
@@ -365,7 +369,7 @@ class Box(Geometry):
                          YZPlane(atX=self.size[0] / 2, description="Right"),
                          -ZXPlane(atY=-self.size[1] / 2, description="Bottom"),
                          ZXPlane(atY=self.size[1] / 2, description="Top")]
-        self.center = ConstVector(0,0,0)
+        self.center = ConstVector(0, 0, 0)
 
     def contains(self, localPosition) -> bool:
         if abs(localPosition.z) > self.size[2] / 2:
@@ -389,7 +393,7 @@ class Layer(Geometry):
         self.thickness = thickness
         self.surfaces = [-XYPlane(atZ=0, description="Front"),
                          XYPlane(atZ=self.thickness, description="Back")]
-        self.center = ConstVector(0,0,thickness/2)
+        self.center = ConstVector(0, 0, thickness / 2)
 
     def contains(self, localPosition) -> bool:
         if localPosition.z < 0:
@@ -409,7 +413,7 @@ class Layer(Geometry):
             d = (self.thickness - position.z) / direction.z
             if d <= distance:
                 s = self.surfaces[1]
-                intersect = FresnelIntersect(direction, self.surfaces[1], d, geometry=self) 
+                intersect = FresnelIntersect(direction, self.surfaces[1], d, geometry=self)
                 # assert(s.indexInside)
                 # print(s.indexInside, s.indexOutside)
                 # print(intersect.indexIn, intersect.indexOut)
@@ -418,16 +422,12 @@ class Layer(Geometry):
             d = - position.z / direction.z
             if d <= distance:
                 s = self.surfaces[0]
-                intersect = FresnelIntersect(direction, self.surfaces[0], d, geometry=self) 
+                intersect = FresnelIntersect(direction, self.surfaces[0], d, geometry=self)
                 # print(s.indexInside, s.indexOutside)
                 # print(intersect.indexIn, intersect.indexOut)
                 return intersect
 
-
         return None
-
-    def stack(self, layer):
-        return
 
 
 class SemiInfiniteLayer(Geometry):
@@ -439,7 +439,7 @@ class SemiInfiniteLayer(Geometry):
     def __init__(self, material, stats=None, label="Semi-infinite layer"):
         super(SemiInfiniteLayer, self).__init__(material, stats, label)
         self.surfaces = [-XYPlane(atZ=0, description="Front")]
-        self.center = ConstVector(0,0,1)
+        self.center = ConstVector(0, 0, 1)
 
     def contains(self, localPosition) -> bool:
         if localPosition.z < 0:
@@ -451,12 +451,12 @@ class SemiInfiniteLayer(Geometry):
         finalPosition = position + distance * direction
         if self.contains(finalPosition):
             return None
-        assert(self.contains(position) == True)
+        assert self.contains(position)
 
         if direction.z < 0:
             d = - position.z / direction.z
             if d <= distance:
-                return FresnelIntersect(direction, self.surfaces[0], d, geometry=self) 
+                return FresnelIntersect(direction, self.surfaces[0], d, geometry=self)
 
         return None
 
