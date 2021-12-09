@@ -37,10 +37,12 @@ class Photon:
 
         self.material = None
         self.intersectionFinder = None
+        self.sensor = None
 
-    def setContext(self, initialMaterial: Material, intersectionFinder):
         self.material = initialMaterial
+    def setContext(self, worldMaterial: Material, intersectionFinder, sensor):
         self.intersectionFinder = intersectionFinder
+        self.sensor = sensor
 
     def propagate(self):
         d = 0
@@ -55,7 +57,6 @@ class Photon:
                 d = 0
                 delta = self.weight * self.material.albedo
                 self.decreaseWeightBy(delta)
-                # self._scoreInVolume(photon, delta)
                 theta, phi = self.material.getScatteringAngles()
                 self.scatterBy(theta, phi)
             else:
@@ -67,7 +68,6 @@ class Photon:
                     d -= intersection.distance
                 else:
                     self.refract(intersection)
-                    # self._scoreWhenExiting(photon)
                     self.moveBy(d=1e-3)  # We make sure we are out
                     break
 
@@ -100,6 +100,8 @@ class Photon:
         self.ez.rotateAround(self.er, theta)
 
     def decreaseWeightBy(self, delta):
+        if self.sensor:
+            self.sensor.scoreInVolume(self, delta)
         self.weight -= delta
         if self.weight < 0:
             self.weight = 0
