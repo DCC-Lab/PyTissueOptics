@@ -38,11 +38,21 @@ class Photon:
         self.material = None
         self.intersectionFinder = None
         self.sensor = None
+        self._worldMaterial = None
 
-        self.material = initialMaterial
     def setContext(self, worldMaterial: Material, intersectionFinder, sensor):
+        self._worldMaterial = worldMaterial
         self.intersectionFinder = intersectionFinder
         self.sensor = sensor
+
+        self._resetCurrentMaterial()
+
+    def _resetCurrentMaterial(self):
+        currentGeometry = self.intersectionFinder.geometryAt(self.globalPosition)
+        if currentGeometry is None:
+            self.material = self._worldMaterial
+        else:
+            self.material = currentGeometry.material
 
     def propagate(self):
         d = 0
