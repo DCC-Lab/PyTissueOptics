@@ -23,7 +23,7 @@ class Geometry:
             if d <= 0:
                 d = self.material.getScatteringDistance()
 
-            intersection = self._nextExitInterface(photon.r, photon.ez, d)
+            intersection = self.nextExitInterface(photon.r, photon.ez, d)
 
             if intersection is None:
                 # If the scattering point is still inside, we simply move
@@ -187,7 +187,7 @@ class Geometry:
             intersect = self.nextEntranceInterface(position=origin, direction=direction, distance=maxDist)
             assert (intersect is None)  # Because we are leaving, not entering
 
-            intersect = self._nextExitInterface(position=origin, direction=direction, distance=maxDist)
+            intersect = self.nextExitInterface(position=origin, direction=direction, distance=maxDist)
             assert (intersect is not None)
             assert (intersect.surface.contains(self.center + intersect.distance * direction))
             assert (intersect.indexIn == intersect.surface.indexInside)
@@ -198,7 +198,7 @@ class Geometry:
             origin = final
             direction = -direction
 
-            intersect = self._nextExitInterface(position=origin, direction=direction, distance=maxDist)
+            intersect = self.nextExitInterface(position=origin, direction=direction, distance=maxDist)
             assert (intersect is None)  # Because we are entering, not leaving
 
             intersect = self.nextEntranceInterface(position=origin, direction=direction, distance=maxDist)
@@ -238,7 +238,7 @@ class Geometry:
                 if len(self.surfaces) != 0:
                     self.stats.showSurfaceIntensities(self.surfaces, maxPhotons=totalSourcePhotons)
 
-    def _nextExitInterface(self, position, direction, distance) -> FresnelIntersect:
+    def nextExitInterface(self, position, direction, distance) -> FresnelIntersect:
         """ Is this line segment from position to distance*direction leaving
         the object through any surface elements? Valid only from inside the object.
         
@@ -285,7 +285,7 @@ class Geometry:
             unimpededDistances = Scalars()
 
             for i, p in enumerate(photons):
-                interface = self._nextExitInterface(p.r, p.ez, distances[i])
+                interface = self.nextExitInterface(p.r, p.ez, distances[i])
                 if interface is not None:
                     interfaces.append(interface)
                     impededPhotons.append(p)
@@ -303,7 +303,7 @@ class Geometry:
             unimpededDistances = Scalars()
 
             for i, p in enumerate(photons):
-                interface = self._nextExitInterface(p.r, p.ez, distances[i])
+                interface = self.nextExitInterface(p.r, p.ez, distances[i])
                 if interface is not None:
                     interfaces.append(interface)
                     impededPhotons.append(p)
@@ -403,7 +403,7 @@ class Layer(Geometry):
 
         return True
 
-    def _nextExitInterface(self, position, direction, distance) -> FresnelIntersect:
+    def nextExitInterface(self, position, direction, distance) -> FresnelIntersect:
         finalPosition = Vector.fromScaledSum(position, direction, distance)
         if self.contains(finalPosition):
             return None
@@ -447,7 +447,7 @@ class SemiInfiniteLayer(Geometry):
 
         return True
 
-    def _nextExitInterface(self, position, direction, distance) -> FresnelIntersect:
+    def nextExitInterface(self, position, direction, distance) -> FresnelIntersect:
         finalPosition = position + distance * direction
         if self.contains(finalPosition):
             return None
