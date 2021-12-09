@@ -2,7 +2,7 @@ from typing import List
 
 from pytissueoptics import *
 from pytissueoptics import Material
-from pytissueoptics.interactionFinder import InteractionFinder
+# from pytissueoptics.interactionFinder import InteractionFinder
 from pytissueoptics.vector import Vector, UnitVector, zHat
 from pytissueoptics.vectors import Vectors
 import numpy as np
@@ -38,7 +38,7 @@ class Photon:
         self.material = None
         self.interactionFinder = None
 
-    def setContext(self, initialMaterial: Material, interactionFinder: InteractionFinder):
+    def setContext(self, initialMaterial: Material, interactionFinder):
         self.material = initialMaterial
         self.interactionFinder = interactionFinder
 

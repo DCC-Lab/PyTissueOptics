@@ -45,7 +45,7 @@ class World:
             print("{0:.1f} ms per photon\n".format(duration * 1000 / N))
 
     def compute(self):
-        """ New implementation of self.compute using richer domain.
+        """ New implementation of "compute" using richer domain.
             This method acts as an application context. """
         self._startCalculation()
 
