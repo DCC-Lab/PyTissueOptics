@@ -63,6 +63,10 @@ class Photon:
             intersection = self.intersectionFinder.search(self.globalPosition, self.ez, d)
 
             if intersection is None:
+                if self.material.mu_t == 0:
+                    self.weight = 0
+                    break
+
                 self.moveBy(d)
                 d = 0
                 delta = self.weight * self.material.albedo
