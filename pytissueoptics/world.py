@@ -1,5 +1,5 @@
-from pytissueoptics import Geometry, Source, Detector
-from typing import MutableSet
+from pytissueoptics import Geometry, Source, Detector, Material, Photon
+from typing import List
 import signal
 import time
 
@@ -41,6 +41,13 @@ class World:
         duration = self._completeCalculation()
         if progress:
             print("{0:.1f} ms per photon\n".format(duration * 1000 / N))
+
+    @property
+    def photons(self) -> List[Photon]:
+        photons = []
+        for source in self.sources:
+            photons.extend(source.photons)
+        return photons
 
     def report(self, graphs=True):
         for geometry in self.geometries:

@@ -5,6 +5,7 @@ import time
 import numpy as np
 from numpy import random, cos, sin, tan, pi
 
+
 class Source:
     def __init__(self, maxCount):
         self.origin = Vector(0, 0, 0)
@@ -54,6 +55,12 @@ class Source:
 
     def newPhotons(self):
         raise NotImplementedError()
+
+    @property
+    def photons(self):
+        while len(self._photons) < self.maxCount:
+            self._photons.append(self.newPhoton())
+        return self._photons
 
 
 class IsotropicSource(Source):
