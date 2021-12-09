@@ -2,7 +2,7 @@ from typing import List
 
 from pytissueoptics import *
 from pytissueoptics import Material
-# from pytissueoptics.interactionFinder import InteractionFinder
+# from pytissueoptics.intersectionFinder import IntersectionFinder
 from pytissueoptics.vector import Vector, UnitVector, zHat
 from pytissueoptics.vectors import Vectors
 import numpy as np
@@ -36,11 +36,11 @@ class Photon:
         self.currentGeometry = currentGeometry
 
         self.material = None
-        self.interactionFinder = None
+        self.intersectionFinder = None
 
-    def setContext(self, initialMaterial: Material, interactionFinder):
+    def setContext(self, initialMaterial: Material, intersectionFinder):
         self.material = initialMaterial
-        self.interactionFinder = interactionFinder
+        self.intersectionFinder = intersectionFinder
 
     def propagate(self):
         while self.isAlive:

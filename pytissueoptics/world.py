@@ -3,7 +3,7 @@ from typing import List
 import signal
 import time
 
-from pytissueoptics.interactionFinder import SimpleInteractionFinder
+from pytissueoptics.intersectionFinder import SimpleIntersectionFinder
 
 
 class World:
@@ -50,10 +50,10 @@ class World:
         self._startCalculation()
 
         initialMaterial = Material()
-        interactionFinder = SimpleInteractionFinder(geometries=self.geometries)
+        intersectionFinder = SimpleIntersectionFinder(geometries=self.geometries)
 
-        for photon in self.photons:
-            photon.setContext(initialMaterial, interactionFinder)
+        for i, photon in enumerate(self.photons):
+            photon.setContext(initialMaterial, intersectionFinder)
             photon.propagate()
 
             currentGeometry = self._contains(photon.globalPosition)
