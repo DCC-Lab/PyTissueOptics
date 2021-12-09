@@ -37,3 +37,12 @@ class TestGeometryIT(unittest.TestCase):
 
         self.assertFalse(photon.isAlive)
 
+    def testWhenPropagatePhoton(self):
+        aMaterial = Material(mu_s=2, mu_a=2, g=0.8, index=1.2)
+        geometry = Geometry(material=aMaterial)
+        photon = Photon()
+        print(photon.origin)
+        geometry.propagate(photon)
+
+        print(photon.origin)
+# + test geometry with Stats?
