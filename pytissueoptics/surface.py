@@ -135,11 +135,13 @@ class FresnelIntersect:
             self.actualNormal = -self.surface.normal
             self.indexIn = self.surface.indexOutside
             self.indexOut = self.surface.indexInside
+            self.nextMaterial = self.geometry.material
         else:
             # We are going towards outside of the object
             self.actualNormal = self.surface.normal
             self.indexIn = self.surface.indexInside
             self.indexOut = self.surface.indexOutside
+            self.nextMaterial = None
 
         plane = direction.cross(self.actualNormal)
         if plane.normSquared() < 1e-7:
