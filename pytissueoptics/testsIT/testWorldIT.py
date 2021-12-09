@@ -1,7 +1,6 @@
-from mockito import when, mock, verify
 import unittest
 
-from pytissueoptics import World, Geometry, Source, Vector, Photon, IsotropicSource
+from pytissueoptics import *
 
 
 class TestWorldIT(unittest.TestCase):
@@ -9,10 +8,10 @@ class TestWorldIT(unittest.TestCase):
         world = World()
         self.assertEqual(0, len(world.photons))
 
-    def testGivenNoGeometries_whenRun_shouldRaiseException(self):
+    def testGivenNoGeometries_whenCompute_shouldRaiseException(self):
         pass
 
-    def testGivenNoSource_whenRun_shouldRaiseException(self):
+    def testGivenNoSource_whenCompute_shouldRaiseException(self):
         pass
 
     def testGivenSource_shouldHavePhotons(self):
@@ -36,21 +35,6 @@ class TestWorldIT(unittest.TestCase):
 
         for photon in photons:
             self.assertEqual(sourceOrigin, photon.globalPosition)
-
-    @unittest.skip("")
-    def testGivenGeometryAndSource_whenRun_shouldPropagatePhotons(self):
-        world = World()
-        source = mock(Source)
-        photon1 = Photon()
-        photon2 = Photon()
-        when(source).getPhotons().thenReturn([photon1, photon2])
-
-        world.place(mock(Geometry), Vector(0, 0, 0))
-        world.place(source, Vector(0, 0, 0))
-        world.simpleCompute()
-
-        for photon in [photon1, photon2]:
-            verify(photon).propagate()
 
 
 if __name__ == '__main__':
