@@ -37,3 +37,4 @@ class SimpleIntersectionFinder(IntersectionFinder):
                     closestIntersect = someIntersection
 
         return closestIntersect
+

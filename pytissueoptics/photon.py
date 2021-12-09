@@ -83,6 +83,8 @@ class Photon:
                 else:
                     self.refract(intersection)
                     self.moveBy(d=1e-3)  # We make sure we are out
+                    # todo: consider taking into account % of distance traveled before refract
+                    #  for next material distance
 
                     if intersection.nextMaterial is None:
                         self.material = self._worldMaterial
