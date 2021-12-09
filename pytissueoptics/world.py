@@ -21,7 +21,7 @@ class World:
             anObject.origin = position
             self.sources.append(anObject)
 
-    def compute_old(self, graphs, progress=False):
+    def compute(self, graphs, progress=False):
         self._startCalculation()
         N = 0
         for source in self.sources:
@@ -44,16 +44,16 @@ class World:
         if progress:
             print("{0:.1f} ms per photon\n".format(duration * 1000 / N))
 
-    def compute(self):
+    def simpleCompute(self, sensor=None):
         """ New implementation of "compute" using richer domain.
             This method acts as an application context. """
         self._startCalculation()
 
-        initialMaterial = Material()
+        worldMaterial = Material()
         intersectionFinder = SimpleIntersectionFinder(geometries=self.geometries)
 
         for i, photon in enumerate(self.photons):
-            photon.setContext(initialMaterial, intersectionFinder)
+            photon.setContext(worldMaterial, intersectionFinder, sensor)
             photon.propagate()
 
     @property
