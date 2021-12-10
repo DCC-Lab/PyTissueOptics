@@ -76,18 +76,13 @@ class Photon:
 
             if intersection.isReflected():
                 self.reflect(intersection)
-                self.moveBy(d=1e-3)  # Move away from surface
-
-                self.walk(distanceLeft)
             else:
                 self.refract(intersection)
-                self.moveBy(d=1e-3)  # We make sure we are out
+                distanceLeftRatio = distanceLeft / distance
+                distanceLeft = self.material.getScatteringDistance() * distanceLeftRatio
 
-                # todo: consider taking into account % of distance traveled before refract
-                #  for next material distance
-                distanceRatioLeft = distanceLeft / distance
-                distanceLeft = self.material.getScatteringDistance() * distanceRatioLeft
-                self.walk(distanceLeft)
+            self.moveBy(d=1e-3)  # Move away from surface
+            self.walk(distanceLeft)
 
     def scatter(self):
         delta = self.weight * self.material.albedo
