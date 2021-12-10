@@ -18,6 +18,10 @@ class Material:
         self.g = g
         self.index = index
 
+    @property
+    def isVacuum(self):
+        return self.mu_t == 0
+
     def getScatteringDistance(self):
         if self.mu_t == 0:
             return Material.veryFar

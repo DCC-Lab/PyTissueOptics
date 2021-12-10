@@ -32,10 +32,10 @@ class Photon:
         self.wavelength = None
         self.path = None
 
-         # The global coordinates of the local origin
+        # The global coordinates of the local origin
         self.currentGeometry = currentGeometry
 
-        self.material = None
+        self._material = None
         self.intersectionFinder = None
         self.sensor = None
         self._worldMaterial = None
@@ -45,32 +45,25 @@ class Photon:
         self.intersectionFinder = intersectionFinder
         self.sensor = sensor
 
-        self._resetCurrentMaterial()
+        self._findCurrentMaterial()
 
-    def _resetCurrentMaterial(self):
+    def _findCurrentMaterial(self):
         currentGeometry = self.intersectionFinder.geometryAt(self.globalPosition)
         if currentGeometry is None:
-            self.material = self._worldMaterial
+            self._material = self._worldMaterial
         else:
-            self.material = currentGeometry.material
+            self._material = currentGeometry.material
 
     def propagate(self):
         while self.isAlive:
-            distance = self.material.getScatteringDistance()
+            distance = self._material.getScatteringDistance()
             self.walk(distance)
             self.roulette()
 
     def walk(self, distance):
         intersection = self.intersectionFinder.search(self.globalPosition, self.ez, distance)
 
-        if intersection is None:
-            if self.material.mu_t == 0:
-                self.weight = 0
-                return
-
-            self.moveBy(distance)
-            self.scatter()
-        else:
+        if intersection:
             self.moveBy(d=intersection.distance)
             distanceLeft = distance - intersection.distance
 
@@ -78,16 +71,23 @@ class Photon:
                 self.reflect(intersection)
             else:
                 self.refract(intersection)
-                distanceLeftRatio = distanceLeft / distance
-                distanceLeft = self.material.getScatteringDistance() * distanceLeftRatio
+                self._updateMaterial(intersection.nextMaterial)
+                distanceLeft *= self._material.getScatteringDistance() / distance
 
             self.moveBy(d=1e-3)  # Move away from surface
             self.walk(distanceLeft)
 
+        elif self._material.isVacuum:
+            self.weight = 0
+
+        else:
+            self.moveBy(distance)
+            self.scatter()
+
     def scatter(self):
-        delta = self.weight * self.material.albedo
+        delta = self.weight * self._material.albedo
         self.decreaseWeightBy(delta)
-        theta, phi = self.material.getScatteringAngles()
+        theta, phi = self._material.getScatteringAngles()
         self.scatterBy(theta, phi)
 
     @property
@@ -97,6 +97,12 @@ class Photon:
     @property
     def isAlive(self) -> bool:
         return self.weight > 0
+
+    def _updateMaterial(self, material):
+        if material is None:
+            self._material = self._worldMaterial
+        else:
+            self._material = material
 
     def transformToLocalCoordinates(self, origin):
         self.r = self.r - origin
@@ -137,11 +143,6 @@ class Photon:
         """
 
         self.ez.rotateAround(intersection.incidencePlane, intersection.refractionDeflection)
-
-        if intersection.nextMaterial is None:
-            self.material = self._worldMaterial
-        else:
-            self.material = intersection.nextMaterial
 
     def roulette(self):
         chance = 0.1
