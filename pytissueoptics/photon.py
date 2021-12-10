@@ -55,43 +55,45 @@ class Photon:
             self.material = currentGeometry.material
 
     def propagate(self):
-        d = 0
         while self.isAlive:
-            if d <= 0:
-                d = self.material.getScatteringDistance()
-
-            intersection = self.intersectionFinder.search(self.globalPosition, self.ez, d)
-
-            if intersection is None:
-                if self.material.mu_t == 0:
-                    self.weight = 0
-                    break
-
-                self.moveBy(d)
-                d = 0
-                delta = self.weight * self.material.albedo
-                self.decreaseWeightBy(delta)
-                theta, phi = self.material.getScatteringAngles()
-                self.scatterBy(theta, phi)
-            else:
-                self.moveBy(d=intersection.distance)
-
-                if intersection.isReflected():
-                    self.reflect(intersection)
-                    self.moveBy(d=1e-3)  # Move away from surface
-                    d -= intersection.distance
-                else:
-                    self.refract(intersection)
-                    self.moveBy(d=1e-3)  # We make sure we are out
-                    # todo: consider taking into account % of distance traveled before refract
-                    #  for next material distance
-
-                    if intersection.nextMaterial is None:
-                        self.material = self._worldMaterial
-                    else:
-                        self.material = intersection.nextMaterial
-
+            distance = self.material.getScatteringDistance()
+            self.walk(distance)
             self.roulette()
+
+    def walk(self, distance):
+        intersection = self.intersectionFinder.search(self.globalPosition, self.ez, distance)
+
+        if intersection is None:
+            if self.material.mu_t == 0:
+                self.weight = 0
+                return
+
+            self.moveBy(distance)
+            self.scatter()
+        else:
+            self.moveBy(d=intersection.distance)
+            distanceLeft = distance - intersection.distance
+
+            if intersection.isReflected():
+                self.reflect(intersection)
+                self.moveBy(d=1e-3)  # Move away from surface
+
+                self.walk(distanceLeft)
+            else:
+                self.refract(intersection)
+                self.moveBy(d=1e-3)  # We make sure we are out
+
+                # todo: consider taking into account % of distance traveled before refract
+                #  for next material distance
+                distanceRatioLeft = distanceLeft / distance
+                distanceLeft = self.material.getScatteringDistance() * distanceRatioLeft
+                self.walk(distanceLeft)
+
+    def scatter(self):
+        delta = self.weight * self.material.albedo
+        self.decreaseWeightBy(delta)
+        theta, phi = self.material.getScatteringAngles()
+        self.scatterBy(theta, phi)
 
     @property
     def globalPosition(self):
@@ -140,6 +142,11 @@ class Photon:
         """
 
         self.ez.rotateAround(intersection.incidencePlane, intersection.refractionDeflection)
+
+        if intersection.nextMaterial is None:
+            self.material = self._worldMaterial
+        else:
+            self.material = intersection.nextMaterial
 
     def roulette(self):
         chance = 0.1
