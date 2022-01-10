@@ -9,6 +9,19 @@ import numpy as np
 
 
 class Photon:
+    """
+    Photons is essentially an abstract class, with a basic implementation provided.  It offers a model for
+    all children classes. The photon class contains the logic for the simulation model. A Photon will propagate in its
+    environment until its death, leaving energy along its path. Propagation(Reflection, Refraction, Scattering,
+    Absorption) is managed directly by the photon.
+
+    The model proposed is based on Prahl, S. A. 1989. “A Monte Carlo Model of Light Propagation in Tissue.”
+    Dosimetry of Laser Radiation in Medicine and Biology. https://doi.org/10.1117/12.2283590.
+
+    The only exterior task is to find the interfaces on which the photon will interact.
+    This is managed by an IntersectionFinder(), which can have many different strategies.
+
+    """
     def __init__(self, position=None, direction=None, weight=1.0, origin=Vector(0,0,0), currentGeometry=None):
         if position is not None:
             self.r = Vector(position)  # local coordinate position
@@ -164,12 +177,6 @@ class Photon:
     def _keepPathStatistics(self):
         self.path = [Vector(self.r)]  # Will continue every move
 
-
-"""
-Photons is essentially an abstract class, but a basic implementation is provided.  It offers a model for
-all children classes.
-
-"""
 
 
 class NativePhotons:
