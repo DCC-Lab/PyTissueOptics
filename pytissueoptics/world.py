@@ -21,7 +21,7 @@ class World:
             anObject.origin = position
             self.sources.append(anObject)
 
-    def compute(self, graphs, progress=False):
+    def oldCompute(self, graphs, progress=False):
         self._startCalculation()
         N = 0
         for source in self.sources:
