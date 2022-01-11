@@ -74,7 +74,7 @@ class Photon:
             self.roulette()
 
     def walk(self, distance):
-        intersection = self.intersectionFinder.search(self.globalPosition, self.ez, distance)
+        geometry, intersection = self.intersectionFinder.search(self.globalPosition, self.ez, distance)
 
         if intersection:
             self.moveBy(d=intersection.distance)
@@ -90,16 +90,18 @@ class Photon:
             self.moveBy(d=1e-3)  # Move away from surface
             self.walk(distanceLeft)
 
+
         elif self._material.isVacuum:
             self.weight = 0
 
         else:
             self.moveBy(distance)
-            self.scatter()
+            self.scatterIn(geometry)
 
-    def scatter(self):
+    def scatterIn(self, geometry):
         delta = self.weight * self._material.albedo
         self.decreaseWeightBy(delta)
+        geometry._scoreInVolume(self, delta)
         theta, phi = self._material.getScatteringAngles()
         self.scatterBy(theta, phi)
 
@@ -176,8 +178,6 @@ class Photon:
 
     def _keepPathStatistics(self):
         self.path = [Vector(self.r)]  # Will continue every move
-
-
 
 class NativePhotons:
     def __init__(self, array=None, positions=None, directions=None, N=0):

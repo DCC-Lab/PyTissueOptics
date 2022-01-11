@@ -9,7 +9,7 @@ class IntersectionFinder:
 
 
 class SimpleIntersectionFinder(IntersectionFinder):
-    def search(self, position, direction, distance) -> FresnelIntersect:  # todo: search(Line)
+    def search(self, position, direction, distance):  # todo: search(Line)
         geometry = self.geometryAt(position)
         if geometry is None:
             return self._worldSearch(position, direction, distance)
@@ -18,7 +18,7 @@ class SimpleIntersectionFinder(IntersectionFinder):
         # FIXED: Intersect has to be with the local position of the geometry (Generates recursivity here)
         localCoordinates = position - geometry.origin
         intersect = geometry.nextExitInterface(localCoordinates, direction, distance)
-        return intersect
+        return geometry, intersect
 
     def geometryAt(self, position):
         for geometry in self.geometries:
@@ -31,6 +31,7 @@ class SimpleIntersectionFinder(IntersectionFinder):
         shortestDistance = distance
         closestIntersect = None
 
+
         for geometry in self.geometries:
             localPosition = position - geometry.origin
             someIntersection = geometry.nextEntranceInterface(localPosition, direction, shortestDistance)
@@ -39,5 +40,5 @@ class SimpleIntersectionFinder(IntersectionFinder):
                     shortestDistance = someIntersection.distance
                     closestIntersect = someIntersection
 
-        return closestIntersect
+        return None, closestIntersect
 
