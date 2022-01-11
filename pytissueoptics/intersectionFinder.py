@@ -14,6 +14,8 @@ class SimpleIntersectionFinder(IntersectionFinder):
         if geometry is None:
             return self._worldSearch(position, direction, distance)
 
+
+        # FIXME: Intersect has to be with the local position of the geometry (Generates recursivity here)
         intersect = geometry.nextExitInterface(position, direction, distance)
         return intersect
 
