@@ -15,8 +15,9 @@ class SimpleIntersectionFinder(IntersectionFinder):
             return self._worldSearch(position, direction, distance)
 
 
-        # FIXME: Intersect has to be with the local position of the geometry (Generates recursivity here)
-        intersect = geometry.nextExitInterface(position, direction, distance)
+        # FIXED: Intersect has to be with the local position of the geometry (Generates recursivity here)
+        localCoordinates = position - geometry.origin
+        intersect = geometry.nextExitInterface(localCoordinates, direction, distance)
         return intersect
 
     def geometryAt(self, position):
