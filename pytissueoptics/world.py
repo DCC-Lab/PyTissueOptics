@@ -4,6 +4,7 @@ import signal
 import time
 
 from pytissueoptics.intersectionFinder import SimpleIntersectionFinder
+from pytissueoptics.logger import Logger
 
 
 class World:
@@ -12,6 +13,8 @@ class World:
         self.sources: List[Source] = []
         self.verbose = False
         self.countNotSupposedToBeThere = 0
+
+        self.logger = Logger()
 
     def place(self, anObject, position):
         if isinstance(anObject, Geometry) or isinstance(anObject, Detector):
@@ -44,7 +47,7 @@ class World:
         if progress:
             print("{0:.1f} ms per photon\n".format(duration * 1000 / N))
 
-    def simpleCompute(self, sensor=None):
+    def simpleCompute(self):
         """ New implementation of "compute" using richer domain.
             This method acts as an application context. """
         self._startCalculation()
@@ -53,7 +56,7 @@ class World:
         intersectionFinder = SimpleIntersectionFinder(geometries=self.geometries)
 
         for i, photon in enumerate(self.photons):
-            photon.setContext(worldMaterial, intersectionFinder, sensor)
+            photon.setContext(worldMaterial, intersectionFinder, self.logger)
             photon.propagate()
 
     @property

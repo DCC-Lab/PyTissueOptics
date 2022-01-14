@@ -50,13 +50,13 @@ class Photon:
 
         self._material = None
         self.intersectionFinder = None
-        self.sensor = None
+        self.logger = None
         self._worldMaterial = None
 
-    def setContext(self, worldMaterial: Material, intersectionFinder, sensor):
+    def setContext(self, worldMaterial: Material, intersectionFinder, logger):
         self._worldMaterial = worldMaterial
         self.intersectionFinder = intersectionFinder
-        self.sensor = sensor
+        self.logger = logger
 
         self._findCurrentMaterial()
 
@@ -77,6 +77,7 @@ class Photon:
         intersection = self.intersectionFinder.search(self.globalPosition, self.ez, distance)
 
         if intersection:
+            self.logger.logIntersections([intersection])
             self.moveBy(d=intersection.distance)
             distanceLeft = distance - intersection.distance
 
@@ -85,7 +86,8 @@ class Photon:
             else:
                 self.refract(intersection)
                 self._updateMaterial(intersection.nextMaterial)
-                distanceLeft *= self._material.getScatteringDistance() / distance
+                newDistance = self._material.getScatteringDistance()
+                distanceLeft *= newDistance / distance
 
             self.moveBy(d=1e-3)  # Move away from surface
             self.walk(distanceLeft)
@@ -136,8 +138,8 @@ class Photon:
         self.ez.rotateAround(self.er, theta)
 
     def decreaseWeightBy(self, delta):
-        if self.sensor:
-            self.sensor.scoreInVolume(self, delta)
+        if self.logger:
+            self.logger.logEnergy(positions=[self.globalPosition], energy=[delta])
         self.weight -= delta
         if self.weight < 0:
             self.weight = 0
