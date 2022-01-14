@@ -121,7 +121,11 @@ class ZXRect(Surface):
         super(ZXRect, self).__init__(origin, zHat, xHat, yHat, size, description)
 
 
-class FresnelIntersect:
+class Intersection:
+    pass
+
+
+class FresnelIntersect(Intersection):
     def __init__(self, direction, surface, distance, geometry=None):
         self.surface = surface
         self.direction = direction
