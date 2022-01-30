@@ -25,26 +25,6 @@ class TestVector(unittest.TestCase):
         with self.subTest("z"):
             self.assertEqual(vector.z, values[2])
 
-    def test_withUVW_onXYZPropertySet_shouldBeXYZ(self, vector=None, values=[]):
-        if vector is not None:
-            vector = vector
-            values = values
-        else:
-            vector = Vector(1, -2, 0)
-            values = [5, -2, 2]
-            vector.x = values[0]
-            vector.y = values[1]
-            vector.z = values[2]
-
-        with self.subTest("x"):
-            self.assertEqual(vector.x, values[0])
-
-        with self.subTest("y"):
-            self.assertEqual(vector.y, values[1])
-
-        with self.subTest("z"):
-            self.assertEqual(vector.z, values[2])
-
     def test_withSameVector_onEqCondition_shouldReturnTrue(self):
         vector = Vector(-1, 0, 1)
         vector2 = Vector(-1, 0, 1)
