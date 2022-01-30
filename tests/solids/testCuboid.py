@@ -1,6 +1,6 @@
 import unittest
 
-from graphics.solids import Cuboid
+from python_graphics_engine.solids import Cuboid
 
 
 class TestCuboid(unittest.TestCase):

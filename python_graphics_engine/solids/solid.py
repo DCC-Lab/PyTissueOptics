@@ -1,7 +1,7 @@
 from typing import Dict, List
 
-from graphics.geometry import Vector, Polygon
-from graphics.materials import Material
+from python_graphics_engine.geometry import Vector, Polygon
+from python_graphics_engine.materials import Material
 
 
 class Solid:

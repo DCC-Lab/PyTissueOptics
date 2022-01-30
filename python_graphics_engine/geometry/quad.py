@@ -1,4 +1,4 @@
-from graphics.geometry import Polygon, Vector
+from python_graphics_engine.geometry import Polygon, Vector
 
 
 class Quad(Polygon):

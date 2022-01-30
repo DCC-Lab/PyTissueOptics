@@ -1,6 +1,6 @@
 import unittest
 
-from graphics.geometry import Vector
+from python_graphics_engine.geometry import Vector
 
 
 class TestVector(unittest.TestCase):

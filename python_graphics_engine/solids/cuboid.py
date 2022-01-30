@@ -1,6 +1,6 @@
-from graphics.geometry import Vector, primitives, Quad, Triangle
-from graphics.materials import Material
-from graphics.solids import Solid
+from python_graphics_engine.geometry import Vector, primitives, Quad, Triangle
+from python_graphics_engine.materials import Material
+from python_graphics_engine.solids import Solid
 
 
 class Cuboid(Solid):
