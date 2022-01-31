@@ -7,38 +7,37 @@ class TestVector(unittest.TestCase):
     def setUp(self):
         self.vector = Vector(x=1, y=2.4, z=0.5)
 
-    def testWhenAskingNorm_shouldReturnCorrectNorm(self):
-        vector = Vector(1, 1, 1)
-        self.assertEqual(3**(1/2), vector.norm())
+    def testGivenAnyVectorNotNormalized_shouldNotHaveANormOf1(self):
+        self.assertNotEqual(1, self.vector.getNorm())
 
-    def testWhenNormalize_shouldHaveNormOf1(self):
+    def testWhenNormalize_shouldHaveANormOf1(self):
         self.vector.normalize()
-        self.assertEqual(1, self.vector.norm())
+        self.assertEqual(1, self.vector.getNorm())
 
-    def testWhenAddingVectors_shouldCreateANewVector(self):
-        initialNorm = self.vector.norm()
+    def testWhenAddingVectorsWithAdditionOperator_shouldCreateANewVector(self):
+        initialNorm = self.vector.getNorm()
         anotherVector = Vector(1, 1, 1)
 
         newVector = self.vector + anotherVector
 
-        self.assertEqual(initialNorm, self.vector.norm())
+        self.assertEqual(initialNorm, self.vector.getNorm())
         self.assertEqual(self.vector.x + anotherVector.x, newVector.x)
 
-    def testWhenSubtractingVectors_shouldCreateANewVector(self):
-        initialNorm = self.vector.norm()
+    def testWhenSubtractingVectorsWithSubtractionOperator_shouldCreateANewVector(self):
+        initialNorm = self.vector.getNorm()
         anotherVector = Vector(1, 1, 1)
 
-        newVector = self.vector + anotherVector
+        newVector = self.vector - anotherVector
 
-        self.assertEqual(initialNorm, self.vector.norm())
-        self.assertEqual(self.vector.x + anotherVector.x, newVector.x)
+        self.assertEqual(initialNorm, self.vector.getNorm())
+        self.assertEqual(self.vector.x - anotherVector.x, newVector.x)
 
-    def testGivenSameVector_whenEquals_shouldBeEqual(self):
+    def testGivenTwoVectorsWithTheSameCoordinates_shouldBeEqual(self):
         vector = Vector(-1, 0, 1)
         vector2 = Vector(-1, 0, 1)
         self.assertTrue(vector == vector2)
 
-    def testGivenDifferentVector_whenEquals_shouldNotBeEqual(self):
+    def testGivenTwoDifferentVectors_shouldNotBeEqual(self):
         vector = Vector(-1, 0, 1)
         vector2 = Vector(1, 0, 1)
         self.assertFalse(vector == vector2)
