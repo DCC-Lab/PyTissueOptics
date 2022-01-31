@@ -1,11 +1,10 @@
-from abc import ABC, abstractmethod
 from typing import List
 
 from python_graphics_engine.geometry import Vector
 from python_graphics_engine.materials import Material
 
 
-class Polygon(ABC):
+class Polygon:
     """
     Abstract class for any planar polygon.
 
