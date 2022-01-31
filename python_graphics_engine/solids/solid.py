@@ -12,9 +12,11 @@ class Solid:
         self._vertices = vertices
         self._surfaces = surfaces
         self._primitive = primitive
-
         self._position = Vector(0, 0, 0)
+
         self.translateTo(position)
+        self._computeMesh()
+        self._setInsideMaterial()
 
     @property
     def position(self) -> Vector:
@@ -44,3 +46,17 @@ class Solid:
 
     def _computeQuadMesh(self):
         raise NotImplementedError(f"Quad mesh not implemented for Solids of type {type(self).__name__}")
+
+    def _setInsideMaterial(self):
+        for surfaceGroup in self._surfaces.values():
+            for surface in surfaceGroup:
+                surface.insideMaterial = self._material
+
+    def _setOutsideMaterial(self, material: Material, faceKey: str = None):
+        if faceKey:
+            for surface in self._surfaces[faceKey]:
+                surface.outsideMaterial = material
+        else:
+            for surfaceGroup in self._surfaces.values():
+                for surface in surfaceGroup:
+                    surface.outsideMaterial = material

@@ -6,10 +6,11 @@ from python_graphics_engine.solids import Solid
 class Cuboid(Solid):
     """
         Also known as the Right Rectangular Prism, the Cuboid is defined by its
-        width (a, b, c) in each axis (x, y, z) respectively. The position refers
-        to the vector from global origin to its centroid. The generated mesh will
-        be divided into the following subgroups: Front (-z), Back (+z), Left (-x),
-        Right (+x), Bottom (-y), Top (+y).
+        width (a, b, c) in each axis (x, y, z) respectively.
+
+        The position refers to the vector from global origin to its centroid.
+        The generated mesh will be divided into the following subgroups:
+        Front (-z), Back (+z), Left (-x), Right (+x), Bottom (-y), Top (+y).
     """
 
     def __init__(self, a: float, b: float, c: float,

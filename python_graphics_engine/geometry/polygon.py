@@ -2,6 +2,7 @@ from abc import ABC, abstractmethod
 from typing import List
 
 from python_graphics_engine.geometry import Vector
+from python_graphics_engine.materials import Material
 
 
 class Polygon(ABC):
@@ -11,9 +12,12 @@ class Polygon(ABC):
     Requires the vertices to be given in an anti-clockwise order
      for the normal to point towards the viewer.
     """
-    def __init__(self, vertices: List[Vector]):
+    def __init__(self, vertices: List[Vector],
+                 insideMaterial: Material = None, outsideMaterial: Material = None):
         self._vertices = vertices
         self._normal = None
+        self.insideMaterial = insideMaterial
+        self.outsideMaterial = outsideMaterial
 
         self._computeNormal()
 
