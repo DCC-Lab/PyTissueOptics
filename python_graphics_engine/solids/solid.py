@@ -5,9 +5,8 @@ from python_graphics_engine.materials import Material
 
 
 class Solid:
-    def __init__(self, position: Vector, material: Material,
-                 vertices: List[Vector], surfaces: Dict[str, List[Polygon]],
-                 primitive: str = primitives.DEFAULT):
+    def __init__(self, position: Vector, vertices: List[Vector], surfaces: Dict[str, List[Polygon]],
+                 material: Material = None, primitive: str = primitives.DEFAULT):
         self._material = material
         self._vertices = vertices
         self._surfaces = surfaces
@@ -48,6 +47,8 @@ class Solid:
         raise NotImplementedError(f"Quad mesh not implemented for Solids of type {type(self).__name__}")
 
     def _setInsideMaterial(self):
+        if self._material is None:
+            return
         for surfaceGroup in self._surfaces.values():
             for surface in surfaceGroup:
                 surface.insideMaterial = self._material
