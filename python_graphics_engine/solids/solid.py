@@ -12,6 +12,25 @@ class Solid:
         self._vertices = vertices
         self._surfaces = surfaces
         self._primitive = primitive
+
+        self._position = Vector(0, 0, 0)
+        self.translateTo(position)
+
+    @property
+    def position(self) -> Vector:
+        return self._position
+
+    def translateTo(self, position):
+        if position == self._position:
+            return
+        translationVector = position - self._position
+        self.translateBy(translationVector)
+
+    def translateBy(self, translationVector: Vector):
+        self._position.add(translationVector)
+        for v in self._vertices:
+            v.add(translationVector)
+
     def _computeMesh(self):
         if self._primitive == primitives.TRIANGLE:
             self._computeTriangleMesh()
