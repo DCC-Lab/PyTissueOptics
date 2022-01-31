@@ -14,6 +14,22 @@ class TestVector(unittest.TestCase):
         self.vector.normalize()
         self.assertEqual(1, self.vector.getNorm())
 
+    def testWhenAddVector_shouldAddTheOtherVectorToTheOriginalVector(self):
+        initialNorm = self.vector.getNorm()
+        anotherVector = Vector(1, 1, 1)
+
+        self.vector.add(anotherVector)
+
+        self.assertNotEqual(initialNorm, self.vector.getNorm())
+
+    def testWhenSubtractVector_shouldSubtractTheOtherVectorToTheOriginalVector(self):
+        initialNorm = self.vector.getNorm()
+        anotherVector = Vector(1, 1, 1)
+
+        self.vector.subtract(anotherVector)
+
+        self.assertNotEqual(initialNorm, self.vector.getNorm())
+
     def testWhenAddingVectorsWithAdditionOperator_shouldCreateANewVector(self):
         initialNorm = self.vector.getNorm()
         anotherVector = Vector(1, 1, 1)
