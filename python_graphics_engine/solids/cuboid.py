@@ -13,23 +13,15 @@ class Cuboid(Solid):
     """
 
     def __init__(self, a: float, b: float, c: float,
-                 position: Vector = Vector(), material: Material = Material(),
+                 position: Vector = Vector(0, 0, 0), material: Material = Material(),
                  primitive: str = primitives.DEFAULT):
 
         vertices = [Vector(-a/2, -b/2, -c/2), Vector(a/2, -b/2, -c/2), Vector(a/2, b/2, -c/2), Vector(-a/2, b/2, -c/2),
                     Vector(-a/2, -b/2, c/2), Vector(a/2, -b/2, c/2), Vector(a/2, b/2, c/2), Vector(-a/2, b/2, c/2)]
         surfaces = {'Front': [], 'Back': [], 'Left': [], 'Right': [], 'Top': [], 'Bottom': []}
 
-        self._primitive = primitive
-        super().__init__(position=position, material=material, vertices=vertices, surfaces=surfaces)
-
-    def _computeMesh(self):
-        if self._primitive == primitives.TRIANGLE:
-            self._computeTriangleMesh()
-        elif self._primitive == primitives.QUAD:
-            self._computeQuadMesh()
-        else:
-            raise NotImplementedError(f"Cuboid mesh not implemented for primitive '{self._primitive}'")
+        super().__init__(position=position, material=material, vertices=vertices, surfaces=surfaces,
+                         primitive=primitive)
 
     def _computeTriangleMesh(self):
         V = self._vertices

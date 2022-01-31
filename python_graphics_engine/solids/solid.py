@@ -1,12 +1,27 @@
 from typing import Dict, List
 
-from python_graphics_engine.geometry import Vector, Polygon
+from python_graphics_engine.geometry import Vector, Polygon, primitives
 from python_graphics_engine.materials import Material
 
 
 class Solid:
-    def __init__(self, position: Vector, material: Material, vertices: List[Vector], surfaces: Dict[str, List[Polygon]]):
-        self._position = position
+    def __init__(self, position: Vector, material: Material,
+                 vertices: List[Vector], surfaces: Dict[str, List[Polygon]],
+                 primitive: str = primitives.DEFAULT):
         self._material = material
         self._vertices = vertices
         self._surfaces = surfaces
+        self._primitive = primitive
+    def _computeMesh(self):
+        if self._primitive == primitives.TRIANGLE:
+            self._computeTriangleMesh()
+        elif self._primitive == primitives.QUAD:
+            self._computeQuadMesh()
+        else:
+            raise NotImplementedError(f"Solid mesh not implemented for primitive '{self._primitive}'")
+
+    def _computeTriangleMesh(self):
+        raise NotImplementedError(f"Triangle mesh not implemented for Solids of type {type(self).__name__}")
+
+    def _computeQuadMesh(self):
+        raise NotImplementedError(f"Quad mesh not implemented for Solids of type {type(self).__name__}")
