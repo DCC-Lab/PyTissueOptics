@@ -55,3 +55,8 @@ class Vector:
         self._x = self._x / norm
         self._y = self._y / norm
         self._z = self._z / norm
+
+    def cross(self, other: 'Vector') -> 'Vector':
+        ux, uy, uz = self._x, self._y, self._z
+        vx, vy, vz = other.x, other.y, other.z
+        return Vector(uy*vz - uz*vy, uz*vx - ux*vz, ux*vy - uy*vx)
