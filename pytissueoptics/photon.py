@@ -74,13 +74,13 @@ class Photon:
 
         while self.isAlive:
             distance = self._material.getScatteringDistance()
-            self.walk(distance)
+            self.step(distance)
             self.roulette()
 
         if self.stats:
             self.stats.scoreWhenFinal(self)
 
-    def walk(self, distance):
+    def step(self, distance):
         intersection = self.intersectionFinder.search(Segment(self.globalPosition, self.ez, distance))
 
         if intersection:
@@ -96,7 +96,7 @@ class Photon:
                 distanceLeft *= newDistance / distance
 
             self.moveBy(d=1e-3)  # Move away from surface
-            self.walk(distanceLeft)
+            self.step(distanceLeft)
 
         elif self._material.isVacuum:
             self.weight = 0
