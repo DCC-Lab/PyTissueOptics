@@ -11,5 +11,5 @@ tissue = Layer(thickness=2, material=mat, stats=stats)
 world.place(source, position=Vector(0, 0, -1))
 world.place(tissue, position=Vector(0, 0, -1))
 
-world.simpleCompute(stats=stats)
+world.compute(stats=stats)
 world.report()

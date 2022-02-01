@@ -44,7 +44,7 @@ class World:
         if progress:
             print("{0:.1f} ms per photon\n".format(duration * 1000 / N))
 
-    def simpleCompute(self, stats: 'Stats' = None):
+    def compute(self, stats: 'Stats' = None):
         """ New implementation of "compute" using richer domain.
             This method acts as an application context. """
         self._startCalculation()
