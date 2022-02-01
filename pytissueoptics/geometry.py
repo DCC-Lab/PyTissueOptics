@@ -221,10 +221,10 @@ class Geometry:
             for i, surface in enumerate(self.surfaces):
                 print("Transmittance [{0}] : {1:.1f}% of propagating light".format(surface,
                                                                                    100 * self.stats.transmittance(
-                                                                                       self.surfaces)))
+                                                                                       [surface])))
                 print("Transmittance [{0}] : {1:.1f}% of total power".format(surface,
                                                                              100 * self.stats.transmittance(
-                                                                                 self.surfaces,
+                                                                                 [surface],
                                                                                  referenceWeight=totalSourcePhotons)))
 
             print("Absorbance : {0:.1f}% of propagating light".format(100 * self.stats.absorbance()))
