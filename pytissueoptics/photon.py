@@ -3,6 +3,7 @@ from typing import List
 from pytissueoptics import *
 from pytissueoptics import Material
 # from pytissueoptics.intersectionFinder import IntersectionFinder
+from pytissueoptics.intersectionFinder import Segment
 from pytissueoptics.vector import Vector, UnitVector, zHat
 from pytissueoptics.vectors import Vectors
 import numpy as np
@@ -50,13 +51,13 @@ class Photon:
 
         self._material = None
         self.intersectionFinder = None
-        self.logger = None
+        self.stats = None
         self._worldMaterial = None
 
-    def setContext(self, worldMaterial: Material, intersectionFinder, logger):
+    def setContext(self, worldMaterial: 'Material', intersectionFinder, stats: 'Stats'):
         self._worldMaterial = worldMaterial
         self.intersectionFinder = intersectionFinder
-        self.logger = logger
+        self.stats = stats
 
         self._findCurrentMaterial()
 
@@ -74,10 +75,9 @@ class Photon:
             self.roulette()
 
     def walk(self, distance):
-        intersection = self.intersectionFinder.search(self.globalPosition, self.ez, distance)
+        intersection = self.intersectionFinder.search(Segment(self.globalPosition, self.ez, distance))
 
         if intersection:
-            self.logger.logIntersections([intersection])
             self.moveBy(d=intersection.distance)
             distanceLeft = distance - intersection.distance
 
@@ -138,8 +138,8 @@ class Photon:
         self.ez.rotateAround(self.er, theta)
 
     def decreaseWeightBy(self, delta):
-        if self.logger:
-            self.logger.logEnergy(positions=[self.globalPosition], energy=[delta])
+        if self.stats:
+            self.stats.scoreInVolume(self, delta)
         self.weight -= delta
         if self.weight < 0:
             self.weight = 0

@@ -1,6 +1,6 @@
 from typing import List
 
-from pytissueoptics import Geometry, FresnelIntersect, Vector
+from pytissueoptics import FresnelIntersect, Vector
 
 
 class Segment:
@@ -18,7 +18,7 @@ class Segment:
 
 
 class IntersectionFinder:
-    def __init__(self, geometries: List[Geometry]):
+    def __init__(self, geometries: List['Geometry']):
         self.geometries = geometries
 
 

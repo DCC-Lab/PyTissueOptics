@@ -4,6 +4,7 @@ from pytissueoptics import Intersection
 
 
 class Logger:
+    """ Simpler stats alternative to Stats. Not currently in used. """
     def __init__(self):
         self._positions = []
         self._energy = []
