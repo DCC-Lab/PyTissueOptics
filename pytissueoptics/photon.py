@@ -189,7 +189,6 @@ class Photon:
         self.path = [Vector(self.r)]  # Will continue every move
 
 
-
 class NativePhotons:
     def __init__(self, array=None, positions=None, directions=None, N=0):
         self.iteration = None
