@@ -69,10 +69,16 @@ class Photon:
             self._material = currentGeometry.material
 
     def propagate(self):
+        if self.stats:
+            self.stats.scoreWhenStarting(self)
+
         while self.isAlive:
             distance = self._material.getScatteringDistance()
             self.walk(distance)
             self.roulette()
+
+        if self.stats:
+            self.stats.scoreWhenFinal(self)
 
     def walk(self, distance):
         intersection = self.intersectionFinder.search(Segment(self.globalPosition, self.ez, distance))
