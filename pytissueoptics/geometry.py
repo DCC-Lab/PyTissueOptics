@@ -221,22 +221,23 @@ class Geometry:
             for i, surface in enumerate(self.surfaces):
                 print("Transmittance [{0}] : {1:.1f}% of propagating light".format(surface,
                                                                                    100 * self.stats.transmittance(
-                                                                                       [surface])))
+                                                                                       [surface], geometryOrigin=self.origin)))
                 print("Transmittance [{0}] : {1:.1f}% of total power".format(surface,
                                                                              100 * self.stats.transmittance(
                                                                                  [surface],
-                                                                                 referenceWeight=totalSourcePhotons)))
+                                                                                 referenceWeight=totalSourcePhotons,
+                                                                                 geometryOrigin=self.origin)))
 
             print("Absorbance : {0:.1f}% of propagating light".format(100 * self.stats.absorbance()))
             print("Absorbance : {0:.1f}% of total power".format(100 * self.stats.absorbance(totalSourcePhotons)))
 
-            totalCheck = self.stats.totalWeightAcrossAllSurfaces(self.surfaces) + self.stats.totalWeightAbsorbed()
+            totalCheck = self.stats.totalWeightAcrossAllSurfaces(self.surfaces, geometryOrigin=self.origin) + self.stats.totalWeightAbsorbed()
             print("Absorbance + Transmittance = {0:.1f}%".format(100 * totalCheck / self.stats.inputWeight))
 
             if graphs:
                 self.stats.showEnergy2D(plane='xz', integratedAlong='y', title="Final photons", realtime=False)
                 if len(self.surfaces) != 0:
-                    self.stats.showSurfaceIntensities(self.surfaces, maxPhotons=totalSourcePhotons)
+                    self.stats.showSurfaceIntensities(self.surfaces, maxPhotons=totalSourcePhotons, geometryOrigin=self.origin)
 
     def nextExitInterface(self, position, direction, distance) -> FresnelIntersect:
         """ Is this line segment from position to distance*direction leaving
