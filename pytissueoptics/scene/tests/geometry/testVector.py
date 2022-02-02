@@ -1,5 +1,5 @@
 import unittest
-from pytissueoptics.python_graphics_engine.geometry import Vector
+from pytissueoptics.scene.geometry import Vector
 
 
 class TestVector(unittest.TestCase):

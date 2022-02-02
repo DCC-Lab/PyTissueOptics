@@ -1,8 +1,8 @@
 from typing import Dict, List
 
-from pytissueoptics.python_graphics_engine.geometry import Vector, Polygon
-from pytissueoptics.python_graphics_engine.geometry import primitives
-from pytissueoptics.python_graphics_engine.materials import Material
+from pytissueoptics.scene.geometry import Vector, Polygon
+from pytissueoptics.scene.geometry import primitives
+from pytissueoptics.scene.materials import Material
 
 
 class Solid:

@@ -1,5 +1,5 @@
-from pytissueoptics.python_graphics_engine.geometry import Polygon, Vector
-from pytissueoptics.python_graphics_engine.materials import Material
+from pytissueoptics.scene.geometry import Polygon, Vector
+from pytissueoptics.scene.materials import Material
 
 
 class Quad(Polygon):

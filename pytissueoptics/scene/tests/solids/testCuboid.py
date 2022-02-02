@@ -1,7 +1,7 @@
 import unittest
 
-from pytissueoptics.python_graphics_engine.geometry import Vector
-from pytissueoptics.python_graphics_engine.solids import Cuboid
+from pytissueoptics.scene.geometry import Vector
+from pytissueoptics.scene.solids import Cuboid
 
 
 class TestCuboid(unittest.TestCase):

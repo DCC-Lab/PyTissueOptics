@@ -1,10 +1,10 @@
 import unittest
 from unittest.mock import patch
 
-from pytissueoptics.python_graphics_engine.geometry import Vector, Quad
-from pytissueoptics.python_graphics_engine.geometry import primitives
-from pytissueoptics.python_graphics_engine.materials import Material
-from pytissueoptics.python_graphics_engine.solids import Solid
+from pytissueoptics.scene.geometry import Vector, Quad
+from pytissueoptics.scene.geometry import primitives
+from pytissueoptics.scene.materials import Material
+from pytissueoptics.scene.solids import Solid
 
 
 class TestSolid(unittest.TestCase):
