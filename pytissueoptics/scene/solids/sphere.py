@@ -28,12 +28,6 @@ class Sphere(Solid):
         self._primitive = primitive
         super().__init__(position=position, material=material, vertices=[], surfaces=surfaces)
 
-    def _computeMesh(self):
-        if self._primitive == primitives.TRIANGLE:
-            self._computeTriangleMesh()
-        else:
-            raise NotImplementedError(f"Sphere mesh not implemented for primitive '{self._primitive}'")
-
     def _computeTriangleMesh(self):
         order = self.order
 
