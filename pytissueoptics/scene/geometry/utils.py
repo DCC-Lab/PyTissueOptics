@@ -1,6 +1,11 @@
 import numpy as np
 
 
+def rotateVerticesArray(verticesArray: np.ndarray, xTheta=0, yTheta=0, zTheta=0) -> np.ndarray:
+    rotationMatrix = eulerRotationMatrix(xTheta, yTheta, zTheta)
+    return np.einsum('ij, ki->ki', rotationMatrix, verticesArray)
+
+
 def eulerRotationMatrix(xTheta=0, yTheta=0, zTheta=0) -> np.ndarray:
     rotationMatrix = np.identity(3)
     if zTheta != 0:

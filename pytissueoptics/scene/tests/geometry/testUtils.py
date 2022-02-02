@@ -2,7 +2,7 @@ import unittest
 
 import numpy as np
 
-from pytissueoptics.scene.geometry.utils import eulerRotationMatrix
+from pytissueoptics.scene.geometry.utils import eulerRotationMatrix, rotateVerticesArray
 
 
 class TestEulerRotationMatrix(unittest.TestCase):
@@ -45,3 +45,15 @@ class TestEulerRotationMatrix(unittest.TestCase):
         pRotated = np.dot(rotation, p)
 
         self.assertTrue(np.allclose([1, 1, -1], pRotated))
+
+
+class TestRotateVerticesArray(unittest.TestCase):
+    def testShouldRotateAllVertices(self):
+        p0, p1 = [1, 1, 1], [-1, -1, -1]
+        verticesArray = np.asarray([p0, p1])
+        rotatedVerticesArray = rotateVerticesArray(verticesArray, xTheta=90, yTheta=90, zTheta=90)
+
+        p0Rotated, p1Rotated = rotatedVerticesArray
+
+        self.assertTrue(np.allclose([1, 1, -1], p0Rotated))
+        self.assertTrue(np.allclose([-1, -1, 1], p1Rotated))
