@@ -1,7 +1,8 @@
 from typing import Dict, List
 
-from python_graphics_engine.geometry import Vector, Polygon, primitives
-from python_graphics_engine.materials import Material
+from pytissueoptics.python_graphics_engine.geometry import Vector, Polygon
+from pytissueoptics.python_graphics_engine.geometry import primitives
+from pytissueoptics.python_graphics_engine.materials import Material
 
 
 class Solid:

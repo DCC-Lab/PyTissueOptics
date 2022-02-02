@@ -1,7 +1,7 @@
 from typing import List
 
-from python_graphics_engine.geometry import Vector
-from python_graphics_engine.materials import Material
+from pytissueoptics.python_graphics_engine.geometry import Vector
+from pytissueoptics.python_graphics_engine.materials import Material
 
 
 class Polygon:

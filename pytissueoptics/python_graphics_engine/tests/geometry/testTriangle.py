@@ -1,6 +1,6 @@
 import unittest
 
-from python_graphics_engine.geometry import Triangle, Vector
+from pytissueoptics.python_graphics_engine.geometry import Triangle, Vector
 
 
 class TestTriangle(unittest.TestCase):

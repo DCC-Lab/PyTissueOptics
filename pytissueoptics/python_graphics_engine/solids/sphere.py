@@ -1,6 +1,7 @@
-from python_graphics_engine.geometry import Vector, primitives, Triangle
-from python_graphics_engine.materials import Material
-from python_graphics_engine.solids import Solid
+from pytissueoptics.python_graphics_engine.geometry import Vector, Triangle
+from pytissueoptics.python_graphics_engine.geometry import primitives
+from pytissueoptics.python_graphics_engine.materials import Material
+from pytissueoptics.python_graphics_engine.solids import Solid
 import itertools
 
 
