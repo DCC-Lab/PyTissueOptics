@@ -37,7 +37,7 @@ class Solid:
     
     def rotate(self, xTheta=0, yTheta=0, zTheta=0):
         """
-        Requires a tuple of 3 angles in degrees to rotate around each axis (X, Y, Z) respectively.
+        Requires the angle in degrees for each axis around which the solid will be rotated.
 
         Since we know the position of the centroid in global coordinates, we extract a centered array reference
         to the vertices and rotate them with euler rotation before moving that reference back to the solid's position.
