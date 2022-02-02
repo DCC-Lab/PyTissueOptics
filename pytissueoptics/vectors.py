@@ -2,11 +2,14 @@ import pytissueoptics.vector as vec
 import pytissueoptics.scalars as sc
 import numpy as np
 import copy
-import pyopencl as pycl
-from collections.abc import Iterable
+try:
+    import pyopencl as pycl
+except ImportError:
+    pass
+
 try:
     import cupy as cp
-except:
+except ImportError:
     cp = np
 
 """
