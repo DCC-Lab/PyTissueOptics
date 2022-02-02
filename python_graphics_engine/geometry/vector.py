@@ -2,9 +2,9 @@
 
 class Vector:
     """
-    Basic implementation of a 3D Vector. It implements most of the basic vector operation.
+    Basic implementation of a mutable 3D Vector. It implements most of the basic vector operation.
+    Mutability is necessary when working with shared object references for expected behavior.
     """
-
     def __init__(self, x: float = 0, y: float = 0, z: float = 0):
         self._x = x
         self._y = y
@@ -37,11 +37,26 @@ class Vector:
     def __add__(self, other: 'Vector') -> 'Vector':
         return Vector(self._x + other.x, self._y + other.y, self._z + other.z)
 
-    def norm(self) -> float:
+    def add(self, other: 'Vector'):
+        self._x += other.x
+        self._y += other.y
+        self._z += other.z
+
+    def subtract(self, other: 'Vector'):
+        self._x -= other.x
+        self._y -= other.y
+        self._z -= other.z
+
+    def getNorm(self) -> float:
         return (self._x ** 2 + self._y ** 2 + self._z ** 2) ** (1 / 2)
 
     def normalize(self):
-        norm = self.norm()
+        norm = self.getNorm()
         self._x = self._x / norm
         self._y = self._y / norm
         self._z = self._z / norm
+
+    def cross(self, other: 'Vector') -> 'Vector':
+        ux, uy, uz = self._x, self._y, self._z
+        vx, vy, vz = other.x, other.y, other.z
+        return Vector(uy*vz - uz*vy, uz*vx - ux*vz, ux*vy - uy*vx)
