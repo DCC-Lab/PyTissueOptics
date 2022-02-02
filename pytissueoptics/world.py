@@ -1,4 +1,4 @@
-from pytissueoptics import Geometry, Source, Detector, Material, Photon
+from pytissueoptics import Geometry, Source, Detector, Material, Photon, Photons
 from typing import List
 import signal
 import time
@@ -43,6 +43,25 @@ class World:
         duration = self._completeCalculation()
         if progress:
             print("{0:.1f} ms per photon\n".format(duration * 1000 / N))
+
+    def oldComputeMany(self, graphs=False):
+        self._startCalculation()
+        N = 0
+        for source in self.sources:
+            N += source.maxCount
+            photons = Photons(list(source))
+
+            while not photons.isEmpty:
+                geometries = self.assignCurrentGeometries(photons)
+                for i, geometry in enumerate(geometries):
+                    if geometry is not None:
+                        photonsInGeometry = photons.livePhotonsInGeometry(geometry)
+                        print(photonsInGeometry.liveCount(), geometry)
+                        geometry.propagateMany(photonsInGeometry)
+
+        duration = self._completeCalculation()
+        print("I should not be here: {}".format(self.countNotSupposedToBeThere))
+        print("{0:.1f} ms per photon\n".format(duration * 1000 / N))
 
     def compute(self, stats: 'Stats' = None):
         """ New implementation of "compute" using richer domain.
@@ -124,6 +143,14 @@ class World:
             photon.transformFromLocalCoordinates(geometry.origin)
 
         return closestIntersect
+
+    def assignCurrentGeometries(self, photons):
+        geometries = set()
+        for photon in photons:
+            currentGeometry = self.assignCurrentGeometry(photon)
+            geometries.add(currentGeometry)
+
+        return list(geometries)
 
     def _startCalculation(self):
         if 'SIGUSR1' in dir(signal) and 'SIGUSR2' in dir(signal):
