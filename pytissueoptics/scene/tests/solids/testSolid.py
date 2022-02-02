@@ -9,7 +9,7 @@ from pytissueoptics.scene.solids import Solid
 
 class TestSolid(unittest.TestCase):
 
-    @patch('python_graphics_engine.solids.Solid._computeMesh')
+    @patch('pytissueoptics.scene.solids.Solid._computeMesh')
     def setUp(self, fakeComputeMesh):
         self.CUBOID_VERTICES = [Vector(-1, -1, -1), Vector(1, -1, -1),
                                 Vector(1, 1, -1), Vector(-1, 1, -1),
