@@ -21,7 +21,7 @@ world.place(source, position=Vector(0, 0, -1))
 world.place(tissue, position=Vector(0, 0, 0))
 #World.place(detector, position=Vector(0, 0, -2))
 
-world.compute(graphs=True)
+world.compute(stats=stats)
 
 # Report the results for all geometries
 world.report()

@@ -121,7 +121,11 @@ class ZXRect(Surface):
         super(ZXRect, self).__init__(origin, zHat, xHat, yHat, size, description)
 
 
-class FresnelIntersect:
+class Intersection:
+    pass
+
+
+class FresnelIntersect(Intersection):
     def __init__(self, direction, surface, distance, geometry=None):
         self.surface = surface
         self.direction = direction
@@ -135,11 +139,13 @@ class FresnelIntersect:
             self.actualNormal = -self.surface.normal
             self.indexIn = self.surface.indexOutside
             self.indexOut = self.surface.indexInside
+            self.nextMaterial = self.geometry.material
         else:
             # We are going towards outside of the object
             self.actualNormal = self.surface.normal
             self.indexIn = self.surface.indexInside
             self.indexOut = self.surface.indexOutside
+            self.nextMaterial = None
 
         plane = direction.cross(self.actualNormal)
         if plane.normSquared() < 1e-7:

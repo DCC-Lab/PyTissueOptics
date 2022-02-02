@@ -25,7 +25,7 @@ class Detector(Geometry):
             sinPhi = math.sqrt(1-cosPhi*cosPhi)
             
             if sinPhi <= self.NA:
-                self.stats.scoreWhenCrossing(photon, surface)
+                self.stats.scoreWhenCrossing(photon)
             else:
                 if photon.r.abs() < 0.3:
                     print(photon.r, cosPhi, sinPhi)

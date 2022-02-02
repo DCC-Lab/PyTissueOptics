@@ -9,11 +9,15 @@ inf = float("+inf")
 
 class TestPhoton(envtest.PyTissueTestCase):
 
-    def testPhoton(self):
+    def testCreatePhoton(self):
         p = Photon()
         self.assertIsNotNone(p)
         self.assertEqual(p.r, Vector(0, 0, 0))
         self.assertEqual(p.ez, Vector(0, 0, 1))
+
+    def testShouldBeAlive(self):
+        p = Photon()
+        self.assertTrue(p.isAlive)
 
     def testSurface(self):
         s=Surface(origin=oHat, a=xHat, b=yHat, normal=zHat)

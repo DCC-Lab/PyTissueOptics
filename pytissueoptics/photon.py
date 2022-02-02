@@ -1,10 +1,28 @@
+from typing import List
+
 from pytissueoptics import *
+from pytissueoptics import Material
+# from pytissueoptics.intersectionFinder import IntersectionFinder
+from pytissueoptics.intersectionFinder import Segment
 from pytissueoptics.vector import Vector, UnitVector, zHat
 from pytissueoptics.vectors import Vectors
 import numpy as np
 
 
 class Photon:
+    """
+    Photons is essentially an abstract class, with a basic implementation provided.  It offers a model for
+    all children classes. The photon class contains the logic for the simulation model. A Photon will propagate in its
+    environment until its death, leaving energy along its path. Propagation(Reflection, Refraction, Scattering,
+    Absorption) is managed directly by the photon.
+
+    The model proposed is based on Prahl, S. A. 1989. “A Monte Carlo Model of Light Propagation in Tissue.”
+    Dosimetry of Laser Radiation in Medicine and Biology. https://doi.org/10.1117/12.2283590.
+
+    The only exterior task is to find the interfaces on which the photon will interact.
+    This is managed by an IntersectionFinder(), which can have many different strategies.
+
+    """
     def __init__(self, position=None, direction=None, weight=1.0, origin=Vector(0,0,0), currentGeometry=None):
         if position is not None:
             self.r = Vector(position)  # local coordinate position
@@ -28,31 +46,84 @@ class Photon:
         self.wavelength = None
         self.path = None
 
-         # The global coordinates of the local origin
+        # The global coordinates of the local origin
         self.currentGeometry = currentGeometry
 
-    @property
-    def localPosition(self):
-        return self.r
+        self._material = None
+        self.intersectionFinder = None
+        self.stats = None
+        self._worldMaterial = None
+
+    def setContext(self, worldMaterial: 'Material', intersectionFinder, stats: 'Stats'):
+        self._worldMaterial = worldMaterial
+        self.intersectionFinder = intersectionFinder
+        self.stats = stats
+
+        self._findCurrentMaterial()
+
+    def _findCurrentMaterial(self):
+        currentGeometry = self.intersectionFinder.geometryAt(self.globalPosition)
+        if currentGeometry is None:
+            self._material = self._worldMaterial
+        else:
+            self._material = currentGeometry.material
+
+    def propagate(self):
+        if self.stats:
+            self.stats.scoreWhenStarting(self)
+
+        while self.isAlive:
+            distance = self._material.getScatteringDistance()
+            self.step(distance)
+            self.roulette()
+
+        if self.stats:
+            self.stats.scoreWhenFinal(self)
+
+    def step(self, distance):
+        intersection = self.intersectionFinder.search(Segment(self.globalPosition, self.ez, distance))
+
+        if intersection:
+            self.moveBy(d=intersection.distance)
+            distanceLeft = distance - intersection.distance
+
+            if intersection.isReflected():
+                self.reflect(intersection)
+            else:
+                self.refract(intersection)
+                self._updateMaterial(intersection.nextMaterial)
+                newDistance = self._material.getScatteringDistance()
+                distanceLeft *= newDistance / distance
+
+            self.moveBy(d=1e-3)  # Move away from surface
+            self.step(distanceLeft)
+
+        elif self._material.isVacuum:
+            self.weight = 0
+
+        else:
+            self.moveBy(distance)
+            self.scatter()
+
+    def scatter(self):
+        delta = self.weight * self._material.albedo
+        self.decreaseWeightBy(delta)
+        theta, phi = self._material.getScatteringAngles()
+        self.scatterBy(theta, phi)
 
     @property
     def globalPosition(self):
         return self.r + self.origin
 
     @property
-    def el(self) -> UnitVector:
-        return self.ez.cross(self.er)
-
-    @property
     def isAlive(self) -> bool:
         return self.weight > 0
 
-    @property
-    def isDead(self) -> bool:
-        return self.weight == 0
-
-    def keepPathStatistics(self):
-        self.path = [Vector(self.r)]  # Will continue every move
+    def _updateMaterial(self, material):
+        if material is None:
+            self._material = self._worldMaterial
+        else:
+            self._material = material
 
     def transformToLocalCoordinates(self, origin):
         self.r = self.r - origin
@@ -73,12 +144,11 @@ class Photon:
         self.ez.rotateAround(self.er, theta)
 
     def decreaseWeightBy(self, delta):
+        if self.stats:
+            self.stats.scoreInVolume(self, delta)
         self.weight -= delta
         if self.weight < 0:
             self.weight = 0
-
-    def deflect(self, deflectionAngle, incidencePlane):
-        self.ez.rotateAround(incidencePlane, deflectionAngle)
 
     def reflect(self, intersection):
         self.ez.rotateAround(intersection.incidencePlane, intersection.reflectionDeflection)
@@ -95,6 +165,9 @@ class Photon:
 
         self.ez.rotateAround(intersection.incidencePlane, intersection.refractionDeflection)
 
+        if self.stats:
+            self.stats.scoreWhenCrossing(self)
+
     def roulette(self):
         chance = 0.1
         if self.weight >= 1e-4 or self.weight == 0:
@@ -104,18 +177,22 @@ class Photon:
         else:
             self.weight = 0
 
+    # unused methods that we keep for now
+    @property
+    def _el(self) -> UnitVector:
+        return self.ez.cross(self.er)
 
-"""
-Photons is essentially an abstract class, but a basic implementation is provided.  It offers a model for
-all children classes.
+    def _deflect(self, deflectionAngle, incidencePlane):
+        self.ez.rotateAround(incidencePlane, deflectionAngle)
 
-"""
+    def _keepPathStatistics(self):
+        self.path = [Vector(self.r)]  # Will continue every move
 
 
 class NativePhotons:
     def __init__(self, array=None, positions=None, directions=None, N=0):
         self.iteration = None
-        self._photons = []
+        self._photons: List[Photon] = []
         if array is not None:
             self._photons = array
         elif not None in (positions, directions):
@@ -179,27 +256,6 @@ class NativePhotons:
         return Photons(
             list(filter(lambda photon: (photon.currentGeometry == geometry) and photon.isAlive, self._photons)))
 
-    def areAllDead(self) -> bool:
-        for photon in self._photons:
-            if photon.isAlive:
-                return False
-
-        return True
-
-    def deadCount(self):
-        count = 0
-        for photon in self._photons:
-            if photon.isDead:
-                count += 1
-        return count
-
-    def liveCount(self):
-        count = 0
-        for photon in self._photons:
-            if photon.isAlive:
-                count += 1
-        return count
-
     def areReflected(self, interfaces):
         areReflected = [interface.isReflected() for photon, interface in zip(self._photons, interfaces)]
 
@@ -211,7 +267,6 @@ class NativePhotons:
         transmittedInterfaces = FresnelIntersects([intersect for intersect in interfaces if not intersect.isReflected()])
 
         return (reflectedPhotons, reflectedInterfaces),  (transmittedPhotons, transmittedInterfaces)
-
 
     def transformToLocalCoordinates(self, origin):
         for photon in self._photons:

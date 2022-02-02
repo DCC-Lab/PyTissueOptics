@@ -109,13 +109,14 @@ class Stats:
 
         return np.sqrt(x2Mean-xMean*xMean)
 
-    def photonsCrossingPlane(self, surface):
+    def photonsCrossingPlane(self, surface, geometryOrigin):
         a = []
         b = []
         weights = []
 
         for (r, w) in self.crossing:
-            isContained, u, v = surface.contains(r)
+            isContained, u, v = surface.contains(r - geometryOrigin)
+
             if isContained:
                 a.append(u)
                 b.append(v)
@@ -123,15 +124,15 @@ class Stats:
 
         return a, b, weights
 
-    def totalWeightCrossingPlane(self, surface) -> float:
-        a, b, weights = self.photonsCrossingPlane(surface)
+    def totalWeightCrossingPlane(self, surface, geometryOrigin) -> float:
+        a, b, weights = self.photonsCrossingPlane(surface, geometryOrigin)
 
         return sum(weights)
 
-    def totalWeightAcrossAllSurfaces(self, surfaces) -> float:
+    def totalWeightAcrossAllSurfaces(self, surfaces, geometryOrigin) -> float:
         totalWeightAcrossAllSurfaces = 0
         for surface in surfaces:
-            totalWeightAcrossAllSurfaces += self.totalWeightCrossingPlane(surface)
+            totalWeightAcrossAllSurfaces += self.totalWeightCrossingPlane(surface, geometryOrigin)
         return totalWeightAcrossAllSurfaces
 
     def totalWeightAbsorbed(self) -> float:
@@ -142,10 +143,10 @@ class Stats:
             referenceWeight = self.inputWeight
         return self.totalWeightAbsorbed() / referenceWeight
 
-    def transmittance(self, surfaces, referenceWeight=None) -> float:
+    def transmittance(self, surfaces, geometryOrigin, referenceWeight=None) -> float:
         if referenceWeight is None:
             referenceWeight = self.inputWeight
-        return self.totalWeightAcrossAllSurfaces(surfaces) / referenceWeight
+        return self.totalWeightAcrossAllSurfaces(surfaces, geometryOrigin) / referenceWeight
 
     def report(self):
         elapsed = time.time() - self.startTime
@@ -191,8 +192,8 @@ class Stats:
 
         self.energy[i, j, k] += delta
 
-    def scoreWhenCrossing(self, photon, surface):
-        self.crossing.append((Vector(photon.r), photon.weight))
+    def scoreWhenCrossing(self, photon):
+        self.crossing.append((Vector(photon.globalPosition), photon.weight))
 
     def scoreWhenStarting(self, photon):
         self.starting.append(photon.weight)
@@ -309,7 +310,7 @@ class Stats:
             plt.ioff()
             plt.show()
 
-    def showSurfaceIntensities(self, surfaces, maxPhotons, bins=21):
+    def showSurfaceIntensities(self, surfaces, maxPhotons, geometryOrigin, bins=21):
         if len(self.crossing) == 0:
             return
 
@@ -317,7 +318,7 @@ class Stats:
         N = maxPhotons
 
         for i, surface in enumerate(surfaces):
-            a, b, weights = self.photonsCrossingPlane(surface)
+            a, b, weights = self.photonsCrossingPlane(surface, geometryOrigin)
             if len(surfaces) > 2:
                 axes[i % 2, i // 2].set_title('Intensity at {0} [T={1:.1f}%]'.format(surface, 100 * sum(weights) / N))
                 axes[i % 2, i // 2].hist2d(a, b, weights=weights, bins=bins)
