@@ -22,40 +22,28 @@ class Sphere(Solid):
                  position: Vector = Vector(),
                  material: Material = Material(),
                  primitive: str = primitives.DEFAULT):
-        surfaces = {'Sphere': []}
-        self.radius = radius
-        self.order = order
-        self._primitive = primitive
-        super().__init__(position=position, material=material, vertices=[], surfaces=surfaces)
-
-    def _computeTriangleMesh(self):
-        order = self.order
+        self._radius = radius
+        self._order = order
 
         phi = (1.0 + 5.0 ** (1 / 2)) / 2.0
         xyPlanePoints = [Vector(-1, phi, 0), Vector(1, phi, 0), Vector(-1, -phi, 0), Vector(1, -phi, 0)]
         yzPlanePoints = [Vector(0, -1, phi), Vector(0, 1, phi), Vector(0, -1, -phi), Vector(0, 1, -phi)]
         xzPlanePoints = [Vector(phi, 0, -1), Vector(phi, 0, 1), Vector(-phi, 0, -1), Vector(-phi, 0, 1)]
-        self._vertices = list(itertools.chain(xyPlanePoints, yzPlanePoints, xzPlanePoints))
+        vertices = list(itertools.chain(xyPlanePoints, yzPlanePoints, xzPlanePoints))
+        surfaces = {'Sphere': []}
+
+        super().__init__(position=position, material=material, vertices=vertices, surfaces=surfaces,
+                         primitive=primitive)
+
+    def _computeTriangleMesh(self):
         V = self._vertices
-        surfaces = [Triangle(V[0], V[11], V[5]),
-                    Triangle(V[0], V[5], V[1]),
-                    Triangle(V[0], V[1], V[7]),
-                    Triangle(V[0], V[7], V[10]),
-                    Triangle(V[0], V[10], V[11]),
-                    Triangle(V[1], V[5], V[9]),
-                    Triangle(V[5], V[11], V[4]),
-                    Triangle(V[11], V[10], V[2]),
-                    Triangle(V[10], V[7], V[6]),
-                    Triangle(V[7], V[1], V[8]),
-                    Triangle(V[3], V[9], V[4]),
-                    Triangle(V[3], V[4], V[2]),
-                    Triangle(V[3], V[2], V[6]),
-                    Triangle(V[3], V[6], V[8]),
-                    Triangle(V[3], V[8], V[9]),
-                    Triangle(V[4], V[9], V[5]),
-                    Triangle(V[2], V[4], V[11]),
-                    Triangle(V[6], V[2], V[10]),
-                    Triangle(V[8], V[6], V[7]),
-                    Triangle(V[9], V[8], V[1])]
-
-
+        self._surfaces['Sphere'] = [Triangle(V[0], V[11], V[5]), Triangle(V[0], V[5], V[1]),
+                                    Triangle(V[0], V[1], V[7]), Triangle(V[0], V[7], V[10]),
+                                    Triangle(V[0], V[10], V[11]), Triangle(V[1], V[5], V[9]),
+                                    Triangle(V[5], V[11], V[4]), Triangle(V[11], V[10], V[2]),
+                                    Triangle(V[10], V[7], V[6]), Triangle(V[7], V[1], V[8]),
+                                    Triangle(V[3], V[9], V[4]), Triangle(V[3], V[4], V[2]),
+                                    Triangle(V[3], V[2], V[6]), Triangle(V[3], V[6], V[8]),
+                                    Triangle(V[3], V[8], V[9]), Triangle(V[4], V[9], V[5]),
+                                    Triangle(V[2], V[4], V[11]), Triangle(V[6], V[2], V[10]),
+                                    Triangle(V[8], V[6], V[7]), Triangle(V[9], V[8], V[1])]
