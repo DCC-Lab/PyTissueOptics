@@ -2,7 +2,6 @@ from pytissueoptics.scene.geometry import Vector, Triangle
 from pytissueoptics.scene.geometry import primitives
 from pytissueoptics.scene.materials import Material
 from pytissueoptics.scene.solids import Solid
-import itertools
 
 
 class Sphere(Solid):
@@ -17,26 +16,48 @@ class Sphere(Solid):
     """
 
     def __init__(self,
-                 radius: float,
-                 order: int,
+                 radius: float = 1.0,
+                 order: int = 0,
                  position: Vector = Vector(),
                  material: Material = Material(),
                  primitive: str = primitives.DEFAULT):
+
         self._radius = radius
         self._order = order
 
-        phi = (1.0 + 5.0 ** (1 / 2)) / 2.0
-        xyPlanePoints = [Vector(-1, phi, 0), Vector(1, phi, 0), Vector(-1, -phi, 0), Vector(1, -phi, 0)]
-        yzPlanePoints = [Vector(0, -1, phi), Vector(0, 1, phi), Vector(0, -1, -phi), Vector(0, 1, -phi)]
-        xzPlanePoints = [Vector(phi, 0, -1), Vector(phi, 0, 1), Vector(-phi, 0, -1), Vector(-phi, 0, 1)]
-        vertices = list(itertools.chain(xyPlanePoints, yzPlanePoints, xzPlanePoints))
+
         surfaces = {'Sphere': []}
 
-        super().__init__(position=position, material=material, vertices=vertices, surfaces=surfaces,
+        super().__init__(position=position, material=material, vertices=[], surfaces=surfaces,
                          primitive=primitive)
 
+    @property
+    def radius(self):
+        return self._radius
+
     def _computeTriangleMesh(self):
-        V = self._vertices
+        """
+        The most precise sphere approximation is the IcoSphere, which is generated from the platonic solid,
+        the Icosahedron. It is built with 20 equilateral triangles with exactly the same angle between each.
+        From Euler's method to generate the vertex for the icosahedron, we cross 3 perpendicular planes,
+        with lenght=2 and width=2*phi. Joining adjscent vertices will produce the Icosahedron.
+
+        From the Icosahedron, we can split each face in 4 triangles, in a recursive manner, to obtain an IcoSphere.
+        The method goes as follow:
+        1 - Find each mid-point between two connecting vertices on a triangle
+        2 - Normalize those new points to project them onto the unit sphere.
+        3 - Connect the new vertices in a way to make 4 new triangles.
+        4 - Do these steps for each triangle (This will lead to redundant calculation, I am aware)
+        5 - Replace the old surfaces by the new surfaces
+        """
+
+        phi = (1.0 + 5.0 ** (1 / 2)) / 2.0
+        xyPlaneVertices = [Vector(-1, phi, 0), Vector(1, phi, 0), Vector(-1, -phi, 0), Vector(1, -phi, 0)]
+        yzPlaneVertices = [Vector(0, -1, phi), Vector(0, 1, phi), Vector(0, -1, -phi), Vector(0, 1, -phi)]
+        xzPlaneVertices = [Vector(phi, 0, -1), Vector(phi, 0, 1), Vector(-phi, 0, -1), Vector(-phi, 0, 1)]
+        icosahedronVertices = [*xyPlaneVertices, *yzPlaneVertices, *xzPlaneVertices]
+        V = icosahedronVertices
+
         self._surfaces['Sphere'] = [Triangle(V[0], V[11], V[5]), Triangle(V[0], V[5], V[1]),
                                     Triangle(V[0], V[1], V[7]), Triangle(V[0], V[7], V[10]),
                                     Triangle(V[0], V[10], V[11]), Triangle(V[1], V[5], V[9]),
@@ -47,3 +68,31 @@ class Sphere(Solid):
                                     Triangle(V[3], V[8], V[9]), Triangle(V[4], V[9], V[5]),
                                     Triangle(V[2], V[4], V[11]), Triangle(V[6], V[2], V[10]),
                                     Triangle(V[8], V[6], V[7]), Triangle(V[9], V[8], V[1])]
+
+        def createMidVertex(p1, p2):
+            middle = Vector((p1.x + p2.x) / 2, (p1.y + p2.y) / 2, (p1.z + p2.z) / 2)
+            return middle
+
+        if self._order != 0:
+            for i in range(0, self._order):
+                newSurfaces = []
+                for j, surface in enumerate(self._surfaces["Sphere"]):
+                    ai = createMidVertex(surface.vertices[0], surface.vertices[1])
+                    bi = createMidVertex(surface.vertices[1], surface.vertices[2])
+                    ci = createMidVertex(surface.vertices[2], surface.vertices[0])
+
+                    self._vertices.extend([ai, bi, ci])
+
+                    newSurfaces.append(Triangle(surface.vertices[0], ai, ci))
+                    newSurfaces.append(Triangle(surface.vertices[1], bi, ai))
+                    newSurfaces.append(Triangle(surface.vertices[2], ci, bi))
+                    newSurfaces.append(Triangle(ai, bi, ci))
+
+                for vertex in self._vertices:
+                    vertex.normalize()
+                    vertex.multiply(self._radius)
+
+                self._surfaces["Sphere"] = newSurfaces
+
+    def _computeQuadMesh(self):
+        raise NotImplementedError

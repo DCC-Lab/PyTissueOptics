@@ -14,8 +14,8 @@ class Solid:
         self._primitive = primitive
         self._position = Vector(0, 0, 0)
 
-        self.translateTo(position)
         self._computeMesh()
+        self.translateTo(position)
         self._setInsideMaterial()
 
     @property

@@ -27,7 +27,6 @@ class TestVector(unittest.TestCase):
         anotherVector = Vector(1, 1, 1)
 
         self.vector.subtract(anotherVector)
-
         self.assertNotEqual(initialNorm, self.vector.getNorm())
 
     def testWhenAddingVectorsWithAdditionOperator_shouldCreateANewVector(self):
