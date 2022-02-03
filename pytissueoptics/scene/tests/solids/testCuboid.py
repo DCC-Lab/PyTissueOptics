@@ -39,7 +39,12 @@ class TestCuboid(unittest.TestCase):
         self.assertEqual(baseCuboid.position + Vector(0, 2, 0), otherCuboid.position)
 
     def testWhenStack_shouldShareSurfacesWithTheOtherCuboid(self):
-        pass
+        baseCuboid = Cuboid(5, 3, 4)
+        otherCuboid = Cuboid(5, 1, 4)
+
+        baseCuboid.stack(otherCuboid, onSurface='Top')
+
+        self.assertEqual(baseCuboid._surfaces['Top'], otherCuboid._surfaces['Bottom'])
 
     def testWhenStack_shouldReturnANewSolidMadeOfTheseTwoCuboids(self):
         pass

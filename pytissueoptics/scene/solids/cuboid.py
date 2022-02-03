@@ -64,3 +64,26 @@ class Cuboid(Solid):
         relativePosition[axis] = self.shape[axis]/2 + other.shape[axis]/2
         relativePosition = Vector(*relativePosition)
         other.translateTo(self.position + relativePosition)
+
+        self._setOutsideMaterial(other._material, faceKey=onSurface)
+
+        onSurfaceIndex = surfacePairs[axis].index(onSurface)
+        oppositeSurface = surfacePairs[axis][(onSurfaceIndex + 1) % 2]
+
+        # todo (?): remove duplicate vertices
+        # there are still twice the required number of vertices at the interface
+        # we could replace other.bottom vertices with self.top vertices,
+        # but this process is quite involved:
+        #
+        # duplicateVertices = []
+        # for surface in other._surfaces[oppositeSurface]:
+        #     for vertex in surface.vertices:
+        #         if vertex not in duplicateVertices:
+        #             duplicateVertices.append(vertex)
+        # sharedVertices = []
+        # ... fill *in-order* with self.vertices with same coordinate as duplicateVertices
+        # Replace other.vertices(at duplicateVertices indexes) with self.vertices(at sharedVerticesIndexes).
+        # Call other.computeMesh to create proper side surfaces with new shared vertices reference.
+        # Then we can lose reference to these duplicate surfaces:
+
+        other._surfaces[oppositeSurface] = self._surfaces[onSurface]
