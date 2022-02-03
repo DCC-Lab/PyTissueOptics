@@ -47,6 +47,16 @@ class Sphere(Solid):
         5 - Replace the old surfaces by the new surfaces
         """
 
+        self._computeFirstOrderTriangleMesh()
+
+        for i in range(0, self._order):
+            self._computeNextOrderTriangleMesh()
+
+        for vertex in self._vertices:
+            vertex.normalize()
+            vertex.multiply(self._radius)
+
+    def _computeFirstOrderTriangleMesh(self):
         phi = (1.0 + 5.0 ** (1 / 2)) / 2.0
         xyPlaneVertices = [Vector(-1, phi, 0), Vector(1, phi, 0), Vector(-1, -phi, 0), Vector(1, -phi, 0)]
         yzPlaneVertices = [Vector(0, -1, phi), Vector(0, 1, phi), Vector(0, -1, -phi), Vector(0, 1, -phi)]
@@ -65,30 +75,26 @@ class Sphere(Solid):
                                     Triangle(V[2], V[4], V[11]), Triangle(V[6], V[2], V[10]),
                                     Triangle(V[8], V[6], V[7]), Triangle(V[9], V[8], V[1])]
 
-        def createMidVertex(p1, p2):
-            middle = Vector((p1.x + p2.x) / 2, (p1.y + p2.y) / 2, (p1.z + p2.z) / 2)
-            return middle
+    def _computeNextOrderTriangleMesh(self):
+        newSurfaces = []
+        for j, surface in enumerate(self._surfaces["Sphere"]):
+            ai = self._createMidVertex(surface.vertices[0], surface.vertices[1])
+            bi = self._createMidVertex(surface.vertices[1], surface.vertices[2])
+            ci = self._createMidVertex(surface.vertices[2], surface.vertices[0])
 
-        if self._order != 0:
-            for i in range(0, self._order):
-                newSurfaces = []
-                for j, surface in enumerate(self._surfaces["Sphere"]):
-                    ai = createMidVertex(surface.vertices[0], surface.vertices[1])
-                    bi = createMidVertex(surface.vertices[1], surface.vertices[2])
-                    ci = createMidVertex(surface.vertices[2], surface.vertices[0])
+            self._vertices.extend([ai, bi, ci])
 
-                    self._vertices.extend([ai, bi, ci])
+            newSurfaces.append(Triangle(surface.vertices[0], ai, ci))
+            newSurfaces.append(Triangle(surface.vertices[1], bi, ai))
+            newSurfaces.append(Triangle(surface.vertices[2], ci, bi))
+            newSurfaces.append(Triangle(ai, bi, ci))
 
-                    newSurfaces.append(Triangle(surface.vertices[0], ai, ci))
-                    newSurfaces.append(Triangle(surface.vertices[1], bi, ai))
-                    newSurfaces.append(Triangle(surface.vertices[2], ci, bi))
-                    newSurfaces.append(Triangle(ai, bi, ci))
+        self._surfaces["Sphere"] = newSurfaces
 
-                self._surfaces["Sphere"] = newSurfaces
-
-        for vertex in self._vertices:
-            vertex.normalize()
-            vertex.multiply(self._radius)
+    @staticmethod
+    def _createMidVertex(p1, p2):
+        middle = Vector((p1.x + p2.x) / 2, (p1.y + p2.y) / 2, (p1.z + p2.z) / 2)
+        return middle
 
     def _computeQuadMesh(self):
         raise NotImplementedError
