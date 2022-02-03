@@ -57,3 +57,16 @@ class TestVector(unittest.TestCase):
         vector = Vector(-1, 0, 1)
         vector2 = Vector(1, 0, 1)
         self.assertFalse(vector == vector2)
+
+    def testWhenUpdate_shouldChangeTheVectorComponents(self):
+        self.vector.update(0, 0, 0)
+        self.assertEqual(Vector(0, 0, 0), self.vector)
+
+    def testWhenCopy_shouldGiveAWithTheSameComponents(self):
+        newVector = self.vector.copy()
+        self.assertEqual(newVector, self.vector)
+
+    def testWhenCopy_shouldGiveANewVector(self):
+        newVector = self.vector.copy()
+        newVector.add(Vector(1, 1, 1))
+        self.assertNotEqual(newVector, self.vector)

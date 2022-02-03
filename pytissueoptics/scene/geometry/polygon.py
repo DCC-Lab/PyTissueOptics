@@ -18,13 +18,17 @@ class Polygon:
         self.insideMaterial = insideMaterial
         self.outsideMaterial = outsideMaterial
 
-        self._computeNormal()
+        self.resetNormal()
 
     @property
     def normal(self):
         return self._normal
 
-    def _computeNormal(self):
+    @property
+    def vertices(self):
+        return self._vertices
+
+    def resetNormal(self):
         """
         For any planar polygon, the first 3 vertices define a triangle with the same normal.
         We use two edges of this triangle to compute the normal (in-order cross-product).

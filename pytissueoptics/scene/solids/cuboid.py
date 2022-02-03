@@ -19,14 +19,10 @@ class Cuboid(Solid):
                  primitive: str = primitives.DEFAULT):
         self.shape = (a, b, c)
 
-        vertices = [Vector(-a / 2, -b / 2, -c / 2), Vector(a / 2, -b / 2, -c / 2), Vector(a / 2, b / 2, -c / 2),
-                    Vector(-a / 2, b / 2, -c / 2),
-                    Vector(-a / 2, -b / 2, c / 2), Vector(a / 2, -b / 2, c / 2), Vector(a / 2, b / 2, c / 2),
-                    Vector(-a / 2, b / 2, c / 2)]
-        surfaces = {'Front': [], 'Back': [], 'Left': [], 'Right': [], 'Top': [], 'Bottom': []}
+        vertices = [Vector(-a/2, -b/2, -c/2), Vector(a/2, -b/2, -c/2), Vector(a/2, b/2, -c/2), Vector(-a/2, b/2, -c/2),
+                    Vector(-a/2, -b/2, c/2), Vector(a/2, -b/2, c/2), Vector(a/2, b/2, c/2), Vector(-a/2, b/2, c/2)]
 
-        super().__init__(position=position, material=material, vertices=vertices, surfaces=surfaces,
-                         primitive=primitive)
+        super().__init__(position=position, material=material, vertices=vertices, primitive=primitive)
 
     def _computeTriangleMesh(self):
         V = self._vertices
