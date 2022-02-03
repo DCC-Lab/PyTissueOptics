@@ -28,11 +28,15 @@ class TestCuboid(unittest.TestCase):
         with self.assertRaises(Exception):
             baseCuboid.stack(otherCuboid, onSurface='Right')
 
-    def testWhenStackOnTop_shouldMoveTheOtherCuboidOnTopOfThisOne(self):
+    def testWhenStackOnASurface_shouldMoveTheOtherCuboidToBeAdjacentToThisSurface(self):
         basePosition = Vector(2, 2, 1)
         otherPosition = Vector(5, 0, 4)
         baseCuboid = Cuboid(5, 3, 4, position=basePosition)
         otherCuboid = Cuboid(5, 1, 4, position=otherPosition)
+
+        baseCuboid.stack(otherCuboid, onSurface='Top')
+
+        self.assertEqual(baseCuboid.position + Vector(0, 2, 0), otherCuboid.position)
 
     def testWhenStack_shouldShareSurfacesWithTheOtherCuboid(self):
         pass

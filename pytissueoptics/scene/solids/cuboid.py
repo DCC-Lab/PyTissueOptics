@@ -63,3 +63,8 @@ class Cuboid(Solid):
         assert self.shape[(axis + 1) % 3] == other.shape[(axis + 1) % 3] and \
                self.shape[(axis + 2) % 3] == other.shape[(axis + 2) % 3], \
                f"Stacking of mismatched surfaces is not supported."
+
+        relativePosition = [0, 0, 0]
+        relativePosition[axis] = self.shape[axis]/2 + other.shape[axis]/2
+        relativePosition = Vector(*relativePosition)
+        other.translateTo(self.position + relativePosition)
