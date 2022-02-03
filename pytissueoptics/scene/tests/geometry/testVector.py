@@ -38,6 +38,14 @@ class TestVector(unittest.TestCase):
 
         self.assertEqual(initialNorm * multiplier, self.vector.getNorm())
 
+    def testWhenDivideWithScalar_shouldDivideAllItsComponents(self):
+        initialNorm = self.vector.getNorm()
+        divider = 2.5
+
+        self.vector.divide(divider)
+
+        self.assertEqual(initialNorm / divider, self.vector.getNorm())
+
     def testWhenAddingVectorsWithAdditionOperator_shouldCreateANewVector(self):
         initialNorm = self.vector.getNorm()
         anotherVector = Vector(1, 1, 1)
