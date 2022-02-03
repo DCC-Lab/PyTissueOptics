@@ -52,6 +52,11 @@ class Vector:
         self._y *= scalar
         self._z *= scalar
 
+    def divide(self, scalar: float):
+        self._x /= scalar
+        self._y /= scalar
+        self._z /= scalar
+
     def getNorm(self) -> float:
         return (self._x ** 2 + self._y ** 2 + self._z ** 2) ** (1 / 2)
 
