@@ -25,11 +25,7 @@ class Sphere(Solid):
         self._radius = radius
         self._order = order
 
-
-        surfaces = {}
-
-        super().__init__(position=position, material=material, vertices=[], surfaces=surfaces,
-                         primitive=primitive)
+        super().__init__(position=position, material=material, vertices=[], primitive=primitive)
 
     @property
     def radius(self):

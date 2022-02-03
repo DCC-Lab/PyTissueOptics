@@ -6,7 +6,7 @@ from pytissueoptics.scene.materials import Material
 
 
 class Solid:
-    def __init__(self, position: Vector, vertices: List[Vector], surfaces: Dict[str, List[Polygon]],
+    def __init__(self, position: Vector, vertices: List[Vector], surfaces: Dict[str, List[Polygon]] = None,
                  material: Material = None, primitive: str = primitives.DEFAULT):
         self._material = material
         self._vertices = vertices
@@ -14,7 +14,7 @@ class Solid:
         self._primitive = primitive
         self._position = Vector(0, 0, 0)
 
-        if not surfaces:
+        if not self._surfaces:
             self._computeMesh()
 
         self.translateTo(position)
@@ -36,6 +36,7 @@ class Solid:
             v.add(translationVector)
 
     def _computeMesh(self):
+        self._surfaces = {}
         if self._primitive == primitives.TRIANGLE:
             self._computeTriangleMesh()
         elif self._primitive == primitives.QUAD:
