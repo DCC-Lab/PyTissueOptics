@@ -1,5 +1,4 @@
 import unittest
-from unittest.mock import patch
 
 from pytissueoptics.scene.geometry import Vector, Quad
 from pytissueoptics.scene.geometry import primitives
@@ -8,9 +7,7 @@ from pytissueoptics.scene.solids import Solid
 
 
 class TestSolid(unittest.TestCase):
-
-    @patch('pytissueoptics.scene.solids.Solid._computeMesh')
-    def setUp(self, fakeComputeMesh):
+    def setUp(self):
         self.CUBOID_VERTICES = [Vector(-1, -1, -1), Vector(1, -1, -1),
                                 Vector(1, 1, -1), Vector(-1, 1, -1),
                                 Vector(-1, -1, 1), Vector(1, -1, 1),
