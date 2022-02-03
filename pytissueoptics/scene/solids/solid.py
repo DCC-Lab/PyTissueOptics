@@ -34,7 +34,7 @@ class Solid:
     def surfaces(self) -> List:
         surfaces = []
         for surfaceGroup in self._surfaces:
-            for surface in surfaceGroup:
+            for surface in self._surfaces[surfaceGroup]:
                 surfaces.append(surface)
         return surfaces
 
