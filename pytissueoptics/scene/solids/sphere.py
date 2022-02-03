@@ -17,7 +17,7 @@ class Sphere(Solid):
 
     def __init__(self,
                  radius: float = 1.0,
-                 order: int = 0,
+                 order: int = 4,
                  position: Vector = Vector(),
                  material: Material = Material(),
                  primitive: str = primitives.DEFAULT):
