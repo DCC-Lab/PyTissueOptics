@@ -42,13 +42,13 @@ class Cuboid(Solid):
         self._surfaces['Front'] = [Quad(V[0], V[1], V[2], V[3])]
         self._surfaces['Back'] = [Quad(V[5], V[4], V[7], V[6])]
 
-    def stack(self, other: 'Cuboid', onSurface: str = 'Top'):
+    def stack(self, other: 'Cuboid', onSurface: str = 'Top') -> Solid:
         """
-        Basic implementation for stacking cuboids along an axis. They need to have the same dimensions except
-            for the stack axis.
+        Basic implementation for stacking cuboids along an axis. Currently requires them to have
+         the same dimensions except along the stack axis.
 
         For example, stacking on 'Top' will move the other cuboid on top of the this cuboid. They will now share
-            the same mesh at the interface and inside/outside materials at the interface will be properly handled.
+         the same mesh at the interface and inside/outside materials at the interface will be properly handled.
 
         # fixme: Currently, this will yield unexpected behavior if used on previously rotated cuboids.
         """
@@ -87,3 +87,17 @@ class Cuboid(Solid):
         # Then we can lose reference to these duplicate surfaces:
 
         other._surfaces[oppositeSurface] = self._surfaces[onSurface]
+        stackCentroid = self.position + relativePosition / 2
+
+        stackVertices = self._vertices
+        newVertices = [vertex for vertex in other._vertices if vertex not in self._vertices]
+        stackVertices.extend(newVertices)
+
+        stackSurfaces = {onSurface: other._surfaces[onSurface],
+                         oppositeSurface: self._surfaces[oppositeSurface],
+                         'Interface0': self._surfaces[onSurface]}  # todo: handle multiple interfaces
+        surfaceKeysLeft = surfacePairs[(axis + 1) % 3] + surfacePairs[(axis + 2) % 3]
+        for surfaceKey in surfaceKeysLeft:
+            stackSurfaces[surfaceKey] = self._surfaces[surfaceKey] + other._surfaces[surfaceKey]
+        # todo: should return a Cuboid and support stack chains
+        return Solid(position=stackCentroid, vertices=stackVertices, surfaces=stackSurfaces)
