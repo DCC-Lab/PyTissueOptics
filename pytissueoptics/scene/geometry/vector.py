@@ -65,3 +65,15 @@ class Vector:
         ux, uy, uz = self._x, self._y, self._z
         vx, vy, vz = other.x, other.y, other.z
         return Vector(uy*vz - uz*vy, uz*vx - ux*vz, ux*vy - uy*vx)
+
+    @property
+    def array(self) -> list:
+        return [self._x, self._y, self._z]
+
+    def update(self, x: float, y: float, z: float):
+        self._x = x
+        self._y = y
+        self._z = z
+
+    def copy(self) -> 'Vector':
+        return Vector(self._x, self._y, self._z)
