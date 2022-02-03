@@ -64,6 +64,14 @@ class TestVector(unittest.TestCase):
         self.assertEqual(initialNorm, self.vector.getNorm())
         self.assertEqual(self.vector.x - anotherVector.x, newVector.x)
 
+    def testWhenDividingWithDivisionOperator_shouldCreateANewVector(self):
+        divider = 2
+        initialNorm = self.vector.getNorm()
+
+        newVector = self.vector / divider
+
+        self.assertEqual(initialNorm / divider, newVector.getNorm())
+
     def testGivenTwoVectorsWithTheSameCoordinates_shouldBeEqual(self):
         vector = Vector(-1, 0, 1)
         vector2 = Vector(-1, 0, 1)
