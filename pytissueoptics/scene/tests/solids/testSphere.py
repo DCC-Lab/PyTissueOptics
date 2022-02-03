@@ -1,5 +1,6 @@
 import unittest
 import math
+
 from pytissueoptics.scene.geometry import Vector
 from pytissueoptics.scene.solids import Sphere
 
@@ -29,7 +30,6 @@ class TestSphere(unittest.TestCase):
 
         for surface in sphere._surfaces["Sphere"]:
             icosphereArea += 0.5 * surface.vertices[0].cross(surface.vertices[1]).getNorm()
-        print(icosphereArea, perfectSphereArea)
 
         self.assertNotAlmostEqual(perfectSphereArea, icosphereArea, 3)
 
@@ -42,7 +42,5 @@ class TestSphere(unittest.TestCase):
             AB = surface.vertices[0]-surface.vertices[1]
             AC = surface.vertices[0]-surface.vertices[2]
             icosphereArea += 0.5 * AB.cross(AC).getNorm()
-
-        print(icosphereArea, perfectSphereArea)
 
         self.assertAlmostEqual(perfectSphereArea, icosphereArea, 2)
