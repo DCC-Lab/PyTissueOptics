@@ -26,7 +26,7 @@ class Sphere(Solid):
         self._order = order
 
 
-        surfaces = {'Sphere': []}
+        surfaces = {}
 
         super().__init__(position=position, material=material, vertices=[], surfaces=surfaces,
                          primitive=primitive)
@@ -55,8 +55,8 @@ class Sphere(Solid):
         xyPlaneVertices = [Vector(-1, phi, 0), Vector(1, phi, 0), Vector(-1, -phi, 0), Vector(1, -phi, 0)]
         yzPlaneVertices = [Vector(0, -1, phi), Vector(0, 1, phi), Vector(0, -1, -phi), Vector(0, 1, -phi)]
         xzPlaneVertices = [Vector(phi, 0, -1), Vector(phi, 0, 1), Vector(-phi, 0, -1), Vector(-phi, 0, 1)]
-        icosahedronVertices = [*xyPlaneVertices, *yzPlaneVertices, *xzPlaneVertices]
-        V = icosahedronVertices
+        self._vertices = [*xyPlaneVertices, *yzPlaneVertices, *xzPlaneVertices]
+        V = self._vertices
 
         self._surfaces['Sphere'] = [Triangle(V[0], V[11], V[5]), Triangle(V[0], V[5], V[1]),
                                     Triangle(V[0], V[1], V[7]), Triangle(V[0], V[7], V[10]),
@@ -88,11 +88,11 @@ class Sphere(Solid):
                     newSurfaces.append(Triangle(surface.vertices[2], ci, bi))
                     newSurfaces.append(Triangle(ai, bi, ci))
 
-                for vertex in self._vertices:
-                    vertex.normalize()
-                    vertex.multiply(self._radius)
-
                 self._surfaces["Sphere"] = newSurfaces
+
+        for vertex in self._vertices:
+            vertex.normalize()
+            vertex.multiply(self._radius)
 
     def _computeQuadMesh(self):
         raise NotImplementedError

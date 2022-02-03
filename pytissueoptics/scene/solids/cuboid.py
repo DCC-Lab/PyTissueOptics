@@ -20,7 +20,7 @@ class Cuboid(Solid):
 
         vertices = [Vector(-a/2, -b/2, -c/2), Vector(a/2, -b/2, -c/2), Vector(a/2, b/2, -c/2), Vector(-a/2, b/2, -c/2),
                     Vector(-a/2, -b/2, c/2), Vector(a/2, -b/2, c/2), Vector(a/2, b/2, c/2), Vector(-a/2, b/2, c/2)]
-        surfaces = {'Front': [], 'Back': [], 'Left': [], 'Right': [], 'Top': [], 'Bottom': []}
+        surfaces = {}
 
         super().__init__(position=position, material=material, vertices=vertices, surfaces=surfaces,
                          primitive=primitive)
