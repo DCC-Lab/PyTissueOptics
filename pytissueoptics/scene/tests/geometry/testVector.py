@@ -30,6 +30,14 @@ class TestVector(unittest.TestCase):
 
         self.assertNotEqual(initialNorm, self.vector.getNorm())
 
+    def testWhenMultiplyWithScalar_shouldMultiplyAllItsComponents(self):
+        initialNorm = self.vector.getNorm()
+        multiplier = 2.5
+
+        self.vector.multiply(multiplier)
+
+        self.assertEqual(initialNorm * multiplier, self.vector.getNorm())
+
     def testWhenAddingVectorsWithAdditionOperator_shouldCreateANewVector(self):
         initialNorm = self.vector.getNorm()
         anotherVector = Vector(1, 1, 1)
