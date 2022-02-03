@@ -26,6 +26,18 @@ class Solid:
     def position(self) -> Vector:
         return self._position
 
+    @property
+    def vertices(self) -> List:
+        return self._vertices
+
+    @property
+    def surfaces(self) -> List:
+        surfaces = []
+        for surfaceGroup in self._surfaces:
+            for surface in surfaceGroup:
+                surfaces.append(surface)
+        return surfaces
+
     def translateTo(self, position):
         if position == self._position:
             return
@@ -63,6 +75,7 @@ class Solid:
         for vertex in self._vertices:
             verticesArray.append(vertex.array)
         return np.asarray(verticesArray)
+
 
     def _computeMesh(self):
         self._surfaces = {}
