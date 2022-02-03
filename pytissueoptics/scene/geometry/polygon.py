@@ -24,6 +24,10 @@ class Polygon:
     def normal(self):
         return self._normal
 
+    @property
+    def vertices(self):
+        return self._vertices
+
     def resetNormal(self):
         """
         For any planar polygon, the first 3 vertices define a triangle with the same normal.
