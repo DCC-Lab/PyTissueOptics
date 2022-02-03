@@ -13,3 +13,29 @@ class TestCuboid(unittest.TestCase):
         position = Vector(2, 2, 1)
         cuboid = Cuboid(8, 1, 3, position=position)
         self.assertEqual(position, cuboid.position)
+
+    def testWhenStackOnNonExistentSurface_shouldNotStack(self):
+        baseCuboid = Cuboid(4, 5, 3)
+        otherCuboid = Cuboid(4, 5, 1)
+
+        with self.assertRaises(Exception):
+            baseCuboid.stack(otherCuboid, onSurface='BadSurfaceKey')
+
+    def testWhenStackUnmatchedSurfaces_shouldNotStack(self):
+        baseCuboid = Cuboid(5, 3, 4)
+        otherCuboid = Cuboid(5, 1, 4)
+
+        with self.assertRaises(Exception):
+            baseCuboid.stack(otherCuboid, onSurface='Right')
+
+    def testWhenStackOnTop_shouldMoveTheOtherCuboidOnTopOfThisOne(self):
+        basePosition = Vector(2, 2, 1)
+        otherPosition = Vector(5, 0, 4)
+        baseCuboid = Cuboid(5, 3, 4, position=basePosition)
+        otherCuboid = Cuboid(5, 1, 4, position=otherPosition)
+
+    def testWhenStack_shouldShareSurfacesWithTheOtherCuboid(self):
+        pass
+
+    def testWhenStack_shouldReturnANewSolidMadeOfTheseTwoCuboids(self):
+        pass

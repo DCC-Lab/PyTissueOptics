@@ -41,3 +41,21 @@ class Cuboid(Solid):
         self._surfaces['Top'] = [Quad(V[3], V[2], V[6], V[7])]
         self._surfaces['Front'] = [Quad(V[0], V[1], V[2], V[3])]
         self._surfaces['Back'] = [Quad(V[5], V[4], V[7], V[6])]
+
+    def stack(self, other: 'Cuboid', onSurface: str = 'Top'):
+        """
+        Basic implementation for stacking cuboids along an axis. They need to have the same dimensions except
+            for the stack axis.
+
+        For example, stacking on 'Top' will move the other cuboid on top of the this cuboid. They will now share
+            the same mesh at the interface and inside/outside materials at the interface will be properly handled.
+
+        # fixme: Currently, this will yield unexpected behavior if used on previously rotated cuboids.
+        """
+        assert onSurface in self._surfaces.keys(), f"Available surfaces to stack on are: {self._surfaces.keys()}"
+
+        surfacePairs = [('Left', 'Right'), ('Bottom', 'Top'), ('Front', 'Back')]
+        axis = max(axis if onSurface in surfacePair else -1 for axis, surfacePair in enumerate(surfacePairs))
+        assert self.shape[(axis + 1) % 3] == other.shape[(axis + 1) % 3] and \
+               self.shape[(axis + 2) % 3] == other.shape[(axis + 2) % 3], \
+               f"Stacking of mismatched surfaces is not supported."
