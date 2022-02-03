@@ -4,27 +4,35 @@ except ImportError:
     pass
 
 from pytissueoptics.scene.viewer.mayavi.MayaviSolid import MayaviSolid
-from pytissueoptics.scene.solids.sphere import Sphere
+from pytissueoptics.scene.solids import Sphere, Cuboid
+from pytissueoptics.scene.geometry import Vector
+
 
 
 class MayaviViewer:
     def __init__(self):
-        mlab.figure(1, bgcolor=(1, 1, 1), fgcolor=(0, 0, 0), size=(400, 300))
-        mlab.clf()
+        self._scenes = {"DefaultScene": {"figure": mlab.figure(1, bgcolor=(0.11, 0.11, 0.11), fgcolor=(0.9, 0.9, 0.9)), "Solids": [], }}
+        self._view = {"azimuth": 45, "zenith": 45, "distance": 5, "pointingTowards":[0,0,0]}
 
-    def addMesh(self, other: 'MayaviSolid', representation="wireframe", line_width=0.25):
-        x,y,z,tri = other.meshComponents
-        mlab.triangular_mesh(x,y,z,tri, representation=representation, line_width=line_width)
+    def addMayaviSolid(self, other: 'MayaviSolid', representation="wireframe", line_width=0.25):
+        self._scenes["DefaultScene"]["Solids"].append(other)
+        mlab.triangular_mesh(*other.meshComponents, representation=representation, line_width=line_width, colormap="viridis")
+
+    def _assignViewPoint(self):
+        azimuth, elevation, distance, towards = (self._view[key] for key in self._view)
+        mlab.view(azimuth, elevation, distance, towards)
 
     def show(self):
-        mlab.view(132, 54, 45, [21, 20, 21.5])
+        self._assignViewPoint()
         mlab.show()
 
 
-if __name__ == "__main__":
 
-    from mayavi import mlab
-    mayaviObject = MayaviSolid(Sphere())
-    viewer = MayaviViewer()
-    viewer.addMesh(mayaviObject)
-    viewer.show()
+
+sphere1 = MayaviSolid(Sphere(order=2))
+cuboid1 = MayaviSolid(Cuboid(1, 3, 3, position=Vector(0, 0, 4)))
+viewer = MayaviViewer()
+viewer.addMayaviSolid(sphere1, representation="surface")
+viewer.addMayaviSolid(cuboid1, representation="surface")
+
+viewer.show()
