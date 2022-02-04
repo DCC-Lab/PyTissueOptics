@@ -37,6 +37,10 @@ class Solid:
             surfaces.extend(self._surfaces[surfaceKey])
         return surfaces
 
+    @property
+    def primitive(self) -> str:
+        return self._primitive
+
     def translateTo(self, position):
         if position == self._position:
             return

@@ -5,7 +5,7 @@ except ImportError:
 
 from pytissueoptics.scene.viewer.mayavi.MayaviSolid import MayaviSolid
 from pytissueoptics.scene.solids import Sphere, Cuboid
-from pytissueoptics.scene.geometry import Vector
+from pytissueoptics.scene.geometry import Vector, primitives
 
 
 class MayaviViewer:
@@ -14,6 +14,7 @@ class MayaviViewer:
         self._view = {"azimuth": 0, "zenith": 0, "distance": None, "pointingTowards": None, "roll": None}
 
     def addMayaviSolid(self, other: 'MayaviSolid', representation="wireframe", line_width=0.25):
+        assert other.primitive == primitives.TRIANGLE, "MavaviViewer currently only supports triangle mesh. "
         self._scenes["DefaultScene"]["Solids"].append(other)
         mlab.triangular_mesh(*other.meshComponents, representation=representation, line_width=line_width, colormap="viridis")
 
