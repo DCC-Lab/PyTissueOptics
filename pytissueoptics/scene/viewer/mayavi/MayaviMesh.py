@@ -2,7 +2,7 @@ from typing import List, Tuple
 
 
 class MayaviMesh:
-    def __init__(self, x: List[float], y: List[float], z: List[float], polygonIndices: List[Tuple[int]])
+    def __init__(self, x: List[float], y: List[float], z: List[float], polygonIndices: List[Tuple[int]]):
         self._x = x
         self._y = y
         self._z = z
