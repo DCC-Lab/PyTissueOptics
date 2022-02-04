@@ -10,6 +10,15 @@ class OBJParser(Parser):
             raise TypeError
 
     def _parse(self):
+        """
+        The .OBJ file format is well described here: https://en.wikipedia.org/wiki/Wavefront_.obj_file
+        Summary of important points for our purposes
+        - The indexing starts at '1' instead of '0'
+        - Faces indices have this format: 'v1/vt1/vn1 or v2/vt2 or v3//vn3'.
+        - Groups start with 'g'
+        - New objects will start with 'o'
+        """
+
         for line in open(self._filepath, "r"):
             if line.startswith('#'):
                 continue
@@ -38,7 +47,7 @@ class OBJParser(Parser):
                 texCoordsIndices = []
                 normalIndices = []
                 for verticesIndices in values[1:]:
-                    "faces indices have this format: 'v1/vt1/vn1 or v2/vt2 or v3//vn3'."
+
                     vertexIndices = verticesIndices.split('/')
                     faceIndices.append(int(vertexIndices[0]))
                     if len(vertexIndices) >= 2 and len(vertexIndices[1]) > 0:
@@ -57,11 +66,11 @@ class OBJParser(Parser):
             elif values[0] == 'o':
                 self._currentObjectKey = values[1]
                 self._resetGroupKey()
-                self._objects[self._currentObjectKey] = {}
+                self._objects[self._currentObjectKey] = {"Material": None, "Groups": {"noGroup": {"Polygon": [], "Normal": [], "TexCoords": []}}}
 
             elif values[0] == 'g':
                 self._currentGroupKey = values[1]
-                self._objects[self._currentObjectKey]["PolygonGroups"][self._currentGroupKey] = []
+                self._objects[self._currentObjectKey]["Groups"][self._currentGroupKey] = {"Polygon": [], "Normal": [], "TexCoords": []}
 
     def _resetGroupKey(self):
         self._currentGroupKey = "noGroup"
