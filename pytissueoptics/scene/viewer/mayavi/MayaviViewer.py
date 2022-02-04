@@ -3,7 +3,7 @@ try:
 except ImportError:
     pass
 
-from pytissueoptics.scene.viewer.mayavi.MayaviSolid import MayaviSolid
+from pytissueoptics.scene.viewer.mayavi import MayaviSolid
 from pytissueoptics.scene.solids import Sphere, Cuboid
 from pytissueoptics.scene.geometry import Vector, primitives
 
@@ -16,7 +16,7 @@ class MayaviViewer:
     def addMayaviSolid(self, other: 'MayaviSolid', representation="wireframe", line_width=0.25):
         assert other.primitive == primitives.TRIANGLE, "MavaviViewer currently only supports triangle mesh. "
         self._scenes["DefaultScene"]["Solids"].append(other)
-        mlab.triangular_mesh(*other.meshComponents, representation=representation, line_width=line_width, colormap="viridis")
+        mlab.triangular_mesh(*other.mesh.components, representation=representation, line_width=line_width, colormap="viridis")
 
     def _assignViewPoint(self):
         azimuth, elevation, distance, towards, roll = (self._view[key] for key in self._view)

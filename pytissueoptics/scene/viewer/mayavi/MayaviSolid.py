@@ -1,6 +1,7 @@
 from typing import List, Tuple
 
 from pytissueoptics.scene.solids import Solid
+from pytissueoptics.scene.viewer.mayavi import MayaviMesh
 
 
 class MayaviSolid:
@@ -37,5 +38,5 @@ class MayaviSolid:
             self._polygonIndices.append(tuple(surfaceIndices))
 
     @property
-    def meshComponents(self):
-        return self._x, self._y, self._z, self._polygonIndices
+    def mesh(self) -> MayaviMesh:
+        return MayaviMesh(self._x, self._y, self._z, self._polygonIndices)
