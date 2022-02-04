@@ -10,14 +10,9 @@ class Parser:
         self._vertices = []
         self._normals = []
         self._texCoords = []
-        self._polygons = []
-        self._polyGroups = []
-        self._currentObjectKey = -1
-        self._currentGroupKey = -1
-        self._material = None
+        self._currentObjectKey = ""
+        self._currentGroupKey = ""
+        self._parse()
 
     def _parse(self):
         raise NotImplementedError
-
-    def _resetGroupIndex(self):
-        self._currentGroupIndex = -1

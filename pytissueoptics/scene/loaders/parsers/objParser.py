@@ -43,13 +43,16 @@ class OBJParser(Parser):
                     else:
                         normalIndices.append(0)
 
-                self._objects[self._currentObjectKey][""].append(faceIndices)
+                self._objects[self._currentObjectKey]["PolygonGroups"][self._currentGroupKey].append(faceIndices)
 
             elif values[0] == 'o':
                 self._currentObjectKey = values[1]
-
-                self._objects[f"{values[1]}"] = {}
+                self._resetGroupKey()
+                self._objects[self._currentObjectKey] = {}
 
             elif values[0] == 'g':
                 self._currentGroupKey = values[1]
-                self._objects[self._currentObjectKey][self._currentGroupKey]= {}
+                self._objects[self._currentObjectKey]["PolygonGroups"][self._currentGroupKey] = []
+
+    def _resetGroupKey(self):
+        self._currentGroupKey = "noGroup"
