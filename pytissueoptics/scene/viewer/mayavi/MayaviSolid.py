@@ -8,10 +8,10 @@ class MayaviSolid:
         self._y = []
         self._z = []
         self._triangleIndicesTuples = []
+        self._create()
 
-        self._translate()
 
-    def _translate(self):
+    def _create(self):
         self._separateXYZ()
         self._findTriangleIndices()
 
