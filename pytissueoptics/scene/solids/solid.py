@@ -27,15 +27,14 @@ class Solid:
         return self._position
 
     @property
-    def vertices(self) -> List:
+    def vertices(self) -> List[Vector]:
         return self._vertices
 
     @property
-    def surfaces(self) -> List:
+    def surfaces(self) -> List[Polygon]:
         surfaces = []
-        for surfaceGroup in self._surfaces:
-            for surface in self._surfaces[surfaceGroup]:
-                surfaces.append(surface)
+        for surfaceKey in self._surfaces.keys():
+            surfaces.extend(self._surfaces[surfaceKey])
         return surfaces
 
     def translateTo(self, position):
@@ -75,7 +74,6 @@ class Solid:
         for vertex in self._vertices:
             verticesArray.append(vertex.array)
         return np.asarray(verticesArray)
-
 
     def _computeMesh(self):
         self._surfaces = {}
