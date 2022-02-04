@@ -50,7 +50,9 @@ class OBJParser(Parser):
                     else:
                         normalIndices.append(0)
 
-                self._objects[self._currentObjectKey]["PolygonGroups"][self._currentGroupKey].append(faceIndices)
+                self._objects[self._currentObjectKey]["Groups"][self._currentGroupKey]["Polygon"].append(faceIndices)
+                self._objects[self._currentObjectKey]["Groups"][self._currentGroupKey]["Normal"].append(normalIndices)
+                self._objects[self._currentObjectKey]["Groups"][self._currentGroupKey]["TexCoords"].append(texCoordsIndices)
 
             elif values[0] == 'o':
                 self._currentObjectKey = values[1]
