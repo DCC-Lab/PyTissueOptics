@@ -1,7 +1,14 @@
-from pytissueoptics.scene.loaders import Parser
+from ..parsers import Parser
 
 
 class OBJParser(Parser):
+
+    def _checkFileExtension(self):
+        if self._filepath.endswith('.obj'):
+            return
+        else:
+            raise TypeError
+
     def _parse(self):
         for line in open(self._filepath, "r"):
             if line.startswith('#'):
