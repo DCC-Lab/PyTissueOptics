@@ -95,9 +95,11 @@ class Cuboid(Solid):
         newVertices = [vertex for vertex in other._vertices if vertex not in self._vertices]
         stackVertices.extend(newVertices)
 
+        interfaceKeys = [key for key in self._surfaceDict.keys() if "Interface" in key]
+        interfaceIndex = len(interfaceKeys)
         stackSurfaces = {onSurface: other._surfaceDict[onSurface],
                          oppositeSurface: self._surfaceDict[oppositeSurface],
-                         'Interface0': self._surfaceDict[onSurface]}  # todo: handle multiple interfaces
+                         f'Interface{interfaceIndex}': self._surfaceDict[onSurface]}
         surfaceKeysLeft = surfacePairs[(axis + 1) % 3] + surfacePairs[(axis + 2) % 3]
         for surfaceKey in surfaceKeysLeft:
             stackSurfaces[surfaceKey] = self._surfaceDict[surfaceKey] + other._surfaceDict[surfaceKey]
