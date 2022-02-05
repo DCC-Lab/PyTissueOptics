@@ -32,21 +32,25 @@ class Loader:
             raise ValueError("This format is not supported.")
 
     def _convert(self):
-        if len(self._parser.objects) == 1:
+        solids = []
+        if len(self._parser.objects) >= 1:
             vertices = []
-            surfacesGroups = {}
             for vertex in self._parser.vertices:
                 vertices.append(Vector(*vertex))
+
             for objectName in self._parser.objects:
+                surfacesGroups = {}
                 for group in self._parser.objects[objectName]["Groups"]:
                     surfacesGroups[group] = []
                     for polygonIndices in self._parser.objects[objectName]["Groups"][group]["Polygons"]:
                         if len(polygonIndices) == 3:
                             surfacesGroups[group].append(Polygon(vertices=[vertices[polygonIndices[0]], vertices[polygonIndices[1]], vertices[polygonIndices[2]]]))
                         if len(polygonIndices) == 4:
-                            surfacesGroups[group].append(Polygon(vertices=[vertices[polygonIndices[0]], vertices[polygonIndices[1]], vertices[polygonIndices[2]], vertices[polygonIndices[3]]]))
-            solid = Solid(position=Vector(0, 0, 0), vertices=vertices, surfaces=surfacesGroups)
-            return solid
+                            surfacesGroups[group].append(Polygon(vertices=[vertices[polygonIndices[0]], vertices[polygonIndices[1]], vertices[polygonIndices[2]]]))
+                            surfacesGroups[group].append(Polygon(vertices=[vertices[polygonIndices[0]], vertices[polygonIndices[3]], vertices[polygonIndices[2]]]))
+
+                solids.append(Solid(position=Vector(0, 0, 0), vertices=vertices, surfaces=surfacesGroups))
+            return solids
 
         else:
             print("argh.")
