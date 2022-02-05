@@ -1,4 +1,4 @@
-from typing import List, Tuple, Union, Dict
+from typing import List, Dict
 
 
 class Parser:
@@ -8,7 +8,7 @@ class Parser:
 
     def __init__(self, filepath: str):
         self._filepath = filepath
-        self._objects: Dict = {"noObject": {"Material": None, "Groups": {"noGroup": {"Polygon": [], "Normal": [], "TexCoords": []}}}}
+        self._objects: Dict = {}
         self._vertices: List[List] = []
         self._normals: List[List] = []
         self._texCoords: List[List] = []
@@ -38,3 +38,6 @@ class Parser:
     def texCoords(self) -> List[List]:
         return self._texCoords
 
+    @property
+    def objects(self) -> Dict:
+        return self._objects

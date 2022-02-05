@@ -59,6 +59,9 @@ class OBJParser(Parser):
                     else:
                         normalIndices.append(0)
 
+                self._checkForNoObject()
+                self._checkForNoGroup()
+
                 self._objects[self._currentObjectKey]["Groups"][self._currentGroupKey]["Polygon"].append(faceIndices)
                 self._objects[self._currentObjectKey]["Groups"][self._currentGroupKey]["Normal"].append(normalIndices)
                 self._objects[self._currentObjectKey]["Groups"][self._currentGroupKey]["TexCoords"].append(texCoordsIndices)
@@ -66,11 +69,20 @@ class OBJParser(Parser):
             elif values[0] == 'o':
                 self._currentObjectKey = values[1]
                 self._resetGroupKey()
-                self._objects[self._currentObjectKey] = {"Material": None, "Groups": {"noGroup": {"Polygon": [], "Normal": [], "TexCoords": []}}}
+                self._objects[self._currentObjectKey] = {"Material": None, "Groups": {}}
 
             elif values[0] == 'g':
                 self._currentGroupKey = values[1]
                 self._objects[self._currentObjectKey]["Groups"][self._currentGroupKey] = {"Polygon": [], "Normal": [], "TexCoords": []}
+
+    def _checkForNoObject(self):
+        if len(self._objects) == 0 and self._currentObjectKey == "noObject":
+            self._objects = {
+                "noObject": {"Material": None, "Groups": {}}}
+
+    def _checkForNoGroup(self):
+        if len(self._objects[self._currentObjectKey]["Groups"]) == 0 and self._currentGroupKey == "noGroup":
+            self._objects[self._currentObjectKey]["Groups"]["noGroup"] = {"Polygon": [], "Normal": [], "TexCoords": []}
 
     def _resetGroupKey(self):
         self._currentGroupKey = "noGroup"
