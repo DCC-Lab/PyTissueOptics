@@ -89,11 +89,18 @@ class Cuboid(Solid):
         # Then we can lose reference to these duplicate surfaceDict:
 
         other._surfaceDict[oppositeSurface] = self._surfaceDict[onSurface]
+
+        # Define new stack as a Cuboid
         stackCentroid = self.position + relativePosition / 2
+        stackShape = self.shape.copy()
+        stackShape[axis] += other.shape[axis]
 
         stackVertices = self._vertices
         newVertices = [vertex for vertex in other._vertices if vertex not in self._vertices]
         stackVertices.extend(newVertices)
+        # subtracting stackCentroid from all vertices because solid creation will translate back to stack centroid.
+        for vertex in stackVertices:
+            vertex.subtract(stackCentroid)
 
         interfaceKeys = [key for key in self._surfaceDict.keys() if "Interface" in key]
         interfaceIndex = len(interfaceKeys)
@@ -103,5 +110,13 @@ class Cuboid(Solid):
         surfaceKeysLeft = surfacePairs[(axis + 1) % 3] + surfacePairs[(axis + 2) % 3]
         for surfaceKey in surfaceKeysLeft:
             stackSurfaces[surfaceKey] = self._surfaceDict[surfaceKey] + other._surfaceDict[surfaceKey]
-        # todo: should return a Cuboid and support stack chains
-        return Solid(position=stackCentroid, vertices=stackVertices, surfaceDict=stackSurfaces)
+
+        # fixme:
+        #  - currently ignores interfaces in the other cuboid
+        #  - we also pass None to material to skip insideMaterial reset, but that means undefined material for the stack
+        #  so CuboidStack can stack other Cuboids, but not the other way around.
+        #    so we need to raise if other is a stack (interface in surfaceKeys I guess).
+        # todo: refactor
+
+        return Cuboid(*stackShape, position=stackCentroid, vertices=stackVertices, surfaceDict=stackSurfaces,
+                      material=None, primitive=self._primitive)

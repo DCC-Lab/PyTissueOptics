@@ -55,20 +55,20 @@ class TestCuboid(unittest.TestCase):
         for surface in baseCuboid._surfaceDict['Top']:
             self.assertEqual(surface.outsideMaterial, otherCuboid._material)
 
-    def testWhenStack_shouldReturnANewSolidMadeOfTheseTwoCuboids(self):
+    def testWhenStack_shouldReturnANewCuboidMadeOfTheseTwoCuboids(self):
         basePosition = Vector(2, 2, 1)
         baseCuboid = Cuboid(5, 3, 4, position=basePosition)
         otherCuboid = Cuboid(5, 1, 4)
 
         cuboidStack = baseCuboid.stack(otherCuboid, onSurface='Top')
     
+        self.assertEqual([5, 4, 4], cuboidStack.shape)
         self.assertEqual(basePosition + Vector(0, 1, 0), cuboidStack.position)
 
-    def testWhenStack_shouldReturnANewSolidWithAFirstInterface(self):
+    def testWhenStack_shouldReturnANewCuboidWithAFirstInterface(self):
         baseCuboid = Cuboid(5, 3, 4)
         otherCuboid = Cuboid(5, 1, 4)
 
         cuboidStack = baseCuboid.stack(otherCuboid, onSurface='Top')
 
         self.assertTrue("Interface0" in cuboidStack._surfaceDict)
-        # todo: surfaceDict should be in a Container object to which we can ask for face group keys
