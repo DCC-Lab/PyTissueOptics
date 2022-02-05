@@ -28,15 +28,15 @@ class OBJParser(Parser):
                 continue
 
             if values[0] == 'v':
-                v = map(float, values[1:4])
+                v = list(map(float, values[1:4]))
                 self._vertices.append(v)
 
             elif values[0] == 'vn':
-                vn = map(float, values[1:4])
+                vn = list(map(float, values[1:4]))
                 self._normals.append(vn)
 
             elif values[0] == 'vt':
-                vt = map(float, values[1:3])
+                vt = list(map(float, values[1:3]))
                 self._texCoords.append(vt)
 
             elif values[0] in ('usemtl', 'usemat'):

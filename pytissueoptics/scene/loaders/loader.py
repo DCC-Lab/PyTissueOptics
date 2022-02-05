@@ -1,5 +1,5 @@
 import pathlib
-from .parsers import OBJParser
+from .parsers import Parser, OBJParser
 from ..solids.solid import Solid
 from ..geometry import Vector, Polygon
 
@@ -9,11 +9,10 @@ class Loader:
     Base class to manage the conversion between files and Scene() or Solid() from
     various types of files.
     """
-    def __init__(self, filepath: str):
-        self._filepath = filepath
-        self._fileExtension = self._getFileExtension()
-        self._parser = self._selectParser()
-        self._convert()
+    def __init__(self):
+        self._filepath: str = ""
+        self._fileExtension: str = ""
+        self._parser = None
 
     def _getFileExtension(self) -> str:
         return pathlib.Path(self._filepath).suffix
@@ -29,6 +28,9 @@ class Loader:
         elif ext == ".zmx":
             raise NotImplementedError
 
+        else:
+            raise ValueError("This format is not supported.")
+
     def _convert(self):
         if len(self._parser.objects) == 1:
             vertices = []
@@ -37,7 +39,19 @@ class Loader:
                 vertices.append(Vector(*vertex))
             for group in self._parser.objects[0]["Groups"]:
                 surfacesGroups[group] = []
-                for polygon in self._parser.objects[0]["Groups"][group]["Polygons"]:
-                    surfacesGroups[group].append(Polygon)
+                for polygonIndices in self._parser.objects[0]["Groups"][group]["Polygons"]:
+                    if len(polygonIndices) == 3:
+                        surfacesGroups[group].append(Polygon(vertices=[vertices[polygonIndices[0]], vertices[polygonIndices[1]], vertices[polygonIndices[2]]]))
+                    if len(polygonIndices) == 4:
+                        surfacesGroups[group].append(Polygon(vertices=[vertices[polygonIndices[0]], vertices[polygonIndices[1]], vertices[polygonIndices[2]], vertices[polygonIndices[3]]]))
+            solid = Solid(position=Vector(0, 0, 0), vertices=vertices, surfaces=surfacesGroups)
+            return solid
+
         else:
             print("argh.")
+
+    def load(self, filepath):
+        self._filepath = filepath
+        self._fileExtension = self._getFileExtension()
+        self._parser = self._selectParser()
+        return self._convert()
