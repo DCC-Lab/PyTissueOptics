@@ -13,4 +13,7 @@ class TestOBJParser(unittest.TestCase):
             parser = OBJParser("nightstand.dae")
 
     def testWhenCorrectExtension_shouldNotDoAnything(self):
-        parser = OBJParser("nightstand.obj")
+        parser = OBJParser("testCubeQuads.obj")
+
+    def testWhenCubeQuads_shouldGiveCorrectFacesNormalsAndGroups(self):
+        parser = OBJParser("testCubeQuads.obj")

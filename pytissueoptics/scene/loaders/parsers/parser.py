@@ -1,3 +1,5 @@
+from typing import List, Tuple, Union, Dict
+
 
 class Parser:
     """
@@ -6,12 +8,12 @@ class Parser:
 
     def __init__(self, filepath: str):
         self._filepath = filepath
-        self._objects = {}
-        self._vertices = []
-        self._normals = []
-        self._texCoords = []
-        self._currentObjectKey = ""
-        self._currentGroupKey = ""
+        self._objects: Dict = {"noObject": {"Material": None, "Groups": {"noGroup": {"Polygon": [], "Normal": [], "TexCoords": []}}}}
+        self._vertices: List[List] = []
+        self._normals: List[List] = []
+        self._texCoords: List[List] = []
+        self._currentObjectKey: str = "noObject"
+        self._currentGroupKey: str = "noGroup"
         self._checkFileExtension()
         self._parse()
 
@@ -20,3 +22,19 @@ class Parser:
 
     def _parse(self):
         raise NotImplementedError
+
+    def _resetGroupKey(self):
+        self._currentGroupKey = "noGroup"
+
+    @property
+    def vertices(self) -> List[List]:
+        return self._vertices
+
+    @property
+    def normals(self) -> List[List]:
+        return self._normals
+
+    @property
+    def texCoords(self) -> List[List]:
+        return self._texCoords
+
