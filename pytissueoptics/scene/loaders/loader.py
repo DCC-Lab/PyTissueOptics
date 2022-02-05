@@ -37,13 +37,14 @@ class Loader:
             surfacesGroups = {}
             for vertex in self._parser.vertices:
                 vertices.append(Vector(*vertex))
-            for group in self._parser.objects[0]["Groups"]:
-                surfacesGroups[group] = []
-                for polygonIndices in self._parser.objects[0]["Groups"][group]["Polygons"]:
-                    if len(polygonIndices) == 3:
-                        surfacesGroups[group].append(Polygon(vertices=[vertices[polygonIndices[0]], vertices[polygonIndices[1]], vertices[polygonIndices[2]]]))
-                    if len(polygonIndices) == 4:
-                        surfacesGroups[group].append(Polygon(vertices=[vertices[polygonIndices[0]], vertices[polygonIndices[1]], vertices[polygonIndices[2]], vertices[polygonIndices[3]]]))
+            for objectName in self._parser.objects:
+                for group in self._parser.objects[objectName]["Groups"]:
+                    surfacesGroups[group] = []
+                    for polygonIndices in self._parser.objects[objectName]["Groups"][group]["Polygons"]:
+                        if len(polygonIndices) == 3:
+                            surfacesGroups[group].append(Polygon(vertices=[vertices[polygonIndices[0]], vertices[polygonIndices[1]], vertices[polygonIndices[2]]]))
+                        if len(polygonIndices) == 4:
+                            surfacesGroups[group].append(Polygon(vertices=[vertices[polygonIndices[0]], vertices[polygonIndices[1]], vertices[polygonIndices[2]], vertices[polygonIndices[3]]]))
             solid = Solid(position=Vector(0, 0, 0), vertices=vertices, surfaces=surfacesGroups)
             return solid
 
@@ -53,5 +54,5 @@ class Loader:
     def load(self, filepath):
         self._filepath = filepath
         self._fileExtension = self._getFileExtension()
-        self._parser = self._selectParser()
+        self._selectParser()
         return self._convert()

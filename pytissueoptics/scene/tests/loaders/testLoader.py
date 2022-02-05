@@ -1,5 +1,6 @@
 import unittest
 from pytissueoptics.scene.loaders import Loader
+#from pytissueoptics.scene.viewer.mayavi import May
 
 
 class TestLoader(unittest.TestCase):
@@ -8,12 +9,5 @@ class TestLoader(unittest.TestCase):
             solidObject = Loader().load("test.wrongExtension")
 
     def testWhenWrongExtension_shouldRaiseError(self):
-        solidObject = Loader().load("./parsers/testCubeQuads.obj")
-
-    def testWhenTestCubeQuads_shouldGiveCorrectAmountOfVertices(self):
-        parser = OBJParser("testCubeQuads.obj")
-        self.assertEqual(8, len(parser.vertices))
-
-    def testWhenTestCubeQuads_shouldGiveCorrectAmountOfNormals(self):
-        parser = OBJParser("testCubeQuads.obj")
-        self.assertEqual(6, len(parser.normals))
+        loader = Loader()
+        solidObject = loader.load("./parsers/testCubeQuads.obj")
