@@ -1,0 +1,35 @@
+# WaveFront *.obj file made by hand for testing purposes
+# This is a unit cube with 6 faces and 6 groups
+
+v -0.5 -0.5 -0.5
+v 0.5 -0.5 -0.5
+v 0.5 0.5 -0.5
+v -0.5 0.5 -0.5
+v -0.5 -0.5 0.5
+v 0.5 -0.5 0.5
+v 0.5 0.5 0.5
+v -0.5 0.5 0.5
+# 8 vertices
+
+vn 0 0 -1
+vn 1 0 0
+vn 0 0 1
+vn -1 0 0
+vn 0 1 0
+vn 0 -1 0
+# 6 normals
+
+o cube
+usemtl metal 03
+g front
+f 1//1 2//1 3//1 4//1
+g back
+f 5//3 6//3 7//3 8//3
+g left
+f 5//4 1//4 4//4 8//4
+g right
+f 2//2 3//2 7//2 6//2
+g top
+f 4//5 3//5 7//5 8//5
+g bottom
+f 1//6 2//6 6//6 5//6

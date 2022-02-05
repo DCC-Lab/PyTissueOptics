@@ -73,6 +73,7 @@ class OBJParser(Parser):
 
             elif values[0] == 'g':
                 self._currentGroupKey = values[1]
+                self._checkForNoObject()
                 self._objects[self._currentObjectKey]["Groups"][self._currentGroupKey] = {"Polygons": [], "Normals": [], "TexCoords": []}
 
     def _checkForNoObject(self):
