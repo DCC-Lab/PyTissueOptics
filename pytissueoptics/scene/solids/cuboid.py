@@ -44,7 +44,7 @@ class Cuboid(Solid):
         self._surfaceDict['Front'] = [Quad(V[0], V[1], V[2], V[3])]
         self._surfaceDict['Back'] = [Quad(V[5], V[4], V[7], V[6])]
 
-    def stack(self, other: 'Cuboid', onSurface: str = 'Top') -> Solid:
+    def stack(self, other: 'Cuboid', onSurface: str = 'Top') -> 'Cuboid':
         """
         Basic implementation for stacking cuboids along an axis. Currently requires them to have
          the same dimensions except along the stack axis.
@@ -108,6 +108,8 @@ class Cuboid(Solid):
         stackSurfaces = {onSurface: other._surfaceDict[onSurface],
                          oppositeSurface: self._surfaceDict[oppositeSurface],
                          f'Interface{interfaceIndex}': self._surfaceDict[onSurface]}
+        for interfaceKey in interfaceKeys:
+            stackSurfaces[interfaceKey] = self._surfaceDict[interfaceKey]
         surfaceKeysLeft = surfacePairs[(axis + 1) % 3] + surfacePairs[(axis + 2) % 3]
         for surfaceKey in surfaceKeysLeft:
             stackSurfaces[surfaceKey] = self._surfaceDict[surfaceKey] + other._surfaceDict[surfaceKey]
@@ -115,6 +117,7 @@ class Cuboid(Solid):
         # fixme: A Cuboid stack can stack other Cuboids, but not the other way around because:
         #  - currently ignores interfaces in the other cuboid
         #  - we pass None to material to skip insideMaterial reset, but that means undefined material for the stack
+        # + fixme: there's a small positioning error on 3rd stack when not same axis
         # todo: refactor
 
         return Cuboid(*stackShape, position=stackCentroid, vertices=stackVertices, surfaceDict=stackSurfaces,
