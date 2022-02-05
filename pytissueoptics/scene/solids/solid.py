@@ -8,15 +8,15 @@ from pytissueoptics.scene.materials import Material
 
 
 class Solid:
-    def __init__(self, position: Vector, vertices: List[Vector], surfaces: Dict[str, List[Polygon]] = None,
+    def __init__(self, position: Vector, vertices: List[Vector], surfaceDict: Dict[str, List[Polygon]] = None,
                  material: Material = None, primitive: str = primitives.DEFAULT):
         self._material = material
         self._vertices = vertices
-        self._surfaces = surfaces
+        self._surfaceDict = surfaceDict
         self._primitive = primitive
         self._position = Vector(0, 0, 0)
 
-        if not self._surfaces:
+        if not self._surfaceDict:
             self._computeMesh()
 
         self.translateTo(position)
@@ -33,8 +33,8 @@ class Solid:
     @property
     def surfaces(self) -> List[Polygon]:
         surfaces = []
-        for surfaceKey in self._surfaces.keys():
-            surfaces.extend(self._surfaces[surfaceKey])
+        for surfaceGroup in self._surfaceDict.values():
+            surfaces.extend(surfaceGroup)
         return surfaces
 
     @property
@@ -68,7 +68,7 @@ class Solid:
         for (vertex, rotatedVertexArray) in zip(self._vertices, rotatedVerticesArray):
             vertex.update(*rotatedVertexArray)
 
-        for surfaceGroup in self._surfaces.values():
+        for surfaceGroup in self._surfaceDict.values():
             for surface in surfaceGroup:
                 surface.resetNormal()
 
@@ -80,7 +80,7 @@ class Solid:
         return np.asarray(verticesArray)
 
     def _computeMesh(self):
-        self._surfaces = {}
+        self._surfaceDict = {}
         if self._primitive == primitives.TRIANGLE:
             self._computeTriangleMesh()
         elif self._primitive == primitives.QUAD:
@@ -97,15 +97,15 @@ class Solid:
     def _setInsideMaterial(self):
         if self._material is None:
             return
-        for surfaceGroup in self._surfaces.values():
+        for surfaceGroup in self._surfaceDict.values():
             for surface in surfaceGroup:
                 surface.insideMaterial = self._material
 
     def _setOutsideMaterial(self, material: Material, faceKey: str = None):
         if faceKey:
-            for surface in self._surfaces[faceKey]:
+            for surface in self._surfaceDict[faceKey]:
                 surface.outsideMaterial = material
         else:
-            for surfaceGroup in self._surfaces.values():
+            for surfaceGroup in self._surfaceDict.values():
                 for surface in surfaceGroup:
                     surface.outsideMaterial = material

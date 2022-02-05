@@ -12,7 +12,7 @@ class TestMayaviSolid(unittest.TestCase):
         self.surfaces = {"Face": [Triangle(V[0], V[1], V[2]), Triangle(V[2], V[3], V[0])]}
         self.vertices = V
         return Solid(position=Vector(0, 0, 0), vertices=self.vertices,
-                     surfaces=self.surfaces, primitive=primitives.TRIANGLE)
+                     surfaceDict=self.surfaces, primitive=primitives.TRIANGLE)
 
     def testGivenNewMayaviSolid_shouldExtractMayaviMeshFromSolid(self):
         solid = self.createSimpleSolid()

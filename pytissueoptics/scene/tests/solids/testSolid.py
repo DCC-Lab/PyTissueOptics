@@ -21,7 +21,7 @@ class TestSolid(unittest.TestCase):
         self.material = Material()
         self.position = Vector(2, 2, 0)
         self.solid = Solid(position=self.position, material=self.material, vertices=self.CUBOID_VERTICES,
-                           surfaces=self.CUBOID_SURFACES, primitive=primitives.TRIANGLE)
+                           surfaceDict=self.CUBOID_SURFACES, primitive=primitives.TRIANGLE)
 
     def testShouldBeAtDesiredPosition(self):
         self.assertEqual(self.position, self.solid.position)
@@ -60,7 +60,7 @@ class TestSolid(unittest.TestCase):
         quadMock = Mock()
         self.CUBOID_SURFACES['Front'] = [quadMock]
         solid = Solid(position=self.position, material=self.material, vertices=self.CUBOID_VERTICES,
-                      surfaces=self.CUBOID_SURFACES, primitive=primitives.TRIANGLE)
+                      surfaceDict=self.CUBOID_SURFACES, primitive=primitives.TRIANGLE)
         surfaceResetNormalCount = quadMock.resetNormal.call_count
 
         solid.rotate(xTheta=90, yTheta=90, zTheta=90)
