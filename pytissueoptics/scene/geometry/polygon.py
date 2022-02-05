@@ -17,8 +17,8 @@ class Polygon:
         self._normal = None
         self.insideMaterial = insideMaterial
         self.outsideMaterial = outsideMaterial
-
-        self.resetNormal()
+        if self._normal is None:
+            self.resetNormal()
 
     @property
     def normal(self):
