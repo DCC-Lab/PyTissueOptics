@@ -12,9 +12,8 @@ class TestLoader(unittest.TestCase):
         loader = Loader()
         solidObjects = loader.load("./parsers/droid.obj")
         viewer = MayaviViewer()
-
-        viewer.addMayaviSolid(MayaviSolid(solidObjects[0]), representation="surface")
-        viewer.addMayaviSolid(MayaviSolid(solidObjects[1]), representation="surface")
-        viewer.addMayaviSolid(MayaviSolid(solidObjects[2]), representation="surface")
+        for obj in solidObjects:
+            viewer.addMayaviSolid(MayaviSolid(obj), representation="surface")
+        
 
         viewer.show()
