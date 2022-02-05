@@ -44,7 +44,7 @@ class TestCuboid(unittest.TestCase):
 
         baseCuboid.stack(otherCuboid, onSurface='Top')
 
-        self.assertEqual(baseCuboid._surfaces['Top'], otherCuboid._surfaces['Bottom'])
+        self.assertEqual(baseCuboid._surfaceDict['Top'], otherCuboid._surfaceDict['Bottom'])
 
     def testWhenStack_shouldSetOtherCuboidMaterialAtInterface(self):
         baseCuboid = Cuboid(5, 3, 4)
@@ -52,7 +52,7 @@ class TestCuboid(unittest.TestCase):
 
         baseCuboid.stack(otherCuboid, onSurface='Top')
 
-        for surface in baseCuboid._surfaces['Top']:
+        for surface in baseCuboid._surfaceDict['Top']:
             self.assertEqual(surface.outsideMaterial, otherCuboid._material)
 
     def testWhenStack_shouldReturnANewSolidMadeOfTheseTwoCuboids(self):
@@ -70,5 +70,5 @@ class TestCuboid(unittest.TestCase):
 
         cuboidStack = baseCuboid.stack(otherCuboid, onSurface='Top')
 
-        self.assertTrue("Interface0" in cuboidStack._surfaces)
-        # todo: surfaces should be in a Container object to which we can ask for face group keys
+        self.assertTrue("Interface0" in cuboidStack._surfaceDict)
+        # todo: surfaceDict should be in a Container object to which we can ask for face group keys

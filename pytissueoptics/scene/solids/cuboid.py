@@ -26,21 +26,21 @@ class Cuboid(Solid):
 
     def _computeTriangleMesh(self):
         V = self._vertices
-        self._surfaces['Left'] = [Triangle(V[4], V[0], V[3]), Triangle(V[3], V[7], V[4])]
-        self._surfaces['Right'] = [Triangle(V[1], V[5], V[6]), Triangle(V[6], V[2], V[1])]
-        self._surfaces['Bottom'] = [Triangle(V[4], V[5], V[1]), Triangle(V[1], V[0], V[4])]
-        self._surfaces['Top'] = [Triangle(V[3], V[2], V[6]), Triangle(V[6], V[7], V[3])]
-        self._surfaces['Front'] = [Triangle(V[0], V[1], V[2]), Triangle(V[2], V[3], V[0])]
-        self._surfaces['Back'] = [Triangle(V[5], V[4], V[7]), Triangle(V[7], V[6], V[5])]
+        self._surfaceDict['Left'] = [Triangle(V[4], V[0], V[3]), Triangle(V[3], V[7], V[4])]
+        self._surfaceDict['Right'] = [Triangle(V[1], V[5], V[6]), Triangle(V[6], V[2], V[1])]
+        self._surfaceDict['Bottom'] = [Triangle(V[4], V[5], V[1]), Triangle(V[1], V[0], V[4])]
+        self._surfaceDict['Top'] = [Triangle(V[3], V[2], V[6]), Triangle(V[6], V[7], V[3])]
+        self._surfaceDict['Front'] = [Triangle(V[0], V[1], V[2]), Triangle(V[2], V[3], V[0])]
+        self._surfaceDict['Back'] = [Triangle(V[5], V[4], V[7]), Triangle(V[7], V[6], V[5])]
 
     def _computeQuadMesh(self):
         V = self._vertices
-        self._surfaces['Left'] = [Quad(V[4], V[0], V[3], V[7])]
-        self._surfaces['Right'] = [Quad(V[1], V[5], V[6], V[2])]
-        self._surfaces['Bottom'] = [Quad(V[4], V[5], V[1], V[0])]
-        self._surfaces['Top'] = [Quad(V[3], V[2], V[6], V[7])]
-        self._surfaces['Front'] = [Quad(V[0], V[1], V[2], V[3])]
-        self._surfaces['Back'] = [Quad(V[5], V[4], V[7], V[6])]
+        self._surfaceDict['Left'] = [Quad(V[4], V[0], V[3], V[7])]
+        self._surfaceDict['Right'] = [Quad(V[1], V[5], V[6], V[2])]
+        self._surfaceDict['Bottom'] = [Quad(V[4], V[5], V[1], V[0])]
+        self._surfaceDict['Top'] = [Quad(V[3], V[2], V[6], V[7])]
+        self._surfaceDict['Front'] = [Quad(V[0], V[1], V[2], V[3])]
+        self._surfaceDict['Back'] = [Quad(V[5], V[4], V[7], V[6])]
 
     def stack(self, other: 'Cuboid', onSurface: str = 'Top') -> Solid:
         """
@@ -52,7 +52,7 @@ class Cuboid(Solid):
 
         # fixme: Currently, this will yield unexpected behavior if used on previously rotated cuboids.
         """
-        assert onSurface in self._surfaces.keys(), f"Available surfaces to stack on are: {self._surfaces.keys()}"
+        assert onSurface in self._surfaceDict.keys(), f"Available surfaces to stack on are: {self._surfaceDict.keys()}"
 
         surfacePairs = [('Left', 'Right'), ('Bottom', 'Top'), ('Front', 'Back')]
         axis = max(axis if onSurface in surfacePair else -1 for axis, surfacePair in enumerate(surfacePairs))
@@ -76,28 +76,28 @@ class Cuboid(Solid):
         # but this process is quite involved:
         #
         # duplicateVertices = []
-        # for surface in other._surfaces[oppositeSurface]:
+        # for surface in other._surfaceDict[oppositeSurface]:
         #     for vertex in surface.vertices:
         #         if vertex not in duplicateVertices:
         #             duplicateVertices.append(vertex)
         # sharedVertices = []
         # ... fill *in-order* with self.vertices with same coordinate as duplicateVertices
         # Replace other.vertices(at duplicateVertices indexes) with self.vertices(at sharedVerticesIndexes).
-        # Call other.computeMesh to create proper side surfaces with new shared vertices reference.
-        # Then we can lose reference to these duplicate surfaces:
+        # Call other.computeMesh to create proper side surfaceDict with new shared vertices reference.
+        # Then we can lose reference to these duplicate surfaceDict:
 
-        other._surfaces[oppositeSurface] = self._surfaces[onSurface]
+        other._surfaceDict[oppositeSurface] = self._surfaceDict[onSurface]
         stackCentroid = self.position + relativePosition / 2
 
         stackVertices = self._vertices
         newVertices = [vertex for vertex in other._vertices if vertex not in self._vertices]
         stackVertices.extend(newVertices)
 
-        stackSurfaces = {onSurface: other._surfaces[onSurface],
-                         oppositeSurface: self._surfaces[oppositeSurface],
-                         'Interface0': self._surfaces[onSurface]}  # todo: handle multiple interfaces
+        stackSurfaces = {onSurface: other._surfaceDict[onSurface],
+                         oppositeSurface: self._surfaceDict[oppositeSurface],
+                         'Interface0': self._surfaceDict[onSurface]}  # todo: handle multiple interfaces
         surfaceKeysLeft = surfacePairs[(axis + 1) % 3] + surfacePairs[(axis + 2) % 3]
         for surfaceKey in surfaceKeysLeft:
-            stackSurfaces[surfaceKey] = self._surfaces[surfaceKey] + other._surfaces[surfaceKey]
+            stackSurfaces[surfaceKey] = self._surfaceDict[surfaceKey] + other._surfaceDict[surfaceKey]
         # todo: should return a Cuboid and support stack chains
-        return Solid(position=stackCentroid, vertices=stackVertices, surfaces=stackSurfaces)
+        return Solid(position=stackCentroid, vertices=stackVertices, surfaceDict=stackSurfaces)
