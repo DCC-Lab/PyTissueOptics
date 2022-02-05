@@ -55,6 +55,7 @@ class Cuboid(Solid):
         # fixme: Currently, this will yield unexpected behavior if used on previously rotated cuboids.
         """
         assert onSurface in self._surfaceDict.keys(), f"Available surfaces to stack on are: {self._surfaceDict.keys()}"
+        assert "Interface" not in other._surfaceDict.keys(), "Stacking of a cuboid stack is not yet implemented."
 
         surfacePairs = [('Left', 'Right'), ('Bottom', 'Top'), ('Front', 'Back')]
         axis = max(axis if onSurface in surfacePair else -1 for axis, surfacePair in enumerate(surfacePairs))
@@ -111,11 +112,9 @@ class Cuboid(Solid):
         for surfaceKey in surfaceKeysLeft:
             stackSurfaces[surfaceKey] = self._surfaceDict[surfaceKey] + other._surfaceDict[surfaceKey]
 
-        # fixme:
+        # fixme: A Cuboid stack can stack other Cuboids, but not the other way around because:
         #  - currently ignores interfaces in the other cuboid
-        #  - we also pass None to material to skip insideMaterial reset, but that means undefined material for the stack
-        #  so CuboidStack can stack other Cuboids, but not the other way around.
-        #    so we need to raise if other is a stack (interface in surfaceKeys I guess).
+        #  - we pass None to material to skip insideMaterial reset, but that means undefined material for the stack
         # todo: refactor
 
         return Cuboid(*stackShape, position=stackCentroid, vertices=stackVertices, surfaceDict=stackSurfaces,
