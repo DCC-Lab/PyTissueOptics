@@ -125,9 +125,6 @@ class Sphere(Solid):
             elif vertex.y < 0.0:
                 theta = -pi/2
 
-            elif vertex.y == 0:
-                print(f"oh no., phi = {phi}, theta = {theta}")
-
         elif vertex.x > 0.0:
             theta = atan(vertex.y/vertex.x)
 
@@ -138,7 +135,7 @@ class Sphere(Solid):
             elif vertex.y < 0.0:
                 theta = atan(vertex.y / vertex.x) - pi
 
-        print(f"phi = {phi}, theta = {theta}")
+        # print(f"phi = {phi}, theta = {theta}")
         return theta, phi
 
     def _computeQuadMesh(self):
