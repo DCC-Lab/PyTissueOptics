@@ -2,6 +2,7 @@ from pytissueoptics.scene.geometry import Vector, Triangle
 from pytissueoptics.scene.geometry import primitives
 from pytissueoptics.scene.materials import Material
 from pytissueoptics.scene.solids import Solid
+import math
 
 
 class Sphere(Solid):
@@ -17,6 +18,9 @@ class Sphere(Solid):
 
     def __init__(self,
                  radius: float = 1.0,
+                 a: float = 1,
+                 b: float = 1,
+                 c: float = 1,
                  order: int = 4,
                  position: Vector = Vector(),
                  material: Material = Material(),
@@ -53,7 +57,16 @@ class Sphere(Solid):
             self._computeNextOrderTriangleMesh()
 
         for vertex in self._vertices:
+            """
+            The Ellipsoid parametric equation goes as: x^2/a^2 + y^2/b^2 + z^2/c^2 =1
+            A Sphere is just an ellipsoid with a = b = c.
+            Bringing (x, y, z) -> (theta, phi, r) we can simply take the unit sphere and stretch it,
+            since the equation becomes as follow:
+            
+            r^2.cos^2(theta).sin^2(phi)/a^2 + r^2.sin^2(theta).sin^2(phi)/b^2  + r^2.cos^2(phi)/c^2 = 1
+            """
             vertex.normalize()
+            theta, phi = self._findThetaPhi(vertex)
             vertex.multiply(self._radius)
 
     def _computeFirstOrderTriangleMesh(self):
@@ -95,6 +108,27 @@ class Sphere(Solid):
     def _createMidVertex(p1, p2):
         middle = Vector((p1.x + p2.x) / 2, (p1.y + p2.y) / 2, (p1.z + p2.z) / 2)
         return middle
+
+    @staticmethod
+    def _findThetaPhi(vertex: 'Vector'):
+        theta = math.atan(((vertex.x**2 + vertex.y**2)**0.5)/vertex.z)
+        phi = 0
+        if vertex.x == 0:
+            if vertex.y > 0:
+                phi = math.pi/2
+            elif vertex.y < 0:
+                phi = -math.pi/2
+
+        elif vertex.x > 0:
+            phi = math.atan(vertex.y/vertex.x)
+
+        elif vertex.x < 0:
+            if vertex.y >= 0:
+                phi = math.atan(vertex.y/vertex.x) + math.pi
+            elif vertex.y < 0:
+                phi = math.atan(vertex.y / vertex.x) - math.pi
+
+        return theta, phi
 
     def _computeQuadMesh(self):
         raise NotImplementedError
