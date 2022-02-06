@@ -18,10 +18,16 @@ class Sphere(Solid):
     def __init__(self,
                  radius: float = 1.0,
                  order: int = 4,
+                 a: float = 1,
+                 b: float = 1,
+                 c: float = 1,
                  position: Vector = Vector(),
                  material: Material = Material(),
                  primitive: str = primitives.DEFAULT):
 
+        self._a = a
+        self._b = b
+        self._c = c
         self._radius = radius
         self._order = order
 

@@ -4,7 +4,7 @@ except ImportError:
     pass
 
 from pytissueoptics.scene.viewer.mayavi import MayaviSolid
-from pytissueoptics.scene.solids import Sphere, Cuboid
+from pytissueoptics.scene.solids import Sphere, Cuboid, Ellipsoid
 from pytissueoptics.scene.geometry import Vector, primitives
 
 
@@ -28,7 +28,7 @@ class MayaviViewer:
 
 
 if __name__ == "__main__":
-    sphere1 = MayaviSolid(Sphere(a=1, b=3, c=1, order=4))
+    sphere1 = MayaviSolid(Ellipsoid(a=1, b=3, c=1, order=4))
     viewer = MayaviViewer()
     viewer.addMayaviSolid(sphere1, representation="wireframe")
 

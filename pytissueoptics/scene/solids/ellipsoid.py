@@ -1,6 +1,4 @@
-from pytissueoptics.scene.geometry import Vector, Triangle
-from pytissueoptics.scene.geometry import primitives
-from pytissueoptics.scene.materials import Material
+from pytissueoptics.scene.geometry import Vector
 from pytissueoptics.scene.solids import Sphere
 from math import cos, sin, acos, atan, pi, sqrt
 
@@ -18,24 +16,6 @@ class Ellipsoid(Sphere):
         then .add() or .subtract() the corresponding vector.
 
     """
-
-    def __init__(self,
-                 radius: float = 1.0,
-                 a: float = 1,
-                 b: float = 1,
-                 c: float = 1,
-                 order: int = 4,
-                 position: Vector = Vector(),
-                 material: Material = Material(),
-                 primitive: str = primitives.DEFAULT):
-
-        self._a = a
-        self._b = b
-        self._c = c
-        self._radius = radius
-        self._order = order
-
-        super().__init__(position=position, material=material, vertices=[], primitive=primitive)
 
     def _computeTriangleMesh(self):
         self._computeFirstOrderTriangleMesh()
@@ -85,3 +65,6 @@ class Ellipsoid(Sphere):
                         sin(theta) ** 2 * sin(phi) ** 2) / self._b ** 2 + cos(phi) ** 2 / self._c ** 2))
             distanceFromUnitSphere = (r - 1.0) * self._radius
             vertex.add(vertex * distanceFromUnitSphere)
+
+    def _computeQuadMesh(self):
+        raise NotImplementedError
