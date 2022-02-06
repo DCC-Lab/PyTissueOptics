@@ -92,7 +92,9 @@ class Cuboid(Solid):
         other._surfaceDict[oppositeSurface] = self._surfaceDict[onSurface]
 
         # Define new stack as a Cuboid
-        stackCentroid = self.position + relativePosition / 2
+        relativeStackCentroid = [0, 0, 0]
+        relativeStackCentroid[axis] = other.shape[axis] / 2
+        stackCentroid = self.position + Vector(*relativeStackCentroid)
         stackShape = self.shape.copy()
         stackShape[axis] += other.shape[axis]
 
@@ -117,8 +119,8 @@ class Cuboid(Solid):
         # fixme: A Cuboid stack can stack other Cuboids, but not the other way around because:
         #  - currently ignores interfaces in the other cuboid
         #  - we pass None to material to skip insideMaterial reset, but that means undefined material for the stack
-        # + fixme: there's a small positioning error on 3rd stack when not same axis
         # todo: refactor
+        # todo: stack ask <surface> material. Still a problem if stacking on the side with a stack...
 
         return Cuboid(*stackShape, position=stackCentroid, vertices=stackVertices, surfaceDict=stackSurfaces,
                       material=None, primitive=self._primitive)
