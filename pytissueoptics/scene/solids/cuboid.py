@@ -46,16 +46,18 @@ class Cuboid(Solid):
 
     def stack(self, other: 'Cuboid', onSurface: str = 'Top') -> 'Cuboid':
         """
-        Basic implementation for stacking cuboids along an axis. Currently requires them to have
-         the same dimensions except along the stack axis.
+        Basic implementation for stacking cuboids along an axis.
 
         For example, stacking on 'Top' will move the other cuboid on top of the this cuboid. They will now share
-         the same mesh at the interface and inside/outside materials at the interface will be properly handled.
+         the same mesh at the interface and inside/outside materials at the interface will be properly defined.
+         This will return a new cuboid that represents the stack, with a new 'Interface<i>' surface group.
 
-        # fixme: Currently, this will yield unexpected behavior if used on previously rotated cuboids.
+        Limitations:
+            - Requires cuboids with the same shape except along the stack axis.
+            - Cannot stack another stack along its stacked axis (ill-defined interface material).
+            - Expected behavior not guaranteed for pre-rotated cuboids.
         """
         assert onSurface in self._surfaceDict.keys(), f"Available surfaces to stack on are: {self._surfaceDict.keys()}"
-        assert "Interface" not in other._surfaceDict.keys(), "Stacking of a cuboid stack is not yet implemented."
 
         surfacePairs = [('Left', 'Right'), ('Bottom', 'Top'), ('Front', 'Back')]
         axis = max(axis if onSurface in surfacePair else -1 for axis, surfacePair in enumerate(surfacePairs))
@@ -68,28 +70,16 @@ class Cuboid(Solid):
         relativePosition = Vector(*relativePosition)
         other.translateTo(self.position + relativePosition)
 
-        self._setOutsideMaterial(other._material, faceKey=onSurface)
-
+        # Set new interface material and remove duplicate surfaces
         onSurfaceIndex = surfacePairs[axis].index(onSurface)
-        oppositeSurface = surfacePairs[axis][(onSurfaceIndex + 1) % 2]
+        oppositeSurfaceKey = surfacePairs[axis][(onSurfaceIndex + 1) % 2]
+        oppositeMaterial = other._surfaceDict[oppositeSurfaceKey][0].insideMaterial
+        for oppositeSurface in other._surfaceDict[oppositeSurfaceKey]:
+            assert oppositeSurface.insideMaterial == oppositeMaterial, \
+                "Ill-defined interface material: Cannot stack another stack along it's stacked axis."
+        self._setOutsideMaterial(oppositeMaterial, faceKey=onSurface)
 
-        # todo (?): remove duplicate vertices
-        # there are still twice the required number of vertices at the interface
-        # we could replace other.bottom vertices with self.top vertices,
-        # but this process is quite involved:
-        #
-        # duplicateVertices = []
-        # for surface in other._surfaceDict[oppositeSurface]:
-        #     for vertex in surface.vertices:
-        #         if vertex not in duplicateVertices:
-        #             duplicateVertices.append(vertex)
-        # sharedVertices = []
-        # ... fill *in-order* with self.vertices with same coordinate as duplicateVertices
-        # Replace other.vertices(at duplicateVertices indexes) with self.vertices(at sharedVerticesIndexes).
-        # Call other.computeMesh to create proper side surfaceDict with new shared vertices reference.
-        # Then we can lose reference to these duplicate surfaceDict:
-
-        other._surfaceDict[oppositeSurface] = self._surfaceDict[onSurface]
+        other._surfaceDict[oppositeSurfaceKey] = self._surfaceDict[onSurface]
 
         # Define new stack as a Cuboid
         relativeStackCentroid = [0, 0, 0]
@@ -108,19 +98,21 @@ class Cuboid(Solid):
         interfaceKeys = [key for key in self._surfaceDict.keys() if "Interface" in key]
         interfaceIndex = len(interfaceKeys)
         stackSurfaces = {onSurface: other._surfaceDict[onSurface],
-                         oppositeSurface: self._surfaceDict[oppositeSurface],
+                         oppositeSurfaceKey: self._surfaceDict[oppositeSurfaceKey],
                          f'Interface{interfaceIndex}': self._surfaceDict[onSurface]}
         for interfaceKey in interfaceKeys:
             stackSurfaces[interfaceKey] = self._surfaceDict[interfaceKey]
+        otherInterfaceKeys = [key for key in other._surfaceDict.keys() if "Interface" in key]
+        for i, otherInterfaceKey in enumerate(otherInterfaceKeys):
+            newOtherInterfaceIndex = interfaceIndex + 1 + i
+            stackSurfaces[f'Interface{newOtherInterfaceIndex}'] = other._surfaceDict[otherInterfaceKey]
         surfaceKeysLeft = surfacePairs[(axis + 1) % 3] + surfacePairs[(axis + 2) % 3]
         for surfaceKey in surfaceKeysLeft:
             stackSurfaces[surfaceKey] = self._surfaceDict[surfaceKey] + other._surfaceDict[surfaceKey]
 
-        # fixme: A Cuboid stack can stack other Cuboids, but not the other way around because:
-        #  - currently ignores interfaces in the other cuboid
-        #  - we pass None to material to skip insideMaterial reset, but that means undefined material for the stack
         # todo: refactor
-        # todo: stack ask <surface> material. Still a problem if stacking on the side with a stack...
+        # todo: Solid.material is somewhat useless (except for solid creation) and wrong...
+        #  The true material reference is only at surface level.
 
         return Cuboid(*stackShape, position=stackCentroid, vertices=stackVertices, surfaceDict=stackSurfaces,
                       material=None, primitive=self._primitive)
