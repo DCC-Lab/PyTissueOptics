@@ -2,7 +2,7 @@ from pytissueoptics.scene.geometry import Vector, Triangle
 from pytissueoptics.scene.geometry import primitives
 from pytissueoptics.scene.materials import Material
 from pytissueoptics.scene.solids import Solid
-import math
+from math import cos, sin, tan, acos, asin, atan, pi
 
 
 class Sphere(Solid):
@@ -26,6 +26,9 @@ class Sphere(Solid):
                  material: Material = Material(),
                  primitive: str = primitives.DEFAULT):
 
+        self._a = a
+        self._b = b
+        self._c = c
         self._radius = radius
         self._order = order
 
@@ -67,6 +70,8 @@ class Sphere(Solid):
             """
             vertex.normalize()
             theta, phi = self._findThetaPhi(vertex)
+            r = 1/((cos(theta)**2 * sin(phi)**2)/self._a**2 + (sin(theta)**2 * sin(phi)**2)/self._b**2 + cos(phi)**2/self._c**2)
+            distanceFromUnitSphere = r - 1.0
             vertex.multiply(self._radius)
 
     def _computeFirstOrderTriangleMesh(self):
@@ -111,22 +116,22 @@ class Sphere(Solid):
 
     @staticmethod
     def _findThetaPhi(vertex: 'Vector'):
-        theta = math.atan(((vertex.x**2 + vertex.y**2)**0.5)/vertex.z)
+        theta = atan(((vertex.x**2 + vertex.y**2)**0.5)/vertex.z)
         phi = 0
         if vertex.x == 0:
             if vertex.y > 0:
-                phi = math.pi/2
+                phi = pi/2
             elif vertex.y < 0:
-                phi = -math.pi/2
+                phi = -pi/2
 
         elif vertex.x > 0:
-            phi = math.atan(vertex.y/vertex.x)
+            phi = atan(vertex.y/vertex.x)
 
         elif vertex.x < 0:
             if vertex.y >= 0:
-                phi = math.atan(vertex.y/vertex.x) + math.pi
+                phi = atan(vertex.y/vertex.x) + pi
             elif vertex.y < 0:
-                phi = math.atan(vertex.y / vertex.x) - math.pi
+                phi = atan(vertex.y / vertex.x) - pi
 
         return theta, phi
 
