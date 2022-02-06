@@ -37,6 +37,9 @@ class Vector:
     def __add__(self, other: 'Vector') -> 'Vector':
         return Vector(self._x + other.x, self._y + other.y, self._z + other.z)
 
+    def __mul__(self, other: float) -> 'Vector':
+        return Vector(self._x * other, self._y * other, self._z * other)
+
     def add(self, other: 'Vector'):
         self._x += other.x
         self._y += other.y
