@@ -2,7 +2,7 @@ from pytissueoptics.scene.geometry import Vector, Triangle
 from pytissueoptics.scene.geometry import primitives
 from pytissueoptics.scene.materials import Material
 from pytissueoptics.scene.solids import Solid
-from math import cos, sin, tan, acos, asin, atan, pi
+from math import cos, sin, acos, atan, pi, sqrt
 
 
 class Sphere(Solid):
@@ -70,9 +70,9 @@ class Sphere(Solid):
             """
             vertex.normalize()
             theta, phi = self._findThetaPhi(vertex)
-            r = 1/((cos(theta)**2 * sin(phi)**2)/self._a**2 + (sin(theta)**2 * sin(phi)**2)/self._b**2 + cos(phi)**2/self._c**2)
-            distanceFromUnitSphere = r - 1.0
-            vertex.multiply(self._radius)
+            r = sqrt(1/((cos(theta)**2 * sin(phi)**2)/self._a**2 + (sin(theta)**2 * sin(phi)**2)/self._b**2 + cos(phi)**2/self._c**2))
+            distanceFromUnitSphere = (r - 1.0)*self._radius
+            vertex.add(vertex*distanceFromUnitSphere)
 
     def _computeFirstOrderTriangleMesh(self):
         phi = (1.0 + 5.0 ** (1 / 2)) / 2.0
@@ -116,23 +116,29 @@ class Sphere(Solid):
 
     @staticmethod
     def _findThetaPhi(vertex: 'Vector'):
-        theta = atan(((vertex.x**2 + vertex.y**2)**0.5)/vertex.z)
-        phi = 0
-        if vertex.x == 0:
-            if vertex.y > 0:
-                phi = pi/2
-            elif vertex.y < 0:
-                phi = -pi/2
+        phi = acos(vertex.z/(vertex.x**2 + vertex.y**2 + vertex.z**2))
+        theta = 0
+        if vertex.x == 0.0:
+            if vertex.y > 0.0:
+                theta = pi/2
 
-        elif vertex.x > 0:
-            phi = atan(vertex.y/vertex.x)
+            elif vertex.y < 0.0:
+                theta = -pi/2
 
-        elif vertex.x < 0:
-            if vertex.y >= 0:
-                phi = atan(vertex.y/vertex.x) + pi
-            elif vertex.y < 0:
-                phi = atan(vertex.y / vertex.x) - pi
+            elif vertex.y == 0:
+                print(f"oh no., phi = {phi}, theta = {theta}")
 
+        elif vertex.x > 0.0:
+            theta = atan(vertex.y/vertex.x)
+
+        elif vertex.x < 0.0:
+            if vertex.y >= 0.0:
+                theta = atan(vertex.y/vertex.x) + pi
+
+            elif vertex.y < 0.0:
+                theta = atan(vertex.y / vertex.x) - pi
+
+        print(f"phi = {phi}, theta = {theta}")
         return theta, phi
 
     def _computeQuadMesh(self):
