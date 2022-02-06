@@ -28,8 +28,8 @@ class MayaviViewer:
 
 
 if __name__ == "__main__":
-    sphere1 = MayaviSolid(Sphere(a=3, b=1, c=0.6, order=4))
+    sphere1 = MayaviSolid(Sphere(a=1, b=3, c=1, order=4))
     viewer = MayaviViewer()
-    viewer.addMayaviSolid(sphere1, representation="surface")
+    viewer.addMayaviSolid(sphere1, representation="wireframe")
 
     viewer.show()

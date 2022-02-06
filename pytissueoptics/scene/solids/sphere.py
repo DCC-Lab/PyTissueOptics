@@ -2,7 +2,6 @@ from pytissueoptics.scene.geometry import Vector, Triangle
 from pytissueoptics.scene.geometry import primitives
 from pytissueoptics.scene.materials import Material
 from pytissueoptics.scene.solids import Solid
-from math import cos, sin, acos, atan, pi, sqrt
 
 
 class Sphere(Solid):
@@ -18,17 +17,11 @@ class Sphere(Solid):
 
     def __init__(self,
                  radius: float = 1.0,
-                 a: float = 1,
-                 b: float = 1,
-                 c: float = 1,
                  order: int = 4,
                  position: Vector = Vector(),
                  material: Material = Material(),
                  primitive: str = primitives.DEFAULT):
 
-        self._a = a
-        self._b = b
-        self._c = c
         self._radius = radius
         self._order = order
 
@@ -59,20 +52,7 @@ class Sphere(Solid):
         for i in range(0, self._order):
             self._computeNextOrderTriangleMesh()
 
-        for vertex in self._vertices:
-            """
-            The Ellipsoid parametric equation goes as: x^2/a^2 + y^2/b^2 + z^2/c^2 =1
-            A Sphere is just an ellipsoid with a = b = c.
-            Bringing (x, y, z) -> (theta, phi, r) we can simply take the unit sphere and stretch it,
-            since the equation becomes as follow:
-            
-            r^2.cos^2(theta).sin^2(phi)/a^2 + r^2.sin^2(theta).sin^2(phi)/b^2  + r^2.cos^2(phi)/c^2 = 1
-            """
-            vertex.normalize()
-            theta, phi = self._findThetaPhi(vertex)
-            r = sqrt(1/((cos(theta)**2 * sin(phi)**2)/self._a**2 + (sin(theta)**2 * sin(phi)**2)/self._b**2 + cos(phi)**2/self._c**2))
-            distanceFromUnitSphere = (r - 1.0)*self._radius
-            vertex.add(vertex*distanceFromUnitSphere)
+        self._setVerticesPositionsFromCenter()
 
     def _computeFirstOrderTriangleMesh(self):
         phi = (1.0 + 5.0 ** (1 / 2)) / 2.0
@@ -114,29 +94,10 @@ class Sphere(Solid):
         middle = Vector((p1.x + p2.x) / 2, (p1.y + p2.y) / 2, (p1.z + p2.z) / 2)
         return middle
 
-    @staticmethod
-    def _findThetaPhi(vertex: 'Vector'):
-        phi = acos(vertex.z/(vertex.x**2 + vertex.y**2 + vertex.z**2))
-        theta = 0
-        if vertex.x == 0.0:
-            if vertex.y > 0.0:
-                theta = pi/2
-
-            elif vertex.y < 0.0:
-                theta = -pi/2
-
-        elif vertex.x > 0.0:
-            theta = atan(vertex.y/vertex.x)
-
-        elif vertex.x < 0.0:
-            if vertex.y >= 0.0:
-                theta = atan(vertex.y/vertex.x) + pi
-
-            elif vertex.y < 0.0:
-                theta = atan(vertex.y / vertex.x) - pi
-
-        # print(f"phi = {phi}, theta = {theta}")
-        return theta, phi
+    def _setVerticesPositionsFromCenter(self):
+        for vertex in self._vertices:
+            vertex.normalize()
+            vertex.multiply(self._radius)
 
     def _computeQuadMesh(self):
         raise NotImplementedError
