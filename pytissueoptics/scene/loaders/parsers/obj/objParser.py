@@ -1,4 +1,4 @@
-from ..parsers import Parser
+from pytissueoptics.scene.loaders.parsers import Parser
 
 
 class OBJParser(Parser):
