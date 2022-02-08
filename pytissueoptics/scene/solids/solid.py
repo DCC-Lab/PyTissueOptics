@@ -26,6 +26,21 @@ class Solid:
     def position(self) -> Vector:
         return self._position
 
+    @property
+    def vertices(self) -> List[Vector]:
+        return self._vertices
+
+    @property
+    def surfaces(self) -> List[Polygon]:
+        surfaces = []
+        for surfaceKey in self._surfaces.keys():
+            surfaces.extend(self._surfaces[surfaceKey])
+        return surfaces
+
+    @property
+    def primitive(self) -> str:
+        return self._primitive
+
     def translateTo(self, position):
         if position == self._position:
             return
