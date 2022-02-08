@@ -1,5 +1,5 @@
 import unittest
-from unittest.mock import patch, Mock
+from unittest.mock import Mock
 
 from pytissueoptics.scene.geometry import Vector, Quad
 from pytissueoptics.scene.geometry import primitives
@@ -55,8 +55,7 @@ class TestSolid(unittest.TestCase):
         self.assertAlmostEqual(expectedRotatedVertex.y, self.CUBOID_VERTICES[0].y)
         self.assertAlmostEqual(expectedRotatedVertex.z, self.CUBOID_VERTICES[0].z)
 
-    @patch('pytissueoptics.scene.solids.Solid._computeMesh')
-    def testWhenRotate_shouldRotateSurfaces(self, fakeComputeMesh):
+    def testWhenRotate_shouldRotateSurfaces(self):
         quadMock = Mock()
         self.CUBOID_SURFACES['Front'] = [quadMock]
         solid = Solid(position=self.position, material=self.material, vertices=self.CUBOID_VERTICES,
