@@ -7,30 +7,31 @@ from pytissueoptics.scene.viewer.mayavi import MayaviViewer
 
 
 class TestMayaviViewer(unittest.TestCase):
+    @patch('mayavi.mlab.figure')
+    def setUp(self, fakeFigure):
+        self.viewer = MayaviViewer()
+
     @patch('mayavi.mlab.triangular_mesh')
     def testWhenAddSolidWithTrianglePrimitive_shouldAddTheSolid(self, fakeMayaviTriangularMesh):
-        viewer = MayaviViewer()
         solid = Cube(3, primitive=primitives.TRIANGLE)
 
-        viewer.add(solid)
+        self.viewer.add(solid)
 
         self.assertEqual(1, fakeMayaviTriangularMesh.call_count)
 
     @patch('mayavi.mlab.triangular_mesh')
     def testWhenAddSolidWithoutTrianglePrimitive_shouldNotAddTheSolid(self, fakeMayaviTriangularMesh):
-        viewer = MayaviViewer()
         solid = Cube(3, primitive=primitives.QUAD)
 
         with self.assertRaises(Exception):
-            viewer.add(solid)
+            self.viewer.add(solid)
         self.assertEqual(0, fakeMayaviTriangularMesh.call_count)
 
     @patch('mayavi.mlab.show')
     def testWhenShow_shouldDisplayTheMayaviViewer(self, fakeShow):
-        viewer = MayaviViewer()
         solid = Cube(3, primitive=primitives.TRIANGLE)
-        viewer.add(solid)
+        self.viewer.add(solid)
 
-        viewer.show()
+        self.viewer.show()
 
         self.assertEqual(1, fakeShow.call_count)

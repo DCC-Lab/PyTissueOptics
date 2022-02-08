@@ -1,5 +1,3 @@
-from typing import Union
-
 try:
     from mayavi import mlab
 except ImportError:
@@ -37,4 +35,5 @@ if __name__ == "__main__":
     sphere1 = Sphere(order=2)
     cuboid1 = Cuboid(1, 3, 3, position=Vector(4, 0, 0))
     viewer = MayaviViewer()
-    viewer.show(sphere1, cuboid1)
+    viewer.add(sphere1, cuboid1)
+    viewer.show()
