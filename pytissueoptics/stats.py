@@ -1,7 +1,7 @@
 from pytissueoptics import *
 from pytissueoptics.vector import Vector
 import matplotlib
-matplotlib.use("Qt5Agg")
+matplotlib.use('Qt5Agg')
 import matplotlib.pyplot as plt
 import numpy as np
 
