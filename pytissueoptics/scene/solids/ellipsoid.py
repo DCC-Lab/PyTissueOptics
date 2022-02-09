@@ -10,24 +10,32 @@ class Ellipsoid(Sphere):
         to code it this way and it is fine for now. Also, the computation required is much easier just for the sphere,
         Which is in part why the Sphere isn't a child of the Ellipsoid.
 
-        We take the unit sphere, then calculate the theta, phi position of each vertex (with ISO mathematical convention)
-        Then we apply the ellipsoid formula in the spherical coordinate to isolate the component R.
+        We take the unit sphere, then calculate the theta, phi position of each vertex (with ISO mathematical
+        convention). Then we apply the ellipsoid formula in the spherical coordinate to isolate the component R.
         We then calculate the difference the ellipsoid would with the unit sphere for this theta,phi and
         then .add() or .subtract() the corresponding vector.
-
     """
 
     @property
     def radius(self):
         return None
 
-    def _computeTriangleMesh(self):
-        self._computeFirstOrderTriangleMesh()
+    def _setVerticesPositionsFromCenter(self):
+        """
+        The Ellipsoid parametric equation goes as: x^2/a^2 + y^2/b^2 + z^2/c^2 =1
+        A Sphere is just an ellipsoid with a = b = c.
+        Bringing (x, y, z) -> (theta, phi, r) we can simply take the unit sphere and stretch it,
+        since the equation becomes as follow:
 
-        for i in range(0, self._order):
-            self._computeNextOrderTriangleMesh()
-
-        self._setVerticesPositionsFromCenter()
+        r^2.cos^2(theta).sin^2(phi)/a^2 + r^2.sin^2(theta).sin^2(phi)/b^2  + r^2.cos^2(phi)/c^2 = 1
+        """
+        for vertex in self._vertices:
+            vertex.normalize()
+            theta, phi = self._findThetaPhi(vertex)
+            r = sqrt(1 / ((cos(theta) ** 2 * sin(phi) ** 2) / self._a ** 2 + (
+                        sin(theta) ** 2 * sin(phi) ** 2) / self._b ** 2 + cos(phi) ** 2 / self._c ** 2))
+            distanceFromUnitSphere = (r - 1.0)
+            vertex.add(vertex * distanceFromUnitSphere)
 
     @staticmethod
     def _findThetaPhi(vertex: 'Vector'):
@@ -50,25 +58,4 @@ class Ellipsoid(Sphere):
             elif vertex.y < 0.0:
                 theta = atan(vertex.y / vertex.x) - pi
 
-        # print(f"phi = {phi}, theta = {theta}")
         return theta, phi
-
-    def _setVerticesPositionsFromCenter(self):
-        for vertex in self._vertices:
-            """
-            The Ellipsoid parametric equation goes as: x^2/a^2 + y^2/b^2 + z^2/c^2 =1
-            A Sphere is just an ellipsoid with a = b = c.
-            Bringing (x, y, z) -> (theta, phi, r) we can simply take the unit sphere and stretch it,
-            since the equation becomes as follow:
-
-            r^2.cos^2(theta).sin^2(phi)/a^2 + r^2.sin^2(theta).sin^2(phi)/b^2  + r^2.cos^2(phi)/c^2 = 1
-            """
-            vertex.normalize()
-            theta, phi = self._findThetaPhi(vertex)
-            r = sqrt(1 / ((cos(theta) ** 2 * sin(phi) ** 2) / self._a ** 2 + (
-                        sin(theta) ** 2 * sin(phi) ** 2) / self._b ** 2 + cos(phi) ** 2 / self._c ** 2))
-            distanceFromUnitSphere = (r - 1.0)
-            vertex.add(vertex * distanceFromUnitSphere)
-
-    def _computeQuadMesh(self):
-        raise NotImplementedError
