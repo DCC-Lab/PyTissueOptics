@@ -72,6 +72,14 @@ class TestVector(unittest.TestCase):
 
         self.assertEqual(initialNorm / divider, newVector.getNorm())
 
+    def testWhenMultiplyingWithMultiplicationOperator_shouldCreateANewVector(self):
+        multiplier = 2
+        initialNorm = self.vector.getNorm()
+
+        newVector = self.vector * multiplier
+
+        self.assertEqual(initialNorm * multiplier, newVector.getNorm())
+
     def testGivenTwoVectorsWithTheSameCoordinates_shouldBeEqual(self):
         vector = Vector(-1, 0, 1)
         vector2 = Vector(-1, 0, 1)
