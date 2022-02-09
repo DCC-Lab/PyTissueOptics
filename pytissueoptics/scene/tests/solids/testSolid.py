@@ -1,5 +1,5 @@
 import unittest
-from unittest.mock import patch, Mock
+from unittest.mock import Mock
 
 from pytissueoptics.scene.geometry import Vector, Quad
 from pytissueoptics.scene.geometry import primitives
@@ -21,7 +21,7 @@ class TestSolid(unittest.TestCase):
         self.material = Material()
         self.position = Vector(2, 2, 0)
         self.solid = Solid(position=self.position, material=self.material, vertices=self.CUBOID_VERTICES,
-                           surfaces=self.CUBOID_SURFACES, primitive=primitives.TRIANGLE)
+                           surfaceDict=self.CUBOID_SURFACES, primitive=primitives.TRIANGLE)
 
     def testShouldBeAtDesiredPosition(self):
         self.assertEqual(self.position, self.solid.position)
@@ -55,12 +55,11 @@ class TestSolid(unittest.TestCase):
         self.assertAlmostEqual(expectedRotatedVertex.y, self.CUBOID_VERTICES[0].y)
         self.assertAlmostEqual(expectedRotatedVertex.z, self.CUBOID_VERTICES[0].z)
 
-    @patch('pytissueoptics.scene.solids.Solid._computeMesh')
-    def testWhenRotate_shouldRotateSurfaces(self, fakeComputeMesh):
+    def testWhenRotate_shouldRotateSurfaces(self):
         quadMock = Mock()
         self.CUBOID_SURFACES['Front'] = [quadMock]
         solid = Solid(position=self.position, material=self.material, vertices=self.CUBOID_VERTICES,
-                      surfaces=self.CUBOID_SURFACES, primitive=primitives.TRIANGLE)
+                      surfaceDict=self.CUBOID_SURFACES, primitive=primitives.TRIANGLE)
         surfaceResetNormalCount = quadMock.resetNormal.call_count
 
         solid.rotate(xTheta=90, yTheta=90, zTheta=90)

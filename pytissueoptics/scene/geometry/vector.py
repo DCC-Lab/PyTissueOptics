@@ -37,6 +37,9 @@ class Vector:
     def __add__(self, other: 'Vector') -> 'Vector':
         return Vector(self._x + other.x, self._y + other.y, self._z + other.z)
 
+    def __truediv__(self, scalar: float) -> 'Vector':
+        return Vector(self._x / scalar, self._y / scalar, self._z / scalar)
+
     def add(self, other: 'Vector'):
         self._x += other.x
         self._y += other.y
@@ -51,6 +54,11 @@ class Vector:
         self._x *= scalar
         self._y *= scalar
         self._z *= scalar
+
+    def divide(self, scalar: float):
+        self._x /= scalar
+        self._y /= scalar
+        self._z /= scalar
 
     def getNorm(self) -> float:
         return (self._x ** 2 + self._y ** 2 + self._z ** 2) ** (1 / 2)
