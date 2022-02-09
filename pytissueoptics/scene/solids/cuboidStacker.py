@@ -53,7 +53,7 @@ class CuboidStacker:
         oppositeMaterial = self._otherCuboid._surfaceDict[self._otherSurfaceKey][0].insideMaterial
         for oppositeSurface in self._otherCuboid._surfaceDict[self._otherSurfaceKey]:
             assert oppositeSurface.insideMaterial == oppositeMaterial, \
-                "Ill-defined interface material: Cannot stack another stack along it's stacked axis."
+                "Ill-defined interface material: Can only stack another stack along its stacked axis."
 
         self._onCuboid._setOutsideMaterial(oppositeMaterial, faceKey=self._onSurfaceKey)
         self._otherCuboid._surfaceDict[self._otherSurfaceKey] = self._onCuboid._surfaceDict[self._onSurfaceKey]
