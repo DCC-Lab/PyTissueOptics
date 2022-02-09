@@ -57,6 +57,8 @@ class CuboidStacker:
 
         self._onCuboid._setOutsideMaterial(oppositeMaterial, faceKey=self._onSurfaceKey)
         self._otherCuboid._surfaceDict[self._otherSurfaceKey] = self._onCuboid._surfaceDict[self._onSurfaceKey]
+        for surface in self._onCuboid._surfaceDict[self._onSurfaceKey]:
+            self._otherCuboid._vertices.extend(surface.vertices)
 
     def _assemble(self) -> StackResult:
         return StackResult(shape=self._getStackShape(), position=self._getStackPosition(),

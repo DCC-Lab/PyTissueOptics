@@ -82,15 +82,9 @@ if __name__ == "__main__":
 
     cuboid1 = Cuboid(5, 1, 4, position=Vector(4, 0.5, 0))
     cuboid2 = Cuboid(5, 2, 4, position=Vector(4, 1, -6))
-    # cuboid3 = Cuboid(5, 2, 4, position=Vector(4, 1, -6))
-    # cuboidStack = cuboid1.stack(cuboid2).stack(cuboid3, onSurface='Top')
-
     cuboid3 = Cuboid(2, 3, 4, position=Vector(-2, 1.5, -3))
     cuboidStack = cuboid1.stack(cuboid2).stack(cuboid3, onSurface='Right')
 
     viewer = MayaviViewer()
-    # viewer.add(cuboid1, representation="wireframe", lineWidth=2)
-    # viewer.add(cuboid2, representation="wireframe", lineWidth=2)
-    # viewer.add(cuboid3, representation="wireframe", lineWidth=2)
     viewer.add(cuboidStack, representation="wireframe", lineWidth=2)
     viewer.show()
