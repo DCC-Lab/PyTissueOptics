@@ -24,7 +24,7 @@ class TestSphere(unittest.TestCase):
         perfectSphereArea = 4*math.pi
         tolerance = 0.05
 
-        ellipsoidArea = self._getTotalTrianglesArea(ellipsoid._surfaces["noLabel"])
+        ellipsoidArea = self._getTotalTrianglesArea(ellipsoid._surfaceDict["noLabel"])
 
         self.assertAlmostEqual(perfectSphereArea, ellipsoidArea, delta=tolerance*perfectSphereArea)
 
@@ -37,7 +37,7 @@ class TestSphere(unittest.TestCase):
         tolerance = 0.05
 
         perfectEllipsoidArea = 4*math.pi*((a**p*b**p + a**p*c**p + b**p*c**p)/3)**(1/p)
-        ellipsoidArea = self._getTotalTrianglesArea(ellipsoid._surfaces["noLabel"])
+        ellipsoidArea = self._getTotalTrianglesArea(ellipsoid._surfaceDict["noLabel"])
 
         self.assertAlmostEqual(perfectEllipsoidArea, ellipsoidArea, delta=perfectEllipsoidArea*tolerance)
         self.assertNotAlmostEqual(perfectEllipsoidArea, ellipsoidArea, 1)
@@ -51,7 +51,7 @@ class TestSphere(unittest.TestCase):
         tolerance = 0.01
 
         perfectEllipsoidArea = 4 * math.pi * ((a ** p * b ** p + a ** p * c ** p + b ** p * c ** p) / 3) ** (1 / p)
-        ellipsoidArea = self._getTotalTrianglesArea(ellipsoid._surfaces["noLabel"])
+        ellipsoidArea = self._getTotalTrianglesArea(ellipsoid._surfaceDict["noLabel"])
 
         self.assertAlmostEqual(perfectEllipsoidArea, ellipsoidArea, delta=tolerance*perfectEllipsoidArea)
 
