@@ -1,6 +1,6 @@
-from pytissueoptics.scene import Material
 from pytissueoptics.scene.geometry import Vector, primitives
 from pytissueoptics.scene.solids import Sphere
+from pytissueoptics.scene.materials import Material
 from math import cos, sin, acos, atan, pi, sqrt
 
 
@@ -17,7 +17,6 @@ class Ellipsoid(Sphere):
         then .add() or .subtract() the corresponding vector.
     """
     def __init__(self,
-                 radius: float = 1.0,
                  order: int = 4,
                  a: float = 1,
                  b: float = 1,
@@ -30,7 +29,7 @@ class Ellipsoid(Sphere):
         self._b = b
         self._c = c
 
-        super().__init__(radius=radius, order=order, position=position, material=material, primitive=primitive)
+        super().__init__(radius=1, order=order, position=position, material=material, primitive=primitive)
 
     @property
     def radius(self):
