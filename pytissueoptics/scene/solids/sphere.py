@@ -69,15 +69,15 @@ class Sphere(Solid):
         V = self._vertices
 
         self._surfaceDict['noLabel'] = [Triangle(V[0], V[11], V[5]), Triangle(V[0], V[5], V[1]),
-                                    Triangle(V[0], V[1], V[7]), Triangle(V[0], V[7], V[10]),
-                                    Triangle(V[0], V[10], V[11]), Triangle(V[1], V[5], V[9]),
-                                    Triangle(V[5], V[11], V[4]), Triangle(V[11], V[10], V[2]),
-                                    Triangle(V[10], V[7], V[6]), Triangle(V[7], V[1], V[8]),
-                                    Triangle(V[3], V[9], V[4]), Triangle(V[3], V[4], V[2]),
-                                    Triangle(V[3], V[2], V[6]), Triangle(V[3], V[6], V[8]),
-                                    Triangle(V[3], V[8], V[9]), Triangle(V[4], V[9], V[5]),
-                                    Triangle(V[2], V[4], V[11]), Triangle(V[6], V[2], V[10]),
-                                    Triangle(V[8], V[6], V[7]), Triangle(V[9], V[8], V[1])]
+                                        Triangle(V[0], V[1], V[7]), Triangle(V[0], V[7], V[10]),
+                                        Triangle(V[0], V[10], V[11]), Triangle(V[1], V[5], V[9]),
+                                        Triangle(V[5], V[11], V[4]), Triangle(V[11], V[10], V[2]),
+                                        Triangle(V[10], V[7], V[6]), Triangle(V[7], V[1], V[8]),
+                                        Triangle(V[3], V[9], V[4]), Triangle(V[3], V[4], V[2]),
+                                        Triangle(V[3], V[2], V[6]), Triangle(V[3], V[6], V[8]),
+                                        Triangle(V[3], V[8], V[9]), Triangle(V[4], V[9], V[5]),
+                                        Triangle(V[2], V[4], V[11]), Triangle(V[6], V[2], V[10]),
+                                        Triangle(V[8], V[6], V[7]), Triangle(V[9], V[8], V[1])]
 
     def _computeNextOrderTriangleMesh(self):
         newSurfaces = []
