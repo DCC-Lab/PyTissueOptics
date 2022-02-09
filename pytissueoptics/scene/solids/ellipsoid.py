@@ -1,4 +1,5 @@
-from pytissueoptics.scene.geometry import Vector
+from pytissueoptics.scene import Material
+from pytissueoptics.scene.geometry import Vector, primitives
 from pytissueoptics.scene.solids import Sphere
 from math import cos, sin, acos, atan, pi, sqrt
 
@@ -15,6 +16,21 @@ class Ellipsoid(Sphere):
         We then calculate the difference the ellipsoid would with the unit sphere for this theta,phi and
         then .add() or .subtract() the corresponding vector.
     """
+    def __init__(self,
+                 radius: float = 1.0,
+                 order: int = 4,
+                 a: float = 1,
+                 b: float = 1,
+                 c: float = 1,
+                 position: Vector = Vector(),
+                 material: Material = Material(),
+                 primitive: str = primitives.DEFAULT):
+
+        self._a = a
+        self._b = b
+        self._c = c
+
+        super().__init__(radius=radius, order=order, position=position, material=material, primitive=primitive)
 
     @property
     def radius(self):
@@ -59,3 +75,6 @@ class Ellipsoid(Sphere):
                 theta = atan(vertex.y / vertex.x) - pi
 
         return theta, phi
+
+    def _computeQuadMesh(self):
+        pass
