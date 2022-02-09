@@ -17,6 +17,10 @@ class Ellipsoid(Sphere):
 
     """
 
+    @property
+    def radius(self):
+        return None
+
     def _computeTriangleMesh(self):
         self._computeFirstOrderTriangleMesh()
 
@@ -63,7 +67,7 @@ class Ellipsoid(Sphere):
             theta, phi = self._findThetaPhi(vertex)
             r = sqrt(1 / ((cos(theta) ** 2 * sin(phi) ** 2) / self._a ** 2 + (
                         sin(theta) ** 2 * sin(phi) ** 2) / self._b ** 2 + cos(phi) ** 2 / self._c ** 2))
-            distanceFromUnitSphere = (r - 1.0) * self._radius
+            distanceFromUnitSphere = (r - 1.0)
             vertex.add(vertex * distanceFromUnitSphere)
 
     def _computeQuadMesh(self):

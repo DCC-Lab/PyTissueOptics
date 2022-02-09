@@ -15,36 +15,51 @@ class TestSphere(unittest.TestCase):
         ellipsoid = Ellipsoid(position=position)
         self.assertEqual(Vector(2, 2, 1), ellipsoid.position)
 
-    def testGivenANewDefault_shouldHaveARadiusOf1(self):
+    def testGivenANewDefault_shouldHaveARadiusOfNone(self):
         ellipsoid = Ellipsoid()
-        self.assertEqual(1, ellipsoid.radius)
+        self.assertIsNone(ellipsoid.radius)
 
-    def testGivenALowOrderEllipsoid_shouldNotApproachCorrectEllipsoidArea(self):
-        ellipsoid = Ellipsoid()
+    def testGivenALowOrderSphericalEllipsoid_shouldApproachCorrectSphereAreaTo5Percent(self):
+        ellipsoid = Ellipsoid(a=1, b=1, c=1, order=3)
+        perfectSphereArea = 4*math.pi
+        tolerance = 0.05
+
+        ellipsoidArea = self._getTotalTrianglesArea(ellipsoid._surfaces["noLabel"])
+
+        self.assertAlmostEqual(perfectSphereArea, ellipsoidArea, delta=tolerance*perfectSphereArea)
+
+    def testGivenALowOrderEllipsoid_shouldApproachCorrectEllipsoidAreaTo5Percent(self):
+        ellipsoid = Ellipsoid(a=2, b=3, c=5, order=3)
         p = 8/5
         a = ellipsoid._a
         b = ellipsoid._b
         c = ellipsoid._c
-        ellipsoidArea = 0
-        perfectEllipsoidArea = 4*math.pi*((a**p*b**p + a**p*c**p + b**p*c**p)/3)**(1/p)
+        tolerance = 0.05
 
-        for surface in ellipsoid._surfaces["noLabel"]:
-            ellipsoidArea += 0.5 * surface.vertices[0].cross(surface.vertices[1]).getNorm()
-        print(perfectEllipsoidArea, ellipsoidArea)
+        perfectEllipsoidArea = 4*math.pi*((a**p*b**p + a**p*c**p + b**p*c**p)/3)**(1/p)
+        ellipsoidArea = self._getTotalTrianglesArea(ellipsoid._surfaces["noLabel"])
+
+        self.assertAlmostEqual(perfectEllipsoidArea, ellipsoidArea, delta=perfectEllipsoidArea*tolerance)
         self.assertNotAlmostEqual(perfectEllipsoidArea, ellipsoidArea, 1)
 
-    def testGivenAHighOrderEllipsoid_shouldApproachCorrectEllipsoidArea(self):
-        ellipsoid = Ellipsoid(a=2, b=3, c=1, order=5)
+    def testGivenAHighOrderEllipsoid_shouldApproachCorrectEllipsoidAreaTo1Percent(self):
+        ellipsoid = Ellipsoid(a=2, b=3, c=5, order=6)
         p = 8 / 5
         a = ellipsoid._a
         b = ellipsoid._b
         c = ellipsoid._c
-        ellipsoidArea = 0
+        tolerance = 0.01
+
         perfectEllipsoidArea = 4 * math.pi * ((a ** p * b ** p + a ** p * c ** p + b ** p * c ** p) / 3) ** (1 / p)
+        ellipsoidArea = self._getTotalTrianglesArea(ellipsoid._surfaces["noLabel"])
 
-        for surface in ellipsoid._surfaces["noLabel"]:
-            AB = surface.vertices[0]-surface.vertices[1]
-            AC = surface.vertices[0]-surface.vertices[2]
-            ellipsoidArea += 0.5 * AB.cross(AC).getNorm()
+        self.assertAlmostEqual(perfectEllipsoidArea, ellipsoidArea, delta=tolerance*perfectEllipsoidArea)
 
-        self.assertAlmostEqual(perfectEllipsoidArea, ellipsoidArea, 2)
+    @staticmethod
+    def _getTotalTrianglesArea(surfaces):
+        totalArea = 0
+        for surface in surfaces:
+            AB = surface.vertices[0] - surface.vertices[1]
+            AC = surface.vertices[0] - surface.vertices[2]
+            totalArea += 0.5 * AB.cross(AC).getNorm()
+        return totalArea
