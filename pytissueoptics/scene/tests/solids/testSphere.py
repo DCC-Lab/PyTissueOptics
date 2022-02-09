@@ -28,7 +28,8 @@ class TestSphere(unittest.TestCase):
         icosphereArea = 0
         perfectSphereArea = 4*math.pi*sphere.radius**2
 
-        for surface in sphere._surfaces["noLabel"]:
+        for surface in sphere._surfaceDict["noLabel"]:
+
             icosphereArea += 0.5 * surface.vertices[0].cross(surface.vertices[1]).getNorm()
 
         self.assertNotAlmostEqual(perfectSphereArea, icosphereArea, 3)
@@ -38,7 +39,8 @@ class TestSphere(unittest.TestCase):
         icosphereArea = 0
         perfectSphereArea = 4 * math.pi * sphere.radius ** 2
 
-        for surface in sphere._surfaces["noLabel"]:
+        for surface in sphere._surfaceDict["noLabel"]:
+
             AB = surface.vertices[0]-surface.vertices[1]
             AC = surface.vertices[0]-surface.vertices[2]
             icosphereArea += 0.5 * AB.cross(AC).getNorm()

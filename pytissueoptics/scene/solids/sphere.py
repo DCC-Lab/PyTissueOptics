@@ -68,7 +68,7 @@ class Sphere(Solid):
         self._vertices = [*xyPlaneVertices, *yzPlaneVertices, *xzPlaneVertices]
         V = self._vertices
 
-        self._surfaces['noLabel'] = [Triangle(V[0], V[11], V[5]), Triangle(V[0], V[5], V[1]),
+        self._surfaceDict['noLabel'] = [Triangle(V[0], V[11], V[5]), Triangle(V[0], V[5], V[1]),
                                     Triangle(V[0], V[1], V[7]), Triangle(V[0], V[7], V[10]),
                                     Triangle(V[0], V[10], V[11]), Triangle(V[1], V[5], V[9]),
                                     Triangle(V[5], V[11], V[4]), Triangle(V[11], V[10], V[2]),
@@ -81,7 +81,7 @@ class Sphere(Solid):
 
     def _computeNextOrderTriangleMesh(self):
         newSurfaces = []
-        for j, surface in enumerate(self._surfaces["noLabel"]):
+        for j, surface in enumerate(self._surfaceDict["noLabel"]):
             ai = self._createMidVertex(surface.vertices[0], surface.vertices[1])
             bi = self._createMidVertex(surface.vertices[1], surface.vertices[2])
             ci = self._createMidVertex(surface.vertices[2], surface.vertices[0])
@@ -93,7 +93,7 @@ class Sphere(Solid):
             newSurfaces.append(Triangle(surface.vertices[2], ci, bi))
             newSurfaces.append(Triangle(ai, bi, ci))
 
-        self._surfaces["noLabel"] = newSurfaces
+        self._surfaceDict["noLabel"] = newSurfaces
 
     @staticmethod
     def _createMidVertex(p1, p2):

@@ -30,6 +30,22 @@ class TestVector(unittest.TestCase):
 
         self.assertNotEqual(initialNorm, self.vector.getNorm())
 
+    def testWhenMultiplyWithScalar_shouldMultiplyAllItsComponents(self):
+        initialNorm = self.vector.getNorm()
+        multiplier = 2.5
+
+        self.vector.multiply(multiplier)
+
+        self.assertEqual(initialNorm * multiplier, self.vector.getNorm())
+
+    def testWhenDivideWithScalar_shouldDivideAllItsComponents(self):
+        initialNorm = self.vector.getNorm()
+        divider = 2.5
+
+        self.vector.divide(divider)
+
+        self.assertEqual(initialNorm / divider, self.vector.getNorm())
+
     def testWhenAddingVectorsWithAdditionOperator_shouldCreateANewVector(self):
         initialNorm = self.vector.getNorm()
         anotherVector = Vector(1, 1, 1)
@@ -47,6 +63,14 @@ class TestVector(unittest.TestCase):
 
         self.assertEqual(initialNorm, self.vector.getNorm())
         self.assertEqual(self.vector.x - anotherVector.x, newVector.x)
+
+    def testWhenDividingWithDivisionOperator_shouldCreateANewVector(self):
+        divider = 2
+        initialNorm = self.vector.getNorm()
+
+        newVector = self.vector / divider
+
+        self.assertEqual(initialNorm / divider, newVector.getNorm())
 
     def testGivenTwoVectorsWithTheSameCoordinates_shouldBeEqual(self):
         vector = Vector(-1, 0, 1)
