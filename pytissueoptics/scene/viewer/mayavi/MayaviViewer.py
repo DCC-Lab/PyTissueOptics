@@ -4,19 +4,23 @@ except ImportError:
     pass
 
 from pytissueoptics.scene.viewer.mayavi import MayaviSolid
-from pytissueoptics.scene.solids import Sphere, Cuboid
+from pytissueoptics.scene.solids import Sphere, Cuboid, Solid
 from pytissueoptics.scene.geometry import Vector, primitives
 
 
 class MayaviViewer:
     def __init__(self):
-        self._scenes = {"DefaultScene": {"figure": mlab.figure(1, bgcolor=(0.11, 0.11, 0.11), fgcolor=(0.9, 0.9, 0.9)), "Solids": [], }}
+        self._scenes = {"DefaultScene": {"figure": mlab.figure(1, bgcolor=(0.11, 0.11, 0.11), fgcolor=(0.9, 0.9, 0.9)),
+                                         "Solids": [], }}
         self._view = {"azimuth": 0, "zenith": 0, "distance": None, "pointingTowards": None, "roll": None}
 
-    def addMayaviSolid(self, other: 'MayaviSolid', representation="wireframe", line_width=0.25):
-        assert other.primitive == primitives.TRIANGLE, "MavaviViewer currently only supports triangle mesh. "
-        self._scenes["DefaultScene"]["Solids"].append(other)
-        mlab.triangular_mesh(*other.mesh.components, representation=representation, line_width=line_width, colormap="viridis")
+    def add(self, *solids: 'Solid', representation="wireframe", lineWidth=0.25):
+        for solid in solids:
+            assert solid.primitive == primitives.TRIANGLE, "MavaviViewer currently only supports triangle mesh. "
+            mayaviSolid = MayaviSolid(solid)
+            self._scenes["DefaultScene"]["Solids"].append(mayaviSolid)
+            mlab.triangular_mesh(*mayaviSolid.mesh.components, representation=representation, line_width=lineWidth,
+                                 colormap="viridis")
 
     def _assignViewPoint(self):
         azimuth, elevation, distance, towards, roll = (self._view[key] for key in self._view)
@@ -28,10 +32,8 @@ class MayaviViewer:
 
 
 if __name__ == "__main__":
-    sphere1 = MayaviSolid(Sphere(order=2))
-    cuboid1 = MayaviSolid(Cuboid(1, 3, 3, position=Vector(4, 0, 0)))
+    sphere1 = Sphere(order=2)
+    cuboid1 = Cuboid(1, 3, 3, position=Vector(4, 0, 0))
     viewer = MayaviViewer()
-    viewer.addMayaviSolid(sphere1, representation="surface")
-    viewer.addMayaviSolid(cuboid1, representation="surface")
-
+    viewer.add(sphere1, cuboid1)
     viewer.show()
