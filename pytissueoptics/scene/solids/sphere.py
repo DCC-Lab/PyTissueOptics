@@ -52,9 +52,7 @@ class Sphere(Solid):
         for i in range(0, self._order):
             self._computeNextOrderTriangleMesh()
 
-        for vertex in self._vertices:
-            vertex.normalize()
-            vertex.multiply(self._radius)
+        self._setVerticesPositionsFromCenter()
 
     def _computeFirstOrderTriangleMesh(self):
         phi = (1.0 + 5.0 ** (1 / 2)) / 2.0
@@ -64,20 +62,20 @@ class Sphere(Solid):
         self._vertices = [*xyPlaneVertices, *yzPlaneVertices, *xzPlaneVertices]
         V = self._vertices
 
-        self._surfaceDict['Sphere'] = [Triangle(V[0], V[11], V[5]), Triangle(V[0], V[5], V[1]),
-                                       Triangle(V[0], V[1], V[7]), Triangle(V[0], V[7], V[10]),
-                                       Triangle(V[0], V[10], V[11]), Triangle(V[1], V[5], V[9]),
-                                       Triangle(V[5], V[11], V[4]), Triangle(V[11], V[10], V[2]),
-                                       Triangle(V[10], V[7], V[6]), Triangle(V[7], V[1], V[8]),
-                                       Triangle(V[3], V[9], V[4]), Triangle(V[3], V[4], V[2]),
-                                       Triangle(V[3], V[2], V[6]), Triangle(V[3], V[6], V[8]),
-                                       Triangle(V[3], V[8], V[9]), Triangle(V[4], V[9], V[5]),
-                                       Triangle(V[2], V[4], V[11]), Triangle(V[6], V[2], V[10]),
-                                       Triangle(V[8], V[6], V[7]), Triangle(V[9], V[8], V[1])]
+        self._surfaceDict['noLabel'] = [Triangle(V[0], V[11], V[5]), Triangle(V[0], V[5], V[1]),
+                                        Triangle(V[0], V[1], V[7]), Triangle(V[0], V[7], V[10]),
+                                        Triangle(V[0], V[10], V[11]), Triangle(V[1], V[5], V[9]),
+                                        Triangle(V[5], V[11], V[4]), Triangle(V[11], V[10], V[2]),
+                                        Triangle(V[10], V[7], V[6]), Triangle(V[7], V[1], V[8]),
+                                        Triangle(V[3], V[9], V[4]), Triangle(V[3], V[4], V[2]),
+                                        Triangle(V[3], V[2], V[6]), Triangle(V[3], V[6], V[8]),
+                                        Triangle(V[3], V[8], V[9]), Triangle(V[4], V[9], V[5]),
+                                        Triangle(V[2], V[4], V[11]), Triangle(V[6], V[2], V[10]),
+                                        Triangle(V[8], V[6], V[7]), Triangle(V[9], V[8], V[1])]
 
     def _computeNextOrderTriangleMesh(self):
         newSurfaces = []
-        for j, surface in enumerate(self._surfaceDict["Sphere"]):
+        for j, surface in enumerate(self._surfaceDict["noLabel"]):
             ai = self._createMidVertex(surface.vertices[0], surface.vertices[1])
             bi = self._createMidVertex(surface.vertices[1], surface.vertices[2])
             ci = self._createMidVertex(surface.vertices[2], surface.vertices[0])
@@ -89,12 +87,17 @@ class Sphere(Solid):
             newSurfaces.append(Triangle(surface.vertices[2], ci, bi))
             newSurfaces.append(Triangle(ai, bi, ci))
 
-        self._surfaceDict["Sphere"] = newSurfaces
+        self._surfaceDict["noLabel"] = newSurfaces
 
     @staticmethod
     def _createMidVertex(p1, p2):
         middle = Vector((p1.x + p2.x) / 2, (p1.y + p2.y) / 2, (p1.z + p2.z) / 2)
         return middle
+
+    def _setVerticesPositionsFromCenter(self):
+        for vertex in self._vertices:
+            vertex.normalize()
+            vertex.multiply(self._radius)
 
     def _computeQuadMesh(self):
         raise NotImplementedError

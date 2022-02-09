@@ -4,8 +4,8 @@ except ImportError:
     pass
 
 from pytissueoptics.scene.viewer.mayavi import MayaviSolid
-from pytissueoptics.scene.solids import Sphere, Cuboid, Solid
-from pytissueoptics.scene.geometry import Vector, primitives
+from pytissueoptics.scene.solids import Solid
+from pytissueoptics.scene.geometry import primitives
 
 
 class MayaviViewer:
@@ -32,6 +32,8 @@ class MayaviViewer:
 
 
 if __name__ == "__main__":
+    from pytissueoptics.scene import Sphere, Cuboid, Vector
+
     sphere1 = Sphere(order=2)
     cuboid1 = Cuboid(1, 3, 3, position=Vector(4, 0, 0))
     viewer = MayaviViewer()
