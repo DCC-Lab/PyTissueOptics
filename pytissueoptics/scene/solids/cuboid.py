@@ -2,6 +2,8 @@ from pytissueoptics.scene.geometry import Vector, Quad, Triangle
 from pytissueoptics.scene.geometry import primitives
 from pytissueoptics.scene.materials import Material
 from pytissueoptics.scene.solids import Solid
+from pytissueoptics.scene.solids.cuboidStacker import CuboidStacker
+from pytissueoptics.scene.solids.stackResult import StackResult
 
 
 class Cuboid(Solid):
@@ -57,84 +59,38 @@ class Cuboid(Solid):
             - Cannot stack another stack along its stacked axis (ill-defined interface material).
             - Expected behavior not guaranteed for pre-rotated cuboids.
         """
-        assert onSurface in self._surfaceDict.keys(), f"Available surfaces to stack on are: {self._surfaceDict.keys()}"
+        stacker = CuboidStacker()
+        stackResult = stacker.stack(onCuboid=self, otherCuboid=other, onSurface=onSurface)
+        return Cuboid._fromStackResult(stackResult)
 
-        surfacePairs = [('Left', 'Right'), ('Bottom', 'Top'), ('Front', 'Back')]
-        axis = max(axis if onSurface in surfacePair else -1 for axis, surfacePair in enumerate(surfacePairs))
-        assert self.shape[(axis + 1) % 3] == other.shape[(axis + 1) % 3] and \
-               self.shape[(axis + 2) % 3] == other.shape[(axis + 2) % 3], \
-               f"Stacking of mismatched surfaces is not supported."
+    @classmethod
+    def _fromStackResult(cls, stackResult: StackResult) -> 'Cuboid':
+        # subtracting stackCentroid from all vertices because solid creation will translate back to position.
+        for vertex in stackResult.vertices:
+            vertex.subtract(stackResult.position)
 
-        relativePosition = [0, 0, 0]
-        relativePosition[axis] = self.shape[axis]/2 + other.shape[axis]/2
-        relativePosition = Vector(*relativePosition)
-        other.translateTo(self.position + relativePosition)
+        stackSurfaces = {}
+        stackSurfaces.update(stackResult.surfaces)
+        stackSurfaces.update(stackResult.interfaces)
 
-        # Set new interface material and remove duplicate surfaces
-        onSurfaceIndex = surfacePairs[axis].index(onSurface)
-        oppositeSurfaceKey = surfacePairs[axis][(onSurfaceIndex + 1) % 2]
-        oppositeMaterial = other._surfaceDict[oppositeSurfaceKey][0].insideMaterial
-        for oppositeSurface in other._surfaceDict[oppositeSurfaceKey]:
-            assert oppositeSurface.insideMaterial == oppositeMaterial, \
-                "Ill-defined interface material: Cannot stack another stack along it's stacked axis."
-        self._setOutsideMaterial(oppositeMaterial, faceKey=onSurface)
-
-        other._surfaceDict[oppositeSurfaceKey] = self._surfaceDict[onSurface]
-
-        # Define new stack as a Cuboid
-        relativeStackCentroid = [0, 0, 0]
-        relativeStackCentroid[axis] = other.shape[axis] / 2
-        stackCentroid = self.position + Vector(*relativeStackCentroid)
-        stackShape = self.shape.copy()
-        stackShape[axis] += other.shape[axis]
-
-        stackVertices = self._vertices
-        newVertices = [vertex for vertex in other._vertices if vertex not in self._vertices]
-        stackVertices.extend(newVertices)
-        # subtracting stackCentroid from all vertices because solid creation will translate back to stack centroid.
-        for vertex in stackVertices:
-            vertex.subtract(stackCentroid)
-
-        interfaceKeys = [key for key in self._surfaceDict.keys() if "Interface" in key]
-        interfaceIndex = len(interfaceKeys)
-        stackSurfaces = {onSurface: other._surfaceDict[onSurface],
-                         oppositeSurfaceKey: self._surfaceDict[oppositeSurfaceKey],
-                         f'Interface{interfaceIndex}': self._surfaceDict[onSurface]}
-        for interfaceKey in interfaceKeys:
-            stackSurfaces[interfaceKey] = self._surfaceDict[interfaceKey]
-        otherInterfaceKeys = [key for key in other._surfaceDict.keys() if "Interface" in key]
-        for i, otherInterfaceKey in enumerate(otherInterfaceKeys):
-            newOtherInterfaceIndex = interfaceIndex + 1 + i
-            stackSurfaces[f'Interface{newOtherInterfaceIndex}'] = other._surfaceDict[otherInterfaceKey]
-        surfaceKeysLeft = surfacePairs[(axis + 1) % 3] + surfacePairs[(axis + 2) % 3]
-        for surfaceKey in surfaceKeysLeft:
-            stackSurfaces[surfaceKey] = self._surfaceDict[surfaceKey] + other._surfaceDict[surfaceKey]
-
-        # todo: refactor
-        # todo: Solid.material is somewhat useless (except for solid creation) and wrong...
-        #  The true material reference is only at surface level.
-
-        return Cuboid(*stackShape, position=stackCentroid, vertices=stackVertices, surfaceDict=stackSurfaces,
-                      material=None, primitive=self._primitive)
+        return Cuboid(*stackResult.shape, position=stackResult.position, vertices=stackResult.vertices,
+                      surfaceDict=stackSurfaces, material=None, primitive=stackResult.primitive)
 
 
 if __name__ == "__main__":
-    from pytissueoptics.scene.viewer.mayavi import MayaviSolid, MayaviViewer
+    from pytissueoptics.scene.viewer.mayavi import MayaviViewer
 
     cuboid1 = Cuboid(5, 1, 4, position=Vector(4, 0.5, 0))
     cuboid2 = Cuboid(5, 2, 4, position=Vector(4, 1, -6))
-    cuboid3 = Cuboid(2, 3, 4, position=Vector(-2, 1.5, -3))
+    # cuboid3 = Cuboid(5, 2, 4, position=Vector(4, 1, -6))
+    # cuboidStack = cuboid1.stack(cuboid2).stack(cuboid3, onSurface='Top')
 
+    cuboid3 = Cuboid(2, 3, 4, position=Vector(-2, 1.5, -3))
     cuboidStack = cuboid1.stack(cuboid2).stack(cuboid3, onSurface='Right')
 
-    # cuboid1Mayavi = MayaviSolid(cuboid1)
-    # cuboid2Mayavi = MayaviSolid(cuboid2)
-    # cuboid3Mayavi = MayaviSolid(cuboid3)
-    cuboidStackMayavi = MayaviSolid(cuboidStack)
-
     viewer = MayaviViewer()
-    # viewer.addMayaviSolid(cuboid1Mayavi, representation="wireframe")
-    # viewer.addMayaviSolid(cuboid2Mayavi, representation="wireframe")
-    # viewer.addMayaviSolid(cuboid3Mayavi, representation="wireframe")
-    viewer.addMayaviSolid(cuboidStackMayavi, representation="wireframe")
+    # viewer.add(cuboid1, representation="wireframe", lineWidth=2)
+    # viewer.add(cuboid2, representation="wireframe", lineWidth=2)
+    # viewer.add(cuboid3, representation="wireframe", lineWidth=2)
+    viewer.add(cuboidStack, representation="wireframe", lineWidth=2)
     viewer.show()
