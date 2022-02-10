@@ -1,8 +1,9 @@
 import pathlib
 from typing import List
-from .parsers import Parser, OBJParser
-from ..solids.solid import Solid
-from ..geometry import Vector, Polygon, Triangle
+
+from pytissueoptics.scene.loader.parsers import OBJParser
+from pytissueoptics.scene.solids import Solid
+from pytissueoptics.scene.geometry import Vector, Triangle
 
 
 class Loader:
