@@ -1,19 +1,37 @@
 import unittest
 from pytissueoptics.scene.loaders import Loader
-from pytissueoptics.scene.viewer.mayavi import MayaviSolid, MayaviViewer
+from pytissueoptics.scene.viewer import MayaviViewer
 
 
 class TestLoader(unittest.TestCase):
     def testWhenWrongExtension_shouldRaiseError(self):
         with self.assertRaises(ValueError):
-            solidObject = Loader().load("test.wrongExtension")
+            _ = Loader().load("test.wrongExtension")
 
-    def testWhenWrongExtension_shouldRaiseError(self):
+    def testWhenLoadingOBJ_shouldNotRaiseError(self):
         loader = Loader()
-        solidObjects = loader.load("./parsers/droid.obj")
-        viewer = MayaviViewer()
-        for obj in solidObjects:
-            viewer.addMayaviSolid(MayaviSolid(obj), representation="surface")
-        
+        _ = loader.load("./parsers/objFiles/droid.obj")
 
-        viewer.show()
+    def testWhenLoadingMultiPolygonObject_shouldSplitInTriangles(self):
+        loader = Loader()
+        solidObjects = loader.load("./parsers/objFiles/testCubeTrianglesMulti.obj")
+        self.assertEqual(13, len(solidObjects[0].surfaces))
+
+    def testWhenLoadingMultiGroupObject_shouldSplitCorrectGroups(self):
+        loader = Loader()
+        solidObjects = loader.load("./parsers/objFiles/testCubeTrianglesMulti.obj")
+        self.assertCountEqual(solidObjects[0].groups, ["front", "back", "bottom", "top", "right", "left"])
+
+    def testWhenLoadingMultiGroupObject_shouldHaveCorrectAmountOfElementsPerGroup(self):
+        loader = Loader()
+        solidObjects = loader.load("./parsers/objFiles/testCubeTrianglesMulti.obj")
+        self.assertEqual(len(solidObjects[0]._surfaceDict["front"]), 2)
+        self.assertEqual(len(solidObjects[0]._surfaceDict["back"]), 3)
+
+
+if __name__ == "__main__":
+    loader = Loader()
+    solidObjects = loader.load("./parsers/objFiles/testCubeTrianglesMulti.obj")
+    viewer = MayaviViewer()
+    viewer.add(*solidObjects, lineWidth=1)
+    viewer.show()

@@ -9,15 +9,15 @@ class TestOBJParser(unittest.TestCase):
 
     def testWhenWrongExtension_shouldRaiseError(self):
         with self.assertRaises(TypeError):
-            parser = OBJParser("test.wrongExtension")
+            parser = OBJParser("objFiles/test.wrongExtension")
 
     def testWhenCorrectExtension_shouldNotDoAnything(self):
-        parser = OBJParser("testCubeQuads.obj")
+        parser = OBJParser("objFiles/testCubeQuads.obj")
 
     def testWhenTestCubeQuads_shouldGiveCorrectAmountOfVertices(self):
-        parser = OBJParser("testCubeQuads.obj")
+        parser = OBJParser("objFiles/testCubeQuads.obj")
         self.assertEqual(8, len(parser.vertices))
 
     def testWhenTestCubeQuads_shouldGiveCorrectAmountOfNormals(self):
-        parser = OBJParser("testCubeQuads.obj")
+        parser = OBJParser("objFiles/testCubeQuads.obj")
         self.assertEqual(6, len(parser.normals))
