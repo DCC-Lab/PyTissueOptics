@@ -6,7 +6,7 @@ from pytissueoptics.scene.geometry import Vector, SurfaceCollection
 @dataclass
 class StackResult:
     """ Domain DTO to help creation of cuboid stacks. """
-    shape: Tuple[int, int, int]
+    shape: List[float]
     position: Vector
     vertices: List[Vector]
     surfaces: SurfaceCollection

@@ -1,3 +1,4 @@
+from typing import List
 from pytissueoptics.scene.geometry import Vector
 from pytissueoptics.scene.solids.stack.stackResult import StackResult
 from pytissueoptics.scene.geometry.surfaceCollection import SurfaceCollection
@@ -69,7 +70,7 @@ class CuboidStacker:
                            vertices=self._getStackVertices(), surfaces=self._getStackSurfaces(),
                            primitive=self._onCuboid.primitive)
 
-    def _getStackShape(self):
+    def _getStackShape(self) -> List[float]:
         stackShape = self._onCuboid.shape.copy()
         stackShape[self._stackAxis] += self._otherCuboid.shape[self._stackAxis]
         return stackShape

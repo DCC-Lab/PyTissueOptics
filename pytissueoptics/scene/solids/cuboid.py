@@ -1,4 +1,4 @@
-from typing import List
+from typing import List, Tuple
 
 from pytissueoptics.scene.geometry import Vector, Quad, Triangle
 from pytissueoptics.scene.geometry import primitives
