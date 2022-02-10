@@ -21,12 +21,12 @@ class TestSphere(unittest.TestCase):
 
     def testGivenALowOrderSphericalEllipsoid_shouldApproachCorrectSphereAreaTo5Percent(self):
         ellipsoid = Ellipsoid(a=1, b=1, c=1, order=3)
-        perfectSphereArea = 4*math.pi
+        perfectSphereArea = 4 * math.pi
         tolerance = 0.05
 
         ellipsoidArea = self._getTotalTrianglesArea(ellipsoid.getPolygons())
 
-        self.assertAlmostEqual(perfectSphereArea, ellipsoidArea, delta=tolerance*perfectSphereArea)
+        self.assertAlmostEqual(perfectSphereArea, ellipsoidArea, delta=tolerance * perfectSphereArea)
 
     def testGivenALowOrderEllipsoid_shouldApproachCorrectEllipsoidAreaTo5Percent(self):
         ellipsoid = Ellipsoid(a=2, b=3, c=5, order=3)
@@ -35,7 +35,7 @@ class TestSphere(unittest.TestCase):
 
         ellipsoidArea = self._getTotalTrianglesArea(ellipsoid.getPolygons())
 
-        self.assertAlmostEqual(perfectEllipsoidArea, ellipsoidArea, delta=perfectEllipsoidArea*tolerance)
+        self.assertAlmostEqual(perfectEllipsoidArea, ellipsoidArea, delta=perfectEllipsoidArea * tolerance)
         self.assertNotAlmostEqual(perfectEllipsoidArea, ellipsoidArea, 1)
 
     def testGivenAHighOrderEllipsoid_shouldApproachCorrectEllipsoidAreaTo1Percent(self):
@@ -45,7 +45,7 @@ class TestSphere(unittest.TestCase):
 
         ellipsoidArea = self._getTotalTrianglesArea(ellipsoid.getPolygons())
 
-        self.assertAlmostEqual(perfectEllipsoidArea, ellipsoidArea, delta=tolerance*perfectEllipsoidArea)
+        self.assertAlmostEqual(perfectEllipsoidArea, ellipsoidArea, delta=tolerance * perfectEllipsoidArea)
 
     @staticmethod
     def _getTotalTrianglesArea(surfaces):

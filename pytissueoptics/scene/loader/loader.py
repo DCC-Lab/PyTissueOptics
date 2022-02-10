@@ -12,6 +12,7 @@ class Loader:
     Base class to manage the conversion between files and Scene() or Solid() from
     various types of files.
     """
+
     def __init__(self):
         self._filepath: str = ""
         self._fileExtension: str = ""
@@ -71,6 +72,6 @@ class Loader:
     @staticmethod
     def _splitPolygonIndices(polygonIndices: List[int]) -> List[List[int]]:
         trianglesIndices = []
-        for i in range(len(polygonIndices)-2):
-            trianglesIndices.append([polygonIndices[0], polygonIndices[i+1], polygonIndices[i+2]])
+        for i in range(len(polygonIndices) - 2):
+            trianglesIndices.append([polygonIndices[0], polygonIndices[i + 1], polygonIndices[i + 2]])
         return trianglesIndices

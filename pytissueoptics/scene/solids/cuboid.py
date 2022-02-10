@@ -26,8 +26,10 @@ class Cuboid(Solid):
         self.shape = [a, b, c]
 
         if not vertices:
-            vertices = [Vector(-a/2, -b/2, -c/2), Vector(a/2, -b/2, -c/2), Vector(a/2, b/2, -c/2), Vector(-a/2, b/2, -c/2),
-                        Vector(-a/2, -b/2, c/2), Vector(a/2, -b/2, c/2), Vector(a/2, b/2, c/2), Vector(-a/2, b/2, c/2)]
+            vertices = [Vector(-a / 2, -b / 2, -c / 2), Vector(a / 2, -b / 2, -c / 2), Vector(a / 2, b / 2, -c / 2),
+                        Vector(-a / 2, b / 2, -c / 2),
+                        Vector(-a / 2, -b / 2, c / 2), Vector(a / 2, -b / 2, c / 2), Vector(a / 2, b / 2, c / 2),
+                        Vector(-a / 2, b / 2, c / 2)]
 
         super().__init__(vertices, position, surfaces, material, primitive)
 

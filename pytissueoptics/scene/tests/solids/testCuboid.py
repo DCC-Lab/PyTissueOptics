@@ -61,7 +61,7 @@ class TestCuboid(unittest.TestCase):
         otherCuboid = Cuboid(5, 1, 4)
 
         cuboidStack = baseCuboid.stack(otherCuboid, onSurface='Top')
-    
+
         self.assertEqual([5, 4, 4], cuboidStack.shape)
         self.assertEqual(basePosition + Vector(0, 0.5, 0), cuboidStack.position)
 

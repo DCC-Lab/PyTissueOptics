@@ -49,7 +49,7 @@ class Solid:
         self._position.add(translationVector)
         for v in self._vertices:
             v.add(translationVector)
-    
+
     def rotate(self, xTheta=0, yTheta=0, zTheta=0):
         """
         Requires the angle in degrees for each axis around which the solid will be rotated.

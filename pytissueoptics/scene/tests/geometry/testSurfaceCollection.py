@@ -107,9 +107,9 @@ class TestSurfaceCollection(unittest.TestCase):
         otherSurfaceCollection = SurfaceCollection()
         otherSurfaceCollection.add(otherSurfaceName, otherSurfacePolygons)
         self.surfaceCollection.add(self.SURFACE_NAME, self.SURFACE_POLYGONS)
-        
+
         self.surfaceCollection.extend(otherSurfaceCollection)
-        
+
         self.assertEqual(self.surfaceCollection.surfaceNames, [self.SURFACE_NAME, otherSurfaceName])
         self.assertEqual(self.surfaceCollection.getPolygons(), self.SURFACE_POLYGONS + otherSurfacePolygons)
 

@@ -26,7 +26,7 @@ class TestSphere(unittest.TestCase):
     def testGivenALowOrderSphere_shouldNotApproachCorrectSphereArea(self):
         sphere = Sphere()
         icosphereArea = 0
-        perfectSphereArea = 4*math.pi*sphere.radius**2
+        perfectSphereArea = 4 * math.pi * sphere.radius ** 2
 
         for polygon in sphere.getPolygons():
             icosphereArea += 0.5 * polygon.vertices[0].cross(polygon.vertices[1]).getNorm()

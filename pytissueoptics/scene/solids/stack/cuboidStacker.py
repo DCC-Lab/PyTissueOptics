@@ -45,7 +45,7 @@ class CuboidStacker:
         fixedAxes.remove(self._stackAxis)
         for fixedAxis in fixedAxes:
             assert self._onCuboid.shape[fixedAxis] == self._otherCuboid.shape[fixedAxis], \
-               f"Stacking of mismatched surfaces is not supported."
+                f"Stacking of mismatched surfaces is not supported."
 
     def _translateOtherCuboid(self):
         relativePosition = [0, 0, 0]
