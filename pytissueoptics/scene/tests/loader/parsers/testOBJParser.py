@@ -1,5 +1,5 @@
 import unittest
-from pytissueoptics.scene.loader import OBJParser
+from pytissueoptics.scene.loader.parsers import OBJParser
 
 
 class TestOBJParser(unittest.TestCase):

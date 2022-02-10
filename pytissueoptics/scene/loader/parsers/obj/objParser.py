@@ -1,4 +1,6 @@
 from pytissueoptics.scene.loader.parsers import Parser
+from pytissueoptics.scene.loader.parsers.parsedObject import ParsedObject
+from pytissueoptics.scene.loader.parsers.parsedSurface import ParsedSurface
 
 
 class OBJParser(Parser):
@@ -39,7 +41,7 @@ class OBJParser(Parser):
                 self._texCoords.append(vt)
 
             elif values[0] in ('usemtl', 'usemat'):
-                self._objects[self._currentObjectKey]["Material"] = values[1]
+                self._objects[self._currentObjectName].material = values[1]
 
             elif values[0] == 'f':
                 faceIndices = []
@@ -59,30 +61,30 @@ class OBJParser(Parser):
                         normalIndices.append(0)
 
                 self._checkForNoObject()
-                self._checkForNoGroup()
+                self._checkForNoSurface()
 
-                self._objects[self._currentObjectKey]["Groups"][self._currentGroupKey]["Polygons"].append(faceIndices)
-                self._objects[self._currentObjectKey]["Groups"][self._currentGroupKey]["Normals"].append(normalIndices)
-                self._objects[self._currentObjectKey]["Groups"][self._currentGroupKey]["TexCoords"].append(texCoordsIndices)
+                self._objects[self._currentObjectName].surfaces[self._currentSurfaceName].polygons.append(faceIndices)
+                self._objects[self._currentObjectName].surfaces[self._currentSurfaceName].normals.append(normalIndices)
+                self._objects[self._currentObjectName].surfaces[self._currentSurfaceName].texCoords.append(texCoordsIndices)
 
             elif values[0] == 'o':
-                self._currentObjectKey = values[1]
-                self._resetGroupKey()
-                self._objects[self._currentObjectKey] = {"Material": None, "Groups": {}}
+                self._currentObjectName = values[1]
+                self._resetSurfaceName()
+                self._objects[self._currentObjectName] = ParsedObject(material=None, surfaces={})
 
             elif values[0] == 'g':
-                self._currentGroupKey = values[1]
+                self._currentSurfaceName = values[1]
                 self._checkForNoObject()
-                self._objects[self._currentObjectKey]["Groups"][self._currentGroupKey] = {"Polygons": [], "Normals": [], "TexCoords": []}
+                self._objects[self._currentObjectName].surfaces[self._currentSurfaceName] = ParsedSurface(polygons=[], normals=[], texCoords=[])
 
     def _checkForNoObject(self):
-        if len(self._objects) == 0 and self._currentObjectKey == "noObject":
+        if len(self._objects) == 0 and self._currentObjectName == self.NO_OBJECT:
             self._objects = {
-                "noObject": {"Material": None, "Groups": {}}}
+                self.NO_OBJECT: ParsedObject(material=None, surfaces={})}
 
-    def _checkForNoGroup(self):
-        if len(self._objects[self._currentObjectKey]["Groups"]) == 0 and self._currentGroupKey == "noGroup":
-            self._objects[self._currentObjectKey]["Groups"]["noGroup"] = {"Polygons": [], "Normals": [], "TexCoords": []}
+    def _checkForNoSurface(self):
+        if len(self._objects[self._currentObjectName].surfaces) == 0 and self._currentSurfaceName == self.NO_SURFACE:
+            self._objects[self._currentObjectName].surfaces[self.NO_SURFACE] = ParsedSurface(polygons=[], normals=[], texCoords=[])
 
-    def _resetGroupKey(self):
-        self._currentGroupKey = "noGroup"
+    def _resetSurfaceName(self):
+        self._currentSurfaceName = self.NO_SURFACE
