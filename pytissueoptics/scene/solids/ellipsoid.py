@@ -16,13 +16,8 @@ class Ellipsoid(Sphere):
         We then calculate the difference the ellipsoid would with the unit sphere for this theta,phi and
         then .add() or .subtract() the corresponding vector.
     """
-    def __init__(self,
-                 order: int = 4,
-                 a: float = 1,
-                 b: float = 1,
-                 c: float = 1,
-                 position: Vector = Vector(),
-                 material: Material = Material(),
+    def __init__(self, order: int = 4, a: float = 1, b: float = 1, c: float = 1,
+                 position: Vector = Vector(0, 0, 0), material: Material = None,
                  primitive: str = primitives.DEFAULT):
 
         self._a = a
