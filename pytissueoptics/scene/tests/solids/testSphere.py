@@ -26,10 +26,10 @@ class TestSphere(unittest.TestCase):
     def testGivenALowOrderSphere_shouldNotApproachCorrectSphereArea(self):
         sphere = Sphere()
         icosphereArea = 0
-        perfectSphereArea = 4*math.pi*sphere.radius**2
+        perfectSphereArea = 4 * math.pi * sphere.radius ** 2
 
-        for surface in sphere._surfaceDict["noLabel"]:
-            icosphereArea += 0.5 * surface.vertices[0].cross(surface.vertices[1]).getNorm()
+        for polygon in sphere.getPolygons():
+            icosphereArea += 0.5 * polygon.vertices[0].cross(polygon.vertices[1]).getNorm()
 
         self.assertNotAlmostEqual(perfectSphereArea, icosphereArea, 3)
 
@@ -38,9 +38,9 @@ class TestSphere(unittest.TestCase):
         icosphereArea = 0
         perfectSphereArea = 4 * math.pi * sphere.radius ** 2
 
-        for surface in sphere._surfaceDict["noLabel"]:
-            AB = surface.vertices[0]-surface.vertices[1]
-            AC = surface.vertices[0]-surface.vertices[2]
+        for polygon in sphere.getPolygons():
+            AB = polygon.vertices[0] - polygon.vertices[1]
+            AC = polygon.vertices[0] - polygon.vertices[2]
             icosphereArea += 0.5 * AB.cross(AC).getNorm()
 
         self.assertAlmostEqual(perfectSphereArea, icosphereArea, 2)

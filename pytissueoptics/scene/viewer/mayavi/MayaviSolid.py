@@ -30,12 +30,12 @@ class MayaviSolid:
             self._z.append(vertex.z)
 
     def _findPolygonIndices(self):
-        for surface in self._solid.surfaces:
-            surfaceIndices = []
-            for vertex in surface.vertices:
+        for polygon in self._solid.getPolygons():
+            polygonIndices = []
+            for vertex in polygon.vertices:
                 index = self._solid.vertices.index(vertex)
-                surfaceIndices.append(index)
-            self._polygonIndices.append(tuple(surfaceIndices))
+                polygonIndices.append(index)
+            self._polygonIndices.append(tuple(polygonIndices))
 
     @property
     def mesh(self) -> MayaviMesh:

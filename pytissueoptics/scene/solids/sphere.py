@@ -15,17 +15,14 @@ class Sphere(Solid):
         - With Triangle: Specify the order of splitting. This will generate what is known as an IcoSphere.
     """
 
-    def __init__(self,
-                 radius: float = 1.0,
-                 order: int = 4,
-                 position: Vector = Vector(),
-                 material: Material = Material(),
+    def __init__(self, radius: float = 1.0, order: int = 4,
+                 position: Vector = Vector(0, 0, 0), material: Material = None,
                  primitive: str = primitives.DEFAULT):
 
         self._radius = radius
         self._order = order
 
-        super().__init__(position=position, material=material, vertices=[], primitive=primitive)
+        super().__init__(vertices=[], position=position, material=material, primitive=primitive)
 
     @property
     def radius(self):
@@ -62,32 +59,32 @@ class Sphere(Solid):
         self._vertices = [*xyPlaneVertices, *yzPlaneVertices, *xzPlaneVertices]
         V = self._vertices
 
-        self._surfaceDict['noLabel'] = [Triangle(V[0], V[11], V[5]), Triangle(V[0], V[5], V[1]),
-                                        Triangle(V[0], V[1], V[7]), Triangle(V[0], V[7], V[10]),
-                                        Triangle(V[0], V[10], V[11]), Triangle(V[1], V[5], V[9]),
-                                        Triangle(V[5], V[11], V[4]), Triangle(V[11], V[10], V[2]),
-                                        Triangle(V[10], V[7], V[6]), Triangle(V[7], V[1], V[8]),
-                                        Triangle(V[3], V[9], V[4]), Triangle(V[3], V[4], V[2]),
-                                        Triangle(V[3], V[2], V[6]), Triangle(V[3], V[6], V[8]),
-                                        Triangle(V[3], V[8], V[9]), Triangle(V[4], V[9], V[5]),
-                                        Triangle(V[2], V[4], V[11]), Triangle(V[6], V[2], V[10]),
-                                        Triangle(V[8], V[6], V[7]), Triangle(V[9], V[8], V[1])]
+        self._surfaces.add("Sphere", [Triangle(V[0], V[11], V[5]), Triangle(V[0], V[5], V[1]),
+                                      Triangle(V[0], V[1], V[7]), Triangle(V[0], V[7], V[10]),
+                                      Triangle(V[0], V[10], V[11]), Triangle(V[1], V[5], V[9]),
+                                      Triangle(V[5], V[11], V[4]), Triangle(V[11], V[10], V[2]),
+                                      Triangle(V[10], V[7], V[6]), Triangle(V[7], V[1], V[8]),
+                                      Triangle(V[3], V[9], V[4]), Triangle(V[3], V[4], V[2]),
+                                      Triangle(V[3], V[2], V[6]), Triangle(V[3], V[6], V[8]),
+                                      Triangle(V[3], V[8], V[9]), Triangle(V[4], V[9], V[5]),
+                                      Triangle(V[2], V[4], V[11]), Triangle(V[6], V[2], V[10]),
+                                      Triangle(V[8], V[6], V[7]), Triangle(V[9], V[8], V[1])])
 
     def _computeNextOrderTriangleMesh(self):
-        newSurfaces = []
-        for j, surface in enumerate(self._surfaceDict["noLabel"]):
-            ai = self._createMidVertex(surface.vertices[0], surface.vertices[1])
-            bi = self._createMidVertex(surface.vertices[1], surface.vertices[2])
-            ci = self._createMidVertex(surface.vertices[2], surface.vertices[0])
+        newPolygons = []
+        for j, polygon in enumerate(self.getPolygons()):
+            ai = self._createMidVertex(polygon.vertices[0], polygon.vertices[1])
+            bi = self._createMidVertex(polygon.vertices[1], polygon.vertices[2])
+            ci = self._createMidVertex(polygon.vertices[2], polygon.vertices[0])
 
             self._vertices.extend([ai, bi, ci])
 
-            newSurfaces.append(Triangle(surface.vertices[0], ai, ci))
-            newSurfaces.append(Triangle(surface.vertices[1], bi, ai))
-            newSurfaces.append(Triangle(surface.vertices[2], ci, bi))
-            newSurfaces.append(Triangle(ai, bi, ci))
+            newPolygons.append(Triangle(polygon.vertices[0], ai, ci))
+            newPolygons.append(Triangle(polygon.vertices[1], bi, ai))
+            newPolygons.append(Triangle(polygon.vertices[2], ci, bi))
+            newPolygons.append(Triangle(ai, bi, ci))
 
-        self._surfaceDict["noLabel"] = newSurfaces
+        self._surfaces.setPolygons("Sphere", newPolygons)
 
     @staticmethod
     def _createMidVertex(p1, p2):

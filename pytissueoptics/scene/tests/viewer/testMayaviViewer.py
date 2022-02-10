@@ -7,8 +7,7 @@ from pytissueoptics.scene.viewer.mayavi import MayaviViewer
 
 
 class TestMayaviViewer(unittest.TestCase):
-    @patch('mayavi.mlab.figure')
-    def setUp(self, fakeFigure):
+    def setUp(self):
         self.viewer = MayaviViewer()
 
     @patch('mayavi.mlab.triangular_mesh')

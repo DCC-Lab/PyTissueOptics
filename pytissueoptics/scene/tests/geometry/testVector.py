@@ -13,7 +13,7 @@ class TestVector(unittest.TestCase):
     def testWhenNormalize_shouldHaveANormOf1(self):
         self.vector.normalize()
         self.assertEqual(1, self.vector.getNorm())
-    
+
     def testGivenAZeroVector_whenNormalize_shouldStayAZeroVector(self):
         zeroVector = Vector(0, 0, 0)
         zeroVector.normalize()

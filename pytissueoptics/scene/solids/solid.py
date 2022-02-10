@@ -1,22 +1,23 @@
-from typing import Dict, List
+from typing import List
 
 import numpy as np
 
-from pytissueoptics.scene.geometry import Vector, Polygon, utils
+from pytissueoptics.scene.geometry import Vector, utils, Polygon
 from pytissueoptics.scene.geometry import primitives
 from pytissueoptics.scene.materials import Material
+from pytissueoptics.scene.geometry import SurfaceCollection
 
 
 class Solid:
-    def __init__(self, position: Vector, vertices: List[Vector], surfaceDict: Dict[str, List[Polygon]] = None,
-                 material: Material = None, primitive: str = primitives.DEFAULT):
-        self._material = material
+    def __init__(self, vertices: List[Vector], position: Vector = Vector(0, 0, 0),
+                 surfaces: SurfaceCollection = None, material: Material = None, primitive: str = primitives.DEFAULT):
         self._vertices = vertices
-        self._surfaceDict = surfaceDict
+        self._surfaces = surfaces
+        self._material = material
         self._primitive = primitive
         self._position = Vector(0, 0, 0)
 
-        if not self._surfaceDict:
+        if not self._surfaces:
             self._computeMesh()
 
         self.translateTo(position)
@@ -31,15 +32,8 @@ class Solid:
         return self._vertices
 
     @property
-    def surfaces(self) -> List[Polygon]:
-        surfaces = []
-        for surfaceGroup in self._surfaceDict.values():
-            surfaces.extend(surfaceGroup)
-        return surfaces
-
-    @property
-    def groups(self) -> List[str]:
-        return list(self._surfaceDict.keys())
+    def surfaces(self) -> SurfaceCollection:
+        return self._surfaces
 
     @property
     def primitive(self) -> str:
@@ -55,7 +49,7 @@ class Solid:
         self._position.add(translationVector)
         for v in self._vertices:
             v.add(translationVector)
-    
+
     def rotate(self, xTheta=0, yTheta=0, zTheta=0):
         """
         Requires the angle in degrees for each axis around which the solid will be rotated.
@@ -72,9 +66,33 @@ class Solid:
         for (vertex, rotatedVertexArray) in zip(self._vertices, rotatedVerticesArray):
             vertex.update(*rotatedVertexArray)
 
-        for surfaceGroup in self._surfaceDict.values():
-            for surface in surfaceGroup:
-                surface.resetNormal()
+        self._surfaces.resetNormals()
+
+    def getMaterial(self, surfaceName: str = None) -> Material:
+        if surfaceName:
+            return self.surfaces.getInsideMaterial(surfaceName)
+        else:
+            return self._material
+
+    def setOutsideMaterial(self, material: Material, surfaceName: str = None):
+        self._surfaces.setOutsideMaterial(material, surfaceName)
+
+    @property
+    def surfaceNames(self) -> List[str]:
+        return self._surfaces.surfaceNames
+
+    def getPolygons(self, surfaceName: str = None) -> List[Polygon]:
+        return self._surfaces.getPolygons(surfaceName)
+
+    def setPolygons(self, surfaceName: str, polygons: List[Polygon]):
+        self._surfaces.setPolygons(surfaceName, polygons)
+
+        newVertices = []
+        for polygon in polygons:
+            newVertices.extend(polygon.vertices)
+        for vertex in newVertices:
+            if vertex not in self._vertices:
+                self._vertices.append(vertex)
 
     @property
     def _verticesArray(self) -> np.ndarray:
@@ -84,7 +102,7 @@ class Solid:
         return np.asarray(verticesArray)
 
     def _computeMesh(self):
-        self._surfaceDict = {}
+        self._surfaces = SurfaceCollection()
         if self._primitive == primitives.TRIANGLE:
             self._computeTriangleMesh()
         elif self._primitive == primitives.QUAD:
@@ -101,15 +119,5 @@ class Solid:
     def _setInsideMaterial(self):
         if self._material is None:
             return
-        for surfaceGroup in self._surfaceDict.values():
-            for surface in surfaceGroup:
-                surface.insideMaterial = self._material
-
-    def _setOutsideMaterial(self, material: Material, faceKey: str = None):
-        if faceKey:
-            for surface in self._surfaceDict[faceKey]:
-                surface.outsideMaterial = material
-        else:
-            for surfaceGroup in self._surfaceDict.values():
-                for surface in surfaceGroup:
-                    surface.outsideMaterial = material
+        for polygon in self._surfaces.getPolygons():
+            polygon.setInsideMaterial(self._material)

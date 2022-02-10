@@ -1,7 +1,8 @@
+from math import cos, sin, acos, atan, pi, sqrt
+
 from pytissueoptics.scene.geometry import Vector, primitives
 from pytissueoptics.scene.solids import Sphere
 from pytissueoptics.scene.materials import Material
-from math import cos, sin, acos, atan, pi, sqrt
 
 
 class Ellipsoid(Sphere):
@@ -16,13 +17,9 @@ class Ellipsoid(Sphere):
         We then calculate the difference the ellipsoid would with the unit sphere for this theta,phi and
         then .add() or .subtract() the corresponding vector.
     """
-    def __init__(self,
-                 order: int = 4,
-                 a: float = 1,
-                 b: float = 1,
-                 c: float = 1,
-                 position: Vector = Vector(),
-                 material: Material = Material(),
+
+    def __init__(self, order: int = 4, a: float = 1, b: float = 1, c: float = 1,
+                 position: Vector = Vector(0, 0, 0), material: Material = None,
                  primitive: str = primitives.DEFAULT):
 
         self._a = a
@@ -48,27 +45,27 @@ class Ellipsoid(Sphere):
             vertex.normalize()
             theta, phi = self._findThetaPhi(vertex)
             r = sqrt(1 / ((cos(theta) ** 2 * sin(phi) ** 2) / self._a ** 2 + (
-                        sin(theta) ** 2 * sin(phi) ** 2) / self._b ** 2 + cos(phi) ** 2 / self._c ** 2))
+                    sin(theta) ** 2 * sin(phi) ** 2) / self._b ** 2 + cos(phi) ** 2 / self._c ** 2))
             distanceFromUnitSphere = (r - 1.0)
             vertex.add(vertex * distanceFromUnitSphere)
 
     @staticmethod
     def _findThetaPhi(vertex: 'Vector'):
-        phi = acos(vertex.z/(vertex.x**2 + vertex.y**2 + vertex.z**2))
+        phi = acos(vertex.z / (vertex.x ** 2 + vertex.y ** 2 + vertex.z ** 2))
         theta = 0
         if vertex.x == 0.0:
             if vertex.y > 0.0:
-                theta = pi/2
+                theta = pi / 2
 
             elif vertex.y < 0.0:
-                theta = -pi/2
+                theta = -pi / 2
 
         elif vertex.x > 0.0:
-            theta = atan(vertex.y/vertex.x)
+            theta = atan(vertex.y / vertex.x)
 
         elif vertex.x < 0.0:
             if vertex.y >= 0.0:
-                theta = atan(vertex.y/vertex.x) + pi
+                theta = atan(vertex.y / vertex.x) + pi
 
             elif vertex.y < 0.0:
                 theta = atan(vertex.y / vertex.x) - pi
