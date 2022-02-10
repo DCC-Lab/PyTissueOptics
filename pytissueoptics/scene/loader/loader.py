@@ -2,6 +2,7 @@ import pathlib
 from typing import List
 
 from pytissueoptics.scene.loader.parsers import OBJParser
+from pytissueoptics.scene.loader.parsers.parsedSurface import ParsedSurface
 from pytissueoptics.scene.solids import Solid
 from pytissueoptics.scene.geometry import Vector, Triangle
 
@@ -40,37 +41,33 @@ class Loader:
             raise ValueError("This format is not supported.")
 
     def _convert(self) -> List[Solid]:
-        solids = []
         vertices = []
         for vertex in self._parser.vertices:
             vertices.append(Vector(*vertex))
 
+        solids = []
         for objectName, _object in self._parser.objects.items():
             surfacesGroups = {}
-
             for surfaceName, surface in _object.surfaces.items():
-                surfacesGroups[surfaceName] = []
-
-                for polygonIndices in surface.polygons:
-
-                    if len(polygonIndices) == 3:
-                        ai, bi, ci = polygonIndices
-                        surfacesGroups[surfaceName].append(Triangle(vertices[ai], vertices[bi], vertices[ci]))
-
-                    elif len(polygonIndices) == 4:
-                        ai, bi, ci, di = polygonIndices
-                        surfacesGroups[surfaceName].append(Triangle(vertices[ai], vertices[bi], vertices[ci]))
-                        surfacesGroups[surfaceName].append(Triangle(vertices[ai], vertices[ci], vertices[di]))
-
-                    elif len(polygonIndices) > 4:
-                        trianglesIndices = self._splitPolygonIndices(polygonIndices)
-                        for triangleIndex in trianglesIndices:
-                            ai, bi, ci = triangleIndex
-                            surfacesGroups[surfaceName].append(Triangle(vertices[ai], vertices[bi], vertices[ci]))
+                surfacesGroups[surfaceName] = self._convertSurfaceToPolygons(surface, vertices)
 
             solids.append(Solid(position=Vector(0, 0, 0), vertices=vertices, surfaceDict=surfacesGroups))
 
         return solids
+
+    def _convertSurfaceToPolygons(self, surface: ParsedSurface, vertices: List[Vector]) -> List[Triangle]:
+        surfaces = []
+        for polygonIndices in surface.polygons:
+            if len(polygonIndices) == 3:
+                ai, bi, ci = polygonIndices
+                surfaces.append(Triangle(vertices[ai], vertices[bi], vertices[ci]))
+
+            elif len(polygonIndices) > 3:
+                trianglesIndices = self._splitPolygonIndices(polygonIndices)
+                for triangleIndex in trianglesIndices:
+                    ai, bi, ci = triangleIndex
+                    surfaces.append(Triangle(vertices[ai], vertices[bi], vertices[ci]))
+        return surfaces
 
     @staticmethod
     def _splitPolygonIndices(polygonIndices: List[int]) -> List[List[int]]:
