@@ -38,6 +38,10 @@ class Solid:
         return surfaces
 
     @property
+    def groups(self) -> List[str]:
+        return list(self._surfaceDict.keys())
+
+    @property
     def primitive(self) -> str:
         return self._primitive
 
