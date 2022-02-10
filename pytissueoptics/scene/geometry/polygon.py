@@ -15,8 +15,8 @@ class Polygon:
                  insideMaterial: Material = None, outsideMaterial: Material = None):
         self._vertices = vertices
         self._normal = None
-        self.insideMaterial = insideMaterial
-        self.outsideMaterial = outsideMaterial
+        self._insideMaterial = insideMaterial
+        self._outsideMaterial = outsideMaterial
 
         self.resetNormal()
 
@@ -27,6 +27,20 @@ class Polygon:
     @property
     def vertices(self):
         return self._vertices
+
+    @property
+    def insideMaterial(self):
+        return self._insideMaterial
+
+    @property
+    def outsideMaterial(self):
+        return self._outsideMaterial
+
+    def setOutsideMaterial(self, material: Material):
+        self._outsideMaterial = material
+
+    def setInsideMaterial(self, material: Material):
+        self._insideMaterial = material
 
     def resetNormal(self):
         """
