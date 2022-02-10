@@ -5,7 +5,7 @@ import numpy as np
 from pytissueoptics.scene.geometry import Vector, utils, Polygon
 from pytissueoptics.scene.geometry import primitives
 from pytissueoptics.scene.materials import Material
-from pytissueoptics.scene.geometry.surfaceCollection import SurfaceCollection
+from pytissueoptics.scene.geometry import SurfaceCollection
 
 
 class Solid:

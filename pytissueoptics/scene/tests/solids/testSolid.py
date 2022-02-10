@@ -6,7 +6,7 @@ from pytissueoptics.scene.geometry import Vector, Quad, Polygon
 from pytissueoptics.scene.geometry import primitives
 from pytissueoptics.scene.materials import Material
 from pytissueoptics.scene.solids import Solid
-from pytissueoptics.scene.geometry.surfaceCollection import SurfaceCollection
+from pytissueoptics.scene.geometry import SurfaceCollection
 
 
 class TestSolid(unittest.TestCase):

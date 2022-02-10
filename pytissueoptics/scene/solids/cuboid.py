@@ -4,7 +4,7 @@ from pytissueoptics.scene.geometry import Vector, Quad, Triangle
 from pytissueoptics.scene.geometry import primitives
 from pytissueoptics.scene.materials import Material
 from pytissueoptics.scene.solids import Solid
-from pytissueoptics.scene.geometry.surfaceCollection import SurfaceCollection
+from pytissueoptics.scene.geometry import SurfaceCollection
 from pytissueoptics.scene.solids.stack.cuboidStacker import CuboidStacker
 from pytissueoptics.scene.solids.stack.stackResult import StackResult
 

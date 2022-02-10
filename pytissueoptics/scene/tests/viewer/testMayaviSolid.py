@@ -3,7 +3,7 @@ import unittest
 from pytissueoptics.scene import Vector
 from pytissueoptics.scene.geometry import Triangle, primitives
 from pytissueoptics.scene.solids import Solid
-from pytissueoptics.scene.geometry.surfaceCollection import SurfaceCollection
+from pytissueoptics.scene.geometry import SurfaceCollection
 from pytissueoptics.scene.viewer.mayavi import MayaviSolid
 
 

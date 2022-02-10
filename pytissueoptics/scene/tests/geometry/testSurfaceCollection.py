@@ -4,7 +4,7 @@ from mockito import mock, verify, when
 
 from pytissueoptics.scene.materials import Material
 from pytissueoptics.scene.geometry import Polygon
-from pytissueoptics.scene.geometry.surfaceCollection import SurfaceCollection
+from pytissueoptics.scene.geometry import SurfaceCollection
 
 
 class TestSurfaceCollection(unittest.TestCase):

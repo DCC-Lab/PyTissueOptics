@@ -1,7 +1,7 @@
 from typing import List
 from pytissueoptics.scene.geometry import Vector
 from pytissueoptics.scene.solids.stack.stackResult import StackResult
-from pytissueoptics.scene.geometry.surfaceCollection import SurfaceCollection
+from pytissueoptics.scene.geometry import SurfaceCollection
 
 
 class CuboidStacker:

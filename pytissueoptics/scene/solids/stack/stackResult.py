@@ -1,4 +1,4 @@
-from typing import List, Tuple
+from typing import List
 from dataclasses import dataclass
 from pytissueoptics.scene.geometry import Vector, SurfaceCollection
 
