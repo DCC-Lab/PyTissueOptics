@@ -68,9 +68,10 @@ class Vector:
 
     def normalize(self):
         norm = self.getNorm()
-        self._x = self._x / norm
-        self._y = self._y / norm
-        self._z = self._z / norm
+        if norm != 0:
+            self._x = self._x / norm
+            self._y = self._y / norm
+            self._z = self._z / norm
 
     def cross(self, other: 'Vector') -> 'Vector':
         ux, uy, uz = self._x, self._y, self._z
