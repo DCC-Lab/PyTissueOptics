@@ -1,12 +1,11 @@
 from dataclasses import dataclass
-from typing import List
+from typing import Dict
 
-from pytissueoptics.scene.loader.parsers import ParsedSurface
+from pytissueoptics.scene.loader.parsers.parsedSurface import ParsedSurface
 from pytissueoptics.scene.materials import Material
 
 
 @dataclass
 class ParsedObject:
-    name: str
     material: Material
-    groups: List[ParsedSurface]
+    surfaces: Dict[str, ParsedSurface]
