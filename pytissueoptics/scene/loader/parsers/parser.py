@@ -1,5 +1,7 @@
 from typing import List, Dict
 
+from pytissueoptics.scene.loader.parsers.parsedObject import ParsedObject
+
 
 class Parser:
     """
@@ -34,15 +36,17 @@ class Parser:
     The reason is that it is a global entity that has no complexity and is always needed
     for the conversion later down the line.
     """
+    NO_OBJECT = "noObject"
+    NO_SURFACE = "noSurface"
 
     def __init__(self, filepath: str):
         self._filepath = filepath
-        self._objects: Dict = {}
-        self._vertices: List[List] = []
-        self._normals: List[List] = []
-        self._texCoords: List[List] = []
-        self._currentObjectKey: str = "noObject"
-        self._currentGroupKey: str = "noGroup"
+        self._objects: Dict[str, ParsedObject] = {}
+        self._vertices: List[List[float]] = []
+        self._normals: List[List[float]] = []
+        self._texCoords: List[List[float]] = []
+        self._currentObjectName: str = self.NO_OBJECT
+        self._currentSurfaceName: str = self.NO_SURFACE
         self._checkFileExtension()
         self._parse()
 
@@ -52,21 +56,21 @@ class Parser:
     def _parse(self):
         raise NotImplementedError
 
-    def _resetGroupKey(self):
-        self._currentGroupKey = "noGroup"
+    def _resetSurfaceName(self):
+        self._currentSurfaceName = self.NO_SURFACE
 
     @property
-    def vertices(self) -> List[List]:
+    def vertices(self):
         return self._vertices
 
     @property
-    def normals(self) -> List[List]:
+    def normals(self):
         return self._normals
 
     @property
-    def texCoords(self) -> List[List]:
+    def texCoords(self):
         return self._texCoords
 
     @property
-    def objects(self) -> Dict:
+    def objects(self):
         return self._objects
