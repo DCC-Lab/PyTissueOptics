@@ -12,7 +12,6 @@ class SurfaceCollection:
     def surfaceNames(self) -> List[str]:
         return list(self._surfaces.keys())
 
-
     def add(self, surfaceName: str, polygons: List[Polygon]):
         assert not self._contains(surfaceName), "A surface with the same name already exists. "
         self._surfaces[surfaceName] = polygons
@@ -51,9 +50,9 @@ class SurfaceCollection:
         assert not any(self._contains(surface) for surface in other.surfaceNames)
         self._surfaces.update(other._surfaces)
 
-    def _assertContains(self, surfaceName):
+    def _assertContains(self, surfaceName: str):
         assert self._contains(surfaceName), f"Surface named {surfaceName} not found in available surfaces: " \
                                             f"{self.surfaceNames}. "
 
-    def _contains(self, surfaceName) -> bool:
+    def _contains(self, surfaceName: str) -> bool:
         return surfaceName in self.surfaceNames
