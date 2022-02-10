@@ -13,7 +13,7 @@ class Parser:
 
     The standard interface for the parser _object will look like this:
     self._object: Dict[str:, ParsedObject:]
-    All the object will have their name in the dictionnary and pointing to a parsedObject dataclass
+    All the object will have their name in the dictionary and pointing to a parsedObject dataclass
     ParsedObject dataclass will contain a Material and surfaces:Dict[str, ParsedSurface]
     ParsedSurfaces will contain the polygon, normal and textureCoordinate indices.
 

@@ -21,8 +21,8 @@ class OBJParser(Parser):
         - Groups start with 'g'
         - New objects will start with 'o'
         """
-
-        for line in open(self._filepath, "r"):
+        file = open(self._filepath, "r")
+        for line in file:
             if line.startswith('#'):
                 continue
 
@@ -59,13 +59,14 @@ class OBJParser(Parser):
                 self._objects[self._currentObjectName].surfaces[self._currentSurfaceName] = ParsedSurface(polygons=[],
                                                                                                           normals=[],
                                                                                                           texCoords=[])
+        file.close()
 
     def _parseFace(self, values: List[Any]):
         faceIndices = []
         texCoordsIndices = []
         normalIndices = []
-        for verticesIndices in values[1:]:
 
+        for verticesIndices in values[1:]:
             vertexIndices = verticesIndices.split('/')
             faceIndices.append(int(vertexIndices[0]) - 1)
             if len(vertexIndices) >= 2 and len(vertexIndices[1]) > 0:
