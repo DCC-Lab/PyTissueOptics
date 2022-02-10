@@ -80,8 +80,8 @@ class CuboidStacker:
         return self._onCuboid.position + Vector(*relativeStackCentroid)
 
     def _getStackVertices(self):
-        stackVertices = self._onCuboid._vertices
-        newVertices = [vertex for vertex in self._otherCuboid._vertices if vertex not in self._onCuboid._vertices]
+        stackVertices = self._onCuboid.vertices
+        newVertices = [vertex for vertex in self._otherCuboid.vertices if vertex not in self._onCuboid.vertices]
         stackVertices.extend(newVertices)
         return stackVertices
 
