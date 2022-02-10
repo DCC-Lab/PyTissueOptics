@@ -44,7 +44,7 @@ class TestCuboid(unittest.TestCase):
 
         baseCuboid.stack(otherCuboid, onSurface='Top')
 
-        self.assertEqual(baseCuboid._surfaceDict['Top'], otherCuboid._surfaceDict['Bottom'])
+        self.assertEqual(baseCuboid.getPolygons('Top'), otherCuboid.getPolygons('Bottom'))
 
     def testWhenStack_shouldSetOtherCuboidMaterialAtInterface(self):
         baseCuboid = Cuboid(5, 3, 4)
@@ -52,8 +52,8 @@ class TestCuboid(unittest.TestCase):
 
         baseCuboid.stack(otherCuboid, onSurface='Top')
 
-        for surface in baseCuboid._surfaceDict['Top']:
-            self.assertEqual(surface.outsideMaterial, otherCuboid._material)
+        for polygon in baseCuboid.getPolygons('Top'):
+            self.assertEqual(polygon.outsideMaterial, otherCuboid.getMaterial())
 
     def testWhenStack_shouldReturnANewCuboidMadeOfTheseTwoCuboids(self):
         basePosition = Vector(2, 2, 1)
@@ -71,7 +71,7 @@ class TestCuboid(unittest.TestCase):
 
         cuboidStack = baseCuboid.stack(otherCuboid, onSurface='Top')
 
-        self.assertTrue("Interface0" in cuboidStack._surfaceDict)
+        self.assertTrue("Interface0" in cuboidStack.surfaceNames)
 
     def testWhenStackAnotherStack_shouldReturnANewCuboidWithAllStackInterfaces(self):
         baseCuboid1 = Cuboid(5, 3, 4)
@@ -85,4 +85,4 @@ class TestCuboid(unittest.TestCase):
         cuboidStack = cuboidStack1.stack(cuboidStack2, onSurface='Right')
 
         for i in range(3):
-            self.assertTrue(f"Interface{i}" in cuboidStack._surfaceDict)
+            self.assertTrue(f"Interface{i}" in cuboidStack.surfaceNames)

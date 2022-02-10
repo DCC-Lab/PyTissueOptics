@@ -1,7 +1,10 @@
+from typing import List
+
 from pytissueoptics.scene.geometry import Vector, Quad, Triangle
 from pytissueoptics.scene.geometry import primitives
 from pytissueoptics.scene.materials import Material
 from pytissueoptics.scene.solids import Solid
+from pytissueoptics.scene.solids.surfaceCollection import SurfaceCollection
 from pytissueoptics.scene.solids.cuboidStacker import CuboidStacker
 from pytissueoptics.scene.solids.stackResult import StackResult
 
@@ -17,34 +20,34 @@ class Cuboid(Solid):
     """
 
     def __init__(self, a: float, b: float, c: float,
-                 position: Vector = Vector(0, 0, 0), material: Material = Material(),
-                 primitive: str = primitives.DEFAULT, vertices=None, surfaceDict=None):
+                 vertices: List[Vector] = None, position: Vector = Vector(0, 0, 0), surfaces: SurfaceCollection = None,
+                 material: Material = None, primitive: str = primitives.DEFAULT):
+
         self.shape = [a, b, c]
 
         if not vertices:
             vertices = [Vector(-a/2, -b/2, -c/2), Vector(a/2, -b/2, -c/2), Vector(a/2, b/2, -c/2), Vector(-a/2, b/2, -c/2),
                         Vector(-a/2, -b/2, c/2), Vector(a/2, -b/2, c/2), Vector(a/2, b/2, c/2), Vector(-a/2, b/2, c/2)]
 
-        super().__init__(position=position, material=material, primitive=primitive,
-                         vertices=vertices, surfaceDict=surfaceDict)
+        super().__init__(vertices, position, surfaces, material, primitive)
 
     def _computeTriangleMesh(self):
         V = self._vertices
-        self._surfaceDict['Left'] = [Triangle(V[4], V[0], V[3]), Triangle(V[3], V[7], V[4])]
-        self._surfaceDict['Right'] = [Triangle(V[1], V[5], V[6]), Triangle(V[6], V[2], V[1])]
-        self._surfaceDict['Bottom'] = [Triangle(V[4], V[5], V[1]), Triangle(V[1], V[0], V[4])]
-        self._surfaceDict['Top'] = [Triangle(V[3], V[2], V[6]), Triangle(V[6], V[7], V[3])]
-        self._surfaceDict['Front'] = [Triangle(V[0], V[1], V[2]), Triangle(V[2], V[3], V[0])]
-        self._surfaceDict['Back'] = [Triangle(V[5], V[4], V[7]), Triangle(V[7], V[6], V[5])]
+        self._surfaces.add('Left', [Triangle(V[4], V[0], V[3]), Triangle(V[3], V[7], V[4])])
+        self._surfaces.add('Right', [Triangle(V[1], V[5], V[6]), Triangle(V[6], V[2], V[1])])
+        self._surfaces.add('Bottom', [Triangle(V[4], V[5], V[1]), Triangle(V[1], V[0], V[4])])
+        self._surfaces.add('Top', [Triangle(V[3], V[2], V[6]), Triangle(V[6], V[7], V[3])])
+        self._surfaces.add('Front', [Triangle(V[0], V[1], V[2]), Triangle(V[2], V[3], V[0])])
+        self._surfaces.add('Back', [Triangle(V[5], V[4], V[7]), Triangle(V[7], V[6], V[5])])
 
     def _computeQuadMesh(self):
         V = self._vertices
-        self._surfaceDict['Left'] = [Quad(V[4], V[0], V[3], V[7])]
-        self._surfaceDict['Right'] = [Quad(V[1], V[5], V[6], V[2])]
-        self._surfaceDict['Bottom'] = [Quad(V[4], V[5], V[1], V[0])]
-        self._surfaceDict['Top'] = [Quad(V[3], V[2], V[6], V[7])]
-        self._surfaceDict['Front'] = [Quad(V[0], V[1], V[2], V[3])]
-        self._surfaceDict['Back'] = [Quad(V[5], V[4], V[7], V[6])]
+        self._surfaces.add('Left', [Quad(V[4], V[0], V[3], V[7])])
+        self._surfaces.add('Right', [Quad(V[1], V[5], V[6], V[2])])
+        self._surfaces.add('Bottom', [Quad(V[4], V[5], V[1], V[0])])
+        self._surfaces.add('Top', [Quad(V[3], V[2], V[6], V[7])])
+        self._surfaces.add('Front', [Quad(V[0], V[1], V[2], V[3])])
+        self._surfaces.add('Back', [Quad(V[5], V[4], V[7], V[6])])
 
     def stack(self, other: 'Cuboid', onSurface: str = 'Top') -> 'Cuboid':
         """
@@ -69,12 +72,8 @@ class Cuboid(Solid):
         for vertex in stackResult.vertices:
             vertex.subtract(stackResult.position)
 
-        stackSurfaces = {}
-        stackSurfaces.update(stackResult.surfaces)
-        stackSurfaces.update(stackResult.interfaces)
-
         return Cuboid(*stackResult.shape, position=stackResult.position, vertices=stackResult.vertices,
-                      surfaceDict=stackSurfaces, material=None, primitive=stackResult.primitive)
+                      surfaces=stackResult.surfaces, primitive=stackResult.primitive)
 
 
 if __name__ == "__main__":
@@ -86,5 +85,5 @@ if __name__ == "__main__":
     cuboidStack = cuboid1.stack(cuboid2).stack(cuboid3, onSurface='Right')
 
     viewer = MayaviViewer()
-    viewer.add(cuboidStack, representation="wireframe", lineWidth=2)
+    viewer.add(cuboidStack, representation="wireframe", lineWidth=3)
     viewer.show()
