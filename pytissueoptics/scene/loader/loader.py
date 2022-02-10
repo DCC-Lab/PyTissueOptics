@@ -50,7 +50,6 @@ class Loader:
             surfacesGroups = {}
             for surfaceName, surface in _object.surfaces.items():
                 surfacesGroups[surfaceName] = self._convertSurfaceToPolygons(surface, vertices)
-
             solids.append(Solid(position=Vector(0, 0, 0), vertices=vertices, surfaceDict=surfacesGroups))
 
         return solids
@@ -75,13 +74,3 @@ class Loader:
         for i in range(len(polygonIndices)-2):
             trianglesIndices.append([polygonIndices[0], polygonIndices[i+1], polygonIndices[i+2]])
         return trianglesIndices
-
-
-if __name__ == "__main__":
-    from pytissueoptics.scene.viewer import MayaviViewer
-
-    loader = Loader()
-    solidObjects = loader.load("./parsers/objFiles/testCubeTrianglesMulti.obj")
-    viewer = MayaviViewer()
-    viewer.add(*solidObjects, lineWidth=1)
-    viewer.show()
