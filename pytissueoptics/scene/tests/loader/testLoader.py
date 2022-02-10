@@ -27,20 +27,20 @@ class TestLoader(unittest.TestCase):
     def testWhenLoadingMultiPolygonObject_shouldSplitInTriangles(self):
         loader = Loader()
         solids = loader.load(self._filepath("testCubeTrianglesMulti.obj"))
-        self.assertEqual(13, len(solids[0].surfaces))
+        self.assertEqual(13, len(solids[0].getPolygons()))
 
     def testWhenLoadingMultiGroupObject_shouldSplitCorrectGroups(self):
         loader = Loader()
         solids = loader.load(self._filepath("testCubeTrianglesMulti.obj"))
-        self.assertCountEqual(solids[0].groups, ["front", "back", "bottom", "top", "right", "left"])
+        self.assertCountEqual(solids[0].surfaceNames, ["front", "back", "bottom", "top", "right", "left"])
 
     def testWhenLoadingMultiGroupObject_shouldHaveCorrectAmountOfElementsPerGroup(self):
         loader = Loader()
 
-        solidObjects = loader.load(self._filepath("testCubeTrianglesMulti.obj"))
+        solids = loader.load(self._filepath("testCubeTrianglesMulti.obj"))
 
-        self.assertEqual(len(solidObjects[0]._surfaceDict["front"]), 2)
-        self.assertEqual(len(solidObjects[0]._surfaceDict["back"]), 3)
+        self.assertEqual(len(solids[0].surfaces.getPolygons("front")), 2)
+        self.assertEqual(len(solids[0].surfaces.getPolygons("back")), 3)
 
     def _filepath(self, fileName) -> str:
         return os.path.join(self.TEST_DIRECTORY, "parsers", "objFiles", fileName)
