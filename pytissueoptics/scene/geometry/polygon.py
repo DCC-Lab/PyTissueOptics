@@ -11,10 +11,10 @@ class Polygon:
     Requires the vertices to be given in an anti-clockwise order
      for the normal to point towards the viewer.
     """
-    def __init__(self, vertices: List[Vector],
+    def __init__(self, vertices: List[Vector], normal: Vector = None,
                  insideMaterial: Material = None, outsideMaterial: Material = None):
         self._vertices = vertices
-        self._normal = None
+        self._normal = normal
         self.insideMaterial = insideMaterial
         self.outsideMaterial = outsideMaterial
         if self._normal is None:
