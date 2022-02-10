@@ -3,21 +3,21 @@ from pytissueoptics.scene.loader.parsers import OBJParser
 
 
 class TestOBJParser(unittest.TestCase):
-    def testWhenCreatedEmpty_shouldRaiseError(self):
+    def testGivenNoFilepath_shouldNotParse(self):
         with self.assertRaises(Exception):
             parser = OBJParser()
 
-    def testWhenWrongExtension_shouldRaiseError(self):
+    def testGivenWrongExtension_shouldNotParse(self):
         with self.assertRaises(TypeError):
             parser = OBJParser("objFiles/test.wrongExtension")
 
-    def testWhenCorrectExtension_shouldNotDoAnything(self):
+    def testShouldParseAtCreation(self):
         parser = OBJParser("objFiles/testCubeQuads.obj")
 
-    def testWhenTestCubeQuads_shouldGiveCorrectAmountOfVertices(self):
+    def testShouldGiveCorrectAmountOfVertices(self):
         parser = OBJParser("objFiles/testCubeQuads.obj")
         self.assertEqual(8, len(parser.vertices))
 
-    def testWhenTestCubeQuads_shouldGiveCorrectAmountOfNormals(self):
+    def testShouldGiveCorrectAmountOfNormals(self):
         parser = OBJParser("objFiles/testCubeQuads.obj")
         self.assertEqual(6, len(parser.normals))
