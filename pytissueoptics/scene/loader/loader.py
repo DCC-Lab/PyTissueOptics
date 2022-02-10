@@ -1,8 +1,9 @@
 import pathlib
 from typing import List
-from .parsers import Parser, OBJParser
-from ..solids.solid import Solid
-from ..geometry import Vector, Polygon, Triangle
+
+from pytissueoptics.scene.loader.parsers import OBJParser
+from pytissueoptics.scene.solids import Solid
+from pytissueoptics.scene.geometry import Vector, Triangle
 
 
 class Loader:
@@ -14,6 +15,12 @@ class Loader:
         self._filepath: str = ""
         self._fileExtension: str = ""
         self._parser = None
+
+    def load(self, filepath: str) -> List[Solid]:
+        self._filepath = filepath
+        self._fileExtension = self._getFileExtension()
+        self._selectParser()
+        return self._convert()
 
     def _getFileExtension(self) -> str:
         return pathlib.Path(self._filepath).suffix
@@ -72,9 +79,3 @@ class Loader:
         for i in range(len(polygonIndices)-2):
             trianglesIndices.append([polygonIndices[0], polygonIndices[i+1], polygonIndices[i+2]])
         return trianglesIndices
-
-    def load(self, filepath: str) -> List[Solid]:
-        self._filepath = filepath
-        self._fileExtension = self._getFileExtension()
-        self._selectParser()
-        return self._convert()
