@@ -1,6 +1,5 @@
 import unittest
 from pytissueoptics.scene.loader import Loader
-from pytissueoptics.scene.viewer import MayaviViewer
 
 
 class TestLoader(unittest.TestCase):
@@ -27,11 +26,3 @@ class TestLoader(unittest.TestCase):
         solidObjects = loader.load("./parsers/objFiles/testCubeTrianglesMulti.obj")
         self.assertEqual(len(solidObjects[0]._surfaceDict["front"]), 2)
         self.assertEqual(len(solidObjects[0]._surfaceDict["back"]), 3)
-
-
-if __name__ == "__main__":
-    loader = Loader()
-    solidObjects = loader.load("./parsers/objFiles/testCubeTrianglesMulti.obj")
-    viewer = MayaviViewer()
-    viewer.add(*solidObjects, lineWidth=1)
-    viewer.show()

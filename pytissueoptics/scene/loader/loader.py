@@ -45,29 +45,28 @@ class Loader:
         for vertex in self._parser.vertices:
             vertices.append(Vector(*vertex))
 
-        for objectName in self._parser.objects:
+        for objectName, _object in self._parser.objects.items():
             surfacesGroups = {}
 
-            for group in self._parser.objects[objectName]["Groups"]:
-                surfacesGroups[group] = []
+            for surfaceName, surface in _object.surfaces.items():
+                surfacesGroups[surfaceName] = []
 
-                for polygonIndices in self._parser.objects[objectName]["Groups"][group]["Polygons"]:
+                for polygonIndices in surface.polygons:
 
                     if len(polygonIndices) == 3:
                         ai, bi, ci = polygonIndices
-                        surfacesGroups[group].append(Triangle(vertices[ai], vertices[bi], vertices[ci]))
+                        surfacesGroups[surfaceName].append(Triangle(vertices[ai], vertices[bi], vertices[ci]))
 
                     elif len(polygonIndices) == 4:
                         ai, bi, ci, di = polygonIndices
-                        surfacesGroups[group].append(Triangle(vertices[ai], vertices[bi], vertices[ci]))
-                        surfacesGroups[group].append(Triangle(vertices[ai], vertices[ci], vertices[di]))
+                        surfacesGroups[surfaceName].append(Triangle(vertices[ai], vertices[bi], vertices[ci]))
+                        surfacesGroups[surfaceName].append(Triangle(vertices[ai], vertices[ci], vertices[di]))
 
                     elif len(polygonIndices) > 4:
                         trianglesIndices = self._splitPolygonIndices(polygonIndices)
-                        print(f"Multipolygon:{len(trianglesIndices)}")
                         for triangleIndex in trianglesIndices:
                             ai, bi, ci = triangleIndex
-                            surfacesGroups[group].append(Triangle(vertices[ai], vertices[bi], vertices[ci]))
+                            surfacesGroups[surfaceName].append(Triangle(vertices[ai], vertices[bi], vertices[ci]))
 
             solids.append(Solid(position=Vector(0, 0, 0), vertices=vertices, surfaceDict=surfacesGroups))
 
@@ -79,3 +78,13 @@ class Loader:
         for i in range(len(polygonIndices)-2):
             trianglesIndices.append([polygonIndices[0], polygonIndices[i+1], polygonIndices[i+2]])
         return trianglesIndices
+
+
+if __name__ == "__main__":
+    from pytissueoptics.scene.viewer import MayaviViewer
+
+    loader = Loader()
+    solidObjects = loader.load("./parsers/objFiles/testCubeTrianglesMulti.obj")
+    viewer = MayaviViewer()
+    viewer.add(*solidObjects, lineWidth=1)
+    viewer.show()
