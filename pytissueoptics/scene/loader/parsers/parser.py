@@ -12,26 +12,11 @@ class Parser:
     and its dissociation from the Loader is mainly for clarity.
 
     The standard interface for the parser _object will look like this:
-    {"noObject":{
-        "Material":Material(),
-        "Groups":{
-            "NoGroup":{
-                "Polygons":[], 
-                "Normals":[],
-                "TexCoords":[]}},
-    "objectName":{
-        "Material":Material(),
-        "Groups":{
-            "NoGroup":{
-                "Polygons":[],
-                "Normals":[],
-                "TexCoords":[]}
-            "Group0":{
-                "Polygons":[],
-                "Normals":[],
-                "TexCoords":[]}}
-                }
-    }
+    self._object: Dict[str:, ParsedObject:]
+    All the object will have their name in the dictionnary and pointing to a parsedObject dataclass
+    ParsedObject dataclass will contain a Material and surfaces:Dict[str, ParsedSurface]
+    ParsedSurfaces will contain the polygon, normal and textureCoordinate indices.
+
     Other components, such as the vertices, dont need to be stored in the dictionary
     The reason is that it is a global entity that has no complexity and is always needed
     for the conversion later down the line.
