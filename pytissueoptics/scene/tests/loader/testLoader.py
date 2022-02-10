@@ -1,5 +1,7 @@
 import unittest
+from typing import List
 from pytissueoptics.scene.loader import Loader
+from pytissueoptics.scene.solids import Solid
 
 
 class TestLoader(unittest.TestCase):
@@ -10,6 +12,13 @@ class TestLoader(unittest.TestCase):
     def testWhenLoadingOBJ_shouldLoad(self):
         loader = Loader()
         _ = loader.load("./parsers/objFiles/droid.obj")
+
+    def testWhenLoadingOBJ_shouldReturnListOfSolids(self):
+        loader = Loader()
+        solids = loader.load("./parsers/objFiles/droid.obj")
+        self.assertIsInstance(solids, List)
+        for solid in solids:
+            self.assertIsInstance(solid, Solid)
 
     def testWhenLoadingMultiPolygonObject_shouldSplitInTriangles(self):
         loader = Loader()
