@@ -21,7 +21,7 @@ class CuboidStacker:
         self._configureInterfaceMaterial()
         return self._assemble()
 
-    def _initStacking(self, onCuboid, otherCuboid, onSurfaceName):
+    def _initStacking(self, onCuboid: 'Cuboid', otherCuboid: 'Cuboid', onSurfaceName: str):
         assert onSurfaceName in self.SURFACE_KEYS, f"Available surfaces to stack on are: {self.SURFACE_KEYS}"
         self._onCuboid = onCuboid
         self._otherCuboid = otherCuboid
@@ -32,7 +32,7 @@ class CuboidStacker:
 
         self._validateShapeMatch()
 
-    def _getSurfaceAxis(self, surfaceName) -> int:
+    def _getSurfaceAxis(self, surfaceName: str) -> int:
         return max(axis if surfaceName in surfacePair else -1 for axis, surfacePair in enumerate(self.SURFACE_PAIRS))
 
     def _getOppositeSurface(self, surfaceName: str) -> str:
