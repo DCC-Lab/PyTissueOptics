@@ -1,4 +1,4 @@
-from pytissueoptics.scene.loaders import Loader
+from pytissueoptics.scene.loader import Loader
 from pytissueoptics.scene.viewer.mayavi import MayaviSolid, MayaviViewer
 
 loader = Loader()

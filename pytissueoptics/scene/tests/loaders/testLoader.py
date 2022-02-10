@@ -1,5 +1,5 @@
 import unittest
-from pytissueoptics.scene.loaders import Loader
+from pytissueoptics.scene.loader import Loader
 from pytissueoptics.scene.viewer import MayaviViewer
 
 

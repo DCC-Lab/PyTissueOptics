@@ -1,10 +1,10 @@
-from pytissueoptics.scene.loaders.parsers import Parser
+from pytissueoptics.scene.loader.parsers import Parser
 
 
-class StepParser(Parser):
+class ZMXParser(Parser):
 
     def _checkFileExtension(self):
-        if self._filepath.endswith('.step'):
+        if self._filepath.endswith('.dae'):
             return
         else:
             raise TypeError

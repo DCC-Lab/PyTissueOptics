@@ -1,4 +1,4 @@
-from pytissueoptics.scene.loaders.parsers import Parser
+from pytissueoptics.scene.loader.parsers import Parser
 
 
 class ColladaParser(Parser):
