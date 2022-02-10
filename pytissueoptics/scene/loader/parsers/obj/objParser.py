@@ -2,7 +2,6 @@ from pytissueoptics.scene.loader.parsers import Parser
 
 
 class OBJParser(Parser):
-
     def _checkFileExtension(self):
         if self._filepath.endswith('.obj'):
             return

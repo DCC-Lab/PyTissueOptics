@@ -16,6 +16,12 @@ class Loader:
         self._fileExtension: str = ""
         self._parser = None
 
+    def load(self, filepath: str) -> List[Solid]:
+        self._filepath = filepath
+        self._fileExtension = self._getFileExtension()
+        self._selectParser()
+        return self._convert()
+
     def _getFileExtension(self) -> str:
         return pathlib.Path(self._filepath).suffix
 
@@ -73,9 +79,3 @@ class Loader:
         for i in range(len(polygonIndices)-2):
             trianglesIndices.append([polygonIndices[0], polygonIndices[i+1], polygonIndices[i+2]])
         return trianglesIndices
-
-    def load(self, filepath: str) -> List[Solid]:
-        self._filepath = filepath
-        self._fileExtension = self._getFileExtension()
-        self._selectParser()
-        return self._convert()
