@@ -4,7 +4,7 @@ from pytissueoptics.scene.loader.parsers import Parser
 class ZMXParser(Parser):
 
     def _checkFileExtension(self):
-        if self._filepath.endswith('.dae'):
+        if self._filepath.endswith('.zmx'):
             return
         else:
             raise TypeError
