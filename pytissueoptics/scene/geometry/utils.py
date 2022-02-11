@@ -9,11 +9,11 @@ def rotateVerticesArray(verticesArray: np.ndarray, xTheta=0, yTheta=0, zTheta=0)
 def eulerRotationMatrix(xTheta=0, yTheta=0, zTheta=0) -> np.ndarray:
     rotationMatrix = np.identity(3)
     if xTheta != 0:
-        rotationMatrix = np.matmul(rotationMatrix, _xRotationMatrix(xTheta))
+        rotationMatrix = np.matmul(_xRotationMatrix(xTheta), rotationMatrix)
     if yTheta != 0:
-        rotationMatrix = np.matmul(rotationMatrix, _yRotationMatrix(yTheta))
+        rotationMatrix = np.matmul(_yRotationMatrix(yTheta), rotationMatrix)
     if zTheta != 0:
-        rotationMatrix = np.matmul(rotationMatrix, _zRotationMatrix(zTheta))
+        rotationMatrix = np.matmul(_zRotationMatrix(zTheta), rotationMatrix)
     return rotationMatrix
 
 
