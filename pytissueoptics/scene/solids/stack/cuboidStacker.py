@@ -52,6 +52,11 @@ class CuboidStacker:
         relativePosition[self._stackAxis] = self._onCuboid.shape[self._stackAxis] / 2 + \
                                             self._otherCuboid.shape[self._stackAxis] / 2
         relativePosition = Vector(*relativePosition)
+
+        towardsPositive = self.SURFACE_PAIRS[self._stackAxis].index(self._onSurfaceName)
+        if not towardsPositive:
+            relativePosition.multiply(-1)
+
         self._otherCuboid.translateTo(self._onCuboid.position + relativePosition)
 
     def _configureInterfaceMaterial(self):
