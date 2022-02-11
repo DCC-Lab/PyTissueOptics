@@ -30,6 +30,10 @@ class MayaviViewer:
         self._assignViewPoint()
         mlab.show()
 
+    @staticmethod
+    def clear():
+        mlab.clf()
+
 
 if __name__ == "__main__":
     from pytissueoptics.scene import Sphere, Cuboid, Vector

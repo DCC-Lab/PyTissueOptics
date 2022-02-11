@@ -5,7 +5,7 @@ from pytissueoptics.scene.geometry import Vector
 from pytissueoptics.scene.solids import Ellipsoid
 
 
-class TestSphere(unittest.TestCase):
+class TestEllipsoid(unittest.TestCase):
     def testGivenANewDefault_shouldBePlacedAtOrigin(self):
         ellipsoid = Ellipsoid()
         self.assertEqual(Vector(0, 0, 0), ellipsoid.position)
