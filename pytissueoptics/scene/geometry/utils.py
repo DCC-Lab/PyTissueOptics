@@ -3,17 +3,17 @@ import numpy as np
 
 def rotateVerticesArray(verticesArray: np.ndarray, xTheta=0, yTheta=0, zTheta=0) -> np.ndarray:
     rotationMatrix = eulerRotationMatrix(xTheta, yTheta, zTheta)
-    return np.einsum('ij, ki->ki', rotationMatrix, verticesArray)
+    return np.einsum('ij, kj->ki', rotationMatrix, verticesArray)
 
 
 def eulerRotationMatrix(xTheta=0, yTheta=0, zTheta=0) -> np.ndarray:
     rotationMatrix = np.identity(3)
-    if zTheta != 0:
-        rotationMatrix = np.matmul(rotationMatrix, _zRotationMatrix(zTheta))
-    if yTheta != 0:
-        rotationMatrix = np.matmul(rotationMatrix, _yRotationMatrix(yTheta))
     if xTheta != 0:
         rotationMatrix = np.matmul(rotationMatrix, _xRotationMatrix(xTheta))
+    if yTheta != 0:
+        rotationMatrix = np.matmul(rotationMatrix, _yRotationMatrix(yTheta))
+    if zTheta != 0:
+        rotationMatrix = np.matmul(rotationMatrix, _zRotationMatrix(zTheta))
     return rotationMatrix
 
 
