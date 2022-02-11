@@ -38,6 +38,14 @@ class TestEulerRotationMatrix(unittest.TestCase):
 
         self.assertTrue(np.allclose([-1, 1, 1], pRotated))
 
+    def testGivenXYRotation_shouldRotateAroundXYInOrder(self):
+        rotation = eulerRotationMatrix(xTheta=90, yTheta=90)
+        p = [1, 1, 1]
+
+        pRotated = np.dot(rotation, p)
+
+        self.assertTrue(np.allclose([1, -1, -1], pRotated))
+
     def testGivenXYZRotation_shouldRotateAroundXYZInOrder(self):
         rotation = eulerRotationMatrix(xTheta=90, yTheta=90, zTheta=90)
         p = [1, 1, 1]
