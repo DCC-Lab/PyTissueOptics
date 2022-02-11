@@ -54,12 +54,18 @@ class TestSolid(unittest.TestCase):
         self.assertEqual(initialY + aTranslation.y, self.solid.position.y)
 
     def testWhenRotate_shouldRotateItsVertices(self):
+        expectedRotatedVertex0 = Vector(-1, -1, 1) + self.position
+        expectedRotatedVertex5 = Vector(1, -1, -1) + self.position
+
         self.solid.rotate(xTheta=90, yTheta=90, zTheta=90)
 
-        expectedRotatedVertex = Vector(-1, -1, 1) + self.position
-        self.assertAlmostEqual(expectedRotatedVertex.x, self.CUBOID_VERTICES[0].x)
-        self.assertAlmostEqual(expectedRotatedVertex.y, self.CUBOID_VERTICES[0].y)
-        self.assertAlmostEqual(expectedRotatedVertex.z, self.CUBOID_VERTICES[0].z)
+        self.assertAlmostEqual(expectedRotatedVertex0.x, self.CUBOID_VERTICES[0].x)
+        self.assertAlmostEqual(expectedRotatedVertex0.y, self.CUBOID_VERTICES[0].y)
+        self.assertAlmostEqual(expectedRotatedVertex0.z, self.CUBOID_VERTICES[0].z)
+
+        self.assertAlmostEqual(expectedRotatedVertex5.x, self.CUBOID_VERTICES[5].x)
+        self.assertAlmostEqual(expectedRotatedVertex5.y, self.CUBOID_VERTICES[5].y)
+        self.assertAlmostEqual(expectedRotatedVertex5.z, self.CUBOID_VERTICES[5].z)
 
     def testWhenRotate_shouldRotateItsPolygons(self):
         polygon = mock(Polygon)

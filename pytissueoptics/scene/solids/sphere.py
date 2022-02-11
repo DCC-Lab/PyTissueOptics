@@ -15,7 +15,7 @@ class Sphere(Solid):
         - With Triangle: Specify the order of splitting. This will generate what is known as an IcoSphere.
     """
 
-    def __init__(self, radius: float = 1.0, order: int = 4,
+    def __init__(self, radius: float = 1.0, order: int = 3,
                  position: Vector = Vector(0, 0, 0), material: Material = None,
                  primitive: str = primitives.DEFAULT):
 
