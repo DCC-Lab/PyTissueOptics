@@ -5,7 +5,7 @@ from pytissueoptics.scene.geometry import Vector
 from pytissueoptics.scene.solids import Ellipsoid
 
 
-class TestSphere(unittest.TestCase):
+class TestEllipsoid(unittest.TestCase):
     def testGivenANewDefault_shouldBePlacedAtOrigin(self):
         ellipsoid = Ellipsoid()
         self.assertEqual(Vector(0, 0, 0), ellipsoid.position)
@@ -29,7 +29,7 @@ class TestSphere(unittest.TestCase):
         self.assertAlmostEqual(perfectSphereArea, ellipsoidArea, delta=tolerance * perfectSphereArea)
 
     def testGivenALowOrderEllipsoid_shouldApproachCorrectEllipsoidAreaTo5Percent(self):
-        ellipsoid = Ellipsoid(a=2, b=3, c=5, order=3)
+        ellipsoid = Ellipsoid(a=2, b=3, c=5, order=2)
         perfectEllipsoidArea = self._getPerfectEllipsoidArea(ellipsoid)
         tolerance = 0.05
 
@@ -39,7 +39,7 @@ class TestSphere(unittest.TestCase):
         self.assertNotAlmostEqual(perfectEllipsoidArea, ellipsoidArea, 1)
 
     def testGivenAHighOrderEllipsoid_shouldApproachCorrectEllipsoidAreaTo1Percent(self):
-        ellipsoid = Ellipsoid(a=2, b=3, c=5, order=6)
+        ellipsoid = Ellipsoid(a=2, b=3, c=5, order=3)
         perfectEllipsoidArea = self._getPerfectEllipsoidArea(ellipsoid)
         tolerance = 0.01
 

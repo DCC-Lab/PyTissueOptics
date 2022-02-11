@@ -34,13 +34,14 @@ class TestSphere(unittest.TestCase):
         self.assertNotAlmostEqual(perfectSphereArea, icosphereArea, 3)
 
     def testGivenAHighOrderSphere_shouldApproachCorrectSphereArea(self):
-        sphere = Sphere(radius=1, order=5)
+        sphere = Sphere(radius=1, order=4)
         icosphereArea = 0
         perfectSphereArea = 4 * math.pi * sphere.radius ** 2
+        tolerance = 0.002
 
         for polygon in sphere.getPolygons():
             AB = polygon.vertices[0] - polygon.vertices[1]
             AC = polygon.vertices[0] - polygon.vertices[2]
             icosphereArea += 0.5 * AB.cross(AC).getNorm()
 
-        self.assertAlmostEqual(perfectSphereArea, icosphereArea, 2)
+        self.assertAlmostEqual(perfectSphereArea, icosphereArea, delta=tolerance * perfectSphereArea)
