@@ -1,6 +1,8 @@
 from typing import List
 
-from pytissueoptics.scene.geometry import Vector, Quad, Triangle
+import numpy as np
+
+from pytissueoptics.scene.geometry import Vector, Quad, Triangle, utils
 from pytissueoptics.scene.geometry import primitives
 from pytissueoptics.scene.materials import Material
 from pytissueoptics.scene.solids import Solid
@@ -76,6 +78,16 @@ class Cuboid(Solid):
 
         return Cuboid(*stackResult.shape, position=stackResult.position, vertices=stackResult.vertices,
                       surfaces=stackResult.surfaces, primitive=stackResult.primitive)
+
+    def _contains(self, vertex: Vector) -> bool:
+        # todo: remove single contain intermediate. so we rotate all vertices at the same time
+        relativeVertex = vertex - self.position
+        relativeVertexArray = utils.rotateVerticesArray(np.asarray([relativeVertex.array]), *self._orientation)
+
+        for axis in range(3):
+            if not abs(relativeVertexArray[axis]) < self.shape[axis]:
+                return False
+        return True
 
 
 if __name__ == "__main__":
