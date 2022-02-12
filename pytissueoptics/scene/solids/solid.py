@@ -2,7 +2,7 @@ from typing import List
 
 import numpy as np
 
-from pytissueoptics.scene.geometry import Vector, utils, Polygon
+from pytissueoptics.scene.geometry import Vector, utils, Polygon, Orientation
 from pytissueoptics.scene.geometry import primitives
 from pytissueoptics.scene.materials import Material
 from pytissueoptics.scene.geometry import SurfaceCollection
@@ -16,6 +16,7 @@ class Solid:
         self._material = material
         self._primitive = primitive
         self._position = Vector(0, 0, 0)
+        self._orientation = Orientation()
 
         if not self._surfaces:
             self._computeMesh()
@@ -59,6 +60,8 @@ class Solid:
         Finally we update the solid vertices' components with the values of this rotated array reference and ask each
         solid surface to compute its new normal.
         """
+        rotation = Orientation(xTheta, yTheta, zTheta)
+
         verticesArrayAtOrigin = self._verticesArray - self.position.array
         rotatedVerticesArrayAtOrigin = utils.rotateVerticesArray(verticesArrayAtOrigin, xTheta, yTheta, zTheta)
         rotatedVerticesArray = rotatedVerticesArrayAtOrigin + self.position.array
@@ -67,6 +70,7 @@ class Solid:
             vertex.update(*rotatedVertexArray)
 
         self._surfaces.resetNormals()
+        self._orientation.add(rotation)
 
     def getMaterial(self, surfaceName: str = None) -> Material:
         if surfaceName:
