@@ -121,3 +121,12 @@ class Solid:
             return
         for polygon in self._surfaces.getPolygons():
             polygon.setInsideMaterial(self._material)
+
+    def contains(self, *vertices) -> bool:
+        for vertex in vertices:
+            if not self._contains(vertex):
+                return False
+        return True
+
+    def _contains(self, vertex: Vector):
+        raise NotImplementedError
