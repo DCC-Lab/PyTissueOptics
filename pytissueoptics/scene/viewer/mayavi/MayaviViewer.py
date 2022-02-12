@@ -30,7 +30,7 @@ class MayaviViewer:
         self._assignViewPoint()
         mlab.show()
 
-    def resetTo(self, scene):
+    def _resetTo(self, scene):
         figParams = self._scenes[scene]["figureParameters"]
         bgColor = figParams["bgColor"]
         fgColor = figParams["fgColor"]
@@ -39,7 +39,7 @@ class MayaviViewer:
 
     def clear(self):
         mlab.clf()
-        self.resetTo("DefaultScene")
+        self._resetTo("DefaultScene")
 
 
 if __name__ == "__main__":
