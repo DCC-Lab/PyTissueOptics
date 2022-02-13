@@ -1,2 +1,4 @@
 numpy
 mockito
+mayavi
+pyqt5

@@ -10,9 +10,9 @@ from pytissueoptics.scene.geometry import primitives
 
 class MayaviViewer:
     def __init__(self):
-        self._scenes = {"DefaultScene": {"figure": mlab.figure(1, bgcolor=(0.11, 0.11, 0.11), fgcolor=(0.9, 0.9, 0.9)),
-                                         "Solids": [], }}
+        self._scenes = {"DefaultScene": {"figureParameters": {"bgColor": (0.11, 0.11, 0.11), "fgColor": (0.9, 0.9, 0.9)}, "Solids": [], }}
         self._view = {"azimuth": 0, "zenith": 0, "distance": None, "pointingTowards": None, "roll": None}
+        self.clear()
 
     def add(self, *solids: 'Solid', representation="wireframe", lineWidth=0.25):
         for solid in solids:
@@ -29,6 +29,17 @@ class MayaviViewer:
     def show(self):
         self._assignViewPoint()
         mlab.show()
+
+    def _resetTo(self, scene):
+        figParams = self._scenes[scene]["figureParameters"]
+        bgColor = figParams["bgColor"]
+        fgColor = figParams["fgColor"]
+        fig = mlab.gcf()
+        mlab.figure(figure=fig, bgcolor=bgColor, fgcolor=fgColor)
+
+    def clear(self):
+        mlab.clf()
+        self._resetTo("DefaultScene")
 
 
 if __name__ == "__main__":

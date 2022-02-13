@@ -130,3 +130,5 @@ test.py
 .idea/workspace.xml
 
 .idea/
+
+pytissueoptics/scene/examples/brain-simple-2.obj
