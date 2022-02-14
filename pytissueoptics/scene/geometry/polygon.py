@@ -44,7 +44,7 @@ class Polygon:
     def bbox(self) -> BoundingBox:
         return self._bbox
 
-    def resetBoundingBox(self) -> BoundingBox:
+    def resetBoundingBox(self):
         self._bbox = BoundingBox.fromVertices(self._vertices)
 
     def setOutsideMaterial(self, material: Material):
