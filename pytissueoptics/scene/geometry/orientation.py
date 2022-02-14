@@ -20,3 +20,10 @@ class Orientation:
         self._xTheta += other.xTheta
         self._yTheta += other.yTheta
         self._zTheta += other.zTheta
+
+    @property
+    def components(self) -> tuple:
+        return self._xTheta, self._yTheta, self._zTheta
+
+    def __bool__(self):
+        return self._xTheta != 0 or self._yTheta != 0 or self._zTheta != 0
