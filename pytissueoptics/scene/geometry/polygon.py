@@ -2,6 +2,7 @@ from typing import List
 
 from pytissueoptics.scene.geometry import Vector
 from pytissueoptics.scene.materials import Material
+from pytissueoptics.scene.geometry import BoundingBox
 
 
 class Polygon:
@@ -36,6 +37,10 @@ class Polygon:
     @property
     def outsideMaterial(self):
         return self._outsideMaterial
+
+    @property
+    def bbox(self) -> BoundingBox:
+        return BoundingBox.fromVertices(self._vertices)
 
     def setOutsideMaterial(self, material: Material):
         self._outsideMaterial = material

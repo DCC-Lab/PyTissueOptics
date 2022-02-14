@@ -2,7 +2,7 @@ from typing import List
 
 import numpy as np
 
-from pytissueoptics.scene.geometry import Vector, utils, Polygon
+from pytissueoptics.scene.geometry import Vector, utils, Polygon, BoundingBox
 from pytissueoptics.scene.geometry import primitives
 from pytissueoptics.scene.materials import Material
 from pytissueoptics.scene.geometry import SurfaceCollection
@@ -38,6 +38,10 @@ class Solid:
     @property
     def primitive(self) -> str:
         return self._primitive
+
+    @property
+    def bbox(self) -> BoundingBox:
+        return BoundingBox.fromVertices(self._vertices)
 
     def translateTo(self, position):
         if position == self._position:
