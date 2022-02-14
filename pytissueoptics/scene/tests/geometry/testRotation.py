@@ -1,6 +1,6 @@
 import unittest
 
-from pytissueoptics.scene.geometry import Orientation
+from pytissueoptics.scene.geometry import Rotation
 
 
 class TestOrientation(unittest.TestCase):
