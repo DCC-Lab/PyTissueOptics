@@ -1,8 +1,10 @@
 import numpy as np
 
+from pytissueoptics.scene.geometry import Orientation
 
-def rotateVerticesArray(verticesArray: np.ndarray, xTheta=0, yTheta=0, zTheta=0) -> np.ndarray:
-    rotationMatrix = eulerRotationMatrix(xTheta, yTheta, zTheta)
+
+def rotateVerticesArray(verticesArray: np.ndarray, r: Orientation) -> np.ndarray:
+    rotationMatrix = eulerRotationMatrix(r.xTheta, r.yTheta, r.zTheta)
     return np.einsum('ij, kj->ki', rotationMatrix, verticesArray)
 
 

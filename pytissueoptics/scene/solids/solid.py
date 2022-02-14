@@ -16,7 +16,7 @@ class Solid:
         self._material = material
         self._primitive = primitive
         self._position = Vector(0, 0, 0)
-        self._orientation = Orientation()
+        self._orientation: Orientation = Orientation()
 
         if not self._surfaces:
             self._computeMesh()
@@ -63,7 +63,7 @@ class Solid:
         rotation = Orientation(xTheta, yTheta, zTheta)
 
         verticesArrayAtOrigin = self._verticesArray - self.position.array
-        rotatedVerticesArrayAtOrigin = utils.rotateVerticesArray(verticesArrayAtOrigin, xTheta, yTheta, zTheta)
+        rotatedVerticesArrayAtOrigin = utils.rotateVerticesArray(verticesArrayAtOrigin, rotation)
         rotatedVerticesArray = rotatedVerticesArrayAtOrigin + self.position.array
 
         for (vertex, rotatedVertexArray) in zip(self._vertices, rotatedVerticesArray):

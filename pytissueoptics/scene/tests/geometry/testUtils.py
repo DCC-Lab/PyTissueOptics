@@ -2,6 +2,7 @@ import unittest
 
 import numpy as np
 
+from pytissueoptics.scene.geometry import Orientation
 from pytissueoptics.scene.geometry.utils import eulerRotationMatrix, rotateVerticesArray
 
 
@@ -59,7 +60,8 @@ class TestRotateVerticesArray(unittest.TestCase):
     def testShouldRotateAllVertices(self):
         p0, p1 = [1, 1, 1], [-1, -1, -1]
         verticesArray = np.asarray([p0, p1])
-        rotatedVerticesArray = rotateVerticesArray(verticesArray, xTheta=90, yTheta=90, zTheta=90)
+        rotation = Orientation(90, 90, 90)
+        rotatedVerticesArray = rotateVerticesArray(verticesArray, rotation)
 
         p0Rotated, p1Rotated = rotatedVerticesArray
 
