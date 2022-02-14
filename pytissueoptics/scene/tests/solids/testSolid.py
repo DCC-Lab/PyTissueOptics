@@ -78,3 +78,38 @@ class TestSolid(unittest.TestCase):
         solid.rotate(xTheta=90, yTheta=90, zTheta=90)
 
         verify(polygon, times=1).resetNormal()
+
+    def testWhenRotate_shouldChangeBboxOfSolidAndPolygons(self):
+        polygon = mock(Polygon)
+        when(polygon).resetNormal().thenReturn()
+        when(polygon).resetBoundingBox().thenReturn()
+        when(polygon).setInsideMaterial(...).thenReturn()
+
+        self.CUBOID_SURFACES.setPolygons('Front', [polygon])
+        solid = Solid(position=self.position, material=self.material, vertices=self.CUBOID_VERTICES,
+                      surfaces=self.CUBOID_SURFACES, primitive=primitives.TRIANGLE)
+        oldBbox = solid.bbox
+        solid.rotate(xTheta=90, yTheta=90, zTheta=90)
+        newBbox = solid.bbox
+
+        # once during the __init__, once during the positioning, once during the rotation = 3
+        verify(polygon, times=3).resetBoundingBox()
+        self.assertNotEqual(oldBbox, newBbox)
+
+
+    def testWhenTranslate_shouldChangeBboxOfSolidAndPolygons(self):
+        polygon = mock(Polygon)
+        when(polygon).resetNormal().thenReturn()
+        when(polygon).resetBoundingBox().thenReturn()
+        when(polygon).setInsideMaterial(...).thenReturn()
+
+        self.CUBOID_SURFACES.setPolygons('Front', [polygon])
+        solid = Solid(position=self.position, material=self.material, vertices=self.CUBOID_VERTICES,
+                      surfaces=self.CUBOID_SURFACES, primitive=primitives.TRIANGLE)
+        oldBbox = solid.bbox
+        solid.translateTo(Vector(1, -1, -1))
+        newBbox = solid.bbox
+
+        # once during the __init__, once during the positioning, once during the translation = 3
+        verify(polygon, times=3).resetBoundingBox()
+        self.assertNotEqual(oldBbox, newBbox)

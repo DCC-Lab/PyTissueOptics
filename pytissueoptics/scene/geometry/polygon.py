@@ -19,10 +19,11 @@ class Polygon:
         self._normal = normal
         self._insideMaterial = insideMaterial
         self._outsideMaterial = outsideMaterial
-        self._bbox = None
-        self.resetBoundingBox()
         if self._normal is None:
             self.resetNormal()
+
+        self._bbox = None
+        self.resetBoundingBox()
 
     @property
     def normal(self):
