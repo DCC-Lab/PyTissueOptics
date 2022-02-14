@@ -78,19 +78,3 @@ class TestSolid(unittest.TestCase):
         solid.rotate(xTheta=90, yTheta=90, zTheta=90)
 
         verify(polygon, times=1).resetNormal()
-
-    def testWhenContainsAllVertices_shouldReturnTrue(self):
-        vertices = [Vector(1, 1, 1), Vector(0, 0, 0)]
-        for vertex in vertices:
-            when(self.solid)._contains(vertex).thenReturn(True)
-
-        self.assertTrue(self.solid.contains(*vertices))
-        verify(self.solid, times=2)._contains(...)
-
-    def testWhenDoesNotContainAllVertices_shouldReturnFalse(self):
-        vertices = [Vector(1, 1, 1), Vector(0, 0, 0)]
-        when(self.solid)._contains(vertices[0]).thenReturn(True)
-        when(self.solid)._contains(vertices[1]).thenReturn(False)
-
-        self.assertFalse(self.solid.contains(*vertices))
-        verify(self.solid, times=2)._contains(...)
