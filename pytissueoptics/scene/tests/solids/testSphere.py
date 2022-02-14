@@ -46,13 +46,13 @@ class TestSphere(unittest.TestCase):
 
         self.assertAlmostEqual(perfectSphereArea, icosphereArea, delta=tolerance * perfectSphereArea)
 
-    def testWhenContainsWithVerticesThatAreAllInsideTheCuboid_shouldReturnTrue(self):
+    def testWhenContainsWithVerticesThatAreAllInsideTheSphere_shouldReturnTrue(self):
         sphere = Sphere(1, position=Vector(2, 2, 0))
         vertices = [Vector(2.5, 2.5, 0), Vector(2, 2, 0)]
 
         self.assertTrue(sphere.contains(*vertices))
 
-    def testWhenContainsWithVerticesThatAreNotAllInsideTheCuboid_shouldReturnFalse(self):
+    def testWhenContainsWithVerticesThatAreNotAllInsideTheSphere_shouldReturnFalse(self):
         sphere = Sphere(1, position=Vector(2, 2, 0))
         vertices = [Vector(3, 3, 1), Vector(2, 2, 0)]
 
