@@ -12,6 +12,7 @@ class BoundingBox:
         self._yLim = yLim
         self._zLim = zLim
         self._xyzLimits = [xLim, yLim, zLim]
+        self._checkIfCoherent()
 
     def __repr__(self) -> str:
         return str([self._xLim, self._yLim, self._zLim])
@@ -21,6 +22,12 @@ class BoundingBox:
             return True
         else:
             return False
+
+    def _checkIfCoherent(self):
+        if self.xMax > self.xMin and self.yMax > self.yMin and self.zMax > self.zMin:
+            return True
+        else:
+            raise ValueError("Maximum limit value cannot be lower than minimum limit value.")
 
     @classmethod
     def fromVertices(cls, vertices: List[Vector]) -> BoundingBox:
