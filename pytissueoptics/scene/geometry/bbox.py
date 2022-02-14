@@ -22,6 +22,16 @@ class BoundingBox:
         else:
             return False
 
+    @classmethod
+    def fromVertices(cls, vertices: List[Vector]) -> BoundingBox:
+        x = [vertices[i].x for i in range(len(vertices))]
+        y = [vertices[i].y for i in range(len(vertices))]
+        z = [vertices[i].z for i in range(len(vertices))]
+        xLim = [min(x), max(x)]
+        yLim = [min(y), max(y)]
+        zLim = [min(z), max(z)]
+        return BoundingBox(xLim, yLim, zLim)
+
     @property
     def xMin(self) -> float:
         return self._xLim[0]
