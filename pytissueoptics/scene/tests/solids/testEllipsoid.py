@@ -66,7 +66,8 @@ class TestEllipsoid(unittest.TestCase):
 
     def testWhenContainsWithVerticesThatAreAllInsideTheEllipsoid_shouldReturnTrue(self):
         ellipsoid = Ellipsoid(3, 1, 1, position=Vector(2, 2, 0))
-        vertices = [Vector(3, 2.9, 0), Vector(2, 2, 0)]
+        ellipsoid.rotate(0, 0, 30)
+        vertices = [Vector(3.3, 3, 0), Vector(2, 2, 0)]
 
         self.assertTrue(ellipsoid.contains(*vertices))
 

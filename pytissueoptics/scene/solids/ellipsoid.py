@@ -1,6 +1,8 @@
 from math import cos, sin, acos, atan, pi, sqrt
 
-from pytissueoptics.scene.geometry import Vector, primitives
+import numpy as np
+
+from pytissueoptics.scene.geometry import Vector, primitives, utils
 from pytissueoptics.scene.solids import Sphere
 from pytissueoptics.scene.materials import Material
 
@@ -81,12 +83,20 @@ class Ellipsoid(Sphere):
     def contains(self, *vertices: Vector) -> bool:
         """ Only returns true if all vertices are inside the minimum radius of the ellipsoid
         towards each vertex direction (more restrictive with low order ellipsoids). """
-        for vertex in vertices:
-            relativeVertex = vertex - self.position
-            if relativeVertex.getNorm() == 0:
+        verticesArray = np.asarray([vertex.array for vertex in vertices])
+        relativeVerticesArray = verticesArray - self.position.array
+
+        if self._orientation:
+            inverseRotation = self._orientation.getInverse()
+            relativeVerticesArray = utils.rotateVerticesArray(relativeVerticesArray, inverseRotation)
+
+        for relativeVertexArray in relativeVerticesArray:
+            relativeVertex = Vector(*relativeVertexArray)
+            vertexRadius = relativeVertex.getNorm()
+            if vertexRadius == 0:
                 continue
             minRadius = self._getMinimumRadiusTowards(relativeVertex)
-            if relativeVertex.getNorm() >= minRadius:
+            if vertexRadius >= minRadius:
                 return False
         return True
 
