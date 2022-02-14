@@ -86,3 +86,17 @@ class TestCuboid(unittest.TestCase):
 
         for i in range(3):
             self.assertTrue(f"Interface{i}" in cuboidStack.surfaceNames)
+
+    def testWhenContainsWithVerticesThatAreAllInsideTheCuboid_shouldReturnTrue(self):
+        cuboid = Cuboid(8, 1, 3, position=Vector(2, 2, 0))
+        cuboid.rotate(0, 0, 10)
+        vertices = [Vector(3, 2.5, 1), Vector(2, 2, 0)]
+
+        self.assertTrue(cuboid.contains(*vertices))
+
+    def testWhenContainsWithVerticesThatAreNotAllInsideTheCuboid_shouldReturnFalse(self):
+        cuboid = Cuboid(8, 1, 3, position=Vector(2, 2, 0))
+        cuboid.rotate(0, 0, 10)
+        vertices = [Vector(3, 2.5, 1), Vector(2, 1, 0)]
+
+        self.assertFalse(cuboid.contains(*vertices))

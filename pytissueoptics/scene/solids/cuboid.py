@@ -79,14 +79,17 @@ class Cuboid(Solid):
         return Cuboid(*stackResult.shape, position=stackResult.position, vertices=stackResult.vertices,
                       surfaces=stackResult.surfaces, primitive=stackResult.primitive)
 
-    def _contains(self, vertex: Vector) -> bool:
-        # todo: remove single contain intermediate. so we rotate all vertices at the same time
-        relativeVertex = vertex - self.position
-        relativeVertexArray = utils.rotateVerticesArray(np.asarray([relativeVertex.array]), *self._orientation)
+    def contains(self, *vertices) -> bool:
+        vertices = np.asarray([vertex.array for vertex in vertices])
+        relativeVertices = vertices - self.position.array
 
-        for axis in range(3):
-            if not abs(relativeVertexArray[axis]) < self.shape[axis]:
-                return False
+        if self._orientation:
+            inverseRotation = [-c for c in self._orientation.components]
+            relativeVertices = utils.rotateVerticesArray(relativeVertices, *inverseRotation)
+
+        bounds = [s/2 for s in self.shape]
+        if np.any(np.abs(relativeVertices) >= bounds):
+            return False
         return True
 
 
