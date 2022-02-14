@@ -63,3 +63,15 @@ class TestEllipsoid(unittest.TestCase):
         b = ellipsoid._b
         c = ellipsoid._c
         return 4 * math.pi * ((a ** p * b ** p + a ** p * c ** p + b ** p * c ** p) / 3) ** (1 / p)
+
+    def testWhenContainsWithVerticesThatAreAllInsideTheEllipsoid_shouldReturnTrue(self):
+        ellipsoid = Ellipsoid(3, 1, 1, position=Vector(2, 2, 0))
+        vertices = [Vector(3, 2.9, 0), Vector(2, 2, 0)]
+
+        self.assertTrue(ellipsoid.contains(*vertices))
+
+    def testWhenContainsWithVerticesThatAreNotAllInsideTheEllipsoid_shouldReturnFalse(self):
+        ellipsoid = Ellipsoid(3, 1, 1, position=Vector(2, 2, 0))
+        vertices = [Vector(3.4, 2.9, 0), Vector(2, 2, 0)]
+
+        self.assertFalse(ellipsoid.contains(*vertices))

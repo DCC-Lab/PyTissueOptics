@@ -76,4 +76,24 @@ class Ellipsoid(Sphere):
                 sin(theta) ** 2 * sin(phi) ** 2) / self._b ** 2 + cos(phi) ** 2 / self._c ** 2))
 
     def _computeQuadMesh(self):
-        pass
+        raise NotImplementedError
+
+    def contains(self, *vertices: Vector) -> bool:
+        """ Only returns true if all vertices are inside the minimum radius of the sphere
+        (more restrictive with low order spheres). """
+        for vertex in vertices:
+            relativeVertex = vertex - self.position
+            if relativeVertex.getNorm() == 0:
+                continue
+            minRadius = self._getMinimumRadiusTowards(relativeVertex)
+            if relativeVertex.getNorm() >= minRadius:
+                return False
+        return True
+
+    def _getMinimumRadius(self):
+        # fixme: LSP violation because ellipsoid is a child of sphere
+        #  and not the other way around...
+        raise NotImplementedError
+
+    def _getMinimumRadiusTowards(self, vertex) -> float:
+        return (1 - self._getRadiusError()) * self._radiusTowards(vertex)
