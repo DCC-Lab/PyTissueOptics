@@ -24,9 +24,7 @@ class BoundingBox:
             return False
 
     def _checkIfCoherent(self):
-        if self.xMax > self.xMin and self.yMax > self.yMin and self.zMax > self.zMin:
-            return True
-        else:
+        if not (self.xMax > self.xMin and self.yMax > self.yMin and self.zMax > self.zMin):
             raise ValueError("Maximum limit value cannot be lower than minimum limit value.")
 
     @classmethod
