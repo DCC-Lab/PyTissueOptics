@@ -126,5 +126,5 @@ class Solid:
         for polygon in self._surfaces.getPolygons():
             polygon.setInsideMaterial(self._material)
 
-    def contains(self, *vertices) -> bool:
+    def contains(self, *vertices: Vector) -> bool:
         raise NotImplementedError

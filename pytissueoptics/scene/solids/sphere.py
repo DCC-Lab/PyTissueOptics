@@ -98,3 +98,10 @@ class Sphere(Solid):
 
     def _computeQuadMesh(self):
         raise NotImplementedError
+
+    def contains(self, *vertices: Vector) -> bool:
+        for vertex in vertices:
+            relativeVertex = vertex - self.position
+            if relativeVertex.getNorm() > self.radius:
+                return False
+        return True

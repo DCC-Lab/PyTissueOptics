@@ -79,7 +79,7 @@ class Cuboid(Solid):
         return Cuboid(*stackResult.shape, position=stackResult.position, vertices=stackResult.vertices,
                       surfaces=stackResult.surfaces, primitive=stackResult.primitive)
 
-    def contains(self, *vertices) -> bool:
+    def contains(self, *vertices: Vector) -> bool:
         vertices = np.asarray([vertex.array for vertex in vertices])
         relativeVertices = vertices - self.position.array
 
