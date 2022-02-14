@@ -80,7 +80,3 @@ class BoundingBox:
 
     def __getitem__(self, index: int) -> List[float]:
         return self._xyzLimits[index]
-
-    def change(self, axis="x", limit="max", value=0):
-        self._xyzLimits[self._axisKeys.index(axis)][self._limitKeys.index(limit)] = value
-        self._checkIfCoherent()

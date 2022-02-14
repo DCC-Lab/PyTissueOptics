@@ -46,16 +46,6 @@ class TestBoundingBox(unittest.TestCase):
         self.assertEqual(bbox.yLim, [-1, 1])
         self.assertEqual(bbox.zLim, [0, 3.001])
 
-    def testGivenLimits_whenChangeLimits_shouldReturnNewLimits(self):
-        bbox = BoundingBox(self.xLim, self.yLim, self.zLim)
-        bbox.change("x", "max", 3)
-        self.assertEqual(bbox.xMax, 3)
-
-    def testGivenLimits_whenChangeToWrongLimits_shouldRaiseValueError(self):
-        bbox = BoundingBox(self.xLim, self.yLim, self.zLim)
-        with self.assertRaises(ValueError):
-            bbox.change("x", "max", -1)
-
     def testGiven2SimilarBBox_whenEquals_shouldReturnTrue(self):
         bbox1 = BoundingBox(self.xLim, self.yLim, self.zLim)
         bbox2 = BoundingBox(self.xLim, self.yLim, self.zLim)
