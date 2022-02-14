@@ -87,8 +87,7 @@ class Ellipsoid(Sphere):
         relativeVerticesArray = verticesArray - self.position.array
 
         if self._orientation:
-            inverseRotation = self._orientation.getInverse()
-            relativeVerticesArray = utils.rotateVerticesArray(relativeVerticesArray, inverseRotation)
+            relativeVerticesArray = utils.rotateVerticesArray(relativeVerticesArray, self._orientation, inverse=True)
 
         for relativeVertexArray in relativeVerticesArray:
             relativeVertex = Vector(*relativeVertexArray)

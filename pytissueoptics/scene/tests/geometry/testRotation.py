@@ -28,12 +28,3 @@ class TestRotation(unittest.TestCase):
     def testGivenRotation_whenAskedBoolean_shouldReturnTrue(self):
         noRotation = Rotation(10, 30, 0)
         self.assertTrue(noRotation)
-
-    def testWhenGetInverse_shouldReturnNewNegativeRotation(self):
-        # fixme: negative rotation is the inverse ! (reverse order ! => ask utils)
-        rotation = Rotation(10, 30, 0)
-        inverseRotation = rotation.getInverse()
-
-        self.assertEqual(-10, inverseRotation.xTheta)
-        self.assertEqual(-30, inverseRotation.yTheta)
-        self.assertEqual(0, inverseRotation.zTheta)
