@@ -17,13 +17,13 @@ class Solid:
         self._primitive = primitive
         self._position = Vector(0, 0, 0)
         self._bbox = None
-        self._resetBoundingBox()
 
         if not self._surfaces:
             self._computeMesh()
 
         self.translateTo(position)
         self._setInsideMaterial()
+        self._resetBoundingBox()
 
     @property
     def position(self) -> Vector:
