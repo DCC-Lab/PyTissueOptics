@@ -84,8 +84,8 @@ class Cuboid(Solid):
         relativeVertices = vertices - self.position.array
 
         if self._orientation:
-            inverseRotation = [-c for c in self._orientation.components]
-            relativeVertices = utils.rotateVerticesArray(relativeVertices, *inverseRotation)
+            inverseRotation = self._orientation.getInverse()
+            relativeVertices = utils.rotateVerticesArray(relativeVertices, inverseRotation)
 
         bounds = [s/2 for s in self.shape]
         if np.any(np.abs(relativeVertices) >= bounds):

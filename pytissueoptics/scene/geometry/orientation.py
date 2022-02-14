@@ -25,5 +25,8 @@ class Orientation:
     def components(self) -> tuple:
         return self._xTheta, self._yTheta, self._zTheta
 
+    def getInverse(self) -> 'Orientation':
+        return Orientation(xTheta=-self._xTheta, yTheta=-self._yTheta, zTheta=-self._zTheta)
+
     def __bool__(self):
         return self._xTheta != 0 or self._yTheta != 0 or self._zTheta != 0
