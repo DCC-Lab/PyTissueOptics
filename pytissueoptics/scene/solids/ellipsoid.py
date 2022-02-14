@@ -79,8 +79,8 @@ class Ellipsoid(Sphere):
         raise NotImplementedError
 
     def contains(self, *vertices: Vector) -> bool:
-        """ Only returns true if all vertices are inside the minimum radius of the sphere
-        (more restrictive with low order spheres). """
+        """ Only returns true if all vertices are inside the minimum radius of the ellipsoid
+        towards each vertex direction (more restrictive with low order ellipsoids). """
         for vertex in vertices:
             relativeVertex = vertex - self.position
             if relativeVertex.getNorm() == 0:

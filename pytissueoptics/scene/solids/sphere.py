@@ -122,6 +122,7 @@ class Sphere(Solid):
             centerVertex.add(vertex)
         centerVertex.divide(len(aPolygon.vertices))
         centerVertex.subtract(self.position)
-        expRadius = centerVertex.getNorm()
-        trueRadius = self._radiusTowards(centerVertex)
-        return abs(trueRadius - expRadius) / trueRadius
+
+        localMinimumRadius = centerVertex.getNorm()
+        localTrueRadius = self._radiusTowards(centerVertex)
+        return abs(localTrueRadius - localMinimumRadius) / localTrueRadius
