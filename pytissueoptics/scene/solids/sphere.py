@@ -110,6 +110,9 @@ class Sphere(Solid):
         return True
 
     def _getMinimumRadius(self) -> float:
+
+    def _radiusTowards(self, vertex) -> float:
+        return self.radius
         aPolygon = self.surfaces.getPolygons()[0]
         centerVertex = Vector(0, 0, 0)
         for vertex in aPolygon.vertices:

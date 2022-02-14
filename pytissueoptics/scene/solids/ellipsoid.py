@@ -43,9 +43,7 @@ class Ellipsoid(Sphere):
         """
         for vertex in self._vertices:
             vertex.normalize()
-            theta, phi = self._findThetaPhi(vertex)
-            r = sqrt(1 / ((cos(theta) ** 2 * sin(phi) ** 2) / self._a ** 2 + (
-                    sin(theta) ** 2 * sin(phi) ** 2) / self._b ** 2 + cos(phi) ** 2 / self._c ** 2))
+            r = self._radiusTowards(vertex)
             distanceFromUnitSphere = (r - 1.0)
             vertex.add(vertex * distanceFromUnitSphere)
 
@@ -71,6 +69,11 @@ class Ellipsoid(Sphere):
                 theta = atan(vertex.y / vertex.x) - pi
 
         return theta, phi
+    
+    def _radiusTowards(self, vertex):
+        theta, phi = self._findThetaPhi(vertex)
+        return sqrt(1 / ((cos(theta) ** 2 * sin(phi) ** 2) / self._a ** 2 + (
+                sin(theta) ** 2 * sin(phi) ** 2) / self._b ** 2 + cos(phi) ** 2 / self._c ** 2))
 
     def _computeQuadMesh(self):
         pass
