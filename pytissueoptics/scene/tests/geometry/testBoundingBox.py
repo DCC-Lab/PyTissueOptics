@@ -65,3 +65,12 @@ class TestBoundingBox(unittest.TestCase):
         with self.assertRaises(ValueError):
             bbox.changeToNew("x", "max", -1)
 
+    def testGiven2SimilarBBox_whenEquals_returnsTrue(self):
+        bbox1 = BoundingBox(self.xLim, self.yLim, self.zLim)
+        bbox2 = BoundingBox(self.xLim, self.yLim, self.zLim)
+        self.assertTrue(bbox1 == bbox2)
+
+    def testGiven2DifferentBBox_whenEquals_returnsFalse(self):
+        bbox1 = BoundingBox(self.xLim, self.yLim, self.zLim)
+        bbox2 = BoundingBox([0, 1.001], self.yLim, self.zLim)
+        self.assertTrue(bbox1 != bbox2)
