@@ -55,6 +55,16 @@ class TestEulerRotationMatrix(unittest.TestCase):
 
         self.assertTrue(np.allclose([1, 1, -1], pRotated))
 
+    def testGivenInverseRotation_shouldInverseRotation(self):
+        rotation = eulerRotationMatrix(xTheta=90, yTheta=90, zTheta=90)
+        inverseRotation = eulerRotationMatrix(xTheta=90, yTheta=90, zTheta=90, inverse=True)
+        p = [1, 1, 1]
+
+        pRotated = np.dot(rotation, p)
+        pUnrotated = np.dot(inverseRotation, pRotated)
+
+        self.assertTrue(np.allclose([1, 1, 1], pUnrotated))
+
 
 class TestRotateVerticesArray(unittest.TestCase):
     def testShouldRotateAllVertices(self):
