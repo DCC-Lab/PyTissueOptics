@@ -19,7 +19,8 @@ class Polygon:
         self._normal = normal
         self._insideMaterial = insideMaterial
         self._outsideMaterial = outsideMaterial
-        self._bbox = self._getBoundingBox()
+        self._bbox = None
+        self.resetBoundingBox()
         if self._normal is None:
             self.resetNormal()
 
@@ -43,8 +44,8 @@ class Polygon:
     def bbox(self) -> BoundingBox:
         return self._bbox
 
-    def _getBoundingBox(self) -> BoundingBox:
-        return BoundingBox.fromVertices(self._vertices)
+    def resetBoundingBox(self) -> BoundingBox:
+        self._bbox = BoundingBox.fromVertices(self._vertices)
 
     def setOutsideMaterial(self, material: Material):
         self._outsideMaterial = material

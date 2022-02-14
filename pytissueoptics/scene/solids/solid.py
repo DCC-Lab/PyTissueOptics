@@ -16,6 +16,8 @@ class Solid:
         self._material = material
         self._primitive = primitive
         self._position = Vector(0, 0, 0)
+        self._bbox = None
+        self._resetBoundingBox()
 
         if not self._surfaces:
             self._computeMesh()
@@ -41,7 +43,11 @@ class Solid:
 
     @property
     def bbox(self) -> BoundingBox:
-        return BoundingBox.fromVertices(self._vertices)
+        return self._bbox
+
+    def _resetBoundingBox(self):
+        self._bbox = BoundingBox.fromVertices(self._vertices)
+        self._surfaces.resetBoundingBoxes()
 
     def translateTo(self, position):
         if position == self._position:
@@ -53,6 +59,7 @@ class Solid:
         self._position.add(translationVector)
         for v in self._vertices:
             v.add(translationVector)
+        self._resetBoundingBox()
 
     def rotate(self, xTheta=0, yTheta=0, zTheta=0):
         """
@@ -71,6 +78,7 @@ class Solid:
             vertex.update(*rotatedVertexArray)
 
         self._surfaces.resetNormals()
+        self._resetBoundingBox()
 
     def getMaterial(self, surfaceName: str = None) -> Material:
         if surfaceName:
