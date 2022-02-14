@@ -52,3 +52,16 @@ class TestBoundingBox(unittest.TestCase):
         bbox = BoundingBox(self.xLim, self.yLim, self.zLim)
         with self.assertRaises(ValueError):
             bbox.change("x", "max", -1)
+
+    def testGivenLimits_whenChangeToNew_shouldReturnNewLimits(self):
+        oldBbox = BoundingBox(self.xLim, self.yLim, self.zLim)
+        newBbox = oldBbox.changeToNew("x", "max", 3)
+        
+        self.assertEqual(oldBbox.xMax, 1)
+        self.assertEqual(newBbox.xMax, 3)
+
+    def testGivenLimits_whenChangeToNewWrongLimits_shouldRaiseValueError(self):
+        bbox = BoundingBox(self.xLim, self.yLim, self.zLim)
+        with self.assertRaises(ValueError):
+            bbox.changeToNew("x", "max", -1)
+
