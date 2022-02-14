@@ -1,6 +1,5 @@
-from __future__ import annotations
 from typing import List
-from copy import deepcopy
+
 from pytissueoptics.scene.geometry import Vector
 
 
@@ -17,7 +16,7 @@ class BoundingBox:
     def __repr__(self) -> str:
         return str([self._xLim, self._yLim, self._zLim])
 
-    def __eq__(self, other: BoundingBox) -> bool:
+    def __eq__(self, other: 'BoundingBox') -> bool:
         if self._xLim == other._xLim and self._yLim == other._yLim and self._zLim == other._zLim:
             return True
         else:
@@ -28,7 +27,7 @@ class BoundingBox:
             raise ValueError("Maximum limit value cannot be lower than minimum limit value.")
 
     @classmethod
-    def fromVertices(cls, vertices: List[Vector]) -> BoundingBox:
+    def fromVertices(cls, vertices: List[Vector]) -> 'BoundingBox':
         x = [vertices[i].x for i in range(len(vertices))]
         y = [vertices[i].y for i in range(len(vertices))]
         z = [vertices[i].z for i in range(len(vertices))]
