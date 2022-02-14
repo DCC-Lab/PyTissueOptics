@@ -18,7 +18,7 @@ class Ellipsoid(Sphere):
         then .add() or .subtract() the corresponding vector.
     """
 
-    def __init__(self, order: int = 3, a: float = 1, b: float = 1, c: float = 1,
+    def __init__(self, a: float = 1, b: float = 1, c: float = 1, order: int = 3,
                  position: Vector = Vector(0, 0, 0), material: Material = None,
                  primitive: str = primitives.DEFAULT):
 
