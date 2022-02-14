@@ -68,9 +68,7 @@ class TestSolid(unittest.TestCase):
         self.assertAlmostEqual(expectedRotatedVertex5.z, self.CUBOID_VERTICES[5].z)
 
     def testWhenRotate_shouldRotateItsPolygons(self):
-        polygon = mock(Polygon)
-        when(polygon).resetNormal().thenReturn()
-        when(polygon).setInsideMaterial(...).thenReturn()
+        polygon = self.createPolygonMock()
         self.CUBOID_SURFACES.setPolygons('Front', [polygon])
         solid = Solid(position=self.position, material=self.material, vertices=self.CUBOID_VERTICES,
                       surfaces=self.CUBOID_SURFACES, primitive=primitives.TRIANGLE)
@@ -79,37 +77,36 @@ class TestSolid(unittest.TestCase):
 
         verify(polygon, times=1).resetNormal()
 
-    def testWhenRotate_shouldChangeBboxOfSolidAndPolygons(self):
-        polygon = mock(Polygon)
-        when(polygon).resetNormal().thenReturn()
-        when(polygon).resetBoundingBox().thenReturn()
-        when(polygon).setInsideMaterial(...).thenReturn()
-
+    def testWhenRotate_shouldRotateBBoxOfSolidAndPolygons(self):
+        polygon = self.createPolygonMock()
         self.CUBOID_SURFACES.setPolygons('Front', [polygon])
         solid = Solid(position=self.position, material=self.material, vertices=self.CUBOID_VERTICES,
                       surfaces=self.CUBOID_SURFACES, primitive=primitives.TRIANGLE)
         oldBbox = solid.bbox
+
         solid.rotate(xTheta=90, yTheta=90, zTheta=90)
-        newBbox = solid.bbox
 
         # once during the __init__, once during the positioning, once during the rotation = 3
         verify(polygon, times=3).resetBoundingBox()
-        self.assertNotEqual(oldBbox, newBbox)
+        self.assertNotEqual(oldBbox, solid.bbox)
 
-
-    def testWhenTranslate_shouldChangeBboxOfSolidAndPolygons(self):
-        polygon = mock(Polygon)
-        when(polygon).resetNormal().thenReturn()
-        when(polygon).resetBoundingBox().thenReturn()
-        when(polygon).setInsideMaterial(...).thenReturn()
-
+    def testWhenTranslate_shouldTranslateBBoxOfSolidAndPolygons(self):
+        polygon = self.createPolygonMock()
         self.CUBOID_SURFACES.setPolygons('Front', [polygon])
         solid = Solid(position=self.position, material=self.material, vertices=self.CUBOID_VERTICES,
                       surfaces=self.CUBOID_SURFACES, primitive=primitives.TRIANGLE)
         oldBbox = solid.bbox
+
         solid.translateTo(Vector(1, -1, -1))
-        newBbox = solid.bbox
 
         # once during the __init__, once during the positioning, once during the translation = 3
         verify(polygon, times=3).resetBoundingBox()
-        self.assertNotEqual(oldBbox, newBbox)
+        self.assertNotEqual(oldBbox, solid.bbox)
+
+    @staticmethod
+    def createPolygonMock() -> Polygon:
+        polygon = mock(Polygon)
+        when(polygon).resetNormal().thenReturn()
+        when(polygon).resetBoundingBox().thenReturn()
+        when(polygon).setInsideMaterial(...).thenReturn()
+        return polygon
