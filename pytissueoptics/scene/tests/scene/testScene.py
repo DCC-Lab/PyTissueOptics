@@ -46,12 +46,14 @@ class TestScene(unittest.TestCase):
         otherMaterial = Material()
         when(OTHER_SOLID).getBoundingBox().thenReturn(otherBBox)
         when(OTHER_SOLID).getMaterial().thenReturn(otherMaterial)
+        when(OTHER_SOLID).getVertices().thenReturn([])
         self.scene.add(OTHER_SOLID)
 
         THE_SOLID = mock(Solid)
         solidBBox = BoundingBox([1, 3], [1, 3], [1, 3])
         when(THE_SOLID).getBoundingBox().thenReturn(solidBBox)
         when(THE_SOLID).setOutsideMaterial(...).thenReturn()
+        when(THE_SOLID).getVertices().thenReturn([])
 
         when(OTHER_SOLID).contains(...).thenReturn(True)
         when(THE_SOLID).contains(...).thenReturn(False)

@@ -25,10 +25,9 @@ class Scene:
             raise NotImplementedError("Cannot handle placement of a solid that intersects with more than one solid. ")
 
         otherSolid = intersectingSuspects[0]
-        # fixme: or change for more precise/slower contains(solid.vertices)
-        if solid.contains(*otherSolid.getBoundingBox().getVertices()):
+        if solid.contains(*otherSolid.getVertices()):
             otherSolid.setOutsideMaterial(solid.getMaterial())
-        elif otherSolid.contains(*solid.getBoundingBox().getVertices()):
+        elif otherSolid.contains(*solid.getVertices()):
             solid.setOutsideMaterial(otherSolid.getMaterial())
         else:
             raise NotImplementedError("Cannot place a solid that partially intersects with an existing solid. ")

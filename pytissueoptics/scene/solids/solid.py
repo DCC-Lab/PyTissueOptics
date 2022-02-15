@@ -49,6 +49,9 @@ class Solid:
     def getBoundingBox(self) -> BoundingBox:
         return self.bbox
 
+    def getVertices(self) -> List[Vector]:
+        return self.vertices
+
     def _resetBoundingBox(self):
         self._bbox = BoundingBox.fromVertices(self._vertices)
         self._surfaces.resetBoundingBoxes()
