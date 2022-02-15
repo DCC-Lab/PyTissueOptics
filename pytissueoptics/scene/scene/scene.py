@@ -22,6 +22,9 @@ class Scene:
         if len(intersectingSuspects) == 0:
             return
         if len(intersectingSuspects) != 1:
+            # todo: if multiple suspects, they should already be well contained.
+            #  so we can scan from smallest to biggest and see if it can fit between adjacent solids
+            #  with s, a, b. s has to be in a or a in s and s in b else increment
             raise NotImplementedError("Cannot handle placement of a solid that intersects with more than one solid. ")
 
         otherSolid = intersectingSuspects[0]

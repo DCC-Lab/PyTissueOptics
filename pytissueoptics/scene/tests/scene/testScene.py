@@ -31,43 +31,60 @@ class TestScene(unittest.TestCase):
         verify(THE_SOLID, times=0).translateTo(...)
 
     def testWhenAddingASolidThatPartlyOverlapsWithAnotherOne_shouldNotAdd(self):
-        otherBBox = BoundingBox([2, 5], [2, 5], [2, 5])
-        OTHER_SOLID = mock(Solid, {"bbox": otherBBox})
-        solidBBox = BoundingBox([0, 3], [0, 3], [0, 3])
-        THE_SOLID = mock(Solid, {"bbox": solidBBox})
+        OTHER_SOLID = self.makeSolidWithBBox(BoundingBox([2, 5], [2, 5], [2, 5]))
+        THE_SOLID = self.makeSolidWithBBox(BoundingBox([0, 3], [0, 3], [0, 3]))
         self.scene.add(OTHER_SOLID)
 
         with self.assertRaises(Exception):
             self.scene.add(THE_SOLID)
 
     def testWhenAddingASolidInsideAnotherOne_shouldUpdateOutsideMaterialOfThisSolid(self):
-        OTHER_SOLID = mock(Solid)
-        otherBBox = BoundingBox([0, 5], [0, 5], [0, 5])
+        OTHER_SOLID = self.makeSolidWithBBox(BoundingBox([0, 5], [0, 5], [0, 5]))
+        THE_SOLID = self.makeSolidWithBBox(BoundingBox([1, 3], [1, 3], [1, 3]))
         otherMaterial = Material()
-        when(OTHER_SOLID).getBoundingBox().thenReturn(otherBBox)
         when(OTHER_SOLID).getMaterial().thenReturn(otherMaterial)
-        when(OTHER_SOLID).getVertices().thenReturn([])
-        self.scene.add(OTHER_SOLID)
-
-        THE_SOLID = mock(Solid)
-        solidBBox = BoundingBox([1, 3], [1, 3], [1, 3])
-        when(THE_SOLID).getBoundingBox().thenReturn(solidBBox)
-        when(THE_SOLID).setOutsideMaterial(...).thenReturn()
-        when(THE_SOLID).getVertices().thenReturn([])
-
         when(OTHER_SOLID).contains(...).thenReturn(True)
         when(THE_SOLID).contains(...).thenReturn(False)
+        self.scene.add(OTHER_SOLID)
 
         self.scene.add(THE_SOLID)
 
         verify(THE_SOLID).setOutsideMaterial(otherMaterial)
 
     def testWhenAddingASolidOverAnotherOne_shouldUpdateOutsideMaterialOfTheOtherSolid(self):
+        OTHER_SOLID = self.makeSolidWithBBox(BoundingBox([0, 5], [0, 5], [0, 5]))
+        THE_SOLID = self.makeSolidWithBBox(BoundingBox([-1, 6], [-1, 6], [-1, 6]))
+        solidMaterial = Material()
+        when(THE_SOLID).getMaterial().thenReturn(solidMaterial)
+        when(OTHER_SOLID).contains(...).thenReturn(False)
+        when(THE_SOLID).contains(...).thenReturn(True)
+        self.scene.add(OTHER_SOLID)
+
+        self.scene.add(THE_SOLID)
+
+        verify(OTHER_SOLID).setOutsideMaterial(solidMaterial)
+
+    def testWhenAddingASolidInsideMultipleOtherSolids_shouldUpdateOutsideMaterialOfThisSolid(self):
+        pass
+
+    def testWhenAddingASolidOverMultipleOtherSolids_shouldUpdateOutsideMaterialOfTheTopMostSolid(self):
+        pass
+
+    def testWhenAddingASolidThatFitsInsideOneButAlsoContainsOne_shouldUpdateOutsideMaterialOfThisSolidAndTheOneInside(self):
         pass
 
     def testWhenAddingASolidInsideACuboidStack_shouldRaiseNotImplementedError(self):
         pass
 
-    def testGivenASceneWithOnlyReflectiveRaytracing_whenAddingASolidThatPartlyMergesWithAnotherOne_shouldAddTheSolidToTheSceneWithoutAffectingExistingSolid(self):
+    def testGivenASceneWithOnlyReflectiveRaytracing_whenAddingASolidThatPartlyMergesWithAnotherOne_shouldAddTheSolid(self):
         # better support for constructive geometry?
         pass
+
+    @staticmethod
+    def makeSolidWithBBox(bbox: BoundingBox):
+        solid = mock(Solid)
+        when(solid).getBoundingBox().thenReturn(bbox)
+        when(solid).getVertices().thenReturn([])
+        when(solid).setOutsideMaterial(...).thenReturn()
+        when(solid).getVertices().thenReturn([])
+        return solid
