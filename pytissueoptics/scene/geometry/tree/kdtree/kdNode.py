@@ -1,6 +1,6 @@
 from typing import Tuple, List
 from pytissueoptics.scene.geometry import Polygon, BoundingBox
-from pytissueoptics.scene.geometry.tree.kdtree.utils import Splitter
+from pytissueoptics.scene.geometry.tree.kdtree.splitter import Splitter
 from pytissueoptics.scene.scene import Scene
 
 
