@@ -37,6 +37,13 @@ class KDNode:
             return False
 
     @property
+    def isLeaf(self):
+        if self._leftNode is None and self._rightNode is None:
+            return True
+        else:
+            return False
+
+    @property
     def leftNode(self):
         return self._leftNode
 
@@ -99,14 +106,17 @@ class KDNode:
             return "x"
 
     @staticmethod
-    def getBoundingBoxes(node: 'KDNode', bboxList: List) -> List[BoundingBox]:
+    def getLeafBoundingBoxes(node: 'KDNode', bboxList: List) -> List[BoundingBox]:
         if bboxList is None:
             bboxList = []
 
         if node is not None:
-            bboxList.append(node.boundingBox)
-            node.getBoundingBoxes(node.leftNode, bboxList)
-            node.getBoundingBoxes(node.rightNode, bboxList)
+            if not node.isLeaf:
+                node.getLeafBoundingBoxes(node.leftNode, bboxList)
+                node.getLeafBoundingBoxes(node.rightNode, bboxList)
+
+            else:
+                bboxList.append(node.boundingBox)
 
             if node.isRoot:
                 return bboxList
