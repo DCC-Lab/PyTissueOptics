@@ -20,9 +20,8 @@ class Sphere(Ellipsoid):
                  primitive: str = primitives.DEFAULT):
 
         self._radius = radius
-        a, b, c = radius
 
-        super().__init__(a=a, b=b, c=c, order=order, position=position, material=material, primitive=primitive)
+        super().__init__(a=radius, b=radius, c=radius, order=order, position=position, material=material, primitive=primitive)
 
     @property
     def radius(self):
