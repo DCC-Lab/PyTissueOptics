@@ -19,7 +19,7 @@ class KDNode:
         self._boundingBox = boundingBox
         self._splitStrategy = splitStrategy
 
-        if self.isRoot:
+        if self.isRoot and scene is not None:
             self._polygons = self._scene.getPolygons()
             self._boundingBox = self._scene.getBoundingBox()
 
