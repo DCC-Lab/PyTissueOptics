@@ -90,5 +90,20 @@ class BoundingBox:
         newBbox._checkIfCoherent()
         return newBbox
 
+    def upscaleTo(self, other: 'BoundingBox'):
+        if other.xMin < self.xMin:
+            self._xLim[0] = other.xMin
+        if other.xMax > self.xMax:
+            self._xLim[1] = other.xMax
+        if other.yMin < self.yMin:
+            self._yLim[0] = other.yMin
+        if other.yMax > self.yMax:
+            self._yLim[1] = other.yMax
+        if other.zMin < self.zMin:
+            self._zLim[0] = other.zMin
+        if other.zMax > self.zMax:
+            self._zLim[1] = other.zMax
+
+
     def __getitem__(self, index: int) -> List[float]:
         return self._xyzLimits[index]
