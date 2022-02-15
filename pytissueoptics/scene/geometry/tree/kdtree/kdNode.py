@@ -1,12 +1,13 @@
 from typing import Tuple, List
 from pytissueoptics.scene.geometry import Polygon, BoundingBox
+from pytissueoptics.scene.geometry.tree.kdtree.utils import Splitter
 from pytissueoptics.scene.scene import Scene
 
 
 class KDNode:
     def __init__(self, parent: 'KDNode' = None, leftNode: 'KDNode' = None, rightNode: 'KDNode' = None, depth: int = 0,
                  axis: str = "x", polygons: List[Polygon] = None, boundingBox: BoundingBox = None, scene: Scene = None,
-                 maxDepth=100, splitStrategy=None):
+                 maxDepth=100, splitStrategy: Splitter = None):
         self._parent = parent
         self._leftNode = leftNode
         self._rightNode = rightNode
@@ -20,7 +21,7 @@ class KDNode:
 
         if self.isRoot:
             self._polygons = self._scene.getPolygons()
-            self._boundingBox = self._scene.boundingBox()
+            self._boundingBox = self._scene.getBoundingBox()
 
         self.split()
 
