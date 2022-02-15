@@ -2,6 +2,7 @@ import unittest
 
 import numpy as np
 
+from pytissueoptics.scene.geometry import Rotation
 from pytissueoptics.scene.geometry.utils import eulerRotationMatrix, rotateVerticesArray
 
 
@@ -54,12 +55,23 @@ class TestEulerRotationMatrix(unittest.TestCase):
 
         self.assertTrue(np.allclose([1, 1, -1], pRotated))
 
+    def testGivenInverseRotation_shouldInverseRotation(self):
+        rotation = eulerRotationMatrix(xTheta=90, yTheta=90, zTheta=90)
+        inverseRotation = eulerRotationMatrix(xTheta=90, yTheta=90, zTheta=90, inverse=True)
+        p = [1, 1, 1]
+
+        pRotated = np.dot(rotation, p)
+        pUnrotated = np.dot(inverseRotation, pRotated)
+
+        self.assertTrue(np.allclose([1, 1, 1], pUnrotated))
+
 
 class TestRotateVerticesArray(unittest.TestCase):
     def testShouldRotateAllVertices(self):
         p0, p1 = [1, 1, 1], [-1, -1, -1]
         verticesArray = np.asarray([p0, p1])
-        rotatedVerticesArray = rotateVerticesArray(verticesArray, xTheta=90, yTheta=90, zTheta=90)
+        rotation = Rotation(90, 90, 90)
+        rotatedVerticesArray = rotateVerticesArray(verticesArray, rotation)
 
         p0Rotated, p1Rotated = rotatedVerticesArray
 
