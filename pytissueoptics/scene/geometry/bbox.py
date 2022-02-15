@@ -104,6 +104,5 @@ class BoundingBox:
         if other.zMax > self.zMax:
             self._zLim[1] = other.zMax
 
-
     def __getitem__(self, index: int) -> List[float]:
         return self._xyzLimits[index]

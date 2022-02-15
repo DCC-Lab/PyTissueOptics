@@ -88,7 +88,7 @@ class KDNode:
         return goingLeft, goingRight
 
     def _calculateSplitLine(self):
-        return self._splitStrategy.calculateSplitLine(self)
+        return self._splitStrategy.calculateSplitLine(self._polygons, self._axis)
 
     def _nextAxis(self) -> str:
         if self._axis == "x":
