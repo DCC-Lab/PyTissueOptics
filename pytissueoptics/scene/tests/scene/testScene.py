@@ -21,3 +21,7 @@ class TestScene(unittest.TestCase):
 
     def testWhenAddingASolidInsideACuboidStack_shouldRaiseNotImplementedError(self):
         pass
+
+    def testGivenASceneWithOnlyReflectiveRaytracing_whenAddingASolidThatPartlyMergesWithAnotherOne_shouldAddTheSolidToTheSceneWithoutAffectingExistingSolid(self):
+        # better support for constructive geometry?
+        pass
