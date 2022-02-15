@@ -45,6 +45,13 @@ class Polygon:
     def bbox(self) -> BoundingBox:
         return self._bbox
 
+    @property
+    def centroid(self) -> Vector:
+        vertexSum = Vector(0, 0, 0)
+        for vertex in self._vertices:
+            vertexSum.add(vertex)
+        return vertexSum.divide(len(self._vertices))
+
     def resetBoundingBox(self):
         self._bbox = BoundingBox.fromVertices(self._vertices)
 
