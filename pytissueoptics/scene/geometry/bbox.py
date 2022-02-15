@@ -1,3 +1,4 @@
+import itertools
 from typing import List
 
 from pytissueoptics.scene.geometry import Vector
@@ -79,3 +80,10 @@ class BoundingBox:
 
     def __getitem__(self, index: int) -> List[float]:
         return self._xyzLimits[index]
+
+    def getVertices(self) -> List[Vector]:
+        vertices = []
+        for (i, j, k) in itertools.product(range(2), repeat=3):
+            x, y, z = self._xLim[i], self._yLim[j], self._zLim[k]
+            vertices.append(Vector(x, y, z))
+        return vertices
