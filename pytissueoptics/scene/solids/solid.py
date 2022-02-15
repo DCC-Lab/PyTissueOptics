@@ -46,6 +46,9 @@ class Solid:
     def bbox(self) -> BoundingBox:
         return self._bbox
 
+    def getBoundingBox(self) -> BoundingBox:
+        return self.bbox
+
     def _resetBoundingBox(self):
         self._bbox = BoundingBox.fromVertices(self._vertices)
         self._surfaces.resetBoundingBoxes()
