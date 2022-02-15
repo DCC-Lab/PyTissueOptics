@@ -46,6 +46,10 @@ class SurfaceCollection:
         for polygon in self.getPolygons():
             polygon.resetNormal()
 
+    def resetBoundingBoxes(self):
+        for polygon in self.getPolygons():
+            polygon.resetBoundingBox()
+
     def extend(self, other: 'SurfaceCollection'):
         assert not any(self._contains(surface) for surface in other.surfaceNames)
         self._surfaces.update(other._surfaces)
