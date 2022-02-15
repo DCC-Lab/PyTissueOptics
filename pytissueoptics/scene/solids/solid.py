@@ -65,7 +65,7 @@ class Solid:
         for v in self._vertices:
             v.add(translationVector)
         self._resetBoundingBoxes()
-        self.resetPolygonsCentroids()
+        self._resetPolygonsCentroids()
 
     def rotate(self, xTheta=0, yTheta=0, zTheta=0):
         """

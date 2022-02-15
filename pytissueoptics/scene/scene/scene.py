@@ -7,7 +7,9 @@ from pytissueoptics.scene.geometry import Polygon, BoundingBox
 class Scene:
     def __init__(self, solids: List[Solid]):
         self._solids = solids
-        self._boundingBox = None
+
+    def getSolids(self):
+        return self._solids
 
     def getPolygons(self) -> List[Polygon]:
         polygons = []
