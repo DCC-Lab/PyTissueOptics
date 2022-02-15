@@ -15,10 +15,6 @@ class TestEllipsoid(unittest.TestCase):
         ellipsoid = Ellipsoid(position=position)
         self.assertEqual(Vector(2, 2, 1), ellipsoid.position)
 
-    def testGivenANewDefault_shouldHaveARadiusOfNone(self):
-        ellipsoid = Ellipsoid()
-        self.assertIsNone(ellipsoid.radius)
-
     def testGivenALowOrderSphericalEllipsoid_shouldApproachCorrectSphereAreaTo5Percent(self):
         ellipsoid = Ellipsoid(a=1, b=1, c=1, order=3)
         perfectSphereArea = 4 * math.pi
