@@ -1,5 +1,6 @@
-from typing import List
+from typing import List, Dict
 
+from pytissueoptics.scene.materials import Material
 from pytissueoptics.scene.geometry import Vector
 from pytissueoptics.scene.solids import Solid
 
@@ -14,26 +15,30 @@ class Scene:
         self._validate(solid)
         self._solids.append(solid)
 
-    def _validate(self, solid: Solid):
+    def _validate(self, newSolid: Solid):
+        """ Assert newSolid position is valid and make proper adjustments so that the
+        material at each solid interface is well defined. """
         if len(self._solids) == 0:
             return
 
-        intersectingSuspects = self._findIntersectingSuspectsFor(solid)
+        intersectingSuspects = self._findIntersectingSuspectsFor(newSolid)
         if len(intersectingSuspects) == 0:
             return
-        if len(intersectingSuspects) != 1:
-            # todo: if multiple suspects, they should already be well contained.
-            #  so we can scan from smallest to biggest and see if it can fit between adjacent solids
-            #  with s, a, b. s has to be in a or a in s and s in b else increment
-            raise NotImplementedError("Cannot handle placement of a solid that intersects with more than one solid. ")
 
-        otherSolid = intersectingSuspects[0]
-        if solid.contains(*otherSolid.getVertices()):
-            otherSolid.setOutsideMaterial(solid.getMaterial())
-        elif otherSolid.contains(*solid.getVertices()):
-            solid.setOutsideMaterial(otherSolid.getMaterial())
-        else:
-            raise NotImplementedError("Cannot place a solid that partially intersects with an existing solid. ")
+        intersectingSuspects.sort(key=lambda s: s.getBoundingBox().xMax - s.getBoundingBox().xMin, reverse=True)
+
+        solidUpdates: Dict[Solid, Material] = {}
+        for otherSolid in intersectingSuspects:
+            if newSolid.contains(*otherSolid.getVertices()):
+                solidUpdates[otherSolid] = newSolid.getMaterial()
+                break
+            elif otherSolid.contains(*newSolid.getVertices()):
+                solidUpdates[newSolid] = otherSolid.getMaterial()
+            else:
+                raise NotImplementedError("Cannot place a solid that partially intersects with an existing solid. ")
+
+        for (solid, material) in solidUpdates.items():
+            solid.setOutsideMaterial(material)
 
     def _findIntersectingSuspectsFor(self, solid) -> List[Solid]:
         solidBBox = solid.getBoundingBox()
