@@ -2,7 +2,7 @@ from typing import List
 
 import numpy as np
 
-from pytissueoptics.scene.geometry import Vector, utils, Polygon
+from pytissueoptics.scene.geometry import Vector, utils, Polygon, Rotation, BoundingBox
 from pytissueoptics.scene.geometry import primitives
 from pytissueoptics.scene.materials import Material
 from pytissueoptics.scene.geometry import SurfaceCollection
@@ -16,12 +16,15 @@ class Solid:
         self._material = material
         self._primitive = primitive
         self._position = Vector(0, 0, 0)
+        self._orientation: Rotation = Rotation()
+        self._bbox = None
 
         if not self._surfaces:
             self._computeMesh()
 
         self.translateTo(position)
         self._setInsideMaterial()
+        self._resetBoundingBox()
 
     @property
     def position(self) -> Vector:
@@ -39,6 +42,14 @@ class Solid:
     def primitive(self) -> str:
         return self._primitive
 
+    @property
+    def bbox(self) -> BoundingBox:
+        return self._bbox
+
+    def _resetBoundingBox(self):
+        self._bbox = BoundingBox.fromVertices(self._vertices)
+        self._surfaces.resetBoundingBoxes()
+
     def translateTo(self, position):
         if position == self._position:
             return
@@ -49,6 +60,7 @@ class Solid:
         self._position.add(translationVector)
         for v in self._vertices:
             v.add(translationVector)
+        self._resetBoundingBox()
 
     def rotate(self, xTheta=0, yTheta=0, zTheta=0):
         """
@@ -59,14 +71,18 @@ class Solid:
         Finally we update the solid vertices' components with the values of this rotated array reference and ask each
         solid surface to compute its new normal.
         """
+        rotation = Rotation(xTheta, yTheta, zTheta)
+
         verticesArrayAtOrigin = self._verticesArray - self.position.array
-        rotatedVerticesArrayAtOrigin = utils.rotateVerticesArray(verticesArrayAtOrigin, xTheta, yTheta, zTheta)
+        rotatedVerticesArrayAtOrigin = utils.rotateVerticesArray(verticesArrayAtOrigin, rotation)
         rotatedVerticesArray = rotatedVerticesArrayAtOrigin + self.position.array
 
         for (vertex, rotatedVertexArray) in zip(self._vertices, rotatedVerticesArray):
             vertex.update(*rotatedVertexArray)
 
         self._surfaces.resetNormals()
+        self._orientation.add(rotation)
+        self._resetBoundingBox()
 
     def getMaterial(self, surfaceName: str = None) -> Material:
         if surfaceName:
@@ -121,3 +137,6 @@ class Solid:
             return
         for polygon in self._surfaces.getPolygons():
             polygon.setInsideMaterial(self._material)
+
+    def contains(self, *vertices: Vector) -> bool:
+        raise NotImplementedError

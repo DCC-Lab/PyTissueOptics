@@ -98,3 +98,31 @@ class Sphere(Solid):
 
     def _computeQuadMesh(self):
         raise NotImplementedError
+
+    def contains(self, *vertices: Vector) -> bool:
+        """ Only returns true if all vertices are inside the minimum radius of the sphere
+        (more restrictive with low order spheres). """
+        minRadius = self._getMinimumRadius()
+        for vertex in vertices:
+            relativeVertex = vertex - self.position
+            if relativeVertex.getNorm() >= minRadius:
+                return False
+        return True
+
+    def _getMinimumRadius(self) -> float:
+        return (1 - self._getRadiusError()) * self._radius
+
+    def _radiusTowards(self, vertex) -> float:
+        return self.radius
+
+    def _getRadiusError(self) -> float:
+        aPolygon = self.surfaces.getPolygons()[0]
+        centerVertex = Vector(0, 0, 0)
+        for vertex in aPolygon.vertices:
+            centerVertex.add(vertex)
+        centerVertex.divide(len(aPolygon.vertices))
+        centerVertex.subtract(self.position)
+
+        localMinimumRadius = centerVertex.getNorm()
+        localTrueRadius = self._radiusTowards(centerVertex)
+        return abs(localTrueRadius - localMinimumRadius) / localTrueRadius

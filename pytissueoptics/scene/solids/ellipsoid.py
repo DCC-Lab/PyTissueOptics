@@ -1,6 +1,8 @@
 from math import cos, sin, acos, atan, pi, sqrt
 
-from pytissueoptics.scene.geometry import Vector, primitives
+import numpy as np
+
+from pytissueoptics.scene.geometry import Vector, primitives, utils
 from pytissueoptics.scene.solids import Sphere
 from pytissueoptics.scene.materials import Material
 
@@ -18,7 +20,7 @@ class Ellipsoid(Sphere):
         then .add() or .subtract() the corresponding vector.
     """
 
-    def __init__(self, order: int = 3, a: float = 1, b: float = 1, c: float = 1,
+    def __init__(self, a: float = 1, b: float = 1, c: float = 1, order: int = 3,
                  position: Vector = Vector(0, 0, 0), material: Material = None,
                  primitive: str = primitives.DEFAULT):
 
@@ -43,9 +45,7 @@ class Ellipsoid(Sphere):
         """
         for vertex in self._vertices:
             vertex.normalize()
-            theta, phi = self._findThetaPhi(vertex)
-            r = sqrt(1 / ((cos(theta) ** 2 * sin(phi) ** 2) / self._a ** 2 + (
-                    sin(theta) ** 2 * sin(phi) ** 2) / self._b ** 2 + cos(phi) ** 2 / self._c ** 2))
+            r = self._radiusTowards(vertex)
             distanceFromUnitSphere = (r - 1.0)
             vertex.add(vertex * distanceFromUnitSphere)
 
@@ -71,6 +71,38 @@ class Ellipsoid(Sphere):
                 theta = atan(vertex.y / vertex.x) - pi
 
         return theta, phi
+    
+    def _radiusTowards(self, vertex):
+        theta, phi = self._findThetaPhi(vertex)
+        return sqrt(1 / ((cos(theta) ** 2 * sin(phi) ** 2) / self._a ** 2 + (
+                sin(theta) ** 2 * sin(phi) ** 2) / self._b ** 2 + cos(phi) ** 2 / self._c ** 2))
 
     def _computeQuadMesh(self):
-        pass
+        raise NotImplementedError
+
+    def contains(self, *vertices: Vector) -> bool:
+        """ Only returns true if all vertices are inside the minimum radius of the ellipsoid
+        towards each vertex direction (more restrictive with low order ellipsoids). """
+        verticesArray = np.asarray([vertex.array for vertex in vertices])
+        relativeVerticesArray = verticesArray - self.position.array
+
+        if self._orientation:
+            relativeVerticesArray = utils.rotateVerticesArray(relativeVerticesArray, self._orientation, inverse=True)
+
+        for relativeVertexArray in relativeVerticesArray:
+            relativeVertex = Vector(*relativeVertexArray)
+            vertexRadius = relativeVertex.getNorm()
+            if vertexRadius == 0:
+                continue
+            minRadius = self._getMinimumRadiusTowards(relativeVertex)
+            if vertexRadius >= minRadius:
+                return False
+        return True
+
+    def _getMinimumRadius(self):
+        # fixme: LSP violation because ellipsoid is a child of sphere
+        #  and not the other way around...
+        raise NotImplementedError
+
+    def _getMinimumRadiusTowards(self, vertex) -> float:
+        return (1 - self._getRadiusError()) * self._radiusTowards(vertex)
