@@ -38,3 +38,4 @@ class TestBoundingBox(unittest.TestCase):
         self.assertEqual(bbox.xLim, [-1, 0])
         self.assertEqual(bbox.yLim, [-1, 1])
         self.assertEqual(bbox.zLim, [0, 3.001])
+    
