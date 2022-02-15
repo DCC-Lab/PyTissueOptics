@@ -1,28 +1,39 @@
-from pytissueoptics.scene.geometry.tree.kdtree import KDNode
-
+from typing import List, Tuple
+from pytissueoptics.scene.geometry import Polygon
 
 class Splitter:
-    def calculateSplitLine(self, node: KDNode) -> float:
+    def calculateSplitLine(self, polygons: List[Polygon], nodeAxis: str) -> float:
         raise NotImplementedError
 
 
-class CentroidSplitter(Splitter):
-    def calculateSplitLine(self, node: KDNode) -> float:
+class MeanCentroidSplitter(Splitter):
+    def calculateSplitLine(self, polygons: List[Polygon], nodeAxis: str) -> float:
         average = 0
-        for polygon in node.polygons:
-            if node.axis == "x":
+        for polygon in polygons:
+            if nodeAxis == "x":
                 average += polygon.centroid.x
-            elif node.axis == "y":
+            elif nodeAxis == "y":
                 average += polygon.centroid.y
-            elif node.axis == "z":
+            elif nodeAxis == "z":
                 average += polygon.centroid.z
-
-        average = average / len(node.polygons)
+        average = average / len(polygons)
         return average
 
 
 class BinarySplitter(Splitter):
-    def calculateSplitLine(self, node: KDNode) -> float:
-        boundaryMin = node.boundingBox.getAxisLimit(node.axis, "min")
-        boundaryMax = node.boundingBox.getAxisLimit(node.axis, "max")
-        return (boundaryMin + boundaryMax) / 2
+    def calculateSplitLine(self, polygons: List[Polygon], nodeAxis: str) -> float:
+        minLimit = 0
+        maxLimit = 0
+        for polygon in polygons:
+            minLimit, maxLimit = self._compareMinMax(nodeAxis, polygon, minLimit, maxLimit)
+        return (minLimit + maxLimit) / 2
+
+    @staticmethod
+    def _compareMinMax(nodeAxis: str, polygon: Polygon, minLimit: float, maxLimit: float) -> Tuple:
+        polyMin = polygon.bbox.getAxisLimit(nodeAxis, "min")
+        polyMax = polygon.bbox.getAxisLimit(nodeAxis, "max")
+        if polyMin < minLimit:
+            minLimit = polyMin
+        if polyMax > maxLimit:
+            maxLimit = polyMax
+        return minLimit, maxLimit
