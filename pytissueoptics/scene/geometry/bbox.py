@@ -1,5 +1,5 @@
 from typing import List
-
+from copy import deepcopy
 from pytissueoptics.scene.geometry import Vector
 
 
@@ -76,6 +76,19 @@ class BoundingBox:
     @property
     def zLim(self) -> List[float]:
         return self._zLim
+
+    def getAxisLimit(self, axis: str, limit: str) -> float:
+        return self._xyzLimits[self._axisKeys.index(axis)][self._limitKeys.index(limit)]
+
+    def change(self, axis: str, limit: str, value: float):
+        self._xyzLimits[self._axisKeys.index(axis)][self._limitKeys.index(limit)] = value
+        self._checkIfCoherent()
+
+    def changeToNew(self, axis: str, limit: str, value: float) -> 'BoundingBox':
+        newBbox = deepcopy(self)
+        newBbox.change(axis, limit, value)
+        newBbox._checkIfCoherent()
+        return newBbox
 
     def __getitem__(self, index: int) -> List[float]:
         return self._xyzLimits[index]

@@ -1,19 +1,25 @@
-from __future__ import annotations
-from kd3ba.Axis import Axis
+from typing import Tuple, List
+from pytissueoptics.scene.geometry import Vector, Polygon, BoundingBox
+from pytissueoptics.scene.solids import Solid
+from pytissueoptics.scene.scene import Scene
 
 
 class KDNode:
-    def __init__(self, parent=None, left=None, right=None, depth=0, axis=Axis("x"), triangles=None, boundingBox=None,
-                 maxDepth=100, splitStrategy=None):
+    def __init__(self, parent: 'KDNode' = None, left: 'KDNode' = None, right: 'KDNode' = None, depth: int = 0,
+                 axis: str = "x", scene: Scene = None, maxDepth=100, splitStrategy=None):
         self._parent = parent
         self._left = left
         self._right = right
         self._depth = depth
         self._axis = axis
         self._maxDepth = maxDepth
-        self._triangles = triangles
-        self._boundingBox = boundingBox
+        self._scene = scene
+        self._polygons = None
+        self._boundingBox = None
         self._splitStrategy = splitStrategy
+
+
+
         self.split()
 
     @property
@@ -24,48 +30,48 @@ class KDNode:
             return False
 
     @property
-    def triangles(self):
-        return self._triangles
+    def polygons(self) -> List[Polygon]:
+        return self._polygons
 
     @property
-    def axis(self):
+    def axis(self) -> str:
         return self._axis
 
     @property
-    def boundingBox(self):
+    def boundingBox(self) -> BoundingBox:
         return self._boundingBox
 
     def split(self):
-        if self._depth < self._maxDepth and len(self._triangles) > 2:
-            splitLine = self.calculateSplitLine()
-            goingLeft, goingRight = self.countLeftRight(splitLine)
-            self._left = KDNode(parent=self, triangles=goingLeft,
+        if self._depth < self._maxDepth and len(self._polygons) > 2:
+            splitLine = self._calculateSplitLine()
+            goingLeft, goingRight = self._countLeftRight(splitLine)
+            self._left = KDNode(parent=self, polygons=goingLeft,
                                 boundingBox=self._boundingBox.updateFrom(self._axis.axis, "max", splitLine),
                                 axis=self._axis.nextAxisRotate(), depth=self._depth + 1, maxdepth=self._maxdepth,
                                 splitStrategy=self._splitStrategy)
-            self._right = KDNode(parent=self, triangles=goingRight,
+            self._right = KDNode(parent=self, polygons=goingRight,
                                  boundingBox=self._boundingBox.updateFrom(self._axis.axis, "min", splitLine),
                                  axis=self._axis.nextAxisRotate(), depth=self._depth + 1, maxdepth=self._maxdepth,
                                  splitStrategy=self._splitStrategy)
 
-    def countLeftRight(self, line=None):
+    def _countLeftRight(self, line: float) -> Tuple:
         goingLeft = []
         goingRight = []
 
-        for triangle in self._triangles:
-            if triangle.globalBoundingBox[self._axis.axis]["min"] < line and \
-                    triangle.globalBoundingBox[self._axis.axis]["max"] < line:
-                goingLeft.append(triangle)
-            elif triangle.globalBoundingBox[self._axis.axis]["min"] > line and \
-                    triangle.globalBoundingBox[self._axis.axis]["max"] > line:
-                goingRight.append(triangle)
+        for polygon in self._polygons:
+            if polygon.bbox.getAxisLimit(self._axis, "min") < line and \
+                    polygon.bbox.getAxisLimit(self._axis, "max") < line:
+                goingLeft.append(polygon)
+            elif polygon.bbox.getAxisLimit(self._axis, "min") > line and \
+                    polygon.bbox.getAxisLimit(self._axis, "max") > line:
+                goingRight.append(polygon)
             else:
-                goingLeft.append(triangle)
-                goingRight.append(triangle)
+                goingLeft.append(polygon)
+                goingRight.append(polygon)
 
         return goingLeft, goingRight
 
-    def calculateSplitLine(self):
+    def _calculateSplitLine(self):
         return self._splitStrategy.calculateSplitLine(self)
 
     def getAllBBox(self, node, bboxList=None):
@@ -79,3 +85,12 @@ class KDNode:
 
             if node.isRoot:
                 return bboxList
+
+    @staticmethod
+    def changeAxis(currentAxis: str) -> str:
+        if currentAxis == "x":
+            return "y"
+        elif currentAxis == "y":
+            return "z"
+        elif currentAxis == "z":
+            return "x"
