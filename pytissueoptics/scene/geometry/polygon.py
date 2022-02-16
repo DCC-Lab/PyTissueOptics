@@ -64,3 +64,10 @@ class Polygon:
         N = edgeA.cross(edgeB)
         N.normalize()
         self._normal = N
+
+    def getCentroid(self) -> Vector:
+        centroid = Vector(0, 0, 0)
+        for vertex in self._vertices:
+            centroid.add(vertex)
+        centroid.divide(len(self._vertices))
+        return centroid
