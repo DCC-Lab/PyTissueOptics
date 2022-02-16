@@ -1,17 +1,17 @@
 from typing import List
 from pytissueoptics.scene.geometry import BoundingBox
-from pytissueoptics.scene.geometry.tree.treeStrategy import Splitter
-from pytissueoptics.scene.geometry.tree.kdtree import KDNode
+from pytissueoptics.scene.geometry.tree.treeStrategy import TreeStrategy
+from pytissueoptics.scene.geometry.tree import Node
 from pytissueoptics.scene.solids import Cuboid
 from pytissueoptics.scene.scene import Scene
 
 
-class KDTree:
-    def __init__(self, scene: Scene, splitStrategy: Splitter, maxDepth: int):
+class Tree:
+    def __init__(self, scene: Scene, treeStrategy: TreeStrategy, maxDepth: int):
         self._scene = scene
         self._maxDepth = maxDepth
-        self._splitStrategy = splitStrategy
-        self._root = KDNode(scene=scene, splitStrategy=splitStrategy, maxDepth=maxDepth)
+        self._splitStrategy = treeStrategy
+        self._root = Node(scene=scene, treeStrategy=treeStrategy, maxDepth=maxDepth)
 
     def search(self):
         raise NotImplementedError

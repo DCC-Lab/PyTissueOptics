@@ -51,48 +51,48 @@ class BinaryNodeSplitter(NodeSplitter):
         return minLimit, maxLimit
 
 
-class SAHSplitter(NodeSplitter):
-    def _getSplitLine(self) -> float:
-        self._nodeSAH = self._nodeBbox.getArea() * len(self._polygons)
-        minSAH = self._searchMinSAH()
-
-    def _searchMinSAH(self) -> float:
-        split = self._centroidSplit()
-        minSAH = nodeSAH
-        fisrtSplit = True
-        change = 0
-        delta = 1
-
-        for _ in range(10):
-            if change > 0.01:
-                left, right = self._separateLeftRight(split, polygons, nodeAxis)
-                tempLeftBbox = nodeBbox.changeToNew(nodeAxis, "max", split)
-                tempRightBbox = nodeBbox.changeToNew(nodeAxis, "min", split)
-                newSAH = len(left) * tempLeftBbox.getArea() + len(right) * tempRightBbox.getArea()
-
-                if newSAH < minSAH:
-                    minSAH = newSAH
-                    delta = delta
-                    split = split + delta
-                else:
-                    delta *= -0.5
-                    split = split + delta
-
-    def _getNewSAH(self):
-        left, right = self._separateLeftRight(split, polygons, nodeAxis)
-        tempLeftBbox = nodeBbox.changeToNew(nodeAxis, "max", split)
-        tempRightBbox = nodeBbox.changeToNew(nodeAxis, "min", split)
-        newSAH = len(left) * tempLeftBbox.getArea() + len(right) * tempRightBbox.getArea()
-
-    def _directionOfTheEmptySide(self) -> float:
-        lSize = len(left)
-        rSize = len(right)
-        direction = 0
-
-        if lSize > rSize:
-            direction = -1
-        elif rSize > lSize:
-            direction = 1
-        elif rSize == lSize:
-
-        return direction
+# class SAHSplitter(NodeSplitter):
+#     def _getSplitLine(self) -> float:
+#         self._nodeSAH = self._nodeBbox.getArea() * len(self._polygons)
+#         minSAH = self._searchMinSAH()
+#
+#     def _searchMinSAH(self) -> float:
+#         split = self._centroidSplit()
+#         minSAH = nodeSAH
+#         fisrtSplit = True
+#         change = 0
+#         delta = 1
+#
+#         for _ in range(10):
+#             if change > 0.01:
+#                 left, right = self._separateLeftRight(split, polygons, nodeAxis)
+#                 tempLeftBbox = nodeBbox.changeToNew(nodeAxis, "max", split)
+#                 tempRightBbox = nodeBbox.changeToNew(nodeAxis, "min", split)
+#                 newSAH = len(left) * tempLeftBbox.getArea() + len(right) * tempRightBbox.getArea()
+#
+#                 if newSAH < minSAH:
+#                     minSAH = newSAH
+#                     delta = delta
+#                     split = split + delta
+#                 else:
+#                     delta *= -0.5
+#                     split = split + delta
+#
+#     def _getNewSAH(self):
+#         left, right = self._separateLeftRight(split, polygons, nodeAxis)
+#         tempLeftBbox = nodeBbox.changeToNew(nodeAxis, "max", split)
+#         tempRightBbox = nodeBbox.changeToNew(nodeAxis, "min", split)
+#         newSAH = len(left) * tempLeftBbox.getArea() + len(right) * tempRightBbox.getArea()
+#
+#     def _directionOfTheEmptySide(self) -> float:
+#         lSize = len(left)
+#         rSize = len(right)
+#         direction = 0
+#
+#         if lSize > rSize:
+#             direction = -1
+#         elif rSize > lSize:
+#             direction = 1
+#         elif rSize == lSize:
+#
+#         return direction
