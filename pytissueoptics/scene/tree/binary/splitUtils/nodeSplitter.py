@@ -3,18 +3,20 @@ from pytissueoptics.scene.geometry import Polygon, BoundingBox
 
 
 class NodeSplitter:
-    def __init__(self):
+    def __init__(self, polyCounter):
         self._splitAxis = None
         self._polygons = None
         self._nodeBbox = None
+        self._polyCounter = polyCounter
 
-    def run(self, splitAxis: str, polygons: List[Polygon], nodeBbox: BoundingBox) -> float:
+    def run(self, splitAxis: str, polygons: List[Polygon], nodeBbox: BoundingBox) -> Tuple:
         self._splitAxis = splitAxis
         self._polygons = polygons
         self._nodeBbox = nodeBbox
-        return self._run()
+        self._splitLine = self._run()
+        self._polyCounter.run(self._splitLine)
 
-    def _run(self) -> float:
+    def _run(self) -> Tuple:
         raise NotImplementedError
 
 

@@ -20,5 +20,5 @@ class Scene:
     def getBoundingBox(self) -> BoundingBox:
         bbox = BoundingBox(xLim=[0, 0], yLim=[0, 0], zLim=[0, 0])
         for solid in self._solids:
-            bbox.upscaleTo(solid.bbox)
+            bbox.extendTo(solid.bbox)
         return bbox
