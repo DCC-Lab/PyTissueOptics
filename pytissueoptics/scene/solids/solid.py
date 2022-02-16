@@ -146,3 +146,9 @@ class Solid:
 
     def contains(self, *vertices: Vector) -> bool:
         raise NotImplementedError
+
+    def isStack(self) -> bool:
+        for surfaceName in self.surfaceNames:
+            if "Interface" in surfaceName:
+                return True
+        return False

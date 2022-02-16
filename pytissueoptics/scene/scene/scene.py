@@ -32,9 +32,11 @@ class Scene:
         solidUpdates: Dict[Solid, Material] = {}
         for otherSolid in intersectingSuspects:
             if newSolid.contains(*otherSolid.getVertices()):
+                self._assertIsNotAStack(newSolid)
                 solidUpdates[otherSolid] = newSolid.getMaterial()
                 break
             elif otherSolid.contains(*newSolid.getVertices()):
+                self._assertIsNotAStack(otherSolid)
                 solidUpdates[newSolid] = otherSolid.getMaterial()
             else:
                 raise NotImplementedError("Cannot place a solid that partially intersects with an existing solid. ")
@@ -51,3 +53,8 @@ class Scene:
                 if suspectBBox[axis][0] > solidBBox[axis][1] or suspectBBox[axis][1] < solidBBox[axis][0]:
                     intersectingSuspects.remove(suspect)
         return intersectingSuspects
+
+    @staticmethod
+    def _assertIsNotAStack(solid: Solid):
+        if solid.isStack():
+            raise NotImplementedError("Cannot place a solid inside a solid stack. ")

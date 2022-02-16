@@ -110,8 +110,14 @@ class TestScene(unittest.TestCase):
         verify(SOLID).setOutsideMaterial(OUTSIDE_SOLID_MATERIAL)
         verify(INSIDE_SOLID).setOutsideMaterial(SOLID_MATERIAL)
 
-    def testWhenAddingASolidInsideACuboidStack_shouldRaiseNotImplementedError(self):
-        pass
+    def testWhenAddingASolidInsideASolidStack_shouldRaiseNotImplementedError(self):
+        CUBOID_STACK = self.makeSolidWith(BoundingBox([1, 4], [1, 4], [1, 4]), contains=True, isStack=True)
+        self.scene.add(CUBOID_STACK)
+
+        INSIDE_SOLID = self.makeSolidWith(BoundingBox([2, 3], [2, 3], [2, 3]))
+
+        with self.assertRaises(NotImplementedError):
+            self.scene.add(INSIDE_SOLID)
 
     def testGivenASceneThatIgnoresIntersections_whenAddingASolidThatPartlyMergesWithAnotherOne_shouldAddTheSolid(self):
         scene = Scene(ignoreIntersections=True)
@@ -122,9 +128,10 @@ class TestScene(unittest.TestCase):
         scene.add(SOLID)
 
     @staticmethod
-    def makeSolidWith(bbox: BoundingBox, contains=False):
+    def makeSolidWith(bbox: BoundingBox, contains=False, isStack=False):
         solid = mock(Solid)
         when(solid).getBoundingBox().thenReturn(bbox)
+        when(solid).isStack().thenReturn(isStack)
         when(solid).getVertices().thenReturn([])
         when(solid).setOutsideMaterial(...).thenReturn()
         when(solid).getMaterial().thenReturn(Material())

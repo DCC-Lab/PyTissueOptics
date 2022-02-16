@@ -103,6 +103,13 @@ class TestSolid(unittest.TestCase):
         verify(polygon, times=3).resetBoundingBox()
         self.assertNotEqual(oldBbox, solid.bbox)
 
+    def testShouldNotBeAStack(self):
+        self.assertFalse(self.solid.isStack())
+
+    def testGivenASolidWithInterfaces_shouldBeAStack(self):
+        self.solid.surfaces.add("Interface0", [])
+        self.assertTrue(self.solid.isStack())
+
     @staticmethod
     def createPolygonMock() -> Polygon:
         polygon = mock(Polygon)
