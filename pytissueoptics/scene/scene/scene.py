@@ -6,13 +6,15 @@ from pytissueoptics.scene.solids import Solid
 
 
 class Scene:
-    def __init__(self):
+    def __init__(self, ignoreIntersections=False):
         self._solids = []
+        self._ignoreIntersections = ignoreIntersections
 
     def add(self, solid: Solid, position: Vector = None):
         if position:
             solid.translateTo(position)
-        self._validate(solid)
+        if not self._ignoreIntersections:
+            self._validate(solid)
         self._solids.append(solid)
 
     def _validate(self, newSolid: Solid):

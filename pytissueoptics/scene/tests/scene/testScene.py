@@ -113,9 +113,13 @@ class TestScene(unittest.TestCase):
     def testWhenAddingASolidInsideACuboidStack_shouldRaiseNotImplementedError(self):
         pass
 
-    def testGivenASceneWithOnlyReflectiveRaytracing_whenAddingASolidThatPartlyMergesWithAnotherOne_shouldAddTheSolid(self):
-        # better support for constructive geometry?
-        pass
+    def testGivenASceneThatIgnoresIntersections_whenAddingASolidThatPartlyMergesWithAnotherOne_shouldAddTheSolid(self):
+        scene = Scene(ignoreIntersections=True)
+        OTHER_SOLID = self.makeSolidWith(BoundingBox([2, 5], [2, 5], [2, 5]))
+        SOLID = self.makeSolidWith(BoundingBox([0, 3], [0, 3], [0, 3]))
+        scene.add(OTHER_SOLID)
+
+        scene.add(SOLID)
 
     @staticmethod
     def makeSolidWith(bbox: BoundingBox, contains=False):
