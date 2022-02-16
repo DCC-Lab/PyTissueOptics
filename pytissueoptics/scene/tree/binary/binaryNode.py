@@ -1,13 +1,13 @@
 from typing import List
 from pytissueoptics.scene.geometry import Polygon, BoundingBox
-from pytissueoptics.scene.geometry.tree.treeStrategy import TreeStrategy
+from pytissueoptics.scene.tree.binary import BinaryTreeStrategy
 from pytissueoptics.scene.scene import Scene
 
 
-class Node:
-    def __init__(self, parent: 'Node' = None, leftNode: 'Node' = None, rightNode: 'Node' = None, depth: int = 0,
+class BinaryNode:
+    def __init__(self, parent: 'BinaryNode' = None, leftNode: 'BinaryNode' = None, rightNode: 'BinaryNode' = None, depth: int = 0,
                  axis: str = "x", polygons: List[Polygon] = None, boundingBox: BoundingBox = None, scene: Scene = None,
-                 maxDepth=100, treeStrategy: TreeStrategy = None):
+                 maxDepth=100, treeStrategy: BinaryTreeStrategy = None):
         self._parent = parent
         self._leftNode = leftNode
         self._rightNode = rightNode
@@ -68,22 +68,22 @@ class Node:
             newSplitAxis, splitLine, goingLeft, goingRight = self._split()
             self._splitAxis = newSplitAxis
             if len(goingLeft) != len(self._polygons):
-                self._leftNode = Node(parent=self, polygons=goingLeft,
-                                      boundingBox=self._boundingBox.changeToNew(newSplitAxis, "max", splitLine),
-                                      axis=newSplitAxis, depth=self._depth + 1, maxDepth=self._maxDepth,
-                                      treeStrategy=self._treeStrategy)
+                self._leftNode = BinaryNode(parent=self, polygons=goingLeft,
+                                            boundingBox=self._boundingBox.changeToNew(newSplitAxis, "max", splitLine),
+                                            axis=newSplitAxis, depth=self._depth + 1, maxDepth=self._maxDepth,
+                                            treeStrategy=self._treeStrategy)
             if len(goingRight) != len(self._polygons):
-                self._rightNode = Node(parent=self, polygons=goingRight,
-                                       boundingBox=self._boundingBox.changeToNew(newSplitAxis, "min", splitLine),
-                                       axis=newSplitAxis, depth=self._depth + 1, maxDepth=self._maxDepth,
-                                       treeStrategy=self._treeStrategy)
+                self._rightNode = BinaryNode(parent=self, polygons=goingRight,
+                                             boundingBox=self._boundingBox.changeToNew(newSplitAxis, "min", splitLine),
+                                             axis=newSplitAxis, depth=self._depth + 1, maxDepth=self._maxDepth,
+                                             treeStrategy=self._treeStrategy)
 
     def _split(self):
         return self._treeStrategy.run(self._polygons, self._splitAxis, self._boundingBox)
 
 
     @staticmethod
-    def getLeafBoundingBoxes(node: 'Node', bboxList: List) -> List[BoundingBox]:
+    def getLeafBoundingBoxes(node: 'BinaryNode', bboxList: List) -> List[BoundingBox]:
         if bboxList is None:
             bboxList = []
 

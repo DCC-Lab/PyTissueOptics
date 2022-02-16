@@ -7,16 +7,17 @@ class NodeSplitter:
         self._splitAxis = None
         self._polygons = None
         self._nodeBbox = None
+        self._splitLine = None
         self._polyCounter = polyCounter
 
-    def run(self, splitAxis: str, polygons: List[Polygon], nodeBbox: BoundingBox) -> Tuple:
+    def run(self, splitAxis: str, polygons: List[Polygon], nodeBbox: BoundingBox) -> float:
         self._splitAxis = splitAxis
         self._polygons = polygons
         self._nodeBbox = nodeBbox
         self._splitLine = self._run()
-        self._polyCounter.run(self._splitLine)
+        return self._splitLine
 
-    def _run(self) -> Tuple:
+    def _run(self) -> float:
         raise NotImplementedError
 
 

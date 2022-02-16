@@ -1,17 +1,17 @@
 from typing import List
 from pytissueoptics.scene.geometry import BoundingBox
-from pytissueoptics.scene.geometry.tree.treeStrategy import TreeStrategy
-from pytissueoptics.scene.geometry.tree import Node
+from pytissueoptics.scene.tree.binary import BinaryTreeStrategy
+from pytissueoptics.scene.tree.binary import BinaryNode
 from pytissueoptics.scene.solids import Cuboid
 from pytissueoptics.scene.scene import Scene
 
 
-class Tree:
-    def __init__(self, scene: Scene, treeStrategy: TreeStrategy, maxDepth: int):
+class BinaryTree:
+    def __init__(self, scene: Scene, treeStrategy: BinaryTreeStrategy, maxDepth: int):
         self._scene = scene
         self._maxDepth = maxDepth
         self._splitStrategy = treeStrategy
-        self._root = Node(scene=scene, treeStrategy=treeStrategy, maxDepth=maxDepth)
+        self._root = BinaryNode(scene=scene, treeStrategy=treeStrategy, maxDepth=maxDepth)
 
     def search(self):
         raise NotImplementedError
