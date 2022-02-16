@@ -91,7 +91,14 @@ class BoundingBox:
         newBbox._checkIfCoherent()
         return newBbox
 
-    def upscaleTo(self, other: 'BoundingBox'):
+    def getArea(self):
+        a = (self.xMax - self.xMin)
+        b = (self.yMax - self.yMin)
+        c = (self.zMax - self.zMin)
+        return a*b*2 + a*c*2 + b*c*2
+
+
+    def extendTo(self, other: 'BoundingBox'):
         if other.xMin < self.xMin:
             self._xLim[0] = other.xMin
         if other.xMax > self.xMax:
