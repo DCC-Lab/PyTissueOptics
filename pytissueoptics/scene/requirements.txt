@@ -1,4 +1,5 @@
 numpy
 mockito
+ddt
 mayavi
 pyqt5
