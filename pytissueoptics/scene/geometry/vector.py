@@ -77,6 +77,9 @@ class Vector:
         vx, vy, vz = other.x, other.y, other.z
         return Vector(uy * vz - uz * vy, uz * vx - ux * vz, ux * vy - uy * vx)
 
+    def dot(self, other: 'Vector') -> float:
+        return self.x*other.x + self.y*other.y + self.z*other.z
+
     @property
     def array(self) -> list:
         return [self._x, self._y, self._z]
