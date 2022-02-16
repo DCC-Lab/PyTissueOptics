@@ -4,19 +4,19 @@ from pytissueoptics.scene.geometry import BoundingBox, Vector
 from pytissueoptics.scene.intersection import Ray
 
 
-class BoundingBoxIntersect:
-    def intersect(self, ray: Ray, bbox: BoundingBox) -> Union[Vector, None]:
+class BoxIntersectStrategy:
+    def getIntersection(self, ray: Ray, bbox: BoundingBox) -> Union[Vector, None]:
         raise NotImplemented
 
 
-class GemsBoxIntersect(BoundingBoxIntersect):
+class GemsBoxIntersect(BoxIntersectStrategy):
     """ Graphics Gems Fast Ray-Box Intersection """
     pass
 
 
-class ZacharBoxIntersect(BoundingBoxIntersect):
+class ZacharBoxIntersect(BoxIntersectStrategy):
     """ https://gamedev.stackexchange.com/a/18459 """
-    def intersect(self, ray: Ray, bbox: BoundingBox) -> Union[Vector, None]:
+    def getIntersection(self, ray: Ray, bbox: BoundingBox) -> Union[Vector, None]:
         inverseDirection = self._safeInverse(ray.direction)
         minCorner = Vector(bbox.xMin, bbox.yMin, bbox.zMin)
         maxCorner = Vector(bbox.xMax, bbox.yMax, bbox.zMax)
@@ -39,7 +39,7 @@ class ZacharBoxIntersect(BoundingBoxIntersect):
             return None
 
         t = tMin
-        return ray.origin + t * ray.direction
+        return ray.origin + ray.direction * t
 
     @staticmethod
     def _safeInverse(direction: Vector) -> Vector:
