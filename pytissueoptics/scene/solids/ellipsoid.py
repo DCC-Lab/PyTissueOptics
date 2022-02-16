@@ -103,6 +103,7 @@ class Ellipsoid(Solid):
             r = self._radiusTowards(vertex)
             distanceFromUnitSphere = (r - 1.0)
             vertex.add(vertex * distanceFromUnitSphere)
+        self.surfaces.resetNormals()
 
     @staticmethod
     def _findThetaPhi(vertex: 'Vector'):
