@@ -48,3 +48,30 @@ class TestTriangleIntersect(unittest.TestCase):
         intersection = IntersectStrategy().getIntersection(ray, triangle)
 
         self.assertIsNone(intersection)
+
+    @data(*intersectStrategies)
+    def testGivenRayShorterThanTriangleIntersection_shouldReturnNone(self, IntersectStrategy):
+        triangle = Triangle(Vector(0, 0, 0), Vector(1, 0, 0), Vector(0, 1, 0))
+        rayOrigin = Vector(0.25, 0.25, 2)
+        rayDirection = Vector(0.1, 0, -1)
+        rayDirection.normalize()
+        ray = Ray(rayOrigin, rayDirection, length=1.8)
+
+        intersection = IntersectStrategy().getIntersection(ray, triangle)
+
+        self.assertIsNone(intersection)
+
+    @data(*intersectStrategies)
+    def testGivenRayShorterThanTriangleIntersection_shouldReturnNone(self, IntersectStrategy):
+        triangle = Triangle(Vector(0, 0, 0), Vector(1, 0, 0), Vector(0, 1, 0))
+        rayOrigin = Vector(0.25, 0.25, 2)
+        rayDirection = Vector(0.1, 0, -1)
+        rayDirection.normalize()
+        ray = Ray(rayOrigin, rayDirection, length=2.2)
+
+        intersection = IntersectStrategy().getIntersection(ray, triangle)
+
+        self.assertIsNotNone(intersection)
+        self.assertEqual(0.45, intersection.x)
+        self.assertEqual(0.25, intersection.y)
+        self.assertEqual(0.0, intersection.z)

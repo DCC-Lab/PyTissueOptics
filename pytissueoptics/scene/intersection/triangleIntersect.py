@@ -41,4 +41,7 @@ class MollerTrumboreIntersect(TriangleIntersectStrategy):
         if lineIntersection:
             return None
 
+        if ray.length and t > ray.length:
+            return None
+
         return ray.origin + ray.direction * t
