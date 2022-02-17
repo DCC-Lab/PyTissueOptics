@@ -1,5 +1,5 @@
-from typing import Tuple, List
-from pytissueoptics.scene.geometry import Polygon
+from typing import List
+from pytissueoptics.scene.geometry import Polygon, BoundingBox
 
 
 class AxisSelector:
@@ -24,3 +24,33 @@ class RotateAxis(AxisSelector):
             return "z"
         elif self._nodeAxis == "z":
             return "x"
+
+
+class LargestSpanAxis(AxisSelector):
+    def _run(self):
+        bbox: BoundingBox = None
+        for polygon in self._polygons:
+            if bbox is None:
+                bbox = polygon.bbox.newFrom()
+            else:
+                bbox.extendTo(polygon.bbox)
+
+        widths = [bbox.xWidth, bbox.yWidth, bbox.zWidth]
+        axisIndex = widths.index(max(widths))
+        axes = ["x", "y", "z"]
+        return axes[axisIndex]
+
+
+class LowestSpanAxis(AxisSelector):
+    def _run(self):
+        bbox: BoundingBox = None
+        for polygon in self._polygons:
+            if bbox is None:
+                bbox = polygon.bbox.newFrom()
+            else:
+                bbox.extendTo(polygon.bbox)
+
+        widths = [bbox.xWidth, bbox.yWidth, bbox.zWidth]
+        axisIndex = widths.index(min(widths))
+        axes = ["x", "y", "z"]
+        return axes[axisIndex]
