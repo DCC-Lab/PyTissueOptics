@@ -1,8 +1,5 @@
-from typing import List, Tuple
-from pytissueoptics.scene.geometry import Polygon, BoundingBox
 from pytissueoptics.scene.tree.splitUtils import PolyCounter, AxisSelector, NodeSplitter
-from pytissueoptics.scene.tree.splitNodeResult import SplitNodeResult
-from pytissueoptics.scene.tree import Node
+from pytissueoptics.scene.tree import SplitNodeResult
 
 
 class TreeStrategy:
@@ -20,10 +17,10 @@ class TreeStrategy:
     def _loadComponents(self):
         raise NotImplementedError
 
-    def run(self, node: Node)-> SplitNodeResult:
-        self._polygons = node.polygons
-        self._nodeDepth = node.depth
-        self._nodeBbox = node.bbox
+    def run(self, bbox, polygons, depth)-> SplitNodeResult:
+        self._polygons = polygons
+        self._nodeDepth = depth
+        self._nodeBbox = bbox
         self._selectSplitAxis()
         self._split()
         return self._splitNodeResult

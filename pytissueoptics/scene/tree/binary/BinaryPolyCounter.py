@@ -1,13 +1,14 @@
-from typing import Tuple, List
+from typing import List
 from pytissueoptics.scene.geometry import Polygon
 
+
 class BinaryPolyCounter:
-    def run(self, line: float, nodeAxis: str, polygons: List[Polygon]) -> Tuple:
+    def run(self, line: float, nodeAxis: str, polygons: List[Polygon]):
         raise NotImplementedError
 
 
 class BBoxPolyCounter(BinaryPolyCounter):
-    def run(self, line: float, nodeAxis: str, polygons: List[Polygon]) -> Tuple:
+    def run(self, line: float, nodeAxis: str, polygons: List[Polygon]):
         goingLeft = []
         goingRight = []
 
@@ -22,11 +23,11 @@ class BBoxPolyCounter(BinaryPolyCounter):
                 goingLeft.append(polygon)
                 goingRight.append(polygon)
 
-        return goingLeft, goingRight
+        return [goingLeft, goingRight]
 
 
 class CentroidPolyCounter(BinaryPolyCounter):
-    def run(self, line: float, nodeAxis: str, polygons: List[Polygon]) -> Tuple:
+    def run(self, line: float, nodeAxis: str, polygons: List[Polygon]):
         goingLeft = []
         goingRight = []
         centroidComponent = 0
@@ -46,4 +47,4 @@ class CentroidPolyCounter(BinaryPolyCounter):
                 goingLeft.append(polygon)
                 goingRight.append(polygon)
 
-        return goingLeft, goingRight
+        return [goingLeft, goingRight]

@@ -7,21 +7,28 @@ from pytissueoptics.scene.scene import Scene
 
 
 class Tree:
-    def __init__(self, scene: Scene, treeStrategy: TreeStrategy, maxDepth: int):
+    def __init__(self, scene: Scene, treeStrategy: TreeStrategy, maxDepth = 6, maxLeafSize = 2):
         self._scene = scene
         self._maxDepth = maxDepth
+        self._maxLeafSize = maxLeafSize
         self._splitStrategy = treeStrategy
-        self._root = Node(scene=scene, treeStrategy=treeStrategy, maxDepth=maxDepth)
+        self._root = Node(scene=scene, treeStrategy=treeStrategy, maxDepth=maxDepth, maxLeafSize=2)
 
     def searchPoint(self, point: Vector) -> BoundingBox:
         return self._root.searchPoint(point)
 
     def searchRayIntersection(self, ray):
-        raise NotImplementedError
+        return self._root.searchRayIntersection(ray)
 
     def _getBoundingBoxes(self) -> List[BoundingBox]:
-        boundingBoxes = self._root.getLeafBoundingBoxes(self._root, bboxList=[])
+        boundingBoxes = self._root.getLeafBoundingBoxes(bboxList=[])
         return boundingBoxes
+
+    def getNodeCount(self):
+        return self._root.getNodeCount()
+
+    def getLeafCount(self):
+        return self._root.getLeafCount()
 
     def getLeafBoundingBoxesAsCuboids(self) -> List[Cuboid]:
         cuboids = []
