@@ -13,6 +13,7 @@ class BinaryTreeStrategy:
         self._nodeBbox = None
         self._splitLine = None
         self._splitAxis = None
+        self._stopCondition = 0
         self._goingLeft = []
         self._goingRight = []
         self._loadComponents()
@@ -23,7 +24,7 @@ class BinaryTreeStrategy:
     def run(self,
             polygons: List[Polygon],
             nodeAxis: str,
-            nodeBbox: BoundingBox)-> Tuple[str, float, List[Polygon], List[Polygon]]:
+            nodeBbox: BoundingBox)-> Tuple[int, str, float, List[Polygon], List[Polygon]]:
 
         self._polygons = polygons
         self._nodeAxis = nodeAxis
@@ -32,15 +33,11 @@ class BinaryTreeStrategy:
         self._goingRight = []
         self._selectSplitAxis()
         self._split()
-        self._sendLeftRight()
+        return self._stopCondition, self._splitAxis, self._splitLine, self._goingLeft, self._goingRight
 
-        return self._splitAxis, self._splitLine, self._goingLeft, self._goingRight
-
-    def _sendLeftRight(self):
-        self._goingLeft, self._goingRight = self._polyCounter.run(self._splitLine, self._splitAxis, self._polygons)
 
     def _split(self):
-        self._splitLine = self._nodeSplitter.run(self._splitAxis, self._polygons, self._nodeBbox)
+        self._stopCondition, self._splitLine, self._goingLeft, self._goingRight = self._nodeSplitter.run(self._splitAxis, self._polygons, self._nodeBbox)
 
     def _selectSplitAxis(self):
         self._splitAxis = self._axisSelector.run(self._nodeAxis, self._polygons)
@@ -48,12 +45,12 @@ class BinaryTreeStrategy:
 
 class BasicKDTreeStrategy(BinaryTreeStrategy):
     def _loadComponents(self):
-        from pytissueoptics.scene.tree.binary.splitUtils.nodeSplitter import CentroidNodeSplitter
+        from pytissueoptics.scene.tree.binary.splitUtils.nodeSplitter import DumbSAHSplitter
         from pytissueoptics.scene.tree.binary.splitUtils.polyCounter import BBoxPolyCounter
         from pytissueoptics.scene.tree.binary.splitUtils.axisSelector import RotateAxis
         self._polyCounter = BBoxPolyCounter()
         self._axisSelector = RotateAxis()
-        self._nodeSplitter = CentroidNodeSplitter(self._polyCounter)
+        self._nodeSplitter = DumbSAHSplitter(self._polyCounter)
 
 
 class SAHKDTreeStrategy(BinaryTreeStrategy):
