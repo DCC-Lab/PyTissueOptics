@@ -1,9 +1,12 @@
 import unittest
 
-from pytissueoptics.scene.geometry import Vector
+from ddt import ddt, data
+
+from pytissueoptics.scene.geometry import Vector, primitives
 from pytissueoptics.scene.solids import Cuboid
 
 
+@ddt
 class TestCuboid(unittest.TestCase):
     def testGivenANewDefaultCuboid_shouldBePlacedAtOrigin(self):
         cuboid = Cuboid(8, 1, 3)
@@ -13,6 +16,27 @@ class TestCuboid(unittest.TestCase):
         position = Vector(2, 2, 1)
         cuboid = Cuboid(8, 1, 3, position=position)
         self.assertEqual(position, cuboid.position)
+
+    @data(primitives.TRIANGLE, primitives.QUAD)
+    def testShouldHaveASurfaceGroupForEachCuboidFace(self, primitive):
+        position = Vector(1, 1, 1)
+        cuboid = Cuboid(2, 2, 2, position=position, primitive=primitive)
+
+        self.assertEqual(self._getSurfaceCentroid(cuboid, "Left"), Vector(0, 1, 1))
+        self.assertEqual(self._getSurfaceCentroid(cuboid, "Right"), Vector(2, 1, 1))
+        self.assertEqual(self._getSurfaceCentroid(cuboid, "Bottom"), Vector(1, 0, 1))
+        self.assertEqual(self._getSurfaceCentroid(cuboid, "Top"), Vector(1, 2, 1))
+        self.assertEqual(self._getSurfaceCentroid(cuboid, "Front"), Vector(1, 1, 0))
+        self.assertEqual(self._getSurfaceCentroid(cuboid, "Back"), Vector(1, 1, 2))
+
+    @staticmethod
+    def _getSurfaceCentroid(cuboid, surfaceName: str) -> Vector:
+        centroid = Vector(0, 0, 0)
+        surfacePolygons = cuboid.getPolygons(surfaceName)
+        for polygon in surfacePolygons:
+            centroid += polygon.getCentroid()
+        centroid.divide(len(surfacePolygons))
+        return centroid
 
     def testWhenStackOnNonExistentSurface_shouldNotStack(self):
         baseCuboid = Cuboid(4, 5, 3)

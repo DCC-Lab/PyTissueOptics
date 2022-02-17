@@ -41,8 +41,8 @@ class Cuboid(Solid):
         self._surfaces.add('Right', [Triangle(V[1], V[5], V[6]), Triangle(V[6], V[2], V[1])])
         self._surfaces.add('Bottom', [Triangle(V[4], V[5], V[1]), Triangle(V[1], V[0], V[4])])
         self._surfaces.add('Top', [Triangle(V[3], V[2], V[6]), Triangle(V[6], V[7], V[3])])
-        self._surfaces.add('Front', [Triangle(V[0], V[1], V[2]), Triangle(V[2], V[3], V[0])])
-        self._surfaces.add('Back', [Triangle(V[5], V[4], V[7]), Triangle(V[7], V[6], V[5])])
+        self._surfaces.add('Front', [Triangle(V[5], V[4], V[7]), Triangle(V[7], V[6], V[5])])
+        self._surfaces.add('Back', [Triangle(V[0], V[1], V[2]), Triangle(V[2], V[3], V[0])])
 
     def _computeQuadMesh(self):
         V = self._vertices
@@ -50,8 +50,8 @@ class Cuboid(Solid):
         self._surfaces.add('Right', [Quad(V[1], V[5], V[6], V[2])])
         self._surfaces.add('Bottom', [Quad(V[4], V[5], V[1], V[0])])
         self._surfaces.add('Top', [Quad(V[3], V[2], V[6], V[7])])
-        self._surfaces.add('Front', [Quad(V[0], V[1], V[2], V[3])])
-        self._surfaces.add('Back', [Quad(V[5], V[4], V[7], V[6])])
+        self._surfaces.add('Front', [Quad(V[5], V[4], V[7], V[6])])
+        self._surfaces.add('Back', [Quad(V[0], V[1], V[2], V[3])])
 
     def stack(self, other: 'Cuboid', onSurface: str = 'Top') -> 'Cuboid':
         """

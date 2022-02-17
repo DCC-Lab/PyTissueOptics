@@ -53,7 +53,6 @@ class TestIntersectionFinder(unittest.TestCase):
         ray = Ray(origin=Vector(-0.5, 0.5, 0), direction=Vector(0, 0, 1))
         solid = Cube(2, position=Vector(0, 0, 5))
         hitTriangle = solid.surfaces.getPolygons("Front")[0]
-        # fixme: faces are mixed up, hits back[0]
         intersectionFinder = IntersectionFinder([solid])
 
         intersection = intersectionFinder.findIntersection(ray)
