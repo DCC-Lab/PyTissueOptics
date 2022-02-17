@@ -5,6 +5,7 @@ from pytissueoptics.scene.intersection import Ray
 
 
 class BoxIntersectStrategy:
+    # fixme(?) LSP violation. Current implementations behave differently when the ray lies on a box plane.
     def getIntersection(self, ray: Ray, bbox: BoundingBox) -> Union[Vector, None]:
         raise NotImplemented
 

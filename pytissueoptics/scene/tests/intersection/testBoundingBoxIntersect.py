@@ -39,6 +39,18 @@ class TestBoxIntersect(unittest.TestCase):
         self.assertIsNone(intersection)
 
     @data(*intersectStrategies)
+    def testGivenRayPointingAwayFromTheBox_shouldReturnNone(self, IntersectStrategy):
+        box = BoundingBox([0, 1], [0, 1], [-1, 0])
+        rayOrigin = Vector(0.25, 0.25, 2)
+        rayDirection = Vector(-0.1, 0, 1)
+        rayDirection.normalize()
+        ray = Ray(rayOrigin, rayDirection)
+
+        intersection = IntersectStrategy().getIntersection(ray, box)
+
+        self.assertIsNone(intersection)
+
+    @data(*intersectStrategies)
     def testGivenRayInsideBox_shouldRaiseNotImplementedError(self, IntersectStrategy):
         box = BoundingBox([0, 1], [0, 1], [-2, 1])
         rayOrigin = Vector(0.25, 0.25, 0)
