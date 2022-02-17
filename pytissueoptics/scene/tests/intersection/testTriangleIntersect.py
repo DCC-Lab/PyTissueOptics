@@ -16,6 +16,7 @@ class TestTriangleIntersect(unittest.TestCase):
         triangle = Triangle(Vector(0 + 2, 0, 0), Vector(1 + 2, 0, 0), Vector(0 + 2, 1, 0))
         rayOrigin = Vector(0.25 + 2, 0.25, 2)
         rayDirection = Vector(0.1, 0, -1)
+        rayDirection.normalize()
         ray = Ray(rayOrigin, rayDirection)
 
         intersection = IntersectStrategy().getIntersection(ray, triangle)
@@ -29,6 +30,7 @@ class TestTriangleIntersect(unittest.TestCase):
         triangle = Triangle(Vector(0, 0, 0), Vector(1, 0, 0), Vector(0, 1, 0))
         rayOrigin = Vector(0.25, 0.25, 1)
         rayDirection = Vector(-0.3, 0, -1)
+        rayDirection.normalize()
         ray = Ray(rayOrigin, rayDirection)
 
         intersection = IntersectStrategy().getIntersection(ray, triangle)
@@ -40,6 +42,7 @@ class TestTriangleIntersect(unittest.TestCase):
         triangle = Triangle(Vector(0, 0, 0), Vector(1, 0, 0), Vector(0, 1, 0))
         rayOrigin = Vector(-1, -1, 0)
         rayDirection = Vector(1, 1, 0)
+        rayDirection.normalize()
         ray = Ray(rayOrigin, rayDirection)
 
         intersection = IntersectStrategy().getIntersection(ray, triangle)
