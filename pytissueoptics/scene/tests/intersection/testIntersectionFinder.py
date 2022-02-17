@@ -3,7 +3,7 @@ import unittest
 
 from ddt import ddt, data
 
-from pytissueoptics.scene.solids import Sphere
+from pytissueoptics.scene.solids import Sphere, Cube
 from pytissueoptics.scene.geometry import Vector
 from pytissueoptics.scene.intersection import SimpleIntersectionFinder, Ray
 
@@ -36,7 +36,7 @@ class TestIntersectionFinder(unittest.TestCase):
         self.assertIsNone(intersection)
 
     @data(*intersectionFinders)
-    def testGivenRayIsIntersectingASolid_shouldReturnIntersection(self, IntersectionFinder):
+    def testGivenRayIsIntersectingASolid_shouldReturnIntersectionPosition(self, IntersectionFinder):
         ray = Ray(origin=Vector(0, 0.5, 0), direction=Vector(0, 0, 1))
         solid = Sphere(radius=1, order=2, position=Vector(0, 0, 5))
         intersectionFinder = IntersectionFinder([solid])
@@ -47,6 +47,19 @@ class TestIntersectionFinder(unittest.TestCase):
         self.assertEqual(0, intersection.position.x)
         self.assertEqual(0.5, intersection.position.y)
         self.assertAlmostEqual(5 - math.sqrt(3) / 2, intersection.position.z, places=2)
+
+    @data(*intersectionFinders)
+    def testGivenRayIsIntersectingASolid_shouldReturnIntersectionPolygon(self, IntersectionFinder):
+        ray = Ray(origin=Vector(-0.5, 0.5, 0), direction=Vector(0, 0, 1))
+        solid = Cube(2, position=Vector(0, 0, 5))
+        hitTriangle = solid.surfaces.getPolygons("Front")[0]
+        # fixme: faces are mixed up, hits back[0]
+        intersectionFinder = IntersectionFinder([solid])
+
+        intersection = intersectionFinder.findIntersection(ray)
+
+        self.assertIsNotNone(intersection)
+        self.assertEqual(hitTriangle, intersection.polygon)
 
     @data(*intersectionFinders)
     def testGivenRayIsOnlyIntersectingWithASolidBoundingBox_shouldNotFindIntersection(self, IntersectionFinder):
