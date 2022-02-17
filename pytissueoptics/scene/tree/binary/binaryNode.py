@@ -65,14 +65,15 @@ class BinaryNode:
 
     def split(self):
         if self._depth < self._maxDepth and len(self._polygons) > 2:
-            newSplitAxis, splitLine, goingLeft, goingRight = self._split()
+            stopCondition, newSplitAxis, splitLine, goingLeft, goingRight = self._split()
             self._splitAxis = newSplitAxis
-            if len(goingLeft) != len(self._polygons):
+            if not stopCondition:
+
                 self._leftNode = BinaryNode(parent=self, polygons=goingLeft,
                                             boundingBox=self._boundingBox.changeToNew(newSplitAxis, "max", splitLine),
                                             axis=newSplitAxis, depth=self._depth + 1, maxDepth=self._maxDepth,
                                             treeStrategy=self._treeStrategy)
-            if len(goingRight) != len(self._polygons):
+
                 self._rightNode = BinaryNode(parent=self, polygons=goingRight,
                                              boundingBox=self._boundingBox.changeToNew(newSplitAxis, "min", splitLine),
                                              axis=newSplitAxis, depth=self._depth + 1, maxDepth=self._maxDepth,
