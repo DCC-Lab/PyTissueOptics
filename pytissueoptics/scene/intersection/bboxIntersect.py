@@ -61,6 +61,8 @@ class GemsBoxIntersect(BoxIntersectStrategy):
         hitPoint = [None, None, None]
         if maxT[plane] < 0:
             return None
+        if ray.length and maxT[plane] > ray.length:
+            return None
         for i in range(3):
             if i != plane:
                 hitPoint[i] = origin[i] + maxT[plane] * direction[i]
@@ -102,8 +104,10 @@ class ZacharBoxIntersect(BoxIntersectStrategy):
         if tMin < 0:
             return ray.origin
 
-        t = tMin
-        return ray.origin + ray.direction * t
+        if ray.length and tMin > ray.length:
+            return None
+
+        return ray.origin + ray.direction * tMin
 
     @staticmethod
     def _safeInverse(direction: Vector) -> Vector:

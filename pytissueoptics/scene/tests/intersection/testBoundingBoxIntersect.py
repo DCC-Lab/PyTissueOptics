@@ -62,6 +62,33 @@ class TestBoxIntersect(unittest.TestCase):
         
         self.assertEqual(ray.origin, intersection)
 
+    @data(*intersectStrategies)
+    def testGivenRayLengthShorterThanBoxIntersection_shouldReturnNone(self, IntersectStrategy):
+        box = BoundingBox([0, 1], [0, 1], [-1, 0])
+        rayOrigin = Vector(0.25, 0.25, 2)
+        rayDirection = Vector(0.1, 0, -1)
+        rayDirection.normalize()
+        ray = Ray(rayOrigin, rayDirection, length=1.8)
+
+        intersection = IntersectStrategy().getIntersection(ray, box)
+
+        self.assertIsNone(intersection)
+
+    @data(*intersectStrategies)
+    def testGivenRayLengthLongerThanBoxIntersection_shouldReturnIntersection(self, IntersectStrategy):
+        box = BoundingBox([0, 1], [0, 1], [-1, 0])
+        rayOrigin = Vector(0.25, 0.25, 2)
+        rayDirection = Vector(0.1, 0, -1)
+        rayDirection.normalize()
+        ray = Ray(rayOrigin, rayDirection, length=2.2)
+
+        intersection = IntersectStrategy().getIntersection(ray, box)
+
+        self.assertIsNotNone(intersection)
+        self.assertEqual(0.45, intersection.x)
+        self.assertEqual(0.25, intersection.y)
+        self.assertEqual(0.0, intersection.z)
+
 
 class TestGemsBoxIntersect(unittest.TestCase):
     def testGivenLineIntersectingRayAndBox_shouldReturnClosestIntersectionPoint(self):
