@@ -16,11 +16,10 @@ class MayaviViewer:
 
     def add(self, *solids: 'Solid', representation="wireframe", lineWidth=0.25, showNormals=False, normalLength=0.3):
         for solid in solids:
-            assert solid.primitive == primitives.TRIANGLE, "MavaviViewer currently only supports triangle mesh. "
             mayaviSolid = MayaviSolid(solid, loadNormals=showNormals)
             self._scenes["DefaultScene"]["Solids"].append(mayaviSolid)
-            mlab.triangular_mesh(*mayaviSolid.mesh.components, representation=representation, line_width=lineWidth,
-                                 colormap="viridis")
+            self._createPolygonMesh(mayaviSolid.mesh.components, representation, lineWidth,
+                                    colormap="viridis", primitive=solid.primitive)
             if showNormals:
                 mlab.quiver3d(*mayaviSolid.normals.components, line_width=lineWidth, scale_factor=normalLength, color=(1, 1, 1))
 
@@ -42,6 +41,21 @@ class MayaviViewer:
     def clear(self):
         mlab.clf()
         self._resetTo("DefaultScene")
+
+    @staticmethod
+    def _createPolygonMesh(meshComponents, representation, lineWidth, colormap, primitive):
+        if primitive == primitives.QUAD:
+            x, y, z, quadIndices = meshComponents
+            for indices in quadIndices:
+                a, b, c, d = indices
+                xp = [[x[a], x[d]], [x[b], x[c]]]
+                yp = [[y[a], y[d]], [y[b], y[c]]]
+                zp = [[z[a], z[d]], [z[b], z[c]]]
+                mlab.mesh(xp, yp, zp, representation=representation, line_width=lineWidth,
+                          colormap=colormap)
+        else:
+            mlab.triangular_mesh(*meshComponents, representation=representation, line_width=lineWidth,
+                                 colormap="viridis")
 
 
 if __name__ == "__main__":
