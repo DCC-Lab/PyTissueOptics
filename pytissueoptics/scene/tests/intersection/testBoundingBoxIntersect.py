@@ -51,15 +51,16 @@ class TestBoxIntersect(unittest.TestCase):
         self.assertIsNone(intersection)
 
     @data(*intersectStrategies)
-    def testGivenRayInsideBox_shouldRaiseNotImplementedError(self, IntersectStrategy):
+    def testGivenRayInsideBox_shouldReturnRayOrigin(self, IntersectStrategy):
         box = BoundingBox([0, 1], [0, 1], [-2, 1])
         rayOrigin = Vector(0.25, 0.25, 0)
         rayDirection = Vector(0.1, 0, -1)
         rayDirection.normalize()
         ray = Ray(rayOrigin, rayDirection)
 
-        with self.assertRaises(NotImplementedError):
-            _ = IntersectStrategy().getIntersection(ray, box)
+        intersection = IntersectStrategy().getIntersection(ray, box)
+        
+        self.assertEqual(ray.origin, intersection)
 
 
 class TestGemsBoxIntersect(unittest.TestCase):

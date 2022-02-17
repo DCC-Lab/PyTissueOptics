@@ -33,6 +33,9 @@ class SimpleIntersectionFinder(IntersectionFinder):
         return self._findClosestTriangleIntersection(ray, solidCandidate.getPolygons())
 
     def _findClosestSolidBBoxIntersection(self, ray) -> Union[Solid, None]:
+        """ We need to handle the special case where ray starts inside bbox. The Box Intersect will not compute
+        the intersection for this case and will instead return ray.origin. When that happens, distance will be 0
+        and we exit to check the polygons of this solid. """
         closestSolid = None
         closestDistance = sys.maxsize
         for solid in self._solids:
@@ -43,6 +46,8 @@ class SimpleIntersectionFinder(IntersectionFinder):
             if distance < closestDistance:
                 closestDistance = distance
                 closestSolid = solid
+            if distance == 0:
+                break
         return closestSolid
 
     def _findClosestTriangleIntersection(self, ray, triangles) -> Union[Intersection, None]:

@@ -15,6 +15,7 @@ class GemsBoxIntersect(BoxIntersectStrategy):
     https://github.com/erich666/GraphicsGems/blob/master/gems/RayBox.c
 
     If a ray lies on a box plane, it will consider this an intersection.
+    If ray origin is inside box, it cannot compute intersection and will return ray.origin.
     """
     LEFT = 0
     RIGHT = 1
@@ -43,7 +44,7 @@ class GemsBoxIntersect(BoxIntersectStrategy):
                 quadrant[i] = self.MIDDLE
 
         if inside:
-            raise NotImplementedError("Cannot find ray-box intersection if ray origin is inside box.")
+            return ray.origin
 
         # Calculate distances to candidate planes
         maxT = []
@@ -74,6 +75,7 @@ class GemsBoxIntersect(BoxIntersectStrategy):
 class ZacharBoxIntersect(BoxIntersectStrategy):
     """ https://gamedev.stackexchange.com/a/18459
     If a ray lies on a box plane, it will NOT consider this an intersection.
+    If ray origin is inside box, it cannot compute intersection and will return ray.origin.
     """
     def getIntersection(self, ray: Ray, bbox: BoundingBox) -> Union[Vector, None]:
         inverseDirection = self._safeInverse(ray.direction)
@@ -98,7 +100,7 @@ class ZacharBoxIntersect(BoxIntersectStrategy):
             return None
 
         if tMin < 0:
-            raise NotImplementedError("Cannot find ray-box intersection if ray origin is inside box.")
+            return ray.origin
 
         t = tMin
         return ray.origin + ray.direction * t
