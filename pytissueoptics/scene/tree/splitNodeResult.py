@@ -6,5 +6,5 @@ from pytissueoptics.scene.geometry import BoundingBox, Polygon
 @dataclass
 class SplitNodeResult:
     stopCondition: bool
-    boundingBoxes: List[BoundingBox]
+    bboxes: List[BoundingBox]
     polygonGroups: List[List[Polygon]]

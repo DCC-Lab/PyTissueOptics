@@ -6,21 +6,21 @@ from pytissueoptics.scene.scene import Scene
 
 class Node:
     def __init__(self, parent: 'Node' = None, children: List['Node'] = None, treeStrategy: TreeStrategy = None,
-                 scene: Scene = None, polygons: List[Polygon] = None, boundingBox: BoundingBox = None, depth: int = 0,
+                 scene: Scene = None, polygons: List[Polygon] = None, bbox: BoundingBox = None, depth: int = 0,
                  maxDepth=100):
 
         self._parent = parent
         self._children = children
         self._scene = scene
         self._polygons = polygons
-        self._boundingBox = boundingBox
+        self._bbox = bbox
         self._treeStrategy = treeStrategy
         self._depth = depth
         self._maxDepth = maxDepth
 
         if self.isRoot and scene is not None:
             self._polygons = self._scene.getPolygons()
-            self._boundingBox = self._scene.getBoundingBox()
+            self._bbox = self._scene.getBoundingBox()
 
         self.split()
 
@@ -51,12 +51,12 @@ class Node:
         return self._polygons
 
     @property
-    def axis(self) -> str:
-        return self._axis
+    def depth(self) -> int:
+        return self._depth
 
     @property
-    def boundingBox(self) -> BoundingBox:
-        return self._boundingBox
+    def bbox(self) -> BoundingBox:
+        return self._bbox
 
     def split(self):
         if self._depth < self._maxDepth and len(self._polygons) > 2:
@@ -65,12 +65,12 @@ class Node:
                 for i, polygonGroup in enumerate(splitNodeResult.polygonGroups):
                     if len(polygonGroup) > 0:
                         childNode = Node(parent=self, polygons=polygonGroup,
-                                         boundingBox=splitNodeResult.boundingBoxes[i], depth=self._depth + 1,
+                                         bbox=splitNodeResult.bboxes[i], depth=self._depth + 1,
                                          maxDepth=self._maxDepth, treeStrategy=self._treeStrategy)
                         self._children.append(childNode)
 
     def _split(self):
-        return self._treeStrategy.run(self._polygons, self._depth, self._boundingBox)
+        return self._treeStrategy.run(self)
 
     def searchPoint(self, point: Vector):
         raise NotImplementedError

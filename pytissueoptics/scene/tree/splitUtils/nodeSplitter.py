@@ -1,6 +1,6 @@
 from typing import Tuple, List
 from pytissueoptics.scene.geometry import Polygon, BoundingBox
-from pytissueoptics.scene.tree.utils import meanCentroid
+from pytissueoptics.scene.tree.splitUtils.utils import meanCentroid
 
 
 class NodeSplitter:
@@ -14,7 +14,8 @@ class NodeSplitter:
         self._stopCondition = 0
         self._polyCounter = polyCounter
 
-    def run(self, splitAxis: str, polygons: List[Polygon], nodeBbox: BoundingBox) -> Tuple[int, float, List[Polygon], List[Polygon]]:
+    def run(self, splitAxis: str, polygons: List[Polygon], nodeBbox: BoundingBox) -> Tuple[int, float, List[Polygon],
+                                                                                           List[Polygon]]:
         self._splitAxis = splitAxis
         self._polygons = polygons
         self._nodeBbox = nodeBbox
@@ -53,20 +54,20 @@ class BinaryNodeSplitter(NodeSplitter):
 
 class DumbSAHSplitter(NodeSplitter):
     def _run(self):
-        self._nbOfSplitPLanes = 100
-        axisWidth = self._nodeBbox.getAxisWidth(self._splitAxis)
+        self._nbOfSplitPLanes = 20
         self._aMin, self._aMax = self._nodeBbox.getAxisLimits(self._splitAxis)
-        self._step = axisWidth / (self._nbOfSplitPLanes + 1)
+        self._step = self._nodeBbox.getAxisWidth(self._splitAxis) / (self._nbOfSplitPLanes + 1)
 
         nodeSAH = self._nodeBbox.getArea() * len(self._polygons)
         minSAH = self._searchMinSAH()
-        splitCost = 0
+        splitCost = 0.1 * nodeSAH
 
         if minSAH + splitCost < nodeSAH:
             self._stopCondition = 0
 
         else:
             self._stopCondition = 1
+            print("CockBlocked.")
 
         self._goingLeft, self._goingRight = self._polyCounter.run(self._splitLine, self._splitAxis, self._polygons)
 

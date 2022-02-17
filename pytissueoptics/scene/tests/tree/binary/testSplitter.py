@@ -1,5 +1,5 @@
 import unittest
-from pytissueoptics.scene.geometry.tree.treeStrategy import MeanCentroidSplitter, BinarySplitter
+from pytissueoptics.scene.tree import MeanCentroidSplitter, BinarySplitter
 from pytissueoptics.scene.geometry import Vector, Triangle
 
 
