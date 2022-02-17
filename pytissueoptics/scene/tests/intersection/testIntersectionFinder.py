@@ -4,13 +4,15 @@ import unittest
 from ddt import ddt, data
 
 from pytissueoptics.scene.solids import Sphere, Cube
-from pytissueoptics.scene.geometry import Vector
+from pytissueoptics.scene.geometry import Vector, primitives
 from pytissueoptics.scene.intersection import SimpleIntersectionFinder, Ray
 
 
 @ddt
 class TestIntersectionFinder(unittest.TestCase):
     intersectionFinders = [SimpleIntersectionFinder]
+    intersectionFindersWithAnyPrimitives = [(finder, primitive) for finder in intersectionFinders
+                                            for primitive in [primitives.TRIANGLE, primitives.QUAD]]
 
     @data(*intersectionFinders)
     def testGivenNoSolids_shouldNotFindIntersection(self, IntersectionFinder):
@@ -48,17 +50,18 @@ class TestIntersectionFinder(unittest.TestCase):
         self.assertEqual(0.5, intersection.position.y)
         self.assertAlmostEqual(5 - math.sqrt(3) / 2, intersection.position.z, places=2)
 
-    @data(*intersectionFinders)
-    def testGivenRayIsIntersectingASolid_shouldReturnIntersectionPolygon(self, IntersectionFinder):
+    @data(*intersectionFindersWithAnyPrimitives)
+    def testGivenRayIsIntersectingASolid_shouldReturnIntersectionPolygon(self, finderAndPrimitivePair):
+        IntersectionFinder, primitive = finderAndPrimitivePair
         ray = Ray(origin=Vector(-0.5, 0.5, 0), direction=Vector(0, 0, 1))
-        solid = Cube(2, position=Vector(0, 0, 5))
-        hitTriangle = solid.surfaces.getPolygons("Front")[0]
+        solid = Cube(2, position=Vector(0, 0, 5), primitive=primitive)
+        hitPolygon = solid.surfaces.getPolygons("Front")[0]
         intersectionFinder = IntersectionFinder([solid])
 
         intersection = intersectionFinder.findIntersection(ray)
 
         self.assertIsNotNone(intersection)
-        self.assertEqual(hitTriangle, intersection.polygon)
+        self.assertEqual(hitPolygon, intersection.polygon)
 
     @data(*intersectionFinders)
     def testGivenRayIsOnlyIntersectingWithASolidBoundingBox_shouldNotFindIntersection(self, IntersectionFinder):

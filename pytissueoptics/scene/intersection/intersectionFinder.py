@@ -5,7 +5,8 @@ from typing import List, Union
 from pytissueoptics.scene.geometry import Vector, Polygon, Triangle, Quad
 from pytissueoptics.scene.intersection import Ray
 from pytissueoptics.scene.intersection.bboxIntersect import GemsBoxIntersect
-from pytissueoptics.scene.intersection.triangleIntersect import MollerTrumboreIntersect
+from pytissueoptics.scene.intersection.quadIntersect import MollerTrumboreQuadIntersect
+from pytissueoptics.scene.intersection.triangleIntersect import MollerTrumboreTriangleIntersect
 from pytissueoptics.scene.solids import Solid
 
 
@@ -18,7 +19,8 @@ class Intersection:
 class IntersectionFinder:
     def __init__(self, solids: List[Solid]):
         self._solids = solids
-        self._triangleIntersect = MollerTrumboreIntersect()
+        self._triangleIntersect = MollerTrumboreTriangleIntersect()
+        self._quadIntersect = MollerTrumboreQuadIntersect()
         self._boxIntersect = GemsBoxIntersect()
 
     def findIntersection(self, ray: Ray) -> Union[Vector, None]:
@@ -71,4 +73,4 @@ class SimpleIntersectionFinder(IntersectionFinder):
         if isinstance(polygon, Triangle):
             return self._triangleIntersect.getIntersection(ray, polygon)
         if isinstance(polygon, Quad):
-            raise NotImplementedError
+            return self._quadIntersect.getIntersection(ray, polygon)

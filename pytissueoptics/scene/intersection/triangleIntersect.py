@@ -7,10 +7,10 @@ from pytissueoptics.scene.intersection import Ray
 class TriangleIntersectStrategy:
     def getIntersection(self, ray: Ray, triangle: Triangle) -> Union[Vector, None]:
         """ Returns None if no intersection is found, else returns the intersection point. """
-        raise NotImplemented
+        raise NotImplementedError
 
 
-class MollerTrumboreIntersect(TriangleIntersectStrategy):
+class MollerTrumboreTriangleIntersect(TriangleIntersectStrategy):
     """ Möller–Trumbore ray-triangle 3D intersection algorithm. """
     EPSILON = 0.0000001
 
