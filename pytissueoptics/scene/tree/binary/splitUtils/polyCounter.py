@@ -29,13 +29,18 @@ class CentroidPolyCounter(PolyCounter):
     def run(self, line: float, nodeAxis: str, polygons: List[Polygon]) -> Tuple:
         goingLeft = []
         goingRight = []
-
+        centroidComponent = 0
         for polygon in polygons:
-            if polygon.bbox.getAxisLimit(nodeAxis, "min") < line and \
-                    polygon.bbox.getAxisLimit(nodeAxis, "max") < line:
+            if nodeAxis == "x":
+                centroidComponent = polygon.centroid.x
+            elif nodeAxis == "y":
+                centroidComponent = polygon.centroid.y
+            elif nodeAxis == "z":
+                centroidComponent = polygon.centroid.z
+
+            if centroidComponent < line:
                 goingLeft.append(polygon)
-            elif polygon.bbox.getAxisLimit(nodeAxis, "min") > line and \
-                    polygon.bbox.getAxisLimit(nodeAxis, "max") > line:
+            elif centroidComponent > line:
                 goingRight.append(polygon)
             else:
                 goingLeft.append(polygon)
