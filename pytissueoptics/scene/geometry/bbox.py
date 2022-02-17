@@ -25,7 +25,6 @@ class BoundingBox:
     def _checkIfCoherent(self):
         if not (self.xMax >= self.xMin and self.yMax >= self.yMin and self.zMax >= self.zMin):
             print("Oh-Oh")
-            #raise ValueError("Maximum limit value cannot be lower than minimum limit value.")
 
     @classmethod
     def fromVertices(cls, vertices: List[Vector]) -> 'BoundingBox':
@@ -78,8 +77,31 @@ class BoundingBox:
     def zLim(self) -> List[float]:
         return self._zLim
 
+    @property
+    def xWidth(self):
+        return self.xMax - self.xMin
+
+    @property
+    def yWidth(self):
+        return self.yMax - self.yMin
+
+    @property
+    def zWidth(self):
+        return self.zMax - self.zMin
+
+    def getAxisWidth(self, axis: str) -> float:
+        if axis == "x":
+            return self.xWidth
+        elif axis == "y":
+            return self.yWidth
+        elif axis == "z":
+            return self.zWidth
+
     def getAxisLimit(self, axis: str, limit: str) -> float:
         return self._xyzLimits[self._axisKeys.index(axis)][self._limitKeys.index(limit)]
+
+    def getAxisLimits(self, axis: str) -> List[float]:
+        return self._xyzLimits[self._axisKeys.index(axis)]
 
     def change(self, axis: str, limit: str, value: float):
         self._xyzLimits[self._axisKeys.index(axis)][self._limitKeys.index(limit)] = value
@@ -91,10 +113,14 @@ class BoundingBox:
         newBbox._checkIfCoherent()
         return newBbox
 
+    def newFrom(self):
+        newBbox = deepcopy(self)
+        return newBbox
+
     def getArea(self):
-        a = (self.xMax - self.xMin)
-        b = (self.yMax - self.yMin)
-        c = (self.zMax - self.zMin)
+        a = self.xWidth
+        b = self.yWidth
+        c = self.zWidth
         return a*b*2 + a*c*2 + b*c*2
 
 
