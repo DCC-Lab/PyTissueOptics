@@ -14,13 +14,15 @@ class MayaviViewer:
         self._view = {"azimuth": 0, "zenith": 0, "distance": None, "pointingTowards": None, "roll": None}
         self.clear()
 
-    def add(self, *solids: 'Solid', representation="wireframe", lineWidth=0.25):
+    def add(self, *solids: 'Solid', representation="wireframe", lineWidth=0.25, showNormals=False, normalLength=0.3):
         for solid in solids:
             assert solid.primitive == primitives.TRIANGLE, "MavaviViewer currently only supports triangle mesh. "
-            mayaviSolid = MayaviSolid(solid)
+            mayaviSolid = MayaviSolid(solid, loadNormals=showNormals)
             self._scenes["DefaultScene"]["Solids"].append(mayaviSolid)
             mlab.triangular_mesh(*mayaviSolid.mesh.components, representation=representation, line_width=lineWidth,
                                  colormap="viridis")
+            if showNormals:
+                mlab.quiver3d(*mayaviSolid.normals.components, line_width=lineWidth, scale_factor=normalLength, color=(1, 1, 1))
 
     def _assignViewPoint(self):
         azimuth, elevation, distance, towards, roll = (self._view[key] for key in self._view)
@@ -48,5 +50,5 @@ if __name__ == "__main__":
     sphere1 = Sphere(order=2)
     cuboid1 = Cuboid(1, 3, 3, position=Vector(4, 0, 0))
     viewer = MayaviViewer()
-    viewer.add(sphere1, cuboid1)
+    viewer.add(sphere1, cuboid1, lineWidth=1, showNormals=True)
     viewer.show()
