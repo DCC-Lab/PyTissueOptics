@@ -20,7 +20,7 @@ class TestMayaviSolid(unittest.TestCase):
         solid = self.createSimpleSolid()
         mayaviSolid = MayaviSolid(solid)
 
-        mesh = mayaviSolid.mesh
+        mesh = mayaviSolid.triangleMesh
         x, y, z, polygonIndices = mesh.components
         self.assertTrue(len(x) == len(y) == len(z))
         self.assertEqual([0, 0, 1, 1], x)

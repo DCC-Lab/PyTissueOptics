@@ -5,7 +5,6 @@ except ImportError:
 
 from pytissueoptics.scene.viewer.mayavi import MayaviSolid
 from pytissueoptics.scene.solids import Solid
-from pytissueoptics.scene.geometry import primitives
 
 
 class MayaviViewer:
@@ -16,10 +15,9 @@ class MayaviViewer:
 
     def add(self, *solids: 'Solid', representation="wireframe", lineWidth=0.25, showNormals=False, normalLength=0.3):
         for solid in solids:
-            assert solid.primitive == primitives.TRIANGLE, "MavaviViewer currently only supports triangle mesh. "
             mayaviSolid = MayaviSolid(solid, loadNormals=showNormals)
             self._scenes["DefaultScene"]["Solids"].append(mayaviSolid)
-            mlab.triangular_mesh(*mayaviSolid.mesh.components, representation=representation, line_width=lineWidth,
+            mlab.triangular_mesh(*mayaviSolid.triangleMesh.components, representation=representation, line_width=lineWidth,
                                  colormap="viridis")
             if showNormals:
                 mlab.quiver3d(*mayaviSolid.normals.components, line_width=lineWidth, scale_factor=normalLength, color=(1, 1, 1))
