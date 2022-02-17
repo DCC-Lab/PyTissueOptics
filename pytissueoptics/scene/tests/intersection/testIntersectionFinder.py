@@ -46,7 +46,7 @@ class TestIntersectionFinder(unittest.TestCase):
         self.assertIsNotNone(intersection)
         self.assertEqual(0, intersection.position.x)
         self.assertEqual(0.5, intersection.position.y)
-        self.assertAlmostEqual(5 - math.sqrt(3)/2, intersection.position.z, places=2)
+        self.assertAlmostEqual(5 - math.sqrt(3) / 2, intersection.position.z, places=2)
 
     @data(*intersectionFinders)
     def testGivenRayIsOnlyIntersectingWithASolidBoundingBox_shouldNotFindIntersection(self, IntersectionFinder):
@@ -66,7 +66,6 @@ class TestIntersectionFinder(unittest.TestCase):
         solid2 = Sphere(radius=1, order=1, position=Vector(0, 0, 6))
         solid3 = Sphere(radius=1, order=1, position=Vector(0, 0, 7))
         solid4 = Sphere(radius=1, order=1, position=Vector(0, 2, 3))
-
         intersectionFinder = IntersectionFinder([solid1, solid2, solid3, solid4])
 
         intersection = intersectionFinder.findIntersection(ray)
@@ -74,4 +73,4 @@ class TestIntersectionFinder(unittest.TestCase):
         self.assertIsNotNone(intersection)
         self.assertEqual(0, intersection.position.x)
         self.assertEqual(0.5, intersection.position.y)
-        self.assertAlmostEqual(5 - math.sqrt(3)/2, intersection.position.z, places=2)
+        self.assertAlmostEqual(5 - math.sqrt(3) / 2, intersection.position.z, places=2)

@@ -13,7 +13,7 @@ class TestBoxIntersect(unittest.TestCase):
 
     @data(*intersectStrategies)
     def testGivenIntersectingRayAndBox_shouldReturnClosestIntersectionPoint(self, IntersectStrategy):
-        box = BoundingBox([0+2, 1+2], [0, 1], [-1, 0])
+        box = BoundingBox([0 + 2, 1 + 2], [0, 1], [-1, 0])
         rayOrigin = Vector(0.25 + 2, 0.25, 2)
         rayDirection = Vector(0.1, 0, -1)
         rayDirection.normalize()

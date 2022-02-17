@@ -17,9 +17,9 @@ class TestRotation(unittest.TestCase):
 
         rotation.add(otherRotation)
 
-        self.assertEqual(10+90, rotation.xTheta)
-        self.assertEqual(30+0, rotation.yTheta)
-        self.assertEqual(0+90, rotation.zTheta)
+        self.assertEqual(10 + 90, rotation.xTheta)
+        self.assertEqual(30 + 0, rotation.yTheta)
+        self.assertEqual(0 + 90, rotation.zTheta)
 
     def testGivenNoRotation_whenAskedBoolean_shouldReturnFalse(self):
         noRotation = Rotation()

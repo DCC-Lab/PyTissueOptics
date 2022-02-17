@@ -4,12 +4,12 @@ from pytissueoptics.scene.geometry import BoundingBox, Vector
 
 
 class TestBoundingBox(unittest.TestCase):
-    
+
     def setUp(self):
         self.xLim = [0, 1]
         self.yLim = [-1, 0]
         self.zLim = [-0.5, 0.5]
-    
+
     def testGivenNoLimits_shouldRaiseException(self):
         with self.assertRaises(Exception):
             _ = BoundingBox()
@@ -38,4 +38,3 @@ class TestBoundingBox(unittest.TestCase):
         self.assertEqual(bbox.xLim, [-1, 0])
         self.assertEqual(bbox.yLim, [-1, 1])
         self.assertEqual(bbox.zLim, [0, 3.001])
-    
