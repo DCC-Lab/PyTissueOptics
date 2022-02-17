@@ -10,8 +10,62 @@ class BoxIntersectStrategy:
 
 
 class GemsBoxIntersect(BoxIntersectStrategy):
-    """ Graphics Gems Fast Ray-Box Intersection """
-    pass
+    """ Graphics Gems Fast Ray-Box Intersection.
+    https://github.com/erich666/GraphicsGems/blob/master/gems/RayBox.c
+    """
+    LEFT = 0
+    RIGHT = 1
+    MIDDLE = 2
+
+    def getIntersection(self, ray: Ray, bbox: BoundingBox) -> Union[Vector, None]:
+        minCorner = [bbox.xMin, bbox.yMin, bbox.zMin]
+        maxCorner = [bbox.xMax, bbox.yMax, bbox.zMax]
+        origin = ray.origin.array
+        direction = ray.direction.array
+
+        # Find candidate planes (only depends on ray's origin)
+        quadrant = [None, None, None]
+        candidatePlanes = [None, None, None]
+        inside = True
+        for i in range(3):
+            if origin[i] < minCorner[i]:
+                quadrant[i] = self.LEFT
+                candidatePlanes[i] = minCorner[i]
+                inside = False
+            elif origin[i] > maxCorner[i]:
+                quadrant[i] = self.RIGHT
+                candidatePlanes[i] = maxCorner[i]
+                inside = False
+            else:
+                quadrant[i] = self.MIDDLE
+
+        if inside:
+            raise NotImplemented
+
+        # Calculate distances to candidate planes
+        maxT = []
+        for i in range(3):
+            if quadrant[i] != self.MIDDLE and direction[i] != 0:
+                maxT.append((candidatePlanes[i] - origin[i]) / direction[i])
+            else:
+                maxT.append(-1)
+
+        # Set plane as the one with largest distance.
+        plane = maxT.index(max(maxT))
+
+        # Check final candidate is inside box and construct intersection point
+        hitPoint = [None, None, None]
+        if maxT[plane] < 0:
+            return None
+        for i in range(3):
+            if i != plane:
+                hitPoint[i] = origin[i] + maxT[plane] * direction[i]
+                if hitPoint[i] < minCorner[i] or hitPoint[i] > maxCorner[i]:
+                    return None
+            else:
+                hitPoint[i] = candidatePlanes[i]
+
+        return Vector(*hitPoint)
 
 
 class ZacharBoxIntersect(BoxIntersectStrategy):
