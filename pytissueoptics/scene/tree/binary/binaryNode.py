@@ -1,5 +1,5 @@
 from typing import List
-from pytissueoptics.scene.geometry import Polygon, BoundingBox
+from pytissueoptics.scene.geometry import Polygon, BoundingBox, Vector
 from pytissueoptics.scene.tree.binary import BinaryTreeStrategy
 from pytissueoptics.scene.scene import Scene
 
@@ -82,6 +82,18 @@ class BinaryNode:
     def _split(self):
         return self._treeStrategy.run(self._polygons, self._splitAxis, self._boundingBox)
 
+    def searchPoint(self, point: Vector):
+        if self._rightNode.boundingBox.contains(point):
+            if not self._rightNode.isLeaf:
+                self._rightNode.searchPoint(point)
+            else:
+                return self._rightNode.boundingBox
+
+        else:
+            if not self._leftNode.isLeaf:
+                self._leftNode.searchPoint(point)
+            else:
+                return self._leftNode.boundingBox
 
     @staticmethod
     def getLeafBoundingBoxes(node: 'BinaryNode', bboxList: List) -> List[BoundingBox]:

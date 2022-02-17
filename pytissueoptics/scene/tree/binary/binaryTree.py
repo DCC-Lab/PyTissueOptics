@@ -1,5 +1,5 @@
 from typing import List
-from pytissueoptics.scene.geometry import BoundingBox
+from pytissueoptics.scene.geometry import BoundingBox, Vector
 from pytissueoptics.scene.tree.binary import BinaryTreeStrategy
 from pytissueoptics.scene.tree.binary import BinaryNode
 from pytissueoptics.scene.solids import Cuboid
@@ -13,8 +13,8 @@ class BinaryTree:
         self._splitStrategy = treeStrategy
         self._root = BinaryNode(scene=scene, treeStrategy=treeStrategy, maxDepth=maxDepth)
 
-    def search(self):
-        raise NotImplementedError
+    def searchPoint(self, point: Vector) -> BoundingBox:
+        return self._root.searchPoint(point)
 
     def _getBoundingBoxes(self) -> List[BoundingBox]:
         boundingBoxes = self._root.getLeafBoundingBoxes(self._root, bboxList=[])
