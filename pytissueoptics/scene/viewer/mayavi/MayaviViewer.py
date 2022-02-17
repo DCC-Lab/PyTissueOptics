@@ -1,3 +1,8 @@
+from typing import List
+
+from pytissueoptics.scene.logger import Logger
+from pytissueoptics.scene.logger.logger import DataPoint, Segment
+
 try:
     from mayavi import mlab
 except ImportError:
@@ -5,6 +10,7 @@ except ImportError:
 
 from pytissueoptics.scene.viewer.mayavi import MayaviSolid
 from pytissueoptics.scene.solids import Solid
+from pytissueoptics.scene.geometry import Vector
 
 
 class MayaviViewer:
@@ -21,6 +27,31 @@ class MayaviViewer:
                                  colormap="viridis")
             if showNormals:
                 mlab.quiver3d(*mayaviSolid.normals.components, line_width=lineWidth, scale_factor=normalLength, color=(1, 1, 1))
+
+    def addLogger(self, logger: Logger):
+        self._addPoints(logger.points)
+        self._addDataPoints(logger.dataPoints)
+        self._addSegments(logger.segments)
+
+    def _addPoints(self, points: List[Vector]):
+        x = [vector.x for vector in points]
+        y = [vector.y for vector in points]
+        z = [vector.z for vector in points]
+        mlab.points3d(x, y, z, mode="sphere", scale_factor=0.1, scale_mode="none")
+
+    def _addDataPoints(self, dataPoints: List[DataPoint]):
+        x = [dataPoint.position.x for dataPoint in dataPoints]
+        y = [dataPoint.position.y for dataPoint in dataPoints]
+        z = [dataPoint.position.z for dataPoint in dataPoints]
+        v = [dataPoint.value for dataPoint in dataPoints]
+        mlab.points3d(x, y, z, v, mode="sphere", scale_factor=0.1, scale_mode="none")
+
+    def _addSegments(self, segments: List[Segment]):
+        for segment in segments:
+            x = [vector.x for vector in [segment.start, segment.end]]
+            y = [vector.y for vector in [segment.start, segment.end]]
+            z = [vector.z for vector in [segment.start, segment.end]]
+            mlab.plot3d(x, y, z, tube_radius=None, line_width=1)
 
     def _assignViewPoint(self):
         azimuth, elevation, distance, towards, roll = (self._view[key] for key in self._view)

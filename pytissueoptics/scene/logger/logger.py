@@ -62,3 +62,21 @@ class Logger:
     def logSegment(self, start: Vector, end: Vector):
         self._segments.append(Segment(start, end))
 
+
+if __name__ == '__main__':
+    from pytissueoptics.scene.viewer.mayavi import MayaviViewer
+    from pytissueoptics.scene import Sphere
+
+    logger = Logger()
+    for i in range(10):
+        logger.logPoint(Vector(i, i/2, 0))
+        logger.logDataPoint(i, Vector(i, i, 0))
+        logger.logSegment(Vector(10, 10, 0), Vector(10+(2*i), 0, 0))
+
+    viewer = MayaviViewer()
+
+    sphere1 = Sphere(radius=2, order=2, position=Vector(-2, 2, 0))
+    viewer.add(sphere1, lineWidth=1)
+
+    viewer.addLogger(logger)
+    viewer.show()
