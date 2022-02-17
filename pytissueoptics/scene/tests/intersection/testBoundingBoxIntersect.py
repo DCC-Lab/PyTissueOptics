@@ -27,6 +27,18 @@ class TestBoxIntersect(unittest.TestCase):
         self.assertEqual(0.0, intersection.z)
 
     @data(*intersectStrategies)
+    def testGivenNonIntersectingRayAndBox_shouldReturnNone(self, IntersectStrategy):
+        box = BoundingBox([0, 1], [0, 1], [-1, 0])
+        rayOrigin = Vector(0.25, 0.25, 2)
+        rayDirection = Vector(-0.2, 0, -1)
+        rayDirection.normalize()
+        ray = Ray(rayOrigin, rayDirection)
+
+        intersection = IntersectStrategy().getIntersection(ray, box)
+
+        self.assertIsNone(intersection)
+
+    @data(*intersectStrategies)
     def testGivenRayInsideBox_shouldRaiseNotImplementedError(self, IntersectStrategy):
         box = BoundingBox([0, 1], [0, 1], [-2, 1])
         rayOrigin = Vector(0.25, 0.25, 0)
@@ -36,3 +48,32 @@ class TestBoxIntersect(unittest.TestCase):
 
         with self.assertRaises(NotImplementedError):
             _ = IntersectStrategy().getIntersection(ray, box)
+
+
+class TestGemsBoxIntersect(unittest.TestCase):
+    def testGivenLineIntersectingRayAndBox_shouldReturnClosestIntersectionPoint(self):
+        box = BoundingBox([1, 2], [1, 2], [-1, 0])
+        rayOrigin = Vector(-1, -1, 0)
+        rayDirection = Vector(1, 1, 0)
+        rayDirection.normalize()
+        ray = Ray(rayOrigin, rayDirection)
+
+        intersection = GemsBoxIntersect().getIntersection(ray, box)
+
+        self.assertIsNotNone(intersection)
+        self.assertEqual(1, intersection.x)
+        self.assertEqual(1, intersection.y)
+        self.assertEqual(0, intersection.z)
+
+
+class TestZacharBoxIntersect(unittest.TestCase):
+    def testGivenLineIntersectingRayAndBox_shouldReturnNone(self):
+        box = BoundingBox([0, 1], [0, 1], [-1, 0])
+        rayOrigin = Vector(-1, -1, 0)
+        rayDirection = Vector(1, 1, 0)
+        rayDirection.normalize()
+        ray = Ray(rayOrigin, rayDirection)
+
+        intersection = ZacharBoxIntersect().getIntersection(ray, box)
+
+        self.assertIsNone(intersection)

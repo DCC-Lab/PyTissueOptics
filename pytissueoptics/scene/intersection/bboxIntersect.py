@@ -12,6 +12,8 @@ class BoxIntersectStrategy:
 class GemsBoxIntersect(BoxIntersectStrategy):
     """ Graphics Gems Fast Ray-Box Intersection.
     https://github.com/erich666/GraphicsGems/blob/master/gems/RayBox.c
+
+    If a ray lies on a box plane, it will consider this an intersection.
     """
     LEFT = 0
     RIGHT = 1
@@ -69,7 +71,9 @@ class GemsBoxIntersect(BoxIntersectStrategy):
 
 
 class ZacharBoxIntersect(BoxIntersectStrategy):
-    """ https://gamedev.stackexchange.com/a/18459 """
+    """ https://gamedev.stackexchange.com/a/18459
+    If a ray lies on a box plane, it will NOT consider this an intersection.
+    """
     def getIntersection(self, ray: Ray, bbox: BoundingBox) -> Union[Vector, None]:
         inverseDirection = self._safeInverse(ray.direction)
         minCorner = Vector(bbox.xMin, bbox.yMin, bbox.zMin)
