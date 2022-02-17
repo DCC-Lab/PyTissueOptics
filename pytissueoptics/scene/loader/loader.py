@@ -4,7 +4,7 @@ from typing import List
 from pytissueoptics.scene.loader.parsers import OBJParser
 from pytissueoptics.scene.loader.parsers.parsedSurface import ParsedSurface
 from pytissueoptics.scene.solids import Solid
-from pytissueoptics.scene.geometry import Vector, Triangle, SurfaceCollection
+from pytissueoptics.scene.geometry import Vector, Triangle, SurfaceCollection, Quad, Polygon
 
 
 class Loader:
@@ -56,22 +56,14 @@ class Loader:
         return solids
 
     def _convertSurfaceToPolygons(self, surface: ParsedSurface, vertices: List[Vector]) -> List[Triangle]:
-        surfaces = []
+        polygons = []
         for polygonIndices in surface.polygons:
+            polygonVertices = [vertices[i] for i in polygonIndices]
             if len(polygonIndices) == 3:
-                ai, bi, ci = polygonIndices
-                surfaces.append(Triangle(vertices[ai], vertices[bi], vertices[ci]))
-
-            elif len(polygonIndices) > 3:
-                trianglesIndices = self._splitPolygonIndices(polygonIndices)
-                for triangleIndex in trianglesIndices:
-                    ai, bi, ci = triangleIndex
-                    surfaces.append(Triangle(vertices[ai], vertices[bi], vertices[ci]))
-        return surfaces
-
-    @staticmethod
-    def _splitPolygonIndices(polygonIndices: List[int]) -> List[List[int]]:
-        trianglesIndices = []
-        for i in range(len(polygonIndices) - 2):
-            trianglesIndices.append([polygonIndices[0], polygonIndices[i + 1], polygonIndices[i + 2]])
-        return trianglesIndices
+                polygon = Triangle(*polygonVertices)
+            elif len(polygonIndices) == 4:
+                polygon = Quad(*polygonVertices)
+            else:
+                polygon = Polygon(polygonVertices)
+            polygons.append(polygon)
+        return polygons
