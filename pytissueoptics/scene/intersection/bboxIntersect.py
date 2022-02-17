@@ -40,7 +40,7 @@ class GemsBoxIntersect(BoxIntersectStrategy):
                 quadrant[i] = self.MIDDLE
 
         if inside:
-            raise NotImplemented
+            raise NotImplementedError("Cannot find ray-box intersection if ray origin is inside box.")
 
         # Calculate distances to candidate planes
         maxT = []
@@ -91,6 +91,9 @@ class ZacharBoxIntersect(BoxIntersectStrategy):
 
         if tMin > tMax:
             return None
+
+        if tMin < 0:
+            raise NotImplementedError("Cannot find ray-box intersection if ray origin is inside box.")
 
         t = tMin
         return ray.origin + ray.direction * t
