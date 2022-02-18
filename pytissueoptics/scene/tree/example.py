@@ -14,13 +14,13 @@ sphere = Sphere(position=Vector(3, 3, 3), order=4)
 scene = Scene([cuboid1, cuboid2, sphere])
 
 t0 = time.time()
-kdTree = Tree(scene=scene, treeStrategy=BasicKDTreeStrategy(), maxDepth=5)
+kdTree = Tree(scene=scene, treeStrategy=BasicKDTreeStrategy(), maxDepth=100)
 t1 = time.time()
 
 bBoxes = kdTree.getLeafBoundingBoxesAsCuboids()
 
 print(f"Scene Poly Count:{len(scene.getPolygons())}\n"
-      f"Max Leaf Size:{kdTree._maxLeafSize}\n"
+      f"Min Leaf Size:{kdTree._maxLeafSize}\n"
       f"Max Tree Depth:{kdTree._maxDepth}\n"
       f"Total Node:{kdTree.getNodeCount()}\n"
       f"Total Leaf Node:{kdTree.getLeafCount()}\n"
@@ -28,6 +28,6 @@ print(f"Scene Poly Count:{len(scene.getPolygons())}\n"
 
 
 viewer = MayaviViewer()
-# viewer.add(*scene.getSolids(), representation="mesh", lineWidth=0.1)
+viewer.add(*scene.getSolids(), representation="mesh", lineWidth=0.1)
 viewer.add(*bBoxes, representation="surface", lineWidth=0.1, opacity=0.25)
 viewer.show()

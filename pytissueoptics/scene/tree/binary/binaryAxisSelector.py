@@ -19,7 +19,7 @@ class RotateAxis(BinaryAxisSelector):
             return ["z"]
 
 
-class LargestSpanAxis(AxisSelector):
+class LargestPolygonSpanAxis(BinaryAxisSelector):
     def _run(self) -> List[str]:
         bbox: BoundingBox = None
         for polygon in self._polygons:
@@ -28,6 +28,15 @@ class LargestSpanAxis(AxisSelector):
             else:
                 bbox.extendTo(polygon.bbox)
 
+        widths = [bbox.xWidth, bbox.yWidth, bbox.zWidth]
+        axisIndex = widths.index(max(widths))
+        axes = ["x", "y", "z"]
+        return [axes[axisIndex]]
+
+
+class LargestSpanAxis(BinaryAxisSelector):
+    def _run(self) -> List[str]:
+        bbox = self.nodeBbox
         widths = [bbox.xWidth, bbox.yWidth, bbox.zWidth]
         axisIndex = widths.index(max(widths))
         axes = ["x", "y", "z"]

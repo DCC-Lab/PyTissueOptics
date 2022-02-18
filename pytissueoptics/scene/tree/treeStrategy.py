@@ -29,4 +29,4 @@ class TreeStrategy:
         self._splitNodeResult = self._nodeSplitter.run(self._splitAxis, self._polygons, self._nodeBbox)
 
     def _selectSplitAxis(self):
-        self._splitAxis = self._axisSelector.run(self._nodeDepth, self._polygons)
+        self._splitAxis = self._axisSelector.run(self._nodeDepth, self._nodeBbox, self._polygons)
