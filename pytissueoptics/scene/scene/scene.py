@@ -46,12 +46,10 @@ class Scene:
 
     def _findIntersectingSuspectsFor(self, solid) -> List[Solid]:
         solidBBox = solid.getBoundingBox()
-        intersectingSuspects = self._solids
-        for axis in range(3):
-            for suspect in intersectingSuspects:
-                suspectBBox = suspect.getBoundingBox()
-                if suspectBBox[axis][0] > solidBBox[axis][1] or suspectBBox[axis][1] < solidBBox[axis][0]:
-                    intersectingSuspects.remove(suspect)
+        intersectingSuspects = []
+        for otherSolid in self._solids:
+            if solidBBox.intersects(otherSolid.getBoundingBox()):
+                intersectingSuspects.append(otherSolid)
         return intersectingSuspects
 
     @staticmethod
