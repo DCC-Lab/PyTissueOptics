@@ -1,4 +1,4 @@
-from pytissueoptics.scene.geometry import Vector, Triangle
+from pytissueoptics.scene.geometry import Vector
 from pytissueoptics.scene.geometry import primitives
 from pytissueoptics.scene.materials import Material
 from pytissueoptics.scene.solids import Ellipsoid

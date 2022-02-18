@@ -38,4 +38,23 @@ class TestBoundingBox(unittest.TestCase):
         self.assertEqual(bbox.xLim, [-1, 0])
         self.assertEqual(bbox.yLim, [-1, 1])
         self.assertEqual(bbox.zLim, [0, 3.001])
-    
+
+    def testWhenIntersectsWithIntersectingBBox_shouldReturnTrue(self):
+        bbox = BoundingBox([0, 5], [0, 5], [0, 5])
+        partiallyIntersectingBox = BoundingBox([2, 6], [2, 6], [2, 6])
+        insideBox = BoundingBox([2, 3], [2, 3], [2, 3])
+        outsideBox = BoundingBox([-1, 6], [-1, 6], [-1, 6])
+        sameBox = BoundingBox([0, 5], [0, 5], [0, 5])
+        touchingBox = BoundingBox([5, 6], [5, 6], [5, 6])
+
+        self.assertTrue(bbox.intersects(partiallyIntersectingBox))
+        self.assertTrue(bbox.intersects(insideBox))
+        self.assertTrue(bbox.intersects(outsideBox))
+        self.assertTrue(bbox.intersects(sameBox))
+        self.assertTrue(bbox.intersects(touchingBox))
+
+    def testWhenIntersectsWithNonIntersectingBBox_shouldReturnFalse(self):
+        bbox = BoundingBox([0, 5], [0, 5], [0, 5])
+        nonIntersectingBox = BoundingBox([6, 7], [6, 7], [6, 7])
+
+        self.assertFalse(bbox.intersects(nonIntersectingBox))
