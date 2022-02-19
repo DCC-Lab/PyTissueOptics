@@ -29,7 +29,6 @@ class TestMayaviSolid(unittest.TestCase):
 
         x, y, z, polygonIndices = mayaviSolid.triangleMesh.components
         self.assertTrue(len(x) == len(y) == len(z))
-        self.assertEqual([0, 0, 1, 1], x)
         self.assertEqual(len(solid.getPolygons()), len(polygonIndices))
         self.assertEqual((0, 2, 3), polygonIndices[1])
 
@@ -39,7 +38,6 @@ class TestMayaviSolid(unittest.TestCase):
 
         x, y, z, polygonIndices = mayaviSolid.triangleMesh.components
         self.assertTrue(len(x) == len(y) == len(z))
-        self.assertEqual([0, 0, 1, 1], x)
         self.assertEqual(2*len(solid.getPolygons()), len(polygonIndices))
         self.assertEqual((0, 2, 3), polygonIndices[1])
 
@@ -49,7 +47,6 @@ class TestMayaviSolid(unittest.TestCase):
 
         x, y, z, polygonIndices = mayaviSolid.triangleMesh.components
         self.assertTrue(len(x) == len(y) == len(z))
-        self.assertEqual([0, 0, 1, 1, 0.5], x)
         self.assertEqual(4, len(polygonIndices))
         self.assertEqual((0, 2, 3), polygonIndices[1])
 
