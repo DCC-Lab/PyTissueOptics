@@ -1,6 +1,6 @@
 import sys
 from dataclasses import dataclass
-from typing import List, Union
+from typing import List, Union, Tuple
 
 from pytissueoptics.scene.geometry import Vector, Polygon, Triangle, Quad
 from pytissueoptics.scene.intersection import Ray
@@ -12,6 +12,7 @@ from pytissueoptics.scene.solids import Solid
 
 @dataclass
 class Intersection:
+    distance: float
     position: Vector
     polygon: Polygon
 
@@ -29,28 +30,28 @@ class IntersectionFinder:
 
 class SimpleIntersectionFinder(IntersectionFinder):
     def findIntersection(self, ray: Ray) -> Union[Intersection, None]:
-        solidCandidate = self._findClosestSolidBBoxIntersection(ray)
-        if not solidCandidate:
-            return None
-        return self._findClosestPolygonIntersection(ray, solidCandidate.getPolygons())
+        bboxIntersections = self._findBBoxIntersectingSolids(ray)
+        bboxIntersections.sort(key=lambda x: x[0])
+        for (distance, solid) in bboxIntersections:
+            intersection = self._findClosestPolygonIntersection(ray, solid.getPolygons())
+            if intersection:
+                return intersection
+        return None
 
-    def _findClosestSolidBBoxIntersection(self, ray) -> Union[Solid, None]:
+    def _findBBoxIntersectingSolids(self, ray) -> Union[List[Tuple[float, Solid]], None]:
         """ We need to handle the special case where ray starts inside bbox. The Box Intersect will not compute
         the intersection for this case and will instead return ray.origin. When that happens, distance will be 0
         and we exit to check the polygons of this solid. """
-        closestSolid = None
-        closestDistance = sys.maxsize
+        solidCandidates = []
         for solid in self._solids:
             bboxIntersection = self._boxIntersect.getIntersection(ray, solid.bbox)
             if not bboxIntersection:
                 continue
             distance = (bboxIntersection - ray.origin).getNorm()
-            if distance < closestDistance:
-                closestDistance = distance
-                closestSolid = solid
+            solidCandidates.append((distance, solid))
             if distance == 0:
                 break
-        return closestSolid
+        return solidCandidates
 
     def _findClosestPolygonIntersection(self, ray: Ray, polygons: List[Polygon]) -> Union[Intersection, None]:
         closestPolygon = None
@@ -67,7 +68,7 @@ class SimpleIntersectionFinder(IntersectionFinder):
                 closestPolygon = polygon
         if not closestIntersection:
             return None
-        return Intersection(closestIntersection, closestPolygon)
+        return Intersection(closestDistance, closestIntersection, closestPolygon)
 
     def _findPolygonIntersection(self, ray: Ray, polygon: Polygon) -> Union[Vector, None]:
         if isinstance(polygon, Triangle):
