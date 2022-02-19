@@ -12,6 +12,7 @@ from pytissueoptics.scene.solids import Solid
 
 @dataclass
 class Intersection:
+    distance: float
     position: Vector
     polygon: Polygon
 
@@ -67,7 +68,7 @@ class SimpleIntersectionFinder(IntersectionFinder):
                 closestPolygon = polygon
         if not closestIntersection:
             return None
-        return Intersection(closestIntersection, closestPolygon)
+        return Intersection(closestDistance, closestIntersection, closestPolygon)
 
     def _findPolygonIntersection(self, ray: Ray, polygon: Polygon) -> Union[Vector, None]:
         if isinstance(polygon, Triangle):
