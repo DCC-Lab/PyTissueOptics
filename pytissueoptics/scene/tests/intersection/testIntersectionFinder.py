@@ -90,3 +90,18 @@ class TestIntersectionFinder(unittest.TestCase):
         self.assertEqual(0, intersection.position.x)
         self.assertEqual(0.5, intersection.position.y)
         self.assertAlmostEqual(5 - math.sqrt(3) / 2, intersection.position.z, places=2)
+
+    @data(*intersectionFinders)
+    def testGivenRayThatFirstOnlyIntersectsWithAnotherSolidBoundingBoxBeforeIntersectingASolid_shouldFindIntersection(self, IntersectionFinder):
+        direction = Vector(0, 0.9, 1)
+        ray = Ray(origin=Vector(0, 0, 0), direction=direction)
+        solid = Sphere(radius=1, order=1, position=Vector(0, 0, 2))
+        solidBehindMiss = Cube(2, position=Vector(0, 2, 4))
+        intersectionFinder = IntersectionFinder([solid, solidBehindMiss])
+
+        intersection = intersectionFinder.findIntersection(ray)
+
+        self.assertIsNotNone(intersection)
+        self.assertEqual(0, intersection.position.x)
+        self.assertEqual(0.9*3, intersection.position.y)
+        self.assertEqual(3, intersection.position.z)
