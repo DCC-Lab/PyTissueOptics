@@ -1,11 +1,10 @@
 from typing import List
 from pytissueoptics.scene.geometry import Polygon, BoundingBox, Vector
-from pytissueoptics.scene.tree import TreeStrategy
 from pytissueoptics.scene.scene import Scene
 
 
 class Node:
-    def __init__(self, parent: 'Node' = None, children: List['Node'] = None, treeStrategy: TreeStrategy = None,
+    def __init__(self, parent: 'Node' = None, children: List['Node'] = None,
                  scene: Scene = None, polygons: List[Polygon] = None, bbox: BoundingBox = None, depth: int = 0,
                  maxDepth=100, maxLeafSize=5):
 
@@ -14,7 +13,6 @@ class Node:
         self._scene = scene
         self._polygons = polygons
         self._bbox = bbox
-        self._treeStrategy = treeStrategy
         self._depth = depth
         self._maxDepth = maxDepth
         self._maxLeafSize = maxLeafSize
@@ -23,29 +21,27 @@ class Node:
             self._polygons = self._scene.getPolygons()
             self._bbox = self._scene.getBoundingBox()
 
-        self.split()
-
     @property
     def parent(self):
         return self._parent
 
     @property
-    def isRoot(self):
+    def children(self) -> List['Node']:
+        return self._children
+
+    @property
+    def isRoot(self) -> bool:
         if self._parent is None:
             return True
         else:
             return False
 
     @property
-    def isLeaf(self):
+    def isLeaf(self) -> bool:
         if not self._children:
             return True
         else:
             return False
-
-    @property
-    def children(self):
-        return self._children
 
     @property
     def polygons(self) -> List[Polygon]:
@@ -59,19 +55,27 @@ class Node:
     def bbox(self) -> BoundingBox:
         return self._bbox
 
-    def split(self):
-        if self._depth < self._maxDepth and len(self._polygons) > self._maxLeafSize:
-            splitNodeResult = self._split()
-            if not splitNodeResult.stopCondition:
-                for i, polygonGroup in enumerate(splitNodeResult.polygonGroups):
-                    if len(polygonGroup) > 0:
-                        childNode = Node(parent=self, polygons=polygonGroup,
-                                         bbox=splitNodeResult.bboxes[i], depth=self._depth + 1,
-                                         maxDepth=self._maxDepth, treeStrategy=self._treeStrategy)
-                        self._children.append(childNode)
+    @property
+    def maxDepth(self) -> int:
+        return self._maxDepth
 
-    def _split(self):
-        return self._treeStrategy.run(self.bbox, self.polygons, self.depth)
+    @property
+    def maxLeafSize(self) -> int:
+        return self._maxLeafSize
+
+    # def split(self):
+    #     if self._depth < self._maxDepth and len(self._polygons) > self._maxLeafSize:
+    #         splitNodeResult = self._split()
+    #         if not splitNodeResult.stopCondition:
+    #             for i, polygonGroup in enumerate(splitNodeResult.polygonGroups):
+    #                 if len(polygonGroup) > 0:
+    #                     childNode = Node(parent=self, polygons=polygonGroup,
+    #                                      bbox=splitNodeResult.bboxes[i], depth=self._depth + 1,
+    #                                      maxDepth=self._maxDepth, treeStrategy=self._treeStrategy)
+    #                     self._children.append(childNode)
+    #
+    # def _split(self):
+    #     return self._constructor.run(self.bbox, self.polygons, self.depth)
 
     def searchPoint(self, point: Vector):
         raise NotImplementedError

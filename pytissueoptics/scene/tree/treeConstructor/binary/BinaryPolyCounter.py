@@ -1,13 +1,9 @@
 from typing import List
 from pytissueoptics.scene.geometry import Polygon
+from pytissueoptics.scene.tree.treeConstructor import PolyCounter
 
 
-class BinaryPolyCounter:
-    def run(self, line: float, nodeAxis: str, polygons: List[Polygon]):
-        raise NotImplementedError
-
-
-class BBoxPolyCounter(BinaryPolyCounter):
+class BBoxPolyCounter(PolyCounter):
     def run(self, line: float, nodeAxis: str, polygons: List[Polygon]):
         goingLeft = []
         goingRight = []
@@ -26,7 +22,7 @@ class BBoxPolyCounter(BinaryPolyCounter):
         return [goingLeft, goingRight]
 
 
-class CentroidPolyCounter(BinaryPolyCounter):
+class CentroidPolyCounter(PolyCounter):
     def run(self, line: float, nodeAxis: str, polygons: List[Polygon]):
         goingLeft = []
         goingRight = []

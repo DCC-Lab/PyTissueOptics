@@ -1,18 +1,19 @@
 from typing import List
 from pytissueoptics.scene.geometry import BoundingBox, Vector
-from pytissueoptics.scene.tree import TreeStrategy
+from pytissueoptics.scene.tree import TreeConstructor
 from pytissueoptics.scene.tree import Node
 from pytissueoptics.scene.solids import Cuboid
 from pytissueoptics.scene.scene import Scene
 
 
 class Tree:
-    def __init__(self, scene: Scene, treeStrategy: TreeStrategy, maxDepth = 6, maxLeafSize = 2):
+    def __init__(self, scene: Scene, constructor: TreeConstructor, maxDepth=6, maxLeafSize=2):
         self._scene = scene
         self._maxDepth = maxDepth
         self._maxLeafSize = maxLeafSize
-        self._splitStrategy = treeStrategy
-        self._root = Node(scene=scene, treeStrategy=treeStrategy, maxDepth=maxDepth, maxLeafSize=2)
+        self._constructor = constructor
+        self._root = Node(scene=scene, maxDepth=maxDepth, maxLeafSize=maxLeafSize)
+        self._constructor.growTree(self._root)
 
     def searchPoint(self, point: Vector) -> BoundingBox:
         return self._root.searchPoint(point)

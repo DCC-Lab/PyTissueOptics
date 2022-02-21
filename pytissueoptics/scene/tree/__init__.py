@@ -1,4 +1,3 @@
-from .splitNodeResult import SplitNodeResult
-from .treeStrategy import TreeStrategy
 from .node import Node
+from .treeConstructor.treeConstructor import TreeConstructor
 from .tree import Tree
