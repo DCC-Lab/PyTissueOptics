@@ -4,8 +4,9 @@ from pytissueoptics.scene.tree.treeConstructor import SplitNodeResult
 
 
 class NodeSplitter:
-    def __init__(self, polyCounter):
+    def __init__(self, polyCounter, **kwargs):
         self._polyCounter = polyCounter
+        self.kwargs = kwargs
 
     def run(self, splitAxis: str, nodeBbox: BoundingBox, polygons: List[Polygon]) -> SplitNodeResult:
         raise NotImplementedError

@@ -5,7 +5,7 @@ class SAHBasicKDTreeConstructor(TreeConstructor):
     def __init__(self):
         super(SAHBasicKDTreeConstructor, self).__init__()
         from pytissueoptics.scene.tree.treeConstructor.binary.binaryNodeSplitter import HardSAHSplitter
-        from pytissueoptics.scene.tree.treeConstructor.binary.BinaryPolyCounter import CentroidPolyCounter
+        from pytissueoptics.scene.tree.treeConstructor.binary.binaryPolyCounter import CentroidPolyCounter
         from pytissueoptics.scene.tree.treeConstructor.binary.binaryAxisSelector import RotateAxis
         self._polyCounter = CentroidPolyCounter()
         self._axisSelector = RotateAxis()
@@ -16,8 +16,8 @@ class SAHWideAxisTreeConstructor(TreeConstructor):
     def __init__(self):
         super(SAHWideAxisTreeConstructor, self).__init__()
         from pytissueoptics.scene.tree.treeConstructor.binary.binaryNodeSplitter import HardSAHSplitter
-        from pytissueoptics.scene.tree.treeConstructor.binary.BinaryPolyCounter import BBoxPolyCounter
+        from pytissueoptics.scene.tree.treeConstructor.binary.binaryPolyCounter import BBoxPolyCounter
         from pytissueoptics.scene.tree.treeConstructor.binary.binaryAxisSelector import LargestSpanAxis
         self._polyCounter = BBoxPolyCounter()
         self._axisSelector = LargestSpanAxis()
-        self._nodeSplitter = HardSAHSplitter(self._polyCounter)
+        self._nodeSplitter = HardSAHSplitter(self._polyCounter, nbOfSplitPlane=50, splitCostPercentage=0.1)

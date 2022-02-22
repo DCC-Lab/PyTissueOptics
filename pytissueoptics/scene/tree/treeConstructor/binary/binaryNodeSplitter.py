@@ -4,7 +4,7 @@ from pytissueoptics.scene.tree.treeConstructor.utils import meanCentroid
 from pytissueoptics.scene.tree.treeConstructor import NodeSplitter, SplitNodeResult
 
 
-class CentroidNodeSplitter(NodeSplitter):
+class MeanCentroidNodeSplitter(NodeSplitter):
     def run(self, splitAxis: str, nodeBbox: BoundingBox, polygons: List[Polygon]) -> SplitNodeResult:
         splitLine = meanCentroid(splitAxis, polygons)
         polygonGroups = self._polyCounter.run(splitLine, splitAxis, polygons)
@@ -42,13 +42,13 @@ class HardSAHSplitter(NodeSplitter):
         self._polygons = polygons
         self._splitLine = 0
         self._minSAH = 0
-        self._nbOfSplitPLanes = 50
+        self._nbOfSplitPLanes = self.kwargs["nbOfSplitPlane"]
         self._aMin, self._aMax = self._nodeBbox.getAxisLimits(self._splitAxis)
         self._step = self._nodeBbox.getAxisWidth(self._splitAxis) / (self._nbOfSplitPLanes + 1)
 
         nodeSAH = self._nodeBbox.getArea() * len(polygons)
         self._searchMinSAH()
-        splitCost = 0.1 * nodeSAH
+        splitCost = self.kwargs["splitCostPercentage"] * nodeSAH
 
         if self._minSAH + splitCost < nodeSAH:
             self._stopCondition = 0
