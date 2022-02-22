@@ -20,14 +20,15 @@ class MayaviViewer:
         self.clear()
 
     def add(self, *solids: 'Solid', representation="wireframe", lineWidth=0.25, showNormals=False, normalLength=0.3,
-            colormap="viridis", reverseColormap=False, lutMode="auto"):
+            colormap="viridis", reverseColormap=False, constantColor=False):
         for solid in solids:
             mayaviSolid = MayaviSolid(solid, loadNormals=showNormals)
             self._scenes["DefaultScene"]["Solids"].append(mayaviSolid)
             s = mlab.triangular_mesh(*mayaviSolid.triangleMesh.components, representation=representation, line_width=lineWidth,
                                      colormap=colormap)
             s.module_manager.scalar_lut_manager.reverse_lut = reverseColormap
-            s.module_manager.lut_data_mode = lutMode
+            if constantColor:
+                s.module_manager.lut_data_mode = "cell data"
             if showNormals:
                 mlab.quiver3d(*mayaviSolid.normals.components, line_width=lineWidth, scale_factor=normalLength, color=(1, 1, 1))
 
@@ -41,7 +42,7 @@ class MayaviViewer:
         x = [vector.x for vector in points]
         y = [vector.y for vector in points]
         z = [vector.z for vector in points]
-        s = mlab.points3d(x, y, z, mode="sphere", scale_factor=0.1, scale_mode="none", colormap=colormap)
+        s = mlab.points3d(x, y, z, mode="sphere", scale_factor=0.08, scale_mode="none", colormap=colormap)
         s.module_manager.scalar_lut_manager.reverse_lut = reverseColormap
 
     @staticmethod
@@ -50,7 +51,7 @@ class MayaviViewer:
         y = [dataPoint.position.y for dataPoint in dataPoints]
         z = [dataPoint.position.z for dataPoint in dataPoints]
         v = [dataPoint.value for dataPoint in dataPoints]
-        s = mlab.points3d(x, y, z, v, mode="sphere", scale_factor=0.1, scale_mode="none", colormap=colormap)
+        s = mlab.points3d(x, y, z, v, mode="sphere", scale_factor=0.08, scale_mode="none", colormap=colormap)
         s.module_manager.scalar_lut_manager.reverse_lut = reverseColormap
 
     @staticmethod
