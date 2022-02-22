@@ -93,7 +93,8 @@ class CuboidStacker:
 
     def _getStackVertices(self):
         stackVertices = self._onCuboid.vertices
-        newVertices = [vertex for vertex in self._otherCuboid.vertices if vertex not in self._onCuboid.vertices]
+        onCuboidVerticesIDs = {id(vertex) for vertex in self._onCuboid.vertices}
+        newVertices = [vertex for vertex in self._otherCuboid.vertices if id(vertex) not in onCuboidVerticesIDs]
         stackVertices.extend(newVertices)
         return stackVertices
 

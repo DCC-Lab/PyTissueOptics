@@ -109,11 +109,12 @@ class Solid:
     def setPolygons(self, surfaceName: str, polygons: List[Polygon]):
         self._surfaces.setPolygons(surfaceName, polygons)
 
+        currentVerticesIDs = {id(vertex) for vertex in self._vertices}
         newVertices = []
         for polygon in polygons:
             newVertices.extend(polygon.vertices)
         for vertex in newVertices:
-            if vertex not in self._vertices:
+            if id(vertex) not in currentVerticesIDs:
                 self._vertices.append(vertex)
 
     @property
