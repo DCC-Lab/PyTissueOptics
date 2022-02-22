@@ -2,7 +2,8 @@ import unittest
 from mockito import mock, when
 
 from pytissueoptics.scene.geometry import Polygon, BoundingBox
-from pytissueoptics.scene.tree.treeConstructor.binary import MeanCentroidNodeSplitter, MiddlePolygonSpanNodeSplitter, HardSAHNodeSplitter
+from pytissueoptics.scene.tree.treeConstructor.binary import MeanCentroidNodeSplitter, MiddlePolygonSpanNodeSplitter, \
+    HardSAHNodeSplitter
 from pytissueoptics.scene.tree.treeConstructor import PolyCounter, SplitNodeResult
 from pytissueoptics.scene.geometry import Vector
 
@@ -47,14 +48,14 @@ class TestBinaryMiddlePolygonSpanNodeSplitter(unittest.TestCase):
     def testOnXAxis_shouldReturnCorrectSplitNodeResult(self):
         splitNodeResult = self.splitter.run("x", self.nodeBbox, self.polygons)
         validationResult = SplitNodeResult(False, "x", 1, [self.nodeBbox.changeToNew("x", "max", 1),
-                                                               self.nodeBbox.changeToNew("x", "min", 1)],
+                                                           self.nodeBbox.changeToNew("x", "min", 1)],
                                            [self.polygons])
         self.assertEqual(validationResult, splitNodeResult)
 
     def testOnYAxis_shouldReturnCorrectSplitNodeResult(self):
         splitNodeResult = self.splitter.run("y", self.nodeBbox, self.polygons)
-        validationResult = SplitNodeResult(False, "y", 1/2, [self.nodeBbox.changeToNew("y", "max", 1/2),
-                                                           self.nodeBbox.changeToNew("y", "min", 1/2)],
+        validationResult = SplitNodeResult(False, "y", 1 / 2, [self.nodeBbox.changeToNew("y", "max", 1 / 2),
+                                                               self.nodeBbox.changeToNew("y", "min", 1 / 2)],
                                            [self.polygons])
         self.assertEqual(validationResult, splitNodeResult)
 
@@ -73,13 +74,13 @@ class TestBinaryHardSAHNodeSplitter(unittest.TestCase):
     def testOnXAxis_shouldReturnCorrectSplitNodeResult(self):
         splitNodeResult = self.splitter.run("x", self.nodeBbox, self.polygons)
         validationResult = SplitNodeResult(False, "x", 1, [self.nodeBbox.changeToNew("x", "max", 1),
-                                                               self.nodeBbox.changeToNew("x", "min", 1)],
+                                                           self.nodeBbox.changeToNew("x", "min", 1)],
                                            [self.polygons])
         self.assertEqual(validationResult, splitNodeResult)
 
     def testOnYAxis_shouldReturnCorrectSplitNodeResult(self):
         splitNodeResult = self.splitter.run("y", self.nodeBbox, self.polygons)
-        validationResult = SplitNodeResult(False, "y", 1/2, [self.nodeBbox.changeToNew("y", "max", 1/2),
-                                                           self.nodeBbox.changeToNew("y", "min", 1/2)],
+        validationResult = SplitNodeResult(False, "y", 1 / 2, [self.nodeBbox.changeToNew("y", "max", 1 / 2),
+                                                               self.nodeBbox.changeToNew("y", "min", 1 / 2)],
                                            [self.polygons])
         self.assertEqual(validationResult, splitNodeResult)

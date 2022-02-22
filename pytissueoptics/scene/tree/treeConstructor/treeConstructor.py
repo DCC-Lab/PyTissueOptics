@@ -1,5 +1,5 @@
-from pytissueoptics.scene.tree.treeConstructor import PolyCounter, AxisSelector, NodeSplitter, SplitNodeResult
 from pytissueoptics.scene.tree import Node
+from pytissueoptics.scene.tree.treeConstructor import PolyCounter, AxisSelector, NodeSplitter, SplitNodeResult
 
 
 class TreeConstructor:
@@ -13,7 +13,7 @@ class TreeConstructor:
         self._polyCounter = polyCounter
         self._nodeSplitter = nodeSplitter
 
-    def _splitNode(self, node: Node)-> SplitNodeResult:
+    def _splitNode(self, node: Node) -> SplitNodeResult:
         nodeDepth = node.depth
         nodeBbox = node.bbox
         nodePolygons = node.polygons

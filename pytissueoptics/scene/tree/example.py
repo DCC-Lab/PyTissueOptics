@@ -20,18 +20,15 @@ t1 = time.time()
 bBoxes = kdTree.getLeafBoundingBoxesAsCuboids()
 
 print(f"Scene Poly Count:{len(scene.getPolygons())}\n"
-      f"Min Leaf Size:{kdTree._maxLeafSize}\n"
-      f"Max Tree Depth:{kdTree._maxDepth}\n"
+      f"Min Leaf Size:{kdTree.maxLeafSize}\n"
+      f"Max Tree Depth:{kdTree.maxDepth}\n"
       f"Total Node:{kdTree.getNodeCount()}\n"
       f"Total Leaf Node:{kdTree.getLeafCount()}\n"
-      f"Tree Render Time:{t1-t0}s")
+      f"Tree Render Time:{t1 - t0}s")
 
 kdTree.printBranching()
 
-
-#
-#
-# viewer = MayaviViewer()
-# viewer.add(*scene.getSolids(), representation="mesh", lineWidth=0.1)
-# viewer.add(*bBoxes, representation="surface", lineWidth=0.1, opacity=0.25)
-# viewer.show()
+viewer = MayaviViewer()
+viewer.add(*scene.getSolids(), representation="mesh", lineWidth=0.1)
+viewer.add(*bBoxes, representation="surface", lineWidth=0.1, opacity=0.25)
+viewer.show()

@@ -1,6 +1,6 @@
 from typing import List
-from pytissueoptics.scene.geometry import Polygon, BoundingBox
 
+from pytissueoptics.scene.geometry import Polygon, BoundingBox
 
 
 class Node:

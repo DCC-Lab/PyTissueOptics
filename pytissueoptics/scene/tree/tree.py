@@ -1,4 +1,5 @@
 from typing import List
+
 from pytissueoptics.scene.geometry import BoundingBox, Vector
 from pytissueoptics.scene.tree import TreeConstructor
 from pytissueoptics.scene.tree import Node
@@ -22,6 +23,14 @@ class Tree:
 
     def searchRayIntersection(self, ray):
         raise NotImplementedError
+
+    @property
+    def maxDepth(self):
+        return self._maxDepth
+
+    @property
+    def maxLeafSize(self):
+        return self._maxLeafSize
 
     def getNodeCount(self, node=None):
         if node is None:
@@ -76,9 +85,9 @@ class Tree:
     def getLeafBoundingBoxesAsCuboids(self) -> List[Cuboid]:
         cuboids = []
         for bbox in self.getLeafBoundingBoxes():
-            a = bbox.xMax-bbox.xMin
-            b = bbox.yMax-bbox.yMin
-            c = bbox.zMax-bbox.zMin
+            a = bbox.xMax - bbox.xMin
+            b = bbox.yMax - bbox.yMin
+            c = bbox.zMax - bbox.zMin
             cuboids.append(Cuboid(a=a, b=b, c=c, position=bbox.center))
         return cuboids
 

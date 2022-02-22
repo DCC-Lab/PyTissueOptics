@@ -1,4 +1,5 @@
 from typing import Tuple, List
+
 from pytissueoptics.scene.geometry import Polygon, BoundingBox
 from pytissueoptics.scene.tree.treeConstructor.utils import meanCentroid
 from pytissueoptics.scene.tree.treeConstructor import NodeSplitter, SplitNodeResult
@@ -63,7 +64,7 @@ class HardSAHNodeSplitter(NodeSplitter):
     def _searchMinSAH(self):
         lowestIndexSAH = 1
         minSAH = 0
-        for i in range(1, self._nbOfSplitPLanes+1):
+        for i in range(1, self._nbOfSplitPLanes + 1):
             split = self._aMin + i * self._step
             left, right = self._polyCounter.run(split, self._splitAxis, self._polygons)
             tempLeftBbox = self._nodeBbox.changeToNew(self._splitAxis, "max", split)
