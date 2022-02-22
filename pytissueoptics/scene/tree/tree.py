@@ -11,29 +11,59 @@ class Tree:
         self._scene = scene
         self._maxDepth = maxDepth
         self._maxLeafSize = maxLeafSize
+        self._polygons = self._scene.getPolygons()
+        self._bbox = self._scene.getBoundingBox()
         self._constructor = constructor
-        self._root = Node(scene=scene, maxDepth=maxDepth, maxLeafSize=maxLeafSize)
+        self._root = Node(polygons=self._polygons, bbox=self._bbox, maxDepth=maxDepth, maxLeafSize=maxLeafSize)
         self._constructor.growTree(self._root)
 
     def searchPoint(self, point: Vector) -> BoundingBox:
-        return self._root.searchPoint(point)
+        raise NotImplementedError
 
     def searchRayIntersection(self, ray):
-        return self._root.searchRayIntersection(ray)
+        raise NotImplementedError
 
-    def _getBoundingBoxes(self) -> List[BoundingBox]:
-        boundingBoxes = self._root.getLeafBoundingBoxes(bboxList=[])
-        return boundingBoxes
+    def getNodeCount(self, node=None):
+        if node is None:
+            node = self._root
+        counter = 1
+        for childNode in node.children:
+            counter += self.getNodeCount(childNode)
 
-    def getNodeCount(self):
-        return self._root.getNodeCount()
+        return counter
 
-    def getLeafCount(self):
-        return self._root.getLeafCount()
+    def getLeafCount(self, node=None):
+        if node is None:
+            node = self._root
+        counter = 0
+        if node.isLeaf:
+            counter += 1
+        else:
+            for childNode in node.children:
+                counter += self.getLeafCount(childNode)
+        return counter
+
+    def getLeafBoundingBoxes(self, node: Node = None, bboxList: List = None) -> List[BoundingBox]:
+        if bboxList is None and node is None:
+            bboxList = []
+            node = self._root
+
+        if not node.isLeaf:
+            for childNode in node.children:
+                self.getLeafBoundingBoxes(childNode, bboxList)
+
+        else:
+            bboxList.append(node.bbox)
+
+        if node.isRoot:
+            return bboxList
+
+    # def getLeafNodes(self):
+    #     return self._root.get
 
     def getLeafBoundingBoxesAsCuboids(self) -> List[Cuboid]:
         cuboids = []
-        for bbox in self._getBoundingBoxes():
+        for bbox in self.getLeafBoundingBoxes():
             a = bbox.xMax-bbox.xMin
             b = bbox.yMax-bbox.yMin
             c = bbox.zMax-bbox.zMin

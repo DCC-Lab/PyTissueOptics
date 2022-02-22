@@ -2,7 +2,7 @@ from pytissueoptics.scene.scene import Scene
 from pytissueoptics.scene.geometry import Vector
 from pytissueoptics.scene.solids import Cuboid, Sphere
 from pytissueoptics.scene.tree import Tree
-from pytissueoptics.scene.tree.treeConstructor.binary import SAHBasicKDTreeConstructor
+from pytissueoptics.scene.tree.treeConstructor.binary import SAHWideAxisTreeConstructor
 from pytissueoptics.scene.viewer import MayaviViewer
 
 import time
@@ -14,7 +14,7 @@ sphere = Sphere(position=Vector(3, 3, 3), order=4)
 scene = Scene([cuboid1, cuboid2, sphere])
 
 t0 = time.time()
-kdTree = Tree(scene=scene, constructor=SAHBasicKDTreeConstructor(), maxDepth=20, maxLeafSize=3)
+kdTree = Tree(scene=scene, constructor=SAHWideAxisTreeConstructor(), maxDepth=12, maxLeafSize=2)
 t1 = time.time()
 
 bBoxes = kdTree.getLeafBoundingBoxesAsCuboids()

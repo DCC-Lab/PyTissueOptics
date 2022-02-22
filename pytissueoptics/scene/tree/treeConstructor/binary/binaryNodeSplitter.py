@@ -58,7 +58,7 @@ class HardSAHSplitter(NodeSplitter):
 
         polygonGroups = self._polyCounter.run(self._splitLine, splitAxis, polygons)
         groupBbox = self._getNewChildrenBbox(nodeBbox, splitAxis, self._splitLine)
-        return SplitNodeResult(False, self._splitAxis, self._splitLine, groupBbox, polygonGroups)
+        return SplitNodeResult(self._stopCondition, self._splitAxis, self._splitLine, groupBbox, polygonGroups)
 
     def _searchMinSAH(self):
         lowestIndexSAH = 1

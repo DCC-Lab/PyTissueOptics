@@ -5,21 +5,16 @@ from pytissueoptics.scene.scene import Scene
 
 class Node:
     def __init__(self, parent: 'Node' = None, children: List['Node'] = None,
-                 scene: Scene = None, polygons: List[Polygon] = None, bbox: BoundingBox = None, depth: int = 0,
+                polygons: List[Polygon] = None, bbox: BoundingBox = None, depth: int = 0,
                  maxDepth=100, maxLeafSize=5):
 
         self._parent = parent
         self._children = []
-        self._scene = scene
         self._polygons = polygons
         self._bbox = bbox
         self._depth = depth
         self._maxDepth = maxDepth
         self._maxLeafSize = maxLeafSize
-
-        if self.isRoot and scene is not None:
-            self._polygons = self._scene.getPolygons()
-            self._bbox = self._scene.getBoundingBox()
 
     @property
     def parent(self):
@@ -62,53 +57,3 @@ class Node:
     @property
     def maxLeafSize(self) -> int:
         return self._maxLeafSize
-
-    # def split(self):
-    #     if self._depth < self._maxDepth and len(self._polygons) > self._maxLeafSize:
-    #         splitNodeResult = self._split()
-    #         if not splitNodeResult.stopCondition:
-    #             for i, polygonGroup in enumerate(splitNodeResult.polygonGroups):
-    #                 if len(polygonGroup) > 0:
-    #                     childNode = Node(parent=self, polygons=polygonGroup,
-    #                                      bbox=splitNodeResult.bboxes[i], depth=self._depth + 1,
-    #                                      maxDepth=self._maxDepth, treeStrategy=self._treeStrategy)
-    #                     self._children.append(childNode)
-    #
-    # def _split(self):
-    #     return self._constructor.run(self.bbox, self.polygons, self.depth)
-
-    def searchPoint(self, point: Vector):
-        raise NotImplementedError
-
-    def searchRayIntersection(self, ray):
-        raise NotImplementedError
-
-    def getNodeCount(self):
-        counter = 1
-        for childNode in self._children:
-            counter += childNode.getNodeCount()
-
-        return counter
-
-    def getLeafCount(self):
-        counter = 0
-        if self.isLeaf:
-            counter += 1
-        else:
-            for childNode in self._children:
-                counter += childNode.getLeafCount()
-        return counter
-
-    def getLeafBoundingBoxes(self, bboxList: List) -> List[BoundingBox]:
-        if bboxList is None:
-            bboxList = []
-
-        if not self.isLeaf:
-            for childNode in self._children:
-                childNode.getLeafBoundingBoxes(bboxList)
-
-        else:
-            bboxList.append(self.bbox)
-
-        if self.isRoot:
-            return bboxList
