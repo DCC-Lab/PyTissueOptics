@@ -1,11 +1,10 @@
 from typing import List
-from pytissueoptics.scene.geometry import Polygon, BoundingBox, Vector
-from pytissueoptics.scene.scene import Scene
+from pytissueoptics.scene.geometry import Polygon, BoundingBox
+
 
 
 class Node:
-    def __init__(self, parent: 'Node' = None, children: List['Node'] = None,
-                polygons: List[Polygon] = None, bbox: BoundingBox = None, depth: int = 0,
+    def __init__(self, parent: 'Node' = None, polygons: List[Polygon] = None, bbox: BoundingBox = None, depth: int = 0,
                  maxDepth=100, maxLeafSize=5):
 
         self._parent = parent
@@ -15,6 +14,7 @@ class Node:
         self._depth = depth
         self._maxDepth = maxDepth
         self._maxLeafSize = maxLeafSize
+        self._id = hash((self._bbox, len(self._polygons), self._depth))
 
     @property
     def parent(self):
@@ -37,6 +37,10 @@ class Node:
             return True
         else:
             return False
+
+    @property
+    def id(self):
+        return self._id
 
     @property
     def polygons(self) -> List[Polygon]:

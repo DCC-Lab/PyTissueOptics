@@ -81,3 +81,14 @@ class Tree:
             c = bbox.zMax-bbox.zMin
             cuboids.append(Cuboid(a=a, b=b, c=c, position=bbox.center))
         return cuboids
+
+    def printBranching(self, node=None):
+        if node is None:
+            node = self._root
+        if node.isLeaf:
+            print(f"{node.id}")
+
+        else:
+            print(f"{node.id}")
+            for child in node.children:
+                self.printBranching(child)
