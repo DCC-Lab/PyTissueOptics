@@ -1,4 +1,3 @@
-import sys
 from dataclasses import dataclass
 from typing import List
 
@@ -46,14 +45,13 @@ class Logger:
 
 
 if __name__ == '__main__':
-    from pytissueoptics.scene.viewer.mayavi import MayaviViewer
-    from pytissueoptics.scene import Sphere
+    from pytissueoptics.scene import Sphere, Vector, MayaviViewer
 
     logger = Logger()
     for i in range(10):
-        logger.logPoint(Vector(i, i/2, 0))
+        logger.logPoint(Vector(i, i / 2, 0))
         logger.logDataPoint(i, Vector(i, i, 0))
-        logger.logSegment(Vector(10, 10, 0), Vector(10+(2*i), 0, 0))
+        logger.logSegment(Vector(10, 10, 0), Vector(10 + (2 * i), 0, 0))
 
     viewer = MayaviViewer()
 

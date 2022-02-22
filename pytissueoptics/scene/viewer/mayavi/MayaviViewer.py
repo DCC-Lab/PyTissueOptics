@@ -15,7 +15,9 @@ from pytissueoptics.scene.geometry import Vector
 
 class MayaviViewer:
     def __init__(self):
-        self._scenes = {"DefaultScene": {"figureParameters": {"bgColor": (0.11, 0.11, 0.11), "fgColor": (0.9, 0.9, 0.9)}, "Solids": [], }}
+        self._scenes = {
+            "DefaultScene": {"figureParameters": {"bgColor": (0.11, 0.11, 0.11), "fgColor": (0.9, 0.9, 0.9)},
+                             "Solids": [], }}
         self._view = {"azimuth": 0, "zenith": 0, "distance": None, "pointingTowards": None, "roll": None}
         self.clear()
 
@@ -24,13 +26,15 @@ class MayaviViewer:
         for solid in solids:
             mayaviSolid = MayaviSolid(solid, loadNormals=showNormals)
             self._scenes["DefaultScene"]["Solids"].append(mayaviSolid)
-            s = mlab.triangular_mesh(*mayaviSolid.triangleMesh.components, representation=representation, line_width=lineWidth,
+            s = mlab.triangular_mesh(*mayaviSolid.triangleMesh.components, representation=representation,
+                                     line_width=lineWidth,
                                      colormap=colormap)
             s.module_manager.scalar_lut_manager.reverse_lut = reverseColormap
             if constantColor:
                 s.module_manager.lut_data_mode = "cell data"
             if showNormals:
-                mlab.quiver3d(*mayaviSolid.normals.components, line_width=lineWidth, scale_factor=normalLength, color=(1, 1, 1))
+                mlab.quiver3d(*mayaviSolid.normals.components, line_width=lineWidth, scale_factor=normalLength,
+                              color=(1, 1, 1))
 
     def addLogger(self, logger: Logger, colormap="rainbow", reverseColormap=False):
         self._addPoints(logger.points, colormap=colormap, reverseColormap=reverseColormap)
