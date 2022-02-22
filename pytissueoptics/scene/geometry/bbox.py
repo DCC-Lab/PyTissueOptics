@@ -22,6 +22,9 @@ class BoundingBox:
         else:
             return False
 
+    def __hash__(self):
+        return hash((self.xMin, self.xMax, self.yMin, self.yMax, self.zMin, self.zMax))
+
     def _checkIfCoherent(self):
         if not (self.xMax >= self.xMin and self.yMax >= self.yMin and self.zMax >= self.zMin):
             print("Oh-Oh")
