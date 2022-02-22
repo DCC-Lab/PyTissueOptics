@@ -43,6 +43,21 @@ class Tree:
                 counter += self.getLeafCount(childNode)
         return counter
 
+    def getLeafNodes(self, node=None, nodesList=None):
+        if nodesList is None and node is None:
+            nodesList = []
+            node = self._root
+
+        if not node.isLeaf:
+            for childNode in node.children:
+                self.getLeafNodes(childNode, nodesList)
+
+        else:
+            nodesList.append(node)
+
+        if node.isRoot:
+            return nodesList
+
     def getLeafBoundingBoxes(self, node: Node = None, bboxList: List = None) -> List[BoundingBox]:
         if bboxList is None and node is None:
             bboxList = []
@@ -57,9 +72,6 @@ class Tree:
 
         if node.isRoot:
             return bboxList
-
-    # def getLeafNodes(self):
-    #     return self._root.get
 
     def getLeafBoundingBoxesAsCuboids(self) -> List[Cuboid]:
         cuboids = []
