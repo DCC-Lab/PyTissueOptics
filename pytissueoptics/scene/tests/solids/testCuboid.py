@@ -84,10 +84,10 @@ class TestCuboid(unittest.TestCase):
         baseCuboid = Cuboid(5, 3, 4, position=basePosition)
         otherCuboid = Cuboid(5, 1, 4)
 
-        cuboidStack = baseCuboid.stack(otherCuboid, onSurface='Top')
+        cuboidStack = baseCuboid.stack(otherCuboid, onSurface='Bottom')
 
         self.assertEqual([5, 4, 4], cuboidStack.shape)
-        self.assertEqual(basePosition + Vector(0, 0.5, 0), cuboidStack.position)
+        self.assertEqual(basePosition - Vector(0, 0.5, 0), cuboidStack.position)
 
     def testWhenStack_shouldReturnANewCuboidWithAFirstInterface(self):
         baseCuboid = Cuboid(5, 3, 4)

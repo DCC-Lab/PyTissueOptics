@@ -36,6 +36,10 @@ class CuboidStacker:
     def _getSurfaceAxis(self, surfaceName: str) -> int:
         return max(axis if surfaceName in surfacePair else -1 for axis, surfacePair in enumerate(self.SURFACE_PAIRS))
 
+    @property
+    def _stackingTowardsPositive(self) -> bool:
+        return self.SURFACE_PAIRS[self._stackAxis].index(self._onSurfaceName) == 1
+
     def _getOppositeSurface(self, surfaceName: str) -> str:
         onSurfaceIndex = self.SURFACE_PAIRS[self._stackAxis].index(surfaceName)
         return self.SURFACE_PAIRS[self._stackAxis][(onSurfaceIndex + 1) % 2]
@@ -53,8 +57,7 @@ class CuboidStacker:
                                             self._otherCuboid.shape[self._stackAxis] / 2
         relativePosition = Vector(*relativePosition)
 
-        towardsPositive = self.SURFACE_PAIRS[self._stackAxis].index(self._onSurfaceName)
-        if not towardsPositive:
+        if not self._stackingTowardsPositive:
             relativePosition.multiply(-1)
 
         self._otherCuboid.translateTo(self._onCuboid.position + relativePosition)
@@ -83,7 +86,10 @@ class CuboidStacker:
     def _getStackPosition(self):
         relativeStackCentroid = [0, 0, 0]
         relativeStackCentroid[self._stackAxis] = self._otherCuboid.shape[self._stackAxis] / 2
-        return self._onCuboid.position + Vector(*relativeStackCentroid)
+        relativeStackCentroid = Vector(*relativeStackCentroid)
+        if not self._stackingTowardsPositive:
+            relativeStackCentroid.multiply(-1)
+        return self._onCuboid.position + relativeStackCentroid
 
     def _getStackVertices(self):
         stackVertices = self._onCuboid.vertices
