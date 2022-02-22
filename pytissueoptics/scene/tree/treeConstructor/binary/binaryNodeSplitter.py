@@ -12,7 +12,7 @@ class MeanCentroidNodeSplitter(NodeSplitter):
         return SplitNodeResult(False, splitAxis, splitLine, groupBbox, polygonGroups)
 
 
-class MiddleNodeSplitter(NodeSplitter):
+class MiddlePolygonSpanNodeSplitter(NodeSplitter):
     def run(self, splitAxis: str, nodeBbox: BoundingBox, polygons: List[Polygon]) -> SplitNodeResult:
         minLimit = 0
         maxLimit = 0
@@ -35,7 +35,7 @@ class MiddleNodeSplitter(NodeSplitter):
         return minLimit, maxLimit
 
 
-class HardSAHSplitter(NodeSplitter):
+class HardSAHNodeSplitter(NodeSplitter):
     def run(self, splitAxis: str, nodeBbox: BoundingBox, polygons: List[Polygon]) -> SplitNodeResult:
         self._nodeBbox = nodeBbox
         self._splitAxis = splitAxis
