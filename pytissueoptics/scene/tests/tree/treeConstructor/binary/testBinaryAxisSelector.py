@@ -4,7 +4,7 @@ from pytissueoptics.scene.geometry import Polygon, Vector, BoundingBox
 from pytissueoptics.scene.tree.treeConstructor.binary import RotateAxis, LargestSpanAxis, LargestPolygonSpanAxis
 
 
-class TestRotateAxisSelector(unittest.TestCase):
+class TestBinaryAxisSelector(unittest.TestCase):
     def setUp(self) -> None:
         self.polygons = [Polygon(vertices=[Vector(0, 0, 0), Vector(0, 1, 0), Vector(1, 1, 0)]),
                          Polygon(vertices=[Vector(0, 0, 0), Vector(0, 1, 0), Vector(-1, -2, 0)]),
