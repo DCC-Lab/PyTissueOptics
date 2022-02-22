@@ -21,7 +21,7 @@ class TreeConstructor:
         splitNodeResult = self._nodeSplitter.run(splitAxis, nodeBbox, nodePolygons)
         return splitNodeResult
 
-    def growTree(self, node):
+    def growTree(self, node: Node):
         if node.depth < node.maxDepth and len(node.polygons) > node.maxLeafSize:
             splitNodeResult = self._splitNode(node)
             if not splitNodeResult.stopCondition:
