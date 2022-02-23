@@ -14,19 +14,18 @@ sphere = Sphere(position=Vector(3, 3, 3), order=4)
 scene = Scene([cuboid1, cuboid2, sphere])
 
 t0 = time.time()
-kdTree = SpacePartition(scene=scene, constructor=SAHWideAxisTreeConstructor(), maxDepth=10, maxLeafSize=2)
+kdTree = SpacePartition(scene.getBoundingBox(), scene.getPolygons(), constructor=SAHWideAxisTreeConstructor(),
+                        maxDepth=10, minLeafSize=2)
 t1 = time.time()
 
 bBoxes = kdTree.getLeafBoundingBoxesAsCuboids()
 
 print(f"Scene Poly Count:{len(scene.getPolygons())}\n"
-      f"Min Leaf Size:{kdTree.maxLeafSize}\n"
+      f"Min Leaf Size:{kdTree.minLeafSize}\n"
       f"Max Tree Depth:{kdTree.maxDepth}\n"
       f"Total Node:{kdTree.getNodeCount()}\n"
       f"Total Leaf Node:{kdTree.getLeafCount()}\n"
       f"Tree Render Time:{t1 - t0}s")
-
-kdTree.printBranching()
 
 viewer = MayaviViewer()
 viewer.add(*scene.getSolids(), representation="mesh", lineWidth=0.1)
