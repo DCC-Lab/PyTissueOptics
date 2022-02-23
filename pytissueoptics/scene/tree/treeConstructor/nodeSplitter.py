@@ -5,9 +5,9 @@ from pytissueoptics.scene.tree.treeConstructor import SplitNodeResult, PolygonCo
 
 
 class NodeSplitter:
-    def __init__(self):
+    def __init__(self, **kwargs):
         self._polygonCounter = None
-        self.kwargs = None
+        self.kwargs = kwargs
 
     def setContext(self, polygonCounter: PolygonCounter, **kwargs):
         self._polygonCounter = polygonCounter
