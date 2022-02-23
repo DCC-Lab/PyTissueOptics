@@ -38,8 +38,6 @@ class MiddlePolygonSpanNodeSplitter(NodeSplitter):
 
 class HardSAHNodeSplitter(NodeSplitter):
     def run(self, splitAxis: str, nodeBbox: BoundingBox, polygons: List[Polygon]) -> SplitNodeResult:
-        splitLine = 0
-        minSAH = 0
         nbOfSplitPlanes = self.kwargs["nbOfSplitPlanes"]
         aMin, aMax = nodeBbox.getAxisLimits(splitAxis)
         step = nodeBbox.getAxisWidth(splitAxis) / (nbOfSplitPlanes + 1)
