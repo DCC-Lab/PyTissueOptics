@@ -19,7 +19,7 @@ class LargestPolygonSpanAxis(AxisSelector):
         bbox: BoundingBox = None
         for polygon in polygons:
             if bbox is None:
-                bbox = polygon.bbox.newFrom()
+                bbox = polygon.bbox.copy()
             else:
                 bbox.extendTo(polygon.bbox)
 
