@@ -1,15 +1,14 @@
 import unittest
 
-from pytissueoptics.scene.geometry import Polygon, Vector, BoundingBox
+from pytissueoptics.scene.geometry import Polygon, Vector
 from pytissueoptics.scene.tree.treeConstructor.binary import BBoxPolyCounter, CentroidPolyCounter
 
 
-class TestBinaryPolyCounter(unittest.TestCase):
+class TestBinaryBboxPolyCounter(unittest.TestCase):
     def setUp(self) -> None:
         self.polygons = [Polygon(vertices=[Vector(0, 0, 0), Vector(0, 1, 0), Vector(1, 1, 0)]),
                          Polygon(vertices=[Vector(0, 0, 0), Vector(0, 1, 0), Vector(-1, -2, 0)]),
                          Polygon(vertices=[Vector(2, 2, 2), Vector(3, 3, 3), Vector(2, 3, 2)])]
-
 
     def testBboxPolyCounter_givenLineAndAxis_shouldReturnSeparatedPolygons(self):
         polygonCounter = BBoxPolyCounter()
@@ -29,6 +28,13 @@ class TestBinaryPolyCounter(unittest.TestCase):
         verificationGroups = [self.polygons, []]
         self.assertEqual(verificationGroups, polygonGroups)
 
+
+class TestBinaryCentroidPolyCounter(unittest.TestCase):
+    def setUp(self) -> None:
+        self.polygons = [Polygon(vertices=[Vector(0, 0, 0), Vector(0, 1, 0), Vector(1, 1, 0)]),
+                         Polygon(vertices=[Vector(0, 0, 0), Vector(0, 1, 0), Vector(-1, -2, 0)]),
+                         Polygon(vertices=[Vector(2, 2, 2), Vector(3, 3, 3), Vector(2, 3, 2)])]
+
     def testCentroidPolyCounter_givenLineAndAxis_shouldReturnSeparatedPolygons(self):
         polygonCounter = CentroidPolyCounter()
         polygonGroups = polygonCounter.run(1.5, "x", self.polygons)
@@ -43,6 +49,6 @@ class TestBinaryPolyCounter(unittest.TestCase):
 
     def testCentroidPolyCounter_givenLineOnCentroid_shouldReturnSharedPolygons(self):
         polygonCounter = CentroidPolyCounter()
-        polygonGroups = polygonCounter.run(7/3, "x", self.polygons)
+        polygonGroups = polygonCounter.run(7 / 3, "x", self.polygons)
         verificationGroups = [self.polygons, [self.polygons[2]]]
         self.assertEqual(verificationGroups, polygonGroups)

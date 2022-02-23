@@ -4,7 +4,7 @@ from pytissueoptics.scene.geometry import Polygon, Vector, BoundingBox
 from pytissueoptics.scene.tree.treeConstructor.binary import RotateAxis, LargestSpanAxis, LargestPolygonSpanAxis
 
 
-class TestBinaryAxisSelector(unittest.TestCase):
+class TestBinaryRotateAxisSelector(unittest.TestCase):
     def setUp(self) -> None:
         self.polygons = [Polygon(vertices=[Vector(0, 0, 0), Vector(0, 1, 0), Vector(1, 1, 0)]),
                          Polygon(vertices=[Vector(0, 0, 0), Vector(0, 1, 0), Vector(-1, -2, 0)]),
@@ -23,6 +23,15 @@ class TestBinaryAxisSelector(unittest.TestCase):
         axis = axisSelector.run(3, self.nodeBbox, self.polygons)
         self.assertEqual("x", axis)
 
+
+class TestBinaryLargestPolygonSpanSelector(unittest.TestCase):
+    def setUp(self) -> None:
+        self.polygons = [Polygon(vertices=[Vector(0, 0, 0), Vector(0, 1, 0), Vector(1, 1, 0)]),
+                         Polygon(vertices=[Vector(0, 0, 0), Vector(0, 1, 0), Vector(-1, -2, 0)]),
+                         Polygon(vertices=[Vector(2, 2, 2), Vector(3, 3, 3), Vector(2, 3, 2)])]
+
+        self.nodeBbox = BoundingBox(xLim=[-1, 4], yLim=[-1, 3], zLim=[-1, 5])
+
     def testLargestPolygonSpanAxis_givenDifferentPolygons_shouldReturnCorrectAxis(self):
         axisSelector = LargestPolygonSpanAxis()
         axis = axisSelector.run(0, self.nodeBbox, self.polygons)
@@ -35,6 +44,15 @@ class TestBinaryAxisSelector(unittest.TestCase):
         axisSelector = LargestPolygonSpanAxis()
         axis = axisSelector.run(0, self.nodeBbox, self.polygons)
         self.assertEqual("x", axis)
+
+
+class TestBinaryLargestSpanAxiSelector(unittest.TestCase):
+    def setUp(self) -> None:
+        self.polygons = [Polygon(vertices=[Vector(0, 0, 0), Vector(0, 1, 0), Vector(1, 1, 0)]),
+                         Polygon(vertices=[Vector(0, 0, 0), Vector(0, 1, 0), Vector(-1, -2, 0)]),
+                         Polygon(vertices=[Vector(2, 2, 2), Vector(3, 3, 3), Vector(2, 3, 2)])]
+
+        self.nodeBbox = BoundingBox(xLim=[-1, 4], yLim=[-1, 3], zLim=[-1, 5])
 
     def testLargestSpanAxis_givenDifferentPolygons_shouldReturnCorrectAxis(self):
         axisSelector = LargestSpanAxis()

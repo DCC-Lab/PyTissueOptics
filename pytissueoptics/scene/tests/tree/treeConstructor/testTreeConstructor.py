@@ -35,33 +35,3 @@ class TestTreeConstructor(unittest.TestCase):
         self.treeConstructor.growTree(self.NODE)
         verify(self.AXIS_SELECTOR).run(...)
         verify(self.NODE_SPLITTER).run(...)
-
-
-class TestScene(unittest.TestCase):
-    def setUp(self):
-        self.scene = Scene()
-
-    def testWhenAddingASolidAtAPosition_shouldPlaceTheSolidAtTheDesiredPosition(self):
-        SOLID_POSITION = Vector(4, 0, 1)
-        SOLID = mock(Solid)
-        when(SOLID).translateTo(...).thenReturn()
-
-        self.scene.add(SOLID, position=SOLID_POSITION)
-
-        verify(SOLID).translateTo(SOLID_POSITION)
-
-    def testWhenAddingASolidAtNoSpecificPosition_shouldKeepTheSolidAtItsPredefinedPosition(self):
-        SOLID = mock(Solid)
-        when(SOLID).translateTo(...).thenReturn()
-
-        self.scene.add(SOLID)
-
-        verify(SOLID, times=0).translateTo(...)
-
-    def testWhenAddingASolidThatPartlyOverlapsWithAnotherOne_shouldNotAdd(self):
-        OTHER_SOLID = self.makeSolidWith(BoundingBox([2, 5], [2, 5], [2, 5]))
-        SOLID = self.makeSolidWith(BoundingBox([0, 3], [0, 3], [0, 3]))
-        self.scene.add(OTHER_SOLID)
-
-        with self.assertRaises(Exception):
-            self.scene.add(SOLID)
