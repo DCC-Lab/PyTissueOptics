@@ -22,15 +22,16 @@ class TestTreeConstructor(unittest.TestCase):
 
         self.POLY_COUNTER = mock(PolygonCounter)
         self.NODE_SPLITTER = mock(NodeSplitter)
+        when(self.NODE_SPLITTER).setContext(...).thenReturn()
         expect(self.NODE_SPLITTER, times=3).split(...).thenReturn(result1).thenReturn(result2).thenReturn(result3)
 
-        self.root = Node(polygons=polyList, bbox=bbox, maxLeafSize=1)
+        self.root = Node(polygons=polyList, bbox=bbox)
 
         self.treeConstructor = TreeConstructor()
         self.treeConstructor.setContext(self.AXIS_SELECTOR, self.POLY_COUNTER, self.NODE_SPLITTER)
 
     def testGrowTree_givenNodeToSplitTwice_shouldRecursiveCallThreeTimeAndMake2Child(self):
-        self.treeConstructor.growTree(self.root)
+        self.treeConstructor.growTree(self.root, maxDepth=10, minLeafSize=1)
         self.assertEqual(1, len(self.root.children))
         self.assertEqual(1, len(self.root.children[0].children))
         self.assertEqual(0, len(self.root.children[0].children[0].children))
