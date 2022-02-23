@@ -38,39 +38,36 @@ class MiddlePolygonSpanNodeSplitter(NodeSplitter):
 
 class HardSAHNodeSplitter(NodeSplitter):
     def run(self, splitAxis: str, nodeBbox: BoundingBox, polygons: List[Polygon]) -> SplitNodeResult:
-        self._nodeBbox = nodeBbox
-        self._splitAxis = splitAxis
-        self._polygons = polygons
-        self._splitLine = 0
-        self._minSAH = 0
-        self._nbOfSplitPlanes = self.kwargs["nbOfSplitPlanes"]
-        self._aMin, self._aMax = self._nodeBbox.getAxisLimits(self._splitAxis)
-        self._step = self._nodeBbox.getAxisWidth(self._splitAxis) / (self._nbOfSplitPlanes + 1)
+        splitLine = 0
+        minSAH = 0
+        nbOfSplitPlanes = self.kwargs["nbOfSplitPlanes"]
+        aMin, aMax = nodeBbox.getAxisLimits(splitAxis)
+        step = nodeBbox.getAxisWidth(splitAxis) / (nbOfSplitPlanes + 1)
 
-        nodeSAH = self._nodeBbox.getArea() * len(polygons)
-        self._searchMinSAH()
+        nodeSAH = nodeBbox.getArea() * len(polygons)
+        splitLine, minSAH = self._searchMinSAH(nodeBbox, polygons, splitAxis, aMin, step, nbOfSplitPlanes)
         splitCost = self.kwargs["splitCostPercentage"] * nodeSAH
 
-        if self._minSAH + splitCost < nodeSAH:
-            self._stopCondition = False
+        if minSAH + splitCost < nodeSAH:
+            stopCondition = False
 
         else:
-            self._stopCondition = True
+            stopCondition = True
 
-        polygonGroups = self._polyCounter.run(self._splitLine, splitAxis, polygons)
-        groupBbox = self._getNewChildrenBbox(nodeBbox, splitAxis, self._splitLine)
-        return SplitNodeResult(self._stopCondition, self._splitAxis, self._splitLine, groupBbox, polygonGroups)
+        polygonGroups = self._polyCounter.run(splitLine, splitAxis, polygons)
+        groupBbox = self._getNewChildrenBbox(nodeBbox, splitAxis, splitLine)
+        return SplitNodeResult(stopCondition, splitAxis, splitLine, groupBbox, polygonGroups)
 
-    def _searchMinSAH(self):
+    def _searchMinSAH(self, nodeBbox, polygons, splitAxis, aMin, step, nbOfSplitPlanes):
         lowestIndexSAH = 1
         minSAH = 0
-        for i in range(1, self._nbOfSplitPlanes + 1):
-            split = self._aMin + i * self._step
-            left, right = self._polyCounter.run(split, self._splitAxis, self._polygons)
-            tempLeftBbox = self._nodeBbox.copy()
-            tempLeftBbox.update(self._splitAxis, "max", split)
-            tempRightBbox = self._nodeBbox.copy()
-            tempRightBbox.update(self._splitAxis, "min", split)
+        for i in range(1, nbOfSplitPlanes + 1):
+            split = aMin + i * step
+            left, right = self._polyCounter.run(split, splitAxis, polygons)
+            tempLeftBbox = nodeBbox.copy()
+            tempLeftBbox.update(splitAxis, "max", split)
+            tempRightBbox = nodeBbox.copy()
+            tempRightBbox.update(splitAxis, "min", split)
             newSAH = len(left) * tempLeftBbox.getArea() + len(right) * tempRightBbox.getArea()
 
             if i == 1:
@@ -80,5 +77,5 @@ class HardSAHNodeSplitter(NodeSplitter):
                 minSAH = newSAH
                 lowestIndexSAH = i
 
-        self._splitLine = self._aMin + lowestIndexSAH * self._step
-        self._minSAH = minSAH
+        splitLine = aMin + lowestIndexSAH * step
+        return splitLine, minSAH

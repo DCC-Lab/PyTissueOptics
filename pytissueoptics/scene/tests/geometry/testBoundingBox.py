@@ -4,7 +4,6 @@ from pytissueoptics.scene.geometry import BoundingBox, Vector
 
 
 class TestBoundingBox(unittest.TestCase):
-
     def setUp(self):
         self.xLim = [0, 1]
         self.yLim = [-1, 0]

@@ -32,15 +32,16 @@ class TestTree(unittest.TestCase):
 
     def testGetNodeCount_shouldReturnCountOf3(self):
         count = self.tree.getNodeCount()
+        verifyNoUnwantedInteractions()
         self.assertEqual(3, count)
 
     def testGetLeafCount_shouldReturnCountOf1(self):
         count = self.tree.getLeafCount()
+        verifyNoUnwantedInteractions()
         self.assertEqual(1, count)
 
     def testGetLeafBbox_shouldReturnBBox(self):
         bbox = BoundingBox(xLim=[0, 1], yLim=[0, 1], zLim=[0, 1])
         leafBboxes = self.tree.getLeafBoundingBoxes()
+        verifyNoUnwantedInteractions()
         self.assertEqual([bbox], leafBboxes)
-
-

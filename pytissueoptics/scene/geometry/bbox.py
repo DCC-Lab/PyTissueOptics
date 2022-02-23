@@ -115,7 +115,7 @@ class BoundingBox:
         a = self.xWidth
         b = self.yWidth
         c = self.zWidth
-        return a*b*2 + a*c*2 + b*c*2
+        return a * b * 2 + a * c * 2 + b * c * 2
 
     def contains(self, point: Vector):
         xCondition = self.xMin < point.x < self.xMax
