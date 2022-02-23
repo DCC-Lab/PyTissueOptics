@@ -14,7 +14,6 @@ class Node:
         self._depth = depth
         self._maxDepth = maxDepth
         self._maxLeafSize = maxLeafSize
-        self._id = hash((self._bbox, len(self._polygons), self._depth))
 
     @property
     def parent(self):
@@ -37,10 +36,6 @@ class Node:
             return True
         else:
             return False
-
-    @property
-    def id(self):
-        return self._id
 
     @property
     def polygons(self) -> List[Polygon]:
