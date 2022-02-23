@@ -4,7 +4,7 @@ from pytissueoptics.scene.tree.treeConstructor import PolygonCounter
 
 
 class BBoxPolyCounter(PolygonCounter):
-    def run(self, line: float, nodeAxis: str, polygons: List[Polygon]):
+    def count(self, line: float, nodeAxis: str, polygons: List[Polygon]):
         goingLeft = []
         goingRight = []
 
@@ -23,7 +23,7 @@ class BBoxPolyCounter(PolygonCounter):
 
 
 class CentroidPolyCounter(PolygonCounter):
-    def run(self, line: float, nodeAxis: str, polygons: List[Polygon]):
+    def count(self, line: float, nodeAxis: str, polygons: List[Polygon]):
         goingLeft = []
         goingRight = []
         centroidComponent = 0

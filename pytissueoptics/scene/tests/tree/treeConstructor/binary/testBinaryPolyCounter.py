@@ -12,19 +12,19 @@ class TestBinaryBboxPolyCounter(unittest.TestCase):
 
     def testBboxPolyCounter_givenLineAndAxis_shouldReturnSeparatedPolygons(self):
         polygonCounter = BBoxPolyCounter()
-        polygonGroups = polygonCounter.run(1.5, "x", self.polygons)
+        polygonGroups = polygonCounter.count(1.5, "x", self.polygons)
         verificationGroups = [[self.polygons[0], self.polygons[1]], [self.polygons[2]]]
         self.assertEqual(verificationGroups, polygonGroups)
 
     def testBboxPolyCounter_givenLineAxisWithSharedPolygons_shouldReturnSharedPolygons(self):
         polygonCounter = BBoxPolyCounter()
-        polygonGroups = polygonCounter.run(2, "x", self.polygons)
+        polygonGroups = polygonCounter.count(2, "x", self.polygons)
         verificationGroups = [self.polygons, [self.polygons[2]]]
         self.assertEqual(verificationGroups, polygonGroups)
 
     def testBboxPolyCounter_givenLineAxisWithAllPolygons_shouldReturnAnEmptyGroup(self):
         polygonCounter = BBoxPolyCounter()
-        polygonGroups = polygonCounter.run(3.1, "y", self.polygons)
+        polygonGroups = polygonCounter.count(3.1, "y", self.polygons)
         verificationGroups = [self.polygons, []]
         self.assertEqual(verificationGroups, polygonGroups)
 
@@ -37,18 +37,18 @@ class TestBinaryCentroidPolyCounter(unittest.TestCase):
 
     def testCentroidPolyCounter_givenLineAndAxis_shouldReturnSeparatedPolygons(self):
         polygonCounter = CentroidPolyCounter()
-        polygonGroups = polygonCounter.run(1.5, "x", self.polygons)
+        polygonGroups = polygonCounter.count(1.5, "x", self.polygons)
         verificationGroups = [[self.polygons[0], self.polygons[1]], [self.polygons[2]]]
         self.assertEqual(verificationGroups, polygonGroups)
 
     def testCentroidPolyCounter_givenLineCloseToCentroid_shouldReturnSeparatedPolygons(self):
         polygonCounter = CentroidPolyCounter()
-        polygonGroups = polygonCounter.run(2.3, "x", self.polygons)
+        polygonGroups = polygonCounter.count(2.3, "x", self.polygons)
         verificationGroups = [[self.polygons[0], self.polygons[1]], [self.polygons[2]]]
         self.assertEqual(verificationGroups, polygonGroups)
 
     def testCentroidPolyCounter_givenLineOnCentroid_shouldReturnSharedPolygons(self):
         polygonCounter = CentroidPolyCounter()
-        polygonGroups = polygonCounter.run(7 / 3, "x", self.polygons)
+        polygonGroups = polygonCounter.count(7 / 3, "x", self.polygons)
         verificationGroups = [self.polygons, [self.polygons[2]]]
         self.assertEqual(verificationGroups, polygonGroups)

@@ -4,5 +4,5 @@ from pytissueoptics.scene.geometry import Polygon
 
 
 class PolygonCounter:
-    def run(self, line: float, nodeAxis: str, polygons: List[Polygon]) -> Tuple:
+    def count(self, line: float, nodeAxis: str, polygons: List[Polygon]) -> Tuple:
         raise NotImplementedError

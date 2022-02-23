@@ -20,8 +20,8 @@ class TreeConstructor:
         nodeDepth = node.depth
         nodeBbox = node.bbox
         nodePolygons = node.polygons
-        splitAxis = self._axisSelector.run(nodeDepth, nodeBbox, nodePolygons)
-        splitNodeResult = self._nodeSplitter.run(splitAxis, nodeBbox, nodePolygons)
+        splitAxis = self._axisSelector.select(nodeDepth, nodeBbox, nodePolygons)
+        splitNodeResult = self._nodeSplitter.split(splitAxis, nodeBbox, nodePolygons)
         return splitNodeResult
 
     def growTree(self, node: Node, maxDepth: int, minLeafSize: int):

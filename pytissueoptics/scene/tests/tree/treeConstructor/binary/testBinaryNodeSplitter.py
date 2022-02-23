@@ -16,11 +16,11 @@ class TestBinaryMeanCentroidNodeSplitter(unittest.TestCase):
 
         self.nodeBbox = BoundingBox(xLim=[-1, 4], yLim=[-1, 3], zLim=[-1, 5])
         self.polyCounter = mock(PolygonCounter)
-        when(self.polyCounter).run(...).thenReturn([self.polygons])
+        when(self.polyCounter).split(...).thenReturn([self.polygons])
         self.splitter = MeanCentroidNodeSplitter(self.polyCounter)
 
     def testOnXAXis_shouldReturnCorrectSplitNodeResult(self):
-        splitNodeResult = self.splitter.run("x", self.nodeBbox, self.polygons)
+        splitNodeResult = self.splitter.split("x", self.nodeBbox, self.polygons)
         validationBbox1 = BoundingBox(xLim=[-1, 7 / 9], yLim=[-1, 3], zLim=[-1, 5])
         validationBbox2 = BoundingBox(xLim=[7 / 9, 4], yLim=[-1, 3], zLim=[-1, 5])
         validationResult = SplitNodeResult(False, "x", 7 / 9, [validationBbox1, validationBbox2],
@@ -28,7 +28,7 @@ class TestBinaryMeanCentroidNodeSplitter(unittest.TestCase):
         self.assertEqual(validationResult, splitNodeResult)
 
     def testOnYAxis_shouldReturnCorrectSplitNodeResult(self):
-        splitNodeResult = self.splitter.run("y", self.nodeBbox, self.polygons)
+        splitNodeResult = self.splitter.split("y", self.nodeBbox, self.polygons)
         validationBbox1 = BoundingBox(xLim=[-1, 4], yLim=[-1, 1], zLim=[-1, 5])
         validationBbox2 = BoundingBox(xLim=[-1, 4], yLim=[1, 3], zLim=[-1, 5])
         validationResult = SplitNodeResult(False, "y", 1, [validationBbox1, validationBbox2],
@@ -44,11 +44,11 @@ class TestBinaryMiddlePolygonSpanNodeSplitter(unittest.TestCase):
 
         self.nodeBbox = BoundingBox(xLim=[-1, 4], yLim=[-1, 3], zLim=[-1, 5])
         self.polyCounter = mock(PolygonCounter)
-        when(self.polyCounter).run(...).thenReturn([self.polygons])
+        when(self.polyCounter).split(...).thenReturn([self.polygons])
         self.splitter = MiddlePolygonSpanNodeSplitter(self.polyCounter)
 
     def testOnXAxis_shouldReturnCorrectSplitNodeResult(self):
-        splitNodeResult = self.splitter.run("x", self.nodeBbox, self.polygons)
+        splitNodeResult = self.splitter.split("x", self.nodeBbox, self.polygons)
         validationBbox1 = BoundingBox(xLim=[-1, 1], yLim=[-1, 3], zLim=[-1, 5])
         validationBbox2 = BoundingBox(xLim=[1, 4], yLim=[-1, 3], zLim=[-1, 5])
         validationResult = SplitNodeResult(False, "x", 1, [validationBbox1, validationBbox2],
@@ -56,7 +56,7 @@ class TestBinaryMiddlePolygonSpanNodeSplitter(unittest.TestCase):
         self.assertEqual(validationResult, splitNodeResult)
 
     def testOnYAxis_shouldReturnCorrectSplitNodeResult(self):
-        splitNodeResult = self.splitter.run("y", self.nodeBbox, self.polygons)
+        splitNodeResult = self.splitter.split("y", self.nodeBbox, self.polygons)
         validationBbox1 = BoundingBox(xLim=[-1, 4], yLim=[-1, 1 / 2], zLim=[-1, 5])
         validationBbox2 = BoundingBox(xLim=[-1, 4], yLim=[1 / 2, 3], zLim=[-1, 5])
         validationResult = SplitNodeResult(False, "y", 1 / 2, [validationBbox1, validationBbox2],
@@ -75,7 +75,7 @@ class TestBinaryHardSAHNodeSplitter(unittest.TestCase):
         self.splitter = HardSAHNodeSplitter(self.polyCounter, nbOfSplitPlanes=3, splitCostPercentage=0.2)
 
     def testOnXAxis_givenSplitCostOf20Percent_shouldReturnCorrectSplitNodeResult(self):
-        splitNodeResult = self.splitter.run("x", self.nodeBbox, self.polygons)
+        splitNodeResult = self.splitter.split("x", self.nodeBbox, self.polygons)
         validationBbox1 = self.nodeBbox = BoundingBox(xLim=[-1, 1.5], yLim=[-1, 3], zLim=[-1, 5])
         validationBbox2 = self.nodeBbox = BoundingBox(xLim=[1.5, 4], yLim=[-1, 3], zLim=[-1, 5])
         validationResult = SplitNodeResult(False, "x", 1.5, [validationBbox1, validationBbox2],
@@ -84,7 +84,7 @@ class TestBinaryHardSAHNodeSplitter(unittest.TestCase):
 
     def testOnXAxis_givenSplitCostOf40Percent_shouldReturnStopCondition(self):
         self.splitter = HardSAHNodeSplitter(self.polyCounter, nbOfSplitPlanes=3, splitCostPercentage=0.4)
-        splitNodeResult = self.splitter.run("x", self.nodeBbox, self.polygons)
+        splitNodeResult = self.splitter.split("x", self.nodeBbox, self.polygons)
         validationBbox1 = self.nodeBbox = BoundingBox(xLim=[-1, 1.5], yLim=[-1, 3], zLim=[-1, 5])
         validationBbox2 = self.nodeBbox = BoundingBox(xLim=[1.5, 4], yLim=[-1, 3], zLim=[-1, 5])
         validationResult = SplitNodeResult(True, "x", 1.5, [validationBbox1, validationBbox2],
@@ -92,7 +92,7 @@ class TestBinaryHardSAHNodeSplitter(unittest.TestCase):
         self.assertEqual(validationResult, splitNodeResult)
 
     def testOnYAxis_givenSplitCostOf20Percent_shouldReturnStopCondition(self):
-        splitNodeResult = self.splitter.run("y", self.nodeBbox, self.polygons)
+        splitNodeResult = self.splitter.split("y", self.nodeBbox, self.polygons)
         validationBbox1 = self.nodeBbox = BoundingBox(xLim=[-1, 4], yLim=[-1, 2], zLim=[-1, 5])
         validationBbox2 = self.nodeBbox = BoundingBox(xLim=[-1, 4], yLim=[2, 3], zLim=[-1, 5])
         validationResult = SplitNodeResult(True, "y", 2.0, [validationBbox1, validationBbox2],

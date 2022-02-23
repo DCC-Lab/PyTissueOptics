@@ -14,13 +14,13 @@ class TestBinaryRotateAxisSelector(unittest.TestCase):
 
     def testRotateAxis_givenDifferentDepth_shouldReturnCorrectAxis(self):
         axisSelector = RotateAxis()
-        axis = axisSelector.run(0, self.nodeBbox, self.polygons)
+        axis = axisSelector.select(0, self.nodeBbox, self.polygons)
         self.assertEqual("x", axis)
-        axis = axisSelector.run(1, self.nodeBbox, self.polygons)
+        axis = axisSelector.select(1, self.nodeBbox, self.polygons)
         self.assertEqual("y", axis)
-        axis = axisSelector.run(2, self.nodeBbox, self.polygons)
+        axis = axisSelector.select(2, self.nodeBbox, self.polygons)
         self.assertEqual("z", axis)
-        axis = axisSelector.run(3, self.nodeBbox, self.polygons)
+        axis = axisSelector.select(3, self.nodeBbox, self.polygons)
         self.assertEqual("x", axis)
 
 
@@ -34,7 +34,7 @@ class TestBinaryLargestPolygonSpanSelector(unittest.TestCase):
 
     def testLargestPolygonSpanAxis_givenDifferentPolygons_shouldReturnCorrectAxis(self):
         axisSelector = LargestPolygonSpanAxis()
-        axis = axisSelector.run(0, self.nodeBbox, self.polygons)
+        axis = axisSelector.select(0, self.nodeBbox, self.polygons)
         self.assertEqual("y", axis)
 
     def testLargestPolygonSpanAxis_givenSamePolygonsSpan_shouldReturnFirstAxis(self):
@@ -42,7 +42,7 @@ class TestBinaryLargestPolygonSpanSelector(unittest.TestCase):
                          Polygon(vertices=[Vector(0, 0, 0), Vector(0, 1, 0), Vector(-1, -1, 0)]),
                          Polygon(vertices=[Vector(2, 2, 2), Vector(3, 3, 3), Vector(2, 3, 2)])]
         axisSelector = LargestPolygonSpanAxis()
-        axis = axisSelector.run(0, self.nodeBbox, self.polygons)
+        axis = axisSelector.select(0, self.nodeBbox, self.polygons)
         self.assertEqual("x", axis)
 
 
@@ -56,11 +56,11 @@ class TestBinaryLargestSpanAxiSelector(unittest.TestCase):
 
     def testLargestSpanAxis_givenDifferentPolygons_shouldReturnCorrectAxis(self):
         axisSelector = LargestSpanAxis()
-        axis = axisSelector.run(0, self.nodeBbox, self.polygons)
+        axis = axisSelector.select(0, self.nodeBbox, self.polygons)
         self.assertEqual("z", axis)
 
     def testLargestSpanAxis_givenSamePolygonsSpan_shouldReturnFirstAxis(self):
         self.nodeBbox = BoundingBox(xLim=[-1, 4], yLim=[-1, 5], zLim=[-1, 5])
         axisSelector = LargestSpanAxis()
-        axis = axisSelector.run(0, self.nodeBbox, self.polygons)
+        axis = axisSelector.select(0, self.nodeBbox, self.polygons)
         self.assertEqual("y", axis)
