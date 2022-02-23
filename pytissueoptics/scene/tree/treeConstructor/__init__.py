@@ -1,5 +1,5 @@
 from .axisSelector import AxisSelector
-from .polyCounter import PolyCounter
+from .polygonCounter import PolygonCounter
 from .splitNodeResult import SplitNodeResult
 from .nodeSplitter import NodeSplitter
 from .treeConstructor import TreeConstructor

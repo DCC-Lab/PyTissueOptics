@@ -4,16 +4,13 @@ from pytissueoptics.scene.geometry import Polygon, BoundingBox
 
 
 class Node:
-    def __init__(self, parent: 'Node' = None, polygons: List[Polygon] = None, bbox: BoundingBox = None, depth: int = 0,
-                 maxDepth=100, maxLeafSize=5):
+    def __init__(self, parent: 'Node' = None, polygons: List[Polygon] = None, bbox: BoundingBox = None, depth: int = 0):
 
         self._parent = parent
         self._children = []
         self._polygons = polygons
         self._bbox = bbox
         self._depth = depth
-        self._maxDepth = maxDepth
-        self._maxLeafSize = maxLeafSize
 
     @property
     def parent(self):
@@ -48,11 +45,3 @@ class Node:
     @property
     def bbox(self) -> BoundingBox:
         return self._bbox
-
-    @property
-    def maxDepth(self) -> int:
-        return self._maxDepth
-
-    @property
-    def maxLeafSize(self) -> int:
-        return self._maxLeafSize

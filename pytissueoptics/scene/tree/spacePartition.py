@@ -6,16 +6,29 @@ from pytissueoptics.scene.tree import Node
 from pytissueoptics.scene.solids import Cuboid
 
 
-class Tree:
+class SpacePartition:
+    """
+    This is a SpacePartition that saves the subdivion of the available space. The space it partitioned as a tree.
+    The tree has nodes that split and contain other node, up to the leaf node, the smallest units.
+    Each node has a boundingBox and a List of polygons that it contains.
+
+    To construct a SpacePartition, you must give those parameters.
+    - bbox : The space of interest that will be subdivided.
+    - polygons: The List[Polygon] from which the subdivision will make its choices.
+    - constructor: A TreeConstructor class which will define the subdivision behaviour
+    - maxDepth: the maximum depth of a node, will limit the creation of node to a certain level
+    - minLeafSize: the minimum amount of polygons a leaf can contain. No leaf node can have less polygons.
+    """
+
     def __init__(self, bbox: BoundingBox, polygons: List[Polygon], constructor: TreeConstructor, maxDepth=6,
-                 maxLeafSize=2):
+                 minLeafSize=2):
         self._maxDepth = maxDepth
-        self._maxLeafSize = maxLeafSize
+        self._maxLeafSize = minLeafSize
         self._polygons = polygons
         self._bbox = bbox
         self._constructor = constructor
-        self._root = Node(polygons=self._polygons, bbox=self._bbox, maxDepth=maxDepth, maxLeafSize=maxLeafSize)
-        self._constructor.growTree(self._root)
+        self._root = Node(polygons=self._polygons, bbox=self._bbox)
+        self._constructor.growTree(self._root, maxDepth=maxDepth, maxLeafSize=minLeafSize)
 
     def searchPoint(self, point: Vector, node: Node = None) -> Node:
         if node is None:
@@ -37,8 +50,8 @@ class Tree:
         return self._maxDepth
 
     @property
-    def maxLeafSize(self):
-        return self._maxLeafSize
+    def minLeafSize(self):
+        return self._minLeafSize
 
     def getNodeCount(self, node=None):
         if node is None:

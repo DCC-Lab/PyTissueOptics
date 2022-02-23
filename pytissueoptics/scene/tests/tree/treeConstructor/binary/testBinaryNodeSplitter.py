@@ -4,7 +4,7 @@ from mockito import mock, when
 from pytissueoptics.scene.geometry import Polygon, BoundingBox
 from pytissueoptics.scene.tree.treeConstructor.binary import MeanCentroidNodeSplitter, MiddlePolygonSpanNodeSplitter, \
     HardSAHNodeSplitter, BBoxPolyCounter
-from pytissueoptics.scene.tree.treeConstructor import PolyCounter, SplitNodeResult
+from pytissueoptics.scene.tree.treeConstructor import PolygonCounter, SplitNodeResult
 from pytissueoptics.scene.geometry import Vector
 
 
@@ -15,7 +15,7 @@ class TestBinaryMeanCentroidNodeSplitter(unittest.TestCase):
                          Polygon(vertices=[Vector(2, 2, 2), Vector(3, 3, 3), Vector(2, 3, 2)])]
 
         self.nodeBbox = BoundingBox(xLim=[-1, 4], yLim=[-1, 3], zLim=[-1, 5])
-        self.polyCounter = mock(PolyCounter)
+        self.polyCounter = mock(PolygonCounter)
         when(self.polyCounter).run(...).thenReturn([self.polygons])
         self.splitter = MeanCentroidNodeSplitter(self.polyCounter)
 
@@ -43,7 +43,7 @@ class TestBinaryMiddlePolygonSpanNodeSplitter(unittest.TestCase):
                          Polygon(vertices=[Vector(2, 2, 2), Vector(3, 3, 3), Vector(2, 3, 2)])]
 
         self.nodeBbox = BoundingBox(xLim=[-1, 4], yLim=[-1, 3], zLim=[-1, 5])
-        self.polyCounter = mock(PolyCounter)
+        self.polyCounter = mock(PolygonCounter)
         when(self.polyCounter).run(...).thenReturn([self.polygons])
         self.splitter = MiddlePolygonSpanNodeSplitter(self.polyCounter)
 

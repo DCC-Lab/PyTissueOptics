@@ -4,7 +4,7 @@ from mockito import mock, verifyNoUnwantedInteractions, when, expect
 
 from pytissueoptics.scene.geometry import Polygon, BoundingBox, Vector
 from pytissueoptics.scene.tree import Node
-from pytissueoptics.scene.tree.treeConstructor import TreeConstructor, AxisSelector, PolyCounter, NodeSplitter, \
+from pytissueoptics.scene.tree.treeConstructor import TreeConstructor, AxisSelector, PolygonCounter, NodeSplitter, \
     SplitNodeResult
 
 
@@ -20,7 +20,7 @@ class TestTreeConstructor(unittest.TestCase):
         self.AXIS_SELECTOR = mock(AxisSelector)
         when(self.AXIS_SELECTOR).run(...).thenReturn("x")
 
-        self.POLY_COUNTER = mock(PolyCounter)
+        self.POLY_COUNTER = mock(PolygonCounter)
         self.NODE_SPLITTER = mock(NodeSplitter)
         expect(self.NODE_SPLITTER, times=3).run(...).thenReturn(result1).thenReturn(result2).thenReturn(result3)
 
