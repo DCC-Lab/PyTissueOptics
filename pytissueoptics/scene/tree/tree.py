@@ -16,10 +16,22 @@ class Tree:
         self._root = Node(polygons=self._polygons, bbox=self._bbox, maxDepth=maxDepth, maxLeafSize=maxLeafSize)
         self._constructor.growTree(self._root)
 
-    def searchPoint(self, point: Vector) -> BoundingBox:
-        raise NotImplementedError
+    def searchPoint(self, point: Vector, node: Node = None) -> Node:
+        if node is None:
+            node = self._root
 
-    def searchRayIntersection(self, ray):
+        if node.isLeaf:
+            return node
+
+        isInside = None
+        for child in node.children:
+            if child.bbox.contains(point):
+                isInside = child
+                break
+
+        self.searchPoint(point, isInside)
+
+    def searchRayIntersection(self, node: Node,  ray):
         raise NotImplementedError
 
     @property
@@ -65,20 +77,10 @@ class Tree:
         if node.isRoot:
             return nodesList
 
-    def getLeafBoundingBoxes(self, node: Node = None, bboxList: List = None) -> List[BoundingBox]:
-        if bboxList is None and node is None:
-            bboxList = []
-            node = self._root
-
-        if not node.isLeaf:
-            for childNode in node.children:
-                self.getLeafBoundingBoxes(childNode, bboxList)
-
-        else:
-            bboxList.append(node.bbox)
-
-        if node.isRoot:
-            return bboxList
+    def getLeafBoundingBoxes(self) -> List[BoundingBox]:
+        nodesList = self.getLeafNodes()
+        nodesBbox = [node.bbox for node in nodesList]
+        return nodesBbox
 
     def getLeafBoundingBoxesAsCuboids(self) -> List[Cuboid]:
         cuboids = []

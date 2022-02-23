@@ -28,10 +28,16 @@ class TestTree(unittest.TestCase):
 
         self.treeConstructor = TreeConstructor()
         self.treeConstructor.setContext(self.AXIS_SELECTOR, self.POLY_COUNTER, self.NODE_SPLITTER)
-        self.tree = Tree()
-    def testGrowTree_givenNodeToSplitTwice_shouldRecursiveCallThreeTimeAndMake2Child(self):
-        self.treeConstructor.growTree(self.root)
-        self.assertEqual(1, len(self.root.children))
-        self.assertEqual(1, len(self.root.children[0].children))
-        self.assertEqual(0, len(self.root.children[0].children[0].children))
-        verifyNoUnwantedInteractions()
+        self.tree = Tree(bbox, polyList, self.treeConstructor, maxLeafSize=1)
+
+    def testGetNodeCount_shouldReturnCountOf3(self):
+        count = self.tree.getNodeCount()
+        self.assertEqual(3, count)
+
+    def testGetLeafCount_shouldReturnCountOf1(self):
+        count = self.tree.getLeafCount()
+        self.assertEqual(1, count)
+
+    def testGetLeafCount_shouldReturnCountOf1(self):
+        count = self.tree.getLeafCount()
+        self.assertEqual(1, count)

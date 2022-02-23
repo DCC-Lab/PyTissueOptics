@@ -10,7 +10,7 @@ class Scene:
     def __init__(self, solids: List[Solid]):
         self._solids = solids
         self._tree = None
-        
+
     def makeTree(self):
         self._tree = Tree(self.getBoundingBox(), self.getPolygons(), SAHWideAxisTreeConstructor(), maxDepth=10)
 
