@@ -22,13 +22,12 @@ class MayaviViewer:
         self.clear()
 
     def add(self, *solids: 'Solid', representation="wireframe", lineWidth=0.25, showNormals=False, normalLength=0.3,
-            colormap="viridis", reverseColormap=False, constantColor=False):
+            colormap="viridis", reverseColormap=False, constantColor=False, opacity=1.0):
         for solid in solids:
             mayaviSolid = MayaviSolid(solid, loadNormals=showNormals)
             self._scenes["DefaultScene"]["Solids"].append(mayaviSolid)
             s = mlab.triangular_mesh(*mayaviSolid.triangleMesh.components, representation=representation,
-                                     line_width=lineWidth,
-                                     colormap=colormap)
+                                     line_width=lineWidth, opacity=opacity, colormap=colormap)
             s.module_manager.scalar_lut_manager.reverse_lut = reverseColormap
             if constantColor:
                 s.module_manager.lut_data_mode = "cell data"
