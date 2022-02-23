@@ -37,7 +37,3 @@ class TestTree(unittest.TestCase):
     def testGetLeafCount_shouldReturnCountOf1(self):
         count = self.tree.getLeafCount()
         self.assertEqual(1, count)
-
-    def testGetLeafCount_shouldReturnCountOf1(self):
-        count = self.tree.getLeafCount()
-        self.assertEqual(1, count)

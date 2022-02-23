@@ -7,7 +7,8 @@ from pytissueoptics.scene.solids import Cuboid
 
 
 class Tree:
-    def __init__(self, bbox: BoundingBox, polygons: List[Polygon], constructor: TreeConstructor, maxDepth=6, maxLeafSize=2):
+    def __init__(self, bbox: BoundingBox, polygons: List[Polygon], constructor: TreeConstructor, maxDepth=6,
+                 maxLeafSize=2):
         self._maxDepth = maxDepth
         self._maxLeafSize = maxLeafSize
         self._polygons = polygons
@@ -31,7 +32,7 @@ class Tree:
 
         self.searchPoint(point, isInside)
 
-    def searchRayIntersection(self, node: Node,  ray):
+    def searchRayIntersection(self, node: Node, ray):
         raise NotImplementedError
 
     @property
