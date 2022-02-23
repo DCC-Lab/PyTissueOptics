@@ -103,17 +103,11 @@ class BoundingBox:
     def getAxisLimits(self, axis: str) -> List[float]:
         return self._xyzLimits[self._axisKeys.index(axis)]
 
-    def change(self, axis: str, limit: str, value: float):
+    def update(self, axis: str, limit: str, value: float):
         self._xyzLimits[self._axisKeys.index(axis)][self._limitKeys.index(limit)] = value
         self._checkIfCoherent()
 
-    def changeToNew(self, axis: str, limit: str, value: float) -> 'BoundingBox':
-        newBbox = deepcopy(self)
-        newBbox.change(axis, limit, value)
-        newBbox._checkIfCoherent()
-        return newBbox
-
-    def newFrom(self):
+    def copy(self):
         newBbox = deepcopy(self)
         return newBbox
 
