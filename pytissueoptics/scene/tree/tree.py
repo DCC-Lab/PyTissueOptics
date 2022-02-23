@@ -1,19 +1,17 @@
 from typing import List
 
-from pytissueoptics.scene.geometry import BoundingBox, Vector
+from pytissueoptics.scene.geometry import BoundingBox, Vector, Polygon
 from pytissueoptics.scene.tree import TreeConstructor
 from pytissueoptics.scene.tree import Node
 from pytissueoptics.scene.solids import Cuboid
-from pytissueoptics.scene.scene import Scene
 
 
 class Tree:
-    def __init__(self, scene: Scene, constructor: TreeConstructor, maxDepth=6, maxLeafSize=2):
-        self._scene = scene
+    def __init__(self, bbox: BoundingBox, polygons: List[Polygon], constructor: TreeConstructor, maxDepth=6, maxLeafSize=2):
         self._maxDepth = maxDepth
         self._maxLeafSize = maxLeafSize
-        self._polygons = self._scene.getPolygons()
-        self._bbox = self._scene.getBoundingBox()
+        self._polygons = polygons
+        self._bbox = bbox
         self._constructor = constructor
         self._root = Node(polygons=self._polygons, bbox=self._bbox, maxDepth=maxDepth, maxLeafSize=maxLeafSize)
         self._constructor.growTree(self._root)
