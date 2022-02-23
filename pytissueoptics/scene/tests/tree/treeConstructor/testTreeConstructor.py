@@ -1,7 +1,8 @@
 import unittest
 
-from mockito import mock, verify, when, patch
+from mockito import mock, verifyNoUnwantedInteractions, when, expect
 
+from pytissueoptics.scene.geometry import Polygon, BoundingBox, Vector
 from pytissueoptics.scene.tree import Node
 from pytissueoptics.scene.tree.treeConstructor import TreeConstructor, AxisSelector, PolyCounter, NodeSplitter, \
     SplitNodeResult
@@ -9,29 +10,28 @@ from pytissueoptics.scene.tree.treeConstructor import TreeConstructor, AxisSelec
 
 class TestTreeConstructor(unittest.TestCase):
     def setUp(self):
-        self.treeConstructor = TreeConstructor()
-
-        patch(Node.__init__, )
-
-        self.NODE = mock(Node)
-        when(self.NODE)
-        when(self.NODE).depth(...).thenReturn(1)
-        when(self.NODE).maxDepth(...).thenReturn(2)
-        when(self.NODE).maxLeafSize(...).thenReturn(3)
-        when(self.NODE).polygons(...).thenReturn([1, 2])
-        when(self.NODE).bbox(...).thenReturn()
+        poly = Polygon([Vector(0, 0, 0), Vector(1, 1, 0), Vector(1, 2, 3)])
+        polyList = [poly, poly, poly, poly]
+        bbox = BoundingBox(xLim=[0, 1], yLim=[0, 1], zLim=[0, 1])
+        result1 = SplitNodeResult(False, "x", 1, [bbox], [polyList])
+        result2 = SplitNodeResult(False, "x", 1, [bbox], [polyList])
+        result3 = SplitNodeResult(True, "x", 1, [bbox], [polyList])
 
         self.AXIS_SELECTOR = mock(AxisSelector)
         when(self.AXIS_SELECTOR).run(...).thenReturn("x")
 
         self.POLY_COUNTER = mock(PolyCounter)
         self.NODE_SPLITTER = mock(NodeSplitter)
-        when(self.NODE_SPLITTER).run(...).thenReturn(SplitNodeResult(False, "x", 1, [1, 1], [1, 1]))
+        expect(self.NODE_SPLITTER, times=3).run(...).thenReturn(result1).thenReturn(result2).thenReturn(result3)
 
-    def testGivenANode_whenSplitting_shouldReturnSplitNodeResult(self):
-        pass
+        self.root = Node(polygons=polyList, bbox=bbox, maxLeafSize=1)
 
-    def testGivenNodeToSplitTwice_shouldRecursiveCallTwice(self):
-        self.treeConstructor.growTree(self.NODE)
-        verify(self.AXIS_SELECTOR).run(...)
-        verify(self.NODE_SPLITTER).run(...)
+        self.treeConstructor = TreeConstructor()
+        self.treeConstructor.setContext(self.AXIS_SELECTOR, self.POLY_COUNTER, self.NODE_SPLITTER)
+
+    def testGrowTree_givenNodeToSplitTwice_shouldRecursiveCallThreeTimeAndMake2Child(self):
+        self.treeConstructor.growTree(self.root)
+        self.assertEqual(1, len(self.root.children))
+        self.assertEqual(1, len(self.root.children[0].children))
+        self.assertEqual(0, len(self.root.children[0].children[0].children))
+        verifyNoUnwantedInteractions()
