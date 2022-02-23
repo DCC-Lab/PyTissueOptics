@@ -32,9 +32,6 @@ class Tree:
 
         self.searchPoint(point, isInside)
 
-    def searchRayIntersection(self, node: Node, ray):
-        raise NotImplementedError
-
     @property
     def maxDepth(self):
         return self._maxDepth
