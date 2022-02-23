@@ -7,8 +7,6 @@ class TreeConstructor:
         self._polyCounter: PolygonCounter = None
         self._axisSelector: AxisSelector = None
         self._nodeSplitter: NodeSplitter = None
-        self._maxDepth = None
-        self._maxLeafSize = None
 
     def setContext(self, axisSelector: AxisSelector, polyCounter: PolygonCounter, nodeSplitter: NodeSplitter):
         self._axisSelector = axisSelector

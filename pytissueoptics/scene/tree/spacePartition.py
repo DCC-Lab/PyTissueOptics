@@ -23,12 +23,12 @@ class SpacePartition:
     def __init__(self, bbox: BoundingBox, polygons: List[Polygon], constructor: TreeConstructor, maxDepth=6,
                  minLeafSize=2):
         self._maxDepth = maxDepth
-        self._maxLeafSize = minLeafSize
+        self._minLeafSize = minLeafSize
         self._polygons = polygons
         self._bbox = bbox
         self._constructor = constructor
         self._root = Node(polygons=self._polygons, bbox=self._bbox)
-        self._constructor.growTree(self._root, maxDepth=maxDepth, maxLeafSize=minLeafSize)
+        self._constructor.growTree(self._root, maxDepth=maxDepth, minLeafSize=minLeafSize)
 
     def searchPoint(self, point: Vector, node: Node = None) -> Node:
         if node is None:
@@ -43,7 +43,11 @@ class SpacePartition:
                 isInside = child
                 break
 
-        self.searchPoint(point, isInside)
+        if isInside is None:
+            if node.bbox.contains(point):
+                return node
+
+        return self.searchPoint(point, isInside)
 
     @property
     def maxDepth(self):
