@@ -23,12 +23,16 @@ class TreeConstructor:
         return splitNodeResult
 
     def growTree(self, node: Node, maxDepth: int, minLeafSize: int):
-        if node.depth < maxDepth and len(node.polygons) > minLeafSize:
-            splitNodeResult = self._splitNode(node)
-            if not splitNodeResult.stopCondition:
-                for i, polygonGroup in enumerate(splitNodeResult.polygonGroups):
-                    if len(polygonGroup) > 0:
-                        childNode = Node(parent=node, polygons=polygonGroup,
-                                         bbox=splitNodeResult.bboxes[i], depth=node.depth + 1)
-                        node.children.append(childNode)
-                        self.growTree(childNode, maxDepth, minLeafSize)
+        if node.depth >= maxDepth or len(node.polygons) <= minLeafSize:
+            return
+
+        splitNodeResult = self._splitNode(node)
+        if splitNodeResult.stopCondition:
+            return
+
+        for i, polygonGroup in enumerate(splitNodeResult.polygonGroups):
+            if len(polygonGroup) <= 0:
+                continue
+            childNode = Node(parent=node, polygons=polygonGroup, bbox=splitNodeResult.bboxes[i], depth=node.depth + 1)
+            node.children.append(childNode)
+            self.growTree(childNode, maxDepth, minLeafSize)
