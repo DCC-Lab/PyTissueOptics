@@ -1,4 +1,9 @@
+import numpy as np
+
+
 class Material:
+    veryFar = 1e4
+
     def __init__(self, mu_s=0, mu_a=0, g=0, index=1.0):
         self.mu_s = mu_s
         self.mu_a = mu_a
@@ -11,3 +16,16 @@ class Material:
 
         self.g = g
         self.index = index
+
+    @property
+    def isVacuum(self):
+        return self.mu_t == 0
+
+    def getScatteringDistance(self):
+        if self.mu_t == 0:
+            return self.veryFar
+
+        rnd = 0
+        while rnd == 0:
+            rnd = np.random.random()
+        return -np.log(rnd) / self.mu_t
