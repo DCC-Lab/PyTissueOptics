@@ -18,7 +18,7 @@ class TestTreeConstructor(unittest.TestCase):
         result3 = SplitNodeResult(True, "x", 1, [bbox], [polyList])
 
         self.AXIS_SELECTOR = mock(AxisSelector)
-        when(self.AXIS_SELECTOR).split(...).thenReturn("x")
+        when(self.AXIS_SELECTOR).select(...).thenReturn("x")
 
         self.POLY_COUNTER = mock(PolygonCounter)
         self.NODE_SPLITTER = mock(NodeSplitter)

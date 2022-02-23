@@ -16,7 +16,7 @@ class TestBinaryMeanCentroidNodeSplitter(unittest.TestCase):
 
         self.nodeBbox = BoundingBox(xLim=[-1, 4], yLim=[-1, 3], zLim=[-1, 5])
         self.polyCounter = mock(PolygonCounter)
-        when(self.polyCounter).split(...).thenReturn([self.polygons])
+        when(self.polyCounter).count(...).thenReturn([self.polygons])
         self.splitter = MeanCentroidNodeSplitter(self.polyCounter)
 
     def testOnXAXis_shouldReturnCorrectSplitNodeResult(self):
@@ -44,7 +44,7 @@ class TestBinaryMiddlePolygonSpanNodeSplitter(unittest.TestCase):
 
         self.nodeBbox = BoundingBox(xLim=[-1, 4], yLim=[-1, 3], zLim=[-1, 5])
         self.polyCounter = mock(PolygonCounter)
-        when(self.polyCounter).split(...).thenReturn([self.polygons])
+        when(self.polyCounter).count(...).thenReturn([self.polygons])
         self.splitter = MiddlePolygonSpanNodeSplitter(self.polyCounter)
 
     def testOnXAxis_shouldReturnCorrectSplitNodeResult(self):

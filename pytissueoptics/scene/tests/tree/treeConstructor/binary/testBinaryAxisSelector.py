@@ -1,7 +1,7 @@
 import unittest
 
 from pytissueoptics.scene.geometry import Polygon, Vector, BoundingBox
-from pytissueoptics.scene.tree.treeConstructor.binary import RotateAxis, LargestSpanAxis, LargestPolygonSpanAxis
+from pytissueoptics.scene.tree.treeConstructor.binary import RotatingAxis, LargestSpanAxis, LargestPolygonSpanAxis
 
 
 class TestBinaryRotateAxisSelector(unittest.TestCase):
@@ -13,7 +13,7 @@ class TestBinaryRotateAxisSelector(unittest.TestCase):
         self.nodeBbox = BoundingBox(xLim=[-1, 4], yLim=[-1, 3], zLim=[-1, 5])
 
     def testRotateAxis_givenDifferentDepth_shouldReturnCorrectAxis(self):
-        axisSelector = RotateAxis()
+        axisSelector = RotatingAxis()
         axis = axisSelector.select(0, self.nodeBbox, self.polygons)
         self.assertEqual("x", axis)
         axis = axisSelector.select(1, self.nodeBbox, self.polygons)

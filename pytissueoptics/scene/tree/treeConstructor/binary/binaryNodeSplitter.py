@@ -8,7 +8,7 @@ from pytissueoptics.scene.tree.treeConstructor import NodeSplitter, SplitNodeRes
 class MeanCentroidNodeSplitter(NodeSplitter):
     def split(self, splitAxis: str, nodeBbox: BoundingBox, polygons: List[Polygon]) -> SplitNodeResult:
         splitLine = meanCentroid(splitAxis, polygons)
-        polygonGroups = self._polyCounter.split(splitLine, splitAxis, polygons)
+        polygonGroups = self._polygonCounter.count(splitLine, splitAxis, polygons)
         groupBbox = self._getNewChildrenBbox(nodeBbox, splitAxis, splitLine)
         return SplitNodeResult(False, splitAxis, splitLine, groupBbox, polygonGroups)
 
@@ -21,7 +21,7 @@ class MiddlePolygonSpanNodeSplitter(NodeSplitter):
             minLimit, maxLimit = self._compareMinMax(splitAxis, polygon, minLimit, maxLimit)
         splitLine = (minLimit + maxLimit) / 2
 
-        polygonGroups = self._polyCounter.split(splitLine, splitAxis, polygons)
+        polygonGroups = self._polygonCounter.count(splitLine, splitAxis, polygons)
         groupBbox = self._getNewChildrenBbox(nodeBbox, splitAxis, splitLine)
         return SplitNodeResult(False, splitAxis, splitLine, groupBbox, polygonGroups)
 
@@ -52,7 +52,7 @@ class HardSAHNodeSplitter(NodeSplitter):
         else:
             stopCondition = True
 
-        polygonGroups = self._polyCounter.split(splitLine, splitAxis, polygons)
+        polygonGroups = self._polygonCounter.count(splitLine, splitAxis, polygons)
         groupBbox = self._getNewChildrenBbox(nodeBbox, splitAxis, splitLine)
         return SplitNodeResult(stopCondition, splitAxis, splitLine, groupBbox, polygonGroups)
 
@@ -61,7 +61,7 @@ class HardSAHNodeSplitter(NodeSplitter):
         minSAH = 0
         for i in range(1, nbOfSplitPlanes + 1):
             split = aMin + i * step
-            left, right = self._polyCounter.split(split, splitAxis, polygons)
+            left, right = self._polygonCounter.count(split, splitAxis, polygons)
             tempLeftBbox = nodeBbox.copy()
             tempLeftBbox.update(splitAxis, "max", split)
             tempRightBbox = nodeBbox.copy()
