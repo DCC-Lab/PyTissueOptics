@@ -24,7 +24,7 @@ class BoundingBox:
 
     def _checkIfCoherent(self):
         if not (self.xMax >= self.xMin and self.yMax >= self.yMin and self.zMax >= self.zMin):
-            print("Oh-Oh")
+            raise ValueError("Maximum limit value cannot be lower than minimum limit value.")
 
     @classmethod
     def fromVertices(cls, vertices: List[Vector]) -> 'BoundingBox':
