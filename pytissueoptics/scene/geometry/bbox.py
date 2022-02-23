@@ -142,3 +142,9 @@ class BoundingBox:
 
     def __getitem__(self, index: int) -> List[float]:
         return self._xyzLimits[index]
+
+    def intersects(self, other: 'BoundingBox') -> bool:
+        for axis in range(3):
+            if other[axis][0] > self[axis][1] or other[axis][1] < self[axis][0]:
+                return False
+        return True

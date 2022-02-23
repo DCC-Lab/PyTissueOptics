@@ -47,6 +47,12 @@ class Solid:
     def bbox(self) -> BoundingBox:
         return self._bbox
 
+    def getBoundingBox(self) -> BoundingBox:
+        return self.bbox
+
+    def getVertices(self) -> List[Vector]:
+        return self.vertices
+
     def _resetBoundingBoxes(self):
         self._bbox = BoundingBox.fromVertices(self._vertices)
         self._surfaces.resetBoundingBoxes()
@@ -146,3 +152,9 @@ class Solid:
 
     def contains(self, *vertices: Vector) -> bool:
         raise NotImplementedError
+
+    def isStack(self) -> bool:
+        for surfaceName in self.surfaceNames:
+            if "Interface" in surfaceName:
+                return True
+        return False

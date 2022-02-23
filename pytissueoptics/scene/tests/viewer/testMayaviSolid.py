@@ -26,3 +26,16 @@ class TestMayaviSolid(unittest.TestCase):
         self.assertEqual([0, 0, 1, 1], x)
         self.assertEqual(len(solid.getPolygons()), len(polygonIndices))
         self.assertEqual((2, 3, 0), polygonIndices[1])
+
+    def testGivenNewMayaviSolidWithLoadNormals_shouldExtractMayaviNormalsFromSolid(self):
+        solid = self.createSimpleSolid()
+        mayaviSolid = MayaviSolid(solid, loadNormals=True)
+
+        normals = mayaviSolid.normals
+        x, y, z, u, v, w = normals.components
+        self.assertEqual(len(solid.getPolygons()), len(x))
+        self.assertTrue(len(x) == len(y) == len(z) == len(u) == len(v) == len(w))
+
+        for i, polygon in enumerate(self.surfaces.getPolygons()):
+            self.assertEqual([x[i], y[i], z[i]], polygon.getCentroid().array)
+            self.assertEqual([u[i], v[i], w[i]], polygon.normal.array)
