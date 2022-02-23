@@ -37,3 +37,10 @@ class TestTree(unittest.TestCase):
     def testGetLeafCount_shouldReturnCountOf1(self):
         count = self.tree.getLeafCount()
         self.assertEqual(1, count)
+
+    def testGetLeafBbox_shouldReturnBBox(self):
+        bbox = BoundingBox(xLim=[0, 1], yLim=[0, 1], zLim=[0, 1])
+        leafBboxes = self.tree.getLeafBoundingBoxes()
+        self.assertEqual([bbox], leafBboxes)
+
+

@@ -67,8 +67,10 @@ class HardSAHNodeSplitter(NodeSplitter):
         for i in range(1, self._nbOfSplitPlanes + 1):
             split = self._aMin + i * self._step
             left, right = self._polyCounter.run(split, self._splitAxis, self._polygons)
-            tempLeftBbox = self._nodeBbox.changeToNew(self._splitAxis, "max", split)
-            tempRightBbox = self._nodeBbox.changeToNew(self._splitAxis, "min", split)
+            tempLeftBbox = self._nodeBbox.copy()
+            tempLeftBbox.update(self._splitAxis, "max", split)
+            tempRightBbox = self._nodeBbox.copy()
+            tempRightBbox.update(self._splitAxis, "min", split)
             newSAH = len(left) * tempLeftBbox.getArea() + len(right) * tempRightBbox.getArea()
 
             if i == 1:
