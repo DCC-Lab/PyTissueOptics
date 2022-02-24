@@ -24,7 +24,8 @@ class Solid:
 
         self.translateTo(position)
         self._setInsideMaterial()
-        self._resetBoundingBox()
+        self._resetBoundingBoxes()
+        self._resetPolygonsCentroids()
 
     @property
     def position(self) -> Vector:
@@ -52,9 +53,12 @@ class Solid:
     def getVertices(self) -> List[Vector]:
         return self.vertices
 
-    def _resetBoundingBox(self):
+    def _resetBoundingBoxes(self):
         self._bbox = BoundingBox.fromVertices(self._vertices)
         self._surfaces.resetBoundingBoxes()
+
+    def _resetPolygonsCentroids(self):
+        self._surfaces.resetCentroids()
 
     def translateTo(self, position):
         if position == self._position:
@@ -66,7 +70,8 @@ class Solid:
         self._position.add(translationVector)
         for v in self._vertices:
             v.add(translationVector)
-        self._resetBoundingBox()
+        self._resetBoundingBoxes()
+        self._resetPolygonsCentroids()
 
     def rotate(self, xTheta=0, yTheta=0, zTheta=0):
         """
@@ -86,9 +91,10 @@ class Solid:
         for (vertex, rotatedVertexArray) in zip(self._vertices, rotatedVerticesArray):
             vertex.update(*rotatedVertexArray)
 
-        self._surfaces.resetNormals()
         self._orientation.add(rotation)
-        self._resetBoundingBox()
+        self._surfaces.resetNormals()
+        self._resetBoundingBoxes()
+        self._resetPolygonsCentroids()
 
     def getMaterial(self, surfaceName: str = None) -> Material:
         if surfaceName:
