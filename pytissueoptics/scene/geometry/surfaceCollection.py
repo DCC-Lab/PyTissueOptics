@@ -50,6 +50,10 @@ class SurfaceCollection:
         for polygon in self.getPolygons():
             polygon.resetBoundingBox()
 
+    def resetCentroids(self):
+        for polygon in self.getPolygons():
+            polygon.resetCentroid()
+
     def extend(self, other: 'SurfaceCollection'):
         assert not any(self._contains(surface) for surface in other.surfaceNames)
         self._surfaces.update(other._surfaces)

@@ -23,6 +23,8 @@ class Polygon:
             self.resetNormal()
 
         self._bbox = None
+        self._centroid = None
+        self.resetCentroid()
         self.resetBoundingBox()
 
     @property
@@ -45,14 +47,24 @@ class Polygon:
     def bbox(self) -> BoundingBox:
         return self._bbox
 
-    def resetBoundingBox(self):
-        self._bbox = BoundingBox.fromVertices(self._vertices)
+    @property
+    def centroid(self) -> Vector:
+        return self._centroid
 
     def setOutsideMaterial(self, material: Material):
         self._outsideMaterial = material
 
     def setInsideMaterial(self, material: Material):
         self._insideMaterial = material
+
+    def resetCentroid(self):
+        vertexSum = Vector(0, 0, 0)
+        for vertex in self._vertices:
+            vertexSum.add(vertex)
+        self._centroid = vertexSum / (len(self._vertices))
+
+    def resetBoundingBox(self):
+        self._bbox = BoundingBox.fromVertices(self._vertices)
 
     def resetNormal(self):
         """

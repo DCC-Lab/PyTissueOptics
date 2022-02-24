@@ -3,12 +3,17 @@ from typing import List, Dict
 from pytissueoptics.scene.materials import Material
 from pytissueoptics.scene.geometry import Vector
 from pytissueoptics.scene.solids import Solid
+from pytissueoptics.scene.geometry import Polygon, BoundingBox
 
 
 class Scene:
-    def __init__(self, ignoreIntersections=False):
+    def __init__(self, solids: List[Solid] = None, ignoreIntersections=False):
         self._solids = []
         self._ignoreIntersections = ignoreIntersections
+        
+        if solids:
+            for solid in solids:
+                self.add(solid)
 
     def add(self, solid: Solid, position: Vector = None):
         if position:
@@ -56,3 +61,18 @@ class Scene:
     def _assertIsNotAStack(solid: Solid):
         if solid.isStack():
             raise NotImplementedError("Cannot place a solid inside a solid stack. ")
+
+    def getSolids(self):
+        return self._solids
+
+    def getPolygons(self) -> List[Polygon]:
+        polygons = []
+        for solid in self._solids:
+            polygons.extend(solid.surfaces.getPolygons())
+        return polygons
+
+    def getBoundingBox(self) -> BoundingBox:
+        bbox = BoundingBox(xLim=[0, 0], yLim=[0, 0], zLim=[0, 0])
+        for solid in self._solids:
+            bbox.extendTo(solid.bbox)
+        return bbox
