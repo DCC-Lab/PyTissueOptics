@@ -4,7 +4,6 @@ from pytissueoptics.scene.geometry import BoundingBox, Vector
 
 
 class TestBoundingBox(unittest.TestCase):
-
     def setUp(self):
         self.xLim = [0, 1]
         self.yLim = [-1, 0]
@@ -38,6 +37,39 @@ class TestBoundingBox(unittest.TestCase):
         self.assertEqual(bbox.xLim, [-1, 0])
         self.assertEqual(bbox.yLim, [-1, 1])
         self.assertEqual(bbox.zLim, [0, 3.001])
+
+    def testGivenNewBBox_shouldDefineWidths(self):
+        bbox1 = BoundingBox(self.xLim, self.yLim, [-1, 1])
+        self.assertEqual(1, bbox1.xWidth)
+        self.assertEqual(1, bbox1.yWidth)
+        self.assertEqual(2, bbox1.zWidth)
+
+    def testGivenNewBBox_shouldDefineArea(self):
+        bbox1 = BoundingBox(self.xLim, self.yLim, [-1, 1])
+        expectedArea = (1 * 1) * 2 + (2 * 1) * 4
+        self.assertEqual(expectedArea, bbox1.getArea())
+
+    def testGivenAContainedPoint_whenContains_shouldReturnTrue(self):
+        bbox1 = BoundingBox(self.xLim, self.yLim, [-1, 1])
+        point1 = Vector(0.1, -0.1, -0.9)
+        self.assertEqual(True, bbox1.contains(point1))
+
+    def testGivenAnOutsidePoint_whenContains_shouldReturnFalse(self):
+        bbox1 = BoundingBox(self.xLim, self.yLim, [-1, 1])
+        point1 = Vector(0.1, -0.1, -1.1)
+        self.assertEqual(False, bbox1.contains(point1))
+
+    def testGivenATouchingPoint_whenContains_shouldReturnFalse(self):
+        bbox1 = BoundingBox(self.xLim, self.yLim, [-1, 1])
+        point1 = Vector(0, 0, -1)
+        self.assertEqual(False, bbox1.contains(point1))
+
+    def testGivenABBox_whenExtendTo_shouldIncreaseTheBboxLimits(self):
+        bbox1 = BoundingBox(self.xLim, self.yLim, [-1, 1])
+        bbox2 = BoundingBox([0, 0.1], [-2, 2], [-2, 0.9])
+        bbox1.extendTo(bbox2)
+        expectedBbox = BoundingBox([0, 1], [-2, 2], [-2, 1])
+        self.assertEqual(expectedBbox, bbox1)
 
     def testWhenIntersectsWithIntersectingBBox_shouldReturnTrue(self):
         bbox = BoundingBox([0, 5], [0, 5], [0, 5])

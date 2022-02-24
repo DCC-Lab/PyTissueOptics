@@ -115,5 +115,6 @@ class TestSolid(unittest.TestCase):
         polygon = mock(Polygon)
         when(polygon).resetNormal().thenReturn()
         when(polygon).resetBoundingBox().thenReturn()
+        when(polygon).resetCentroid().thenReturn()
         when(polygon).setInsideMaterial(...).thenReturn()
         return polygon

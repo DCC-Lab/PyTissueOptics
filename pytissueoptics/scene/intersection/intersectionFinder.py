@@ -24,7 +24,7 @@ class IntersectionFinder:
         self._quadIntersect = MollerTrumboreQuadIntersect()
         self._boxIntersect = GemsBoxIntersect()
 
-    def findIntersection(self, ray: Ray) -> Union[Vector, None]:
+    def findIntersection(self, ray: Ray) -> Union[Intersection, None]:
         raise NotImplementedError
 
 

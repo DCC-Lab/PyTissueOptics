@@ -13,12 +13,13 @@ class MayaviViewer:
         self._view = {"azimuth": 0, "zenith": 0, "distance": None, "pointingTowards": None, "roll": None}
         self.clear()
 
-    def add(self, *solids: 'Solid', representation="wireframe", lineWidth=0.25, showNormals=False, normalLength=0.3):
+
+    def add(self, *solids: 'Solid', representation="wireframe", lineWidth=0.25, showNormals=False, normalLength=0.3, opacity=1):
         for solid in solids:
             mayaviSolid = MayaviSolid(solid, loadNormals=showNormals)
             self._scenes["DefaultScene"]["Solids"].append(mayaviSolid)
             mlab.triangular_mesh(*mayaviSolid.triangleMesh.components, representation=representation, line_width=lineWidth,
-                                 colormap="viridis")
+                                 colormap="viridis", opacity=opacity)
             if showNormals:
                 mlab.quiver3d(*mayaviSolid.normals.components, line_width=lineWidth, scale_factor=normalLength, color=(1, 1, 1))
 
