@@ -2,7 +2,7 @@ from typing import Tuple, List
 
 from pytissueoptics.scene.geometry import Polygon, BoundingBox
 from pytissueoptics.scene.tree.treeConstructor.utils import meanCentroid
-from pytissueoptics.scene.tree.treeConstructor import NodeSplitter, SplitNodeResult
+from pytissueoptics.scene.tree.treeConstructor import NodeSplitter, SplitNodeResult, PolygonCounter
 
 
 class MeanCentroidNodeSplitter(NodeSplitter):
@@ -37,14 +37,19 @@ class MiddlePolygonSpanNodeSplitter(NodeSplitter):
 
 
 class HardSAHNodeSplitter(NodeSplitter):
+    def __init__(self, polygonCounter: PolygonCounter = None,
+                 nbOfSplitPlanes: int = 50, splitCostPercentage: float = 0.1):
+        super().__init__(polygonCounter)
+        self._nbOfSplitPlanes = nbOfSplitPlanes
+        self._splitCostPercentage = splitCostPercentage
+
     def split(self, splitAxis: str, nodeBbox: BoundingBox, polygons: List[Polygon]) -> SplitNodeResult:
-        nbOfSplitPlanes = self.kwargs["nbOfSplitPlanes"]
         aMin, aMax = nodeBbox.getAxisLimits(splitAxis)
-        step = nodeBbox.getAxisWidth(splitAxis) / (nbOfSplitPlanes + 1)
+        step = nodeBbox.getAxisWidth(splitAxis) / (self._nbOfSplitPlanes + 1)
 
         nodeSAH = nodeBbox.getArea() * len(polygons)
-        splitLine, minSAH = self._searchMinSAH(nodeBbox, polygons, splitAxis, aMin, step, nbOfSplitPlanes)
-        splitCost = self.kwargs["splitCostPercentage"] * nodeSAH
+        splitLine, minSAH = self._searchMinSAH(nodeBbox, polygons, splitAxis, aMin, step)
+        splitCost = self._splitCostPercentage * nodeSAH
 
         if minSAH + splitCost < nodeSAH:
             stopCondition = False
@@ -56,10 +61,10 @@ class HardSAHNodeSplitter(NodeSplitter):
         groupBbox = self._getNewChildrenBbox(nodeBbox, splitAxis, splitLine)
         return SplitNodeResult(stopCondition, splitAxis, splitLine, groupBbox, polygonGroups)
 
-    def _searchMinSAH(self, nodeBbox, polygons, splitAxis, aMin, step, nbOfSplitPlanes):
+    def _searchMinSAH(self, nodeBbox, polygons, splitAxis, aMin, step):
         lowestIndexSAH = 1
         minSAH = 0
-        for i in range(1, nbOfSplitPlanes + 1):
+        for i in range(1, self._nbOfSplitPlanes + 1):
             split = aMin + i * step
             left, right = self._polygonCounter.count(split, splitAxis, polygons)
             tempLeftBbox = nodeBbox.copy()

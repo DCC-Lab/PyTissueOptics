@@ -8,11 +8,11 @@ class SAHBasicKDTreeConstructor(TreeConstructor):
     def __init__(self):
         super(SAHBasicKDTreeConstructor, self).__init__()
         self.setContext(RotatingAxis(), CentroidPolyCounter(),
-                        HardSAHNodeSplitter(nbOfSplitPlane=50, splitCostPercentage=0.1))
+                        HardSAHNodeSplitter(nbOfSplitPlanes=50, splitCostPercentage=0.1))
 
 
 class SAHWideAxisTreeConstructor(TreeConstructor):
     def __init__(self):
         super(SAHWideAxisTreeConstructor, self).__init__()
         self.setContext(LargestSpanAxis(), BBoxPolyCounter(),
-                        HardSAHNodeSplitter(nbOfSplitPlane=50, splitCostPercentage=0.1))
+                        HardSAHNodeSplitter(nbOfSplitPlanes=50, splitCostPercentage=0.1))

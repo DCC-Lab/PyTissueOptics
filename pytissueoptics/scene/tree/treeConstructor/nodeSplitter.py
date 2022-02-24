@@ -5,13 +5,11 @@ from pytissueoptics.scene.tree.treeConstructor import SplitNodeResult, PolygonCo
 
 
 class NodeSplitter:
-    def __init__(self, polygonCounter: PolygonCounter = None, **kwargs):
+    def __init__(self, polygonCounter: PolygonCounter = None):
         self._polygonCounter = polygonCounter
-        self.kwargs = kwargs
 
-    def setContext(self, polygonCounter: PolygonCounter, **kwargs):
+    def setContext(self, polygonCounter: PolygonCounter):
         self._polygonCounter = polygonCounter
-        self.kwargs = kwargs
 
     def split(self, splitAxis: str, nodeBbox: BoundingBox, polygons: List[Polygon]) -> SplitNodeResult:
         raise NotImplementedError
