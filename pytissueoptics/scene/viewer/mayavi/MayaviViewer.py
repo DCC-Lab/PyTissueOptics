@@ -27,7 +27,7 @@ class MayaviViewer:
             mayaviSolid = MayaviSolid(solid, loadNormals=showNormals)
             self._scenes["DefaultScene"]["Solids"].append(mayaviSolid)
             s = mlab.triangular_mesh(*mayaviSolid.triangleMesh.components, representation=representation,
-                                     line_width=lineWidth, opacity=opacity, colormap=colormap)
+                                     line_width=lineWidth, colormap=colormap, opacity=opacity)
             s.module_manager.scalar_lut_manager.reverse_lut = reverseColormap
             if constantColor:
                 s.module_manager.lut_data_mode = "cell data"

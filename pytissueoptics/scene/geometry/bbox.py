@@ -1,5 +1,5 @@
 from typing import List
-
+from copy import deepcopy
 from pytissueoptics.scene.geometry import Vector
 
 
@@ -76,6 +76,69 @@ class BoundingBox:
     @property
     def zLim(self) -> List[float]:
         return self._zLim
+
+    @property
+    def xWidth(self):
+        return self.xMax - self.xMin
+
+    @property
+    def yWidth(self):
+        return self.yMax - self.yMin
+
+    @property
+    def zWidth(self):
+        return self.zMax - self.zMin
+
+    def getAxisWidth(self, axis: str) -> float:
+        if axis == "x":
+            return self.xWidth
+        elif axis == "y":
+            return self.yWidth
+        elif axis == "z":
+            return self.zWidth
+
+    def getAxisLimit(self, axis: str, limit: str) -> float:
+        return self._xyzLimits[self._axisKeys.index(axis)][self._limitKeys.index(limit)]
+
+    def getAxisLimits(self, axis: str) -> List[float]:
+        return self._xyzLimits[self._axisKeys.index(axis)]
+
+    def update(self, axis: str, limit: str, value: float):
+        self._xyzLimits[self._axisKeys.index(axis)][self._limitKeys.index(limit)] = value
+        self._checkIfCoherent()
+
+    def copy(self):
+        newBbox = deepcopy(self)
+        return newBbox
+
+    def getArea(self):
+        a = self.xWidth
+        b = self.yWidth
+        c = self.zWidth
+        return a * b * 2 + a * c * 2 + b * c * 2
+
+    def contains(self, point: Vector):
+        xCondition = self.xMin < point.x < self.xMax
+        yCondition = self.yMin < point.y < self.yMax
+        zCondition = self.zMin < point.z < self.zMax
+        if xCondition and yCondition and zCondition:
+            return True
+        else:
+            return False
+
+    def extendTo(self, other: 'BoundingBox'):
+        if other.xMin < self.xMin:
+            self._xLim[0] = other.xMin
+        if other.xMax > self.xMax:
+            self._xLim[1] = other.xMax
+        if other.yMin < self.yMin:
+            self._yLim[0] = other.yMin
+        if other.yMax > self.yMax:
+            self._yLim[1] = other.yMax
+        if other.zMin < self.zMin:
+            self._zLim[0] = other.zMin
+        if other.zMax > self.zMax:
+            self._zLim[1] = other.zMax
 
     def __getitem__(self, index: int) -> List[float]:
         return self._xyzLimits[index]
