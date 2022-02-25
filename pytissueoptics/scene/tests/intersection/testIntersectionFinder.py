@@ -15,35 +15,32 @@ class TestIntersectionFinder(unittest.TestCase):
                                             for primitive in [primitives.TRIANGLE, primitives.QUAD]]
 
     @data(*intersectionFinders)
-    def testGivenNoSolids_shouldNotFindIntersection(self, IntersectionFinder):
-        intersectionFinder = IntersectionFinder([])
+    def testGivenNoSolids_shouldNotFindIntersection(self, AnyIntersectionFinder):
         origin = Vector(0, 0, 0)
         direction = Vector(0, 0, 1)
         ray = Ray(origin, direction)
 
-        intersection = intersectionFinder.findIntersection(ray)
+        intersection = AnyIntersectionFinder([]).findIntersection(ray)
 
         self.assertIsNone(intersection)
 
     @data(*intersectionFinders)
-    def testGivenRayIsNotIntersectingASolid_shouldNotFindIntersection(self, IntersectionFinder):
+    def testGivenRayIsNotIntersectingASolid_shouldNotFindIntersection(self, AnyIntersectionFinder):
         direction = Vector(1, 0, 1)
         direction.normalize()
         ray = Ray(origin=Vector(0, 0, 0), direction=direction)
         solid = Sphere(radius=1, order=1, position=Vector(0, 0, 5))
-        intersectionFinder = IntersectionFinder([solid])
 
-        intersection = intersectionFinder.findIntersection(ray)
+        intersection = AnyIntersectionFinder([solid]).findIntersection(ray)
 
         self.assertIsNone(intersection)
 
     @data(*intersectionFinders)
-    def testGivenRayIsIntersectingASolid_shouldReturnIntersectionDistanceAndPosition(self, IntersectionFinder):
+    def testGivenRayIsIntersectingASolid_shouldReturnIntersectionDistanceAndPosition(self, AnyIntersectionFinder):
         ray = Ray(origin=Vector(0, 0.5, 0), direction=Vector(0, 0, 1))
         solid = Sphere(radius=1, order=2, position=Vector(0, 0, 5))
-        intersectionFinder = IntersectionFinder([solid])
 
-        intersection = intersectionFinder.findIntersection(ray)
+        intersection = AnyIntersectionFinder([solid]).findIntersection(ray)
 
         self.assertIsNotNone(intersection)
         self.assertEqual(0, intersection.position.x)
@@ -52,39 +49,37 @@ class TestIntersectionFinder(unittest.TestCase):
         self.assertAlmostEqual(5 - math.sqrt(3) / 2, intersection.distance, places=2)
 
     @data(*intersectionFindersWithAnyPrimitives)
-    def testGivenRayIsIntersectingASolid_shouldReturnIntersectionPolygon(self, finderAndPrimitivePair):
-        IntersectionFinder, primitive = finderAndPrimitivePair
+    def testGivenRayIsIntersectingASolid_shouldReturnIntersectionPolygon(self, anyFinderAndPrimitivePair):
+        AnyIntersectionFinder, anyPrimitive = anyFinderAndPrimitivePair
         ray = Ray(origin=Vector(-0.5, 0.5, 0), direction=Vector(0, 0, 1))
-        solid = Cube(2, position=Vector(0, 0, 5), primitive=primitive)
-        hitPolygon = solid.surfaces.getPolygons("Front")[0]
-        intersectionFinder = IntersectionFinder([solid])
+        solid = Cube(2, position=Vector(0, 0, 5), primitive=anyPrimitive)
+        polygonThatShouldBeHit = solid.surfaces.getPolygons("Front")[0]
 
-        intersection = intersectionFinder.findIntersection(ray)
+        intersection = AnyIntersectionFinder([solid]).findIntersection(ray)
 
         self.assertIsNotNone(intersection)
-        self.assertEqual(hitPolygon, intersection.polygon)
+        self.assertEqual(polygonThatShouldBeHit, intersection.polygon)
 
     @data(*intersectionFinders)
-    def testGivenRayIsOnlyIntersectingWithASolidBoundingBox_shouldNotFindIntersection(self, IntersectionFinder):
+    def testGivenRayIsOnlyIntersectingWithASolidBoundingBox_shouldNotFindIntersection(self, AnyIntersectionFinder):
         direction = Vector(0, 0.9, 1)
         ray = Ray(origin=Vector(0, 0, 0), direction=direction)
         solid = Sphere(radius=1, order=1, position=Vector(0, 0, 2))
-        intersectionFinder = IntersectionFinder([solid])
 
-        intersection = intersectionFinder.findIntersection(ray)
+        intersection = AnyIntersectionFinder([solid]).findIntersection(ray)
 
         self.assertIsNone(intersection)
 
     @data(*intersectionFinders)
-    def testGivenRayIsIntersectingMultipleSolids_shouldReturnClosestIntersection(self, IntersectionFinder):
+    def testGivenRayIsIntersectingMultipleSolids_shouldReturnClosestIntersection(self, AnyIntersectionFinder):
         ray = Ray(origin=Vector(0, 0.5, 0), direction=Vector(0, 0, 1))
         solid1 = Sphere(radius=1, order=2, position=Vector(0, 0, 5))
         solid2 = Sphere(radius=1, order=1, position=Vector(0, 0, 6))
         solid3 = Sphere(radius=1, order=1, position=Vector(0, 0, 7))
         solid4 = Sphere(radius=1, order=1, position=Vector(0, 2, 3))
-        intersectionFinder = IntersectionFinder([solid1, solid2, solid3, solid4])
+        solids = [solid1, solid2, solid3, solid4]
 
-        intersection = intersectionFinder.findIntersection(ray)
+        intersection = AnyIntersectionFinder(solids).findIntersection(ray)
 
         self.assertIsNotNone(intersection)
         self.assertEqual(0, intersection.position.x)
@@ -92,14 +87,14 @@ class TestIntersectionFinder(unittest.TestCase):
         self.assertAlmostEqual(5 - math.sqrt(3) / 2, intersection.position.z, places=2)
 
     @data(*intersectionFinders)
-    def testGivenRayThatFirstOnlyIntersectsWithAnotherSolidBoundingBoxBeforeIntersectingASolid_shouldFindIntersection(self, IntersectionFinder):
+    def testGivenRayThatFirstOnlyIntersectsWithAnotherSolidBoundingBoxBeforeIntersectingASolid_shouldFindIntersection(self, AnyIntersectionFinder):
         direction = Vector(0, 0.9, 1)
         ray = Ray(origin=Vector(0, 0, 0), direction=direction)
-        solid = Sphere(radius=1, order=1, position=Vector(0, 0, 2))
-        solidBehindMiss = Cube(2, position=Vector(0, 2, 4))
-        intersectionFinder = IntersectionFinder([solid, solidBehindMiss])
+        solidMissed = Sphere(radius=1, order=1, position=Vector(0, 0, 2))
+        solidHitBehind = Cube(2, position=Vector(0, 2, 4))
+        solids = [solidMissed, solidHitBehind]
 
-        intersection = intersectionFinder.findIntersection(ray)
+        intersection = AnyIntersectionFinder(solids).findIntersection(ray)
 
         self.assertIsNotNone(intersection)
         self.assertEqual(0, intersection.position.x)

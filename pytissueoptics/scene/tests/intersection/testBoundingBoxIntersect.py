@@ -12,14 +12,14 @@ class TestBoxIntersect(unittest.TestCase):
     intersectStrategies = [GemsBoxIntersect, ZacharBoxIntersect]
 
     @data(*intersectStrategies)
-    def testGivenIntersectingRayAndBox_shouldReturnClosestIntersectionPoint(self, IntersectStrategy):
+    def testGivenIntersectingRayAndBox_shouldReturnClosestIntersectionPoint(self, AnyIntersectStrategy):
         box = BoundingBox([0 + 2, 1 + 2], [0, 1], [-1, 0])
         rayOrigin = Vector(0.25 + 2, 0.25, 2)
         rayDirection = Vector(0.1, 0, -1)
         rayDirection.normalize()
         ray = Ray(rayOrigin, rayDirection)
 
-        intersection = IntersectStrategy().getIntersection(ray, box)
+        intersection = AnyIntersectStrategy().getIntersection(ray, box)
 
         self.assertIsNotNone(intersection)
         self.assertEqual(2.45, intersection.x)
@@ -27,62 +27,62 @@ class TestBoxIntersect(unittest.TestCase):
         self.assertEqual(0.0, intersection.z)
 
     @data(*intersectStrategies)
-    def testGivenNonIntersectingRayAndBox_shouldReturnNone(self, IntersectStrategy):
+    def testGivenNonIntersectingRayAndBox_shouldReturnNone(self, AnyIntersectStrategy):
         box = BoundingBox([0, 1], [0, 1], [-1, 0])
         rayOrigin = Vector(0.25, 0.25, 2)
         rayDirection = Vector(-0.2, 0, -1)
         rayDirection.normalize()
         ray = Ray(rayOrigin, rayDirection)
 
-        intersection = IntersectStrategy().getIntersection(ray, box)
+        intersection = AnyIntersectStrategy().getIntersection(ray, box)
 
         self.assertIsNone(intersection)
 
     @data(*intersectStrategies)
-    def testGivenRayPointingAwayFromTheBox_shouldReturnNone(self, IntersectStrategy):
+    def testGivenRayPointingAwayFromTheBox_shouldReturnNone(self, AnyIntersectStrategy):
         box = BoundingBox([0, 1], [0, 1], [-1, 0])
         rayOrigin = Vector(0.25, 0.25, 2)
         rayDirection = Vector(-0.1, 0, 1)
         rayDirection.normalize()
         ray = Ray(rayOrigin, rayDirection)
 
-        intersection = IntersectStrategy().getIntersection(ray, box)
+        intersection = AnyIntersectStrategy().getIntersection(ray, box)
 
         self.assertIsNone(intersection)
 
     @data(*intersectStrategies)
-    def testGivenRayInsideBox_shouldReturnRayOrigin(self, IntersectStrategy):
+    def testGivenRayInsideBox_shouldReturnRayOrigin(self, AnyIntersectStrategy):
         box = BoundingBox([0, 1], [0, 1], [-2, 1])
         rayOrigin = Vector(0.25, 0.25, 0)
         rayDirection = Vector(0.1, 0, -1)
         rayDirection.normalize()
         ray = Ray(rayOrigin, rayDirection)
 
-        intersection = IntersectStrategy().getIntersection(ray, box)
+        intersection = AnyIntersectStrategy().getIntersection(ray, box)
         
         self.assertEqual(ray.origin, intersection)
 
     @data(*intersectStrategies)
-    def testGivenRayLengthShorterThanBoxIntersection_shouldReturnNone(self, IntersectStrategy):
+    def testGivenRayLengthShorterThanBoxIntersection_shouldReturnNone(self, AnyIntersectStrategy):
         box = BoundingBox([0, 1], [0, 1], [-1, 0])
         rayOrigin = Vector(0.25, 0.25, 2)
         rayDirection = Vector(0.1, 0, -1)
         rayDirection.normalize()
         ray = Ray(rayOrigin, rayDirection, length=1.8)
 
-        intersection = IntersectStrategy().getIntersection(ray, box)
+        intersection = AnyIntersectStrategy().getIntersection(ray, box)
 
         self.assertIsNone(intersection)
 
     @data(*intersectStrategies)
-    def testGivenRayLengthLongerThanBoxIntersection_shouldReturnIntersection(self, IntersectStrategy):
+    def testGivenRayLengthLongerThanBoxIntersection_shouldReturnIntersection(self, AnyIntersectStrategy):
         box = BoundingBox([0, 1], [0, 1], [-1, 0])
         rayOrigin = Vector(0.25, 0.25, 2)
         rayDirection = Vector(0.1, 0, -1)
         rayDirection.normalize()
         ray = Ray(rayOrigin, rayDirection, length=2.2)
 
-        intersection = IntersectStrategy().getIntersection(ray, box)
+        intersection = AnyIntersectStrategy().getIntersection(ray, box)
 
         self.assertIsNotNone(intersection)
         self.assertEqual(0.45, intersection.x)
