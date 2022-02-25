@@ -24,23 +24,23 @@ class TestLoader(unittest.TestCase):
         for solid in solids:
             self.assertIsInstance(solid, Solid)
 
-    def testWhenLoadingMultiPolygonObject_shouldSplitInTriangles(self):
+    def testWhenLoadingMultiPolygonObject_shouldNotSplitInTriangles(self):
         loader = Loader()
         solids = loader.load(self._filepath("testCubeTrianglesMulti.obj"))
-        self.assertEqual(13, len(solids[0].getPolygons()))
+        self.assertEqual(11, len(solids[0].getPolygons()))
 
     def testWhenLoadingMultiGroupObject_shouldSplitCorrectGroups(self):
         loader = Loader()
         solids = loader.load(self._filepath("testCubeTrianglesMulti.obj"))
-        self.assertCountEqual(solids[0].surfaceNames, ["front", "back", "bottom", "top", "right", "left"])
+        self.assertCountEqual(["front", "back", "bottom", "top", "right", "left"], solids[0].surfaceNames)
 
     def testWhenLoadingMultiGroupObject_shouldHaveCorrectAmountOfElementsPerGroup(self):
         loader = Loader()
 
         solids = loader.load(self._filepath("testCubeTrianglesMulti.obj"))
 
-        self.assertEqual(len(solids[0].surfaces.getPolygons("front")), 2)
-        self.assertEqual(len(solids[0].surfaces.getPolygons("back")), 3)
+        self.assertEqual(2, len(solids[0].surfaces.getPolygons("front")))
+        self.assertEqual(1, len(solids[0].surfaces.getPolygons("back")))
 
     def _filepath(self, fileName) -> str:
         return os.path.join(self.TEST_DIRECTORY, "parsers", "objFiles", fileName)

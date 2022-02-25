@@ -1,38 +1,60 @@
 import unittest
 
 from pytissueoptics.scene import Vector
-from pytissueoptics.scene.geometry import Triangle, primitives
+from pytissueoptics.scene.geometry import Triangle, primitives, Quad, Polygon
 from pytissueoptics.scene.solids import Solid
 from pytissueoptics.scene.geometry import SurfaceCollection
 from pytissueoptics.scene.viewer.mayavi import MayaviSolid
 
 
 class TestMayaviSolid(unittest.TestCase):
-    def createSimpleSolid(self) -> Solid:
-        V = [Vector(0, 0, 0), Vector(0, 1, 0), Vector(1, 1, 0), Vector(1, 0, 0)]
+    def createSimpleSolid(self, primitive=primitives.TRIANGLE) -> Solid:
+        V = [Vector(0, 0, 0), Vector(0, 1, 0), Vector(1, 1, 0), Vector(1, 0, 0),
+             Vector(0.5, -1, 0)]
         self.surfaces = SurfaceCollection()
-        self.surfaces.add("Face", [Triangle(V[0], V[1], V[2]), Triangle(V[2], V[3], V[0])])
+        if primitive == primitives.TRIANGLE:
+            self.surfaces.add("Face", [Triangle(V[0], V[1], V[2]), Triangle(V[0], V[2], V[3])])
+        if primitive == primitives.QUAD:
+            self.surfaces.add("Face", [Quad(V[0], V[1], V[2], V[3])])
+        if primitive == "Polygon":
+            self.surfaces.add("Face", [Polygon([V[0], V[1], V[2], V[3], V[4]]),
+                                       Triangle(V[0], V[1], V[2])])
         self.vertices = V
         return Solid(position=Vector(0, 0, 0), vertices=self.vertices,
-                     surfaces=self.surfaces, primitive=primitives.TRIANGLE)
+                     surfaces=self.surfaces, primitive=primitive)
 
-    def testGivenNewMayaviSolid_shouldExtractMayaviMeshFromSolid(self):
+    def testGivenNewMayaviSolidWithTrianglePrimitive_shouldExtractMayaviTriangleMeshFromSolid(self):
         solid = self.createSimpleSolid()
         mayaviSolid = MayaviSolid(solid)
 
-        mesh = mayaviSolid.mesh
-        x, y, z, polygonIndices = mesh.components
+        x, y, z, polygonIndices = mayaviSolid.triangleMesh.components
         self.assertTrue(len(x) == len(y) == len(z))
-        self.assertEqual([0, 0, 1, 1], x)
         self.assertEqual(len(solid.getPolygons()), len(polygonIndices))
-        self.assertEqual((2, 3, 0), polygonIndices[1])
+        self.assertEqual((0, 2, 3), polygonIndices[1])
+
+    def testGivenNewMayaviSolidWithQuadPrimitive_shouldExtractMayaviTriangleMeshFromSolid(self):
+        solid = self.createSimpleSolid(primitive=primitives.QUAD)
+        mayaviSolid = MayaviSolid(solid)
+
+        x, y, z, polygonIndices = mayaviSolid.triangleMesh.components
+        self.assertTrue(len(x) == len(y) == len(z))
+        self.assertEqual(2*len(solid.getPolygons()), len(polygonIndices))
+        self.assertEqual((0, 2, 3), polygonIndices[1])
+
+    def testGivenNewMayaviSolidWithArbitraryPolygonPrimitives_shouldExtractMayaviTriangleMeshFromSolid(self):
+        solid = self.createSimpleSolid(primitive="Polygon")
+        mayaviSolid = MayaviSolid(solid)
+
+        x, y, z, polygonIndices = mayaviSolid.triangleMesh.components
+        self.assertTrue(len(x) == len(y) == len(z))
+        self.assertEqual(4, len(polygonIndices))
+        self.assertEqual((0, 2, 3), polygonIndices[1])
 
     def testGivenNewMayaviSolidWithLoadNormals_shouldExtractMayaviNormalsFromSolid(self):
         solid = self.createSimpleSolid()
         mayaviSolid = MayaviSolid(solid, loadNormals=True)
 
-        normals = mayaviSolid.normals
-        x, y, z, u, v, w = normals.components
+        x, y, z, u, v, w = mayaviSolid.normals.components
         self.assertEqual(len(solid.getPolygons()), len(x))
         self.assertTrue(len(x) == len(y) == len(z) == len(u) == len(v) == len(w))
 
