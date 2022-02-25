@@ -43,12 +43,12 @@ class TestAnyIntersectionFinder:
         self.assertAlmostEqual(5 - math.sqrt(3) / 2, intersection.distance, places=2)
 
     def testGivenRayIsIntersectingASolidWithTrianglePrimitive_shouldReturnIntersectionTriangle(self):
-        self._givenRayIsIntersectingASolidWithAnyPrimitive_shouldReturnIntersectionPolygon(primitives.TRIANGLE)
+        self._testGivenRayIsIntersectingASolidWithAnyPrimitive_shouldReturnIntersectionPolygon(primitives.TRIANGLE)
 
     def testGivenRayIsIntersectingASolidWithQuadPrimitive_shouldReturnIntersectionQuad(self):
-        self._givenRayIsIntersectingASolidWithAnyPrimitive_shouldReturnIntersectionPolygon(primitives.QUAD)
+        self._testGivenRayIsIntersectingASolidWithAnyPrimitive_shouldReturnIntersectionPolygon(primitives.QUAD)
 
-    def _givenRayIsIntersectingASolidWithAnyPrimitive_shouldReturnIntersectionPolygon(self, anyPrimitive):
+    def _testGivenRayIsIntersectingASolidWithAnyPrimitive_shouldReturnIntersectionPolygon(self, anyPrimitive):
         ray = Ray(origin=Vector(-0.5, 0.5, 0), direction=Vector(0, 0, 1))
         solid = Cube(2, position=Vector(0, 0, 5), primitive=anyPrimitive)
         polygonThatShouldBeHit = solid.surfaces.getPolygons("Front")[0]
