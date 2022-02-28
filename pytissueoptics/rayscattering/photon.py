@@ -1,5 +1,8 @@
+import math
+
 import numpy as np
 
+from pytissueoptics.rayscattering.utils import rotateVectorAround
 from pytissueoptics.scene import Vector, Material
 from pytissueoptics.scene.intersection import Ray
 from pytissueoptics.scene.intersection.intersectionFinder import IntersectionFinder, Intersection
@@ -37,6 +40,7 @@ class Photon:
             self._roulette()
 
     def _step(self, distance):
+        # TODO: reflect, refract, scatter, finish distance
         stepRay = Ray(self._position, self._direction, distance)
         intersection = self._intersectionFinder.findIntersection(stepRay)
 
@@ -56,9 +60,8 @@ class Photon:
             self._decreaseWeightBy(delta)
 
     def _refract(self, intersection):
-        # todo
-        # self.ez.rotateAround(intersection.polygon.normal, np.random.rand())
-        # self.ez.rotateAround(intersection.polygon.normal, self._getRefractionAngle(intersection))
+        self._direction = rotateVectorAround(self._direction, intersection.polygon.normal,
+                                             self._getRefractionAngle(intersection))
 
         if self._logger:
             self._logger.logPoint(self._position)
@@ -92,21 +95,22 @@ class Photon:
         else:
             self._weight = 0
 
-    # def _getRefractionAngle(self, intersection):
-    #     surfaceNormal = intersection.polygon.normal
-    #     if intersection.polygon.normal.cross(self._direction) > 0:
-    #         thetaIn = math.acos(surfaceNormal.dot(self._direction))
-    #         inMaterial = intersection.polygon.outsideMaterial
-    #         outMaterial = intersection.polygon.insideMaterial
-    #     else:
-    #         thetaIn = math.acos(-surfaceNormal.dot(self._direction))
-    #         inMaterial = intersection.polygon.insideMaterial
-    #         outMaterial = intersection.polygon.outsideMaterial
-    #
-    #     sinThetaOut = inMaterial.index*math.sin(thetaIn)/outMaterial.index
-    #     if abs(sinThetaOut) > 1:
-    #         # We should not be here.
-    #         raise ValueError("Can't refract beyond angle of total reflection")
-    #
-    #     thetaOut = np.arcsin(sinThetaOut)
-    #     return thetaIn - thetaOut
+    def _getRefractionAngle(self, intersection):
+        surfaceNormal = intersection.polygon.normal
+        if surfaceNormal.dot(self._direction) > 0:
+            thetaIn = math.acos(surfaceNormal.dot(self._direction))
+            inMaterial = intersection.polygon.outsideMaterial
+            outMaterial = intersection.polygon.insideMaterial
+        else:
+            thetaIn = math.acos(-surfaceNormal.dot(self._direction))
+            inMaterial = intersection.polygon.insideMaterial
+            outMaterial = intersection.polygon.outsideMaterial
+
+        print(inMaterial, outMaterial)
+        sinThetaOut = inMaterial.index*math.sin(thetaIn)/outMaterial.index
+        if abs(sinThetaOut) > 1:
+            # We should not be here.
+            raise ValueError("Can't refract beyond angle of total reflection")
+
+        thetaOut = np.arcsin(sinThetaOut)
+        return thetaIn - thetaOut
