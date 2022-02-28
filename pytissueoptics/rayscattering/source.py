@@ -11,6 +11,7 @@ class Source:
     def __init__(self, position=Vector(0, 0, 0), direction=Vector(0, 0, 1), nPhotons=1):
         self._position = position
         self._direction = direction
+        self._direction.normalize()
         self._nPhotons = nPhotons
 
         self._photons: List[Photon] = []
@@ -23,6 +24,7 @@ class Source:
 
     def propagate(self, tissue: Tissue, worldMaterial: Material = Material(), logger: Logger = None):
         intersectionFinder = SimpleIntersectionFinder(tissue.solids)
+        tissue.setWorldMaterial(worldMaterial)
         for photon in self._photons:
             photon.setContext(worldMaterial=worldMaterial, intersectionFinder=intersectionFinder, logger=logger)
             photon.propagate()

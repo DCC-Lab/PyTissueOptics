@@ -1,6 +1,6 @@
 from typing import List
 
-from pytissueoptics.scene import MayaviViewer
+from pytissueoptics.scene import MayaviViewer, Material
 from pytissueoptics.scene.solids import Solid
 
 
@@ -16,3 +16,7 @@ class Tissue:
         viewer = MayaviViewer()
         self.addToViewer(viewer)
         viewer.show()
+
+    def setWorldMaterial(self, material: Material):
+        for solid in self.solids:
+            solid.setOutsideMaterial(material)
