@@ -15,12 +15,20 @@ class Scene:
             for solid in solids:
                 self.add(solid)
 
+        if solids:
+            for solid in solids:
+                self.add(solid)
+
     def add(self, solid: Solid, position: Vector = None):
         if position:
             solid.translateTo(position)
         if not self._ignoreIntersections:
             self._validate(solid)
         self._solids.append(solid)
+
+    @property
+    def solids(self):
+        return self._solids
 
     def _validate(self, newSolid: Solid):
         """ Assert newSolid position is valid and make proper adjustments so that the

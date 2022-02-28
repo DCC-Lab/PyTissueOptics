@@ -107,3 +107,8 @@ class TestVector(unittest.TestCase):
         newVector = self.vector.copy()
         newVector.add(Vector(1, 1, 1))
         self.assertNotEqual(newVector, self.vector)
+
+    def testWhenCheckIfAnotherVectorWithTheSameCoordinatesIsContained_shouldReturnTrue(self):
+        vector = Vector(0, 0, 0)
+        listOfOtherVectors = [Vector(0, 0, 0)]
+        self.assertTrue(vector in listOfOtherVectors)
