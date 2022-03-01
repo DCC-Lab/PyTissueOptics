@@ -7,14 +7,10 @@ from pytissueoptics.scene.geometry import Polygon, BoundingBox
 
 
 class Scene:
-    def __init__(self, solids: List[Solid] = None, ignoreIntersections=False):
+    def __init__(self, solids: List[Solid] = None, ignoreIntersections=False, partitionScene=True):
         self._solids = []
         self._ignoreIntersections = ignoreIntersections
         
-        if solids:
-            for solid in solids:
-                self.add(solid)
-
         if solids:
             for solid in solids:
                 self.add(solid)
