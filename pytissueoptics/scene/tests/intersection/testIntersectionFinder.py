@@ -4,10 +4,14 @@ import unittest
 from pytissueoptics.scene.intersection.intersectionFinder import IntersectionFinder
 from pytissueoptics.scene.solids import Sphere, Cube
 from pytissueoptics.scene.geometry import Vector, primitives
-from pytissueoptics.scene.intersection import SimpleIntersectionFinder, Ray
+from pytissueoptics.scene.tree import SpacePartition
+from pytissueoptics.scene.tree.treeConstructor.binary import SAHWideAxisTreeConstructor
+from pytissueoptics.scene.scene import Scene
+from pytissueoptics.scene.intersection import SimpleIntersectionFinder, FastIntersectionFinder, Ray
 
 
 class TestAnyIntersectionFinder:
+
     def getIntersectionFinder(self, solids) -> IntersectionFinder:
         raise NotImplementedError
 
@@ -100,3 +104,11 @@ class TestAnyIntersectionFinder:
 class TestSimpleIntersectionFinder(TestAnyIntersectionFinder, unittest.TestCase):
     def getIntersectionFinder(self, solids) -> IntersectionFinder:
         return SimpleIntersectionFinder(solids)
+
+
+class FastSimpleIntersectionFinder(TestAnyIntersectionFinder, unittest.TestCase):
+    def getIntersectionFinder(self, solids) -> IntersectionFinder:
+        scene = Scene(solids)
+        partition = SpacePartition(bbox=scene.getBoundingBox(), polygons=scene.getPolygons(),
+                                   constructor=SAHWideAxisTreeConstructor())
+        return FastIntersectionFinder(solids, partition)

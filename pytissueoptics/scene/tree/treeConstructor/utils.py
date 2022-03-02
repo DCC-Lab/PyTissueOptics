@@ -1,6 +1,6 @@
 from typing import List
 
-from pytissueoptics.scene.geometry import Polygon
+from pytissueoptics.scene.geometry import Polygon, BoundingBox
 
 
 def meanCentroid(axis: str, polygons: List[Polygon]):
@@ -14,3 +14,9 @@ def meanCentroid(axis: str, polygons: List[Polygon]):
             average += polygon.centroid.z
     average = average / len(polygons)
     return average
+
+def getPolygonsBbox(polygons: List[Polygon]):
+    bbox = BoundingBox([0, 0], [0, 0], [0, 0])
+    for polygon in polygons:
+        bbox.extendTo(polygon.bbox)
+    return bbox

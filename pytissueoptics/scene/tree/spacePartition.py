@@ -1,4 +1,5 @@
 from typing import List
+import json
 
 from pytissueoptics.scene.geometry import BoundingBox, Vector, Polygon
 from pytissueoptics.scene.tree import TreeConstructor
@@ -105,3 +106,24 @@ class SpacePartition:
             c = bbox.zMax - bbox.zMin
             cuboids.append(Cuboid(a=a, b=b, c=c, position=bbox.center))
         return cuboids
+
+    def getJSONBranching(self, node: Node = None, jsonFile: list = None):
+        if jsonFile is None:
+            jsonFile = []
+
+        if node is not None:
+            for i, child in enumerate(node.children):
+                jsonFile.append({"depth": child.depth, "polygons": len(child.polygons), "bbox": f"{child.bbox:.2f}", "children": []})
+                self.getJSONBranching(child, jsonFile[i]["children"])
+
+        else:
+            node = self._root
+            jsonFile.append({})
+            jsonFile[0]["depth"] = node.depth
+            jsonFile[0]["size"] = len(node.polygons)
+            jsonFile[0]["bbox"] = f"{node.bbox:.2f}"
+            jsonFile[0]["children"] = []
+            self.getJSONBranching(node, jsonFile[0]["children"])
+
+        if node.isRoot:
+            return json.dumps(jsonFile)

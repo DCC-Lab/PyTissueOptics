@@ -22,6 +22,15 @@ class BoundingBox:
         else:
             return False
 
+    def __format__(self, formatSpec):
+        f_xMin = float(format(self.xMin, formatSpec))
+        f_xMax = float(format(self.xMax, formatSpec))
+        f_yMin = float(format(self.yMin, formatSpec))
+        f_yMax = float(format(self.yMax, formatSpec))
+        f_zMin = float(format(self.zMin, formatSpec))
+        f_zMax = float(format(self.zMax, formatSpec))
+        return str([[f_xMin, f_xMax], [f_yMin, f_yMax], [f_zMin, f_zMax]])
+
     def _checkIfCoherent(self):
         if not (self.xMax >= self.xMin and self.yMax >= self.yMin and self.zMax >= self.zMin):
             raise ValueError("Maximum limit value cannot be lower than minimum limit value.")
@@ -138,6 +147,20 @@ class BoundingBox:
         if other.zMin < self.zMin:
             self._zLim[0] = other.zMin
         if other.zMax > self.zMax:
+            self._zLim[1] = other.zMax
+
+    def shrinkTo(self, other: 'BoundingBox'):
+        if other.xMin > self.xMin:
+            self._xLim[0] = other.xMin
+        if other.xMax < self.xMax:
+            self._xLim[1] = other.xMax
+        if other.yMin > self.yMin:
+            self._yLim[0] = other.yMin
+        if other.yMax < self.yMax:
+            self._yLim[1] = other.yMax
+        if other.zMin > self.zMin:
+            self._zLim[0] = other.zMin
+        if other.zMax < self.zMax:
             self._zLim[1] = other.zMax
 
     def __getitem__(self, index: int) -> List[float]:

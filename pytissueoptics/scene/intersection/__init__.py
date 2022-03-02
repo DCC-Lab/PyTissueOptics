@@ -1,2 +1,2 @@
 from .ray import Ray
-from .intersectionFinder import SimpleIntersectionFinder
+from .intersectionFinder import SimpleIntersectionFinder, FastIntersectionFinder

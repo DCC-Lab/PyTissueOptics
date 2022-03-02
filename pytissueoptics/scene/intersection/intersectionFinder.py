@@ -4,6 +4,7 @@ from typing import List, Union, Tuple
 
 from pytissueoptics.scene.geometry import Vector, Polygon, Triangle, Quad
 from pytissueoptics.scene.intersection import Ray
+from pytissueoptics.scene.tree import SpacePartition
 from pytissueoptics.scene.intersection.bboxIntersect import GemsBoxIntersect
 from pytissueoptics.scene.intersection.quadIntersect import MollerTrumboreQuadIntersect
 from pytissueoptics.scene.intersection.triangleIntersect import MollerTrumboreTriangleIntersect
@@ -75,3 +76,21 @@ class SimpleIntersectionFinder(IntersectionFinder):
             return self._triangleIntersect.getIntersection(ray, polygon)
         if isinstance(polygon, Quad):
             return self._quadIntersect.getIntersection(ray, polygon)
+
+
+class FastIntersectionFinder(IntersectionFinder):
+    def __init__(self, solids: List[Solid], partition: SpacePartition):
+        self._solids = solids
+        self._partition = partition
+        self._triangleIntersect = MollerTrumboreTriangleIntersect()
+        self._quadIntersect = MollerTrumboreQuadIntersect()
+        self._boxIntersect = GemsBoxIntersect()
+
+    def findIntersection(self, ray: Ray) -> Union[Intersection, None]:
+        bboxIntersections = self._findBBoxIntersectingSolids(ray)
+        bboxIntersections.sort(key=lambda x: x[0])
+        for (distance, solid) in bboxIntersections:
+            intersection = self._findClosestPolygonIntersection(ray, solid.getPolygons())
+            if intersection:
+                return intersection
+        return None
