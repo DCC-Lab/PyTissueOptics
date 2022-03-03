@@ -10,7 +10,7 @@ from pytissueoptics.scene.scene import Scene
 from pytissueoptics.scene.intersection import SimpleIntersectionFinder, FastIntersectionFinder, Ray
 
 
-class TestAnyIntersectionFinder:
+class TestAnyIntersectionFinder(unittest.TestCase):
 
     def getIntersectionFinder(self, solids) -> IntersectionFinder:
         raise NotImplementedError

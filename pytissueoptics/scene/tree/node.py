@@ -11,6 +11,7 @@ class Node:
         self._polygons = polygons
         self._bbox = bbox
         self._depth = depth
+        self._visited = False
 
     @property
     def parent(self):
@@ -33,6 +34,14 @@ class Node:
             return True
         else:
             return False
+
+    @property
+    def visited(self) -> bool:
+        return self._visited
+
+    @visited.setter
+    def visited(self, value: bool):
+        self._visited = value
 
     @property
     def polygons(self) -> List[Polygon]:
