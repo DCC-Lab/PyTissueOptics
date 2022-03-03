@@ -14,9 +14,9 @@ class TestSpacePartition(unittest.TestCase):
         polyList = [poly, poly, poly, poly]
         bbox1 = BoundingBox(xLim=[0, 1], yLim=[0.5, 1], zLim=[0.5, 1])
         bbox2 = BoundingBox(xLim=[0.5, 1], yLim=[0.5, 1], zLim=[0.5, 1])
-        bbox3 = BoundingBox(xLim=[0.5, 1], yLim=[0.5, 1], zLim=[0.5, 1])
-        result1 = SplitNodeResult(False, "x", 1, [bbox1], [polyList])
-        result2 = SplitNodeResult(False, "x", 1, [bbox2], [polyList])
+        bbox3 = BoundingBox(xLim=[0, 0.5], yLim=[0.5, 1], zLim=[0.5, 1])
+        result1 = SplitNodeResult(False, "x", 0, [bbox1], [polyList])
+        result2 = SplitNodeResult(False, "x", 0.5, [bbox2, bbox3], [polyList])
         result3 = SplitNodeResult(True, "x", 1, [bbox3], [polyList])
 
         self.AXIS_SELECTOR = mock(AxisSelector)
@@ -60,3 +60,9 @@ class TestSpacePartition(unittest.TestCase):
         node = self.tree.searchPoint(point)
         expectedNodeBbox = BoundingBox(xLim=[0, 1], yLim=[0.5, 1], zLim=[0.5, 1])
         self.assertEqual(expectedNodeBbox, node.bbox)
+
+    def testGivenOutsideVector_whenSearchPoint_shouldReturnNone(self):
+        point = Vector(0.1, 0.4, 0.6)
+        node = self.tree.searchPoint(point)
+        expectedNodeBbox = None
+        self.assertEqual(expectedNodeBbox, node)
