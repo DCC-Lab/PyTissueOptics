@@ -76,7 +76,11 @@ class Scene:
         return polygons
 
     def getBoundingBox(self) -> BoundingBox:
-        bbox = BoundingBox(xLim=[0, 0], yLim=[0, 0], zLim=[0, 0])
-        for solid in self._solids:
-            bbox.extendTo(solid.bbox)
+        bbox = None
+        for i, solid in enumerate(self._solids):
+            if i == 0:
+                bbox = solid.bbox
+            else:
+                bbox.extendTo(solid.bbox)
+
         return bbox

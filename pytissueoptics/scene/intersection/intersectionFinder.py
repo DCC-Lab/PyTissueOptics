@@ -85,14 +85,18 @@ class FastIntersectionFinder(IntersectionFinder):
 
     def findIntersection(self, ray: Ray) -> Optional[Intersection]:
         """
-        This algorithm is a simple home-made algorithm. It starts by locating the starting point of the ray inside
-        the SpacePartition. Once we have a node, we can verify if the ray intersects its children bounding boxes.
-        If it does, we'll repeat this process until we find the leaf node that the ray touches.
+        This algorithm is a simple home-made algorithm.
+
+        It is called a recursive backtrack algorithm. First, the ray origin is found with a recursive point search,
+        Then the intersection is found by checking is the ray intersects the neighbour node bbox. If it does, this node is explored.
+        When a leaf node is reached, the polygons within that leaf node are explored for a ray-polygon intersection.
+        If a hit is computed, the search is halted. Else, it continues to backtrack.
 
         Limitations:    - does not take in consideration if the touched polygon is shared amongst many nodes
         """
+
         rayStartingNode = self._partition.searchPoint(ray.origin)
-        if rayStartingNode is None:
+        if rayStartingNode is None and self._boxIntersect.getIntersection(ray, self._partition.root.bbox):
             rayStartingNode = self._partition.root
         intersection = self._findIntersection(ray, rayStartingNode)
         if intersection:
