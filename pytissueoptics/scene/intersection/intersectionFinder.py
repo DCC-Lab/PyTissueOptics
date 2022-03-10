@@ -28,6 +28,29 @@ class IntersectionFinder:
     def findIntersection(self, ray: Ray) -> Optional[Intersection]:
         raise NotImplementedError
 
+    def _findClosestPolygonIntersection(self, ray: Ray, polygons: List[Polygon]) -> Optional[Intersection]:
+        closestPolygon = None
+        closestIntersection = None
+        closestDistance = sys.maxsize
+        for polygon in polygons:
+            intersection = self._findPolygonIntersection(ray, polygon)
+            if not intersection:
+                continue
+            distance = (intersection - ray.origin).getNorm()
+            if distance < closestDistance:
+                closestDistance = distance
+                closestIntersection = intersection
+                closestPolygon = polygon
+        if not closestIntersection:
+            return None
+        return Intersection(closestDistance, closestIntersection, closestPolygon)
+
+    def _findPolygonIntersection(self, ray: Ray, polygon: Polygon) -> Optional[Vector]:
+        if isinstance(polygon, Triangle):
+            return self._triangleIntersect.getIntersection(ray, polygon)
+        if isinstance(polygon, Quad):
+            return self._quadIntersect.getIntersection(ray, polygon)
+
 
 class SimpleIntersectionFinder(IntersectionFinder):
     def findIntersection(self, ray: Ray) -> Optional[Intersection]:
@@ -54,29 +77,6 @@ class SimpleIntersectionFinder(IntersectionFinder):
                 break
         return solidCandidates
 
-    def _findClosestPolygonIntersection(self, ray: Ray, polygons: List[Polygon]) -> Optional[Intersection]:
-        closestPolygon = None
-        closestIntersection = None
-        closestDistance = sys.maxsize
-        for polygon in polygons:
-            intersection = self._findPolygonIntersection(ray, polygon)
-            if not intersection:
-                continue
-            distance = (intersection - ray.origin).getNorm()
-            if distance < closestDistance:
-                closestDistance = distance
-                closestIntersection = intersection
-                closestPolygon = polygon
-        if not closestIntersection:
-            return None
-        return Intersection(closestDistance, closestIntersection, closestPolygon)
-
-    def _findPolygonIntersection(self, ray: Ray, polygon: Polygon) -> Optional[Vector]:
-        if isinstance(polygon, Triangle):
-            return self._triangleIntersect.getIntersection(ray, polygon)
-        if isinstance(polygon, Quad):
-            return self._quadIntersect.getIntersection(ray, polygon)
-
 
 class FastIntersectionFinder(IntersectionFinder):
     def __init__(self, solids: List[Solid], partition: SpacePartition):
@@ -85,9 +85,9 @@ class FastIntersectionFinder(IntersectionFinder):
 
     def findIntersection(self, ray: Ray) -> Optional[Intersection]:
         """
-        This algorithm is a simple home-made algorithm.
+        This is a simple home-made algorithm.
 
-        It is called a recursive backtrack algorithm. First, the ray origin is found with a recursive point search,
+        It is part of a recursive backtrack algorithm family. First, the ray origin is found with a recursive point search,
         Then the intersection is found by checking is the ray intersects the neighbour node bbox. If it does, this node is explored.
         When a leaf node is reached, the polygons within that leaf node are explored for a ray-polygon intersection.
         If a hit is computed, the search is halted. Else, it continues to backtrack.
@@ -96,66 +96,34 @@ class FastIntersectionFinder(IntersectionFinder):
         """
 
         rayStartingNode = self._partition.searchPoint(ray.origin)
-        if rayStartingNode is None and self._boxIntersect.getIntersection(ray, self._partition.root.bbox):
-            rayStartingNode = self._partition.root
-        intersection = self._findIntersection(ray, rayStartingNode)
-        if intersection:
-            return intersection
-        return None
+        if rayStartingNode is None:
+            if self._boxIntersect.getIntersection(ray, self._partition.root.bbox):
+                rayStartingNode = self._partition.root
+            else:
+                return None
+        intersection = self._exploreNodeForIntersection(ray, rayStartingNode)
+        return intersection
 
-    def _findIntersection(self, ray: Ray, node: Node = None) -> Optional[Intersection]:
+    def _exploreNodeForIntersection(self, ray: Ray, node: Node = None) -> Optional[Intersection]:
         if not node.isLeaf:
             closestIntersection = None
             for child in node.children:
                 if not child.visited:
                     bboxIntersection = self._boxIntersect.getIntersection(ray, child.bbox)
                     child.visited = True
-
                     if bboxIntersection is not None:
-                        intersection = self._findIntersection(ray, child)
-
+                        if closestIntersection is not None:
+                            if (bboxIntersection - ray.origin).getNorm() > closestIntersection.distance:
+                                continue
+                        intersection = self._exploreNodeForIntersection(ray, child)
                         if intersection is not None:
-
                             if closestIntersection is None:
                                 closestIntersection = intersection
-
                             elif intersection.distance < closestIntersection.distance:
                                 closestIntersection = intersection
 
-            if closestIntersection is not None:
-                return closestIntersection
-
-            else:
-                node.visited = True
-                if not node.isRoot:
-                    self._findIntersection(ray, node.parent)
-                else:
-                    return None
+            return closestIntersection
 
         else:
             intersection = self._findClosestPolygonIntersection(ray, node.polygons)
             return intersection
-
-
-    def _findClosestPolygonIntersection(self, ray: Ray, polygons: List[Polygon]) -> Optional[Intersection]:
-        closestPolygon = None
-        closestIntersection = None
-        closestDistance = sys.maxsize
-        for polygon in polygons:
-            intersection = self._findPolygonIntersection(ray, polygon)
-            if not intersection:
-                continue
-            distance = (intersection - ray.origin).getNorm()
-            if distance < closestDistance:
-                closestDistance = distance
-                closestIntersection = intersection
-                closestPolygon = polygon
-        if not closestIntersection:
-            return None
-        return Intersection(closestDistance, closestIntersection, closestPolygon)
-
-    def _findPolygonIntersection(self, ray: Ray, polygon: Polygon) -> Optional[Vector]:
-        if isinstance(polygon, Triangle):
-            return self._triangleIntersect.getIntersection(ray, polygon)
-        if isinstance(polygon, Quad):
-            return self._quadIntersect.getIntersection(ray, polygon)

@@ -4,3 +4,4 @@ from .materials import Material
 from .scene import Scene
 from .loader import Loader
 from .viewer import MayaviViewer
+from .intersection import Ray

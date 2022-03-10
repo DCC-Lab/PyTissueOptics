@@ -74,10 +74,10 @@ class TestAnyIntersectionFinder(unittest.TestCase):
     def testGivenRayIsIntersectingMultipleSolids_shouldReturnClosestIntersection(self):
         ray = Ray(origin=Vector(0, 0.5, 0), direction=Vector(0, 0, 1))
         solid1 = Sphere(radius=1, order=2, position=Vector(0, 0, 5))
-        solid2 = Sphere(radius=1, order=1, position=Vector(0, 0, 6))
-        solid3 = Sphere(radius=1, order=1, position=Vector(0, 0, 7))
-        solid4 = Sphere(radius=1, order=1, position=Vector(0, 2, 3))
-        solids = [solid1, solid2, solid3, solid4]
+        solid2 = Sphere(radius=1, order=1, position=Vector(0, 0, 8))
+        solid3 = Sphere(radius=1, order=1, position=Vector(0, 0, 11))
+        solids = [solid1, solid2, solid3]
+
 
         intersection = self.getIntersectionFinder(solids).findIntersection(ray)
 
@@ -89,7 +89,7 @@ class TestAnyIntersectionFinder(unittest.TestCase):
     def testGivenRayThatFirstOnlyIntersectsWithAnotherSolidBoundingBoxBeforeIntersectingASolid_shouldFindIntersection(self):
         direction = Vector(0, 0.9, 1)
         ray = Ray(origin=Vector(0, 0, 0), direction=direction)
-        solidMissed = Sphere(radius=1, order=1, position=Vector(0, 0, 2))
+        solidMissed = Sphere(radius=1, order=1, position=Vector(0, 0, 1.9))
         solidHitBehind = Cube(2, position=Vector(0, 2, 4))
         solids = [solidMissed, solidHitBehind]
 
@@ -106,7 +106,7 @@ class TestSimpleIntersectionFinder(TestAnyIntersectionFinder, unittest.TestCase)
         return SimpleIntersectionFinder(solids)
 
 
-class FastSimpleIntersectionFinder(TestAnyIntersectionFinder, unittest.TestCase):
+class TestFastIntersectionFinder(TestAnyIntersectionFinder, unittest.TestCase):
     def getIntersectionFinder(self, solids) -> IntersectionFinder:
         scene = Scene(solids)
         partition = SpacePartition(bbox=scene.getBoundingBox(), polygons=scene.getPolygons(),
