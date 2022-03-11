@@ -87,20 +87,20 @@ class FastIntersectionFinder(IntersectionFinder):
         """
         This is a simple home-made algorithm.
 
-        It is part of a recursive backtrack algorithm family. First, the ray origin is found with a recursive point search,
-        Then the intersection is found by checking is the ray intersects the neighbour node bbox. If it does, this node is explored.
-        When a leaf node is reached, the polygons within that leaf node are explored for a ray-polygon intersection.
-        If a hit is computed, the search is halted. Else, it continues to backtrack.
+        It is part of a recursive backtrack algorithm family. First, the ray origin is found with
+        a recursive point search. Then, the intersection is found by checking is the ray intersects the neighbour
+        node bbox. If it does, this node is explored. When a leaf node is reached, the polygons within that leaf node
+        are explored for a ray-polygon intersection. If a hit is computed, it continues to backtrack until a closer
+        bbox it hit. If the algorithm backtrack all the way up to the root without a hit, the algorithm stops.
 
         Limitations:    - does not take in consideration if the touched polygon is shared amongst many nodes
         """
 
         rayStartingNode = self._partition.searchPoint(ray.origin)
         if rayStartingNode is None:
-            if self._boxIntersect.getIntersection(ray, self._partition.root.bbox):
-                rayStartingNode = self._partition.root
-            else:
+            if not self._boxIntersect.getIntersection(ray, self._partition.root.bbox):
                 return None
+            rayStartingNode = self._partition.root
         intersection = self._exploreNodeForIntersection(ray, rayStartingNode)
         return intersection
 
@@ -108,19 +108,22 @@ class FastIntersectionFinder(IntersectionFinder):
         if not node.isLeaf:
             closestIntersection = None
             for child in node.children:
-                if not child.visited:
-                    bboxIntersection = self._boxIntersect.getIntersection(ray, child.bbox)
-                    child.visited = True
-                    if bboxIntersection is not None:
-                        if closestIntersection is not None:
-                            if (bboxIntersection - ray.origin).getNorm() > closestIntersection.distance:
-                                continue
-                        intersection = self._exploreNodeForIntersection(ray, child)
-                        if intersection is not None:
-                            if closestIntersection is None:
-                                closestIntersection = intersection
-                            elif intersection.distance < closestIntersection.distance:
-                                closestIntersection = intersection
+                if child.visited:
+                    continue
+                bboxIntersection = self._boxIntersect.getIntersection(ray, child.bbox)
+                child.visited = True
+                if bboxIntersection is None:
+                    continue
+                if closestIntersection is not None:
+                    if (bboxIntersection - ray.origin).getNorm() > closestIntersection.distance:
+                        continue
+                intersection = self._exploreNodeForIntersection(ray, child)
+                if intersection is None:
+                    continue
+                if closestIntersection is None:
+                    closestIntersection = intersection
+                elif intersection.distance < closestIntersection.distance:
+                    closestIntersection = intersection
 
             return closestIntersection
 
