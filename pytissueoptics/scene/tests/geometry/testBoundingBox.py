@@ -71,6 +71,13 @@ class TestBoundingBox(unittest.TestCase):
         expectedBbox = BoundingBox([0, 1], [-2, 2], [-2, 1])
         self.assertEqual(expectedBbox, bbox1)
 
+    def testGivenABBox_whenShrinkTo_shouldDecreaseTheBboxLimits(self):
+        bbox1 = BoundingBox(self.xLim, self.yLim, [-1, 1])
+        bbox2 = BoundingBox([0, 0.1], [-2, 2], [-2, 0.9])
+        bbox1.shrinkTo(bbox2)
+        expectedBbox = BoundingBox([0, 0.1], [-1, 0], [-1, 0.9])
+        self.assertEqual(expectedBbox, bbox1)
+
     def testWhenIntersectsWithIntersectingBBox_shouldReturnTrue(self):
         bbox = BoundingBox([0, 5], [0, 5], [0, 5])
         partiallyIntersectingBox = BoundingBox([2, 6], [2, 6], [2, 6])
