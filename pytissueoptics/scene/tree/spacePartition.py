@@ -52,9 +52,6 @@ class SpacePartition:
 
         return isInside
 
-    def findLeafNodesContainingPolygon(self, polygon):
-        pass
-
     @property
     def maxDepth(self) -> int:
         return self._maxDepth
