@@ -14,10 +14,6 @@ class Node:
         self._visited = False
 
     @property
-    def parent(self):
-        return self._parent
-
-    @property
     def children(self) -> List['Node']:
         return self._children
 

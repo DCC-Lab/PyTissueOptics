@@ -1,1 +1,1 @@
-from .logger import Logger, Segment
+from .logger import Logger
