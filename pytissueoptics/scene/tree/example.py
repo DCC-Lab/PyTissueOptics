@@ -2,7 +2,7 @@ from pytissueoptics.scene.scene import Scene
 from pytissueoptics.scene.geometry import Vector
 from pytissueoptics.scene.solids import Cuboid, Sphere
 from pytissueoptics.scene.tree import SpacePartition
-from pytissueoptics.scene.tree.treeConstructor.binary import SAHWideAxisTreeConstructor, ShrankBoxSAHWideAxisCentroidTreeConstructor
+from pytissueoptics.scene.tree.treeConstructor.binary import SAHWideAxisTreeConstructor, ShrankBoxSAHWideAxisTreeConstructor
 from pytissueoptics.scene.viewer import MayaviViewer
 
 import time
@@ -15,7 +15,7 @@ scene = Scene([cuboid1, cuboid2, sphere])
 
 t0 = time.time()
 
-kdTree = SpacePartition(scene.getBoundingBox(), scene.getPolygons(), constructor=ShrankBoxSAHWideAxisCentroidTreeConstructor(),
+kdTree = SpacePartition(scene.getBoundingBox(), scene.getPolygons(), constructor=ShrankBoxSAHWideAxisTreeConstructor(),
                         maxDepth=16, minLeafSize=6)
 t1 = time.time()
 kdTree2 = SpacePartition(scene.getBoundingBox(), scene.getPolygons(), constructor=SAHWideAxisTreeConstructor(),
@@ -40,5 +40,5 @@ bBoxes2 = kdTree2.getLeafBoundingBoxesAsCuboids()
 viewer = MayaviViewer()
 #viewer.add(*scene.getSolids(), representation="mesh", lineWidth=0.1)
 viewer.add(*bBoxes, representation="surface", lineWidth=0.1, opacity=0.25, color=(1, 0, 0))
-viewer.add(*bBoxes2, representation="surface", lineWidth=0.1, opacity=0.25, color=(0, 1, 0))
+#viewer.add(*bBoxes2, representation="surface", lineWidth=0.1, opacity=0.25, color=(0, 1, 0))
 viewer.show()

@@ -16,7 +16,7 @@ class SAHBasicKDTreeConstructor(TreeConstructor):
     def __init__(self):
         super(SAHBasicKDTreeConstructor, self).__init__()
         self.setContext(RotatingAxis(), CentroidPolyCounter(),
-                        HardSAHNodeSplitter(nbOfSplitPlanes=50, splitCostPercentage=0.1))
+                        HardSAHNodeSplitter(nbOfSplitPlanes=20, splitCostPercentage=0.1))
 
 
 class SAHWideAxisTreeConstructor(TreeConstructor):
@@ -30,11 +30,18 @@ class SAHWideAxisCentroidTreeConstructor(TreeConstructor):
     def __init__(self):
         super(SAHWideAxisCentroidTreeConstructor, self).__init__()
         self.setContext(LargestSpanAxis(), CentroidPolyCounter(),
-                        HardSAHNodeSplitter(nbOfSplitPlanes=200, splitCostPercentage=0.1))
+                        HardSAHNodeSplitter(nbOfSplitPlanes=20, splitCostPercentage=0.1))
+
+
+class ShrankBoxSAHWideAxisTreeConstructor(TreeConstructor):
+    def __init__(self):
+        super(ShrankBoxSAHWideAxisTreeConstructor, self).__init__()
+        self.setContext(LargestSpanAxis(), BBoxPolyCounter(),
+                        ShrankBoxSAHNodeSplitter(nbOfSplitPlanes=20, splitCostPercentage=0.1))
 
 
 class ShrankBoxSAHWideAxisCentroidTreeConstructor(TreeConstructor):
     def __init__(self):
         super(ShrankBoxSAHWideAxisCentroidTreeConstructor, self).__init__()
-        self.setContext(LargestSpanAxis(), BBoxPolyCounter(),
+        self.setContext(LargestSpanAxis(), CentroidPolyCounter(),
                         ShrankBoxSAHNodeSplitter(nbOfSplitPlanes=20, splitCostPercentage=0.1))
