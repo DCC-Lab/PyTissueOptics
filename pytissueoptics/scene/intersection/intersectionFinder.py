@@ -99,24 +99,25 @@ class FastIntersectionFinder(IntersectionFinder):
         Limitations:    - does not take in consideration if the touched polygon is shared amongst many nodes
         """
 
-        rayStartingNode = self._partition.searchPoint(ray.origin)
-        if rayStartingNode is None:
-            if not self._boxIntersect.getIntersection(ray, self._partition.root.bbox):
-                return None
-            rayStartingNode = self._partition.root
+        # rayStartingNode = self._partition.searchPoint(ray.origin)
+        # if rayStartingNode is None:
+        #     if not self._boxIntersect.getIntersection(ray, self._partition.root.bbox):
+        #         return None
+        rayStartingNode = self._partition.root
         intersection = self._exploreNodeForIntersection(ray, rayStartingNode)
+        self._partition.resetVisitedNode()
         return intersection
 
-    def _exploreNodeForIntersection(self, ray: Ray, node: Node = None) -> Optional[Intersection]:
+    def _exploreNodeForIntersection(self, ray: Ray, node: Node, closestIntersection=None) -> Optional[Intersection]:
         """Will only try to intersect polygons when it reached a leaf node."""
+        closestIntersection = closestIntersection
         if node.isLeaf:
             intersection = self._findClosestPolygonIntersection(ray, node.polygons)
-            node.visited = True
-            if intersection is None:
-                intersection = self._exploreNodeForIntersection(ray, node.parent)
+            # node.visited = True
+            # if intersection is None:
+            #     intersection = self._exploreNodeForIntersection(ray, node.parent)
             return intersection
 
-        closestIntersection = None
         for child in node.children:
             if child.visited:
                 continue
@@ -134,6 +135,9 @@ class FastIntersectionFinder(IntersectionFinder):
                 closestIntersection = intersection
             elif intersection.distance < closestIntersection.distance:
                 closestIntersection = intersection
+
+        # if not node.isRoot:
+        #     self._exploreNodeForIntersection(ray, node.parent)
 
         return closestIntersection
 
