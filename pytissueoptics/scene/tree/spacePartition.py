@@ -52,11 +52,11 @@ class SpacePartition:
         return isInside
 
     @property
-    def maxDepth(self) -> int:
+    def maxAuthorizedDepth(self) -> int:
         return self._maxDepth
 
     @property
-    def minLeafSize(self) -> int:
+    def minAuthorizedLeafSize(self) -> int:
         return self._minLeafSize
 
     @property
@@ -111,3 +111,27 @@ class SpacePartition:
             c = bbox.zMax - bbox.zMin
             cuboids.append(Cuboid(a=a, b=b, c=c, position=bbox.center))
         return cuboids
+
+    def getMaxLeafDepth(self) -> int:
+        leaves = self.getLeafNodes()
+        maxDepth = 0
+        for leaf in leaves:
+            if leaf.depth > maxDepth:
+                maxDepth = leaf.depth
+        return maxDepth
+
+    def getAverageLeafDepth(self) -> float:
+        leaves = self.getLeafNodes()
+        avgDepth = 0
+        for leaf in leaves:
+            avgDepth += leaf.depth
+        avgDepth = avgDepth / len(leaves)
+        return avgDepth
+
+    def getAverageLeafSize(self) -> float:
+        leaves = self.getLeafNodes()
+        avgSize = 0
+        for leaf in leaves:
+            avgSize += len(leaf.polygons)
+        avgSize = avgSize / len(leaves)
+        return avgSize
