@@ -108,8 +108,12 @@ class FastIntersectionFinder(IntersectionFinder):
         return intersection
 
     def _exploreNodeForIntersection(self, ray: Ray, node: Node = None) -> Optional[Intersection]:
+        """Will only try to intersect polygons when it reached a leaf node."""
         if node.isLeaf:
             intersection = self._findClosestPolygonIntersection(ray, node.polygons)
+            node.visited = True
+            if intersection is None:
+                intersection = self._exploreNodeForIntersection(ray, node.parent)
             return intersection
 
         closestIntersection = None
@@ -132,3 +136,4 @@ class FastIntersectionFinder(IntersectionFinder):
                 closestIntersection = intersection
 
         return closestIntersection
+

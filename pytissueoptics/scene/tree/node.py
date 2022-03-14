@@ -18,6 +18,10 @@ class Node:
         return self._children
 
     @property
+    def parent(self) -> 'Node':
+        return self._parent
+
+    @property
     def isRoot(self) -> bool:
         if self._parent is None:
             return True
