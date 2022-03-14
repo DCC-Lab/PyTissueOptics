@@ -1,6 +1,6 @@
 import sys
 from dataclasses import dataclass
-from typing import List, Union, Tuple, Optional
+from typing import List, Tuple, Optional
 
 from pytissueoptics.scene.geometry import Vector, Polygon, Triangle, Quad
 from pytissueoptics.scene.intersection import Ray
@@ -21,7 +21,7 @@ class Intersection:
 
 
 class IntersectionFinder:
-    def __init__(self, scene):
+    def __init__(self, scene: Scene):
         self._scene = scene
         self._triangleIntersect = MollerTrumboreTriangleIntersect()
         self._quadIntersect = MollerTrumboreQuadIntersect()
@@ -83,7 +83,6 @@ class SimpleIntersectionFinder(IntersectionFinder):
 class FastIntersectionFinder(IntersectionFinder):
     def __init__(self, scene: Scene, constructor=SAHWideAxisTreeConstructor(), maxDepth=20, minLeafSize=6):
         super(FastIntersectionFinder, self).__init__(scene)
-        self._scene = scene
         self._partition = SpacePartition(self._scene.getBoundingBox(), self._scene.getPolygons(), constructor,
                                          maxDepth, minLeafSize)
 
@@ -99,7 +98,6 @@ class FastIntersectionFinder(IntersectionFinder):
 
         Limitations:    - does not take in consideration if the touched polygon is shared amongst many nodes
         """
-
 
         rayStartingNode = self._partition.searchPoint(ray.origin)
         if rayStartingNode is None:
