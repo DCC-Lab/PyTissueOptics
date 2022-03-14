@@ -5,6 +5,7 @@ from typing import List, Union, Tuple, Optional
 from pytissueoptics.scene.geometry import Vector, Polygon, Triangle, Quad
 from pytissueoptics.scene.intersection import Ray
 from pytissueoptics.scene.tree import SpacePartition, Node
+from pytissueoptics.scene.tree.treeConstructor.binary import SAHWideAxisTreeConstructor
 from pytissueoptics.scene.scene import Scene
 from pytissueoptics.scene.intersection.bboxIntersect import GemsBoxIntersect
 from pytissueoptics.scene.intersection.quadIntersect import MollerTrumboreQuadIntersect
@@ -20,7 +21,8 @@ class Intersection:
 
 
 class IntersectionFinder:
-    def __init__(self):
+    def __init__(self, scene):
+        self._scene = scene
         self._triangleIntersect = MollerTrumboreTriangleIntersect()
         self._quadIntersect = MollerTrumboreQuadIntersect()
         self._boxIntersect = GemsBoxIntersect()
@@ -53,10 +55,6 @@ class IntersectionFinder:
 
 
 class SimpleIntersectionFinder(IntersectionFinder):
-    def __init__(self, solids: List[Solid]):
-        super(SimpleIntersectionFinder, self).__init__()
-        self._solids = solids
-
     def findIntersection(self, ray: Ray) -> Optional[Intersection]:
         bboxIntersections = self._findBBoxIntersectingSolids(ray)
         bboxIntersections.sort(key=lambda x: x[0])
@@ -71,7 +69,7 @@ class SimpleIntersectionFinder(IntersectionFinder):
         the intersection for this case and will instead return ray.origin. When that happens, distance will be 0
         and we exit to check the polygons of this solid. """
         solidCandidates = []
-        for solid in self._solids:
+        for solid in self._scene.solids:
             bboxIntersection = self._boxIntersect.getIntersection(ray, solid.bbox)
             if not bboxIntersection:
                 continue
@@ -83,10 +81,11 @@ class SimpleIntersectionFinder(IntersectionFinder):
 
 
 class FastIntersectionFinder(IntersectionFinder):
-    def __init__(self, scene: Scene, **kwargs):
-        super(FastIntersectionFinder, self).__init__()
+    def __init__(self, scene: Scene, constructor=SAHWideAxisTreeConstructor(), maxDepth=20, minLeafSize=6):
+        super(FastIntersectionFinder, self).__init__(scene)
         self._scene = scene
-        self._partition = SpacePartition(**kwargs)
+        self._partition = SpacePartition(self._scene.getBoundingBox(), self._scene.getPolygons(), constructor,
+                                         maxDepth, minLeafSize)
 
     def findIntersection(self, ray: Ray) -> Optional[Intersection]:
         """
