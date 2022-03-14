@@ -109,6 +109,5 @@ class TestSimpleIntersectionFinder(TestAnyIntersectionFinder, unittest.TestCase)
 class TestFastIntersectionFinder(TestAnyIntersectionFinder, unittest.TestCase):
     def getIntersectionFinder(self, solids) -> IntersectionFinder:
         scene = Scene(solids)
-        partition = SpacePartition(bbox=scene.getBoundingBox(), polygons=scene.getPolygons(),
-                                   constructor=SAHWideAxisTreeConstructor())
-        return FastIntersectionFinder(solids, partition)
+        return FastIntersectionFinder(scene, bbox=scene.getBoundingBox(), polygons=scene.getPolygons(),
+                                      constructor=SAHWideAxisTreeConstructor())

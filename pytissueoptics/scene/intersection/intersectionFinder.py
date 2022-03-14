@@ -5,6 +5,7 @@ from typing import List, Union, Tuple, Optional
 from pytissueoptics.scene.geometry import Vector, Polygon, Triangle, Quad
 from pytissueoptics.scene.intersection import Ray
 from pytissueoptics.scene.tree import SpacePartition, Node
+from pytissueoptics.scene.scene import Scene
 from pytissueoptics.scene.intersection.bboxIntersect import GemsBoxIntersect
 from pytissueoptics.scene.intersection.quadIntersect import MollerTrumboreQuadIntersect
 from pytissueoptics.scene.intersection.triangleIntersect import MollerTrumboreTriangleIntersect
@@ -19,8 +20,7 @@ class Intersection:
 
 
 class IntersectionFinder:
-    def __init__(self, solids: List[Solid]):
-        self._solids = solids
+    def __init__(self):
         self._triangleIntersect = MollerTrumboreTriangleIntersect()
         self._quadIntersect = MollerTrumboreQuadIntersect()
         self._boxIntersect = GemsBoxIntersect()
@@ -53,6 +53,10 @@ class IntersectionFinder:
 
 
 class SimpleIntersectionFinder(IntersectionFinder):
+    def __init__(self, solids: List[Solid]):
+        super(SimpleIntersectionFinder, self).__init__()
+        self._solids = solids
+
     def findIntersection(self, ray: Ray) -> Optional[Intersection]:
         bboxIntersections = self._findBBoxIntersectingSolids(ray)
         bboxIntersections.sort(key=lambda x: x[0])
@@ -79,9 +83,10 @@ class SimpleIntersectionFinder(IntersectionFinder):
 
 
 class FastIntersectionFinder(IntersectionFinder):
-    def __init__(self, solids: List[Solid], partition: SpacePartition):
-        super(FastIntersectionFinder, self).__init__(solids)
-        self._partition = partition
+    def __init__(self, scene: Scene, **kwargs):
+        super(FastIntersectionFinder, self).__init__()
+        self._scene = scene
+        self._partition = SpacePartition(**kwargs)
 
     def findIntersection(self, ray: Ray) -> Optional[Intersection]:
         """
@@ -95,6 +100,7 @@ class FastIntersectionFinder(IntersectionFinder):
 
         Limitations:    - does not take in consideration if the touched polygon is shared amongst many nodes
         """
+
 
         rayStartingNode = self._partition.searchPoint(ray.origin)
         if rayStartingNode is None:

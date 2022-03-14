@@ -100,17 +100,18 @@ class HardSAHNodeSplitter(SAHNodeSplitter):
 
 class ShrankBoxSAHNodeSplitter(SAHNodeSplitter):
     def __init__(self, polygonCounter: PolygonCounter = None,
-                 nbOfSplitPlanes: int = 20, splitCostPercentage: float = 0.1):
+                 nbOfSplitPlanes: int = 20, splitCostPercentage: float = 0.2, fallBackPercentage=0.01):
         super().__init__(polygonCounter)
         self._nbOfSplitPlanes = nbOfSplitPlanes
         self._splitCostPercentage = splitCostPercentage
+        self._fallBackPercentage = fallBackPercentage
 
     def split(self, splitAxis: str, nodeBbox: BoundingBox, polygons: List[Polygon]) -> SplitNodeResult:
         polygonsBbox = getPolygonsBbox(polygons)
         newBounds = nodeBbox.copy()
         newBounds.shrinkTo(polygonsBbox)
-        newBounds.update(splitAxis, "min", newBounds.getAxisLimit(splitAxis, "min")-0.1)
-        newBounds.update(splitAxis, "max", newBounds.getAxisLimit(splitAxis, "max")+0.1)
+        newBounds.update(splitAxis, "min", newBounds.getAxisLimit(splitAxis, "min")-newBounds.getAxisWidth(splitAxis)*self._fallBackPercentage)
+        newBounds.update(splitAxis, "max", newBounds.getAxisLimit(splitAxis, "max")+newBounds.getAxisWidth(splitAxis)*self._fallBackPercentage)
         aMin, aMax = newBounds.getAxisLimits(splitAxis)
         step = newBounds.getAxisWidth(splitAxis) / (self._nbOfSplitPlanes + 1)
         nodeSAH = nodeBbox.getArea() * len(polygons)
