@@ -105,28 +105,27 @@ class FastIntersectionFinder(IntersectionFinder):
         return intersection
 
     def _exploreNodeForIntersection(self, ray: Ray, node: Node = None) -> Optional[Intersection]:
-        if not node.isLeaf:
-            closestIntersection = None
-            for child in node.children:
-                if child.visited:
-                    continue
-                bboxIntersection = self._boxIntersect.getIntersection(ray, child.bbox)
-                child.visited = True
-                if bboxIntersection is None:
-                    continue
-                if closestIntersection is not None:
-                    if (bboxIntersection - ray.origin).getNorm() > closestIntersection.distance:
-                        continue
-                intersection = self._exploreNodeForIntersection(ray, child)
-                if intersection is None:
-                    continue
-                if closestIntersection is None:
-                    closestIntersection = intersection
-                elif intersection.distance < closestIntersection.distance:
-                    closestIntersection = intersection
-
-            return closestIntersection
-
-        else:
+        if node.isLeaf:
             intersection = self._findClosestPolygonIntersection(ray, node.polygons)
             return intersection
+
+        closestIntersection = None
+        for child in node.children:
+            if child.visited:
+                continue
+            bboxIntersection = self._boxIntersect.getIntersection(ray, child.bbox)
+            child.visited = True
+            if bboxIntersection is None:
+                continue
+            if closestIntersection is not None:
+                if (bboxIntersection - ray.origin).getNorm() > closestIntersection.distance:
+                    continue
+            intersection = self._exploreNodeForIntersection(ray, child)
+            if intersection is None:
+                continue
+            if closestIntersection is None:
+                closestIntersection = intersection
+            elif intersection.distance < closestIntersection.distance:
+                closestIntersection = intersection
+
+        return closestIntersection
