@@ -105,7 +105,6 @@ class FastIntersectionFinder(IntersectionFinder):
         #         return None
         rayStartingNode = self._partition.root
         intersection = self._exploreNodeForIntersection(ray, rayStartingNode)
-        self._partition.resetVisitedNode()
         return intersection
 
     def _exploreNodeForIntersection(self, ray: Ray, node: Node, closestIntersection=None) -> Optional[Intersection]:
@@ -119,10 +118,7 @@ class FastIntersectionFinder(IntersectionFinder):
             return intersection
 
         for child in node.children:
-            if child.visited:
-                continue
             bboxIntersection = self._boxIntersect.getIntersection(ray, child.bbox)
-            child.visited = True
             if bboxIntersection is None:
                 continue
             if closestIntersection is not None:
