@@ -37,7 +37,7 @@ class ShrankBoxSAHWideAxisTreeConstructor(TreeConstructor):
     def __init__(self):
         super(ShrankBoxSAHWideAxisTreeConstructor, self).__init__()
         self.setContext(LargestSpanAxis(), BBoxPolyCounter(),
-                        ShrankBoxSAHNodeSplitter(nbOfSplitPlanes=20, splitCostPercentage=0.2))
+                        ShrankBoxSAHNodeSplitter(nbOfSplitPlanes=20, splitCostPercentage=0.2, fallBackPercentage=0.01))
 
 
 class ShrankBoxSAHWideAxisCentroidTreeConstructor(TreeConstructor):
