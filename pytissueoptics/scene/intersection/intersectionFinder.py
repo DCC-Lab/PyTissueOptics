@@ -6,6 +6,7 @@ from pytissueoptics.scene.geometry import Vector, Polygon, Triangle, Quad
 from pytissueoptics.scene.intersection import Ray
 from pytissueoptics.scene.tree import SpacePartition, Node
 from pytissueoptics.scene.tree.treeConstructor.binary import SAHWideAxisTreeConstructor
+from pytissueoptics.scene.tree.treeConstructor.binary.fastBinaryTreeConstructor import FastBinaryTreeConstructor
 from pytissueoptics.scene.scene import Scene
 from pytissueoptics.scene.intersection.bboxIntersect import GemsBoxIntersect
 from pytissueoptics.scene.intersection.quadIntersect import MollerTrumboreQuadIntersect
@@ -81,7 +82,7 @@ class SimpleIntersectionFinder(IntersectionFinder):
 
 
 class FastIntersectionFinder(IntersectionFinder):
-    def __init__(self, scene: Scene, constructor=SAHWideAxisTreeConstructor(), maxDepth=20, minLeafSize=6):
+    def __init__(self, scene: Scene, constructor=FastBinaryTreeConstructor(), maxDepth=20, minLeafSize=6):
         super(FastIntersectionFinder, self).__init__(scene)
         self._partition = SpacePartition(self._scene.getBoundingBox(), self._scene.getPolygons(), constructor,
                                          maxDepth, minLeafSize)
@@ -99,41 +100,33 @@ class FastIntersectionFinder(IntersectionFinder):
         Limitations:    - does not take in consideration if the touched polygon is shared amongst many nodes
         """
 
-        # rayStartingNode = self._partition.searchPoint(ray.origin)
-        # if rayStartingNode is None:
-        #     if not self._boxIntersect.getIntersection(ray, self._partition.root.bbox):
-        #         return None
-        rayStartingNode = self._partition.root
-        intersection = self._exploreNodeForIntersection(ray, rayStartingNode)
+        intersection = self._findIntersection(ray, self._partition.root)
         return intersection
 
-    def _exploreNodeForIntersection(self, ray: Ray, node: Node, closestIntersection=None) -> Optional[Intersection]:
-        """Will only try to intersect polygons when it reached a leaf node."""
-        closestIntersection = closestIntersection
+    def _findIntersection(self, ray: Ray, node: Node, closestDistance=sys.maxsize) -> Optional[Intersection]:
         if node.isLeaf:
             intersection = self._findClosestPolygonIntersection(ray, node.polygons)
-            # node.visited = True
-            # if intersection is None:
-            #     intersection = self._exploreNodeForIntersection(ray, node.parent)
             return intersection
 
+        if not self._nodeIsWorthExploring(ray, node, closestDistance):
+            return None
+
+        closestIntersection = None
         for child in node.children:
-            bboxIntersection = self._boxIntersect.getIntersection(ray, child.bbox)
-            if bboxIntersection is None:
-                continue
-            if closestIntersection is not None:
-                if (bboxIntersection - ray.origin).getNorm() > closestIntersection.distance:
-                    continue
-            intersection = self._exploreNodeForIntersection(ray, child)
+            intersection = self._findIntersection(ray, child, closestDistance)
             if intersection is None:
                 continue
-            if closestIntersection is None:
+            if intersection.distance < closestDistance:
+                closestDistance = intersection.distance
                 closestIntersection = intersection
-            elif intersection.distance < closestIntersection.distance:
-                closestIntersection = intersection
-
-        # if not node.isRoot:
-        #     self._exploreNodeForIntersection(ray, node.parent)
 
         return closestIntersection
 
+    def _nodeIsWorthExploring(self, ray, node, closestDistance) -> bool:
+        bboxIntersection = self._boxIntersect.getIntersection(ray, node.bbox)
+        if bboxIntersection is None:
+            return False
+        bboxDistance = (bboxIntersection - ray.origin).getNorm()
+        if bboxDistance > closestDistance:
+            return False
+        return True
