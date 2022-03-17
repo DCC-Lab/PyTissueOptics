@@ -1,4 +1,3 @@
-
 class Material:
     def __init__(self, mu_s=0, mu_a=0, g=0, index=1.0):
         self.mu_s = mu_s
