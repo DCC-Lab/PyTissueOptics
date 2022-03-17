@@ -4,7 +4,7 @@ from pytissueoptics.scene import MayaviViewer, Vector, Material
 from pytissueoptics.scene.logger import Logger
 import numpy as np
 
-np.random.seed(11)
+np.random.seed(15)
 
 viewer = MayaviViewer()
 tissue = PhantomTissue()
@@ -13,7 +13,7 @@ tissue = PhantomTissue()
 tissue.addToViewer(viewer)
 
 logger = Logger()
-source = Source(position=Vector(0, 0, -1), direction=Vector(0.4, 0, 1))
+source = Source(position=Vector(0, 0, -1), direction=Vector(0.42, 0, 1))
 
 source.propagate(tissue, logger=logger)
 
