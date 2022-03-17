@@ -18,13 +18,13 @@ class PhantomTissue(Tissue):
         return self._solids
 
     def _create(self):
-        mu_s = [1, 2, 3]
+        mu_s = [2, 4, 6]
         mu_a = 2
         g = 0.8
 
-        topLayer = Cuboid(4, 4, 0.75, material=Material(mu_s[0], mu_a, g, 1.5))
-        middleLayer = Cuboid(4, 4, 0.5, material=Material(mu_s[1], mu_a, g, 2))
-        bottomLayer = Cuboid(4, 4, 0.75, material=Material(mu_s[2], mu_a, g, 2.5))
+        topLayer = Cuboid(4, 4, 0.75, material=Material(mu_s[0], mu_a, g, 1.4))
+        middleLayer = Cuboid(4, 4, 0.5, material=Material(mu_s[1], mu_a, g, 1.8))
+        bottomLayer = Cuboid(4, 4, 0.75, material=Material(mu_s[2], mu_a, g, 2.0))
         layerStack = bottomLayer.stack(middleLayer, 'Front').stack(topLayer, 'Front')
         layerStack.translateTo(Vector(0, 0, 1))
 
