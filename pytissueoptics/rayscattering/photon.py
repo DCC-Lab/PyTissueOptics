@@ -19,6 +19,9 @@ class Photon:
         self._logger = None
         self._worldMaterial = None
 
+        self._er = self._direction.anyPerpendicular()
+        self._er.normalize()
+
     @property
     def _isAlive(self) -> bool:
         return self._weight > 0
@@ -54,8 +57,7 @@ class Photon:
 
         else:
             self._position += self._direction * distance
-            delta = self._weight * self._material.albedo
-            self._decreaseWeightBy(delta)
+            self._scatter()
 
     def _refract(self, intersection):
         surfaceNormal = intersection.polygon.normal
@@ -65,7 +67,7 @@ class Photon:
             surfaceNormal *= -1
 
         incidencePlane = self._direction.cross(surfaceNormal)
-        self._rotateAround(incidencePlane, self._getRefractionAngle(intersection, goingInside))
+        self._direction.rotateAround(incidencePlane, self._getRefractionAngle(intersection, goingInside))
 
         if self._logger:
             self._logger.logPoint(self._position)
@@ -82,12 +84,22 @@ class Photon:
         else:
             self._material = material
 
+    def _scatter(self):
+        delta = self._weight * self._material.albedo
+        self._decreaseWeightBy(delta)
+        theta, phi = self._material.getScatteringAngles()
+        self._scatterBy(theta, phi)
+
     def _decreaseWeightBy(self, delta):
         if self._logger:
             self._logger.logDataPoint(delta, position=self._position)
         self._weight -= delta
         if self._weight < 0:
             self.weight = 0
+
+    def _scatterBy(self, theta, phi):
+        self._er.rotateAround(self._direction, phi)
+        self._direction.rotateAround(self._er, theta)
 
     def _roulette(self):
         chance = 0.1

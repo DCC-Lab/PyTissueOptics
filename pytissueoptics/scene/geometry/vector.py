@@ -131,3 +131,9 @@ class Vector:
             + (cost + uz * uz * one_cost) * Z
 
         self.update(x, y, z)
+
+    def anyPerpendicular(self) -> 'Vector':
+        if self.z < self.x:
+            return Vector(self.y, -self.x, 0)
+
+        return Vector(0, -self.z, self.y)
