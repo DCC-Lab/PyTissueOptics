@@ -3,3 +3,4 @@ from .binaryPolyCounter import BBoxPolyCounter, CentroidPolyCounter
 from .binaryNodeSplitter import MeanCentroidNodeSplitter, MiddlePolygonSpanNodeSplitter, ShrankBoxSAHNodeSplitter,\
     HardSAHNodeSplitter
 from .binaryTreeConstructor import *
+from .fastBinaryTreeConstructor import FastBinaryTreeConstructor
