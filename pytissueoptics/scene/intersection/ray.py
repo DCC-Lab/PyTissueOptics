@@ -5,6 +5,7 @@ class Ray:
     def __init__(self, origin: Vector, direction: Vector, length: float = None):
         self._origin = origin
         self._direction = direction
+        self._direction.normalize()
         self._length = length
 
     @property
