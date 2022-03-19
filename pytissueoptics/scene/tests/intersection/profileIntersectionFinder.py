@@ -1,16 +1,53 @@
 from pytissueoptics.scene.scene import Scene
-from pytissueoptics.scene.geometry import Vector
-from pytissueoptics.scene.solids import Cuboid, Sphere, Cube, Ellipsoid
+from pytissueoptics.scene.geometry import Vector, Polygon, SurfaceCollection, BoundingBox
+from pytissueoptics.scene.solids import Cuboid, Sphere, Cube, Ellipsoid, Solid
 from pytissueoptics.scene.tree import SpacePartition
 from pytissueoptics.scene.tree.treeConstructor.binary import BalancedKDTreeConstructor
+from pytissueoptics.scene.tree.treeConstructor.binary.fastBinaryTreeConstructor import FastBinaryTreeConstructor
 from pytissueoptics.scene.tree.treeConstructor.binary import SAHWideAxisTreeConstructor, ShrankBoxSAHWideAxisTreeConstructor
 from pytissueoptics.scene.tree.treeConstructor.binary import BalancedKDTreeConstructor, SAHBasicKDTreeConstructor
 from pytissueoptics.scene.intersection import FastIntersectionFinder, SimpleIntersectionFinder, Ray
 from pytissueoptics.scene.viewer import MayaviViewer
-
+import pandas
+pandas.set_option('display.max_columns', 20)
+pandas.set_option('display.width', 1200)
 import numpy as np
 import time
 
+
+class AAxisAlignedPolygonScene(Scene):
+    def __init__(self):
+        super().__init__()
+        self._create()
+
+    def _create(self):
+        vertices = [Vector(0, 0, 0), Vector(1, 0, 0), Vector(1, 1, 0)]
+        polygon = Polygon(vertices=vertices)
+        aSolid = Solid(position=Vector(0, 0, 0), vertices=vertices, surfaces=SurfaceCollection({"lonely": [polygon]}))
+        aSolid._bbox = BoundingBox([-10, 10], [-10, 10], [-10, 10])
+        self._solids.extend([aSolid])
+
+class APolygonScene(Scene):
+    def __init__(self):
+        super().__init__()
+        self._create()
+
+    def _create(self):
+        vertices = [Vector(0, 0, 0), Vector(1, 0, 1), Vector(-0.2, -0.5, 3)]
+        polygon = Polygon(vertices=vertices)
+        aSolid = Solid(position=Vector(0, 0, 0), vertices=vertices, surfaces=SurfaceCollection({"lonely": [polygon]}))
+        aSolid._bbox = BoundingBox([-10, 10], [-10, 10], [-10, 10])
+        self._solids.extend([aSolid])
+
+class ACubeScene(Scene):
+    def __init__(self):
+        super().__init__()
+        self._create()
+
+    def _create(self):
+        cuboid1 = Cuboid(a=1, b=3, c=1, position=Vector(4, -2, 6))
+        cuboid1._bbox = BoundingBox([-10, 10], [-10, 10], [-10, 10])
+        self._solids.extend([cuboid1])
 
 class PhantomScene(Scene):
     ROOM = []
@@ -70,8 +107,8 @@ class RandomShapesScene(Scene):
     def _create(self):
         cuboid1 = Cuboid(a=1, b=3, c=1, position=Vector(4, -2, 6))
         cuboid2 = Cuboid(1, 1, 1, position=Vector(-2, -2, 0))
-        sphere1 = Sphere(position=Vector(3, 3, 3), order=3)
-        ellipsoid1 = Ellipsoid(1, 2, 3, position=Vector(10, 3, -3), order=3)
+        sphere1 = Sphere(position=Vector(3, 3, 3), order=1)
+        ellipsoid1 = Ellipsoid(1, 2, 3, position=Vector(10, 3, -3), order=2)
         self._solids.extend([cuboid1, cuboid2, sphere1, ellipsoid1])
 
 class XAlignedSpheres(Scene):
@@ -111,77 +148,96 @@ class DiagonallyAlignedSpheres(Scene):
         self._solids.extend([sphere1, sphere2, sphere3, sphere4])
 
 
+scene000 = AAxisAlignedPolygonScene()
+scene00 = APolygonScene()
+scene0 = ACubeScene()
 scene1 = PhantomScene()
 scene2 = RandomShapesScene()
 scene3 = XAlignedSpheres()
 scene4 = ZAlignedSpheres()
 scene5 = DiagonallyAlignedSpheres()
 
+# ========= Profiler Important Parameters ================
 # scenes = [scene1, scene2, scene3, scene4, scene5]
-scenes = [scene3]
+# scene000, scene00, scene0,
+scenes = [scene1]
+# constructors = [BalancedKDTreeConstructor(), SAHBasicKDTreeConstructor(),
+# SAHWideAxisTreeConstructor(), ShrankBoxSAHWideAxisTreeConstructor()]
+constructors = [FastBinaryTreeConstructor(), ShrankBoxSAHWideAxisTreeConstructor()]
+randomIntersections = [1000]
+
+
+# ================ Profiler Data ===================
+dfs = pandas.DataFrame(columns=["scene", "name", "fast time", "build time", "simple time", "node count", "leaf count", "AVG Depth", "AVG Size", "polygonCount"])
+constructionTimes = []
+spacePartitions = []
+fastTraversalTime = []
+simpleTraversalTime = []
+
 for j, scene in enumerate(scenes):
-    print(f"\n=============SCENE #{j}:{scene.__class__.__name__}============\n")
-    constructors = [BalancedKDTreeConstructor(), SAHBasicKDTreeConstructor(), SAHWideAxisTreeConstructor(), ShrankBoxSAHWideAxisTreeConstructor()]
-    constructionTimes = []
-    spacePartitions = []
-    randomIntersections = [10000]
-    fastTraversalTime = []
-    simpleTraversalTime = []
+    dfs.loc[dfs.shape[0]] = (f"{scene.__class__.__name__}", "", "", "", "", "", "", "", "", "")
+    constructionTimes.append([])
+    spacePartitions.append([])
+    fastTraversalTime.append([])
+    simpleTraversalTime.append([])
 
     for c, constructor in enumerate(constructors):
         t0 = time.time()
         partition = SpacePartition(scene.getBoundingBox(), scene.getPolygons(), constructor=constructor,
-                                maxDepth=100, minLeafSize=6)
+                                maxDepth=100, minLeafSize=0)
         t1 = time.time()
-        constructionTimes.append(t1-t0)
-        spacePartitions.append(partition)
-        fastTraversalTime.append([])
-        simpleTraversalTime.append([])
+        constructionTimes[j].append(t1-t0)
+        spacePartitions[j].append(partition)
+        fastTraversalTime[j].append([])
+        simpleTraversalTime[j].append([])
         simpleIntersectionFinder = SimpleIntersectionFinder(scene)
         fastIntersectionFinder = FastIntersectionFinder(scene, constructor=constructor, maxDepth=100, minLeafSize=6)
         sceneBbox = scene.getBoundingBox()
         for intersectionAmount in randomIntersections:
-            # origin_xs = np.random.uniform(sceneBbox.xMin, sceneBbox.xMax, intersectionAmount)
-            # origin_ys = np.random.uniform(sceneBbox.yMin, sceneBbox.yMax, intersectionAmount)
-            # origin_zs = np.random.uniform(sceneBbox.zMin, sceneBbox.zMax, intersectionAmount)
-            # direction_xs = np.random.uniform(-1, 1, intersectionAmount)
-            # direction_ys = np.random.uniform(-1, 1, intersectionAmount)
-            # direction_zs = np.random.uniform(-1, 1, intersectionAmount)
+            origin_xs = np.random.uniform(sceneBbox.xMin, sceneBbox.xMax, intersectionAmount)
+            origin_ys = np.random.uniform(sceneBbox.yMin, sceneBbox.yMax, intersectionAmount)
+            origin_zs = np.random.uniform(sceneBbox.zMin, sceneBbox.zMax, intersectionAmount)
+            direction_xs = np.random.uniform(-1, 1, intersectionAmount)
+            direction_ys = np.random.uniform(-1, 1, intersectionAmount)
+            direction_zs = np.random.uniform(-1, 1, intersectionAmount)
 
             t0 = time.time()
             for i in range(intersectionAmount):
-                ray = Ray(origin=Vector(0, 0, 0), direction=Vector(1, 0, 0))
+                ray = Ray(origin=Vector(origin_xs[i], origin_ys[i], origin_zs[i]), direction=Vector(direction_xs[i], direction_ys[i], direction_zs[i]))
                 fastIntersectionFinder.findIntersection(ray)
             t1 = time.time()
-            fastTraversalTime[c].append(t1-t0)
+            fastTraversalTime[j][c].append(t1-t0)
 
             t0 = time.time()
             for i in range(intersectionAmount):
-                ray = Ray(origin=Vector(0, 0, 0),
-                          direction=Vector(1, 0, 0))
+                ray = Ray(origin=Vector(origin_xs[i], origin_ys[i], origin_zs[i]), direction=Vector(direction_xs[i], direction_ys[i], direction_zs[i]))
                 simpleIntersectionFinder.findIntersection(ray)
             t1 = time.time()
-            simpleTraversalTime[c].append(t1 - t0)
+            simpleTraversalTime[j][c].append(t1 - t0)
 
-        print(f"\nStrategy:{partition._constructor.__class__.__name__}\n"
-            f"Scene Poly Count:{len(scene.getPolygons())}\n"
-            f"Avg Leaf Size:{partition.getAverageLeafSize()}\n"
-            f"Avf Leaf Depth:{partition.getAverageLeafDepth()}\n"
-            f"Max Leaf Depth:{partition.getMaxLeafDepth()}\n"
-            f"Total Node:{partition.getNodeCount()}\n"
-            f"Total Leaf Node:{partition.getLeafCount()}\n"
-            f"Tree Render Time:{constructionTimes[c]}s\n"
-            f"Fast Tree Traversal Time:{fastTraversalTime[c]}s\n"
-            f"Simple Tree Traversal Time:{simpleTraversalTime[c]}s\n")
+        # print(f"\nStrategy:{partition._constructor.__class__.__name__}\n"
+        #     f"Scene Poly Count:{len(scene.getPolygons())}\n"
+        #     f"Avg Leaf Size:{partition.getAverageLeafSize()}\n"
+        #     f"Avf Leaf Depth:{partition.getAverageLeafDepth()}\n"
+        #     f"Max Leaf Depth:{partition.getMaxLeafDepth()}\n"
+        #     f"Total Node:{partition.getNodeCount()}\n"
+        #     f"Total Leaf Node:{partition.getLeafCount()}\n"
+        #     f"Tree Render Time:{constructionTimes[c]}s\n"
+        #     f"Fast Tree Traversal Time:{fastTraversalTime[c]}s\n"
+        #     f"Simple Tree Traversal Time:{simpleTraversalTime[c]}s\n")
 
-
+        dfs.loc[dfs.shape[0]] = ["", f"{partition._constructor.__class__.__name__:^12.15s}", f"{fastTraversalTime[j][c][0]:^12.2f}", f"{constructionTimes[j][c]:^12.2f}", f"{simpleTraversalTime[j][c][0]:^12.2f}",f"{partition.getNodeCount():^12}", f"{partition.getLeafCount():^12}", f"{partition.getAverageLeafDepth():^12.2f}", f"{partition.getAverageLeafSize():^12.2f}", f"{len(scene.getPolygons()):^12}"]
+        print(dfs.loc[[j+c]])
+print("\n\n")
+print(dfs)
 #
-# viewer = MayaviViewer()
-# for partition in spacePartitions:
-#     bBoxes = partition.getLeafBoundingBoxesAsCuboids()
-#     viewer = MayaviViewer()
-#     viewer.add(*scene.getSolids(), representation="surface", lineWidth=0.05, opacity=0.5)
-#     viewer.add(*bBoxes, representation="wireframe", lineWidth=0.2, color=(1, 0, 0))
-#     viewer.show()
-#     viewer.clear()
+viewer = MayaviViewer()
+for j, scene in enumerate(scenes):
+    for partition in spacePartitions[j]:
+        bBoxes = partition.getLeafBoundingBoxesAsCuboids()
+        viewer = MayaviViewer()
+        viewer.add(*scene.getSolids(), representation="surface", lineWidth=0.05, opacity=0.5)
+        viewer.add(*bBoxes, representation="wireframe", lineWidth=0.4, color=(1, 0, 0))
+        viewer.show()
+        viewer.clear()
 

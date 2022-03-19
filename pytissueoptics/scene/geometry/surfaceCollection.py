@@ -5,8 +5,10 @@ from pytissueoptics.scene.geometry import Polygon
 
 
 class SurfaceCollection:
-    def __init__(self):
-        self._surfaces: Dict[str, List[Polygon]] = {}
+    def __init__(self, surfaces=None):
+        if surfaces is None:
+            surfaces = {}
+        self._surfaces: Dict[str, List[Polygon]] = surfaces
 
     @property
     def surfaceNames(self) -> List[str]:
