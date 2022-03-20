@@ -1,5 +1,6 @@
 from typing import List
 import sys
+from math import isclose
 from itertools import permutations
 from dataclasses import dataclass
 from pytissueoptics.scene.geometry import Polygon, BoundingBox, Quad, Vector
@@ -27,22 +28,20 @@ class SAHSearchResult:
 
 class FastBinaryTreeConstructor(TreeConstructor):
     def __init__(self):
-        self._traversalCost = 100
-        self._intersectionCost = 50
-        self._reductionFactor = 0.9
-        self._fallBackPercentage = 0.01
+        self._traversalCost = 8
+        self._intersectionCost = 1
+        self._reductionFactor = 0.8
         self._nbOfPlanes = 20
         self._quadIntersector = MollerTrumboreQuadIntersect()
 
     def _splitNode(self, node: Node) -> SplitNodeResult:
         nodeBbox = node.bbox
         nodePolygons = node.polygons
-        polygonsBbox = nodeBbox.copy()
-        polygonsBbox.shrinkTo(polygonsBbox)
+        polygonsBbox = BoundingBox.fromPolygons(nodePolygons)
         SAHResult = self._searchMinSAH(polygonsBbox, nodePolygons, self._nbOfPlanes)
         if self._checkIfWorthNodeSplit(nodeBbox.getArea(), SAHResult):
-            splitPlane = self._makeSplitPlane(nodeBbox, SAHResult.splitAxis, SAHResult.splitValue)
-            goingLeft, goingRight = self._splitPolygons(SAHResult.toSplitPolygons, splitPlane, SAHResult.splitAxis, SAHResult.splitValue)
+            plane = self._makeSplitPlane3(SAHResult.splitAxis, SAHResult.splitValue)
+            goingLeft, goingRight = self._splitPolygons(SAHResult.toSplitPolygons, plane, SAHResult.splitAxis, SAHResult.splitValue)
             SAHResult.leftPolygons.extend(goingLeft)
             SAHResult.rightPolygons.extend(goingRight)
             return SplitNodeResult(False, "", 0, [SAHResult.leftBbox, SAHResult.rightBbox], [SAHResult.leftPolygons, SAHResult.rightPolygons])
@@ -53,13 +52,51 @@ class FastBinaryTreeConstructor(TreeConstructor):
         approximatedSplitCost = self._traversalCost + self._intersectionCost * (
                     (SAHResult.leftSAH + SAHResult.rightSAH) / nodeSA)
         currentTraversalCost = self._intersectionCost * (SAHResult.nLeft + SAHResult.nRight)
-        if SAHResult.nLeft == 0 or SAHResult.nRight == 0:
-            approximatedSplitCost = approximatedSplitCost * self._reductionFactor
+        # if SAHResult.nLeft == 0 or SAHResult.nRight == 0:
+        #     approximatedSplitCost = approximatedSplitCost * self._reductionFactor
         if approximatedSplitCost < currentTraversalCost:
             nodeSplit = True
         else:
             nodeSplit = False
         return nodeSplit
+
+    @staticmethod
+    def _makeSplitPlane3(splitAxis: str, splitValue: float) -> Quad:
+        plus = sys.maxsize/2
+        minus = -sys.maxsize/2
+        if splitAxis == "x":
+            splitPoints = [Vector(splitValue, plus, plus),
+                           Vector(splitValue, plus, minus),
+                           Vector(splitValue, minus, minus),
+                           Vector(splitValue, minus, plus)]
+            return Quad(*splitPoints)
+        elif splitAxis == "y":
+            splitPoints = [Vector(plus, splitValue, plus),
+                           Vector(plus, splitValue, minus),
+                           Vector(minus, splitValue, minus),
+                           Vector(minus, splitValue, plus)]
+            return Quad(*splitPoints)
+        elif splitAxis == "z":
+            splitPoints = [Vector(plus, plus, splitValue),
+                           Vector(plus, minus, splitValue),
+                           Vector(minus, minus, splitValue),
+                           Vector(minus, plus,  splitValue)]
+            return Quad(*splitPoints)
+
+    @staticmethod
+    def _makeSplitPlane2(splitAxis: str, splitValue: float):
+        if splitAxis == "x":
+            normal = Vector(1, 0, 0)
+            planePoint = Vector(splitValue, 0, 0)
+            return normal, planePoint
+        elif splitAxis == "y":
+            normal = Vector(0, 1, 0)
+            planePoint = Vector(0, splitValue, 0)
+            return normal, planePoint
+        elif splitAxis == "z":
+            normal = Vector(0, 0, 1)
+            planePoint = Vector(0, 0, splitValue)
+            return normal, planePoint
 
     def _searchMinSAH(self, bbox, polygons, nbOfPlanes):
         SAHresult = None
@@ -87,39 +124,79 @@ class FastBinaryTreeConstructor(TreeConstructor):
                                                 rightSAH, splitAxis, splitValue)
         return SAHresult
 
+    def _intersectPlaneWithRay(self, normal: Vector, planePoint: Vector, ray: Ray, tol=1e-6):
+        denom = normal.dot(ray.direction)
+        if abs(denom) > tol:
+            inPlane = planePoint - ray.origin
+            t = inPlane.dot(normal) / denom
+            return ray.origin + ray.direction * t
+        return None
+
     def _splitPolygons(self, polygonsToSplit: List[Polygon], plane: Quad, splitAxis, splitValue):
         left = []
         right = []
         for polygon in polygonsToSplit:
             polygonRays = self._getPolygonAsRays(polygon)
-            newVertices = []
-
+            intersectionPoints = []
+            leftVertices = []
+            rightVertices = []
             for ray in polygonRays:
-                newVertices.append(ray.origin)
+                if splitAxis == "x":
+                    rayValue = ray.origin.x
+                elif splitAxis == "y":
+                    rayValue = ray.origin.y
+                else:
+                    rayValue = ray.origin.z
+
+                if isclose(rayValue, splitValue, abs_tol=1e-6):
+                    intersectionPoints.append(ray.origin)
+                elif rayValue < splitValue:
+                    leftVertices.append(ray.origin)
+                else:
+                    rightVertices.append(ray.origin)
                 intersectionPoint = self._quadIntersector.getIntersection(ray, plane)
                 if intersectionPoint:
-                    newVertices.append(intersectionPoint)
+                    intersectionPoints.append(intersectionPoint)
 
-            newPolygons = []
-            for i in range(len(newVertices) - 2):
-                newPolygons.append(Polygon(vertices=[newVertices[0], newVertices[i + 1], newVertices[i + 2]]))
+            if leftVertices:
+                leftVertices.extend(intersectionPoints)
+                left.append(Polygon(vertices=leftVertices))
+            if rightVertices:
+                rightVertices.extend(intersectionPoints)
+                right.append(Polygon(vertices=rightVertices))
+        return left, right
 
-            for newPolygon in newPolygons:
+    def _splitPolygons2(self, polygonsToSplit: List[Polygon], planeNormal: Vector, planePoint: Vector, splitAxis, splitValue):
+        left = []
+        right = []
+        for polygon in polygonsToSplit:
+            polygonRays = self._getPolygonAsRays(polygon)
+            intersectionPoints = []
+            leftVertices = []
+            rightVertices = []
+            for ray in polygonRays:
                 if splitAxis == "x":
-                    if newPolygon.getCentroid().x < splitValue:
-                        left.append(newPolygon)
-                    else:
-                        right.append(newPolygon)
+                    rayValue = ray.origin.x
                 elif splitAxis == "y":
-                    if newPolygon.getCentroid().y < splitValue:
-                        left.append(newPolygon)
-                    else:
-                        right.append(newPolygon)
+                    rayValue = ray.origin.y
                 else:
-                    if newPolygon.getCentroid().z < splitValue:
-                        left.append(newPolygon)
-                    else:
-                        right.append(newPolygon)
+                    rayValue = ray.origin.z
+
+                if rayValue < splitValue:
+                    leftVertices.append(ray.origin)
+                elif rayValue > splitValue:
+                    rightVertices.append(ray.origin)
+                else:
+                    intersectionPoints.append(ray.origin)
+
+                intersectionPoint = self._intersectPlaneWithRay(planeNormal, planePoint, ray)
+                if intersectionPoint and polygon.bbox.contains(intersectionPoint):
+                    intersectionPoints.append(intersectionPoint)
+
+            leftVertices.extend(intersectionPoints)
+            rightVertices.extend(intersectionPoints)
+            left.append(Polygon(vertices=leftVertices))
+            right.append(Polygon(vertices=rightVertices))
         return left, right
 
     @staticmethod
@@ -146,7 +223,6 @@ class FastBinaryTreeConstructor(TreeConstructor):
 
         vectors = [Vector(*vertex) for vertex in futureVertices]
         return Quad(*vectors)
-
 
     @staticmethod
     def _getPolygonAsRays(polygon):
