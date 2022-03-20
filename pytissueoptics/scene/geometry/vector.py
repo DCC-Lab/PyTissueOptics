@@ -133,7 +133,9 @@ class Vector:
         self.update(x, y, z)
 
     def anyPerpendicular(self) -> 'Vector':
-        if self.z < self.x:
+        # fixme: doesn't work for (0, 0, -z)
+        #  added temporary abs() to attempt a fix
+        if abs(self.z) < abs(self.x):
             return Vector(self.y, -self.x, 0)
 
         return Vector(0, -self.z, self.y)
