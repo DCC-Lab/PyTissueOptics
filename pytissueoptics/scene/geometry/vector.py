@@ -28,7 +28,8 @@ class Vector:
         return f"<Vector>:({self.x}, {self.y}, {self.z})"
 
     def __eq__(self, other: 'Vector'):
-        if isclose(other.x, self.x) and isclose(other.y, self.y) and isclose(other.z, self.z):
+        tol = 1e-5
+        if isclose(other.x, self.x, abs_tol=tol) and isclose(other.y, self.y, abs_tol=tol) and isclose(other.z, self.z, abs_tol=tol):
             return True
         else:
             return False
