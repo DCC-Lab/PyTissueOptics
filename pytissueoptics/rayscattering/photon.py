@@ -65,7 +65,6 @@ class Photon:
             self._roulette()
 
     def step(self, distance):
-        # TODO: reflect, finish distance
         intersection = self._getIntersection(distance)
 
         if intersection:
@@ -101,6 +100,11 @@ class Photon:
     def moveBy(self, distance):
         self._position += self._direction * distance
 
+    def reflect(self, fresnelIntersection: FresnelIntersect):
+        # todo: replace with simple dot product logic ?
+        #  Reflection = Incidence - Normal * 2 * Incidence.dot(Normal)
+        self._direction.rotateAround(fresnelIntersection.incidencePlane,
+                                     fresnelIntersection.reflectionDeflection)
 
     def refract(self, fresnelIntersection: FresnelIntersect):
         self._direction.rotateAround(fresnelIntersection.incidencePlane,
