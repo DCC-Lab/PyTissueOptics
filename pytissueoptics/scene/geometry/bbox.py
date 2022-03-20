@@ -137,9 +137,9 @@ class BoundingBox:
         return a * b * 2 + a * c * 2 + b * c * 2
 
     def contains(self, point: Vector):
-        xCondition = self.xMin <= point.x <= self.xMax
-        yCondition = self.yMin <= point.y <= self.yMax
-        zCondition = self.zMin <= point.z <= self.zMax
+        xCondition = self.xMin < point.x < self.xMax
+        yCondition = self.yMin < point.y < self.yMax
+        zCondition = self.zMin < point.z < self.zMax
         if xCondition and yCondition and zCondition:
             return True
         else:
