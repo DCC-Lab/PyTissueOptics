@@ -2,6 +2,7 @@ import math
 import random
 from typing import Optional
 
+from pytissueoptics.rayscattering.fresnelIntersect import FresnelIntersect
 from pytissueoptics.scene import Vector, Material
 from pytissueoptics.scene.intersection import Ray
 from pytissueoptics.scene.intersection.intersectionFinder import IntersectionFinder, Intersection
@@ -68,13 +69,21 @@ class Photon:
         intersection = self._getIntersection(distance)
 
         if intersection:
-            # todo: this +1e-3 only makes sense if when refracting.
-            #  update when reflection is implemented
-            self.moveBy(intersection.distance + 1e-3)
+            self.moveBy(intersection.distance)
             self._logPosition()
+            distanceLeft = distance - intersection.distance
 
-            self.refract(intersection)
-            self._updateMaterial(self._getNextMaterial(intersection))
+            fresnelIntersection = FresnelIntersect(self._direction, intersection)
+            if fresnelIntersection.isReflected():
+                self.reflect(fresnelIntersection)
+            else:
+                self.refract(fresnelIntersection)
+                self._updateMaterial(fresnelIntersection.nextMaterial)
+                newDistance = self._material.getScatteringDistance()
+                distanceLeft *= newDistance / distance
+
+            self.moveBy(1e-3)
+            self.step(distanceLeft)
 
         elif self._material.isVacuum:
             self._weight = 0
@@ -92,25 +101,10 @@ class Photon:
     def moveBy(self, distance):
         self._position += self._direction * distance
 
-    def refract(self, intersection):
-        surfaceNormal = intersection.polygon.normal
 
-        # todo: move "goingInside" bool inside Intersection object...
-        goingInside = surfaceNormal.dot(self._direction) < 0
-        if goingInside:
-            surfaceNormal *= -1
-
-        incidencePlane = self._direction.cross(surfaceNormal)
-        incidencePlane.normalize()
-
-        angleChange = self._getRefractionAngle(intersection, goingInside)
-        self._direction.rotateAround(incidencePlane, angleChange)
-
-    def _getNextMaterial(self, intersection: Intersection):
-        if intersection.polygon.normal.dot(self._direction) > 0:
-            return intersection.polygon.outsideMaterial
-        else:
-            return intersection.polygon.insideMaterial
+    def refract(self, fresnelIntersection: FresnelIntersect):
+        self._direction.rotateAround(fresnelIntersection.incidencePlane,
+                                     fresnelIntersection.refractionDeflection)
 
     def _updateMaterial(self, material):
         if material is None:
@@ -125,11 +119,10 @@ class Photon:
         self._scatterBy(theta, phi)
 
     def _decreaseWeightBy(self, delta):
-        if self._logger:
-            self._logger.logDataPoint(delta, position=self._position)
+        self._logWeightDecrease(delta)
         self._weight -= delta
         if self._weight < 0:
-            self.weight = 0
+            self._weight = 0
 
     def _scatterBy(self, theta, phi):
         self._er.rotateAround(self._direction, phi)
@@ -145,28 +138,10 @@ class Photon:
         else:
             self._weight = 0
 
-    def _getRefractionAngle(self, intersection: Intersection, goingInside: bool):
-        surfaceNormal = intersection.polygon.normal
-
-        if goingInside:
-            thetaIn = math.acos(-surfaceNormal.dot(self._direction))
-            inMaterial = intersection.polygon.outsideMaterial
-            outMaterial = intersection.polygon.insideMaterial
-        else:
-            thetaIn = math.acos(surfaceNormal.dot(self._direction))
-            inMaterial = intersection.polygon.insideMaterial
-            outMaterial = intersection.polygon.outsideMaterial
-
-        sinThetaOut = inMaterial.index * math.sin(thetaIn) / outMaterial.index
-
-        # todo: remove this debug case after tests
-        if abs(sinThetaOut) > 1:
-            # We should not be here.
-            raise ValueError("Can't refract beyond angle of total reflection")
-
-        thetaOut = math.asin(sinThetaOut)
-        return thetaIn - thetaOut
-
     def _logPosition(self):
         if self._logger is not None:
             self._logger.logPoint(self._position)
+
+    def _logWeightDecrease(self, delta):
+        if self._logger:
+            self._logger.logDataPoint(delta, position=self._position)
