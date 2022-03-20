@@ -1,5 +1,6 @@
 import unittest
 from math import sqrt
+import sys
 from pytissueoptics.scene.geometry import Triangle, Quad, Polygon, Vector
 from pytissueoptics.scene.intersection import Ray
 from pytissueoptics.scene.tree.treeConstructor.binary import FastBinaryTreeConstructor
@@ -9,7 +10,41 @@ class TestFastBinaryTreeConstructor(unittest.TestCase):
     def setUp(self) -> None:
         self._fbtc = FastBinaryTreeConstructor()
 
-    def testGetPolygonsAsRays(self):
+    def _makePlane(self, splitAxis, splitValue):
+        plus = sys.maxsize / 2
+        minus = -sys.maxsize / 2
+        if splitAxis == "x":
+            splitPoints = [Vector(splitValue, plus, plus),
+                           Vector(splitValue, plus, minus),
+                           Vector(splitValue, minus, minus),
+                           Vector(splitValue, minus, plus)]
+            return Quad(*splitPoints)
+        elif splitAxis == "y":
+            splitPoints = [Vector(plus, splitValue, plus),
+                           Vector(plus, splitValue, minus),
+                           Vector(minus, splitValue, minus),
+                           Vector(minus, splitValue, plus)]
+            return Quad(*splitPoints)
+        elif splitAxis == "z":
+            splitPoints = [Vector(plus, plus, splitValue),
+                           Vector(plus, minus, splitValue),
+                           Vector(minus, minus, splitValue),
+                           Vector(minus, plus, splitValue)]
+            return Quad(*splitPoints)
+
+    def test_givenPolygons_whenClassifying_shouldReturnCorrect3Groups(self):
+        rightTriangle = Triangle(Vector(0, 0, 0), Vector(1, 0, 0), Vector(1, 1, 0))
+        quad = Quad(Vector(-5, -5, 0), Vector(-5, 5, 0), Vector(5, 5, 0), Vector(5, -5, 0))
+        polygon = Polygon(vertices=[Vector(3, 3, 2), Vector(1, 1, 1), Vector(1, -1, 1)])
+        leftPolygon = Polygon(vertices=[Vector(3, -3, 2), Vector(1, -1, -0.5), Vector(1, -1, -1)])
+
+        toClassify = [rightTriangle, quad, polygon, leftPolygon]
+        left, right, both = self._fbtc._classifyPolygons(-0.5, "y", toClassify)
+        self.assertListEqual(left, [leftPolygon])
+        self.assertListEqual(right, [rightTriangle])
+        self.assertListEqual(both, [quad, polygon])
+
+    def test_givenATriangleAndAPlane_whenPolygonAsRays_shouldReturnCorrectRays(self):
         triangle = Triangle(Vector(0, 0, 0), Vector(1, 0, 0), Vector(1, 1, 0))
         quad = Quad(Vector(-5, -5, 0), Vector(-5, 5, 0), Vector(5, 5, 0), Vector(5, -5, 0))
         triangleRays = self._fbtc._getPolygonAsRays(triangle)
@@ -30,5 +65,96 @@ class TestFastBinaryTreeConstructor(unittest.TestCase):
             self.assertEqual(quad.origin, expectedQuadRays[i].origin, 2)
             self.assertEqual(quad.length, expectedQuadRays[i].length, 2)
 
-    def testSplitPolygons(self):
-        pass
+    def test_givenAPolygonAndAPlane_whenSplittingPolygon_shouldReturn2Polygons(self):
+        toBeSplitted = [Polygon(vertices=[Vector(0, 0, 0), Vector(1, 1, 1), Vector(1, -1, 1)])]
+        splitValue = 0.5
+        plus = sys.maxsize / 2
+        minus = -sys.maxsize / 2
+        splitPoints = [Vector(splitValue, plus, plus),
+                       Vector(splitValue, plus, minus),
+                       Vector(splitValue, minus, minus),
+                       Vector(splitValue, minus, plus)]
+        splitPlane = Quad(*splitPoints)
+        left, right = self._fbtc._splitPolygons(toBeSplitted, splitPlane, "x", splitValue)
+        expectedLeft = [Polygon(vertices=[Vector(0, 0, 0), Vector(0.5, 0.5, 0.5), Vector(0.5, -0.5, 0.5)])]
+        expectedRight = [Polygon(vertices=[Vector(1, 1, 1), Vector(0.5, 0.5, 0.5), Vector(0.5, -0.5, 0.5), Vector(1, -1, 1)])]
+
+        self.assertEqual(left[0], expectedLeft[0])
+        self.assertEqual(right[0], expectedRight[0])
+
+    def test_givenAPolygonAndAPlane_whenSplittingOnAVertexInside_shouldReturn2Polygons(self):
+        toBeSplitted = [Polygon(vertices=[Vector(0, 0, 0), Vector(1, 1, 1), Vector(1, -1, 1)])]
+        splitValue = 0
+        splitAxis = "y"
+        plus = sys.maxsize / 2
+        minus = -sys.maxsize / 2
+        splitPoints = [Vector(splitValue, plus, plus),
+                       Vector(splitValue, plus, minus),
+                       Vector(splitValue, minus, minus),
+                       Vector(splitValue, minus, plus)]
+        splitPlane = Quad(*splitPoints)
+        left, right = self._fbtc._splitPolygons(toBeSplitted, splitPlane, splitAxis, splitValue)
+        expectedLeft = [Polygon(vertices=[Vector(1, -1, 1), Vector(0, 1, 1), Vector(0, 0, 0)])]
+        expectedRight = [Polygon(vertices=[Vector(1, 1, 1), Vector(0, 1, 1), Vector(0, 0, 0)])]
+        self.assertEqual(left[0], expectedLeft[0])
+        self.assertEqual(right[0], expectedRight[0])
+
+    def test_givenAPolygonAndAPlane_whenSplittingOnAVertexOutside_shouldReturn1Polygons(self):
+        toBeSplitted = [Polygon(vertices=[Vector(0, 0, 0), Vector(1, 1, 1), Vector(1, -1, 1)])]
+        splitValue = 1
+        plus = sys.maxsize / 2
+        minus = -sys.maxsize / 2
+        splitPoints = [Vector(splitValue, plus, plus),
+                       Vector(splitValue, plus, minus),
+                       Vector(splitValue, minus, minus),
+                       Vector(splitValue, minus, plus)]
+        splitPlane = Quad(*splitPoints)
+        left, right = self._fbtc._splitPolygons(toBeSplitted, splitPlane, "y", splitValue)
+        expectedLeft = [Polygon(vertices=[Vector(0, 0, 0), Vector(1, 1, 1), Vector(1, -1, 1)])]
+        expectedRight = []
+        self.assertEqual(left[0], expectedLeft[0])
+        self.assertEqual(right, expectedRight)
+
+    def test_givenAPolygonAndAPlane_whenSplittingOn2VerticesOutside_shouldReturn1Polygons(self):
+        toBeSplitted = [Polygon(vertices=[Vector(0, 0, 0), Vector(1, 1, 1), Vector(1, -1, 1)])]
+        splitValue = 1
+        splitAxis = "x"
+        plus = sys.maxsize / 2
+        minus = -sys.maxsize / 2
+        splitPoints = [Vector(splitValue, plus, plus),
+                       Vector(splitValue, plus, minus),
+                       Vector(splitValue, minus, minus),
+                       Vector(splitValue, minus, plus)]
+        splitPlane = Quad(*splitPoints)
+        left, right = self._fbtc._splitPolygons(toBeSplitted, splitPlane, splitAxis, splitValue)
+        expectedLeft = [Polygon(vertices=[Vector(0, 0, 0), Vector(1, 1, 1), Vector(1, -1, 1)])]
+        expectedRight = []
+        self.assertEqual(left[0], expectedLeft[0])
+        self.assertEqual(right, expectedRight)
+
+    def test_givenAPolygonAndAPlane_whenSplittingOn2VerticesInside_shouldReturn2Polygons(self):
+        toBeSplitted = [Polygon(vertices=[Vector(0, 0, 0), Vector(1, 1, 1), Vector(2, 0, 1), Vector(1, -1, 1)])]
+        splitValue = 1
+        splitAxis = "x"
+        plus = sys.maxsize / 2
+        minus = -sys.maxsize / 2
+        splitPoints = [Vector(splitValue, plus, plus),
+                       Vector(splitValue, plus, minus),
+                       Vector(splitValue, minus, minus),
+                       Vector(splitValue, minus, plus)]
+        splitPlane = Quad(*splitPoints)
+        left, right = self._fbtc._splitPolygons(toBeSplitted, splitPlane, splitAxis, splitValue)
+        expectedLeft = [Polygon(vertices=[Vector(1, -1, 1), Vector(1, 1, 1), Vector(0, 0, 0)])]
+        expectedRight = [Polygon(vertices=[Vector(1, -1, 1), Vector(1, 1, 1), Vector(2, 0, 1)])]
+        self.assertEqual(left[0], expectedLeft[0])
+        self.assertEqual(right[0], expectedRight[0])
+
+    def test_givenUltraThinPolygon_whenSplitting_shouldStillReturn2Polygons(self):
+        vertices = [Vector(8.860660171779822, 5.000000000000001, -4.9455),
+                    Vector(8.856599089933916, 4.995938918154095, -4.9455),
+                    Vector(8.856599089933916, 4.99986899735981, -4.9455)]
+        toBeSplit = [Polygon(vertices=vertices)]
+        splitAxis = "y"
+        splitValue = 4.999868997359811
+        splitPlane = self._makePlane(splitAxis, splitValue)
+        left, right = self._fbtc._splitPolygons(toBeSplit, splitPlane, splitAxis, splitValue)
