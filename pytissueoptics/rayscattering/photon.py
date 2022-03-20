@@ -2,7 +2,7 @@ import math
 import random
 from typing import Optional
 
-from pytissueoptics.rayscattering.fresnelIntersect import FresnelIntersect
+from pytissueoptics.rayscattering.fresnel import FresnelIntersect
 from pytissueoptics.scene import Vector, Material
 from pytissueoptics.scene.intersection import Ray
 from pytissueoptics.scene.intersection.intersectionFinder import IntersectionFinder, Intersection

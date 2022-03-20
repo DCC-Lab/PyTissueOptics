@@ -2,7 +2,7 @@ import math
 import unittest
 
 from pytissueoptics.rayscattering import Photon
-from pytissueoptics.rayscattering.fresnelIntersect import FresnelIntersect
+from pytissueoptics.rayscattering.fresnel import FresnelIntersect
 from pytissueoptics.scene import Vector, Material
 from pytissueoptics.scene.geometry import Polygon
 from pytissueoptics.scene.intersection.intersectionFinder import Intersection

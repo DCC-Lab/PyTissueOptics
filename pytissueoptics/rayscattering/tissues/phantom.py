@@ -18,7 +18,7 @@ class PhantomTissue(Tissue):
         return self._solids
 
     def _create(self):
-        mu_s = [2, 4, 6]
+        mu_s = [2, 3, 4]
         mu_a = 2
         g = 0.8
 
