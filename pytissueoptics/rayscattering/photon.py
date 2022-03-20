@@ -1,5 +1,6 @@
 import math
 import random
+from typing import Optional
 
 from pytissueoptics.scene import Vector, Material
 from pytissueoptics.scene.intersection import Ray
@@ -34,14 +35,22 @@ class Photon:
     def direction(self) -> Vector:
         return self._direction
 
-    def setContext(self, worldMaterial: Material, intersectionFinder: IntersectionFinder, logger: Logger = None):
+    @property
+    def weight(self) -> float:
+        return self._weight
+
+    @property
+    def material(self) -> Material:
+        return self._material
+
+    def setContext(self, worldMaterial: Material, intersectionFinder: IntersectionFinder = None, logger: Logger = None):
+        # todo: set proper initial material
         self._worldMaterial = worldMaterial
-        # todo: set proper initial material, allow for no intersectionFinder
         self._material = worldMaterial
         self._intersectionFinder = intersectionFinder
-        self._logger = logger
         # todo: PhotonLogger with logEventX booleans:
         #  logInitialPositions, logIntersections, logScattering, logEndPositions
+        self._logger = logger
         self._hasContext = True
 
     def propagate(self):
@@ -56,8 +65,7 @@ class Photon:
 
     def step(self, distance):
         # TODO: reflect, finish distance
-        stepRay = Ray(self._position, self._direction, distance)
-        intersection = self._intersectionFinder.findIntersection(stepRay)
+        intersection = self._getIntersection(distance)
 
         if intersection:
             # todo: this +1e-3 only makes sense if when refracting.
@@ -75,12 +83,19 @@ class Photon:
             self.moveBy(distance)
             self.scatter()
 
+    def _getIntersection(self, distance) -> Optional[Intersection]:
+        if self._intersectionFinder is None:
+            return None
+        stepRay = Ray(self._position, self._direction, distance)
+        return self._intersectionFinder.findIntersection(stepRay)
+
     def moveBy(self, distance):
         self._position += self._direction * distance
 
     def refract(self, intersection):
         surfaceNormal = intersection.polygon.normal
 
+        # todo: move "goingInside" bool inside Intersection object...
         goingInside = surfaceNormal.dot(self._direction) < 0
         if goingInside:
             surfaceNormal *= -1

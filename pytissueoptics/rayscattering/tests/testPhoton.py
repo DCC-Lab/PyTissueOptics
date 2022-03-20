@@ -26,8 +26,9 @@ class TestPhoton(unittest.TestCase):
 
     def testWhenSetContext_shouldSetCurrentMaterialAsWorldMaterial(self):
         # fixme: should set proper initial material
-        # fixme: should allow for no intersectionFinder ?
-        pass
+        worldMaterial = Material()
+        self.photon.setContext(worldMaterial)
+        self.assertEqual(worldMaterial, self.photon.material)
 
     def testWhenMoveBy_shouldMovePhotonByTheGivenDistanceTowardsItsDirection(self):
         initialPosition = self.POSITION.copy()
@@ -46,7 +47,7 @@ class TestPhoton(unittest.TestCase):
 
         self.assertEqual(initialDirection, self.photon.direction)
 
-    def testWhenRefract_shouldRotatePhotonTowardsFresnelRefractionAngle(self):
+    def testWhenRefract_shouldOrientPhotonTowardsFresnelRefractionAngle(self):
         # todo: move logic to FresnelIntersect(intersection)
         incidenceAngle = math.pi / 10
         self.photon = Photon(self.POSITION, Vector(0, math.sin(incidenceAngle), -math.cos(incidenceAngle)))
