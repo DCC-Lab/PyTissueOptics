@@ -23,7 +23,7 @@ class Photon:
         self._er.normalize()
 
     @property
-    def _isAlive(self) -> bool:
+    def isAlive(self) -> bool:
         return self._weight > 0
 
     def setContext(self, worldMaterial: Material, intersectionFinder: IntersectionFinder, logger: Logger):
@@ -35,13 +35,13 @@ class Photon:
 
     def propagate(self):
         self._logger.logPoint(self._position)
-        while self._isAlive:
+        while self.isAlive:
             distance = self._material.getScatteringDistance()
-            self._step(distance)
+            self.step(distance)
             self._roulette()
 
-    def _step(self, distance):
-        # TODO: reflect, scatter, finish distance
+    def step(self, distance):
+        # TODO: reflect, finish distance
         stepRay = Ray(self._position, self._direction, distance)
         intersection = self._intersectionFinder.findIntersection(stepRay)
 
@@ -49,7 +49,7 @@ class Photon:
             self._logger.logPoint(intersection.position)
             self._position += self._direction * (intersection.distance + 1e-3)
 
-            self._refract(intersection)
+            self.refract(intersection)
             self._updateMaterial(self._getNextMaterial(intersection))
 
         elif self._material.isVacuum:
@@ -57,9 +57,9 @@ class Photon:
 
         else:
             self._position += self._direction * distance
-            self._scatter()
+            self.scatter()
 
-    def _refract(self, intersection):
+    def refract(self, intersection):
         surfaceNormal = intersection.polygon.normal
 
         goingInside = surfaceNormal.dot(self._direction) < 0
@@ -84,7 +84,7 @@ class Photon:
         else:
             self._material = material
 
-    def _scatter(self):
+    def scatter(self):
         delta = self._weight * self._material.albedo
         self._decreaseWeightBy(delta)
         theta, phi = self._material.getScatteringAngles()
@@ -124,6 +124,8 @@ class Photon:
             outMaterial = intersection.polygon.outsideMaterial
 
         sinThetaOut = inMaterial.index * math.sin(thetaIn) / outMaterial.index
+
+        # todo: remove this debug case after tests
         if abs(sinThetaOut) > 1:
             # We should not be here.
             raise ValueError("Can't refract beyond angle of total reflection")
