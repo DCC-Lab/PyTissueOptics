@@ -45,6 +45,16 @@ class BoundingBox:
         zLim = [min(z), max(z)]
         return BoundingBox(xLim, yLim, zLim)
 
+    @classmethod
+    def fromPolygons(cls, polygons: List['Polygon']) -> 'BoundingBox':
+        bbox = None
+        for polygon in polygons:
+            if bbox is not None:
+                bbox.extendTo(polygon.bbox)
+            else:
+                bbox = polygon.bbox.copy()
+        return bbox
+
     @property
     def xMin(self) -> float:
         return self._xLim[0]
@@ -127,9 +137,9 @@ class BoundingBox:
         return a * b * 2 + a * c * 2 + b * c * 2
 
     def contains(self, point: Vector):
-        xCondition = self.xMin < point.x < self.xMax
-        yCondition = self.yMin < point.y < self.yMax
-        zCondition = self.zMin < point.z < self.zMax
+        xCondition = self.xMin <= point.x <= self.xMax
+        yCondition = self.yMin <= point.y <= self.yMax
+        zCondition = self.zMin <= point.z <= self.zMax
         if xCondition and yCondition and zCondition:
             return True
         else:
