@@ -1,16 +1,28 @@
 from typing import Tuple, List
 
 from pytissueoptics.scene.geometry import Polygon, BoundingBox
-from pytissueoptics.scene.tree.treeConstructor.utils import meanCentroid
 from pytissueoptics.scene.tree.treeConstructor import NodeSplitter, SplitNodeResult, PolygonCounter
 
 
 class MeanCentroidNodeSplitter(NodeSplitter):
     def split(self, splitAxis: str, nodeBbox: BoundingBox, polygons: List[Polygon]) -> SplitNodeResult:
-        splitLine = meanCentroid(splitAxis, polygons)
+        splitLine = self._getMeanCentroid(splitAxis, polygons)
         polygonGroups = self._polygonCounter.count(splitLine, splitAxis, polygons)
         groupBbox = self._getNewChildrenBbox(nodeBbox, splitAxis, splitLine)
         return SplitNodeResult(False, splitAxis, splitLine, groupBbox, polygonGroups)
+
+    @staticmethod
+    def _getMeanCentroid(axis: str, polygons: List[Polygon]):
+        average = 0
+        for polygon in polygons:
+            if axis == "x":
+                average += polygon.centroid.x
+            elif axis == "y":
+                average += polygon.centroid.y
+            elif axis == "z":
+                average += polygon.centroid.z
+        average = average / len(polygons)
+        return average
 
 
 class MiddlePolygonSpanNodeSplitter(NodeSplitter):
