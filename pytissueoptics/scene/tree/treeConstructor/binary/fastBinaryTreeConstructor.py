@@ -3,10 +3,9 @@ from dataclasses import dataclass
 from math import isclose
 import sys
 
-from pytissueoptics.scene.geometry import Polygon, BoundingBox, Quad, Vector
+from pytissueoptics.scene.geometry import Polygon, BoundingBox, Vector
 from pytissueoptics.scene.tree import Node
 from pytissueoptics.scene.intersection import Ray
-from pytissueoptics.scene.intersection.quadIntersect import MollerTrumboreQuadIntersect
 from pytissueoptics.scene.tree.treeConstructor import TreeConstructor, SplitNodeResult
 
 
@@ -21,17 +20,37 @@ class SAHSearchResult:
     nRight: int
     leftSAH: float
     rightSAH: float
-    splitAxis : str
+    splitAxis: str
     splitValue: float
 
 
 class FastBinaryTreeConstructor(TreeConstructor):
+    """
+    This is an implementation of the proposed algorithms found in
+
+    Wald, Ingo, and Vlastimil Havran. 2006. “On Building Fast Kd-Trees for Ray Tracing, and on Doing That in O(N Log N).
+    ” In 2006 IEEE Symposium on Interactive Ray Tracing, 61–69.
+
+    Soupikov, Alexei, Maxim Shevtsov, and Alexander Kapustin. 2008. “Improving Kd-Tree Quality at a Reasonable
+    Construction Cost.” In Interactive Ray Tracing, 2008. RT 2008. IEEE Symposium on, 67–72. unknown.
+
+    -
+
+    This algorithm uses a
+    1. Surface Area Heuristic (SAH)
+    2. Perfect Splits
+    3. Minimum SAH search on 3 dimensions
+
+    When the minimum SAH axis and value are found, a split cost is calculated.
+    If the children's cost is lower than the parent, splitting is allowed, else, no splitting occurs.
+
+    """
     def __init__(self):
+        super(FastBinaryTreeConstructor, self).__init__()
         self._traversalCost = 8
         self._intersectionCost = 1
         self._reductionFactor = 0.8
         self._nbOfPlanes = 20
-        self._quadIntersector = MollerTrumboreQuadIntersect()
 
     def _splitNode(self, node: Node) -> SplitNodeResult:
         nodeBbox = node.bbox
@@ -39,67 +58,23 @@ class FastBinaryTreeConstructor(TreeConstructor):
         polygonsBbox = BoundingBox.fromPolygons(nodePolygons)
         SAHResult = self._searchMinSAH(polygonsBbox, nodePolygons, self._nbOfPlanes)
         if self._checkIfWorthNodeSplit(nodeBbox.getArea(), SAHResult):
-
-            #normal, point = self._makeSplitPlane2(SAHResult.splitAxis, SAHResult.splitValue)
-            #goingLeft, goingRight = self._splitPolygons2(SAHResult.toSplitPolygons, normal, point, SAHResult.splitAxis, SAHResult.splitValue)
-
-            plane = self._makeSplitPlane(SAHResult.splitAxis, SAHResult.splitValue)
-            goingLeft, goingRight = self._splitPolygons(SAHResult.toSplitPolygons, plane, SAHResult.splitAxis,
-                                                         SAHResult.splitValue)
-
+            normal, point = self._makeSplitPlane(SAHResult.splitAxis, SAHResult.splitValue)
+            goingLeft, goingRight = self._splitPolygons(SAHResult.toSplitPolygons, normal, point,
+                                                        SAHResult.splitAxis, SAHResult.splitValue)
             SAHResult.leftPolygons.extend(goingLeft)
             SAHResult.rightPolygons.extend(goingRight)
-            return SplitNodeResult(False, "", 0, [SAHResult.leftBbox, SAHResult.rightBbox], [SAHResult.leftPolygons, SAHResult.rightPolygons])
+            return SplitNodeResult(False, "", 0, [SAHResult.leftBbox, SAHResult.rightBbox],
+                                   [SAHResult.leftPolygons, SAHResult.rightPolygons])
         else:
             return SplitNodeResult(True, None, None, None, None)
 
     def _checkIfWorthNodeSplit(self, nodeSA: float, SAHResult: SAHSearchResult):
-        approximatedSplitCost = self._traversalCost + self._intersectionCost * (
-                    (SAHResult.leftSAH + SAHResult.rightSAH) / nodeSA)
+        newNodeIntersectionCost = self._intersectionCost * ((SAHResult.leftSAH + SAHResult.rightSAH) / nodeSA)
+        approximatedSplitCost = self._traversalCost + newNodeIntersectionCost
         currentTraversalCost = self._intersectionCost * (SAHResult.nLeft + SAHResult.nRight)
         if approximatedSplitCost < currentTraversalCost:
-            nodeSplit = True
-        else:
-            nodeSplit = False
-        return nodeSplit
-
-    @staticmethod
-    def _makeSplitPlane(splitAxis: str, splitValue: float) -> Quad:
-        plus = sys.maxsize/2
-        minus = -sys.maxsize/2
-        if splitAxis == "x":
-            splitPoints = [Vector(splitValue, plus, plus),
-                           Vector(splitValue, plus, minus),
-                           Vector(splitValue, minus, minus),
-                           Vector(splitValue, minus, plus)]
-            return Quad(*splitPoints)
-        elif splitAxis == "y":
-            splitPoints = [Vector(plus, splitValue, plus),
-                           Vector(plus, splitValue, minus),
-                           Vector(minus, splitValue, minus),
-                           Vector(minus, splitValue, plus)]
-            return Quad(*splitPoints)
-        elif splitAxis == "z":
-            splitPoints = [Vector(plus, plus, splitValue),
-                           Vector(plus, minus, splitValue),
-                           Vector(minus, minus, splitValue),
-                           Vector(minus, plus,  splitValue)]
-            return Quad(*splitPoints)
-
-    @staticmethod
-    def _makeSplitPlane2(splitAxis: str, splitValue: float) -> Tuple[Vector, Vector]:
-        if splitAxis == "x":
-            normal = Vector(1, 0, 0)
-            planePoint = Vector(splitValue, 0, 0)
-            return normal, planePoint
-        elif splitAxis == "y":
-            normal = Vector(0, 1, 0)
-            planePoint = Vector(0, splitValue, 0)
-            return normal, planePoint
-        elif splitAxis == "z":
-            normal = Vector(0, 0, 1)
-            planePoint = Vector(0, 0, splitValue)
-            return normal, planePoint
+            return True
+        return False
 
     def _searchMinSAH(self, bbox, polygons, nbOfPlanes):
         SAHresult = None
@@ -127,60 +102,7 @@ class FastBinaryTreeConstructor(TreeConstructor):
                                                 rightSAH, splitAxis, splitValue)
         return SAHresult
 
-    @staticmethod
-    def _intersectPlaneWithRay(normal: Vector, planePoint: Vector, ray: Ray, tol=1e-6):
-        """
-        algorithm from scratchpixel.com
-        1. normal.dot(direction), to check if plane and are are coplanar
-        2. the dot product of two perpendicular vectors is equal to 0  | (normal.dot(planePoint - origin)) = 0
-        3. we parametrize the ray equation as | origin + direction * t = planePoint
-        4. we solve for t.
-        5. in our case, the hit point has to be within the predefined polygon, so we verify 't' with the ray.length
-        """
-        coplanar = normal.dot(ray.direction)
-        if abs(coplanar) > tol:
-            inPlane = planePoint - ray.origin
-            t = inPlane.dot(normal) / coplanar
-            hit = ray.origin + ray.direction * t
-            if (hit-ray.origin).getNorm() <= ray.length:
-                return hit
-        return None
-
-    def _splitPolygons(self, polygonsToSplit: List[Polygon], plane: Quad, splitAxis, splitValue):
-        left = []
-        right = []
-        for polygon in polygonsToSplit:
-            polygonRays = self._getPolygonAsRays(polygon)
-            intersectionPoints = []
-            leftVertices = []
-            rightVertices = []
-            for ray in polygonRays:
-                if splitAxis == "x":
-                    rayValue = ray.origin.x
-                elif splitAxis == "y":
-                    rayValue = ray.origin.y
-                else:
-                    rayValue = ray.origin.z
-
-                if isclose(rayValue, splitValue, abs_tol=1e-6):
-                    intersectionPoints.append(ray.origin)
-                elif rayValue < splitValue:
-                    leftVertices.append(ray.origin)
-                else:
-                    rightVertices.append(ray.origin)
-                intersectionPoint = self._quadIntersector.getIntersection(ray, plane)
-                if intersectionPoint:
-                    intersectionPoints.append(intersectionPoint)
-
-            if leftVertices:
-                leftVertices.extend(intersectionPoints)
-                left.append(Polygon(vertices=leftVertices))
-            if rightVertices:
-                rightVertices.extend(intersectionPoints)
-                right.append(Polygon(vertices=rightVertices))
-        return left, right
-
-    def _splitPolygons2(self, polygonsToSplit: List[Polygon], planeNormal: Vector, planePoint: Vector, splitAxis, splitValue):
+    def _splitPolygons(self, polygonsToSplit: List[Polygon], planeNormal: Vector, planePoint: Vector, splitAxis, splitValue):
         left = []
         right = []
         for polygon in polygonsToSplit:
@@ -215,6 +137,40 @@ class FastBinaryTreeConstructor(TreeConstructor):
         return left, right
 
     @staticmethod
+    def _intersectPlaneWithRay(normal: Vector, planePoint: Vector, ray: Ray, tol=1e-6):
+        """
+        algorithm from scratchpixel.com
+        1. normal.dot(direction), to check if plane and are are coplanar
+        2. the dot product of two perpendicular vectors is equal to 0  | (normal.dot(planePoint - origin)) = 0
+        3. we parametrize the ray equation as | origin + direction * t = planePoint
+        4. we solve for t.
+        5. in our case, the hit point has to be within the predefined polygon, so we verify 't' with the ray.length
+        """
+        coplanar = normal.dot(ray.direction)
+        if abs(coplanar) > tol:
+            inPlane = planePoint - ray.origin
+            t = inPlane.dot(normal) / coplanar
+            hit = ray.origin + ray.direction * t
+            if (hit - ray.origin).getNorm() <= ray.length:
+                return hit
+        return None
+
+    @staticmethod
+    def _makeSplitPlane(splitAxis: str, splitValue: float) -> Tuple[Vector, Vector]:
+        if splitAxis == "x":
+            normal = Vector(1, 0, 0)
+            planePoint = Vector(splitValue, 0, 0)
+            return normal, planePoint
+        elif splitAxis == "y":
+            normal = Vector(0, 1, 0)
+            planePoint = Vector(0, splitValue, 0)
+            return normal, planePoint
+        elif splitAxis == "z":
+            normal = Vector(0, 0, 1)
+            planePoint = Vector(0, 0, splitValue)
+            return normal, planePoint
+
+    @staticmethod
     def _getPolygonAsRays(polygon):
         polygonRays = []
         for i, vertex in enumerate(polygon.vertices):
@@ -242,18 +198,3 @@ class FastBinaryTreeConstructor(TreeConstructor):
                 toBeSplit.append(polygon)
 
         return [goingLeft, goingRight, toBeSplit]
-
-    def growTree(self, node: Node, maxDepth: int, minLeafSize: int):
-        if node.depth >= maxDepth or len(node.polygons) <= minLeafSize:
-            return
-
-        splitNodeResult = self._splitNode(node)
-        if splitNodeResult.stopCondition:
-            return
-
-        for i, polygonGroup in enumerate(splitNodeResult.polygonGroups):
-            if len(polygonGroup) <= 0:
-                continue
-            childNode = Node(parent=node, polygons=polygonGroup, bbox=splitNodeResult.bboxes[i], depth=node.depth + 1)
-            node.children.append(childNode)
-            self.growTree(childNode, maxDepth, minLeafSize)
