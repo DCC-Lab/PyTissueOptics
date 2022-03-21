@@ -29,3 +29,13 @@ class Material:
         while rnd == 0:
             rnd = np.random.random()
         return -np.log(rnd) / self.mu_t
+
+    def getScatteringAngles(self):
+        phi = np.random.random() * 2 * np.pi
+        g = self.g
+        if g == 0:
+            cost = 2 * np.random.random() - 1
+        else:
+            temp = (1 - g * g) / (1 - g + 2 * g * np.random.random())
+            cost = (1 + g * g - temp * temp) / (2 * g)
+        return np.arccos(cost), phi

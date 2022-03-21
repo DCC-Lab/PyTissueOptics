@@ -36,7 +36,7 @@ class SurfaceCollection:
         else:
             outsidePolygons = []
             for surfaceName in self.surfaceNames:
-                if "interface" in surfaceName:
+                if "Interface" in surfaceName:
                     continue
                 outsidePolygons.extend(self.getPolygons(surfaceName))
 
