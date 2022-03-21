@@ -59,9 +59,11 @@ class Photon:
             raise NotImplementedError("Cannot propagate photon without context. Use ‘setContext(...)‘. ")
 
         self._logPosition()
+        distance = 0
         while self.isAlive:
-            distance = self._material.getScatteringDistance()
-            self.step(distance)
+            if distance == 0:
+                distance = self._material.getScatteringDistance()
+            distance = self.step(distance)
             self._roulette()
 
     def step(self, distance):
@@ -71,25 +73,28 @@ class Photon:
             self.moveBy(intersection.distance)
             self._logPosition()
             distanceLeft = distance - intersection.distance
-
             fresnelIntersection = FresnelIntersect(self._direction, intersection)
-            if fresnelIntersection.isReflected():
-                self.reflect(fresnelIntersection)
-            else:
-                self.refract(fresnelIntersection)
-                self._updateMaterial(fresnelIntersection.nextMaterial)
-                newDistance = self._material.getScatteringDistance()
-                distanceLeft *= newDistance / distance
 
-            self.moveBy(1e-3)
-            self.step(distanceLeft)
+            self.reflectOrRefract(fresnelIntersection)
 
         elif self._material.isVacuum:
             self._weight = 0
-
+            distanceLeft = 0
         else:
             self.moveBy(distance)
+            distanceLeft = 0
             self.scatter()
+
+        return distanceLeft
+
+    def reflectOrRefract(self, fresnelIntersection):
+        if fresnelIntersection.isReflected():
+            self.reflect(fresnelIntersection)
+        else:
+            self.refract(fresnelIntersection)
+            self._updateMaterial(fresnelIntersection.nextMaterial)
+            newDistance = self._material.getScatteringDistance()
+            distanceLeft *= newDistance / distance
 
     def _getIntersection(self, distance) -> Optional[Intersection]:
         if self._intersectionFinder is None:
