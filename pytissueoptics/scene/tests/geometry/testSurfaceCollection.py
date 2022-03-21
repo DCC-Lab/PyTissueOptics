@@ -93,13 +93,29 @@ class TestSurfaceCollection(unittest.TestCase):
         with self.assertRaises(Exception):
             self.surfaceCollection.getInsideMaterial(self.SURFACE_NAME)
 
-    def testWhenResetNormals_shouldResetNormalsOfAllPolygons(self):
+    def testWhenResetNormals_shouldResetNormalOfAllPolygons(self):
         when(self.SURFACE_POLYGON).resetNormal().thenReturn()
         self.surfaceCollection.add(self.SURFACE_NAME, self.SURFACE_POLYGONS)
 
         self.surfaceCollection.resetNormals()
 
         verify(self.SURFACE_POLYGON).resetNormal()
+
+    def testWhenResetBoundingBoxes_shouldResetBoundingBoxOfAllPolygons(self):
+        when(self.SURFACE_POLYGON).resetBoundingBox().thenReturn()
+        self.surfaceCollection.add(self.SURFACE_NAME, self.SURFACE_POLYGONS)
+
+        self.surfaceCollection.resetBoundingBoxes()
+
+        verify(self.SURFACE_POLYGON).resetBoundingBox()
+
+    def testWhenResetCentroids_shouldResetCentroidOfAllPolygons(self):
+        when(self.SURFACE_POLYGON).resetCentroid().thenReturn()
+        self.surfaceCollection.add(self.SURFACE_NAME, self.SURFACE_POLYGONS)
+
+        self.surfaceCollection.resetCentroids()
+
+        verify(self.SURFACE_POLYGON).resetCentroid()
 
     def testWhenExtendWithAnotherSurfaceCollection_shouldAddTheOtherSurfacesToItsCollection(self):
         otherSurfaceName = "Another surface name"

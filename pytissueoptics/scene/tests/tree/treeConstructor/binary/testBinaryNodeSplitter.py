@@ -35,6 +35,16 @@ class TestBinaryMeanCentroidNodeSplitter(unittest.TestCase):
                                            [self.polygons])
         self.assertEqual(validationResult, splitNodeResult)
 
+    def testGivenListOfPolygonAndAxis_whenGetMeanCentroid_shouldReturnCentroidOnThisAxis(self):
+        polygons = [Polygon(vertices=[Vector(0, 0, 0), Vector(1, 1, 1), Vector(1, 0, 0)]),
+                    Polygon(vertices=[Vector(0, 0, 0), Vector(-1, -1, 1), Vector(-1, 0, 0)])]
+        xMeanCentroid = self.splitter._getMeanCentroid("x", polygons)
+        yMeanCentroid = self.splitter._getMeanCentroid("y", polygons)
+        zMeanCentroid = self.splitter._getMeanCentroid("z", polygons)
+        self.assertEqual(0, xMeanCentroid)
+        self.assertEqual(0, yMeanCentroid)
+        self.assertEqual(1/3, zMeanCentroid)
+
 
 class TestBinaryMiddlePolygonSpanNodeSplitter(unittest.TestCase):
     def setUp(self):

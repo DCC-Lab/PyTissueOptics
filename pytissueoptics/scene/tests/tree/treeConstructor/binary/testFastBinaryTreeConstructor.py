@@ -1,5 +1,4 @@
 import unittest
-from typing import Tuple
 from math import sqrt
 
 from pytissueoptics.scene.geometry import Triangle, Quad, Polygon, Vector, BoundingBox
@@ -11,21 +10,6 @@ from pytissueoptics.scene.tree.treeConstructor.binary import FastBinaryTreeConst
 class TestFastBinaryTreeConstructor(unittest.TestCase):
     def setUp(self) -> None:
         self._fbtc = FastBinaryTreeConstructor()
-
-    @staticmethod
-    def _makeSplitPlane(splitAxis: str, splitValue: float) -> Tuple[Vector, Vector]:
-        if splitAxis == "x":
-            normal = Vector(1, 0, 0)
-            planePoint = Vector(splitValue, 0, 0)
-            return normal, planePoint
-        elif splitAxis == "y":
-            normal = Vector(0, 1, 0)
-            planePoint = Vector(0, splitValue, 0)
-            return normal, planePoint
-        elif splitAxis == "z":
-            normal = Vector(0, 0, 1)
-            planePoint = Vector(0, 0, splitValue)
-            return normal, planePoint
 
     # Static Internal Mechanics Tests
 
@@ -68,7 +52,7 @@ class TestFastBinaryTreeConstructor(unittest.TestCase):
         toBeSplitted = [Polygon(vertices=[Vector(0, 0, 0), Vector(1, 1, 1), Vector(1, -1, 1)])]
         splitValue = 0.5
         splitAxis = "x"
-        normal, dot = self._makeSplitPlane(splitAxis, splitValue)
+        normal, dot = self._fbtc._makeSplitPlane(splitAxis, splitValue)
         left, right = self._fbtc._splitPolygons(toBeSplitted, normal, dot, splitAxis, splitValue)
         expectedLeft = [Polygon(vertices=[Vector(0, 0, 0), Vector(0.5, 0.5, 0.5), Vector(0.5, -0.5, 0.5)])]
         expectedRight = [
@@ -81,7 +65,7 @@ class TestFastBinaryTreeConstructor(unittest.TestCase):
         toBeSplitted = [Polygon(vertices=[Vector(0, 0, 0), Vector(1, 1, 1), Vector(1, -1, 1)])]
         splitValue = 0
         splitAxis = "y"
-        normal, dot = self._makeSplitPlane(splitAxis, splitValue)
+        normal, dot = self._fbtc._makeSplitPlane(splitAxis, splitValue)
         left, right = self._fbtc._splitPolygons(toBeSplitted, normal, dot, splitAxis, splitValue)
         expectedLeft = [Polygon(vertices=[Vector(1, -1, 1), Vector(1, 0, 1), Vector(0, 0, 0)])]
         expectedRight = [Polygon(vertices=[Vector(1, 1, 1), Vector(1, 0, 1), Vector(0, 0, 0)])]
@@ -92,7 +76,7 @@ class TestFastBinaryTreeConstructor(unittest.TestCase):
         toBeSplitted = [Polygon(vertices=[Vector(0, 0, 0), Vector(1, 1, 1), Vector(1, -1, 1)])]
         splitValue = 1
         splitAxis = "y"
-        normal, dot = self._makeSplitPlane(splitAxis, splitValue)
+        normal, dot = self._fbtc._makeSplitPlane(splitAxis, splitValue)
         left, right = self._fbtc._splitPolygons(toBeSplitted, normal, dot, splitAxis, splitValue)
         expectedLeft = [Polygon(vertices=[Vector(0, 0, 0), Vector(1, 1, 1), Vector(1, -1, 1)])]
         expectedRight = []
@@ -103,7 +87,7 @@ class TestFastBinaryTreeConstructor(unittest.TestCase):
         toBeSplitted = [Polygon(vertices=[Vector(0, 0, 0), Vector(1, 1, 1), Vector(1, -1, 1)])]
         splitValue = 1
         splitAxis = "x"
-        normal, dot = self._makeSplitPlane(splitAxis, splitValue)
+        normal, dot = self._fbtc._makeSplitPlane(splitAxis, splitValue)
         left, right = self._fbtc._splitPolygons(toBeSplitted, normal, dot, splitAxis, splitValue)
         expectedLeft = [Polygon(vertices=[Vector(0, 0, 0), Vector(1, 1, 1), Vector(1, -1, 1)])]
         expectedRight = []
@@ -114,7 +98,7 @@ class TestFastBinaryTreeConstructor(unittest.TestCase):
         toBeSplitted = [Polygon(vertices=[Vector(0, 0, 0), Vector(1, 1, 1), Vector(2, 0, 1), Vector(1, -1, 1)])]
         splitValue = 1
         splitAxis = "x"
-        normal, dot = self._makeSplitPlane(splitAxis, splitValue)
+        normal, dot = self._fbtc._makeSplitPlane(splitAxis, splitValue)
         left, right = self._fbtc._splitPolygons(toBeSplitted, normal, dot, splitAxis, splitValue)
         expectedLeft = [Polygon(vertices=[Vector(1, -1, 1), Vector(1, 1, 1), Vector(0, 0, 0)])]
         expectedRight = [Polygon(vertices=[Vector(1, -1, 1), Vector(1, 1, 1), Vector(2, 0, 1)])]
@@ -128,7 +112,7 @@ class TestFastBinaryTreeConstructor(unittest.TestCase):
         toBeSplit = [Polygon(vertices=vertices)]
         splitAxis = "y"
         splitValue = 4.999868997359811
-        normal, dot = self._makeSplitPlane(splitAxis, splitValue)
+        normal, dot = self._fbtc._makeSplitPlane(splitAxis, splitValue)
         left, right = self._fbtc._splitPolygons(toBeSplit, normal, dot, splitAxis, splitValue)
         self.assertEqual(1, len(left))
         self.assertEqual(1, len(right))

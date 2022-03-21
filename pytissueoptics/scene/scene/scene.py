@@ -1,4 +1,4 @@
-from typing import List, Dict
+from typing import List, Dict, Optional
 
 from pytissueoptics.scene.materials import Material
 from pytissueoptics.scene.geometry import Vector
@@ -75,12 +75,11 @@ class Scene:
             polygons.extend(solid.surfaces.getPolygons())
         return polygons
 
-    def getBoundingBox(self) -> BoundingBox:
-        bbox = None
-        for i, solid in enumerate(self._solids):
-            if i == 0:
-                bbox = solid.bbox
-            else:
-                bbox.extendTo(solid.bbox)
+    def getBoundingBox(self) -> Optional[BoundingBox]:
+        if len(self._solids) == 0:
+            return None
 
+        bbox = self._solids[0].getBoundingBox()
+        for solid in self._solids[1:]:
+            bbox.extendTo(solid.getBoundingBox())
         return bbox

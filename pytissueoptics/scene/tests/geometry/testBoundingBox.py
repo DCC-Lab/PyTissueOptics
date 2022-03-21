@@ -58,6 +58,16 @@ class TestBoundingBox(unittest.TestCase):
         expectedArea = (1 * 1) * 2 + (2 * 1) * 4
         self.assertEqual(expectedArea, bbox1.getArea())
 
+    def testGivenNewBBox_shouldDefineCenter(self):
+        bbox = BoundingBox(self.xLim, self.yLim, self.zLim)
+        expectedCenter = Vector(0.5, -0.5, 0)
+        self.assertEqual(expectedCenter, bbox.center)
+
+    def testGivenNewBBox_whenUpdate_shouldChangeTheDesiredLimitValue(self):
+        bbox = BoundingBox(self.xLim, self.yLim, self.zLim)
+        bbox.update("x", "min", -10)
+        self.assertEqual([-10, 1], bbox.xLim)
+
     def testGivenAContainedPoint_whenContains_shouldReturnTrue(self):
         bbox1 = BoundingBox(self.xLim, self.yLim, [-1, 1])
         point1 = Vector(0.1, -0.1, -0.9)
