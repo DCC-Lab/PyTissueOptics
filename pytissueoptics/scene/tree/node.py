@@ -11,7 +11,6 @@ class Node:
         self._polygons = polygons
         self._bbox = bbox
         self._depth = depth
-        self._visited = False
 
     @property
     def children(self) -> List['Node']:
