@@ -127,6 +127,23 @@ class TestScene(unittest.TestCase):
 
         scene.add(SOLID)
 
+    def testWhenGetBoundingBox_shouldReturnABoundingBoxThatExtendsToAllItsSolids(self):
+        scene = Scene()
+        SOLID1 = self.makeSolidWith(BoundingBox([-5, -3], [-4, -2], [-3, -1]))
+        SOLID2 = self.makeSolidWith(BoundingBox([0, 3], [0, 2], [0, 1]))
+        scene.add(SOLID1)
+        scene.add(SOLID2)
+
+        bbox = scene.getBoundingBox()
+
+        self.assertEqual([-5, 3], bbox.xLim)
+        self.assertEqual([-4, 2], bbox.yLim)
+        self.assertEqual([-3, 1], bbox.zLim)
+
+    def testGivenNoSolids_whenGetBoundingBox_shouldReturnNone(self):
+        scene = Scene()
+        self.assertIsNone(scene.getBoundingBox())
+
     @staticmethod
     def makeSolidWith(bbox: BoundingBox, contains=False, isStack=False):
         solid = mock(Solid)
