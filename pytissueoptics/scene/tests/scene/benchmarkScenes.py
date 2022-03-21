@@ -69,8 +69,8 @@ class PhantomScene(Scene):
         return [Cuboid(0.7, 0.001, 4, position=Vector(i, 0, -8)) for i in range(-5, 5)]
 
     def _objects(self):
-        cubeA = Cube(3, position=Vector(-5, 3/2, -6))
-        cubeB = Cube(3, position=Vector(5, 3/2, -6))
+        cubeA = Cube(3, position=Vector(-5, 3 / 2, -6))
+        cubeB = Cube(3, position=Vector(5, 3 / 2, -6))
         cubeB.rotate(0, 20, 0)
         cubeC = Cube(1, position=Vector(-5, 3.866, -6))
         cubeC.rotate(0, 0, 45)
@@ -79,7 +79,7 @@ class PhantomScene(Scene):
         return [cubeA, cubeB, cubeC, sphere]
 
     def _sign(self):
-        sign = Cuboid(1.5, 1.5, 0.001, position=Vector(7.8, 5, -5 + (0.1 + 0.01)/2))
+        sign = Cuboid(1.5, 1.5, 0.001, position=Vector(7.8, 5, -5 + (0.1 + 0.01) / 2))
         sign.rotate(0, 0, 45)
         stand = Cuboid(0.1, 5, 0.1, position=Vector(7.8, 2.5, -5))
         return [sign, stand]

@@ -2,10 +2,10 @@ import unittest
 from typing import Tuple
 from math import sqrt
 
-from pytissueoptics.scene.geometry import Triangle, Quad, Polygon, Vector
+from pytissueoptics.scene.geometry import Triangle, Quad, Polygon, Vector, BoundingBox
 from pytissueoptics.scene.intersection import Ray
+from pytissueoptics.scene.tree import Node
 from pytissueoptics.scene.tree.treeConstructor.binary import FastBinaryTreeConstructor
-
 
 
 class TestFastBinaryTreeConstructor(unittest.TestCase):
@@ -26,7 +26,9 @@ class TestFastBinaryTreeConstructor(unittest.TestCase):
             normal = Vector(0, 0, 1)
             planePoint = Vector(0, 0, splitValue)
             return normal, planePoint
-        
+
+    # Static Internal Mechanics Tests
+
     def test_givenPolygons_whenClassifying_shouldReturnCorrect3Groups(self):
         rightTriangle = Triangle(Vector(0, 0, 0), Vector(1, 0, 0), Vector(1, 1, 0))
         quad = Quad(Vector(-5, -5, 0), Vector(-5, 5, 0), Vector(5, 5, 0), Vector(5, -5, 0))
@@ -46,7 +48,7 @@ class TestFastBinaryTreeConstructor(unittest.TestCase):
         quadRays = self._fbtc._getPolygonAsRays(quad)
         expectedTriangleRays = [Ray(Vector(0, 0, 0), Vector(1, 0, 0), 1.0),
                                 Ray(Vector(1, 0, 0), Vector(0, 1, 0), 1.0),
-                                Ray(Vector(1, 1, 0), Vector(-sqrt(2)/2, -sqrt(2)/2, 0), sqrt(2))]
+                                Ray(Vector(1, 1, 0), Vector(-sqrt(2) / 2, -sqrt(2) / 2, 0), sqrt(2))]
         expectedQuadRays = [Ray(Vector(-5, -5, 0), Vector(0, 1, 0), 10.0),
                             Ray(Vector(-5, 5, 0), Vector(1, 0, 0), 10.0),
                             Ray(Vector(5, 5, 0), Vector(0, -1, 0), 10.0),
@@ -59,6 +61,8 @@ class TestFastBinaryTreeConstructor(unittest.TestCase):
             self.assertEqual(quad.direction, expectedQuadRays[i].direction, 2)
             self.assertEqual(quad.origin, expectedQuadRays[i].origin, 2)
             self.assertEqual(quad.length, expectedQuadRays[i].length, 2)
+
+    # Polygon Splitting Edge Case Tests
 
     def test_givenAPolygonAndAPlane_whenSplittingPolygon_shouldReturn2Polygons(self):
         toBeSplitted = [Polygon(vertices=[Vector(0, 0, 0), Vector(1, 1, 1), Vector(1, -1, 1)])]
@@ -129,4 +133,23 @@ class TestFastBinaryTreeConstructor(unittest.TestCase):
         self.assertEqual(1, len(left))
         self.assertEqual(1, len(right))
 
+    # Node Splitting Tests
 
+    def test_givenANodeWith2Polygon_whenSplitting_shouldSplitBetweenPolygons(self):
+        """This type of test is extremely sensitive on initial parameters."""
+        expectedLeft = [Polygon(vertices=[Vector(0, 0, 0), Vector(1, 1, 1), Vector(1, -1, 1)]),
+                        Polygon(vertices=[Vector(0, 0, 0), Vector(-1, -1, -1), Vector(-2, -2, -3)])]
+        expectedRight = [Polygon(vertices=[Vector(2, 4, 4), Vector(2, 2, 2), Vector(2, 2, 3)]),
+                         Polygon(vertices=[Vector(2, 5, 5), Vector(2, 2, 2), Vector(2, 2, 3)]),
+                         Polygon(vertices=[Vector(2, 6, 6), Vector(3, 3, 3), Vector(2, 2, 3)])]
+        polygons = []
+        polygons.extend(expectedLeft)
+        polygons.extend(expectedRight)
+        nodeBbox = BoundingBox([-10, 10], [-10, 10], [-10, 10])
+        node = Node(polygons=polygons, bbox=nodeBbox)
+        fbtc = FastBinaryTreeConstructor(traversalCost=8, intersectionCost=2)
+        splitNodeResult = fbtc._splitNode(node)
+        groups = splitNodeResult.polygonGroups
+        self.assertEqual(2, len(groups))
+        self.assertListEqual(expectedLeft, groups[0])
+        self.assertListEqual(expectedRight, groups[1])

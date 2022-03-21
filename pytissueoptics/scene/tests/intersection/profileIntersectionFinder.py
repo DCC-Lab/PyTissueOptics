@@ -11,7 +11,6 @@ import time
 pandas.set_option('display.max_columns', 20)
 pandas.set_option('display.width', 1200)
 
-
 scene000 = AAxisAlignedPolygonScene()
 scene00 = APolygonScene()
 scene0 = ACubeScene()
@@ -23,13 +22,13 @@ scene5 = DiagonallyAlignedSpheres()
 
 # ========= Profiler Important Parameters ================
 # scenes = [scene1, scene2, scene3, scene4, scene5]
-# scenes = [scene000, scene00, scene0]
+scenes = [scene0]
 # scenes = [scene2]
-scenes = [scene000, scene00, scene0, scene1, scene2, scene3, scene4, scene5]
+# scenes = [scene000, scene00, scene0, scene1, scene2, scene3, scene4, scene5]
 constructors = [FastBinaryTreeConstructor(), ShrankBoxSAHWideAxisTreeConstructor(), SAHWideAxisTreeConstructor()]
 rayAmount = [100, 1000]  # simple vs fast amounts
 factor = rayAmount[1] / rayAmount[0]
-displayViewer = False
+displayViewer = True
 
 # ================ Profiler Data ===================
 dfs = pandas.DataFrame(
@@ -63,7 +62,7 @@ for j, scene in enumerate(scenes):
                           direction=Vector(direction_xs[i], direction_ys[i], direction_zs[i]))
                 simpleIntersectionFinder.findIntersection(ray)
             t1 = time.time()
-            simpleTraversalTime.append(t1 - t0)
+            simpleTraversalTime.append((t1 - t0) * factor)
             print(
                 f"SimpleIntersect - {(count * 100) / (len(scenes) * (len(constructors) + 1)):.2f}% - {simpleTraversalTime[j] * factor:.2f}s")
 
@@ -89,7 +88,7 @@ for j, scene in enumerate(scenes):
         partition = fastIntersectionFinder._partition
         spacePartitions[j].append(partition)
         print(
-            f"{constructor.__class__.__name__:^12.15s} - {(count * 100) / (len(scenes) * (len(constructors)+1)):.2f}% - {fastTraversalTime[j][c]:.2f}s - Improvement {((100 * simpleTraversalTime[j] * factor) / fastTraversalTime[j][c]) - 100:.2f}%")
+            f"{constructor.__class__.__name__:^12.15s} - {(count * 100) / (len(scenes) * (len(constructors) + 1)):.2f}% - {fastTraversalTime[j][c]:.2f}s - Improvement {((100 * simpleTraversalTime[j] * factor) / fastTraversalTime[j][c]) - 100:.2f}%")
         dfs.loc[dfs.shape[0]] = [f"{scene.__class__.__name__}", f"{constructor.__class__.__name__:^12.15s}",
                                  f"{fastTraversalTime[j][c]:^12.2f}", f"{constructionTimes[j][c]:^12.2f}",
                                  f"{simpleTraversalTime[j]:^12.2f}", f"{partition.getNodeCount():^12}",
@@ -97,7 +96,7 @@ for j, scene in enumerate(scenes):
                                  f"{partition.getAverageLeafSize():^12.2f}", f"{len(scene.getPolygons()):^12}"]
 
 print("\n\n")
-dfs[['scene', 'name', 'build time']].to_csv("data2.csv")
+print(dfs)
 
 if displayViewer:
     viewer = MayaviViewer()

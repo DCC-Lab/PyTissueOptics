@@ -45,12 +45,13 @@ class FastBinaryTreeConstructor(TreeConstructor):
     If the children's cost is lower than the parent, splitting is allowed, else, no splitting occurs.
 
     """
-    def __init__(self):
+
+    def __init__(self, traversalCost=8, intersectionCost=1, emptySpaceBonus=0.8, nbOfPlanes=20):
         super(FastBinaryTreeConstructor, self).__init__()
-        self._traversalCost = 8
-        self._intersectionCost = 1
-        self._reductionFactor = 0.8
-        self._nbOfPlanes = 20
+        self._traversalCost = traversalCost
+        self._intersectionCost = intersectionCost
+        self._emptySpaceBonus = emptySpaceBonus
+        self._nbOfPlanes = nbOfPlanes
 
     def _splitNode(self, node: Node) -> SplitNodeResult:
         nodeBbox = node.bbox
@@ -95,14 +96,15 @@ class FastBinaryTreeConstructor(TreeConstructor):
                 rightSAH = nRight * rightBbox.getArea()
                 newSAH = leftSAH + rightSAH
                 if (nLeft == 0 or nRight == 0) and len(both) == 0:
-                    newSAH *= self._reductionFactor
+                    newSAH *= self._emptySpaceBonus
                 if newSAH < minSAH:
                     minSAH = newSAH
                     SAHresult = SAHSearchResult(left, right, both, leftBbox, rightBbox, nLeft, nRight, leftSAH,
                                                 rightSAH, splitAxis, splitValue)
         return SAHresult
 
-    def _splitPolygons(self, polygonsToSplit: List[Polygon], planeNormal: Vector, planePoint: Vector, splitAxis, splitValue):
+    def _splitPolygons(self, polygonsToSplit: List[Polygon], planeNormal: Vector, planePoint: Vector, splitAxis,
+                       splitValue):
         left = []
         right = []
         for polygon in polygonsToSplit:
