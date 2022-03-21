@@ -2,27 +2,11 @@ import math
 import unittest
 
 from pytissueoptics.scene.intersection.intersectionFinder import IntersectionFinder
-from pytissueoptics.scene.solids import Sphere, Cube, Cuboid
+from pytissueoptics.scene.solids import Sphere, Cube
 from pytissueoptics.scene.geometry import Vector, primitives
-from pytissueoptics.scene.tree import SpacePartition
-from pytissueoptics.scene.tree.treeConstructor.binary import SAHWideAxisTreeConstructor
 from pytissueoptics.scene.scene import Scene
+from pytissueoptics.scene.tests.scene.benchmarkScenes import PhantomScene
 from pytissueoptics.scene.intersection import SimpleIntersectionFinder, FastIntersectionFinder, Ray
-
-
-class PhantomScene(Scene):
-    def __init__(self):
-        super().__init__()
-        self._solids = self._createSolids()
-
-    def _createSolids(self):
-        w, d, h, t = 20, 20, 8, 0.1
-        floor = Cuboid(w + t, t, d + t, position=Vector(0, -t / 2, 0))
-        leftWall = Cuboid(t, h, d, position=Vector(-w / 2, h / 2, 0))
-        rightWall = Cuboid(t, h, d, position=Vector(w / 2, h / 2, 0))
-        backWall = Cuboid(w, h, t, position=Vector(0, h / 2, -d / 2))
-        cube = Cube(3, position=Vector(-5, 3 / 2, -6))
-        return [floor, leftWall, rightWall, backWall, cube]
 
 
 class TestAnyIntersectionFinder:
@@ -111,9 +95,9 @@ class TestAnyIntersectionFinder:
         intersection = self.getIntersectionFinder(solids).findIntersection(ray)
 
         self.assertIsNotNone(intersection)
-        self.assertEqual(0, intersection.position.x)
-        self.assertEqual(0.9*3, intersection.position.y)
-        self.assertEqual(3, intersection.position.z)
+        self.assertAlmostEqual(0, intersection.position.x, 4)
+        self.assertAlmostEqual(0.9*3, intersection.position.y, 4)
+        self.assertAlmostEqual(3, intersection.position.z, 4)
 
 
 class TestSimpleIntersectionFinder(TestAnyIntersectionFinder, unittest.TestCase):
