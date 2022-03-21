@@ -63,15 +63,6 @@ class SpacePartition:
     def root(self) -> Node:
         return self._root
 
-    def resetVisitedNode(self, node=None):
-        if node is None:
-            node = self._root
-        for childNode in node.children:
-            self.resetVisitedNode(childNode)
-        node.visited = False
-        if node.isRoot:
-            return
-
     def getNodeCount(self, node=None) -> int:
         if node is None:
             node = self._root

@@ -18,10 +18,6 @@ class Node:
         return self._children
 
     @property
-    def parent(self) -> 'Node':
-        return self._parent
-
-    @property
     def isRoot(self) -> bool:
         if self._parent is None:
             return True
@@ -34,14 +30,6 @@ class Node:
             return True
         else:
             return False
-
-    @property
-    def visited(self) -> bool:
-        return self._visited
-
-    @visited.setter
-    def visited(self, value: bool):
-        self._visited = value
 
     @property
     def polygons(self) -> List[Polygon]:
