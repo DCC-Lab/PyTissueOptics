@@ -55,7 +55,7 @@ class Event(NamedTuple):
     materialOutside:CompactMaterial = None
 
 
-class EventDrivenPhoton:
+class EventDrivenPhoton(Photon):
     def __init__(self, position, direction):
         self.nextEvent = None
         super().__init__(position, direction)
@@ -65,28 +65,31 @@ class EventDrivenPhoton:
             self.nextEvent.processing()
 
     def processMoveEvent(self):
-        d = self.getScatteringDistance(mu_s, mu_a, g)
+        d = self._material.getScatteringDistance()
         self.nextEvent = Event(MOVEBY, self.processMoveByEvent, distance=d)
 
     def processMoveByEvent(self):
-        intersection = self.getIntersection(d)
+        distance = self.nextEvent.distance
+        self._getIntersection(distance)
+
         if intersection is None:
-            self.move(event.distance)
+            self.moveBy(distance)
             self.nextEvent = Event(SCATTER, self.processScatterEvent)
         else:
-            self.move(intersection.distance)
-            self.nextEvent = Event(AT_INTERFACE, self.processAtInterfaceEvent, intersection.normal, intersection.n1, intersection.n2)
+            self.moveBy(intersection.distance)
+            fresnelIntersection = FresnelIntersect(self._direction, intersection)
+            self.nextEvent = Event(REFLECT_OR_REFRACT, self.reflectOrRefractAtInterfaceEvent, fresnelIntersection)
 
-    def processAtInterfaceEvent(self):
+    def reflectOrRefractAtInterfaceEvent(self):
         interfaceEvent = self.nextEvent
-        isReflected = self.isReflected(interfaceEvent.normal, interfaceEvent.n1, interfaceEvent.n2)
+        isReflected = interfaceEvent.fresnelIntersection.isReflected()
         if isReflected:
-            self.nextEvent = Event(REFLECT, self.processReflectEvent, interfaceEvent.normal, interfaceEvent.n1, interfaceEvent.n2)
+            self.nextEvent = Event(REFLECT, self.processReflectEvent, fresnelIntersection)
         else:
-            self.nextEvent = Event(REFRACT, self.processRefractEvent, interfaceEvent.normal, interfaceEvent.n1, interfaceEvent.n2)
+            self.nextEvent = Event(REFRACT, self.processRefractEvent, fresnelIntersection)
 
     def processScatterEvent(self):
-        theta, phi = self.getScatteringAngles(mu_s, mu_a, g)
+        theta, phi = self._material.getScatteringAngles()
         self.nextEvent = Event(SCATTERBY, self.processRouletteEvent)
 
     def processScatterByEvent(self):
@@ -105,7 +108,7 @@ class EventDrivenPhoton:
         self.nextEvent = Event(MOVEBY, self.processMoveEvent, remainingDistance)
 
     def processRouletteEvent(self):
-        isDead =  self.roulette()
+        isDead =  self._roulette()
         if isDead:
             self.nextEvent = None
         else:
