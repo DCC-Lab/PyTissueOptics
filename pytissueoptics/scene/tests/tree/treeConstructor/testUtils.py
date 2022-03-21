@@ -3,7 +3,7 @@ from pytissueoptics.scene.geometry import Polygon, Vector, BoundingBox
 from pytissueoptics.scene.tree.treeConstructor.utils import getPolygonsBbox, meanCentroid
 
 
-class TestTreeConstructor(unittest.TestCase):
+class TestTreeConstructorUtils(unittest.TestCase):
     def testGivenListOfPolygonAndAxis_whenMeanCentroid_shouldReturnCentroidOnThisAxis(self):
         polygons = [Polygon(vertices=[Vector(0, 0, 0), Vector(1, 1, 1), Vector(1, 0, 0)]),
                     Polygon(vertices=[Vector(0, 0, 0), Vector(-1, -1, 1), Vector(-1, 0, 0)])]
