@@ -1,6 +1,6 @@
 import unittest
 
-from pytissueoptics.scene.geometry import BoundingBox, Vector
+from pytissueoptics.scene.geometry import BoundingBox, Vector, Polygon
 
 
 class TestBoundingBox(unittest.TestCase):
@@ -37,6 +37,15 @@ class TestBoundingBox(unittest.TestCase):
         self.assertEqual(bbox.xLim, [-1, 0])
         self.assertEqual(bbox.yLim, [-1, 1])
         self.assertEqual(bbox.zLim, [0, 3.001])
+
+    def testGivenNewBBoxFromPolygons_shouldDefineBoundingBoxAroundPolygons(self):
+        polygons = [Polygon(vertices=[Vector(0, 0, 0), Vector(1, 2, 1), Vector(1, -1, 1)]),
+                    Polygon(vertices=[Vector(0, 0, 0), Vector(-1, -1, -1), Vector(-2, -2, -3)])]
+        bbox = BoundingBox.fromPolygons(polygons)
+
+        self.assertEqual(bbox.xLim, [-2, 1])
+        self.assertEqual(bbox.yLim, [-2, 2])
+        self.assertEqual(bbox.zLim, [-3, 1])
 
     def testGivenNewBBox_shouldDefineWidths(self):
         bbox1 = BoundingBox(self.xLim, self.yLim, [-1, 1])
