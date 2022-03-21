@@ -135,3 +135,14 @@ class SpacePartition:
             avgSize += len(leaf.polygons)
         avgSize = avgSize / len(leaves)
         return avgSize
+
+    def getLeafPolygons(self, node=None) -> List[Polygon]:
+        if node is None:
+            node = self._root
+        polygons = []
+        if node.isLeaf:
+            polygons = node.polygons
+        else:
+            for childNode in node.children:
+                polygons.extend(self.getLeafPolygons(childNode))
+        return polygons

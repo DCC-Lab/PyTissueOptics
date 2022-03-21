@@ -102,37 +102,39 @@ class TestBinaryHardSAHNodeSplitter(unittest.TestCase):
 
 class TestBinaryShrankBoxSAHNodeSplitter(unittest.TestCase):
     def setUp(self):
-        self.polygons = [Polygon(vertices=[Vector(0, 0, 0), Vector(0, 1, 0), Vector(1, 1, 0)]),
+        self.polygons = [Polygon(vertices=[Vector(0, 0, 0), Vector(0, 1, 0), Vector(0.9, 1, 0)]),
                          Polygon(vertices=[Vector(0, 0, 0), Vector(0, 1, 0), Vector(-1, -2, 0)]),
                          Polygon(vertices=[Vector(2, 2, 2), Vector(3, 3, 3), Vector(2, 3, 2)])]
 
         self.nodeBbox = BoundingBox(xLim=[-1, 4], yLim=[-1, 3], zLim=[-1, 5])
         self.polyCounter = BBoxPolyCounter()
-        self.splitter = ShrankBoxSAHNodeSplitter(self.polyCounter, nbOfSplitPlanes=3, splitCostPercentage=0.2,
+        self.splitter = ShrankBoxSAHNodeSplitter(self.polyCounter, nbOfSplitPlanes=3, splitCostPercentage=0.3,
                                                  fallBackPercentage=0.01)
 
     def testOnXAxis_givenSplitCostOf20Percent_shouldReturnCorrectSplitNodeResult(self):
         splitNodeResult = self.splitter.split("x", self.nodeBbox, self.polygons)
-        validationBbox1 = self.nodeBbox = BoundingBox(xLim=[-1, 1.5], yLim=[-1, 3], zLim=[-1, 5])
-        validationBbox2 = self.nodeBbox = BoundingBox(xLim=[1.5, 4], yLim=[-1, 3], zLim=[-1, 5])
-        validationResult = SplitNodeResult(False, "x", 1.5, [validationBbox1, validationBbox2],
+        validationBbox1 = self.nodeBbox = BoundingBox(xLim=[-1, 1.0], yLim=[-1, 3], zLim=[0, 3])
+        validationBbox2 = self.nodeBbox = BoundingBox(xLim=[1.0, 3], yLim=[-1, 3], zLim=[0, 3])
+        validationResult = SplitNodeResult(False, "x", 1.0, [validationBbox1, validationBbox2],
                                            [[self.polygons[0], self.polygons[1]], [self.polygons[2]]])
         self.assertEqual(validationResult, splitNodeResult)
 
-    def testOnXAxis_givenSplitCostOf40Percent_shouldReturnStopCondition(self):
-        self.splitter = ShrankBoxSAHNodeSplitter(self.polyCounter, nbOfSplitPlanes=3, splitCostPercentage=0.4,
+    def testOnXAxis_givenSplitCostOf80Percent_shouldReturnStopCondition(self):
+        self.splitter = ShrankBoxSAHNodeSplitter(self.polyCounter, nbOfSplitPlanes=3, splitCostPercentage=0.8,
                                                  fallBackPercentage=0.01)
         splitNodeResult = self.splitter.split("x", self.nodeBbox, self.polygons)
-        validationBbox1 = self.nodeBbox = BoundingBox(xLim=[-1, 1.5], yLim=[-1, 3], zLim=[-1, 5])
-        validationBbox2 = self.nodeBbox = BoundingBox(xLim=[1.5, 4], yLim=[-1, 3], zLim=[-1, 5])
-        validationResult = SplitNodeResult(True, "x", 1.5, [validationBbox1, validationBbox2],
+        validationBbox1 = self.nodeBbox = BoundingBox(xLim=[-1, 1.0], yLim=[-1, 3], zLim=[0, 3])
+        validationBbox2 = self.nodeBbox = BoundingBox(xLim=[1.0, 3], yLim=[-1, 3], zLim=[0, 3])
+        validationResult = SplitNodeResult(True, "x", 1.0, [validationBbox1, validationBbox2],
                                            [[self.polygons[0], self.polygons[1]], [self.polygons[2]]])
         self.assertEqual(validationResult, splitNodeResult)
 
-    def testOnYAxis_givenSplitCostOf20Percent_shouldReturnStopCondition(self):
+    def testOnYAxis_givenSplitCostOf40Percent_shouldReturnStopCondition(self):
+        self.splitter = ShrankBoxSAHNodeSplitter(self.polyCounter, nbOfSplitPlanes=3, splitCostPercentage=0.5,
+                                                 fallBackPercentage=0.01)
         splitNodeResult = self.splitter.split("y", self.nodeBbox, self.polygons)
-        validationBbox1 = self.nodeBbox = BoundingBox(xLim=[-1, 4], yLim=[-1, 2], zLim=[-1, 5])
-        validationBbox2 = self.nodeBbox = BoundingBox(xLim=[-1, 4], yLim=[2, 3], zLim=[-1, 5])
-        validationResult = SplitNodeResult(True, "y", 2.0, [validationBbox1, validationBbox2],
-                                           [[self.polygons[0], self.polygons[1], self.polygons[2]], [self.polygons[2]]])
+        validationBbox1 = self.nodeBbox = BoundingBox(xLim=[-1, 3], yLim=[-1, -0.020000000000000018], zLim=[0, 3])
+        validationBbox2 = self.nodeBbox = BoundingBox(xLim=[-1, 3], yLim=[-0.020000000000000018, 3], zLim=[0, 3])
+        validationResult = SplitNodeResult(True, "y", -0.020000000000000018, [validationBbox1, validationBbox2],
+                                           [[self.polygons[1]], [self.polygons[0], self.polygons[1], self.polygons[2]]])
         self.assertEqual(validationResult, splitNodeResult)

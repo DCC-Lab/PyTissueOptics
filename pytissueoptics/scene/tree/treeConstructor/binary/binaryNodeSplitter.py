@@ -62,8 +62,8 @@ class SAHNodeSplitter(NodeSplitter):
 
     def _searchMinSAH(self, nodeBbox, polygons, splitAxis, aMin, step):
         lowestIndexSAH = 1
-        minSAH = 0
-        for i in range(0, self._nbOfSplitPlanes):
+        minSAH = 1
+        for i in range(1, self._nbOfSplitPlanes+1):
             split = aMin + i * step
             left, right = self._polygonCounter.count(split, splitAxis, polygons)
             tempLeftBbox = nodeBbox.copy()
@@ -110,10 +110,11 @@ class ShrankBoxSAHNodeSplitter(SAHNodeSplitter):
         polygonsBbox = getPolygonsBbox(polygons)
         newBounds = nodeBbox.copy()
         newBounds.shrinkTo(polygonsBbox)
-        newBounds.update(splitAxis, "min", newBounds.getAxisLimit(splitAxis, "min")-newBounds.getAxisWidth(splitAxis)*self._fallBackPercentage)
-        newBounds.update(splitAxis, "max", newBounds.getAxisLimit(splitAxis, "max")+newBounds.getAxisWidth(splitAxis)*self._fallBackPercentage)
-        aMin, aMax = newBounds.getAxisLimits(splitAxis)
-        step = newBounds.getAxisWidth(splitAxis) / (self._nbOfSplitPlanes + 1)
+        splitBound = newBounds.copy()
+        splitBound.update(splitAxis, "min", newBounds.getAxisLimit(splitAxis, "min")-newBounds.getAxisWidth(splitAxis)*self._fallBackPercentage)
+        splitBound.update(splitAxis, "max", newBounds.getAxisLimit(splitAxis, "max")+newBounds.getAxisWidth(splitAxis)*self._fallBackPercentage)
+        aMin, aMax = splitBound.getAxisLimits(splitAxis)
+        step = splitBound.getAxisWidth(splitAxis) / (self._nbOfSplitPlanes + 1)
         nodeSAH = nodeBbox.getArea() * len(polygons)
-        splitLine, minSAH = self._searchMinSAH(newBounds, polygons, splitAxis, aMin, step)
+        splitLine, minSAH = self._searchMinSAH(splitBound, polygons, splitAxis, aMin, step)
         return self._compareSAHAndReturnSplitNode(splitAxis, splitLine, newBounds, polygons, nodeSAH, minSAH)

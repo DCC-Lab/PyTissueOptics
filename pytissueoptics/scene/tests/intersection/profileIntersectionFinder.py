@@ -21,19 +21,20 @@ scene4 = ZAlignedSpheres()
 scene5 = DiagonallyAlignedSpheres()
 
 # ========= Profiler Important Parameters ================
-# scenes = [scene1, scene2, scene3, scene4, scene5]
-scenes = [scene0]
+scenes = [scene1, scene2, scene3, scene4, scene5]
+# scenes = [scene0]
 # scenes = [scene2]
 # scenes = [scene000, scene00, scene0, scene1, scene2, scene3, scene4, scene5]
 constructors = [FastBinaryTreeConstructor(), ShrankBoxSAHWideAxisTreeConstructor(), SAHWideAxisTreeConstructor()]
-rayAmount = [100, 1000]  # simple vs fast amounts
-factor = rayAmount[1] / rayAmount[0]
-displayViewer = True
+simpleRayAmount = 1000
+fastRayAmount = 10000
+factor = fastRayAmount/simpleRayAmount
+displayViewer = False
 
 # ================ Profiler Data ===================
 dfs = pandas.DataFrame(
-    columns=["scene", "name", "fast time", "build time", "simple time", "node count", "leaf count", "AVG Depth",
-             "AVG Size", "polygonCount"])
+    columns=["scene", "polygon count", "finder polycount", "algo name", "build time", "fast time", "total time", "simple time", "node count",
+             "leaf count", "avg leaf depth", "avg leaf size", "improvement"])
 constructionTimes = []
 spacePartitions = []
 fastTraversalTime = []
@@ -50,36 +51,37 @@ for j, scene in enumerate(scenes):
     for c, constructor in enumerate(constructors):
         if c == 0:
             count += 1
-            origin_xs = np.random.uniform(sceneBbox.xMin, sceneBbox.xMax, rayAmount[0])
-            origin_ys = np.random.uniform(sceneBbox.yMin, sceneBbox.yMax, rayAmount[0])
-            origin_zs = np.random.uniform(sceneBbox.zMin, sceneBbox.zMax, rayAmount[0])
-            direction_xs = np.random.uniform(-1, 1, rayAmount[0])
-            direction_ys = np.random.uniform(-1, 1, rayAmount[0])
-            direction_zs = np.random.uniform(-1, 1, rayAmount[0])
+            origin_xs = np.random.uniform(sceneBbox.xMin, sceneBbox.xMax, simpleRayAmount)
+            origin_ys = np.random.uniform(sceneBbox.yMin, sceneBbox.yMax, simpleRayAmount)
+            origin_zs = np.random.uniform(sceneBbox.zMin, sceneBbox.zMax, simpleRayAmount)
+            direction_xs = np.random.uniform(-1, 1, simpleRayAmount)
+            direction_ys = np.random.uniform(-1, 1, simpleRayAmount)
+            direction_zs = np.random.uniform(-1, 1, simpleRayAmount)
             t0 = time.time()
-            for i in range(rayAmount[0]):
+            for i in range(simpleRayAmount):
                 ray = Ray(origin=Vector(origin_xs[i], origin_ys[i], origin_zs[i]),
                           direction=Vector(direction_xs[i], direction_ys[i], direction_zs[i]))
                 simpleIntersectionFinder.findIntersection(ray)
             t1 = time.time()
             simpleTraversalTime.append((t1 - t0) * factor)
             print(
-                f"SimpleIntersect - {(count * 100) / (len(scenes) * (len(constructors) + 1)):.2f}% - {simpleTraversalTime[j] * factor:.2f}s")
+                f"SimpleIntersect - {(count * 100) / (len(scenes) * (len(constructors) + 1)):.2f}% - "
+                f"{simpleTraversalTime[j]:.2f}s")
 
         count += 1
-        origin_xs = np.random.uniform(sceneBbox.xMin, sceneBbox.xMax, rayAmount[1])
-        origin_ys = np.random.uniform(sceneBbox.yMin, sceneBbox.yMax, rayAmount[1])
-        origin_zs = np.random.uniform(sceneBbox.zMin, sceneBbox.zMax, rayAmount[1])
-        direction_xs = np.random.uniform(-1, 1, rayAmount[1])
-        direction_ys = np.random.uniform(-1, 1, rayAmount[1])
-        direction_zs = np.random.uniform(-1, 1, rayAmount[1])
+        origin_xs = np.random.uniform(sceneBbox.xMin, sceneBbox.xMax, fastRayAmount)
+        origin_ys = np.random.uniform(sceneBbox.yMin, sceneBbox.yMax, fastRayAmount)
+        origin_zs = np.random.uniform(sceneBbox.zMin, sceneBbox.zMax, fastRayAmount)
+        direction_xs = np.random.uniform(-1, 1, fastRayAmount)
+        direction_ys = np.random.uniform(-1, 1, fastRayAmount)
+        direction_zs = np.random.uniform(-1, 1, fastRayAmount)
 
         constructionInitTime = time.time()
         fastIntersectionFinder = FastIntersectionFinder(scene, constructor=constructor, maxDepth=100, minLeafSize=0)
         constructionTimes[j].append(time.time() - constructionInitTime)
 
         traversalInit = time.time()
-        for i in range(rayAmount[1]):
+        for i in range(fastRayAmount):
             ray = Ray(origin=Vector(origin_xs[i], origin_ys[i], origin_zs[i]),
                       direction=Vector(direction_xs[i], direction_ys[i], direction_zs[i]))
             fastIntersectionFinder.findIntersection(ray)
@@ -88,12 +90,19 @@ for j, scene in enumerate(scenes):
         partition = fastIntersectionFinder._partition
         spacePartitions[j].append(partition)
         print(
-            f"{constructor.__class__.__name__:^12.15s} - {(count * 100) / (len(scenes) * (len(constructors) + 1)):.2f}% - {fastTraversalTime[j][c]:.2f}s - Improvement {((100 * simpleTraversalTime[j] * factor) / fastTraversalTime[j][c]) - 100:.2f}%")
-        dfs.loc[dfs.shape[0]] = [f"{scene.__class__.__name__}", f"{constructor.__class__.__name__:^12.15s}",
-                                 f"{fastTraversalTime[j][c]:^12.2f}", f"{constructionTimes[j][c]:^12.2f}",
+            f"{constructor.__class__.__name__:^12.15s} - {(count * 100) / (len(scenes) * (len(constructors) + 1)):.2f}%"
+            f" - {fastTraversalTime[j][c]:.2f}s"
+            f" - Improvement {((simpleTraversalTime[j]) / fastTraversalTime[j][c]):.2f}")
+
+        dfs.loc[dfs.shape[0]] = [f"{scene.__class__.__name__}", f"{len(scene.getPolygons()):^12}",
+                                 f"{len(partition.getLeafPolygons()):^12}",
+                                 f"{constructor.__class__.__name__:^12.15s}", f"{constructionTimes[j][c]:^12.2f}",
+                                 f"{fastTraversalTime[j][c]:^12.2f}",
+                                 f"{fastTraversalTime[j][c]+constructionTimes[j][c]:^12.2f}",
                                  f"{simpleTraversalTime[j]:^12.2f}", f"{partition.getNodeCount():^12}",
                                  f"{partition.getLeafCount():^12}", f"{partition.getAverageLeafDepth():^12.2f}",
-                                 f"{partition.getAverageLeafSize():^12.2f}", f"{len(scene.getPolygons()):^12}"]
+                                 f"{partition.getAverageLeafSize():^12.2f}",
+                                 f"{((simpleTraversalTime[j]) / fastTraversalTime[j][c]):.2f}"]
 
 print("\n\n")
 print(dfs)
