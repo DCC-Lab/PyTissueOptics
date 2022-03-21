@@ -1,7 +1,7 @@
 from typing import Tuple, List
 
 from pytissueoptics.scene.geometry import Polygon, BoundingBox
-from pytissueoptics.scene.tree.treeConstructor.utils import meanCentroid, getPolygonsBbox
+from pytissueoptics.scene.tree.treeConstructor.utils import meanCentroid
 from pytissueoptics.scene.tree.treeConstructor import NodeSplitter, SplitNodeResult, PolygonCounter
 
 
@@ -107,7 +107,7 @@ class ShrankBoxSAHNodeSplitter(SAHNodeSplitter):
         self._fallBackPercentage = fallBackPercentage
 
     def split(self, splitAxis: str, nodeBbox: BoundingBox, polygons: List[Polygon]) -> SplitNodeResult:
-        polygonsBbox = getPolygonsBbox(polygons)
+        polygonsBbox = BoundingBox.fromPolygons(polygons)
         newBounds = nodeBbox.copy()
         newBounds.shrinkTo(polygonsBbox)
         splitBound = newBounds.copy()
