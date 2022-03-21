@@ -3,7 +3,7 @@ import unittest
 from pytissueoptics.scene.geometry import Polygon, Vector
 
 
-class TestTriangle(unittest.TestCase):
+class TestPolygon(unittest.TestCase):
     def testGivenANewPolygon_shouldDefineItsNormal(self):
         polygon = Polygon(vertices=[Vector(0, 0, 0), Vector(2, 0, 0), Vector(2, 2, 0), Vector(1, 1, 0)])
         self.assertEqual(Vector(0, 0, 1), polygon.normal)
