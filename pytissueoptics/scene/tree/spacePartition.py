@@ -4,7 +4,7 @@ from pytissueoptics.scene.geometry import BoundingBox, Vector, Polygon
 from pytissueoptics.scene.tree import TreeConstructor
 from pytissueoptics.scene.tree import Node
 from pytissueoptics.scene.solids import Cuboid
-
+import json
 
 class SpacePartition:
     """
@@ -48,16 +48,7 @@ class SpacePartition:
 
             else:
                 return None
-
         return isInside
-
-    @property
-    def maxAuthorizedDepth(self) -> int:
-        return self._maxDepth
-
-    @property
-    def minAuthorizedLeafSize(self) -> int:
-        return self._minLeafSize
 
     @property
     def root(self) -> Node:

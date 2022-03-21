@@ -118,9 +118,10 @@ class TestEndToEndIntersection(unittest.TestCase):
         scene = PhantomScene()
         self.intersectionFinder = FastIntersectionFinder(scene)
     
-    def testGivenRayTowardsBackWall(self):
+    def test_givenRayTowardsBackWall_shouldReturnCorrectIntersection(self):
         origin = Vector(0, 4, 0)
         direction = Vector(0, 0, -1)
         ray = Ray(origin, direction)
         intersection = self.intersectionFinder.findIntersection(ray)
-        print(intersection)
+
+        self.assertTrue(False)

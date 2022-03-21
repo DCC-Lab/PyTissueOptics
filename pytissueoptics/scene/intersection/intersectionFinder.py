@@ -8,8 +8,7 @@ from pytissueoptics.scene.tree import SpacePartition, Node
 from pytissueoptics.scene.tree.treeConstructor.binary.fastBinaryTreeConstructor import FastBinaryTreeConstructor
 from pytissueoptics.scene.scene import Scene
 from pytissueoptics.scene.intersection.bboxIntersect import GemsBoxIntersect
-from pytissueoptics.scene.intersection.quadIntersect import MollerTrumboreQuadIntersect
-from pytissueoptics.scene.intersection.triangleIntersect import MollerTrumboreTriangleIntersect
+from pytissueoptics.scene.intersection.mollerTrumboreIntersect import MollerTrumboreIntersect
 from pytissueoptics.scene.solids import Solid
 
 
@@ -23,8 +22,7 @@ class Intersection:
 class IntersectionFinder:
     def __init__(self, scene: Scene):
         self._scene = scene
-        self._triangleIntersect = MollerTrumboreTriangleIntersect()
-        self._quadIntersect = MollerTrumboreQuadIntersect()
+        self._polygonIntersect = MollerTrumboreIntersect()
         self._boxIntersect = GemsBoxIntersect()
 
     def findIntersection(self, ray: Ray) -> Optional[Intersection]:
@@ -35,7 +33,7 @@ class IntersectionFinder:
         closestIntersection = None
         closestDistance = sys.maxsize
         for polygon in polygons:
-            intersection = self._findPolygonIntersection(ray, polygon)
+            intersection = self._polygonIntersect.getIntersection(ray, polygon)
             if not intersection:
                 continue
             distance = (intersection - ray.origin).getNorm()
@@ -46,12 +44,6 @@ class IntersectionFinder:
         if not closestIntersection:
             return None
         return Intersection(closestDistance, closestIntersection, closestPolygon)
-
-    def _findPolygonIntersection(self, ray: Ray, polygon: Polygon) -> Optional[Vector]:
-        if isinstance(polygon, Triangle):
-            return self._triangleIntersect.getIntersection(ray, polygon)
-        if isinstance(polygon, Quad):
-            return self._quadIntersect.getIntersection(ray, polygon)
 
 
 class SimpleIntersectionFinder(IntersectionFinder):
