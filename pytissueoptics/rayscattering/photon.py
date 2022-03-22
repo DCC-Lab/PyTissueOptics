@@ -65,7 +65,7 @@ class Photon:
             distance = self.step(distance)
             self.roulette()
 
-    def step(self, distance):
+    def step(self, distance) -> float:
         intersection = self._getIntersection(distance)
 
         if intersection:

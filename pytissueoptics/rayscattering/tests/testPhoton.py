@@ -1,11 +1,13 @@
 import math
 import unittest
 
+from mockito import mock, when
+
 from pytissueoptics.rayscattering import Photon
 from pytissueoptics.rayscattering.fresnel import FresnelIntersect
 from pytissueoptics.scene import Vector, Material
 from pytissueoptics.scene.geometry import Polygon
-from pytissueoptics.scene.intersection.intersectionFinder import Intersection
+from pytissueoptics.scene.intersection.intersectionFinder import Intersection, IntersectionFinder
 
 
 class TestPhoton(unittest.TestCase):
@@ -109,6 +111,40 @@ class TestPhoton(unittest.TestCase):
 
         self.assertFalse(self.photon.isAlive)
         self.assertVectorNotEqual(initialPosition, self.photon.position)
+
+    def testGivenPhotonInVacuum_whenStepWithNoIntersection_shouldKillPhoton(self):
+        noIntersectionFinder = mock(IntersectionFinder)
+        when(noIntersectionFinder).findIntersection(...).thenReturn(None)
+
+        self.photon.setContext(Material(), intersectionFinder=noIntersectionFinder)
+        self.photon.step(distance=10)
+        self.assertFalse(self.photon.isAlive)
+
+    def testWhenStepWithIntersection_shouldFindIntersection(self):
+        self.fail()
+
+    def testWhenStepWithIntersection_shouldReturnDistanceLeft(self):
+        self.fail()
+
+    def testWhenStepWithNoIntersection_shouldMovePhotonAcrossStepDistanceAndScatter(self):
+        self.fail()
+
+    def testWhenStepWithNoIntersection_shouldReturnADistanceLeftOfZero(self):
+        self.fail()
+
+    def testWhenStepWithReflectingIntersection_shouldReflect(self):
+        self.fail()
+
+    def testWhenStepWithRefractingIntersection_shouldRefract(self):
+        self.fail()
+
+    def testWhenStepWithRefractingIntersection_shouldUpdatePhotonMaterialToNextMaterial(self):
+        self.fail()
+
+    def testWhenStepWithRefractingIntersection_shouldReturnDistanceLeftInNextMaterial(self):
+        self.fail()
+
+    # todo: find some test cases for the moveBy(1e-3) after reflect/refract
 
     def testGivenALogger_whenPropagate_shouldLogInitialPosition(self):
         pass
