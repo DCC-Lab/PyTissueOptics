@@ -116,3 +116,10 @@ class TestBoundingBox(unittest.TestCase):
         nonIntersectingBox = BoundingBox([6, 7], [6, 7], [6, 7])
 
         self.assertFalse(bbox.intersects(nonIntersectingBox))
+
+    def testWhenCopyBBox_newBboxShouldBeIdenticalButIndependent(self):
+        bbox = BoundingBox([0, 5], [0, 5], [0, 5])
+        newBbox = bbox.copy()
+        self.assertEqual(bbox, newBbox)
+        newBbox.update("x", "min", -10)
+        self.assertNotEqual(bbox, newBbox)
