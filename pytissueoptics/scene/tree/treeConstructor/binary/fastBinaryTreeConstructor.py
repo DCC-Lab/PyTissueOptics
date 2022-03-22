@@ -3,7 +3,7 @@ from dataclasses import dataclass
 from math import isclose
 import sys
 
-from pytissueoptics.scene.geometry import Polygon, BoundingBox, Vector
+from pytissueoptics.scene.geometry import Polygon, BoundingBox, Vector, Triangle, Quad
 from pytissueoptics.scene.tree import Node
 from pytissueoptics.scene.intersection import Ray
 from pytissueoptics.scene.tree.treeConstructor import TreeConstructor, SplitNodeResult
@@ -46,7 +46,7 @@ class FastBinaryTreeConstructor(TreeConstructor):
 
     """
 
-    def __init__(self, traversalCost=8, intersectionCost=1, emptySpaceBonus=0.8, nbOfPlanes=20):
+    def __init__(self, traversalCost=4, intersectionCost=1, emptySpaceBonus=0.8, nbOfPlanes=20):
         super(FastBinaryTreeConstructor, self).__init__()
         self._traversalCost = traversalCost
         self._intersectionCost = intersectionCost
@@ -94,9 +94,10 @@ class FastBinaryTreeConstructor(TreeConstructor):
                 nRight = len(right) + len(both)
                 leftSAH = nLeft * leftBbox.getArea()
                 rightSAH = nRight * rightBbox.getArea()
-                newSAH = leftSAH + rightSAH
                 if (nLeft == 0 or nRight == 0) and len(both) == 0:
-                    newSAH *= self._emptySpaceBonus
+                    leftSAH *= self._emptySpaceBonus
+                    rightSAH *= self._emptySpaceBonus
+                newSAH = leftSAH + rightSAH
                 if newSAH < minSAH:
                     minSAH = newSAH
                     SAHresult = SAHSearchResult(left, right, both, leftBbox, rightBbox, nLeft, nRight, leftSAH,
@@ -132,10 +133,10 @@ class FastBinaryTreeConstructor(TreeConstructor):
 
             if leftVertices:
                 leftVertices.extend(intersectionPoints)
-                left.append(Polygon(vertices=leftVertices))
+                left.append(self._makePolygonFromVertices(leftVertices))
             if rightVertices:
                 rightVertices.extend(intersectionPoints)
-                right.append(Polygon(vertices=rightVertices))
+                right.append(self._makePolygonFromVertices(rightVertices))
         return left, right
 
     @staticmethod
@@ -156,6 +157,15 @@ class FastBinaryTreeConstructor(TreeConstructor):
             if (hit - ray.origin).getNorm() <= ray.length:
                 return hit
         return None
+
+    @staticmethod
+    def _makePolygonFromVertices(vertices):
+        if len(vertices) == 3:
+            return Triangle(*vertices)
+        if len(vertices) == 4:
+            return Quad(*vertices)
+        if len(vertices) > 4:
+            return Polygon(vertices=vertices)
 
     @staticmethod
     def _makeSplitPlane(splitAxis: str, splitValue: float) -> Tuple[Vector, Vector]:
@@ -194,7 +204,7 @@ class FastBinaryTreeConstructor(TreeConstructor):
             limits = polygon.bbox.getAxisLimits(splitAxis)
             if limits[0] < splitLine and limits[1] < splitLine:
                 goingLeft.append(polygon)
-            elif limits[0] > splitLine and limits[1] > splitLine:
+            if limits[0] > splitLine and limits[1] > splitLine:
                 goingRight.append(polygon)
             else:
                 toBeSplit.append(polygon)

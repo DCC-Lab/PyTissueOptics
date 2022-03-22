@@ -35,7 +35,7 @@ class ACubeScene(Scene):
         self._create()
 
     def _create(self):
-        cuboid1 = Cuboid(a=1, b=3, c=1, position=Vector(4, -2, 6))
+        cuboid1 = Cuboid(a=1, b=3, c=1, position=Vector(0, 0, 0))
         cuboid1._bbox = BoundingBox([-10, 10], [-10, 10], [-10, 10])
         self._solids.extend([cuboid1])
 
