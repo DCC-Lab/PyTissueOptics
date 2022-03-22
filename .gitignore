@@ -132,3 +132,5 @@ test.py
 .idea/
 
 pytissueoptics/scene/examples/brain-simple-2.obj
+
+pytissueoptics/scene/tests/tree/treeConstructor/profilerTreeConstructor.py

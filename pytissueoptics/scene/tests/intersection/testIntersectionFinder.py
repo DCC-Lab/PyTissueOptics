@@ -6,7 +6,11 @@ from pytissueoptics.scene.solids import Sphere, Cube
 from pytissueoptics.scene.geometry import Vector, primitives
 from pytissueoptics.scene.scene import Scene
 from pytissueoptics.scene.tests.scene.benchmarkScenes import PhantomScene
-from pytissueoptics.scene.intersection import SimpleIntersectionFinder, FastIntersectionFinder, Ray
+from pytissueoptics.scene.intersection import SimpleIntersectionFinder, FastIntersectionFinder, Ray, UniformRaySource
+
+from pytissueoptics.scene.tree.treeConstructor.binary import ShrankBoxSAHWideAxisTreeConstructor,\
+    FastBinaryTreeConstructor, SAHWideAxisTreeConstructor, SAHBasicKDTreeConstructor
+
 
 
 class TestAnyIntersectionFinder:
@@ -116,12 +120,25 @@ class TestEndToEndIntersection(unittest.TestCase):
 
     def setUp(self) -> None:
         scene = PhantomScene()
-        self.intersectionFinder = FastIntersectionFinder(scene)
+        self.intersectionFinders = [FastIntersectionFinder(scene, constructor=FastBinaryTreeConstructor()),
+                                    FastIntersectionFinder(scene, constructor=ShrankBoxSAHWideAxisTreeConstructor()),
+                                    FastIntersectionFinder(scene, constructor=SAHWideAxisTreeConstructor()),
+                                    FastIntersectionFinder(scene, constructor=SAHBasicKDTreeConstructor())]
     
     def test_givenRayTowardsBackWall_shouldReturnCorrectIntersection(self):
         origin = Vector(0, 4, 0)
         direction = Vector(0, 0, -1)
         ray = Ray(origin, direction)
-        intersection = self.intersectionFinder.findIntersection(ray)
+        for intersectionFinder in self.intersectionFinders:
+            with self.subTest(f"{intersectionFinder._partition._constructor.__class__.__name__}"):
+                intersection = intersectionFinder.findIntersection(ray)
+                expectedPosition = Vector(0, 4, -9.95)
+                self.assertEqual(expectedPosition, intersection.position)
 
-        self.assertTrue(False)
+    def test_givenRaysTowardsScene_shouldNeverReturnNone(self):
+        rays = UniformRaySource(Vector(0, 4, 0), Vector(0, 0, -1), 180, 0, xResolution=100, yResolution=1).rays
+        for intersectionFinder in self.intersectionFinders:
+            with self.subTest(f"{intersectionFinder._partition._constructor.__class__.__name__}"):
+                for ray in rays:
+                    intersection = intersectionFinder.findIntersection(ray)
+                    self.assertIsNotNone(intersection)
