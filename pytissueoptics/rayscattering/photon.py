@@ -1,4 +1,3 @@
-import math
 import random
 from typing import Optional
 
@@ -73,9 +72,12 @@ class Photon:
             self.moveBy(intersection.distance)
             self._logPosition()
             distanceLeft = distance - intersection.distance
-            fresnelIntersection = FresnelIntersect(self._direction, intersection)
 
-            self.reflectOrRefract(fresnelIntersection)
+            self.reflectOrRefract(intersection)
+
+            # fixme: should only correct distance if refracting
+            newDistance = self._material.getScatteringDistance()
+            distanceLeft *= newDistance / distance
 
         elif self._material.isVacuum:
             self._weight = 0
@@ -87,14 +89,15 @@ class Photon:
 
         return distanceLeft
 
-    def reflectOrRefract(self, fresnelIntersection):
+    def reflectOrRefract(self, intersection: Intersection):
+        fresnelIntersection = FresnelIntersect(self._direction, intersection)
+
         if fresnelIntersection.isReflected():
             self.reflect(fresnelIntersection)
         else:
             self.refract(fresnelIntersection)
             self._updateMaterial(fresnelIntersection.nextMaterial)
-            newDistance = self._material.getScatteringDistance()
-            distanceLeft *= newDistance / distance
+        self.moveBy(1e-3)  # todo: doesn't feel robust enough. Requires targeted tests.
 
     def _getIntersection(self, distance) -> Optional[Intersection]:
         if self._intersectionFinder is None:
