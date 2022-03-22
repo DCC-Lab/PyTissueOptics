@@ -63,7 +63,7 @@ class Photon:
             if distance == 0:
                 distance = self._material.getScatteringDistance()
             distance = self.step(distance)
-            self._roulette()
+            self.roulette()
 
     def step(self, distance):
         intersection = self._getIntersection(distance)
@@ -125,10 +125,17 @@ class Photon:
             self._material = material
 
     def scatter(self):
+        theta, phi = self._material.getScatteringAngles()
+        self.scatterBy(theta, phi)
+        self.interact()
+
+    def scatterBy(self, theta, phi):
+        self._er.rotateAround(self._direction, phi)
+        self._direction.rotateAround(self._er, theta)
+
+    def interact(self):
         delta = self._weight * self._material.albedo
         self._decreaseWeightBy(delta)
-        theta, phi = self._material.getScatteringAngles()
-        self._scatterBy(theta, phi)
 
     def _decreaseWeightBy(self, delta):
         self._logWeightDecrease(delta)
@@ -136,11 +143,7 @@ class Photon:
         if self._weight < 0:
             self._weight = 0
 
-    def _scatterBy(self, theta, phi):
-        self._er.rotateAround(self._direction, phi)
-        self._direction.rotateAround(self._er, theta)
-
-    def _roulette(self):
+    def roulette(self):
         chance = 0.1
         if self._weight >= 1e-4 or self._weight == 0:
             return
