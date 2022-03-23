@@ -1,13 +1,25 @@
 import math
 import random
-from typing import Optional
+from dataclasses import dataclass
 
 from pytissueoptics.scene import Vector, Material
 from pytissueoptics.scene.intersection.intersectionFinder import Intersection
 
 
-class FresnelIntersect:
-    def __init__(self, rayDirection: Vector, intersection: Intersection):
+@dataclass
+class FresnelIntersection:
+    nextMaterial: Material
+    incidencePlane: Vector
+    isReflected: bool
+    angleDeflection: float
+
+
+class FresnelIntersectionFactory:
+    _indexIn: float
+    _indexOut: float
+    _thetaIn: float
+
+    def compute(self, rayDirection: Vector, intersection: Intersection) -> FresnelIntersection:
         surface = intersection.polygon
         rayDirection = rayDirection
         normal = surface.normal.copy()
@@ -17,36 +29,44 @@ class FresnelIntersect:
             normal.multiply(-1)
             self._indexIn = surface.outsideMaterial.index
             self._indexOut = surface.insideMaterial.index
-            self._nextMaterial = surface.insideMaterial
+            nextMaterial = surface.insideMaterial
         else:
             self._indexIn = surface.insideMaterial.index
             self._indexOut = surface.outsideMaterial.index
-            self._nextMaterial = surface.outsideMaterial
+            nextMaterial = surface.outsideMaterial
 
-        self._incidencePlane = rayDirection.cross(normal)
-        if self._incidencePlane.getNorm() < 1e-7:
-            self._incidencePlane = rayDirection.anyPerpendicular()
+        incidencePlane = rayDirection.cross(normal)
+        if incidencePlane.getNorm() < 1e-7:
+            incidencePlane = rayDirection.anyPerpendicular()
         else:
-            self._incidencePlane.normalize()
+            incidencePlane.normalize()
 
         self._thetaIn = math.acos(normal.dot(rayDirection))
-        self._thetaOut = None
 
-    @property
-    def nextMaterial(self) -> Optional[Material]:
-        return self._nextMaterial
+        return self._create(nextMaterial, incidencePlane)
 
-    @property
-    def incidencePlane(self) -> Vector:
-        return self._incidencePlane
+    def _create(self, nextMaterial, incidencePlane) -> FresnelIntersection:
+        reflected = self._getIsReflected()
+        if reflected:
+            angleDeflection = self._getReflectionDeflection()
+        else:
+            angleDeflection = self._getRefractionDeflection()
 
-    def reflectionCoefficient(self, theta) -> float:
+        return FresnelIntersection(nextMaterial, incidencePlane, reflected, angleDeflection)
+
+    def _getIsReflected(self) -> bool:
+        R = self._getReflectionCoefficient(self._thetaIn)
+        if random.random() < R:
+            return True
+        return False
+
+    def _getReflectionCoefficient(self, theta) -> float:
         """ Fresnel reflection coefficient, directly from MCML code in
         Wang, L-H, S.L. Jacques, L-Q Zheng:
         MCML - Monte Carlo modeling of photon transport in multi-layered
         tissues. Computer Methods and Programs in Biomedicine 47:131-146, 1995.
-
         """
+
         n1 = self._indexIn
         n2 = self._indexOut
 
@@ -74,18 +94,10 @@ class FresnelIntersect:
         r = 0.5*sam*sam*(cam*cam+cap*cap)/(sap*sap*cam*cam)
         return r
 
-    def isReflected(self) -> bool:
-        R = self.reflectionCoefficient(self._thetaIn)
-        if random.random() < R:
-            return True
-        return False
-
-    @property
-    def reflectionDeflection(self) -> float:
+    def _getReflectionDeflection(self) -> float:
         return 2 * self._thetaIn - math.pi
 
-    @property
-    def refractionDeflection(self) -> float:
+    def _getRefractionDeflection(self) -> float:
         sinThetaOut = self._indexIn * math.sin(self._thetaIn) / self._indexOut
 
         # todo: remove this debug case when tested.
@@ -93,5 +105,5 @@ class FresnelIntersect:
             # We should not be here.
             raise ValueError("Can't refract beyond angle of total reflection")
 
-        self._thetaOut = math.asin(sinThetaOut)
-        return self._thetaIn - self._thetaOut
+        thetaOut = math.asin(sinThetaOut)
+        return self._thetaIn - thetaOut

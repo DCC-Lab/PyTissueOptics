@@ -1,7 +1,7 @@
 import random
 from typing import Optional
 
-from pytissueoptics.rayscattering.fresnel import FresnelIntersect
+from pytissueoptics.rayscattering.fresnel import FresnelIntersectionFactory, FresnelIntersection
 from pytissueoptics.scene import Vector, Material
 from pytissueoptics.scene.intersection import Ray
 from pytissueoptics.scene.intersection.intersectionFinder import IntersectionFinder, Intersection
@@ -16,8 +16,9 @@ class Photon:
 
         self._intersectionFinder = None
         self._material = None
-        self._logger = None
         self._worldMaterial = None
+        self._logger = None
+        self._fresnelIntersectionFactory = None
 
         self._er = self._direction.anyPerpendicular()
         self._er.normalize()
@@ -43,7 +44,8 @@ class Photon:
     def material(self) -> Material:
         return self._material
 
-    def setContext(self, worldMaterial: Material, intersectionFinder: IntersectionFinder = None, logger: Logger = None):
+    def setContext(self, worldMaterial: Material, intersectionFinder: IntersectionFinder = None, logger: Logger = None,
+                   fresnelIntersectionFactory=FresnelIntersectionFactory()):
         # todo: set proper initial material
         self._worldMaterial = worldMaterial
         self._material = worldMaterial
@@ -52,6 +54,7 @@ class Photon:
         #  logInitialPositions, logIntersections, logScattering, logEndPositions
         self._logger = logger
         self._hasContext = True
+        self._fresnelIntersectionFactory = fresnelIntersectionFactory
 
     def propagate(self):
         if not self._hasContext:
@@ -82,10 +85,10 @@ class Photon:
         return distanceLeft
 
     def reflectOrRefract(self, intersection: Intersection):
-        fresnelIntersection = FresnelIntersect(self._direction, intersection)
+        fresnelIntersection = self._getFresnelIntersection(intersection)
 
         scalingFactor = 1.0
-        if fresnelIntersection.isReflected():
+        if fresnelIntersection.isReflected:
             self.reflect(fresnelIntersection)
         else:
             self.refract(fresnelIntersection)
@@ -105,19 +108,21 @@ class Photon:
             return None
         stepRay = Ray(self._position, self._direction, distance)
         return self._intersectionFinder.findIntersection(stepRay)
+    def _getFresnelIntersection(self, intersection: Intersection) -> FresnelIntersection:
+        return self._fresnelIntersectionFactory.compute(self._direction, intersection)
 
     def moveBy(self, distance):
         self._position += self._direction * distance
 
-    def reflect(self, fresnelIntersection: FresnelIntersect):
+    def reflect(self, fresnelIntersection: FresnelIntersection):
         # todo: replace with simple dot product logic ?
         #  Reflection = Incidence - Normal * 2 * Incidence.dot(Normal)
         self._direction.rotateAround(fresnelIntersection.incidencePlane,
-                                     fresnelIntersection.reflectionDeflection)
+                                     fresnelIntersection.angleDeflection)
 
-    def refract(self, fresnelIntersection: FresnelIntersect):
+    def refract(self, fresnelIntersection: FresnelIntersection):
         self._direction.rotateAround(fresnelIntersection.incidencePlane,
-                                     fresnelIntersection.refractionDeflection)
+                                     fresnelIntersection.angleDeflection)
 
     def _updateMaterial(self, material):
         if material is None:
