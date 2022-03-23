@@ -3,6 +3,8 @@ import math
 import numpy as np
 
 
+# todo: move scattering material inside rayscattering module
+
 class Material:
     def __init__(self, mu_s=0, mu_a=0, g=0, index=1.0):
         self.mu_s = mu_s
@@ -10,16 +12,15 @@ class Material:
         self.mu_t = self.mu_a + self.mu_s
 
         if self.mu_t != 0:
-            self.albedo = self.mu_a / self.mu_t
+            self._albedo = self.mu_a / self.mu_t
         else:
-            self.albedo = 0
+            self._albedo = 0
 
         self.g = g
         self.index = index
 
-    @property
-    def isVacuum(self):
-        return self.mu_t == 0
+    def getAlbedo(self):
+        return self._albedo
 
     def getScatteringDistance(self):
         if self.mu_t == 0:

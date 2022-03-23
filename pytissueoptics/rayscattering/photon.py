@@ -149,7 +149,7 @@ class Photon:
         self._direction.rotateAround(self._er, theta)
 
     def interact(self):
-        delta = self._weight * self._material.albedo
+        delta = self._weight * self._material.getAlbedo()
         self._decreaseWeightBy(delta)
 
     def _decreaseWeightBy(self, delta):
