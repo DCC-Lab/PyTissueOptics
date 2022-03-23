@@ -67,7 +67,7 @@ class Photon:
             distance = self.step(distance)
             self.roulette()
 
-    def step(self, distance) -> float:
+    def step(self, distance=0) -> float:
         if distance == 0:
             distance = self._material.getScatteringDistance()
 

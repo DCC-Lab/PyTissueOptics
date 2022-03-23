@@ -104,7 +104,7 @@ class TestPhoton(unittest.TestCase):
         when(noIntersectionFinder).findIntersection(...).thenReturn(None)
 
         self.photon.setContext(Material(), intersectionFinder=noIntersectionFinder)
-        self.photon.step(distance=0)
+        self.photon.step()
         self.assertFalse(self.photon.isAlive)
 
     def createIntersectionFinder(self, intersectionDistance, rayLength):
