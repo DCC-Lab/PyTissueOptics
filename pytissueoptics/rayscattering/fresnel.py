@@ -55,12 +55,12 @@ class FresnelIntersectionFactory:
         return FresnelIntersection(nextMaterial, incidencePlane, reflected, angleDeflection)
 
     def _getIsReflected(self) -> bool:
-        R = self._getReflectionCoefficient(self._thetaIn)
+        R = self._getReflectionCoefficient()
         if random.random() < R:
             return True
         return False
 
-    def _getReflectionCoefficient(self, theta) -> float:
+    def _getReflectionCoefficient(self) -> float:
         """ Fresnel reflection coefficient, directly from MCML code in
         Wang, L-H, S.L. Jacques, L-Q Zheng:
         MCML - Monte Carlo modeling of photon transport in multi-layered
@@ -73,11 +73,11 @@ class FresnelIntersectionFactory:
         if n1 == n2:
             return 0
 
-        if theta == 0:
+        if self._thetaIn == 0:
             R = (n2-n1)/(n2+n1)
             return R*R
 
-        sa1 = math.sin(theta)
+        sa1 = math.sin(self._thetaIn)
         if sa1*n1/n2 > 1:
             return 1
 
@@ -99,11 +99,5 @@ class FresnelIntersectionFactory:
 
     def _getRefractionDeflection(self) -> float:
         sinThetaOut = self._indexIn * math.sin(self._thetaIn) / self._indexOut
-
-        # todo: remove this debug case when tested.
-        if abs(sinThetaOut) > 1:
-            # We should not be here.
-            raise ValueError("Can't refract beyond angle of total reflection")
-
         thetaOut = math.asin(sinThetaOut)
         return self._thetaIn - thetaOut
