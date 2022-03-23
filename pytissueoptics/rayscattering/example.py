@@ -1,11 +1,12 @@
 from pytissueoptics.rayscattering import *
+from pytissueoptics.rayscattering.tissues import PhantomTissue
 from pytissueoptics.scene import *
 import numpy as np
 
 np.random.seed(15)
 
 viewer = MayaviViewer()
-tissue = tissues.PhantomTissue()
+tissue = PhantomTissue()
 # tissue.display()
 
 tissue.addToViewer(viewer)
