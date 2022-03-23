@@ -91,7 +91,11 @@ class Photon:
             self.refract(fresnelIntersection)
             mus1 = self._material.mu_s
             mus2 = fresnelIntersection.nextMaterial.mu_s
-            scalingFactor = mus2/mus1
+            if mus2 != 0:
+                scalingFactor = mus1/mus2
+            else:
+                scalingFactor = float("+inf")
+                
             self._updateMaterial(fresnelIntersection.nextMaterial)
 
         return intersection.distanceLeft * scalingFactor
