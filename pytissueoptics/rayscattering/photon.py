@@ -101,12 +101,12 @@ class Photon:
         else:
             self.refract(fresnelIntersection)
 
-            mus1 = self._material.mu_s
-            mus2 = fresnelIntersection.nextMaterial.mu_s
-            if mus1 == 0:
+            mut1 = self._material.mu_t
+            mut2 = fresnelIntersection.nextMaterial.mu_t
+            if mut1 == 0:
                 intersection.distanceLeft = 0
-            elif mus2 != 0:
-                intersection.distanceLeft *= mus1/mus2
+            elif mut2 != 0:
+                intersection.distanceLeft *= mut1/mut2
             else:
                 intersection.distanceLeft = math.inf
 
