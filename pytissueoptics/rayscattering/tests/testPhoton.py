@@ -187,6 +187,14 @@ class TestPhoton(unittest.TestCase):
     def testGivenALogger_whenScatter_shouldLogWeightLossAtThisPosition(self):
         # mock logger and assert call to logPoint(photon.position, initialWeight-finalWeight)
         self.fail()
+    def testInteractAtFloatLimitIsStillValid(self):
+        material = self._createMaterial(albedo=1.0)
+        self.photon.setContext(material)
+        self._weight = sys.float_info.min
+        self.assertTrue(self.photon.isAlive)
+
+        self.photon.interact()
+        self.assertFalse(self.photon.isAlive)
 
     def assertVectorEqual(self, v1, v2):
         self.assertAlmostEqual(v1.x, v2.x)

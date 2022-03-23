@@ -146,8 +146,6 @@ class Photon:
     def _decreaseWeightBy(self, delta):
         self._logWeightDecrease(delta)
         self._weight -= delta
-        if self._weight < 0:
-            self._weight = 0
 
     def roulette(self):
         chance = 0.1
