@@ -12,13 +12,13 @@ from pytissueoptics.scene.intersection.intersectionFinder import Intersection, I
 
 class TestPhoton(unittest.TestCase):
     def setUp(self):
-        self.POSITION = Vector(2, 2, 0)
-        self.DIRECTION = Vector(0, 0, -1)
-        self.photon = Photon(self.POSITION, self.DIRECTION)
+        self.INITIAL_POSITION = Vector(2, 2, 0)
+        self.INITIAL_DIRECTION = Vector(0, 0, -1)
+        self.photon = Photon(self.INITIAL_POSITION.copy(), self.INITIAL_DIRECTION.copy())
 
     def testShouldBeInTheGivenState(self):
-        self.assertEqual(self.POSITION, self.photon.position)
-        self.assertEqual(self.DIRECTION, self.photon.direction)
+        self.assertEqual(self.INITIAL_POSITION, self.photon.position)
+        self.assertEqual(self.INITIAL_DIRECTION, self.photon.direction)
 
     def testShouldBeAlive(self):
         self.assertTrue(self.photon.isAlive)
@@ -34,13 +34,12 @@ class TestPhoton(unittest.TestCase):
         self.assertEqual(worldMaterial, self.photon.material)
 
     def testWhenMoveBy_shouldMovePhotonByTheGivenDistanceTowardsItsDirection(self):
-        initialPosition = self.POSITION.copy()
         self.photon.moveBy(2)
-        self.assertEqual(initialPosition + self.DIRECTION * 2, self.photon.position)
+        self.assertEqual(self.INITIAL_POSITION + self.INITIAL_DIRECTION * 2, self.photon.position)
 
     def testWhenRefract_shouldOrientPhotonTowardsFresnelRefractionAngle(self):
         incidenceAngle = math.pi / 10
-        self.photon = Photon(self.POSITION, Vector(0, math.sin(incidenceAngle), -math.cos(incidenceAngle)))
+        self.photon = Photon(self.INITIAL_POSITION, Vector(0, math.sin(incidenceAngle), -math.cos(incidenceAngle)))
         surfaceNormal = Vector(0, 0, -1)
         incidencePlane = self.photon.direction.cross(surfaceNormal)
         incidencePlane.normalize()
@@ -60,7 +59,7 @@ class TestPhoton(unittest.TestCase):
 
         self.photon.scatter()
 
-        self.assertEqual(1 - material.albedo, self.photon.weight)
+        self.assertEqual(1 - material.getAlbedo(), self.photon.weight)
 
     def testWhenScatter_shouldScatterPhotonDirection(self):
         material = Material(mu_s=2, mu_a=1)
@@ -76,7 +75,7 @@ class TestPhoton(unittest.TestCase):
 
     def testWhenReflect_shouldOrientPhotonTowardsFresnelReflectionAngle(self):
         incidenceAngle = math.pi / 10
-        self.photon = Photon(self.POSITION, Vector(0, math.sin(incidenceAngle), -math.cos(incidenceAngle)))
+        self.photon = Photon(self.INITIAL_POSITION, Vector(0, math.sin(incidenceAngle), -math.cos(incidenceAngle)))
         surfaceNormal = Vector(0, 0, -1)
         incidencePlane = self.photon.direction.cross(surfaceNormal)
         incidencePlane.normalize()
@@ -107,28 +106,39 @@ class TestPhoton(unittest.TestCase):
         self.photon.step()
         self.assertFalse(self.photon.isAlive)
 
-    def createIntersectionFinder(self, intersectionDistance, rayLength):
-        aPolygon = Polygon([Vector(), Vector(), Vector()],
-                           insideMaterial=Material(), outsideMaterial=Material())
-        intersection = Intersection(intersectionDistance, position=Vector(), polygon=aPolygon,
-                                    distanceLeft=rayLength-intersectionDistance)
-        intersectionFinder = mock(IntersectionFinder)
-        when(intersectionFinder).findIntersection(...).thenReturn(intersection)
-        return intersectionFinder
-
     def testWhenStepWithIntersection_shouldMovePhotonToIntersection(self):
         distance = 8
-        intersectionFinder = self.createIntersectionFinder(distance, rayLength=distance+2)
-        initialPosition = self.POSITION.copy()
+        intersectionFinder = self._createIntersectionFinder(distance, rayLength=distance + 2)
         self.photon.setContext(Material(), intersectionFinder=intersectionFinder)
 
         self.photon.step(distance + 2)
 
-        self.assertVectorEqual(initialPosition + self.photon.direction * distance,
+        self.assertVectorEqual(self.INITIAL_POSITION + self.photon.direction * distance,
                                self.photon.position)
 
     def testWhenStepWithNoIntersection_shouldMovePhotonAcrossStepDistanceAndScatter(self):
-        self.fail()
+        noIntersectionFinder = mock(IntersectionFinder)
+        when(noIntersectionFinder).findIntersection(...).thenReturn(None)
+        self.photon.setContext(Material(mu_s=2, mu_a=1, g=0.8), intersectionFinder=noIntersectionFinder)
+        stepDistance = 10
+
+        self.photon.step(distance=stepDistance)
+
+        expectedPosition = self.INITIAL_POSITION + self.INITIAL_DIRECTION * stepDistance
+        self.assertVectorEqual(expectedPosition, self.photon.position)
+        self.assertVectorNotEqual(self.INITIAL_DIRECTION, self.photon.direction)
+
+    def testWhenStepWithNoDistance_shouldStepWithANewScatteringDistance(self):
+        noIntersectionFinder = mock(IntersectionFinder)
+        when(noIntersectionFinder).findIntersection(...).thenReturn(None)
+        newScatteringDistance = 10
+        material = self._createMaterial(newScatteringDistance)
+        self.photon.setContext(material, intersectionFinder=noIntersectionFinder)
+
+        self.photon.step()
+
+        expectedPosition = self.INITIAL_POSITION + self.INITIAL_DIRECTION * newScatteringDistance
+        self.assertVectorEqual(expectedPosition, self.photon.position)
 
     def testWhenStepWithNoIntersection_shouldReturnADistanceLeftOfZero(self):
         self.fail()
@@ -139,7 +149,7 @@ class TestPhoton(unittest.TestCase):
     def testWhenStepWithReflectingIntersection_shouldReturnDistanceLeft(self):
         totalDistance = 10
         intersectionDistance = 8
-        intersectionFinder = self.createIntersectionFinder(intersectionDistance, totalDistance)
+        intersectionFinder = self._createIntersectionFinder(intersectionDistance, totalDistance)
         material = mock(Material)
         when(material).getScatteringDistance().thenReturn(totalDistance)
 
@@ -183,3 +193,21 @@ class TestPhoton(unittest.TestCase):
         self.assertNotAlmostEqual(v1.x, v2.x)
         self.assertNotAlmostEqual(v1.y, v2.y)
         self.assertNotAlmostEqual(v1.z, v2.z)
+
+    @staticmethod
+    def _createIntersectionFinder(intersectionDistance, rayLength):
+        aPolygon = Polygon([Vector(), Vector(), Vector()],
+                           insideMaterial=Material(), outsideMaterial=Material())
+        intersection = Intersection(intersectionDistance, position=Vector(), polygon=aPolygon,
+                                    distanceLeft=rayLength-intersectionDistance)
+        intersectionFinder = mock(IntersectionFinder)
+        when(intersectionFinder).findIntersection(...).thenReturn(intersection)
+        return intersectionFinder
+
+    @staticmethod
+    def _createMaterial(scatteringDistance=1, phi=0.1, theta=0.2, albedo=0.1):
+        material = mock(Material)
+        when(material).getScatteringDistance().thenReturn(scatteringDistance)
+        when(material).getScatteringAngles().thenReturn((theta, phi))
+        when(material).getAlbedo().thenReturn(albedo)
+        return material
