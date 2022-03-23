@@ -60,31 +60,23 @@ class Photon:
         self._logPosition()
         distance = 0
         while self.isAlive:
-            if distance == 0:
-                distance = self._material.getScatteringDistance()
             distance = self.step(distance)
             self.roulette()
 
     def step(self, distance) -> float:
+        if distance == 0:
+            distance = self._material.getScatteringDistance()
+
         intersection = self._getIntersection(distance)
 
         if intersection:
             self.moveBy(intersection.distance)
             self._logPosition()
-            distanceLeft = distance - intersection.distance
-
-            self.reflectOrRefract(intersection)
-
-            # fixme: should only correct distance if refracting
-            newDistance = self._material.getScatteringDistance()
-            distanceLeft *= newDistance / distance
-
-        elif self._material.isVacuum:
-            self._weight = 0
-            distanceLeft = 0
+            distanceLeft = self.reflectOrRefract(intersection)
         else:
             self.moveBy(distance)
             distanceLeft = 0
+
             self.scatter()
 
         return distanceLeft
@@ -92,12 +84,17 @@ class Photon:
     def reflectOrRefract(self, intersection: Intersection):
         fresnelIntersection = FresnelIntersect(self._direction, intersection)
 
+        scalingFactor = 1.0
         if fresnelIntersection.isReflected():
             self.reflect(fresnelIntersection)
         else:
             self.refract(fresnelIntersection)
+            mus1 = self._material.mu_s
+            mus2 = fresnelIntersection.nextMaterial.mu_s
+            scalingFactor = mus2/mus1
             self._updateMaterial(fresnelIntersection.nextMaterial)
-        self.moveBy(1e-3)  # todo: doesn't feel robust enough. Requires targeted tests.
+
+        return intersection.distanceLeft * scalingFactor
 
     def _getIntersection(self, distance) -> Optional[Intersection]:
         if self._intersectionFinder is None:
