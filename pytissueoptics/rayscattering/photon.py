@@ -15,11 +15,10 @@ class Photon:
         self._direction = direction
         self._weight = 1
 
-        self._intersectionFinder = None
         self._material = None
-        self._worldMaterial = None
-        self._logger = None
+        self._intersectionFinder = None
         self._fresnelIntersectionFactory = None
+        self._logger = None
 
         self._er = self._direction.anyPerpendicular()
         self._er.normalize()
@@ -45,11 +44,9 @@ class Photon:
     def material(self) -> Material:
         return self._material
 
-    def setContext(self, worldMaterial: Material, intersectionFinder: IntersectionFinder = None, logger: Logger = None,
+    def setContext(self, material: Material, intersectionFinder: IntersectionFinder = None, logger: Logger = None,
                    fresnelIntersectionFactory=FresnelIntersectionFactory()):
-        # todo: set proper initial material
-        self._worldMaterial = worldMaterial
-        self._material = worldMaterial
+        self._material = material
         self._intersectionFinder = intersectionFinder
         # todo: PhotonLogger with logEventX booleans:
         #  logInitialPositions, logIntersections, logScattering, logEndPositions
@@ -113,7 +110,7 @@ class Photon:
             else:
                 intersection.distanceLeft = math.inf
 
-            self._updateMaterial(fresnelIntersection.nextMaterial)
+            self._material = fresnelIntersection.nextMaterial
 
         return intersection.distanceLeft
 
@@ -132,12 +129,6 @@ class Photon:
     def refract(self, fresnelIntersection: FresnelIntersection):
         self._direction.rotateAround(fresnelIntersection.incidencePlane,
                                      fresnelIntersection.angleDeflection)
-
-    def _updateMaterial(self, material):
-        if material is None:
-            self._material = self._worldMaterial
-        else:
-            self._material = material
 
     def scatter(self):
         theta, phi = self._material.getScatteringAngles()

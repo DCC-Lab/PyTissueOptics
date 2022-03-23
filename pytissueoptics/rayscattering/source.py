@@ -26,5 +26,5 @@ class Source:
         intersectionFinder = SimpleIntersectionFinder(tissue.solids)
         tissue.setWorldMaterial(worldMaterial)
         for photon in self._photons:
-            photon.setContext(worldMaterial=worldMaterial, intersectionFinder=intersectionFinder, logger=logger)
+            photon.setContext(worldMaterial, intersectionFinder=intersectionFinder, logger=logger)
             photon.propagate()
