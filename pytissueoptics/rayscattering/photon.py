@@ -1,3 +1,4 @@
+import math
 import random
 from typing import Optional
 
@@ -77,6 +78,10 @@ class Photon:
             self._logPosition()
             distanceLeft = self.reflectOrRefract(intersection)
         else:
+            if math.isinf(distance):
+                self._weight = 0
+                return 0
+
             self.moveBy(distance)
             distanceLeft = 0
 
@@ -84,30 +89,34 @@ class Photon:
 
         return distanceLeft
 
+    def _getIntersection(self, distance) -> Optional[Intersection]:
+        if self._intersectionFinder is None:
+            return None
+
+        stepRay = Ray(self._position, self._direction, distance)
+        return self._intersectionFinder.findIntersection(stepRay)
+
     def reflectOrRefract(self, intersection: Intersection):
         fresnelIntersection = self._getFresnelIntersection(intersection)
 
-        scalingFactor = 1.0
         if fresnelIntersection.isReflected:
             self.reflect(fresnelIntersection)
         else:
             self.refract(fresnelIntersection)
+
             mus1 = self._material.mu_s
             mus2 = fresnelIntersection.nextMaterial.mu_s
-            if mus2 != 0:
-                scalingFactor = mus1/mus2
+            if mus1 == 0:
+                intersection.distanceLeft = 0
+            elif mus2 != 0:
+                intersection.distanceLeft *= mus1/mus2
             else:
-                scalingFactor = float("+inf")
-                
+                intersection.distanceLeft = math.inf
+
             self._updateMaterial(fresnelIntersection.nextMaterial)
 
-        return intersection.distanceLeft * scalingFactor
+        return intersection.distanceLeft
 
-    def _getIntersection(self, distance) -> Optional[Intersection]:
-        if self._intersectionFinder is None:
-            return None
-        stepRay = Ray(self._position, self._direction, distance)
-        return self._intersectionFinder.findIntersection(stepRay)
     def _getFresnelIntersection(self, intersection: Intersection) -> FresnelIntersection:
         return self._fresnelIntersectionFactory.compute(self._direction, intersection)
 
@@ -154,7 +163,6 @@ class Photon:
         if self._weight >= 1e-4 or self._weight == 0:
             return
         elif random.random() < chance:
-            # todo: are we gonna talk about this?
             self._weight /= chance
         else:
             self._weight = 0
