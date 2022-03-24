@@ -1,7 +1,7 @@
 import unittest
 from math import sqrt
 
-from pytissueoptics.scene.geometry import Triangle, Quad, Polygon, Vector, BoundingBox
+from pytissueoptics.scene.geometry import Triangle, Vector, BoundingBox
 from pytissueoptics.scene.intersection import Ray
 from pytissueoptics.scene.tree import Node
 from pytissueoptics.scene.tree.treeConstructor.binary import FastBinaryTreeConstructor
@@ -14,106 +14,157 @@ class TestFastBinaryTreeConstructor(unittest.TestCase):
     # Static Internal Mechanics Tests
 
     def test_givenPolygons_whenClassifying_shouldReturnCorrect3Groups(self):
-        rightTriangle = Triangle(Vector(0, 0, 0), Vector(1, 0, 0), Vector(1, 1, 0))
-        quad = Quad(Vector(-5, -5, 0), Vector(-5, 5, 0), Vector(5, 5, 0), Vector(5, -5, 0))
-        polygon = Polygon(vertices=[Vector(3, 3, 2), Vector(1, 1, 1), Vector(1, -1, 1)])
-        leftPolygon = Polygon(vertices=[Vector(3, -3, 2), Vector(1, -1, -0.5), Vector(1, -1, -1)])
+        triangle0 = Triangle(Vector(0, 0, 0), Vector(1, 0, 0), Vector(1, 1, 0))
+        triangle1 = Triangle(Vector(-5, -5, 0), Vector(-5, 5, 0), Vector(5, 5, 0))
+        triangle2 = Triangle(Vector(3, -3, 2), Vector(1, -1, 1), Vector(1, -1, 1))
 
-        toClassify = [rightTriangle, quad, polygon, leftPolygon]
+        toClassify = [triangle1, triangle2, triangle0]
         left, right, both = self._fbtc._classifyPolygons(-0.5, "y", toClassify)
-        self.assertListEqual(left, [leftPolygon])
-        self.assertListEqual(right, [rightTriangle])
-        self.assertListEqual(both, [quad, polygon])
+        self.assertListEqual(left, [triangle2])
+        self.assertListEqual(right, [triangle0])
+        self.assertListEqual(both, [triangle1])
+
+    def test_givenTrianglesWith1ContainedVertex_whenClassifying_shouldSendTriangleOnGoodSide(self):
+        with self.subTest("Left"):
+            triangle0 = Triangle(Vector(0, 0, 0), Vector(1, 0, 0), Vector(1, 1, 0))
+            toClassify = [triangle0]
+            left, right, both = self._fbtc._classifyPolygons(1, "y", toClassify)
+            self.assertListEqual(left, [triangle0])
+            self.assertListEqual(right, [])
+            self.assertListEqual(both, [])
+        with self.subTest("Right"):
+            triangle0 = Triangle(Vector(0, 2, 0), Vector(1, 2, 0), Vector(1, 1, 0))
+            toClassify = [triangle0]
+            left, right, both = self._fbtc._classifyPolygons(1, "y", toClassify)
+            self.assertListEqual(left, [])
+            self.assertListEqual(right, [triangle0])
+            self.assertListEqual(both, [])
+        with self.subTest("toSplit"):
+            triangle0 = Triangle(Vector(0, 2, 0), Vector(1, 0, 0), Vector(1, 1, 0))
+            toClassify = [triangle0]
+            left, right, toSplit = self._fbtc._classifyPolygons(1, "y", toClassify)
+            self.assertListEqual(left, [])
+            self.assertListEqual(right, [])
+            self.assertListEqual(toSplit, [triangle0])
+
+    def test_givenTrianglesWith2ContainedVertex_whenClassifying_shouldSendTriangleOnGoodSide(self):
+        with self.subTest("Left"):
+            triangle0 = Triangle(Vector(0, 0, 0), Vector(1, 1, 0), Vector(1, 1, 0))
+            toClassify = [triangle0]
+            left, right, both = self._fbtc._classifyPolygons(1, "y", toClassify)
+            self.assertListEqual(left, [triangle0])
+            self.assertListEqual(right, [])
+            self.assertListEqual(both, [])
+        with self.subTest("Right"):
+            triangle0 = Triangle(Vector(0, 2, 0), Vector(1, 1, 0), Vector(1, 1, 0))
+            toClassify = [triangle0]
+            left, right, both = self._fbtc._classifyPolygons(1, "y", toClassify)
+            self.assertListEqual(left, [])
+            self.assertListEqual(right, [triangle0])
+            self.assertListEqual(both, [])
+
+    def test_givenTrianglesWith3ContainedVertex_whenClassifying_shouldSendTriangleOnGoodSide(self):
+        with self.subTest("Left"):
+            triangle00 = Triangle(Vector(0, 1, 0), Vector(1, 0, 0), Vector(1, 1, 0))
+            triangle0 = Triangle(Vector(0, 1, 0), Vector(1, 1, 0), Vector(1, 1, 0))
+            toClassify = [triangle00, triangle0]
+            left, right, toSplit = self._fbtc._classifyPolygons(1, "y", toClassify)
+            self.assertListEqual(left, [triangle00, triangle0])
+            self.assertListEqual(right, [])
+            self.assertListEqual(toSplit, [])
+
+        # If Neighbour is not left, split, or nonexistent, it will send it right by default
+        with self.subTest("Right"):
+            triangle00 = Triangle(Vector(0, 1, 0), Vector(1, 2, 0), Vector(1, 1, 0))
+            triangle0 = Triangle(Vector(0, 1, 0), Vector(1, 1, 0), Vector(1, 1, 0))
+            toClassify = [triangle00, triangle0]
+            left, right, toSplit = self._fbtc._classifyPolygons(1, "y", toClassify)
+            self.assertListEqual(left, [])
+            self.assertListEqual(right, [triangle00, triangle0])
+            self.assertListEqual(toSplit, [])
+
+        with self.subTest("toSplit"):
+            triangle00 = Triangle(Vector(0, 0, 0), Vector(1, 2, 0), Vector(1, 1, 0))
+            triangle0 = Triangle(Vector(0, 1, 0), Vector(1, 1, 0), Vector(1, 1, 0))
+            toClassify = [triangle00, triangle0]
+            left, right, toSplit = self._fbtc._classifyPolygons(1, "y", toClassify)
+            self.assertListEqual(left, [])
+            self.assertListEqual(right, [triangle0])
+            self.assertListEqual(toSplit, [triangle00])
+
+        with self.subTest("noNeighbor"):
+            triangle0 = Triangle(Vector(0, 1, 0), Vector(1, 1, 0), Vector(1, 1, 0))
+            toClassify = [triangle0]
+            left, right, toSplit = self._fbtc._classifyPolygons(1, "y", toClassify)
+            self.assertListEqual(left, [])
+            self.assertListEqual(right, [triangle0])
+            self.assertListEqual(toSplit, [])
 
     def test_givenATriangleAndAPlane_whenPolygonAsRays_shouldReturnCorrectRays(self):
         triangle = Triangle(Vector(0, 0, 0), Vector(1, 0, 0), Vector(1, 1, 0))
-        quad = Quad(Vector(-5, -5, 0), Vector(-5, 5, 0), Vector(5, 5, 0), Vector(5, -5, 0))
         triangleRays = self._fbtc._getPolygonAsRays(triangle)
-        quadRays = self._fbtc._getPolygonAsRays(quad)
         expectedTriangleRays = [Ray(Vector(0, 0, 0), Vector(1, 0, 0), 1.0),
                                 Ray(Vector(1, 0, 0), Vector(0, 1, 0), 1.0),
                                 Ray(Vector(1, 1, 0), Vector(-sqrt(2) / 2, -sqrt(2) / 2, 0), sqrt(2))]
-        expectedQuadRays = [Ray(Vector(-5, -5, 0), Vector(0, 1, 0), 10.0),
-                            Ray(Vector(-5, 5, 0), Vector(1, 0, 0), 10.0),
-                            Ray(Vector(5, 5, 0), Vector(0, -1, 0), 10.0),
-                            Ray(Vector(5, -5, 0), Vector(-1, 0, 0), 10.0)]
 
-        for i, (tri, quad) in enumerate(zip(triangleRays, quadRays)):
+        for i, tri in enumerate(triangleRays):
             self.assertEqual(tri.direction, expectedTriangleRays[i].direction, 2)
             self.assertEqual(tri.origin, expectedTriangleRays[i].origin, 2)
             self.assertEqual(tri.length, expectedTriangleRays[i].length, 2)
-            self.assertEqual(quad.direction, expectedQuadRays[i].direction, 2)
-            self.assertEqual(quad.origin, expectedQuadRays[i].origin, 2)
-            self.assertEqual(quad.length, expectedQuadRays[i].length, 2)
 
-    # Polygon Splitting Edge Case Tests
-
-    def test_givenAPolygonAndAPlane_whenSplittingPolygon_shouldReturn2Polygons(self):
-        toBeSplitted = [Polygon(vertices=[Vector(0, 0, 0), Vector(1, 1, 1), Vector(1, -1, 1)])]
+    def test_givenAPolygonAndAPlane_whenSplittingPolygon_shouldReturn3Polygons(self):
+        toBeSplit = [Triangle(Vector(0, 0, 0), Vector(1, 1, 1), Vector(1, -1, 1))]
         splitValue = 0.5
         splitAxis = "x"
         normal, dot = self._fbtc._makeSplitPlane(splitAxis, splitValue)
-        left, right = self._fbtc._splitPolygons(toBeSplitted, normal, dot, splitAxis, splitValue)
-        expectedLeft = [Polygon(vertices=[Vector(0, 0, 0), Vector(0.5, 0.5, 0.5), Vector(0.5, -0.5, 0.5)])]
-        expectedRight = [
-            Polygon(vertices=[Vector(1, 1, 1), Vector(0.5, 0.5, 0.5), Vector(0.5, -0.5, 0.5), Vector(1, -1, 1)])]
+        left, right = self._fbtc._splitTriangles(toBeSplit, normal, dot)
+        expectedLeft = [Triangle(Vector(0, 0, 0), Vector(0.5, 0.5, 0.5), Vector(0.5, -0.5, 0.5))]
 
         self.assertEqual(left[0], expectedLeft[0])
-        self.assertEqual(right[0], expectedRight[0])
+        self.assertEqual(len(right), 2)
 
     def test_givenAPolygonAndAPlane_whenSplittingOnAVertexInside_shouldReturn2Polygons(self):
-        toBeSplitted = [Polygon(vertices=[Vector(0, 0, 0), Vector(1, 1, 1), Vector(1, -1, 1)])]
+        toBeSplit = [Triangle(Vector(0, 0, 0), Vector(1, 1, 1), Vector(1, -1, 1))]
         splitValue = 0
         splitAxis = "y"
         normal, dot = self._fbtc._makeSplitPlane(splitAxis, splitValue)
-        left, right = self._fbtc._splitPolygons(toBeSplitted, normal, dot, splitAxis, splitValue)
-        expectedLeft = [Polygon(vertices=[Vector(1, -1, 1), Vector(1, 0, 1), Vector(0, 0, 0)])]
-        expectedRight = [Polygon(vertices=[Vector(1, 1, 1), Vector(1, 0, 1), Vector(0, 0, 0)])]
+        left, right = self._fbtc._splitTriangles(toBeSplit, normal, dot)
+        expectedLeft = [Triangle(Vector(1, -1, 1), Vector(1, 0, 1), Vector(0, 0, 0))]
+        expectedRight = [Triangle(Vector(1, 1, 1), Vector(1, 0, 1), Vector(0, 0, 0))]
         self.assertEqual(left[0], expectedLeft[0])
         self.assertEqual(right[0], expectedRight[0])
 
     def test_givenAPolygonAndAPlane_whenSplittingOnAVertexOutside_shouldReturn1Polygons(self):
-        toBeSplitted = [Polygon(vertices=[Vector(0, 0, 0), Vector(1, 1, 1), Vector(1, -1, 1)])]
+        toBeSplit = [Triangle(Vector(0, 0, 0), Vector(1, 1, 1), Vector(1, -1, 1))]
         splitValue = 1
         splitAxis = "y"
         normal, dot = self._fbtc._makeSplitPlane(splitAxis, splitValue)
-        left, right = self._fbtc._splitPolygons(toBeSplitted, normal, dot, splitAxis, splitValue)
-        expectedLeft = [Polygon(vertices=[Vector(0, 0, 0), Vector(1, 1, 1), Vector(1, -1, 1)])]
+        left, right = self._fbtc._splitTriangles(toBeSplit, normal, dot)
+        expectedLeft = [Triangle(Vector(0, 0, 0), Vector(1, 1, 1), Vector(1, -1, 1))]
         expectedRight = []
         self.assertEqual(left[0], expectedLeft[0])
         self.assertEqual(right, expectedRight)
 
     def test_givenAPolygonAndAPlane_whenSplittingOn2VerticesOutside_shouldReturn1Polygons(self):
-        toBeSplitted = [Polygon(vertices=[Vector(0, 0, 0), Vector(1, 1, 1), Vector(1, -1, 1)])]
+        toBeSplit = [Triangle(Vector(0, 0, 0), Vector(1, 1, 1), Vector(1, -1, 1))]
         splitValue = 1
         splitAxis = "x"
         normal, dot = self._fbtc._makeSplitPlane(splitAxis, splitValue)
-        left, right = self._fbtc._splitPolygons(toBeSplitted, normal, dot, splitAxis, splitValue)
-        expectedLeft = [Polygon(vertices=[Vector(0, 0, 0), Vector(1, 1, 1), Vector(1, -1, 1)])]
+        left, right = self._fbtc._splitTriangles(toBeSplit, normal, dot)
+        expectedLeft = [Triangle(Vector(0, 0, 0), Vector(1, 1, 1), Vector(1, -1, 1))]
         expectedRight = []
         self.assertEqual(left[0], expectedLeft[0])
         self.assertEqual(right, expectedRight)
-
-    def test_givenAPolygonAndAPlane_whenSplittingOn2VerticesInside_shouldReturn2Polygons(self):
-        toBeSplitted = [Polygon(vertices=[Vector(0, 0, 0), Vector(1, 1, 1), Vector(2, 0, 1), Vector(1, -1, 1)])]
-        splitValue = 1
-        splitAxis = "x"
-        normal, dot = self._fbtc._makeSplitPlane(splitAxis, splitValue)
-        left, right = self._fbtc._splitPolygons(toBeSplitted, normal, dot, splitAxis, splitValue)
-        expectedLeft = [Polygon(vertices=[Vector(1, -1, 1), Vector(1, 1, 1), Vector(0, 0, 0)])]
-        expectedRight = [Polygon(vertices=[Vector(1, -1, 1), Vector(1, 1, 1), Vector(2, 0, 1)])]
-        self.assertEqual(left[0], expectedLeft[0])
-        self.assertEqual(right[0], expectedRight[0])
 
     def test_givenUltraThinPolygon_whenSplitting_shouldStillReturn2Polygons(self):
         vertices = [Vector(8.860660171779822, 5.000000000000001, -4.9455),
                     Vector(8.856599089933916, 4.995938918154095, -4.9455),
                     Vector(8.856599089933916, 4.99986899735981, -4.9455)]
-        toBeSplit = [Polygon(vertices=vertices)]
+        toBeSplit = [Triangle(*vertices)]
         splitAxis = "y"
         splitValue = 4.999868997359811
         normal, dot = self._fbtc._makeSplitPlane(splitAxis, splitValue)
-        left, right = self._fbtc._splitPolygons(toBeSplit, normal, dot, splitAxis, splitValue)
+        left, right = self._fbtc._splitTriangles(toBeSplit, normal, dot)
         self.assertEqual(1, len(left))
         self.assertEqual(1, len(right))
 
@@ -121,11 +172,11 @@ class TestFastBinaryTreeConstructor(unittest.TestCase):
 
     def test_givenANodeWith2Polygon_whenSplitting_shouldSplitBetweenPolygons(self):
         """This type of test is extremely sensitive on initial parameters."""
-        expectedLeft = [Polygon(vertices=[Vector(0, 0, 0), Vector(1, 1, 1), Vector(1, -1, 1)]),
-                        Polygon(vertices=[Vector(0, 0, 0), Vector(-1, -1, -1), Vector(-2, -2, -3)])]
-        expectedRight = [Polygon(vertices=[Vector(2, 4, 4), Vector(2, 2, 2), Vector(2, 2, 3)]),
-                         Polygon(vertices=[Vector(2, 5, 5), Vector(2, 2, 2), Vector(2, 2, 3)]),
-                         Polygon(vertices=[Vector(2, 6, 6), Vector(3, 3, 3), Vector(2, 2, 3)])]
+        expectedLeft = [Triangle(Vector(0, 0, 0), Vector(1, 1, 1), Vector(1, -1, 1)),
+                        Triangle(Vector(0, 0, 0), Vector(-1, -1, -1), Vector(-2, -2, -3))]
+        expectedRight = [Triangle(Vector(2, 4, 4), Vector(2, 2, 2), Vector(2, 2, 3)),
+                         Triangle(Vector(2, 5, 5), Vector(2, 2, 2), Vector(2, 2, 3)),
+                         Triangle(Vector(2, 6, 6), Vector(3, 3, 3), Vector(2, 2, 3))]
         polygons = []
         polygons.extend(expectedLeft)
         polygons.extend(expectedRight)
