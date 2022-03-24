@@ -21,8 +21,11 @@ class TestFastBinaryTreeConstructor(unittest.TestCase):
         toClassify = [triangle1, triangle2, triangle0]
         left, right, both = self._fbtc._classifyPolygons(-0.5, "y", toClassify)
         self.assertListEqual(left, [triangle2])
+        self.assertEqual(left[0].normal, triangle2.normal)
         self.assertListEqual(right, [triangle0])
+        self.assertEqual(right[0].normal, triangle0.normal)
         self.assertListEqual(both, [triangle1])
+        self.assertEqual(both[0].normal, triangle1.normal)
 
     def test_givenTrianglesWith1ContainedVertex_whenClassifying_shouldSendTriangleOnGoodSide(self):
         with self.subTest("Left"):

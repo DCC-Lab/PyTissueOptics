@@ -58,7 +58,7 @@ class ASphereScene(Scene):
         self._create()
 
     def _create(self):
-        sphere = Sphere(position=Vector(0, 0, 0), order=2)
+        sphere = Sphere(position=Vector(0, 0, 0), order=1)
         sphere._bbox = BoundingBox([-10, 10], [-10, 10], [-10, 10])
         self._solids.extend([sphere])
 
@@ -69,8 +69,8 @@ class TwoSpheresScene(Scene):
         self._create()
 
     def _create(self):
-        sphere = Sphere(position=Vector(0, 0, 0), order=2)
-        ellipsoid = Ellipsoid(a=1, b=2, c=1, position=Vector(2, 2, 6), order=2)
+        sphere = Sphere(position=Vector(0, 0, 0), order=0)
+        ellipsoid = Ellipsoid(a=1, b=2, c=1, position=Vector(2, 2, 6), order=1)
         sphere._bbox = BoundingBox([-10, 10], [-10, 10], [-10, 10])
         self._solids.extend([sphere, ellipsoid])
 
