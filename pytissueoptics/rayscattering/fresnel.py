@@ -78,15 +78,14 @@ class FresnelIntersectionFactory:
             return R*R
 
         sa1 = math.sin(self._thetaIn)
-        if sa1*n1/n2 > 1:
+
+        sa2 = sa1 * n1 / n2
+        if sa2 >= 1:
             return 1
 
-        sa2 = sa1*n1/n2
         ca1 = math.sqrt(1-sa1*sa1)
-        if 1-sa2*sa2 > 0:
-            ca2 = math.sqrt(1-sa2*sa2)
-        else:
-            ca2 = 0
+        ca2 = math.sqrt(1-sa2*sa2)
+
         cap = ca1*ca2 - sa1*sa2  # c+ = cc - ss.
         cam = ca1*ca2 + sa1*sa2  # c- = cc + ss.
         sap = sa1*ca2 + ca1*sa2  # s+ = sc + cs.
