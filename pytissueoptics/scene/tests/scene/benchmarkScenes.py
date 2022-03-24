@@ -40,6 +40,41 @@ class ACubeScene(Scene):
         self._solids.extend([cuboid1])
 
 
+class TwoCubesScene(Scene):
+    def __init__(self):
+        super().__init__()
+        self._create()
+
+    def _create(self):
+        cuboid1 = Cuboid(a=1, b=3, c=1, position=Vector(0, 0, 0))
+        cuboid1._bbox = BoundingBox([-10, 10], [-10, 10], [-10, 10])
+        cuboid2 = Cuboid(a=2, b=1, c=1, position=Vector(6, 1, 1))
+        self._solids.extend([cuboid1, cuboid2])
+
+
+class ASphereScene(Scene):
+    def __init__(self):
+        super().__init__()
+        self._create()
+
+    def _create(self):
+        sphere = Sphere(position=Vector(0, 0, 0), order=2)
+        sphere._bbox = BoundingBox([-10, 10], [-10, 10], [-10, 10])
+        self._solids.extend([sphere])
+
+
+class TwoSpheresScene(Scene):
+    def __init__(self):
+        super().__init__()
+        self._create()
+
+    def _create(self):
+        sphere = Sphere(position=Vector(0, 0, 0), order=2)
+        ellipsoid = Ellipsoid(a=1, b=2, c=1, position=Vector(2, 2, 6), order=2)
+        sphere._bbox = BoundingBox([-10, 10], [-10, 10], [-10, 10])
+        self._solids.extend([sphere, ellipsoid])
+
+
 class PhantomScene(Scene):
     ROOM = []
     CROSSWALK = []

@@ -11,25 +11,30 @@ import time
 pandas.set_option('display.max_columns', 20)
 pandas.set_option('display.width', 1200)
 
-scene000 = AAxisAlignedPolygonScene()
-scene00 = APolygonScene()
-scene0 = ACubeScene()
+scene00 = AAxisAlignedPolygonScene()
+scene01 = APolygonScene()
+scene02 = ACubeScene()
+scene03 = TwoCubesScene()
+scene04 = ASphereScene()
+scene05 = TwoSpheresScene()
+scene06 = RandomShapesScene()
+
 scene1 = PhantomScene()
-scene2 = RandomShapesScene()
-scene3 = XAlignedSpheres()
-scene4 = ZAlignedSpheres()
-scene5 = DiagonallyAlignedSpheres()
+scene2 = XAlignedSpheres()
+scene3 = ZAlignedSpheres()
+scene4 = DiagonallyAlignedSpheres()
 
 # ========= Profiler Important Parameters ================
-scenes = [scene1, scene2, scene3, scene4, scene5]
-# scenes = [scene0]
+# scenes = [scene1, scene2, scene3, scene4, scene5]
+scenes = [scene04]
 # scenes = [scene2]
 # scenes = [scene000, scene00, scene0, scene1, scene2, scene3, scene4, scene5]
 constructors = [FastBinaryTreeConstructor(), ShrankBoxSAHWideAxisTreeConstructor(), SAHWideAxisTreeConstructor()]
-simpleRayAmount = 1000
-fastRayAmount = 10000
+simpleRayAmount = 100
+fastRayAmount = 100
 factor = fastRayAmount/simpleRayAmount
-displayViewer = False
+displayViewer = True
+constructorOnly = True
 
 # ================ Profiler Data ===================
 dfs = pandas.DataFrame(
