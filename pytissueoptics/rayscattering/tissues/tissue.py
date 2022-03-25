@@ -5,9 +5,11 @@ from pytissueoptics.scene.solids import Solid
 
 
 class Tissue:
-    @property
-    def solids(self) -> List[Solid]:
-        raise NotImplementedError
+    def __init__(self, solids: List[Solid]):
+        self._solids = solids
+
+    def getSolids(self) -> List[Solid]:
+        return self._solids
 
     def addToViewer(self, viewer: MayaviViewer):
         raise NotImplementedError
@@ -18,5 +20,5 @@ class Tissue:
         viewer.show()
 
     def setWorldMaterial(self, material: Material):
-        for solid in self.solids:
+        for solid in self._solids:
             solid.setOutsideMaterial(material)

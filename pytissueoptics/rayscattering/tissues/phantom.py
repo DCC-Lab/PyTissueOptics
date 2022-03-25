@@ -1,21 +1,14 @@
-from typing import List
-
 from pytissueoptics.rayscattering.tissues.tissue import Tissue
 from pytissueoptics.scene import Cuboid, Material, Vector, MayaviViewer
-from pytissueoptics.scene.solids import Solid
 
 
 class PhantomTissue(Tissue):
-    """ Phantom tissue consisting of 3 layers with increasing scattering and constant absorption. """
+    """ Phantom tissue consisting of 3 layers with various optical properties. """
     TISSUE = []
 
     def __init__(self):
         self._create()
-        self._solids = self.TISSUE
-
-    @property
-    def solids(self) -> List[Solid]:
-        return self._solids
+        super().__init__(self.TISSUE)
 
     def _create(self):
         mu_s = [2, 3, 4]
@@ -28,9 +21,6 @@ class PhantomTissue(Tissue):
         layerStack = bottomLayer.stack(middleLayer, 'Front').stack(topLayer, 'Front')
         layerStack.translateTo(Vector(0, 0, 1))
 
-        # fixme: intersection finder doesnt support cuboids that were stacked, you need to pass in the cuboidStack.
-        #  because stacked cuboids will lose reference to their initial stack surface (not a closed solid anymore).
-        #  maybe leave the deleted surface in stacked cuboids or raise when trying to use a "deprecated" cuboid.
         self.TISSUE = [layerStack]
 
     def addToViewer(self, viewer: MayaviViewer):

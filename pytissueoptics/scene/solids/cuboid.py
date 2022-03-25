@@ -65,6 +65,8 @@ class Cuboid(Solid):
             - Requires cuboids with the same shape except along the stack axis.
             - Cannot stack another stack unless it is along its stacked axis (ill-defined interface material).
             - Expected behavior not guaranteed for pre-rotated cuboids.
+            - Stacked cuboids will lose reference to their initial stack surface (not a closed solid anymore).
+                Use the returned cuboid stack.
         """
         stacker = CuboidStacker()
         stackResult = stacker.stack(onCuboid=self, otherCuboid=other, onSurface=onSurface)
