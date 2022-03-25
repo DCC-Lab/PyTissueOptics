@@ -12,8 +12,8 @@ tissue = PhantomTissue()
 tissue.addToViewer(viewer)
 
 logger = Logger()
-source = Source(position=Vector(0, 0, -1), direction=Vector(0, 0, 1),
-                nPhotons=100)
+source = PencilSource(position=Vector(0, 0, -1), direction=Vector(0, 0, 1),
+                      N=2000)
 
 source.propagate(tissue, logger=logger)
 
