@@ -58,7 +58,7 @@ class ASphereScene(Scene):
         self._create()
 
     def _create(self):
-        sphere = Sphere(position=Vector(0, 0, 0), order=1)
+        sphere = Sphere(position=Vector(0, 0, 0), order=2)
         sphere._bbox = BoundingBox([-10, 10], [-10, 10], [-10, 10])
         self._solids.extend([sphere])
 

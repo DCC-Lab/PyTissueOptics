@@ -4,3 +4,4 @@ from .binaryNodeSplitter import MeanCentroidNodeSplitter, MiddlePolygonSpanNodeS
     HardSAHNodeSplitter
 from .binaryTreeConstructor import *
 from .fastBinaryTreeConstructor import FastBinaryTreeConstructor
+from .maybeFastTreeConstructor import MaybeFastTreeConstructor
