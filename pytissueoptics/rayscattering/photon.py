@@ -48,8 +48,6 @@ class Photon:
                    fresnelIntersectionFactory=FresnelIntersectionFactory()):
         self._material = material
         self._intersectionFinder = intersectionFinder
-        # todo: PhotonLogger with logEventX booleans:
-        #  logInitialPositions, logIntersections, logScattering, logEndPositions
         self._logger = logger
         self._hasContext = True
         self._fresnelIntersectionFactory = fresnelIntersectionFactory
@@ -121,8 +119,6 @@ class Photon:
         self._position += self._direction * distance
 
     def reflect(self, fresnelIntersection: FresnelIntersection):
-        # todo: replace with simple dot product logic ?
-        #  Reflection = Incidence - Normal * 2 * Incidence.dot(Normal)
         self._direction.rotateAround(fresnelIntersection.incidencePlane,
                                      fresnelIntersection.angleDeflection)
 
