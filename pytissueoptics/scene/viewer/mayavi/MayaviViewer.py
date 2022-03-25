@@ -35,26 +35,30 @@ class MayaviViewer:
                 mlab.quiver3d(*mayaviSolid.normals.components, line_width=lineWidth, scale_factor=normalLength,
                               color=(1, 1, 1))
 
-    def addLogger(self, logger: Logger, colormap="rainbow", reverseColormap=False):
-        self._addPoints(logger.points, colormap=colormap, reverseColormap=reverseColormap)
-        self._addDataPoints(logger.dataPoints, colormap=colormap, reverseColormap=reverseColormap)
+    def addLogger(self, logger: Logger, colormap="rainbow", reverseColormap=False,
+                  pointScale=0.01, dataPointScale=0.15, scaleWithValue=True):
+        self._addPoints(logger.points, colormap=colormap, reverseColormap=reverseColormap, scale=pointScale)
+        self._addDataPoints(logger.dataPoints, colormap=colormap, reverseColormap=reverseColormap,
+                            scale=dataPointScale, scaleWithValue=scaleWithValue)
         self._addSegments(logger.segments, colormap=colormap, reverseColormap=reverseColormap)
 
     @staticmethod
-    def _addPoints(points: List[Vector], colormap, reverseColormap):
+    def _addPoints(points: List[Vector], colormap, reverseColormap, scale=0.01):
         x = [vector.x for vector in points]
         y = [vector.y for vector in points]
         z = [vector.z for vector in points]
-        s = mlab.points3d(x, y, z, mode="sphere", scale_factor=0.08, scale_mode="none", colormap=colormap)
+        s = mlab.points3d(x, y, z, mode="sphere", scale_factor=scale, scale_mode="none", colormap=colormap)
         s.module_manager.scalar_lut_manager.reverse_lut = reverseColormap
 
     @staticmethod
-    def _addDataPoints(dataPoints: List[DataPoint], colormap, reverseColormap):
+    def _addDataPoints(dataPoints: List[DataPoint], colormap, reverseColormap, scale=0.15, scaleWithValue=True):
         x = [dataPoint.position.x for dataPoint in dataPoints]
         y = [dataPoint.position.y for dataPoint in dataPoints]
         z = [dataPoint.position.z for dataPoint in dataPoints]
         v = [dataPoint.value for dataPoint in dataPoints]
-        s = mlab.points3d(x, y, z, v, mode="sphere", scale_factor=0.08, scale_mode="none", colormap=colormap)
+
+        scaleMode = "scalar" if scaleWithValue else "none"
+        s = mlab.points3d(x, y, z, v, mode="sphere", scale_factor=scale, scale_mode=scaleMode, colormap=colormap)
         s.module_manager.scalar_lut_manager.reverse_lut = reverseColormap
 
     @staticmethod
