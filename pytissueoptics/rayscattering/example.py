@@ -7,14 +7,12 @@ np.random.seed(15)
 
 viewer = MayaviViewer()
 tissue = PhantomTissue()
-# tissue.display()
-
 tissue.addToViewer(viewer)
 
-logger = Logger()
 source = PencilSource(position=Vector(0, 0, -1), direction=Vector(0, 0, 1),
                       N=2000)
 
+logger = Logger()
 source.propagate(tissue, logger=logger)
 
 viewer.addLogger(logger)

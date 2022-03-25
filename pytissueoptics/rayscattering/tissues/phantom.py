@@ -11,17 +11,21 @@ class PhantomTissue(Tissue):
         super().__init__(self.TISSUE)
 
     def _create(self):
-        mu_s = [2, 3, 4]
-        mu_a = 2
+        n = [1.4, 1.7, 1.4]
+        mu_s = [2, 3, 2]
+        mu_a = 1
         g = 0.8
 
-        topLayer = Cuboid(4, 4, 0.75, material=Material(mu_s[0], mu_a, g, 1.4))
-        middleLayer = Cuboid(4, 4, 0.5, material=Material(mu_s[1], mu_a, g, 1.8))
-        bottomLayer = Cuboid(4, 4, 0.75, material=Material(mu_s[2], mu_a, g, 2.0))
+        w = 3
+        t = [0.75, 0.5, 0.75]
+
+        topLayer = Cuboid(w, w, t[0], material=Material(mu_s[0], mu_a, g, n[0]))
+        middleLayer = Cuboid(w, w, t[1], material=Material(mu_s[1], mu_a, g, n[1]))
+        bottomLayer = Cuboid(w, w, t[2], material=Material(mu_s[2], mu_a, g, n[2]))
         layerStack = bottomLayer.stack(middleLayer, 'Front').stack(topLayer, 'Front')
-        layerStack.translateTo(Vector(0, 0, 1))
+        layerStack.translateTo(Vector(0, 0, sum(t) / 2))
 
         self.TISSUE = [layerStack]
 
     def addToViewer(self, viewer: MayaviViewer):
-        viewer.add(*self.TISSUE, representation="surface", colormap="bone", constantColor=False, opacity=0.2)
+        viewer.add(*self.TISSUE, representation="surface", colormap="bone", constantColor=False, opacity=0.1)
