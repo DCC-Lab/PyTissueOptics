@@ -28,8 +28,8 @@ class UniformRaySource(RaySource):
         super(UniformRaySource, self).__init__()
 
     def _createRays(self):
-        for xTheta in self._getXThetaRange():
-            for yTheta in self._getYThetaRange():
+        for yTheta in self._getYThetaRange():
+            for xTheta in self._getXThetaRange():
                 self._createRayAt(xTheta, yTheta)
 
     def _getXThetaRange(self) -> List[float]:
@@ -42,8 +42,14 @@ class UniformRaySource(RaySource):
         self._rays.append(Ray(self._position, self._getRayDirectionAt(xTheta, yTheta)))
 
     def _getRayDirectionAt(self, xTheta, yTheta) -> Vector:
-        xTheta += math.asin(-self._direction.x)
+        """
+        Returns the (normalized) direction of the ray at the given x and y angle difference
+        from the source orientation.
+
+        xTheta is defined as the angle from -Z axis towards +X axis.
+        yTheta is defined as the angle from -Z axis towards +Y axis.
+        """
+        xTheta += math.atan(self._direction.x / self._direction.z)
         yTheta += math.asin(self._direction.y)
-        rayDirection = Vector(-math.sin(xTheta), math.tan(yTheta), -math.cos(xTheta))
-        rayDirection.normalize()
+        rayDirection = Vector(-math.sin(xTheta)*math.cos(yTheta), math.sin(yTheta), -math.cos(xTheta)*math.cos(yTheta))
         return rayDirection
