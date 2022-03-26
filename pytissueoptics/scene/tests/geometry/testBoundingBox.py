@@ -123,3 +123,64 @@ class TestBoundingBox(unittest.TestCase):
         self.assertEqual(bbox, newBbox)
         newBbox.update("x", "min", -10)
         self.assertNotEqual(bbox, newBbox)
+
+    def testWhenCopyBBoxAndUpdatingWithAnyFunction_newBboxShouldNotReturnOldParameters(self):
+        bbox = BoundingBox([0, 5], [0, 5], [0, 5])
+        with self.subTest("update"):
+            newBbox = bbox.copy()
+            newBbox.update("x", "min", -10)
+            self.assertNotEqual(bbox.xLim, newBbox.xLim)
+        with self.subTest("extendTo"):
+            newBbox = bbox.copy()
+            newBbox.extendTo(BoundingBox([-1, 6], [-1, 6], [-1, 6]))
+            self.assertNotEqual(bbox.xLim, newBbox.xLim)
+        with self.subTest("shrinkTo"):
+            newBbox = bbox.copy()
+            newBbox.shrinkTo(BoundingBox([0, 4], [0, 4], [0, 4]))
+            self.assertNotEqual(bbox.xLim, newBbox.xLim)
+
+    def testWhenCopyBBoxAndUpdatingWithAnyFunction_xyzShouldEqualxyzLim(self):
+        bbox = BoundingBox([0, 5], [0, 5], [0, 5])
+        with self.subTest("update"):
+            newBbox = bbox.copy()
+            newBbox.update("x", "min", -10)
+            self.assertEqual(newBbox.xLim, newBbox._xyzLimits[0])
+        with self.subTest("extendTo"):
+            newBbox = bbox.copy()
+            newBbox.extendTo(BoundingBox([-1, 6], [-1, 6], [-1, 6]))
+            self.assertEqual(newBbox.xLim, newBbox._xyzLimits[0])
+        with self.subTest("shrinkTo"):
+            newBbox = bbox.copy()
+            newBbox.shrinkTo(BoundingBox([1, 4], [1, 4], [1, 4]))
+            self.assertEqual(newBbox.xLim, newBbox._xyzLimits[0])
+
+    def testWithCopiedBbox_whenUpdatingAndFetchingAxisLimits_newBboxShouldNotReturnOldParameters(self):
+        bbox = BoundingBox([0, 5], [0, 5], [0, 5])
+        with self.subTest("update"):
+            newBbox = bbox.copy()
+            newBbox.update("x", "min", -10)
+            self.assertNotEqual(bbox.getAxisLimits("x"), newBbox.getAxisLimits("x"))
+            self.assertNotEqual(bbox.getAxisLimit("x", "min"), newBbox.getAxisLimit("x", "min"))
+            self.assertNotEqual(bbox.getAxisWidth("x"), newBbox.getAxisWidth("x"))
+        with self.subTest("extendTo"):
+            newBbox = bbox.copy()
+            newBbox.extendTo(BoundingBox([-1, 6], [-1, 6], [-1, 6]))
+            self.assertNotEqual(bbox.getAxisLimits("x"), newBbox.getAxisLimits("x"))
+            self.assertNotEqual(bbox.getAxisLimit("x", "min"), newBbox.getAxisLimit("x", "min"))
+            self.assertNotEqual(bbox.getAxisWidth("x"), newBbox.getAxisWidth("x"))
+        with self.subTest("shrinkTo"):
+            newBbox = bbox.copy()
+            newBbox.shrinkTo(BoundingBox([-1, 4], [-1, 4], [-1, 4]))
+            self.assertNotEqual(bbox.getAxisLimits("x"), newBbox.getAxisLimits("x"))
+            self.assertNotEqual(bbox.getAxisLimit("x", "max"), newBbox.getAxisLimit("x", "max"))
+            self.assertNotEqual(bbox.getAxisWidth("x"), newBbox.getAxisWidth("x"))
+        with self.subTest("intermediateBbox"):
+            newBbox = bbox.copy()
+            biggerBbox = BoundingBox([-1, 6], [-1, 6], [-1, 6])
+            bigCopy = biggerBbox.copy()
+            biggerBbox.shrinkTo(newBbox)
+            splitBbox = biggerBbox.copy()
+            self.assertNotEqual(biggerBbox, bigCopy)
+            self.assertEqual(splitBbox.getAxisWidth("x"), newBbox.getAxisWidth("x"))
+            self.assertEqual(splitBbox.getAxisLimits("x"), newBbox.getAxisLimits("x"))
+            self.assertEqual(splitBbox.getAxisLimit("x", "min"), newBbox.getAxisLimit("x", "min"))
