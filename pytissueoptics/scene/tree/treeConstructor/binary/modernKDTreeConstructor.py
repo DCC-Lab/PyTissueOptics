@@ -23,7 +23,7 @@ class SAHSearchResult:
     splitValue: float
 
 
-class FastBinaryTreeConstructor(TreeConstructor):
+class ModernKDTreeConstructor(TreeConstructor):
     """
     This is an implementation of the proposed algorithms found in
 
@@ -44,8 +44,8 @@ class FastBinaryTreeConstructor(TreeConstructor):
     """
     EPSILON = 1e-6
 
-    def __init__(self, traversalCost=1, intersectionCost=1, emptySpaceBonus=0.7, nbOfPlanes=20):
-        super(FastBinaryTreeConstructor, self).__init__()
+    def __init__(self, traversalCost=12, intersectionCost=1, emptySpaceBonus=0.8, nbOfPlanes=30):
+        super(ModernKDTreeConstructor, self).__init__()
         self._traversalCost = traversalCost
         self._intersectionCost = intersectionCost
         self._emptySpaceBonus = emptySpaceBonus
@@ -61,10 +61,10 @@ class FastBinaryTreeConstructor(TreeConstructor):
             goingLeft, goingRight = self._splitTriangles(SAHResult.toSplitPolygons, normal, point)
             SAHResult.leftPolygons.extend(goingLeft)
             SAHResult.rightPolygons.extend(goingRight)
-            return SplitNodeResult(False, "", 0, [SAHResult.leftBbox, SAHResult.rightBbox],
+            return SplitNodeResult(False, [SAHResult.leftBbox, SAHResult.rightBbox],
                                    [SAHResult.leftPolygons, SAHResult.rightPolygons])
         else:
-            return SplitNodeResult(True, None, None, None, None)
+            return SplitNodeResult(True, None, None)
 
     def _checkIfWorthNodeSplit(self, nodeSA: float, nbTrianglesBefore, polygonsBbox, SAHResult: SAHSearchResult):
         newNodeIntersectionCost = self._intersectionCost * ((SAHResult.leftSAH + SAHResult.rightSAH) / nodeSA)
@@ -271,12 +271,6 @@ class FastBinaryTreeConstructor(TreeConstructor):
         if len(vertices) == 3:
             return Triangle(*vertices, normal=parent.normal, insideMaterial=parent.insideMaterial,
                             outsideMaterial=parent.outsideMaterial)
-        if len(vertices) == 4:
-            return Quad(*vertices, normal=parent.normal, insideMaterial=parent.insideMaterial,
-                        outsideMaterial=parent.outsideMaterial)
-        if len(vertices) > 4:
-            return Polygon(vertices=vertices, normal=parent.normal, insideMaterial=parent.insideMaterial,
-                           outsideMaterial=parent.outsideMaterial)
 
     @staticmethod
     def _makeSplitPlane(splitAxis: str, splitValue: float) -> Tuple[Vector, Vector]:

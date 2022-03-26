@@ -1,15 +1,16 @@
 import unittest
 from math import sqrt
 
+from pytissueoptics.scene import Material
 from pytissueoptics.scene.geometry import Triangle, Vector, BoundingBox
 from pytissueoptics.scene.intersection import Ray
 from pytissueoptics.scene.tree import Node
-from pytissueoptics.scene.tree.treeConstructor.binary import FastBinaryTreeConstructor
+from pytissueoptics.scene.tree.treeConstructor.binary.modernKDTreeConstructor import ModernKDTreeConstructor
 
 
-class TestFastBinaryTreeConstructor(unittest.TestCase):
+class TestModernKDTreeConstructor(unittest.TestCase):
     def setUp(self) -> None:
-        self._fbtc = FastBinaryTreeConstructor()
+        self._fbtc = ModernKDTreeConstructor()
 
     # Static Internal Mechanics Tests
 
@@ -126,6 +127,23 @@ class TestFastBinaryTreeConstructor(unittest.TestCase):
         self.assertEqual(left[0], expectedLeft[0])
         self.assertEqual(len(right), 2)
 
+    def test_givenAPolygonAndAPlane_whenSplittingPolygon_splitPolygonShouldHaveGoodMaterialAndNormal(self):
+        myMaterial = Material(1, 1, 0.5)
+        toBeSplit = [Triangle(Vector(0, 0, 0), Vector(0, 1, 0), Vector(0, 1, 1), insideMaterial=myMaterial)]
+        splitValue = 0.5
+        splitAxis = "y"
+        normal, dot = self._fbtc._makeSplitPlane(splitAxis, splitValue)
+        left, right = self._fbtc._splitTriangles(toBeSplit, normal, dot)
+        expectedLeft = [Triangle(Vector(0, 0, 0), Vector(0, 0.5, 0), Vector(0, 0.5, 0.5), insideMaterial=myMaterial)]
+
+        self.assertEqual(left[0], expectedLeft[0])
+        self.assertEqual(myMaterial, left[0].insideMaterial)
+        self.assertEqual(Vector(1, 0, 0), left[0].normal)
+        self.assertEqual(Vector(1, 0, 0), right[0].normal)
+        self.assertEqual(Vector(1, 0, 0), right[1].normal)
+
+        self.assertEqual(len(right), 2)
+
     def test_givenAPolygonAndAPlane_whenSplittingOnAVertexInside_shouldReturn2Polygons(self):
         toBeSplit = [Triangle(Vector(0, 0, 0), Vector(1, 1, 1), Vector(1, -1, 1))]
         splitValue = 0
@@ -185,7 +203,7 @@ class TestFastBinaryTreeConstructor(unittest.TestCase):
         polygons.extend(expectedRight)
         nodeBbox = BoundingBox([-10, 10], [-10, 10], [-10, 10])
         node = Node(polygons=polygons, bbox=nodeBbox)
-        fbtc = FastBinaryTreeConstructor(traversalCost=8, intersectionCost=2)
+        fbtc = ModernKDTreeConstructor(traversalCost=8, intersectionCost=2)
         splitNodeResult = fbtc._splitNode(node)
         groups = splitNodeResult.polygonGroups
         self.assertEqual(2, len(groups))

@@ -8,9 +8,10 @@ from pytissueoptics.scene.scene import Scene
 from pytissueoptics.scene.tests.scene.benchmarkScenes import PhantomScene
 from pytissueoptics.scene.intersection import SimpleIntersectionFinder, FastIntersectionFinder, Ray, UniformRaySource
 
-from pytissueoptics.scene.tree.treeConstructor.binary import ShrankBoxSAHWideAxisTreeConstructor,\
-    FastBinaryTreeConstructor, SAHWideAxisTreeConstructor, SAHBasicKDTreeConstructor
-
+from pytissueoptics.scene.tree.treeConstructor.binary.modernKDTreeConstructor import ModernKDTreeConstructor
+from pytissueoptics.scene.tree.treeConstructor.binary.threeAxesSplitTreeConstructor import ThreeAxesSplitTreeConstructor
+from pytissueoptics.scene.tree.treeConstructor.binary.threeAxesNoSplitTreeConstructor import ThreeAxesNoSplitTreeConstructor
+from pytissueoptics.scene.tree.treeConstructor.binary.oneAxisNoSplitTreeConstructor import OneAxisNoSplitTreeConstructor
 
 
 class TestAnyIntersectionFinder:
@@ -120,10 +121,10 @@ class TestEndToEndIntersection(unittest.TestCase):
 
     def setUp(self) -> None:
         scene = PhantomScene()
-        self.intersectionFinders = [FastIntersectionFinder(scene, constructor=FastBinaryTreeConstructor()),
-                                    FastIntersectionFinder(scene, constructor=ShrankBoxSAHWideAxisTreeConstructor()),
-                                    FastIntersectionFinder(scene, constructor=SAHWideAxisTreeConstructor()),
-                                    FastIntersectionFinder(scene, constructor=SAHBasicKDTreeConstructor())]
+        self.intersectionFinders = [FastIntersectionFinder(scene, constructor=ModernKDTreeConstructor(), maxDepth=3),
+                                    FastIntersectionFinder(scene, constructor=ThreeAxesSplitTreeConstructor(), maxDepth=3),
+                                    FastIntersectionFinder(scene, constructor=ThreeAxesNoSplitTreeConstructor(), maxDepth=3),
+                                    FastIntersectionFinder(scene, constructor=OneAxisNoSplitTreeConstructor(), maxDepth=3)]
     
     def test_givenRayTowardsBackWall_shouldReturnCorrectIntersection(self):
         origin = Vector(0, 4, 0)
