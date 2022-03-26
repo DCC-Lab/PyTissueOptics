@@ -70,7 +70,7 @@ class SAHNodeSplitter(NodeSplitter):
 
         polygonGroups = self._polygonCounter.count(splitLine, splitAxis, polygons)
         groupBbox = self._getNewChildrenBbox(bboxToSplit, splitAxis, splitLine)
-        return SplitNodeResult(stopCondition, splitAxis, splitLine, groupBbox, polygonGroups)
+        return SplitNodeResult(stopCondition, groupBbox, polygonGroups)
 
     def _searchMinSAH(self, nodeBbox, polygons, splitAxis, aMin, step):
         lowestIndexSAH = 1

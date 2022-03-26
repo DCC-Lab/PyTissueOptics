@@ -28,7 +28,7 @@ class SpacePartition:
         self._bbox = bbox
         self._constructor = constructor
         self._root = Node(polygons=self._polygons, bbox=self._bbox)
-        self._constructor.growTree(self._root, maxDepth=maxDepth, minLeafSize=minLeafSize)
+        self._constructor.constructTree(self._root, maxDepth=maxDepth, minLeafSize=minLeafSize)
 
     def searchPoint(self, point: Vector, node: Node = None) -> Optional[Node]:
         if node is None:

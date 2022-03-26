@@ -31,7 +31,7 @@ class TestTreeConstructor(unittest.TestCase):
         self.treeConstructor.setContext(self.AXIS_SELECTOR, self.POLY_COUNTER, self.NODE_SPLITTER)
 
     def testGrowTree_givenNodeToSplitTwice_shouldRecursiveCallThreeTimeAndMake2Child(self):
-        self.treeConstructor.growTree(self.root, maxDepth=10, minLeafSize=1)
+        self.treeConstructor.constructTree(self.root, maxDepth=10, minLeafSize=1)
         self.assertEqual(1, len(self.root.children))
         self.assertEqual(1, len(self.root.children[0].children))
         self.assertEqual(0, len(self.root.children[0].children[0].children))

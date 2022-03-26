@@ -22,7 +22,7 @@ class TreeConstructor:
         splitNodeResult = self._nodeSplitter.split(splitAxis, nodeBbox, nodePolygons)
         return splitNodeResult
 
-    def growTree(self, node: Node, maxDepth: int, minLeafSize: int):
+    def constructTree(self, node: Node, maxDepth: int, minLeafSize: int):
         if node.depth >= maxDepth or len(node.polygons) <= minLeafSize:
             return
 
@@ -35,4 +35,4 @@ class TreeConstructor:
                 continue
             childNode = Node(parent=node, polygons=polygonGroup, bbox=splitNodeResult.groupsBbox[i], depth=node.depth + 1)
             node.children.append(childNode)
-            self.growTree(childNode, maxDepth, minLeafSize)
+            self.constructTree(childNode, maxDepth, minLeafSize)
