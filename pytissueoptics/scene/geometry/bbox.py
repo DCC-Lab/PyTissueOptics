@@ -10,7 +10,7 @@ class BoundingBox:
         self._xLim = xLim
         self._yLim = yLim
         self._zLim = zLim
-        self._xyzLimits = [xLim, yLim, zLim]
+        self._xyzLimits = [self._xLim, self._yLim, self._zLim]
         self._checkIfCoherent()
 
     def __repr__(self) -> str:
@@ -108,6 +108,10 @@ class BoundingBox:
     def zWidth(self):
         return self.zMax - self.zMin
 
+    @property
+    def xyzLimits(self) -> List[List[float]]:
+        return self._xyzLimits
+
     def getAxisWidth(self, axis: str) -> float:
         if axis == "x":
             return self.xWidth
@@ -172,6 +176,14 @@ class BoundingBox:
             self._zLim[0] = other.zMin
         if other.zMax < self.zMax:
             self._zLim[1] = other.zMax
+
+    def extendBy(self, value: float):
+        self._xLim[0] -= value
+        self._xLim[1] += value
+        self._yLim[0] -= value
+        self._yLim[1] += value
+        self._zLim[0] -= value
+        self._zLim[1] += value
 
     def __getitem__(self, index: int) -> List[float]:
         return self._xyzLimits[index]
