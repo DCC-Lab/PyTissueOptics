@@ -8,6 +8,7 @@ from pytissueoptics.scene.intersection import FastIntersectionFinder, SimpleInte
     RandomPositionAndOrientationRaySource, RaySource
 
 from pytissueoptics.scene.tests.scene.benchmarkScenes import *
+from pytissueoptics.scene.logger import Logger
 from pytissueoptics.scene.intersection.intersectionFinder import Intersection
 from pytissueoptics.scene.scene import Scene
 from pytissueoptics.scene.viewer import MayaviViewer
@@ -54,8 +55,71 @@ class IntersectionFinderBenchmark:
         scene4 = DiagonallyAlignedSpheres()
         return [scene00, scene01, scene02, scene03, scene04, scene05, scene06, scene1, scene2, scene3, scene4]
 
-    def launchValidation(self):
-        pass
+    def runValidation(self):
+        print(f"=================== VALIDATION ====================")
+        self._launchValidationReference()
+        for constructor in self.constructors:
+            self._launchValidationForConstructor(constructor)
+
+    def _launchValidationReference(self):
+        logger = Logger()
+        scene = self.scenes[7]
+        source = UniformRaySource(position=Vector(0, 4, 0), direction=Vector(0, 0, -1), xTheta=360, yTheta=90,
+                                  xResolution=512, yResolution=128)
+        intersectionFinder = SimpleIntersectionFinder(scene)
+        missedRays = 0
+        t1 = time.time()
+        for ray in source.rays:
+            intersection = intersectionFinder.findIntersection(ray)
+            if not intersection:
+                missedRays += 1
+                continue
+            signal = self._measureSignal(intersection)
+            if logger:
+                logger.logDataPoint(signal, intersection.position)
+        t2 = time.time()
+        traversalTime = t2 - t1
+        print(
+            f"{intersectionFinder.__class__.__name__:^20.20s}"
+            f" - {0.00:.2f}s"
+            f" - {traversalTime:.2f}s"
+            f" - {missedRays}"
+            f" - PASSED: {missedRays == 25552}")
+        viewer = MayaviViewer()
+        viewer.addLogger(logger)
+        viewer.show()
+
+    def _launchValidationForConstructor(self, constructor):
+        logger = Logger()
+        scene = self.scenes[7]
+        source = UniformRaySource(position=Vector(0, 4, 0), direction=Vector(0, 0, -1), xTheta=360, yTheta=90,
+                                  xResolution=512, yResolution=128)
+        t0 = time.time()
+        intersectionFinder = FastIntersectionFinder(scene, constructor=constructor, maxDepth=self.maxDepth,
+                                                    minLeafSize=self.minLeafSize)
+        t1 = time.time()
+        constructionTime = t1 - t0
+
+        missedRays = 0
+        for ray in source.rays:
+            intersection = intersectionFinder.findIntersection(ray)
+            if not intersection:
+                missedRays += 1
+                continue
+            signal = self._measureSignal(intersection)
+            if logger:
+                logger.logDataPoint(signal, intersection.position)
+        t2 = time.time()
+        traversalTime = t2 - t1
+        print(
+            f"{constructor.__class__.__name__:^20.20s}"
+            f" - {constructionTime:.2f}s"
+            f" - {traversalTime:.2f}s"
+            f" - {missedRays}"
+            f" - PASSED: {missedRays == 25552}")
+        viewer = MayaviViewer()
+        viewer.addLogger(logger)
+        viewer.show()
 
     def run(self):
         print(f"=================== BENCHMARK ====================")
@@ -138,13 +202,10 @@ class IntersectionFinderBenchmark:
                                                f"{((self.simpleTraversalTime[-1]) / traversalTime):.1f}"]
 
     @staticmethod
-    def _measureSignal(ray: Ray, intersection: Intersection) -> float:
-        intersection.position += ray.direction
+    def _measureSignal(intersection: Intersection) -> float:
         if intersection.polygon.insideMaterial is None:
-            return 1
-        reflectance = intersection.polygon.insideMaterial.retroReflectionAt(ray.direction,
-                                                                            normal=intersection.polygon.normal)
-        return reflectance
+            return 0.125
+        return 1.0
 
     def displayStats(self):
         print(self.stats)
@@ -163,6 +224,4 @@ class IntersectionFinderBenchmark:
 
 if __name__ == '__main__':
     benchmark = IntersectionFinderBenchmark()
-    benchmark.run()
-    benchmark.displayStats()
-    benchmark.displayBenchmarkTreeResults()
+    benchmark.runValidation()
