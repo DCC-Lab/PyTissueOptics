@@ -1,3 +1,4 @@
+import sys
 from typing import List
 
 from pytissueoptics.scene.logger import Logger
@@ -10,7 +11,7 @@ except ImportError:
 
 from pytissueoptics.scene.viewer.mayavi import MayaviSolid
 from pytissueoptics.scene.solids import Solid
-from pytissueoptics.scene.geometry import Vector
+from pytissueoptics.scene.geometry import Vector, Polygon
 
 
 class MayaviViewer:
@@ -34,6 +35,32 @@ class MayaviViewer:
             if showNormals:
                 mlab.quiver3d(*mayaviSolid.normals.components, line_width=lineWidth, scale_factor=normalLength,
                               color=(1, 1, 1))
+
+    @staticmethod
+    def addPolygons(polygons: List[Polygon], representation="surface", lineWidth=1, color=(0, 0, 1), showNormals=False):
+        for polygon in polygons:
+            x = [vector.x for vector in polygon.vertices]
+            y = [vector.y for vector in polygon.vertices]
+            z = [vector.z for vector in polygon.vertices]
+            indices = [i for i in zip(*(iter(range(len(x))),) * 3)]
+            mlab.triangular_mesh(x, y, z, indices, representation=representation, line_width=lineWidth, color=color)
+
+    @staticmethod
+    def addPlane(axis="x", value=0,  limits=[[0, 1], [0, 1], [0, 1]], color=(1, 0, 0), opacity=0.25):
+        x, y, z = [], [], []
+        if axis == "x":
+            x = [value, value, value, value]
+            y = [limits[1][0], limits[1][1], limits[1][1], limits[1][0]]
+            z = [limits[2][0], limits[2][0], limits[2][1], limits[2][1]]
+        elif axis == "y":
+            x = [limits[0][0], limits[0][1], limits[0][1], limits[0][0]]
+            y = [value, value, value, value]
+            z = [limits[2][0], limits[2][0], limits[2][1], limits[2][1]]
+        elif axis == "z":
+            x = [limits[0][0], limits[0][1], limits[0][1], limits[0][0]]
+            y = [limits[1][0], limits[1][0], limits[1][1], limits[1][1]]
+            z = [value, value, value, value]
+        mlab.triangular_mesh(x, y, z, ((0, 1, 2), (0, 2, 3)), representation="surface", color=color, opacity=opacity)
 
     def addLogger(self, logger: Logger, colormap="rainbow", reverseColormap=False):
         self._addPoints(logger.points, colormap=colormap, reverseColormap=reverseColormap)
