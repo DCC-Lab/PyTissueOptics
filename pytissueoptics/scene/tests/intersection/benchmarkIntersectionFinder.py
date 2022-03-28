@@ -1,16 +1,19 @@
+from pytissueoptics.scene.geometry import Vector
+from pytissueoptics.scene.scene import Scene
+from pytissueoptics.scene.logger import Logger
+from pytissueoptics.scene.intersection.intersectionFinder import Intersection
 from pytissueoptics.scene.tree import TreeConstructor
-from pytissueoptics.scene.tree.treeConstructor.binary import ShrankBoxSAHWideAxisTreeConstructor
 from pytissueoptics.scene.tree.treeConstructor.binary.modernKDTreeConstructor import ModernKDTreeConstructor
-from pytissueoptics.scene.tree.treeConstructor.binary.threeAxesNoSplitTreeConstructor import ThreeAxesNoSplitTreeConstructor
+from pytissueoptics.scene.tree.treeConstructor.binary.threeAxesNoSplitTreeConstructor import \
+    ThreeAxesNoSplitTreeConstructor
 from pytissueoptics.scene.tree.treeConstructor.binary.threeAxesSplitTreeConstructor import ThreeAxesSplitTreeConstructor
 from pytissueoptics.scene.tree.treeConstructor.binary.oneAxisNoSplitTreeConstructor import OneAxisNoSplitTreeConstructor
 from pytissueoptics.scene.intersection import FastIntersectionFinder, SimpleIntersectionFinder, UniformRaySource, \
     RandomPositionAndOrientationRaySource, RaySource
 
-from pytissueoptics.scene.tests.scene.benchmarkScenes import *
-from pytissueoptics.scene.logger import Logger
-from pytissueoptics.scene.intersection.intersectionFinder import Intersection
-from pytissueoptics.scene.scene import Scene
+from pytissueoptics.scene.tests.scene.benchmarkScenes import AAxisAlignedPolygonScene, APolygonScene, ACubeScene, \
+    ASphereScene, TwoCubesScene, TwoSpheresScene, RandomShapesScene, XAlignedSpheres, ZAlignedSpheres, \
+    DiagonallyAlignedSpheres, PhantomScene
 from pytissueoptics.scene.viewer import MayaviViewer
 import pandas
 import time
@@ -24,7 +27,7 @@ class IntersectionFinderBenchmark:
     def __init__(self, rayAmount=10000, maxDepth=100, minLeafSize=0, factor=10, constructors=None, displayViewer=False):
         self.scenes = self._getScenes()
         if constructors is None:
-            self.constructors = [ShrankBoxSAHWideAxisTreeConstructor(), OneAxisNoSplitTreeConstructor(),
+            self.constructors = [OneAxisNoSplitTreeConstructor(),
                                  ThreeAxesNoSplitTreeConstructor(),
                                  ThreeAxesSplitTreeConstructor(), ModernKDTreeConstructor()]
         else:
@@ -56,17 +59,28 @@ class IntersectionFinderBenchmark:
         scene4 = DiagonallyAlignedSpheres()
         return [scene00, scene01, scene02, scene03, scene04, scene05, scene06, scene1, scene2, scene3, scene4]
 
-    def runValidation(self):
-        print(f"=================== VALIDATION ====================")
-        self._launchValidationReference()
+    def runValidation(self, displayFailed=True, resolution=100):
+        print(f"{('='*125):^125}")
+        print(
+            f"{str('name'):^20}"
+            f" - {str('build'):^10}"
+            f" - {str('traversal'):^10}"
+            f" - {str('polygons'):^10}"
+            f" - {str('nodes'):^10}"
+            f" - {str('leaves'):^10}"
+            f" - {str('depth'):^10}"
+            f" - {str('missed'):^10}"
+            f" - {str('validated'):^10}")
+        print(f"{('='*125):^125}")
+        source = UniformRaySource(position=Vector(0, 4, 0), direction=Vector(0, 0, -1), xTheta=360, yTheta=90,
+                                  xResolution=int(5.12*resolution), yResolution=int(2.56*resolution))
+        referenceMissedRays = self._runValidationReference(source, display=displayFailed)
         for constructor in self.constructors:
-            self._launchValidationForConstructor(constructor)
+            self._runValidationForConstructor(constructor, referenceMissedRays, source, display=displayFailed)
 
-    def _launchValidationReference(self):
+    def _runValidationReference(self, source, display=True, ):
         logger = Logger()
         scene = self.scenes[7]
-        source = UniformRaySource(position=Vector(0, 4, 0), direction=Vector(0, 0, -1), xTheta=360, yTheta=90,
-                                  xResolution=512, yResolution=128)
         intersectionFinder = SimpleIntersectionFinder(scene)
         missedRays = 0
         t1 = time.time()
@@ -82,19 +96,23 @@ class IntersectionFinderBenchmark:
         traversalTime = t2 - t1
         print(
             f"{intersectionFinder.__class__.__name__:^20.20s}"
-            f" - {0.00:.2f}s"
-            f" - {traversalTime:.2f}s"
-            f" - {missedRays}"
-            f" - PASSED: {missedRays == 25552}")
-        viewer = MayaviViewer()
-        viewer.addLogger(logger)
-        viewer.show()
+            f" - {0.00:^10.2f}"
+            f" - {traversalTime:^10.2f}"
+            f" - {str(' '):^10}"
+            f" - {str(' '):^10}"
+            f" - {str(' '):^10}"
+            f" - {str(' '):^10}"
+            f" - {missedRays:^10}"
+            f" - {str('REFERENCE'):^10}")
+        if display:
+            viewer = MayaviViewer()
+            viewer.addLogger(logger)
+            viewer.show()
+        return missedRays
 
-    def _launchValidationForConstructor(self, constructor):
+    def _runValidationForConstructor(self, constructor, reference, source, display=True):
         logger = Logger()
         scene = self.scenes[7]
-        source = UniformRaySource(position=Vector(0, 4, 0), direction=Vector(0, 0, -1), xTheta=360, yTheta=90,
-                                  xResolution=512, yResolution=128)
         t0 = time.time()
         intersectionFinder = FastIntersectionFinder(scene, constructor=constructor, maxDepth=self.maxDepth,
                                                     minLeafSize=self.minLeafSize)
@@ -112,30 +130,37 @@ class IntersectionFinderBenchmark:
                 logger.logDataPoint(signal, intersection.position)
         t2 = time.time()
         traversalTime = t2 - t1
+        partition = intersectionFinder.partition
         print(
             f"{constructor.__class__.__name__:^20.20s}"
-            f" - {constructionTime:.2f}s"
-            f" - {traversalTime:.2f}s"
-            f" - {missedRays}"
-            f" - PASSED: {missedRays == 25552}")
-        viewer = MayaviViewer()
-        viewer.addLogger(logger)
-        viewer.show()
+            f" - {constructionTime:^10.2f}"
+            f" - {traversalTime:^10.2f}"
+            f" - {len(partition.getLeafPolygons()):^10}"
+            f" - {partition.getNodeCount():^10}"
+            f" - {partition.getLeafCount():^10}",
+            f" - {partition.getAverageLeafDepth():^10.2f}"
+            f" - {missedRays:^10}"
+            f" - {missedRays == reference:^10}")
+        if display and missedRays != reference:
+            viewer = MayaviViewer()
+            viewer.addLogger(logger)
+            viewer.show()
 
-    def run(self):
+    def runBenchmark(self):
         print(f"=================== BENCHMARK ====================")
         for scene in self.scenes:
-            self.launchBenchmarkForScene(scene)
+            self.runBenchmarkForScene(scene)
 
-    def launchBenchmarkForScene(self, scene: Scene):
+    def runBenchmarkForScene(self, scene: Scene):
         print(f"\n================ {scene.__class__.__name__:.15s} =================")
         print(f"Scene polygonCount: {len(scene.getPolygons())}, Scene Object Count: {len(scene.solids)}")
         print(f"================ {scene.__class__.__name__:.15s} =================")
         self.partitions.append([])
-        self.launchReferenceBenchmarkForScene(scene)
-        self.launchBenchmarkForSceneWithSource(scene, RPORaySource(self.rayAmount, scene.getBoundingBox().xyzLimits))
+        self.runReferenceBenchmarkForScene(scene)
+        for constructor in self.constructors:
+            self.runBenchmarkForSceneWithConstructor(scene, constructor)
 
-    def launchReferenceBenchmarkForScene(self, scene: Scene):
+    def runReferenceBenchmarkForScene(self, scene: Scene):
         self.count += 1
         source = RandomPositionAndOrientationRaySource(int(self.rayAmount / self.factor),
                                                        scene.getBoundingBox().xyzLimits)
@@ -152,11 +177,11 @@ class IntersectionFinderBenchmark:
             f" - Improvement 1.00x")
         self._saveSimpleStats(scene, intersectionFinder, traversalTime * self.factor)
 
-    def launchBenchmarkForSceneWithSource(self, scene: Scene, source: RaySource):
-        for constructor in self.constructors:
-            self.launchBenchmarkForSceneWithConstructor(scene, constructor, source)
+    def runBenchmarkForSceneWithConstructor(self, scene: Scene, constructor: TreeConstructor):
+        source = RPORaySource(self.rayAmount, scene.getBoundingBox().xyzLimits)
+        self.runBenchmarkForSceneWithConstructorAndSource(scene, constructor, source)
 
-    def launchBenchmarkForSceneWithConstructor(self, scene: Scene, constructor: TreeConstructor, source: RaySource):
+    def runBenchmarkForSceneWithConstructorAndSource(self, scene: Scene, constructor: TreeConstructor, source: RaySource):
         self.count += 1
         startTime = time.time()
         intersectionFinder = FastIntersectionFinder(scene, constructor, self.maxDepth, self.minLeafSize)
@@ -211,18 +236,27 @@ class IntersectionFinderBenchmark:
     def displayStats(self):
         print(self.stats)
 
-    def displayBenchmarkTreeResults(self):
+    def displayBenchmarkTreeResults(self, objectsDisplay=True, scenes=None, objectsOpacity=0.5):
         self.viewer = MayaviViewer()
-        for j, scene in enumerate(self.scenes):
+        if scenes is None:
+            scenes = self.scenes
+        for j, scene in enumerate(scenes):
             for partition in self.partitions[j]:
                 bBoxes = partition.getLeafBoundingBoxesAsCuboids()
-                self.viewer = MayaviViewer()
-                self.viewer.add(*scene.getSolids(), representation="surface", lineWidth=0.05, opacity=0.5)
+                if objectsDisplay:
+                    self.viewer.add(*scene.getSolids(), representation="surface", lineWidth=0.05, opacity=objectsOpacity)
                 self.viewer.add(*bBoxes, representation="wireframe", lineWidth=3, color=(1, 0, 0), opacity=0.7)
                 self.viewer.show()
                 self.viewer.clear()
 
 
 if __name__ == '__main__':
-    benchmark = IntersectionFinderBenchmark()
-    benchmark.runValidation()
+    benchmark = IntersectionFinderBenchmark(rayAmount=1000, maxDepth=25)
+
+    benchmark.runValidation(resolution=25, displayFailed=True)
+
+    # benchmark.scenes = [benchmark.scenes[7]]
+    # benchmark.constructors = [ThreeAxesSplitTreeConstructor()]
+    # benchmark.runBenchmark()
+    # benchmark.displayStats()
+    # benchmark.displayBenchmarkTreeResults()
