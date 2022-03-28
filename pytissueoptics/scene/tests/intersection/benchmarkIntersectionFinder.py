@@ -1,10 +1,10 @@
 from pytissueoptics.scene.tree import TreeConstructor
+from pytissueoptics.scene.tree.treeConstructor.binary import ShrankBoxSAHWideAxisTreeConstructor
 from pytissueoptics.scene.tree.treeConstructor.binary.modernKDTreeConstructor import ModernKDTreeConstructor
-from pytissueoptics.scene.tree.treeConstructor.binary.threeAxesNoSplitTreeConstructor import \
-    ThreeAxesNoSplitTreeConstructor
+from pytissueoptics.scene.tree.treeConstructor.binary.threeAxesNoSplitTreeConstructor import ThreeAxesNoSplitTreeConstructor
 from pytissueoptics.scene.tree.treeConstructor.binary.threeAxesSplitTreeConstructor import ThreeAxesSplitTreeConstructor
 from pytissueoptics.scene.tree.treeConstructor.binary.oneAxisNoSplitTreeConstructor import OneAxisNoSplitTreeConstructor
-from pytissueoptics.scene.intersection import FastIntersectionFinder, SimpleIntersectionFinder, Ray, UniformRaySource, \
+from pytissueoptics.scene.intersection import FastIntersectionFinder, SimpleIntersectionFinder, UniformRaySource, \
     RandomPositionAndOrientationRaySource, RaySource
 
 from pytissueoptics.scene.tests.scene.benchmarkScenes import *
@@ -24,7 +24,8 @@ class IntersectionFinderBenchmark:
     def __init__(self, rayAmount=10000, maxDepth=100, minLeafSize=0, factor=10, constructors=None, displayViewer=False):
         self.scenes = self._getScenes()
         if constructors is None:
-            self.constructors = [OneAxisNoSplitTreeConstructor(), ThreeAxesNoSplitTreeConstructor(),
+            self.constructors = [ShrankBoxSAHWideAxisTreeConstructor(), OneAxisNoSplitTreeConstructor(),
+                                 ThreeAxesNoSplitTreeConstructor(),
                                  ThreeAxesSplitTreeConstructor(), ModernKDTreeConstructor()]
         else:
             self.constructors = constructors
