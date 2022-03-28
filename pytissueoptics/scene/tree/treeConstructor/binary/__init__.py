@@ -1,9 +1,5 @@
-from .binaryAxisSelector import RotatingAxis, LargestSpanAxis, LargestPolygonSpanAxis
-from .binaryPolyCounter import BBoxPolyCounter, CentroidPolyCounter
-from .binaryNodeSplitter import MeanCentroidNodeSplitter, MiddlePolygonSpanNodeSplitter, ShrankBoxSAHNodeSplitter,\
-    HardSAHNodeSplitter
-from .binaryTreeConstructor import *
 from .SAHSearchResult import SAHSearchResult
 from .modernKDTreeConstructor import ModernKDTreeConstructor
+from .threeAxesSplitTreeConstructor import ThreeAxesSplitTreeConstructor
 from .threeAxesNoSplitTreeConstructor import ThreeAxesNoSplitTreeConstructor
 from .oneAxisNoSplitTreeConstructor import OneAxisNoSplitTreeConstructor

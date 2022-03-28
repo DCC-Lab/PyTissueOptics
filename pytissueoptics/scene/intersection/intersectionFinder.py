@@ -2,7 +2,7 @@ import sys
 from dataclasses import dataclass
 from typing import List, Tuple, Optional
 
-from pytissueoptics.scene.geometry import Vector, Polygon, Triangle, Quad
+from pytissueoptics.scene.geometry import Vector, Polygon
 from pytissueoptics.scene.intersection import Ray
 from pytissueoptics.scene.tree import SpacePartition, Node
 from pytissueoptics.scene.tree.treeConstructor.binary.modernKDTreeConstructor import ModernKDTreeConstructor
