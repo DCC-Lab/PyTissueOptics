@@ -2,16 +2,14 @@ from typing import List, Tuple
 import sys
 
 from pytissueoptics import Vector
-from pytissueoptics.scene import MayaviViewer
 from pytissueoptics.scene.intersection import Ray
-from pytissueoptics.scene.geometry import Polygon, BoundingBox, Triangle
+from pytissueoptics.scene.geometry import Polygon, Triangle
 from pytissueoptics.scene.tree import Node
 from pytissueoptics.scene.tree.treeConstructor import SplitNodeResult
-from pytissueoptics.scene.tree.treeConstructor.binary import NoSplitOneAxisTreeConstructor
-from pytissueoptics.scene.tree.treeConstructor.binary import SAHSearchResult
+from pytissueoptics.scene.tree.treeConstructor.binary import NoSplitOneAxisConstructor
 
 
-class ThreeAxesSplitTreeConstructor(NoSplitOneAxisTreeConstructor):
+class SplitThreeAxesConstructor(NoSplitOneAxisConstructor):
     """
         This is an implementation of the proposed algorithms found in
 
@@ -24,14 +22,16 @@ class ThreeAxesSplitTreeConstructor(NoSplitOneAxisTreeConstructor):
         This algorithm uses a
         1. Surface Area Heuristic (SAH) search on 3 axis
         2. Perfect Splits
-        4. On-the-fly pruning
+        3. On-the-fly pruning
         When the minimum SAH axis and value are found, a split cost is calculated.
         If the children's cost is lower than the parent, splitting is allowed, else, no splitting occurs.
 
-        Contrary to belief, the current implementation is not faster than non-split tree construction.
-        The cost of traversing a triangle is too great. A split results in 3 triangles, 
+        Contrary to belief, the current implementation is not faster than non-split SAH-based tree construction. A split
+        results in 3 triangles, whereas a non-split results in a shared triangle, the equivalent of 2 distinct triangles.
+        It seems no matter the parameters of the tree, the intersection cost brought by the extra triangles is too high.
 
         """
+
     def __init__(self, nbOfSplitPlanes: int = 20, intersectionCost: float = 3, traversalCost: float = 6,
                  noSharedBonus: float = 2, emptySpaceBonus: float = 2):
         super().__init__(nbOfSplitPlanes, intersectionCost, traversalCost, noSharedBonus, emptySpaceBonus)
@@ -54,7 +54,7 @@ class ThreeAxesSplitTreeConstructor(NoSplitOneAxisTreeConstructor):
                                         [self.result.leftPolygons, self.result.rightPolygons])
         return newNodeResult
 
-    def _splitTriangles(self, planeNormal: Vector, planePoint: Vector):
+    def _splitTriangles(self, planeNormal: Vector, planePoint: Vector) -> Tuple[List[Polygon], List[Polygon]]:
         goingLeft, goingRight = [], []
         if self.result.splitPolygons:
             for polygon in self.result.splitPolygons:
@@ -64,7 +64,8 @@ class ThreeAxesSplitTreeConstructor(NoSplitOneAxisTreeConstructor):
 
         return goingLeft, goingRight
 
-    def _splitTriangle(self, polygon: Polygon, planeNormal: Vector, planePoint: Vector):
+    def _splitTriangle(self, polygon: Polygon, planeNormal: Vector, planePoint: Vector) -> Tuple[
+        List[Polygon], List[Polygon]]:
         goingLeft, goingRight = [], []
         leftVertices, rightVertices, contained = self._checkVerticesPlaneSide(polygon.vertices, planeNormal, planePoint)
         nLeft = len(leftVertices)
@@ -81,7 +82,8 @@ class ThreeAxesSplitTreeConstructor(NoSplitOneAxisTreeConstructor):
             goingRight.append(polygon)
 
         elif nContained != 0:
-            left, right = self._splitFromMiddleContained(leftVertices, rightVertices, contained, polygon, planeNormal, planePoint)
+            left, right = self._splitFromMiddleContained(leftVertices, rightVertices, contained, polygon, planeNormal,
+                                                         planePoint)
             goingLeft.extend(left)
             goingRight.extend(right)
 
@@ -92,7 +94,8 @@ class ThreeAxesSplitTreeConstructor(NoSplitOneAxisTreeConstructor):
 
         return goingLeft, goingRight
 
-    def _splitFromNotContained(self, leftVertices, rightVertices, polygon, planeNormal, planePoint):
+    def _splitFromNotContained(self, leftVertices: List[Vector], rightVertices: List[Vector], polygon: Polygon,
+                               planeNormal: Vector, planePoint: Vector) -> Tuple[List[Polygon], List[Polygon]]:
         left, right, = [], []
         if len(leftVertices) == 1:
             direction = rightVertices[0] - leftVertices[0]
@@ -122,7 +125,9 @@ class ThreeAxesSplitTreeConstructor(NoSplitOneAxisTreeConstructor):
 
         return left, right
 
-    def _splitFromMiddleContained(self, leftVertices, rightVertices, contained, polygon, planeNormal, planePoint):
+    def _splitFromMiddleContained(self, leftVertices: List[Vector], rightVertices: List[Vector],
+                                  contained: List[Vector], polygon: Polygon, planeNormal: Vector, planePoint: Vector) -> \
+    Tuple[List[Polygon], List[Polygon]]:
         right, left = [], []
         direction = leftVertices[0] - rightVertices[0]
         ray = Ray(leftVertices[0], direction, direction.getNorm())
@@ -140,13 +145,14 @@ class ThreeAxesSplitTreeConstructor(NoSplitOneAxisTreeConstructor):
         return left, right
 
     @staticmethod
-    def _makeTriangleFromVertices(parent, vertices):
+    def _makeTriangleFromVertices(parent: Polygon, vertices: List[Vector]) -> Polygon:
         if len(vertices) == 3:
             return Triangle(*vertices, normal=parent.normal, insideMaterial=parent.insideMaterial,
                             outsideMaterial=parent.outsideMaterial)
 
     @staticmethod
-    def _checkVerticesPlaneSide(vertices: List[Vector], planeNormal: Vector, planePoint: Vector, tol=1e-6):
+    def _checkVerticesPlaneSide(vertices: List[Vector], planeNormal: Vector, planePoint: Vector, tol=1e-6) -> Tuple[
+        List[Vector], List[Vector], List[Vector]]:
         """Based on the fact that the plane normal will always point towards the positive axis, and that we search our
          min(SAH) in that order as well, we can conclude that if diff is negative, the point is on the right side
         of the plane, and if diff is positive, the point is on the left side of the plane."""
@@ -181,7 +187,7 @@ class ThreeAxesSplitTreeConstructor(NoSplitOneAxisTreeConstructor):
             return normal, planePoint
 
     @staticmethod
-    def _intersectPlaneWithRay(normal: Vector, planePoint: Vector, ray: Ray, tol=1e-6):
+    def _intersectPlaneWithRay(normal: Vector, planePoint: Vector, ray: Ray, tol=1e-6) -> Vector:
         """
         Naive Algorithm. It is a little bit faster than Möller-Trombore for this purpose.
         1. normal.dot(direction), to check if plane and are are coplanar
@@ -200,7 +206,7 @@ class ThreeAxesSplitTreeConstructor(NoSplitOneAxisTreeConstructor):
         return None
 
     @staticmethod
-    def _getPolygonAsRays(polygon):
+    def _getPolygonAsRays(polygon: Polygon) -> List[Ray]:
         polygonRays = []
         for i, vertex in enumerate(polygon.vertices):
             if i == len(polygon.vertices) - 1:

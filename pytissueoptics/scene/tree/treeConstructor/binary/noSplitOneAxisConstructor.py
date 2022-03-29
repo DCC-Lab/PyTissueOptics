@@ -1,4 +1,4 @@
-from typing import List
+from typing import List, Tuple
 import sys
 
 from pytissueoptics.scene.geometry import BoundingBox
@@ -8,7 +8,7 @@ from pytissueoptics.scene.tree.treeConstructor import TreeConstructor
 from pytissueoptics.scene.tree.treeConstructor.binary import SAHSearchResult
 
 
-class NoSplitOneAxisTreeConstructor(TreeConstructor):
+class NoSplitOneAxisConstructor(TreeConstructor):
 
     def __init__(self, nbOfSplitPlanes: int = 20, intersectionCost: float = 0.5, traversalCost: float = 1,
                  noSharedBonus: float = 2, emptySpaceBonus: float = 2):
@@ -43,7 +43,7 @@ class NoSplitOneAxisTreeConstructor(TreeConstructor):
             return False
         return True
 
-    def _searchMinSAHOnAxis(self, splitBbox, splitAxis="x", minSAH=sys.float_info.max):
+    def _searchMinSAHOnAxis(self, splitBbox: BoundingBox, splitAxis: str = "x", minSAH: float = sys.float_info.max):
         minSAH = minSAH
         aMin, aMax = splitBbox.getAxisLimits(splitAxis)
         step = splitBbox.getAxisWidth(splitAxis) / (self._nbOfSplitPlanes + 1)
@@ -77,7 +77,7 @@ class NoSplitOneAxisTreeConstructor(TreeConstructor):
         if rBbox:
             self.result.rightBbox.shrinkTo(rBbox)
 
-    def _classifyNodePolygons(self, splitAxis, splitValue):
+    def _classifyNodePolygons(self, splitAxis: str, splitValue: float) -> Tuple[List, List, List]:
         goingLeft = []
         goingRight = []
         goingBoth = []

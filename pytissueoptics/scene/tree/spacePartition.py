@@ -6,6 +6,7 @@ from pytissueoptics.scene.tree import Node
 from pytissueoptics.scene.solids import Cuboid
 import json
 
+
 class SpacePartition:
     """
     This is a SpacePartition that saves the subdivion of the available space. The space it partitioned as a tree.

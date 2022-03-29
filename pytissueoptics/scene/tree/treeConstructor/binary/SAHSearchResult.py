@@ -6,15 +6,30 @@ from pytissueoptics.scene.geometry import Polygon, BoundingBox
 
 @dataclass
 class SAHSearchResult:
-    lPolygons: List[Polygon]
-    rPolygons: List[Polygon]
-    mPolygons: List[Polygon]
-    lBbox: BoundingBox
-    rBbox: BoundingBox
-    nLeft: int
-    nRight: int
-    lSAH: float
-    rSAH: float
-    totalSAH: float
+    leftPolygons: List[Polygon]
+    rightPolygons: List[Polygon]
+    splitPolygons: List[Polygon]
+    leftBbox: BoundingBox
+    rightBbox: BoundingBox
     splitAxis: str
     splitValue: float
+
+    @property
+    def SAH(self):
+        return self.leftSAH + self.rightSAH
+
+    @property
+    def rightSAH(self):
+        return self.nRight * self.rightBbox.getArea()
+
+    @property
+    def leftSAH(self):
+        return self.nLeft * self.leftBbox.getArea()
+
+    @property
+    def nLeft(self):
+        return len(self.leftPolygons)
+
+    @property
+    def nRight(self):
+        return len(self.rightPolygons)
