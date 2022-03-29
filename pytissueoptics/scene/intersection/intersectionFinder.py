@@ -5,7 +5,7 @@ from typing import List, Tuple, Optional
 from pytissueoptics.scene.geometry import Vector, Polygon
 from pytissueoptics.scene.intersection import Ray
 from pytissueoptics.scene.tree import SpacePartition, Node
-from pytissueoptics.scene.tree.treeConstructor.binary.modernKDTreeConstructor import ModernKDTreeConstructor
+from pytissueoptics.scene.tree.treeConstructor.binary import NoSplitThreeAxesConstructor
 from pytissueoptics.scene.scene import Scene
 from pytissueoptics.scene.intersection.bboxIntersect import GemsBoxIntersect
 from pytissueoptics.scene.intersection.mollerTrumboreIntersect import MollerTrumboreIntersect
@@ -73,7 +73,7 @@ class SimpleIntersectionFinder(IntersectionFinder):
 
 
 class FastIntersectionFinder(IntersectionFinder):
-    def __init__(self, scene: Scene, constructor=ModernKDTreeConstructor(), maxDepth=20, minLeafSize=6):
+    def __init__(self, scene: Scene, constructor=NoSplitThreeAxesConstructor(), maxDepth=20, minLeafSize=6):
         super(FastIntersectionFinder, self).__init__(scene)
         self._partition = SpacePartition(self._scene.getBoundingBox(), self._scene.getPolygons(), constructor,
                                          maxDepth, minLeafSize)
