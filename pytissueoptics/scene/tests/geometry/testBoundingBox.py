@@ -97,6 +97,12 @@ class TestBoundingBox(unittest.TestCase):
         expectedBbox = BoundingBox([0, 0.1], [-1, 0], [-1, 0.9])
         self.assertEqual(expectedBbox, bbox1)
 
+    def testGivenABBox_whenExtendBy_shouldIncreaseAllLimitsByValue(self):
+        bbox1 = BoundingBox([0, 1], [-1, 1], [-1, 1])
+        bbox1.extendBy(0.1)
+        expectedBbox = BoundingBox([-0.1, 1.1], [-1.1, 1.1], [-1.1, 1.1])
+        self.assertEqual(expectedBbox, bbox1)
+
     def testWhenIntersectsWithIntersectingBBox_shouldReturnTrue(self):
         bbox = BoundingBox([0, 5], [0, 5], [0, 5])
         partiallyIntersectingBox = BoundingBox([2, 6], [2, 6], [2, 6])

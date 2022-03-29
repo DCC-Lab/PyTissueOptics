@@ -1,7 +1,8 @@
 import math
 import unittest
 
-from pytissueoptics.scene import Ray, Vector
+from pytissueoptics.scene import Vector
+from pytissueoptics.scene.intersection import Ray
 
 
 class TestRay(unittest.TestCase):
