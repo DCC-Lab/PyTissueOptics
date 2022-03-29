@@ -258,11 +258,11 @@ class IntersectionFinderBenchmark:
 
 
 if __name__ == '__main__':
-    benchmark = IntersectionFinderBenchmark(rayAmount=10000, maxDepth=25, minLeafSize=6)
-    benchmark.constructors = [NoSplitThreeAxesConstructor()]
-    benchmark.runValidation(resolution=25, displayFailed=True)
+    benchmark = IntersectionFinderBenchmark(rayAmount=100000, maxDepth=25, minLeafSize=6)
+    # benchmark.constructors = [NoSplitThreeAxesConstructor()]
+    benchmark.runValidation(resolution=50, displayFailed=True)
 
-    # benchmark.scenes = [benchmark.scenes[7], benchmark.scenes[8]]
-    # benchmark.runBenchmark()
-    # benchmark.displayStats()
-    # benchmark.displayBenchmarkTreeResults()
+    benchmark.scenes = [benchmark.scenes[7], benchmark.scenes[8]]
+    benchmark.runBenchmark()
+    benchmark.displayStats()
+    benchmark.displayBenchmarkTreeResults()

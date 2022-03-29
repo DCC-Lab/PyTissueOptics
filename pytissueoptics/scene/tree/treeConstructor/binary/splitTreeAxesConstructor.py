@@ -1,4 +1,4 @@
-from typing import List, Tuple
+from typing import List, Tuple, Optional
 import sys
 
 from pytissueoptics import Vector
@@ -187,7 +187,7 @@ class SplitThreeAxesConstructor(NoSplitOneAxisConstructor):
             return normal, planePoint
 
     @staticmethod
-    def _intersectPlaneWithRay(normal: Vector, planePoint: Vector, ray: Ray, tol=1e-6) -> Vector:
+    def _intersectPlaneWithRay(normal: Vector, planePoint: Vector, ray: Ray, tol=1e-6) -> Optional[Vector]:
         """
         Naive Algorithm. It is a little bit faster than Möller-Trombore for this purpose.
         1. normal.dot(direction), to check if plane and are are coplanar

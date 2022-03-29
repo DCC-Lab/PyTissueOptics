@@ -7,11 +7,7 @@ from pytissueoptics.scene.geometry import Vector, primitives
 from pytissueoptics.scene.scene import Scene
 from pytissueoptics.scene.tests.scene.benchmarkScenes import PhantomScene
 from pytissueoptics.scene.intersection import SimpleIntersectionFinder, FastIntersectionFinder, Ray, UniformRaySource
-
-from pytissueoptics.scene.tree.treeConstructor.binary.modernKDTreeConstructor import ModernKDTreeConstructor
-from pytissueoptics.scene.tree.treeConstructor.binary.splitTreeAxesConstructor import SplitThreeAxesConstructor
-from pytissueoptics.scene.tree.treeConstructor.binary.threeAxesNoSplitTreeConstructor import ThreeAxesNoSplitTreeConstructor
-from pytissueoptics.scene.tree.treeConstructor.binary.oneAxisNoSplitTreeConstructor import OneAxisNoSplitTreeConstructor
+from pytissueoptics.scene.tree.treeConstructor.binary import NoSplitOneAxisConstructor, NoSplitThreeAxesConstructor, SplitThreeAxesConstructor
 
 
 class TestAnyIntersectionFinder:
@@ -121,10 +117,9 @@ class TestEndToEndIntersection(unittest.TestCase):
 
     def setUp(self) -> None:
         scene = PhantomScene()
-        self.intersectionFinders = [FastIntersectionFinder(scene, constructor=ModernKDTreeConstructor(), maxDepth=3),
-                                    FastIntersectionFinder(scene, constructor=SplitThreeAxesConstructor(), maxDepth=3),
-                                    FastIntersectionFinder(scene, constructor=ThreeAxesNoSplitTreeConstructor(), maxDepth=3),
-                                    FastIntersectionFinder(scene, constructor=OneAxisNoSplitTreeConstructor(), maxDepth=3)]
+        self.intersectionFinders = [FastIntersectionFinder(scene, constructor=NoSplitOneAxisConstructor(), maxDepth=3),
+                                    FastIntersectionFinder(scene, constructor=NoSplitThreeAxesConstructor(), maxDepth=3),
+                                    FastIntersectionFinder(scene, constructor=SplitThreeAxesConstructor(), maxDepth=3)]
     
     def test_givenRayTowardsBackWall_shouldReturnCorrectIntersection(self):
         origin = Vector(0, 4, 0)
