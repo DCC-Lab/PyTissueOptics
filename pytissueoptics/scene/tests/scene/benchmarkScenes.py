@@ -53,12 +53,12 @@ class TwoCubesScene(Scene):
 
 
 class ASphereScene(Scene):
-    def __init__(self):
+    def __init__(self, order=2):
         super().__init__()
-        self._create()
+        self._create(order=order)
 
-    def _create(self):
-        sphere = Sphere(position=Vector(0, 0, 0), order=2)
+    def _create(self, order=2):
+        sphere = Sphere(position=Vector(0, 0, 0), order=order)
         sphere._bbox = BoundingBox([-10, 10], [-10, 10], [-10, 10])
         self._solids.extend([sphere])
 

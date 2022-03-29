@@ -79,18 +79,6 @@ class FastIntersectionFinder(IntersectionFinder):
                                          maxDepth, minLeafSize)
 
     def findIntersection(self, ray: Ray) -> Optional[Intersection]:
-        """
-        This is a simple home-made algorithm.
-
-        It is part of a recursive backtrack algorithm family. First, the ray origin is found with
-        a recursive point search. Then, the intersection is found by checking is the ray intersects the neighbour
-        node bbox. If it does, this node is explored. When a leaf node is reached, the polygons within that leaf node
-        are explored for a ray-polygon intersection. If a hit is computed, it continues to backtrack until a closer
-        bbox it hit. If the algorithm backtrack all the way up to the root without a hit, the algorithm stops.
-
-        Limitations:    - does not take in consideration if the touched polygon is shared amongst many nodes
-        """
-
         intersection = self._findIntersection(ray, self._partition.root)
         return intersection
 

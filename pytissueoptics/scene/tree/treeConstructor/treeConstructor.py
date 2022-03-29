@@ -9,16 +9,6 @@ class TreeConstructor:
     def _splitNode(self, node: Node) -> SplitNodeResult:
         raise NotImplementedError()
 
-    def _getPrunedBbox(self, node: Node) -> BoundingBox:
-        nodeBbox = node.bbox
-        nodePolygons = node.polygons
-        polygonsBbox = BoundingBox.fromPolygons(nodePolygons)
-        prunedBbox = nodeBbox.copy()
-        prunedBbox.shrinkTo(polygonsBbox)
-        prunedBbox.extendBy(self.EPSILON)
-        return prunedBbox
-
-
     def constructTree(self, node: Node, maxDepth: int, minLeafSize: int):
         if node.depth >= maxDepth or len(node.polygons) <= minLeafSize:
             return

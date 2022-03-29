@@ -258,11 +258,19 @@ class IntersectionFinderBenchmark:
 
 
 if __name__ == '__main__':
-    benchmark = IntersectionFinderBenchmark(rayAmount=100000, maxDepth=25, minLeafSize=6)
-    # benchmark.constructors = [NoSplitThreeAxesConstructor()]
-    benchmark.runValidation(resolution=50, displayFailed=True)
-
-    benchmark.scenes = [benchmark.scenes[7], benchmark.scenes[8]]
+    benchmark = IntersectionFinderBenchmark(rayAmount=100000, maxDepth=25, minLeafSize=6, factor=100)
+    benchmark.constructors = [NoSplitThreeAxesConstructor()]
     benchmark.runBenchmark()
+    # benchmark.runValidation(resolution=50, displayFailed=True)
+
+    #  GRAPH OF IMPROVEMENT FACTOR VS POLYGON COUNT
+    # scene0 = ASphereScene(order=0)
+    # scene1 = ASphereScene(order=1)
+    # scene2 = ASphereScene(order=2)
+    # scene3 = ASphereScene(order=3)
+    # scene4 = ASphereScene(order=4)
+    # scene5 = ASphereScene(order=5)
+    # benchmark.scenes = [scene0, scene1, scene2, scene3, scene4, scene5]
+    # benchmark.runBenchmark()
     benchmark.displayStats()
     benchmark.displayBenchmarkTreeResults()
