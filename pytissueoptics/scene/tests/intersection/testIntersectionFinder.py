@@ -28,7 +28,7 @@ class TestAnyIntersectionFinder:
         direction = Vector(1, 0, 1)
         direction.normalize()
         ray = Ray(origin=Vector(0, 0, 0), direction=direction)
-        solid = Sphere(radius=1, order=1, position=Vector(0, 0, 5))
+        solid = Cube(2, position=Vector(0, 0, 5))
 
         intersection = self.getIntersectionFinder([solid]).findIntersection(ray)
 
@@ -36,15 +36,15 @@ class TestAnyIntersectionFinder:
 
     def testGivenRayIsIntersectingASolid_shouldReturnIntersectionDistanceAndPosition(self):
         ray = Ray(origin=Vector(0, 0.5, 0), direction=Vector(0, 0, 1))
-        solid = Sphere(radius=1, order=1, position=Vector(0, 0, 5))
+        solid = Cube(2, position=Vector(0, 0, 5))
 
         intersection = self.getIntersectionFinder([solid]).findIntersection(ray)
 
         self.assertIsNotNone(intersection)
         self.assertEqual(0, intersection.position.x)
         self.assertEqual(0.5, intersection.position.y)
-        self.assertAlmostEqual(5 - math.sqrt(3) / 2, intersection.position.z, places=1)
-        self.assertAlmostEqual(5 - math.sqrt(3) / 2, intersection.distance, places=1)
+        self.assertAlmostEqual(4, intersection.position.z)
+        self.assertAlmostEqual(4, intersection.distance)
 
     def testGivenRayIsIntersectingASolidWithTrianglePrimitive_shouldReturnIntersectionTriangle(self):
         self._testGivenRayIsIntersectingASolidWithAnyPrimitive_shouldReturnIntersectionPolygon(primitives.TRIANGLE)
@@ -73,8 +73,8 @@ class TestAnyIntersectionFinder:
 
     def testGivenRayIsIntersectingMultipleSolids_shouldReturnClosestIntersection(self):
         ray = Ray(origin=Vector(0, 0.5, 0), direction=Vector(0, 0, 1))
-        solid1 = Sphere(radius=1, order=1, position=Vector(0, 0, 5))
-        solid2 = Sphere(radius=1, order=1, position=Vector(0, 0, 8))
+        solid1 = Cube(2, position=Vector(0, 0, 5))
+        solid2 = Cube(2, position=Vector(0, 0, 10))
         solids = [solid1, solid2]
 
         intersection = self.getIntersectionFinder(solids).findIntersection(ray)
@@ -82,7 +82,7 @@ class TestAnyIntersectionFinder:
         self.assertIsNotNone(intersection)
         self.assertEqual(0, intersection.position.x)
         self.assertEqual(0.5, intersection.position.y)
-        self.assertAlmostEqual(5 - math.sqrt(3) / 2, intersection.position.z, places=1)
+        self.assertAlmostEqual(4, intersection.position.z)
 
     def testGivenRayThatFirstOnlyIntersectsWithAnotherSolidBoundingBoxBeforeIntersectingASolid_shouldFindIntersection(self):
         direction = Vector(0, 0.9, 1)
