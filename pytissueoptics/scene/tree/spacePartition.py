@@ -4,7 +4,6 @@ from pytissueoptics.scene.geometry import BoundingBox, Vector, Polygon
 from pytissueoptics.scene.tree import TreeConstructor
 from pytissueoptics.scene.tree import Node
 from pytissueoptics.scene.solids import Cuboid
-import json
 
 
 class SpacePartition:

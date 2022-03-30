@@ -12,7 +12,7 @@ class TestSplitConstructor(unittest.TestCase):
     def setUp(self) -> None:
         self._fbtc = SplitThreeAxesConstructor()
 
-    def test_givenATriangleAndAPlane_whenPolygonAsRays_shouldReturnCorrectRays(self):
+    def testGivenATriangleAndAPlane_whenPolygonAsRays_shouldReturnCorrectRays(self):
         triangle = Triangle(Vector(0, 0, 0), Vector(1, 0, 0), Vector(1, 1, 0))
         triangleRays = self._fbtc._getPolygonAsRays(triangle)
         expectedTriangleRays = [Ray(Vector(0, 0, 0), Vector(1, 0, 0), 1.0),
@@ -24,7 +24,7 @@ class TestSplitConstructor(unittest.TestCase):
             self.assertEqual(tri.origin, expectedTriangleRays[i].origin, 2)
             self.assertEqual(tri.length, expectedTriangleRays[i].length, 2)
 
-    def test_givenAPolygonAndAPlane_whenSplittingPolygon_shouldReturn3Polygons(self):
+    def testGivenAPolygonAndAPlane_whenSplittingPolygon_shouldReturn3Polygons(self):
         toBeSplit = [Triangle(Vector(0, 0, 0), Vector(1, 1, 1), Vector(1, -1, 1))]
         splitValue = 0.5
         splitAxis = "x"
@@ -36,7 +36,7 @@ class TestSplitConstructor(unittest.TestCase):
         self.assertEqual(left[0], expectedLeft[0])
         self.assertEqual(len(right), 2)
 
-    def test_givenAPolygonAndAPlane_whenSplittingPolygon_splitPolygonShouldHaveGoodMaterialAndNormal(self):
+    def testGivenAPolygonAndAPlane_whenSplittingPolygon_splitPolygonShouldHaveGoodMaterialAndNormal(self):
         myMaterial = Material(1, 1, 0.5)
         toBeSplit = [Triangle(Vector(0, 0, 0), Vector(0, 1, 0), Vector(0, 1, 1), insideMaterial=myMaterial)]
         splitValue = 0.5
@@ -54,7 +54,7 @@ class TestSplitConstructor(unittest.TestCase):
 
         self.assertEqual(len(right), 2)
 
-    def test_givenAPolygonAndAPlane_whenSplittingOnAVertexInside_shouldReturn2Polygons(self):
+    def testGivenAPolygonAndAPlane_whenSplittingOnAVertexInside_shouldReturn2Polygons(self):
         toBeSplit = [Triangle(Vector(0, 0, 0), Vector(1, 1, 1), Vector(1, -1, 1))]
         splitValue = 0
         splitAxis = "y"
@@ -66,7 +66,7 @@ class TestSplitConstructor(unittest.TestCase):
         self.assertEqual(left[0], expectedLeft[0])
         self.assertEqual(right[0], expectedRight[0])
 
-    def test_givenAPolygonAndAPlane_whenSplittingOnAVertexOutside_shouldReturn1Polygons(self):
+    def testGivenAPolygonAndAPlane_whenSplittingOnAVertexOutside_shouldReturn1Polygons(self):
         toBeSplit = [Triangle(Vector(0, 0, 0), Vector(1, 1, 1), Vector(1, -1, 1))]
         splitValue = 1
         splitAxis = "y"
@@ -78,7 +78,7 @@ class TestSplitConstructor(unittest.TestCase):
         self.assertEqual(left[0], expectedLeft[0])
         self.assertEqual(right, expectedRight)
 
-    def test_givenAPolygonAndAPlane_whenSplittingOn2VerticesOutside_shouldReturn1Polygons(self):
+    def testGivenAPolygonAndAPlane_whenSplittingOn2VerticesOutside_shouldReturn1Polygons(self):
         toBeSplit = [Triangle(Vector(0, 0, 0), Vector(1, 1, 1), Vector(1, -1, 1))]
         splitValue = 1
         splitAxis = "x"
@@ -90,7 +90,7 @@ class TestSplitConstructor(unittest.TestCase):
         self.assertEqual(left[0], expectedLeft[0])
         self.assertEqual(right, expectedRight)
 
-    def test_givenUltraThinPolygon_whenSplitting_shouldStillReturn2Polygons(self):
+    def testGivenUltraThinPolygon_whenSplitting_shouldStillReturn2Polygons(self):
         vertices = [Vector(8.860660171779822, 5.000000000000001, -4.9455),
                     Vector(8.856599089933916, 4.995938918154095, -4.9455),
                     Vector(8.856599089933916, 4.99986899735981, -4.9455)]
@@ -103,7 +103,7 @@ class TestSplitConstructor(unittest.TestCase):
         self.assertEqual(1, len(left))
         self.assertEqual(1, len(right))
 
-    def test_givenANodeWith2Polygon_whenSplitting_shouldSplitBetweenPolygons(self):
+    def testGivenANodeWith2Polygon_whenSplitting_shouldSplitBetweenPolygons(self):
         """This type of test is extremely sensitive on initial parameters."""
         expectedLeft = [Triangle(Vector(0, 0, 0), Vector(1, 1, 1), Vector(1, -1, 1)),
                         Triangle(Vector(0, 0, 0), Vector(-1, -1, -1), Vector(-2, -2, -3))]

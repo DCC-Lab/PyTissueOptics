@@ -9,7 +9,7 @@ class TestModernKDTreeConstructor(unittest.TestCase):
     def setUp(self) -> None:
         self._fbtc = NoSplitOneAxisConstructor()
 
-    def test_givenPolygons_whenClassifying_shouldReturnCorrect3Groups(self):
+    def testGivenPolygons_whenClassifying_shouldReturnCorrect3Groups(self):
         triangle0 = Triangle(Vector(0, 0, 0), Vector(1, 0, 0), Vector(1, 1, 0))
         triangle1 = Triangle(Vector(-5, -5, 0), Vector(-5, 5, 0), Vector(5, 5, 0))
         triangle2 = Triangle(Vector(3, -3, 2), Vector(1, -1, 1), Vector(1, -1, 1))
@@ -24,7 +24,7 @@ class TestModernKDTreeConstructor(unittest.TestCase):
         self.assertListEqual(both, [triangle1])
         self.assertEqual(both[0].normal, triangle1.normal)
 
-    def test_givenTrianglesWith1ContainedVertex_whenClassifying_shouldSendTriangleOnGoodSide(self):
+    def testGivenTrianglesWith1ContainedVertex_whenClassifying_shouldSendTriangleOnGoodSide(self):
         with self.subTest("Left"):
             triangle0 = Triangle(Vector(0, 0, 0), Vector(1, 0, 0), Vector(1, 1, 0))
             toClassify = [triangle0]
@@ -50,7 +50,7 @@ class TestModernKDTreeConstructor(unittest.TestCase):
             self.assertListEqual(right, [])
             self.assertListEqual(toSplit, [triangle0])
 
-    def test_givenTrianglesWith2ContainedVertex_whenClassifying_shouldSendTriangleOnGoodSide(self):
+    def testGivenTrianglesWith2ContainedVertex_whenClassifying_shouldSendTriangleOnGoodSide(self):
         with self.subTest("Left"):
             triangle0 = Triangle(Vector(0, 0, 0), Vector(1, 1, 0), Vector(1, 1, 0))
             toClassify = [triangle0]
@@ -68,7 +68,7 @@ class TestModernKDTreeConstructor(unittest.TestCase):
             self.assertListEqual(right, [triangle0])
             self.assertListEqual(both, [])
 
-    def test_givenTrianglesWith3ContainedVertex_whenClassifying_shouldSendLeftAndToSplit(self):
+    def testGivenTrianglesWith3ContainedVertex_whenClassifying_shouldSendLeftAndToSplit(self):
         triangle00 = Triangle(Vector(0, 1, 0), Vector(1, 0, 0), Vector(1, 1, 0))
         triangle0 = Triangle(Vector(0, 1, 0), Vector(1, 1, 0), Vector(1, 1, 0))
         toClassify = [triangle00, triangle0]

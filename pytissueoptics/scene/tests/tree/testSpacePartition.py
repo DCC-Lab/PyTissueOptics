@@ -1,6 +1,6 @@
 import unittest
 
-from mockito import mock, verifyNoUnwantedInteractions, when, expect
+from mockito import verifyNoUnwantedInteractions, expect
 
 from pytissueoptics.scene.geometry import Polygon, BoundingBox, Vector
 from pytissueoptics.scene.tree import Node, SpacePartition

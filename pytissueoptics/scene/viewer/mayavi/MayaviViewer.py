@@ -1,4 +1,3 @@
-import sys
 from typing import List
 
 from pytissueoptics.scene.logger import Logger
@@ -37,7 +36,7 @@ class MayaviViewer:
                               color=(1, 1, 1))
 
     @staticmethod
-    def addPolygons(polygons: List[Polygon], representation="surface", lineWidth=1, color=(0, 0, 1), showNormals=False):
+    def addPolygons(polygons: List[Polygon], representation="surface", lineWidth=1, color=(0, 0, 1)):
         for polygon in polygons:
             x = [vector.x for vector in polygon.vertices]
             y = [vector.y for vector in polygon.vertices]
