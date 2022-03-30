@@ -8,6 +8,12 @@ class TestPolygon(unittest.TestCase):
         polygon = Polygon(vertices=[Vector(0, 0, 0), Vector(2, 0, 0), Vector(2, 2, 0), Vector(1, 1, 0)])
         self.assertEqual(Vector(0, 0, 1), polygon.normal)
 
+    def testGivenANewPolygonWithNormal_shouldUseProvidedNormalWithoutNormalizing(self):
+        forcedNormal = Vector(7, 5, 3)
+        polygon = Polygon(vertices=[Vector(0, 0, 0), Vector(2, 0, 0), Vector(2, 2, 0), Vector(1, 1, 0)],
+                          normal=forcedNormal)
+        self.assertEqual(forcedNormal, polygon.normal)
+
     def testGivenANewPolygon_shouldDefineItsCentroid(self):
         polygon = Polygon(vertices=[Vector(0, 0, 1), Vector(2, 0, 0), Vector(2, 2, 0), Vector(1, 1, 0)])
         self.assertEqual(Vector(5/4, 3/4, 1/4), polygon.centroid)
