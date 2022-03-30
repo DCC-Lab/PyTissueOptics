@@ -22,6 +22,9 @@ class BoundingBox:
         else:
             return False
 
+    def copy(self):
+        return BoundingBox([self._xLim[0], self._xLim[1]], [self._yLim[0], self._yLim[1]], [self._zLim[0], self._zLim[1]])
+
     def __format__(self, formatSpec):
         f_xMin = float(format(self.xMin, formatSpec))
         f_xMax = float(format(self.xMax, formatSpec))
@@ -129,10 +132,6 @@ class BoundingBox:
     def update(self, axis: str, limit: str, value: float):
         self._xyzLimits[self._axisKeys.index(axis)][self._limitKeys.index(limit)] = value
         self._checkIfCoherent()
-
-    def copy(self):
-        newBbox = deepcopy(self)
-        return newBbox
 
     def getArea(self):
         a = self.xWidth

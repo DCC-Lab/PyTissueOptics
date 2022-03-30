@@ -167,7 +167,7 @@ class IntersectionFinderBenchmark:
     def runReferenceBenchmarkForScene(self, scene: Scene):
         self.count += 1
         source = RandomPositionAndOrientationRaySource(int(self.rayAmount / self.factor),
-                                                       scene.getBoundingBox().xyzLimits)
+                                                       scene.getBoundingBox().xyzLimits, position=Vector(0, 0, 0))
         intersectionFinder = SimpleIntersectionFinder(scene)
         startTime = time.time()
         for ray in source.rays:
@@ -182,7 +182,7 @@ class IntersectionFinderBenchmark:
         self._saveSimpleStats(scene, intersectionFinder, traversalTime * self.factor)
 
     def runBenchmarkForSceneWithConstructor(self, scene: Scene, constructor: TreeConstructor):
-        source = RPORaySource(self.rayAmount, scene.getBoundingBox().xyzLimits)
+        source = RPORaySource(self.rayAmount, scene.getBoundingBox().xyzLimits, position=Vector(0,0,0))
         self.runBenchmarkForSceneWithConstructorAndSource(scene, constructor, source)
 
     def runBenchmarkForSceneWithConstructorAndSource(self, scene: Scene, constructor: TreeConstructor,
@@ -258,10 +258,10 @@ class IntersectionFinderBenchmark:
 
 
 if __name__ == '__main__':
-    benchmark = IntersectionFinderBenchmark(rayAmount=100000, maxDepth=25, minLeafSize=6, factor=100)
+    benchmark = IntersectionFinderBenchmark(rayAmount=10, maxDepth=25, minLeafSize=6, factor=10)
     benchmark.constructors = [NoSplitThreeAxesConstructor()]
-    benchmark.runBenchmark()
-    # benchmark.runValidation(resolution=50, displayFailed=True)
+    # benchmark.runBenchmark()
+    benchmark.runValidation(resolution=25, displayFailed=True)
 
     #  GRAPH OF IMPROVEMENT FACTOR VS POLYGON COUNT
     # scene0 = ASphereScene(order=0)
@@ -272,5 +272,5 @@ if __name__ == '__main__':
     # scene5 = ASphereScene(order=5)
     # benchmark.scenes = [scene0, scene1, scene2, scene3, scene4, scene5]
     # benchmark.runBenchmark()
-    benchmark.displayStats()
-    benchmark.displayBenchmarkTreeResults()
+    # benchmark.displayStats()
+    # benchmark.displayBenchmarkTreeResults()

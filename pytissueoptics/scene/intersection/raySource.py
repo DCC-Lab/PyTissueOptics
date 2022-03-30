@@ -56,15 +56,22 @@ class UniformRaySource(RaySource):
 
 
 class RandomPositionAndOrientationRaySource(RaySource):
-    def __init__(self, amount, xyzLimits):
+    def __init__(self, amount, xyzLimits, position=None):
+        self._position = position
         self._amount = amount
         self._limits = xyzLimits
         super(RandomPositionAndOrientationRaySource, self).__init__()
 
     def _createRays(self):
-        origin_xs = np.random.uniform(self._limits[0][0], self._limits[0][1], self._amount)
-        origin_ys = np.random.uniform(self._limits[1][0], self._limits[1][1], self._amount)
-        origin_zs = np.random.uniform(self._limits[2][0], self._limits[2][1], self._amount)
+        if self._position is None:
+            origin_xs = np.random.uniform(self._limits[0][0], self._limits[0][1], self._amount)
+            origin_ys = np.random.uniform(self._limits[1][0], self._limits[1][1], self._amount)
+            origin_zs = np.random.uniform(self._limits[2][0], self._limits[2][1], self._amount)
+        else:
+            origin_xs = np.full(self._amount, self._position.x)
+            origin_ys = np.full(self._amount, self._position.y)
+            origin_zs = np.full(self._amount, self._position.z)
+
         direction_xs = np.random.uniform(-1, 1, self._amount)
         direction_ys = np.random.uniform(-1, 1, self._amount)
         direction_zs = np.random.uniform(-1, 1, self._amount)
