@@ -1,2 +1,3 @@
 from .ray import Ray
-from .intersectionFinder import SimpleIntersectionFinder
+from .raySource import RaySource, UniformRaySource, RandomPositionAndOrientationRaySource
+from .intersectionFinder import SimpleIntersectionFinder, FastIntersectionFinder

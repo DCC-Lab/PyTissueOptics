@@ -1,28 +1,15 @@
+from pytissueoptics.scene.geometry import BoundingBox
 from pytissueoptics.scene.tree import Node
-from pytissueoptics.scene.tree.treeConstructor import PolygonCounter, AxisSelector, NodeSplitter, SplitNodeResult
+from pytissueoptics.scene.tree.treeConstructor import SplitNodeResult
 
 
 class TreeConstructor:
-    def __init__(self):
-        self._polyCounter: PolygonCounter = None
-        self._axisSelector: AxisSelector = None
-        self._nodeSplitter: NodeSplitter = None
-
-    def setContext(self, axisSelector: AxisSelector, polyCounter: PolygonCounter, nodeSplitter: NodeSplitter):
-        self._axisSelector = axisSelector
-        self._polyCounter = polyCounter
-        self._nodeSplitter = nodeSplitter
-        self._nodeSplitter.setContext(self._polyCounter)
+    EPSILON = 1e-6
 
     def _splitNode(self, node: Node) -> SplitNodeResult:
-        nodeDepth = node.depth
-        nodeBbox = node.bbox
-        nodePolygons = node.polygons
-        splitAxis = self._axisSelector.select(nodeDepth, nodeBbox, nodePolygons)
-        splitNodeResult = self._nodeSplitter.split(splitAxis, nodeBbox, nodePolygons)
-        return splitNodeResult
+        raise NotImplementedError()
 
-    def growTree(self, node: Node, maxDepth: int, minLeafSize: int):
+    def constructTree(self, node: Node, maxDepth: int, minLeafSize: int):
         if node.depth >= maxDepth or len(node.polygons) <= minLeafSize:
             return
 
@@ -33,6 +20,7 @@ class TreeConstructor:
         for i, polygonGroup in enumerate(splitNodeResult.polygonGroups):
             if len(polygonGroup) <= 0:
                 continue
-            childNode = Node(parent=node, polygons=polygonGroup, bbox=splitNodeResult.bboxes[i], depth=node.depth + 1)
+            childNode = Node(parent=node, polygons=polygonGroup, bbox=splitNodeResult.groupsBbox[i],
+                             depth=node.depth + 1)
             node.children.append(childNode)
-            self.growTree(childNode, maxDepth, minLeafSize)
+            self.constructTree(childNode, maxDepth, minLeafSize)

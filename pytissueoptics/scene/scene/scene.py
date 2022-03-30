@@ -1,4 +1,4 @@
-from typing import List, Dict
+from typing import List, Dict, Optional
 
 from pytissueoptics.scene.materials import Material
 from pytissueoptics.scene.geometry import Vector
@@ -11,10 +11,6 @@ class Scene:
         self._solids = []
         self._ignoreIntersections = ignoreIntersections
         
-        if solids:
-            for solid in solids:
-                self.add(solid)
-
         if solids:
             for solid in solids:
                 self.add(solid)
@@ -79,8 +75,11 @@ class Scene:
             polygons.extend(solid.surfaces.getPolygons())
         return polygons
 
-    def getBoundingBox(self) -> BoundingBox:
-        bbox = BoundingBox(xLim=[0, 0], yLim=[0, 0], zLim=[0, 0])
-        for solid in self._solids:
-            bbox.extendTo(solid.bbox)
+    def getBoundingBox(self) -> Optional[BoundingBox]:
+        if len(self._solids) == 0:
+            return None
+
+        bbox = self._solids[0].getBoundingBox()
+        for solid in self._solids[1:]:
+            bbox.extendTo(solid.getBoundingBox())
         return bbox

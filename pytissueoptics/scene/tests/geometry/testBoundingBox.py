@@ -1,6 +1,6 @@
 import unittest
 
-from pytissueoptics.scene.geometry import BoundingBox, Vector
+from pytissueoptics.scene.geometry import BoundingBox, Vector, Polygon
 
 
 class TestBoundingBox(unittest.TestCase):
@@ -38,6 +38,15 @@ class TestBoundingBox(unittest.TestCase):
         self.assertEqual(bbox.yLim, [-1, 1])
         self.assertEqual(bbox.zLim, [0, 3.001])
 
+    def testGivenNewBBoxFromPolygons_shouldDefineBoundingBoxAroundPolygons(self):
+        polygons = [Polygon(vertices=[Vector(0, 0, 0), Vector(1, 2, 1), Vector(1, -1, 1)]),
+                    Polygon(vertices=[Vector(0, 0, 0), Vector(-1, -1, -1), Vector(-2, -2, -3)])]
+        bbox = BoundingBox.fromPolygons(polygons)
+
+        self.assertEqual(bbox.xLim, [-2, 1])
+        self.assertEqual(bbox.yLim, [-2, 2])
+        self.assertEqual(bbox.zLim, [-3, 1])
+
     def testGivenNewBBox_shouldDefineWidths(self):
         bbox1 = BoundingBox(self.xLim, self.yLim, [-1, 1])
         self.assertEqual(1, bbox1.xWidth)
@@ -48,6 +57,16 @@ class TestBoundingBox(unittest.TestCase):
         bbox1 = BoundingBox(self.xLim, self.yLim, [-1, 1])
         expectedArea = (1 * 1) * 2 + (2 * 1) * 4
         self.assertEqual(expectedArea, bbox1.getArea())
+
+    def testGivenNewBBox_shouldDefineCenter(self):
+        bbox = BoundingBox(self.xLim, self.yLim, self.zLim)
+        expectedCenter = Vector(0.5, -0.5, 0)
+        self.assertEqual(expectedCenter, bbox.center)
+
+    def testGivenNewBBox_whenUpdate_shouldChangeTheDesiredLimitValue(self):
+        bbox = BoundingBox(self.xLim, self.yLim, self.zLim)
+        bbox.update("x", "min", -10)
+        self.assertEqual([-10, 1], bbox.xLim)
 
     def testGivenAContainedPoint_whenContains_shouldReturnTrue(self):
         bbox1 = BoundingBox(self.xLim, self.yLim, [-1, 1])
@@ -71,6 +90,13 @@ class TestBoundingBox(unittest.TestCase):
         expectedBbox = BoundingBox([0, 1], [-2, 2], [-2, 1])
         self.assertEqual(expectedBbox, bbox1)
 
+    def testGivenABBox_whenShrinkTo_shouldDecreaseTheBboxLimits(self):
+        bbox1 = BoundingBox(self.xLim, self.yLim, [-1, 1])
+        bbox2 = BoundingBox([0, 0.1], [-2, 2], [-2, 0.9])
+        bbox1.shrinkTo(bbox2)
+        expectedBbox = BoundingBox([0, 0.1], [-1, 0], [-1, 0.9])
+        self.assertEqual(expectedBbox, bbox1)
+
     def testWhenIntersectsWithIntersectingBBox_shouldReturnTrue(self):
         bbox = BoundingBox([0, 5], [0, 5], [0, 5])
         partiallyIntersectingBox = BoundingBox([2, 6], [2, 6], [2, 6])
@@ -90,3 +116,71 @@ class TestBoundingBox(unittest.TestCase):
         nonIntersectingBox = BoundingBox([6, 7], [6, 7], [6, 7])
 
         self.assertFalse(bbox.intersects(nonIntersectingBox))
+
+    def testWhenCopyBBox_newBboxShouldBeIdenticalButIndependent(self):
+        bbox = BoundingBox([0, 5], [0, 5], [0, 5])
+        newBbox = bbox.copy()
+        self.assertEqual(bbox, newBbox)
+        newBbox.update("x", "min", -10)
+        self.assertNotEqual(bbox, newBbox)
+
+    def testWhenCopyBBoxAndUpdatingWithAnyFunction_newBboxShouldNotReturnOldParameters(self):
+        bbox = BoundingBox([0, 5], [0, 5], [0, 5])
+        with self.subTest("update"):
+            newBbox = bbox.copy()
+            newBbox.update("x", "min", -10)
+            self.assertNotEqual(bbox.xLim, newBbox.xLim)
+        with self.subTest("extendTo"):
+            newBbox = bbox.copy()
+            newBbox.extendTo(BoundingBox([-1, 6], [-1, 6], [-1, 6]))
+            self.assertNotEqual(bbox.xLim, newBbox.xLim)
+        with self.subTest("shrinkTo"):
+            newBbox = bbox.copy()
+            newBbox.shrinkTo(BoundingBox([0, 4], [0, 4], [0, 4]))
+            self.assertNotEqual(bbox.xLim, newBbox.xLim)
+
+    def testWhenCopyBBoxAndUpdatingWithAnyFunction_xyzShouldEqualxyzLim(self):
+        bbox = BoundingBox([0, 5], [0, 5], [0, 5])
+        with self.subTest("update"):
+            newBbox = bbox.copy()
+            newBbox.update("x", "min", -10)
+            self.assertEqual(newBbox.xLim, newBbox._xyzLimits[0])
+        with self.subTest("extendTo"):
+            newBbox = bbox.copy()
+            newBbox.extendTo(BoundingBox([-1, 6], [-1, 6], [-1, 6]))
+            self.assertEqual(newBbox.xLim, newBbox._xyzLimits[0])
+        with self.subTest("shrinkTo"):
+            newBbox = bbox.copy()
+            newBbox.shrinkTo(BoundingBox([1, 4], [1, 4], [1, 4]))
+            self.assertEqual(newBbox.xLim, newBbox._xyzLimits[0])
+
+    def testWithCopiedBbox_whenUpdatingAndFetchingAxisLimits_newBboxShouldNotReturnOldParameters(self):
+        bbox = BoundingBox([0, 5], [0, 5], [0, 5])
+        with self.subTest("update"):
+            newBbox = bbox.copy()
+            newBbox.update("x", "min", -10)
+            self.assertNotEqual(bbox.getAxisLimits("x"), newBbox.getAxisLimits("x"))
+            self.assertNotEqual(bbox.getAxisLimit("x", "min"), newBbox.getAxisLimit("x", "min"))
+            self.assertNotEqual(bbox.getAxisWidth("x"), newBbox.getAxisWidth("x"))
+        with self.subTest("extendTo"):
+            newBbox = bbox.copy()
+            newBbox.extendTo(BoundingBox([-1, 6], [-1, 6], [-1, 6]))
+            self.assertNotEqual(bbox.getAxisLimits("x"), newBbox.getAxisLimits("x"))
+            self.assertNotEqual(bbox.getAxisLimit("x", "min"), newBbox.getAxisLimit("x", "min"))
+            self.assertNotEqual(bbox.getAxisWidth("x"), newBbox.getAxisWidth("x"))
+        with self.subTest("shrinkTo"):
+            newBbox = bbox.copy()
+            newBbox.shrinkTo(BoundingBox([-1, 4], [-1, 4], [-1, 4]))
+            self.assertNotEqual(bbox.getAxisLimits("x"), newBbox.getAxisLimits("x"))
+            self.assertNotEqual(bbox.getAxisLimit("x", "max"), newBbox.getAxisLimit("x", "max"))
+            self.assertNotEqual(bbox.getAxisWidth("x"), newBbox.getAxisWidth("x"))
+        with self.subTest("intermediateBbox"):
+            newBbox = bbox.copy()
+            biggerBbox = BoundingBox([-1, 6], [-1, 6], [-1, 6])
+            bigCopy = biggerBbox.copy()
+            biggerBbox.shrinkTo(newBbox)
+            splitBbox = biggerBbox.copy()
+            self.assertNotEqual(biggerBbox, bigCopy)
+            self.assertEqual(splitBbox.getAxisWidth("x"), newBbox.getAxisWidth("x"))
+            self.assertEqual(splitBbox.getAxisLimits("x"), newBbox.getAxisLimits("x"))
+            self.assertEqual(splitBbox.getAxisLimit("x", "min"), newBbox.getAxisLimit("x", "min"))

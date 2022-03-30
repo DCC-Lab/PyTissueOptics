@@ -1,3 +1,6 @@
+from math import isclose
+
+
 class Vector:
     """
     Basic implementation of a mutable 3D Vector. It implements most of the basic vector operation.
@@ -25,7 +28,8 @@ class Vector:
         return f"<Vector>:({self.x}, {self.y}, {self.z})"
 
     def __eq__(self, other: 'Vector'):
-        if other.x == self.x and other.y == self.y and other.z == self.z:
+        tol = 1e-5
+        if isclose(other.x, self.x, abs_tol=tol) and isclose(other.y, self.y, abs_tol=tol) and isclose(other.z, self.z, abs_tol=tol):
             return True
         else:
             return False

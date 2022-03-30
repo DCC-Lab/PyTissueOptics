@@ -10,7 +10,7 @@ class BoundingBox:
         self._xLim = xLim
         self._yLim = yLim
         self._zLim = zLim
-        self._xyzLimits = [xLim, yLim, zLim]
+        self._xyzLimits = [self._xLim, self._yLim, self._zLim]
         self._checkIfCoherent()
 
     def __repr__(self) -> str:
@@ -21,6 +21,18 @@ class BoundingBox:
             return True
         else:
             return False
+
+    def copy(self):
+        return BoundingBox([self._xLim[0], self._xLim[1]], [self._yLim[0], self._yLim[1]], [self._zLim[0], self._zLim[1]])
+
+    def __format__(self, formatSpec):
+        f_xMin = float(format(self.xMin, formatSpec))
+        f_xMax = float(format(self.xMax, formatSpec))
+        f_yMin = float(format(self.yMin, formatSpec))
+        f_yMax = float(format(self.yMax, formatSpec))
+        f_zMin = float(format(self.zMin, formatSpec))
+        f_zMax = float(format(self.zMax, formatSpec))
+        return str([[f_xMin, f_xMax], [f_yMin, f_yMax], [f_zMin, f_zMax]])
 
     def _checkIfCoherent(self):
         if not (self.xMax >= self.xMin and self.yMax >= self.yMin and self.zMax >= self.zMin):
@@ -35,6 +47,16 @@ class BoundingBox:
         yLim = [min(y), max(y)]
         zLim = [min(z), max(z)]
         return BoundingBox(xLim, yLim, zLim)
+
+    @classmethod
+    def fromPolygons(cls, polygons: List['Polygon']) -> 'BoundingBox':
+        bbox = None
+        for polygon in polygons:
+            if bbox is not None:
+                bbox.extendTo(polygon.bbox)
+            else:
+                bbox = polygon.bbox.copy()
+        return bbox
 
     @property
     def xMin(self) -> float:
@@ -89,6 +111,10 @@ class BoundingBox:
     def zWidth(self):
         return self.zMax - self.zMin
 
+    @property
+    def xyzLimits(self) -> List[List[float]]:
+        return self._xyzLimits
+
     def getAxisWidth(self, axis: str) -> float:
         if axis == "x":
             return self.xWidth
@@ -106,10 +132,6 @@ class BoundingBox:
     def update(self, axis: str, limit: str, value: float):
         self._xyzLimits[self._axisKeys.index(axis)][self._limitKeys.index(limit)] = value
         self._checkIfCoherent()
-
-    def copy(self):
-        newBbox = deepcopy(self)
-        return newBbox
 
     def getArea(self):
         a = self.xWidth
@@ -138,6 +160,20 @@ class BoundingBox:
         if other.zMin < self.zMin:
             self._zLim[0] = other.zMin
         if other.zMax > self.zMax:
+            self._zLim[1] = other.zMax
+
+    def shrinkTo(self, other: 'BoundingBox'):
+        if other.xMin > self.xMin:
+            self._xLim[0] = other.xMin
+        if other.xMax < self.xMax:
+            self._xLim[1] = other.xMax
+        if other.yMin > self.yMin:
+            self._yLim[0] = other.yMin
+        if other.yMax < self.yMax:
+            self._yLim[1] = other.yMax
+        if other.zMin > self.zMin:
+            self._zLim[0] = other.zMin
+        if other.zMax < self.zMax:
             self._zLim[1] = other.zMax
 
     def __getitem__(self, index: int) -> List[float]:
