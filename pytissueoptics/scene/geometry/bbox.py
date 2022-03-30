@@ -177,14 +177,6 @@ class BoundingBox:
         if other.zMax < self.zMax:
             self._zLim[1] = other.zMax
 
-    def extendBy(self, value: float):
-        self._xLim[0] -= value
-        self._xLim[1] += value
-        self._yLim[0] -= value
-        self._yLim[1] += value
-        self._zLim[0] -= value
-        self._zLim[1] += value
-
     def __getitem__(self, index: int) -> List[float]:
         return self._xyzLimits[index]
 
