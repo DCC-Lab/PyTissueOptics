@@ -78,7 +78,6 @@ class TestAnyIntersectionFinder:
         solid3 = Sphere(radius=1, order=1, position=Vector(0, 0, 11))
         solids = [solid1, solid2, solid3]
 
-
         intersection = self.getIntersectionFinder(solids).findIntersection(ray)
 
         self.assertIsNotNone(intersection)
@@ -121,7 +120,7 @@ class TestEndToEndIntersection(unittest.TestCase):
                                     FastIntersectionFinder(scene, constructor=NoSplitThreeAxesConstructor(), maxDepth=3),
                                     FastIntersectionFinder(scene, constructor=SplitThreeAxesConstructor(), maxDepth=3)]
     
-    def test_givenRayTowardsBackWall_shouldReturnCorrectIntersection(self):
+    def testGivenRayTowardsBackWall_shouldReturnCorrectIntersection(self):
         origin = Vector(0, 4, 0)
         direction = Vector(0, 0, -1)
         ray = Ray(origin, direction)
@@ -131,7 +130,7 @@ class TestEndToEndIntersection(unittest.TestCase):
                 expectedPosition = Vector(0, 4, -9.95)
                 self.assertEqual(expectedPosition, intersection.position)
 
-    def test_givenRaysTowardsScene_shouldNeverReturnNone(self):
+    def testGivenRaysTowardsScene_shouldNeverReturnNone(self):
         rays = UniformRaySource(Vector(0, 4, 0), Vector(0, 0, -1), 180, 0, xResolution=100, yResolution=1).rays
         for intersectionFinder in self.intersectionFinders:
             with self.subTest(f"{intersectionFinder._partition._constructor.__class__.__name__}"):
