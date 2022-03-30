@@ -130,7 +130,7 @@ class TestEndToEndIntersection(unittest.TestCase):
                 self.assertEqual(expectedPosition, intersection.position)
 
     def testGivenRaysTowardsScene_shouldNeverReturnNone(self):
-        rays = UniformRaySource(Vector(0, 4, 0), Vector(0, 0, -1), 180, 0, xResolution=100, yResolution=1).rays
+        rays = UniformRaySource(Vector(0, 4, 0), Vector(0, 0, -1), 180, 0, xResolution=20, yResolution=1).rays
         for intersectionFinder in self.intersectionFinders:
             with self.subTest(f"{intersectionFinder._partition._constructor.__class__.__name__}"):
                 for ray in rays:
