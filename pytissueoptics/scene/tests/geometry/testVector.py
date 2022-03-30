@@ -1,4 +1,7 @@
 import unittest
+
+import numpy as np
+
 from pytissueoptics.scene.geometry import Vector
 
 
@@ -112,3 +115,27 @@ class TestVector(unittest.TestCase):
         vector = Vector(0, 0, 0)
         listOfOtherVectors = [Vector(0, 0, 0)]
         self.assertTrue(vector in listOfOtherVectors)
+
+    def testWhenGetAnyOrthogonal_shouldReturnANewOrthogonalVector(self):
+        N = 1000
+        direction_xs = np.random.uniform(-1, 1, N)
+        direction_ys = np.random.uniform(-1, 1, N)
+        direction_zs = np.random.uniform(-1, 1, N)
+        for i in range(N):
+            vector = Vector(direction_xs[i], direction_ys[i], direction_zs[i])
+            orthogonalVector = vector.getAnyOrthogonal()
+            self.assertEqual(0, vector.dot(orthogonalVector))
+            self.assertNotEqual(0, orthogonalVector.getNorm())
+
+        edgeCaseVectors = [Vector(-1, 0, 0), Vector(1, 0, 0),
+                           Vector(0, 1, 0), Vector(0, -1, 0),
+                           Vector(0, 0, 1), Vector(0, 0, -1)]
+        for vector in edgeCaseVectors:
+            orthogonalVector = vector.getAnyOrthogonal()
+            self.assertEqual(0, vector.dot(orthogonalVector))
+            self.assertNotEqual(0, orthogonalVector.getNorm())
+
+    def testGivenZeroVector_whenGetAnyOrthogonal_shouldReturnZeroVector(self):
+        zeroVector = Vector(0, 0, 0)
+        orthogonalVector = zeroVector.getAnyOrthogonal()
+        self.assertEqual(0, orthogonalVector.getNorm())
