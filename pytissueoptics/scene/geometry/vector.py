@@ -132,7 +132,7 @@ class Vector:
 
         self.update(x, y, z)
 
-    def anyPerpendicular(self) -> 'Vector':
+    def getAnyOrthogonal(self) -> 'Vector':
         # fixme: doesn't work for (0, 0, -z)
         #  added temporary abs() to attempt a fix
         if abs(self.z) < abs(self.x):

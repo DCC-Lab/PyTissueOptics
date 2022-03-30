@@ -37,9 +37,9 @@ class FresnelIntersectionFactory:
 
         incidencePlane = rayDirection.cross(normal)
         if incidencePlane.getNorm() < 1e-7:
-            incidencePlane = rayDirection.anyPerpendicular()
         else:
             incidencePlane.normalize()
+            incidencePlane = rayDirection.getAnyOrthogonal()
 
         self._thetaIn = math.acos(normal.dot(rayDirection))
 

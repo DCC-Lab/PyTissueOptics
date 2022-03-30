@@ -20,7 +20,7 @@ class Photon:
         self._fresnelIntersectionFactory = None
         self._logger = None
 
-        self._er = self._direction.anyPerpendicular()
+        self._er = self._direction.getAnyOrthogonal()
         self._er.normalize()
         self._hasContext = False
 
