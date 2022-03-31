@@ -30,21 +30,20 @@ class IntersectionFinder:
         raise NotImplementedError
 
     def _findClosestPolygonIntersection(self, ray: Ray, polygons: List[Polygon]) -> Optional[Intersection]:
-        closestPolygon = None
-        closestIntersection = None
-        closestDistance = sys.maxsize
+        closestIntersection = Intersection(sys.maxsize)
         for polygon in polygons:
-            intersection = self._polygonIntersect.getIntersection(ray, polygon)
-            if not intersection:
+            intersectionPoint = self._polygonIntersect.getIntersection(ray, polygon)
+            if not intersectionPoint:
                 continue
-            distance = (intersection - ray.origin).getNorm()
-            if distance < closestDistance:
-                closestDistance = distance
-                closestIntersection = intersection
-                closestPolygon = polygon
-        if not closestIntersection:
+            distance = (intersectionPoint - ray.origin).getNorm()
+            if distance < closestIntersection.distance:
+                closestIntersection = Intersection(distance, intersectionPoint, polygon)
+
+        if closestIntersection.distance == sys.maxsize:
             return None
-        return Intersection(closestDistance, closestIntersection, closestPolygon)
+        if ray.length is not None:
+            closestIntersection.distanceLeft = ray.length - closestIntersection.distance
+        return closestIntersection
 
 
 class SimpleIntersectionFinder(IntersectionFinder):
@@ -71,6 +70,7 @@ class SimpleIntersectionFinder(IntersectionFinder):
             if distance == 0:
                 break
         return solidCandidates
+
 
 class FastIntersectionFinder(IntersectionFinder):
     def __init__(self, scene: Scene, constructor=NoSplitThreeAxesConstructor(), maxDepth=20, minLeafSize=6):

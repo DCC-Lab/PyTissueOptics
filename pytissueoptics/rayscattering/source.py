@@ -16,7 +16,7 @@ class Source:
         self._photons = photons
 
     def propagate(self, scene: RayScatteringScene, worldMaterial: Material = Material(), logger: Logger = None):
-        intersectionFinder = SimpleIntersectionFinder(scene.getSolids())
+        intersectionFinder = SimpleIntersectionFinder(scene)
         scene.setWorldMaterial(worldMaterial)
         for photon in self._photons:
             photon.setContext(worldMaterial, intersectionFinder=intersectionFinder, logger=logger)
