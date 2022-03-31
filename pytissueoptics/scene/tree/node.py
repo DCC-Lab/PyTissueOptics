@@ -13,10 +13,6 @@ class Node:
         self._depth = depth
 
     @property
-    def parent(self):
-        return self._parent
-
-    @property
     def children(self) -> List['Node']:
         return self._children
 

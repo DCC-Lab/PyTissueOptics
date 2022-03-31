@@ -1,4 +1,4 @@
-from typing import List
+from typing import List, Optional
 
 from pytissueoptics.scene.geometry import BoundingBox, Vector, Polygon
 from pytissueoptics.scene.tree import TreeConstructor
@@ -28,9 +28,9 @@ class SpacePartition:
         self._bbox = bbox
         self._constructor = constructor
         self._root = Node(polygons=self._polygons, bbox=self._bbox)
-        self._constructor.growTree(self._root, maxDepth=maxDepth, minLeafSize=minLeafSize)
+        self._constructor.constructTree(self._root, maxDepth=maxDepth, minLeafSize=minLeafSize)
 
-    def searchPoint(self, point: Vector, node: Node = None) -> Node:
+    def searchPoint(self, point: Vector, node: Node = None) -> Optional[Node]:
         if node is None:
             node = self._root
 
@@ -40,24 +40,21 @@ class SpacePartition:
         isInside = None
         for child in node.children:
             if child.bbox.contains(point):
-                isInside = child
-                break
+                isInside = self.searchPoint(point, child)
 
         if isInside is None:
             if node.bbox.contains(point):
                 return node
 
-        return self.searchPoint(point, isInside)
+            else:
+                return None
+        return isInside
 
     @property
-    def maxDepth(self):
-        return self._maxDepth
+    def root(self) -> Node:
+        return self._root
 
-    @property
-    def minLeafSize(self):
-        return self._minLeafSize
-
-    def getNodeCount(self, node=None):
+    def getNodeCount(self, node=None) -> int:
         if node is None:
             node = self._root
         counter = 1
@@ -66,7 +63,7 @@ class SpacePartition:
 
         return counter
 
-    def getLeafCount(self, node=None):
+    def getLeafCount(self, node=None) -> int:
         if node is None:
             node = self._root
         counter = 0
@@ -77,7 +74,7 @@ class SpacePartition:
                 counter += self.getLeafCount(childNode)
         return counter
 
-    def getLeafNodes(self, node=None, nodesList=None):
+    def getLeafNodes(self, node=None, nodesList=None) -> List[Node]:
         if nodesList is None and node is None:
             nodesList = []
             node = self._root
@@ -105,3 +102,38 @@ class SpacePartition:
             c = bbox.zMax - bbox.zMin
             cuboids.append(Cuboid(a=a, b=b, c=c, position=bbox.center))
         return cuboids
+
+    def getMaxLeafDepth(self) -> int:
+        leaves = self.getLeafNodes()
+        maxDepth = 0
+        for leaf in leaves:
+            if leaf.depth > maxDepth:
+                maxDepth = leaf.depth
+        return maxDepth
+
+    def getAverageLeafDepth(self) -> float:
+        leaves = self.getLeafNodes()
+        avgDepth = 0
+        for leaf in leaves:
+            avgDepth += leaf.depth
+        avgDepth = avgDepth / len(leaves)
+        return avgDepth
+
+    def getAverageLeafSize(self) -> float:
+        leaves = self.getLeafNodes()
+        avgSize = 0
+        for leaf in leaves:
+            avgSize += len(leaf.polygons)
+        avgSize = avgSize / len(leaves)
+        return avgSize
+
+    def getLeafPolygons(self, node=None) -> List[Polygon]:
+        if node is None:
+            node = self._root
+        polygons = []
+        if node.isLeaf:
+            polygons = node.polygons
+        else:
+            for childNode in node.children:
+                polygons.extend(self.getLeafPolygons(childNode))
+        return polygons

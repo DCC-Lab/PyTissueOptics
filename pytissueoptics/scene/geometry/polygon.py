@@ -27,6 +27,12 @@ class Polygon:
         self.resetCentroid()
         self.resetBoundingBox()
 
+    def __eq__(self, other: 'Polygon'):
+        for vertex in self._vertices:
+            if vertex not in other.vertices:
+                return False
+        return True
+
     @property
     def normal(self):
         return self._normal
