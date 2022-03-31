@@ -14,7 +14,7 @@ class FresnelIntersection:
     angleDeflection: float
 
 
-class FresnelIntersectionFactory:
+class FresnelIntersect:
     _indexIn: float
     _indexOut: float
     _thetaIn: float

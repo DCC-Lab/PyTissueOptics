@@ -2,7 +2,7 @@ import math
 import random
 from typing import Optional
 
-from pytissueoptics.rayscattering.fresnel import FresnelIntersectionFactory, FresnelIntersection
+from pytissueoptics.rayscattering.fresnel import FresnelIntersect, FresnelIntersection
 from pytissueoptics.scene import Vector, Material
 from pytissueoptics.scene.intersection import Ray
 from pytissueoptics.scene.intersection.intersectionFinder import IntersectionFinder, Intersection
@@ -17,7 +17,7 @@ class Photon:
 
         self._material = None
         self._intersectionFinder = None
-        self._fresnelIntersectionFactory = None
+        self._fresnelIntersect = None
         self._logger = None
 
         self._er = self._direction.getAnyOrthogonal()
@@ -45,12 +45,12 @@ class Photon:
         return self._material
 
     def setContext(self, material: Material, intersectionFinder: IntersectionFinder = None, logger: Logger = None,
-                   fresnelIntersectionFactory=FresnelIntersectionFactory()):
+                   fresnelIntersectionFactory=FresnelIntersect()):
         self._material = material
         self._intersectionFinder = intersectionFinder
         self._logger = logger
         self._hasContext = True
-        self._fresnelIntersectionFactory = fresnelIntersectionFactory
+        self._fresnelIntersect = fresnelIntersectionFactory
 
     def propagate(self):
         if not self._hasContext:
@@ -113,7 +113,7 @@ class Photon:
         return intersection.distanceLeft
 
     def _getFresnelIntersection(self, intersection: Intersection) -> FresnelIntersection:
-        return self._fresnelIntersectionFactory.compute(self._direction, intersection)
+        return self._fresnelIntersect.compute(self._direction, intersection)
 
     def moveBy(self, distance):
         self._position += self._direction * distance

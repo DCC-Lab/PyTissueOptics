@@ -1,7 +1,7 @@
 import math
 import unittest
 
-from pytissueoptics.rayscattering.fresnel import FresnelIntersectionFactory
+from pytissueoptics.rayscattering.fresnel import FresnelIntersect
 from pytissueoptics.scene import Vector, Material
 from pytissueoptics.scene.geometry import Polygon
 from pytissueoptics.scene.intersection.intersectionFinder import Intersection
@@ -11,7 +11,7 @@ class TestFresnelIntersectionFactory(unittest.TestCase):
     def setUp(self):
         self.rayAt45 = Vector(1, 0, -1)
         self.rayAt45.normalize()
-        self.fresnelIntersectionFactory = FresnelIntersectionFactory()
+        self.fresnelIntersectionFactory = FresnelIntersect()
 
     def testWhenCompute_shouldReturnAFresnelIntersection(self):
         intersection = self._createIntersection(n1=1.0, n2=1.5)

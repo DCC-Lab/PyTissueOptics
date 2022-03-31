@@ -5,7 +5,7 @@ import unittest
 from mockito import mock, when, verify
 
 from pytissueoptics.rayscattering import Photon
-from pytissueoptics.rayscattering.fresnel import FresnelIntersection, FresnelIntersectionFactory
+from pytissueoptics.rayscattering.fresnel import FresnelIntersection, FresnelIntersect
 from pytissueoptics.scene import Vector, Material, Logger
 from pytissueoptics.scene.geometry import Polygon
 from pytissueoptics.scene.intersection.intersectionFinder import Intersection, IntersectionFinder
@@ -278,7 +278,7 @@ class TestPhoton(unittest.TestCase):
     def _createFresnelIntersectionFactory(nextMaterial=Material(), isReflected=True, angleDeflection=0.1):
         fresnelIntersection = FresnelIntersection(nextMaterial, Vector(), isReflected=isReflected,
                                                   angleDeflection=angleDeflection)
-        fresnelIntersectionFactory = mock(FresnelIntersectionFactory)
+        fresnelIntersectionFactory = mock(FresnelIntersect)
         when(fresnelIntersectionFactory).compute(...).thenReturn(fresnelIntersection)
         return fresnelIntersectionFactory
 
