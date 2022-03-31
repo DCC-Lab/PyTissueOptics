@@ -3,7 +3,8 @@ import random
 from typing import Optional
 
 from pytissueoptics.rayscattering.fresnel import FresnelIntersect, FresnelIntersection
-from pytissueoptics.scene import Vector, Material
+from pytissueoptics.rayscattering.materials import ScatteringMaterial
+from pytissueoptics.scene import Vector
 from pytissueoptics.scene.intersection import Ray
 from pytissueoptics.scene.intersection.intersectionFinder import IntersectionFinder, Intersection
 from pytissueoptics.scene.logger import Logger
@@ -41,10 +42,10 @@ class Photon:
         return self._weight
 
     @property
-    def material(self) -> Material:
+    def material(self) -> ScatteringMaterial:
         return self._material
 
-    def setContext(self, material: Material, intersectionFinder: IntersectionFinder = None, logger: Logger = None,
+    def setContext(self, material: ScatteringMaterial, intersectionFinder: IntersectionFinder = None, logger: Logger = None,
                    fresnelIntersectionFactory=FresnelIntersect()):
         self._material = material
         self._intersectionFinder = intersectionFinder
