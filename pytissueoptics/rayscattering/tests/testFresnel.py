@@ -2,21 +2,22 @@ import math
 import unittest
 
 from pytissueoptics.rayscattering.fresnel import FresnelIntersect
-from pytissueoptics.scene import Vector, Material
+from pytissueoptics.rayscattering.materials import ScatteringMaterial
+from pytissueoptics.scene import Vector
 from pytissueoptics.scene.geometry import Polygon
 from pytissueoptics.scene.intersection.intersectionFinder import Intersection
 
 
-class TestFresnelIntersectionFactory(unittest.TestCase):
+class TestFresnelIntersect(unittest.TestCase):
     def setUp(self):
         self.rayAt45 = Vector(1, 0, -1)
         self.rayAt45.normalize()
-        self.fresnelIntersectionFactory = FresnelIntersect()
+        self.fresnelIntersect = FresnelIntersect()
 
     def testWhenCompute_shouldReturnAFresnelIntersection(self):
         intersection = self._createIntersection(n1=1.0, n2=1.5)
 
-        fresnelIntersection = self.fresnelIntersectionFactory.compute(self.rayAt45, intersection)
+        fresnelIntersection = self.fresnelIntersect.compute(self.rayAt45, intersection)
 
         self.assertIsNotNone(fresnelIntersection)
         self.assertNotEqual(0, fresnelIntersection.angleDeflection)
@@ -24,9 +25,9 @@ class TestFresnelIntersectionFactory(unittest.TestCase):
 
     def testWhenIsReflected_shouldComputeReflectionDeflection(self):
         intersection = self._createIntersection(n1=1.0, n2=1.5)
-        self.fresnelIntersectionFactory._getIsReflected = lambda: True
+        self.fresnelIntersect._getIsReflected = lambda: True
 
-        fresnelIntersection = self.fresnelIntersectionFactory.compute(self.rayAt45, intersection)
+        fresnelIntersection = self.fresnelIntersect.compute(self.rayAt45, intersection)
 
         self.assertTrue(fresnelIntersection.isReflected)
         self.assertAlmostEqual(-math.pi / 2, fresnelIntersection.angleDeflection)
@@ -34,9 +35,9 @@ class TestFresnelIntersectionFactory(unittest.TestCase):
     def testWhenIsRefracted_shouldComputeRefractionDeflection(self):
         n1, n2 = 1, 1.5
         intersection = self._createIntersection(n1, n2)
-        self.fresnelIntersectionFactory._getIsReflected = lambda: False
+        self.fresnelIntersect._getIsReflected = lambda: False
 
-        fresnelIntersection = self.fresnelIntersectionFactory.compute(self.rayAt45, intersection)
+        fresnelIntersection = self.fresnelIntersect.compute(self.rayAt45, intersection)
 
         expectedDeflection = math.pi / 4 - math.asin(n1 / n2 * math.sin(math.pi / 4))
         self.assertFalse(fresnelIntersection.isReflected)
@@ -46,33 +47,33 @@ class TestFresnelIntersectionFactory(unittest.TestCase):
         n1, n2 = math.sqrt(2), 1.0
         intersection = self._createIntersection(n1, n2)
 
-        self.fresnelIntersectionFactory.compute(self.rayAt45, intersection)
+        self.fresnelIntersect.compute(self.rayAt45, intersection)
 
-        self.assertEqual(1, self.fresnelIntersectionFactory._getReflectionCoefficient())
+        self.assertEqual(1, self.fresnelIntersect._getReflectionCoefficient())
 
     def testGivenSameRefractiveIndices_shouldHaveAReflectionCoefficientOf0(self):
         n1, n2 = 1.4, 1.4
         intersection = self._createIntersection(n1, n2)
 
-        self.fresnelIntersectionFactory.compute(self.rayAt45, intersection)
+        self.fresnelIntersect.compute(self.rayAt45, intersection)
 
-        self.assertEqual(0, self.fresnelIntersectionFactory._getReflectionCoefficient())
+        self.assertEqual(0, self.fresnelIntersect._getReflectionCoefficient())
 
     def testGivenPerpendicularIncidence_shouldHaveReflectionCoefficient(self):
         n1, n2 = 1.0, 1.5
         intersection = self._createIntersection(n1, n2)
         rayPerpendicular = Vector(0, 0, -1)
 
-        self.fresnelIntersectionFactory.compute(rayPerpendicular, intersection)
+        self.fresnelIntersect.compute(rayPerpendicular, intersection)
 
         R = (n2-n1)/(n2+n1)
-        self.assertEqual(R**2, self.fresnelIntersectionFactory._getReflectionCoefficient())
+        self.assertEqual(R ** 2, self.fresnelIntersect._getReflectionCoefficient())
 
     def testIfGoingInside_shouldSetNextMaterialAsMaterialInsideSurface(self):
         n1, n2 = 1.0, 1.5
         intersection = self._createIntersection(n1, n2)
 
-        fresnelIntersection = self.fresnelIntersectionFactory.compute(self.rayAt45, intersection)
+        fresnelIntersection = self.fresnelIntersect.compute(self.rayAt45, intersection)
 
         self.assertEqual(n2, fresnelIntersection.nextMaterial.index)
 
@@ -81,13 +82,13 @@ class TestFresnelIntersectionFactory(unittest.TestCase):
         surfaceNormalAlongRayDirection = Vector(0, 0, -1)
         intersection = self._createIntersection(n1, n2, normal=surfaceNormalAlongRayDirection)
 
-        fresnelIntersection = self.fresnelIntersectionFactory.compute(self.rayAt45, intersection)
+        fresnelIntersection = self.fresnelIntersect.compute(self.rayAt45, intersection)
 
         self.assertEqual(n1, fresnelIntersection.nextMaterial.index)
 
     @staticmethod
     def _createIntersection(n1=1.0, n2=1.5, normal=Vector(0, 0, 1)):
         surfaceElement = Polygon([Vector()], normal=normal,
-                                 insideMaterial=Material(index=n2),
-                                 outsideMaterial=Material(index=n1))
+                                 insideMaterial=ScatteringMaterial(index=n2),
+                                 outsideMaterial=ScatteringMaterial(index=n1))
         return Intersection(10, Vector(0, 0, 0), surfaceElement)

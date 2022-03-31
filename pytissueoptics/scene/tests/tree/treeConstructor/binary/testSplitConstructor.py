@@ -37,7 +37,7 @@ class TestSplitConstructor(unittest.TestCase):
         self.assertEqual(len(right), 2)
 
     def testGivenAPolygonAndAPlane_whenSplittingPolygon_splitPolygonShouldHaveGoodMaterialAndNormal(self):
-        myMaterial = Material(1, 1, 0.5)
+        myMaterial = Material()
         toBeSplit = [Triangle(Vector(0, 0, 0), Vector(0, 1, 0), Vector(0, 1, 1), insideMaterial=myMaterial)]
         splitValue = 0.5
         splitAxis = "y"

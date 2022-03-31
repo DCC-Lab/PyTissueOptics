@@ -2,13 +2,14 @@ import math
 import random
 from dataclasses import dataclass
 
-from pytissueoptics.scene import Vector, Material
+from pytissueoptics.rayscattering.materials import ScatteringMaterial
+from pytissueoptics.scene import Vector
 from pytissueoptics.scene.intersection.intersectionFinder import Intersection
 
 
 @dataclass
 class FresnelIntersection:
-    nextMaterial: Material
+    nextMaterial: ScatteringMaterial
     incidencePlane: Vector
     isReflected: bool
     angleDeflection: float

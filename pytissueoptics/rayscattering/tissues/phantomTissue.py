@@ -1,5 +1,6 @@
+from pytissueoptics.rayscattering.materials import ScatteringMaterial
 from pytissueoptics.rayscattering.tissues.rayScatteringScene import RayScatteringScene
-from pytissueoptics.scene import Cuboid, Material, Vector, MayaviViewer
+from pytissueoptics.scene import Cuboid, Vector, MayaviViewer
 
 
 class PhantomTissue(RayScatteringScene):
@@ -19,9 +20,9 @@ class PhantomTissue(RayScatteringScene):
         w = 3
         t = [0.75, 0.5, 0.75]
 
-        topLayer = Cuboid(w, w, t[0], material=Material(mu_s[0], mu_a, g, n[0]))
-        middleLayer = Cuboid(w, w, t[1], material=Material(mu_s[1], mu_a, g, n[1]))
-        bottomLayer = Cuboid(w, w, t[2], material=Material(mu_s[2], mu_a, g, n[2]))
+        topLayer = Cuboid(w, w, t[0], material=ScatteringMaterial(mu_s[0], mu_a, g, n[0]))
+        middleLayer = Cuboid(w, w, t[1], material=ScatteringMaterial(mu_s[1], mu_a, g, n[1]))
+        bottomLayer = Cuboid(w, w, t[2], material=ScatteringMaterial(mu_s[2], mu_a, g, n[2]))
         layerStack = bottomLayer.stack(middleLayer, 'Front').stack(topLayer, 'Front')
         layerStack.translateTo(Vector(0, 0, sum(t) / 2))
 
