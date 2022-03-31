@@ -1,8 +1,8 @@
-from pytissueoptics.rayscattering.tissues.tissue import Tissue
+from pytissueoptics.rayscattering.tissues.rayScatteringScene import RayScatteringScene
 from pytissueoptics.scene import Cuboid, Material, Vector, MayaviViewer
 
 
-class PhantomTissue(Tissue):
+class PhantomTissue(RayScatteringScene):
     """ Phantom tissue consisting of 3 layers with various optical properties. """
     TISSUE = []
 

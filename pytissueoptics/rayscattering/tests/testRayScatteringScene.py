@@ -2,16 +2,16 @@ import unittest
 
 from mockito import mock, when, verify
 
-from pytissueoptics.rayscattering.tissues import Tissue
+from pytissueoptics.rayscattering.tissues.rayScatteringScene import RayScatteringScene
 from pytissueoptics.scene import Material
 from pytissueoptics.scene.solids import Solid
 
 
-class TestTissue(unittest.TestCase):
+class TestRayScatteringScene(unittest.TestCase):
     def testWhenSetWorldMaterial_shouldSetOutsideMaterialOfAllItsSolids(self):
         solid = mock(Solid)
         when(solid).setOutsideMaterial(...).thenReturn()
-        tissue = Tissue([solid])
+        tissue = RayScatteringScene([solid])
         worldMaterial = Material()
 
         tissue.setWorldMaterial(worldMaterial)

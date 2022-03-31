@@ -4,7 +4,7 @@ from mockito import mock, when, verify
 
 from pytissueoptics.rayscattering import PencilSource, Photon
 from pytissueoptics.rayscattering.source import Source
-from pytissueoptics.rayscattering.tissues import Tissue
+from pytissueoptics.rayscattering.tissues.rayScatteringScene import RayScatteringScene
 from pytissueoptics.scene import Vector, Material
 
 
@@ -35,7 +35,7 @@ class TestSource(unittest.TestCase):
 
     @staticmethod
     def _createTissue():
-        tissue = mock(Tissue)
+        tissue = mock(RayScatteringScene)
         when(tissue).setWorldMaterial(...).thenReturn()
         when(tissue).getSolids().thenReturn([])
         return tissue

@@ -15,10 +15,6 @@ class Scene:
             for solid in solids:
                 self.add(solid)
 
-        if solids:
-            for solid in solids:
-                self.add(solid)
-
     def add(self, solid: Solid, position: Vector = None):
         if position:
             solid.translateTo(position)

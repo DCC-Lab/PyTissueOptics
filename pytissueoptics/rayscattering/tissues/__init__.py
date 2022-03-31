@@ -1,2 +1,1 @@
-from .tissue import Tissue
-from .phantom import PhantomTissue
+from .phantomTissue import PhantomTissue

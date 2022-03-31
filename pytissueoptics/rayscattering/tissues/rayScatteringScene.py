@@ -1,15 +1,12 @@
 from typing import List
 
-from pytissueoptics.scene import MayaviViewer, Material
+from pytissueoptics.scene import MayaviViewer, Material, Scene
 from pytissueoptics.scene.solids import Solid
 
 
-class Tissue:
+class RayScatteringScene(Scene):
     def __init__(self, solids: List[Solid]):
-        self._solids = solids
-
-    def getSolids(self) -> List[Solid]:
-        return self._solids
+        super().__init__(solids)
 
     def addToViewer(self, viewer: MayaviViewer):
         raise NotImplementedError
