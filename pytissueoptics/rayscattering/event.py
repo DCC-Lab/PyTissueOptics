@@ -60,6 +60,10 @@ class EventDrivenPhoton(Photon):
         self.nextEvent = None
         super().__init__(position, direction)
 
+
+    def propagate(self):
+        self.processEvent()
+        
     def processEvent(self):
         while self.nextEvent is not None:
             self.nextEvent.processing()
