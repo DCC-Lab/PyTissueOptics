@@ -7,13 +7,13 @@ import numpy as np
 kernelSource = """
 // GENERAL FUNCTIONS
 
-__kernel void random(uint2 seed, __global float *buffer) {
+__kernel void random(uint2 randoms, float *buffer) {
     int idx = get_global_id(0);
     uint seed = randoms.x + idx;
     uint t = seed ^ (seed << 11);  
     uint result = randoms.y ^ (randoms.y >> 19) ^ (t ^ (t >> 8));
-    buffer[idx] = result
-
+    buffer[idx] = result;
+}
 // PHOTON PHYSICS
 __kernel void decreaseWeightBy(__global photonStruct *photon, float delta_weight)
 {
@@ -36,9 +36,11 @@ __kernel void moveBy(__global photonStruct *photon, float distance)
         photon[gid].position += distance * photon[gid].direction;
 }
 
-__kernel void roulette(__global photonStruct *photon, float *survival_probability, float *randomBuffer){
+__kernel void roulette(__global photonStruct *photon){
     int gid = get_global_id(0);
-    random(uint2(1, 2), randomBuffer);
+    uint2 seed = (1, 2);
+    float randomBuffer;
+    random(seed, randomBuffer);
     float chance = 0.1;
     if (photon[gid].weight >= 0.0001){return;}
     else if (randomBuffer[gid] < chance){
@@ -108,7 +110,7 @@ material_dtype, c_decl_mat = makeMaterialType()
 program = cl.Program(context, c_decl_photon + c_decl_mat + kernelSource).build()
 
 # PHOTONS
-N = 10000
+N = 1000000
 HOST_photons = np.empty(N, dtype=photon_dtype)
 HOST_photons["position"] = np.array([cl.cltypes.make_float4(1, 0, 0, 0)]*N, dtype=cl.cltypes.float4)
 HOST_photons["direction"] = np.array([cl.cltypes.make_float4(0, 0, 1, 0)]*N, dtype=cl.cltypes.float4)
@@ -137,9 +139,10 @@ cl.enqueue_copy(queue, dest=TARGET_rand, src=HOST_rand)
 # program.decreaseWeightBy(queue, (N,), None, TARGET_photons, np.float32(1.0))
 # program.moveBy(queue, (N,), None, TARGET_photons, np.float32(1.0))
 # while not all(TARGET_photons["weight"] <= 0):
-for i in range(10):
+for i in range(15):
     program.moveBy(queue, (N,), None, TARGET_photons, np.float32(1.0))
     program.interact(queue, (N,), None, TARGET_photons, TARGET_material)
+    program.roulette(queue, (N,), None, TARGET_photons, TARGET_rand)
     #program.getScatteringDistances(queue, (1,), None, TARGET_photons, TARGET_material, TARGET_rand)
     #program.propagate(queue, (N,), None, TARGET_photons)
 cl.enqueue_copy(queue, dest=HOST_photons, src=TARGET_photons)
