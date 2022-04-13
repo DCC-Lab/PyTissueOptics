@@ -2,7 +2,7 @@ from math import cos, sin, acos, atan, pi, sqrt
 
 import numpy as np
 
-from pytissueoptics.scene.geometry import Vector, Triangle, primitives, utils
+from pytissueoptics.scene.geometry import Vector, Triangle, primitives, utils, Vertex
 from pytissueoptics.scene.materials import Material
 from pytissueoptics.scene.solids import Solid
 
@@ -51,9 +51,9 @@ class Ellipsoid(Solid):
 
     def _computeFirstOrderTriangleMesh(self):
         phi = (1.0 + 5.0 ** (1 / 2)) / 2.0
-        xyPlaneVertices = [Vector(-1, phi, 0), Vector(1, phi, 0), Vector(-1, -phi, 0), Vector(1, -phi, 0)]
-        yzPlaneVertices = [Vector(0, -1, phi), Vector(0, 1, phi), Vector(0, -1, -phi), Vector(0, 1, -phi)]
-        xzPlaneVertices = [Vector(phi, 0, -1), Vector(phi, 0, 1), Vector(-phi, 0, -1), Vector(-phi, 0, 1)]
+        xyPlaneVertices = [Vertex(-1, phi, 0), Vertex(1, phi, 0), Vertex(-1, -phi, 0), Vertex(1, -phi, 0)]
+        yzPlaneVertices = [Vertex(0, -1, phi), Vertex(0, 1, phi), Vertex(0, -1, -phi), Vertex(0, 1, -phi)]
+        xzPlaneVertices = [Vertex(phi, 0, -1), Vertex(phi, 0, 1), Vertex(-phi, 0, -1), Vertex(-phi, 0, 1)]
         self._vertices = [*xyPlaneVertices, *yzPlaneVertices, *xzPlaneVertices]
         V = self._vertices
 
@@ -86,7 +86,7 @@ class Ellipsoid(Solid):
 
     @staticmethod
     def _createMidVertex(p1, p2):
-        middle = Vector((p1.x + p2.x) / 2, (p1.y + p2.y) / 2, (p1.z + p2.z) / 2)
+        middle = Vertex((p1.x + p2.x) / 2, (p1.y + p2.y) / 2, (p1.z + p2.z) / 2)
         return middle
 
     def _setVerticesPositionsFromCenter(self):
@@ -106,7 +106,7 @@ class Ellipsoid(Solid):
         self.surfaces.resetNormals()
 
     @staticmethod
-    def _findThetaPhi(vertex: 'Vector'):
+    def _findThetaPhi(vertex: Vertex):
         phi = acos(vertex.z / (vertex.x ** 2 + vertex.y ** 2 + vertex.z ** 2))
         theta = 0
         if vertex.x == 0.0:
@@ -136,7 +136,7 @@ class Ellipsoid(Solid):
     def _computeQuadMesh(self):
         raise NotImplementedError
 
-    def contains(self, *vertices: Vector) -> bool:
+    def contains(self, *vertices: Vertex) -> bool:
         """ Only returns true if all vertices are inside the minimum radius of the ellipsoid
         towards each vertex direction (more restrictive with low order ellipsoids). """
         verticesArray = np.asarray([vertex.array for vertex in vertices])
@@ -146,7 +146,7 @@ class Ellipsoid(Solid):
             relativeVerticesArray = utils.rotateVerticesArray(relativeVerticesArray, self._orientation, inverse=True)
 
         for relativeVertexArray in relativeVerticesArray:
-            relativeVertex = Vector(*relativeVertexArray)
+            relativeVertex = Vertex(*relativeVertexArray)
             vertexRadius = relativeVertex.getNorm()
             if vertexRadius == 0:
                 continue
@@ -157,7 +157,7 @@ class Ellipsoid(Solid):
 
     def _getRadiusError(self) -> float:
         aPolygon = self.surfaces.getPolygons()[0]
-        centerVertex = Vector(0, 0, 0)
+        centerVertex = Vertex(0, 0, 0)
         for vertex in aPolygon.vertices:
             centerVertex.add(vertex)
         centerVertex.divide(len(aPolygon.vertices))

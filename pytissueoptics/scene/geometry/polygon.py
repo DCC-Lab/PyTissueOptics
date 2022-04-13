@@ -1,6 +1,6 @@
 from typing import List
 
-from pytissueoptics.scene.geometry import Vector
+from pytissueoptics.scene.geometry import Vector, Vertex
 from pytissueoptics.scene.materials import Material
 from pytissueoptics.scene.geometry import BoundingBox
 
@@ -13,7 +13,7 @@ class Polygon:
      for the normal to point towards the viewer.
     """
 
-    def __init__(self, vertices: List[Vector], normal: Vector = None,
+    def __init__(self, vertices: List[Vertex], normal: Vector = None,
                  insideMaterial: Material = None, outsideMaterial: Material = None):
         self._vertices = vertices
         self._normal = normal

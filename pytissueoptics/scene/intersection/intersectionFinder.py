@@ -80,6 +80,7 @@ class FastIntersectionFinder(IntersectionFinder):
 
     def findIntersection(self, ray: Ray) -> Optional[Intersection]:
         intersection = self._findIntersection(ray, self._partition.root)
+        self._smooth(intersection)
         return intersection
 
     def _findIntersection(self, ray: Ray, node: Node, closestDistance=sys.maxsize) -> Optional[Intersection]:

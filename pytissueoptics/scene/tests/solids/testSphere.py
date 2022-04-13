@@ -1,7 +1,7 @@
 import unittest
 import math
 
-from pytissueoptics.scene.geometry import Vector
+from pytissueoptics.scene.geometry import Vector, Vertex
 from pytissueoptics.scene.solids import Sphere
 
 
@@ -48,12 +48,12 @@ class TestSphere(unittest.TestCase):
 
     def testWhenContainsWithVerticesThatAreAllInsideTheSphere_shouldReturnTrue(self):
         sphere = Sphere(1, position=Vector(2, 2, 0))
-        vertices = [Vector(2.5, 2.5, 0), Vector(2, 2, 0)]
+        vertices = [Vertex(2.5, 2.5, 0), Vertex(2, 2, 0)]
 
         self.assertTrue(sphere.contains(*vertices))
 
     def testWhenContainsWithVerticesThatAreNotAllInsideTheSphere_shouldReturnFalse(self):
         sphere = Sphere(1, position=Vector(2, 2, 0))
-        vertices = [Vector(3, 3, 1), Vector(2, 2, 0)]
+        vertices = [Vertex(3, 3, 1), Vertex(2, 2, 0)]
 
         self.assertFalse(sphere.contains(*vertices))

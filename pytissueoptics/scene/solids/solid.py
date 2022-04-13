@@ -2,14 +2,14 @@ from typing import List
 
 import numpy as np
 
-from pytissueoptics.scene.geometry import Vector, utils, Polygon, Rotation, BoundingBox
+from pytissueoptics.scene.geometry import Vector, utils, Polygon, Rotation, BoundingBox, Vertex
 from pytissueoptics.scene.geometry import primitives
 from pytissueoptics.scene.materials import Material
 from pytissueoptics.scene.geometry import SurfaceCollection
 
 
 class Solid:
-    def __init__(self, vertices: List[Vector], position: Vector = Vector(0, 0, 0),
+    def __init__(self, vertices: List[Vertex], position: Vector = Vector(0, 0, 0),
                  surfaces: SurfaceCollection = None, material: Material = None, primitive: str = primitives.DEFAULT):
         self._vertices = vertices
         self._surfaces = surfaces
@@ -32,7 +32,7 @@ class Solid:
         return self._position
 
     @property
-    def vertices(self) -> List[Vector]:
+    def vertices(self) -> List[Vertex]:
         return self._vertices
 
     @property
@@ -50,7 +50,7 @@ class Solid:
     def getBoundingBox(self) -> BoundingBox:
         return self.bbox
 
-    def getVertices(self) -> List[Vector]:
+    def getVertices(self) -> List[Vertex]:
         return self.vertices
 
     def _resetBoundingBoxes(self):
@@ -151,7 +151,7 @@ class Solid:
         for polygon in self._surfaces.getPolygons():
             polygon.setInsideMaterial(self._material)
 
-    def contains(self, *vertices: Vector) -> bool:
+    def contains(self, *vertices: Vertex) -> bool:
         raise NotImplementedError
 
     def isStack(self) -> bool:

@@ -3,7 +3,7 @@ import unittest
 
 from mockito import mock, verify, when
 
-from pytissueoptics.scene.geometry import Vector, Quad, Polygon
+from pytissueoptics.scene.geometry import Vector, Quad, Polygon, Vertex
 from pytissueoptics.scene.geometry import primitives
 from pytissueoptics.scene.materials import Material
 from pytissueoptics.scene.solids import Solid
@@ -12,10 +12,10 @@ from pytissueoptics.scene.geometry import SurfaceCollection
 
 class TestSolid(unittest.TestCase):
     def setUp(self):
-        self.CUBOID_VERTICES = [Vector(-1, -1, -1), Vector(1, -1, -1),
-                                Vector(1, 1, -1), Vector(-1, 1, -1),
-                                Vector(-1, -1, 1), Vector(1, -1, 1),
-                                Vector(1, 1, 1), Vector(-1, 1, 1)]
+        self.CUBOID_VERTICES = [Vertex(-1, -1, -1), Vertex(1, -1, -1),
+                                Vertex(1, 1, -1), Vertex(-1, 1, -1),
+                                Vertex(-1, -1, 1), Vertex(1, -1, 1),
+                                Vertex(1, 1, 1), Vertex(-1, 1, 1)]
         V = self.CUBOID_VERTICES
         self.CUBOID_SURFACES = SurfaceCollection()
         self.CUBOID_SURFACES.add('Front', [Quad(V[0], V[1], V[2], V[3])])
@@ -125,7 +125,7 @@ class TestSolid(unittest.TestCase):
         frontVertex = self.solid.vertices[0]
         self.assertEqual(Vector(0, 0, 1), frontVertex.normal)
         backVertex = self.solid.vertices[5]
-        self.assertEqual(Vector(0, 0, 0), backVertex.normal)
+        self.assertIsNone(backVertex.normal)
 
     @staticmethod
     def createPolygonMock() -> Polygon:
