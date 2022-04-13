@@ -31,14 +31,12 @@ class CLPhotons:
 
     def propagate(self):
         program = cl.Program(self.context,
-                             self.c_decl_photon + self.c_decl_mat + self.c_decl_logger + open("./CLPhotons.c")).build()
+                             self.c_decl_photon + self.c_decl_mat + self.c_decl_logger + open("./CLPhotons.c").read()).build()
 
-        randomIndex = 0
-        loggerIndex = 0
         program.propagate(self.mainQueue, self.HOST_photons.shape, None, self.DEVICE_photons, self.DEVICE_material,
-                          self.DEVICE_rand, self.DEVICE_logger, randomIndex, loggerIndex)
+                          self.DEVICE_randomFloat, self.DEVICE_randomInt)
         self.mainQueue.finish()
-        cl.enqueue_copy(self.mainQueue, dest=self.HOST_logger, src=self.DEVICE_logger)
+        cl.enqueue_copy(self.mainQueue, dest=self.HOST_photons, src=self.DEVICE_photons)
 
     def makeTypes(self):
         def makePhotonType(self):
@@ -82,38 +80,41 @@ class CLPhotons:
     def makeBuffers(self):
         self.makePhotonsBuffer()
         self.makeMaterialsBuffer()
-        self.makeLoggerBuffer()
-        self.makeRandomBuffer(len(self.photons)*100)
+        # self.makeLoggerBuffer()
+        self.makeRandomBuffer()
 
     def makePhotonsBuffer(self):
         photons = self.photons
         self.HOST_photons = np.empty(len(photons), dtype=self.photon_dtype)
-        for i, p in photons:
+        for i, p in enumerate(photons):
             self.HOST_photons[i]["position"] = cl.cltypes.make_float4(p.position.x, p.position.y, p.position.z, 0)
-            self.HOST_photons[i]["direction"] = cl.cltypes.make_float4(p.direciton.x, p.direciton.y, p.direciton.z, 0)
+            self.HOST_photons[i]["direction"] = cl.cltypes.make_float4(p.direction.x, p.direction.y, p.direction.z, 0)
             self.HOST_photons[i]["weight"] = p.weight
             self.HOST_photons[i]["material_id"] = 0
 
         self.DEVICE_photons = cl.Buffer(self.context, cl.mem_flags.READ_WRITE | cl.mem_flags.COPY_HOST_PTR,
                                         hostbuf=self.HOST_photons)
 
-    def makeRandomBuffer(self, N):
-        rng = np.random.default_rng()
-        self.HOST_rand = rng.random(size=N, dtype=cl.cltypes.float)
-        self.DEVICE_rand = cl.Buffer(self.context, cl.mem_flags.READ_ONLY | cl.mem_flags.COPY_HOST_PTR,
-                                     hostbuf=self.HOST_rand)
+    def makeRandomBuffer(self):
+        self.HOST_randomInt = np.random.randint(low=0, high=2**32-1, size=len(self.photons), dtype=cl.cltypes.uint)
+        self.DEVICE_randomInt = cl.Buffer(self.context, cl.mem_flags.READ_ONLY | cl.mem_flags.COPY_HOST_PTR,
+                                     hostbuf=self.HOST_randomInt)
+        self.HOST_randomFloat = np.empty(len(self.photons), dtype=cl.cltypes.float)
+        self.DEVICE_randomFloat = cl.Buffer(self.context, cl.mem_flags.READ_ONLY | cl.mem_flags.COPY_HOST_PTR,
+                                     hostbuf=self.HOST_randomFloat)
 
     def makeMaterialsBuffer(self):
         materials = [self.worldMaterial]
         self.HOST_material = np.empty(len(materials), dtype=self.material_dtype)
         for i, mat in enumerate(materials):
-            self.HOST_material[i]["mu_s"] = mat.mu_s
-            self.HOST_material[i]["mu_a"] = mat.mu_a
-            self.HOST_material[i]["mu_t"] = mat.mu_t
-            self.HOST_material[i]["g"] = mat.g
-            self.HOST_material[i]["n"] = mat.index
-            self.HOST_material[i]["albedo"] = mat.getAlbedo()
-            self.HOST_material[i]["material_id"] = i
+            print(mat.getAlbedo())
+            self.HOST_material[i]["mu_s"] = np.float32(mat.mu_s)
+            self.HOST_material[i]["mu_a"] = np.float32(mat.mu_a)
+            self.HOST_material[i]["mu_t"] = np.float32(mat.mu_t)
+            self.HOST_material[i]["g"] = np.float32(mat.g)
+            self.HOST_material[i]["n"] = np.float32(mat.index)
+            self.HOST_material[i]["albedo"] = np.float32(mat.getAlbedo())
+            self.HOST_material[i]["material_id"] = np.uint32(i)
         self.DEVICE_material = cl.Buffer(self.context, cl.mem_flags.READ_ONLY | cl.mem_flags.COPY_HOST_PTR,
                                          hostbuf=self.HOST_material)
 

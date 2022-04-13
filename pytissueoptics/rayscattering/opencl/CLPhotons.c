@@ -1,70 +1,74 @@
+// RANDOM
+uint wang_hash(uint seed)
+    {
+        seed = (seed ^ 61) ^ (seed >> 16);
+        seed *= 9;
+        seed = seed ^ (seed >> 4);
+        seed *= 0x27d4eb2d;
+        seed = seed ^ (seed >> 15);
+        return seed;
+    }
 
-__kernel void decreaseWeightBy(__global photonStruct *photon, float *delta_weight, __global loggerStruct *logger, int loggerIndex)
+
+void randomize_buffer_seed(__global unsigned int * rnd_buffer, int id)
+    {
+     uint rnd_int = wang_hash(id);
+     rnd_buffer[id] = rnd_int;
+    }
+
+float random_float(__global unsigned int * rnd_buffer, int id)
+    {
+     uint maxint = 0;
+     maxint--;
+     uint rnd_int = wang_hash(rnd_buffer[id]);
+     rnd_buffer[id] = rnd_int;
+     return ((float)rnd_int) / (float)maxint;
+    }
+
+
+ __kernel void randomize_seed_init(__global unsigned int *rnd_buffer)
+    {
+       int id = get_global_id(0);
+       randomize_buffer_seed(rnd_buffer, id);
+    }
+
+ __kernel void fill_random_float_buffer(__global unsigned int * rnd_buffer, float * float_buffer)
+    {
+    int id = get_global_id(0);
+    float_buffer[id] = random_float(rnd_buffer, id);
+    }
+
+
+// ------------------------------------------------------------------------------------------------
+// PHOTON PHYSICS
+// ------------------------------------------------------------------------------------------------
+
+
+void decreaseWeightBy(__global photonStruct *photons, float delta_weight, uint gid)
 {
-    int gid = get_global_id(0);
-        photon[gid].weight -= delta_weight[gid];
-        if photon[gid].weight > 0.0001
-        {
-            logger[loggerIndex + gid].position = photon[gid].position;
-            logger[loggerIndex + gid].delta_weight = delta_weight[gid];
-            loggerIndex++;
-        }
+        photons[gid].weight -= delta_weight;
 }
 
-
-__kernel void interact(__global photonStruct *photon, __constant materialStruct *mat)
+void moveBy(__global photonStruct *photons, float distance, uint gid)
 {
-    int gid = get_global_id(0);
-    float delta = photon[gid].weight * mat[photon[gid].material_id].albedo;
-    decreaseWeightBy(photon, delta);
+        photons[gid].position += distance * photons[gid].direction;
 }
 
-
-__kernel void moveBy(__global photonStruct *photon, float *distance)
+float getScatteringDistance(__global photonStruct *photons,__constant materialStruct *materials, __global float * randomNums, uint gid)
 {
-    int gid = get_global_id(0);
-        photon[gid].position += distance[gid] * photon[gid].direction;
-}
-
-
-    
-
-
-
-// MATERIAL KERNELS
-__kernel void getScatteringDistances(__constant materialStruct *material, int amount)
-{
-    int gid = get_global_id(0);
-
+    return -log(randomNums[gid]) / materials[photons[gid].material_id].albedo;
 }
 
 
 // PROPAGATE KERNELS
-__kernel void propagate(__global photonStruct *photons, __global float *randomNum, uint rnd_index)
+__kernel void propagate(__global photonStruct *photons, __constant materialStruct *materials, __global float *randomNums, __global uint * rnd_buffer)
 {
     int gid = get_global_id(0);
-    while(photons[gid].weight > 0)
+    while(photons[gid].weight > 0.0001)
     {
-        moveBy(photons, 1.0f);
-        decreaseWeightBy(photons, 0.3f);
+        randomNums[gid] = random_float(rnd_buffer, gid);
+        float distance = getScatteringDistance(photons, materials, randomNums, gid);
+        moveBy(photons, distance, gid);
+        decreaseWeightBy(photons, 0.3f, gid);
     }
 }
-
-
-
-
-
-//__kernel void roulette(__global photonStruct *photon, ){
-//    int gid = get_global_id(0);
-//    uint2 seed;
-//    seed.x = 1;
-//    seed.y = 2;
-//    float *randomBuffer;
-//    float chance = 0.1;
-//    if (photon[gid].weight >= 0.0001){return;}
-//    else if (randomBuffer[gid] < chance){
-//        photon[gid].weight /= chance;
-//    }
-//    else{
-//        photon[gid].weight = 0;
-//    }
