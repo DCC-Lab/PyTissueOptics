@@ -45,6 +45,23 @@ class IntersectionFinder:
             closestIntersection.distanceLeft = ray.length - closestIntersection.distance
         return closestIntersection
 
+    @staticmethod
+    def _smooth(intersection: Intersection):
+        """ If the intersecting polygon was prepared for smoothing (ie. it has vertex
+        normals), we interpolate the normal at the intersection point using the normal
+        of all its vertices. The interpolation is done using barycentric coordinates. """
+
+        if not intersection or not intersection.polygon.toSmooth:
+            return
+        # todo: add normal field in intersection? we cannot modify the polygon normal
+        #  itself since it might affect next calculations
+
+        # alter Intersection in-place
+        # N = uA + vB + wC  for triangle.
+        # For general case, lookup http://www.geometry.caltech.edu/pubs/MHBD02.pdf
+        # u, v, w calculated with sub triangle areas over whole area
+        # N.normalize()
+
 
 class SimpleIntersectionFinder(IntersectionFinder):
     def findIntersection(self, ray: Ray) -> Optional[Intersection]:
@@ -53,6 +70,7 @@ class SimpleIntersectionFinder(IntersectionFinder):
         for (distance, solid) in bboxIntersections:
             intersection = self._findClosestPolygonIntersection(ray, solid.getPolygons())
             if intersection:
+                self._smooth(intersection)
                 return intersection
         return None
 

@@ -161,15 +161,15 @@ class Solid:
         return False
 
     def smooth(self, surfaceName: str = None):
-        # todo: change all usage of Vector to Vertex(Vector) or rename
-        #  Vector to Vertex or add optional normal attr in Vector or whatever
-        # todo: when intersecting, check for presence of vertex normal on hitPolygon
-        #  if there is one, then launch barycentric smoothing (we could also
-        #  add a isSmoothed boolean on polygon class instead but.....
+        """ Prepare smoothing by calculating vertex normals. This is not done
+        by default. The vertex normals are used during ray-polygon intersection
+        to return an interpolated (smooth) normal. A vertex normal is defined
+        by taking the average normal of all adjacent polygons. """
 
         polygons = self.getPolygons(surfaceName)
 
         for polygon in polygons:
+            polygon.toSmooth = True
             for vertex in polygon.vertices:
                 if vertex.normal:
                     vertex.normal += polygon.normal

@@ -26,6 +26,7 @@ class Polygon:
         self._centroid = None
         self.resetCentroid()
         self.resetBoundingBox()
+        self.toSmooth = False
 
     def __eq__(self, other: 'Polygon'):
         for vertex in self._vertices:
