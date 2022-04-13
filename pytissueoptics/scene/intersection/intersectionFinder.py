@@ -62,8 +62,8 @@ class IntersectionFinder:
                                     polygon.normal, polygon.insideMaterial, polygon.outsideMaterial)
         if ray.length is not None:
             intersection.distanceLeft = ray.length - intersectionInfo.distance
-        if polygon.toSmooth:
-            intersection.normal = shader.getSmoothNormal(polygon, intersection.position)
+
+        intersection.normal = shader.getSmoothNormal(polygon, intersection.position)
         return intersection
 
 

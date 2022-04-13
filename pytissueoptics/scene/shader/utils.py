@@ -8,13 +8,14 @@ def getSmoothNormal(polygon: Polygon, position: Vector) -> Vector:
     normals), we interpolate the normal at the intersection point using the normal
     of all its vertices. The interpolation is done using the general barycentric
     coordinates algorithm from http://www.geometry.caltech.edu/pubs/MHBD02.pdfv. """
-    # todo: test and PR
+    if not polygon.toSmooth:
+        return polygon.normal
 
     weights = _getBarycentricWeights(polygon.vertices, position)
 
     smoothNormal = Vector(0, 0, 0)
     for weight, vertex in zip(weights, polygon.vertices):
-        smoothNormal += weight * vertex.normal
+        smoothNormal += vertex.normal * weight
     smoothNormal.normalize()
 
     return smoothNormal
