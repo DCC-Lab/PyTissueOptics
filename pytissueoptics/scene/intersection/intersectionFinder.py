@@ -1,3 +1,4 @@
+import math
 import sys
 from dataclasses import dataclass
 from typing import List, Tuple, Optional
@@ -65,18 +66,35 @@ class IntersectionFinder:
             intersection.normal = self._getSmoothNormal(polygon, intersection.position)
         return intersection
 
-    @staticmethod
-    def _getSmoothNormal(polygon, position):
+    def _getSmoothNormal(self, polygon, position):
         """ If the intersecting polygon was prepared for smoothing (ie. it has vertex
         normals), we interpolate the normal at the intersection point using the normal
-        of all its vertices. The interpolation is done using barycentric coordinates. """
+        of all its vertices. The interpolation is done using the general barycentric
+        coordinates algorithm from http://www.geometry.caltech.edu/pubs/MHBD02.pdfv. """
+        # todo: move to shader module and test
+        weights = []
+        n = len(polygon.vertices)
+        for i, vertex in enumerate(polygon.vertices):
+            prevVertex = polygon.vertices[(i - 1) % n]
+            nextVertex = polygon.vertices[(i + 1) % n]
+            w = (self._cotangent(position, vertex, prevVertex) +
+                 self._cotangent(position, vertex, nextVertex)) / (position - vertex).getNorm() ** 2
+            weights.append(w)
+        weights = [w/sum(weights) for w in weights]
 
-        # alter Intersection in-place
-        # N = uA + vB + wC  for triangle.
-        # For general case, lookup http://www.geometry.caltech.edu/pubs/MHBD02.pdf
-        # u, v, w calculated with sub triangle areas over whole area
-        # N.normalize()
-        return polygon.normal
+        smoothNormal = Vector(0, 0, 0)
+        for weight, vertex in zip(weights, polygon.vertices):
+            smoothNormal += weight * vertex.normal
+        smoothNormal.normalize()
+
+        return smoothNormal
+
+    @staticmethod
+    def _cotangent(a, b, c):
+        """ Cotangent of triangle abc at vertex b. """
+        ba = a - b
+        bc = c - b
+        return bc.dot(ba) / bc.cross(ba).getNorm()
 
 
 class SimpleIntersectionFinder(IntersectionFinder):
