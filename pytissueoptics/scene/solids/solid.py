@@ -169,12 +169,13 @@ class Solid:
 
         polygons = self.getPolygons(surfaceName)
 
-        for vertex in self.vertices:
-            vertex.normal = Vector(0, 0, 0)
-
         for polygon in polygons:
             for vertex in polygon.vertices:
-                vertex.normal += polygon.normal
+                if vertex.normal:
+                    vertex.normal += polygon.normal
+                else:
+                    vertex.normal = polygon.normal.copy()
 
         for vertex in self.vertices:
-            vertex.normal.normalize()
+            if vertex.normal:
+                vertex.normal.normalize()
