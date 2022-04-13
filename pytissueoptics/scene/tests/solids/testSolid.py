@@ -1,3 +1,4 @@
+import math
 import unittest
 
 from mockito import mock, verify, when
@@ -109,6 +110,22 @@ class TestSolid(unittest.TestCase):
     def testGivenASolidWithInterfaces_shouldBeAStack(self):
         self.solid.surfaces.add("Interface0", [])
         self.assertTrue(self.solid.isStack())
+
+    def testWhenSmooth_shouldSetVertexNormalAsAverageOfAdjacentPolygonNormals(self):
+        self.solid.smooth()
+
+        frontVertex = self.solid.vertices[0]
+        self.assertAlmostEqual(1/math.sqrt(3), frontVertex.normal.x)
+        self.assertAlmostEqual(1/math.sqrt(3), frontVertex.normal.y)
+        self.assertAlmostEqual(1/math.sqrt(3), frontVertex.normal.z)
+
+    def testWhenSmoothWithSurfaceName_shouldOnlySmoothPolygonsFromThisSurface(self):
+        self.solid.smooth("Front")
+
+        frontVertex = self.solid.vertices[0]
+        self.assertEqual(Vector(0, 0, 1), frontVertex.normal)
+        backVertex = self.solid.vertices[5]
+        self.assertEqual(Vector(0, 0, 0), backVertex.normal)
 
     @staticmethod
     def createPolygonMock() -> Polygon:

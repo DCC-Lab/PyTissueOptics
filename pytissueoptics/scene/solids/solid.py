@@ -159,3 +159,22 @@ class Solid:
             if "Interface" in surfaceName:
                 return True
         return False
+
+    def smooth(self, surfaceName: str = None):
+        # todo: change all usage of Vector to Vertex(Vector) or rename
+        #  Vector to Vertex or add optional normal attr in Vector or whatever
+        # todo: when intersecting, check for presence of vertex normal on hitPolygon
+        #  if there is one, then launch barycentric smoothing (we could also
+        #  add a isSmoothed boolean on polygon class instead but.....
+
+        polygons = self.getPolygons(surfaceName)
+
+        for vertex in self.vertices:
+            vertex.normal = Vector(0, 0, 0)
+
+        for polygon in polygons:
+            for vertex in polygon.vertices:
+                vertex.normal += polygon.normal
+
+        for vertex in self.vertices:
+            vertex.normal.normalize()
