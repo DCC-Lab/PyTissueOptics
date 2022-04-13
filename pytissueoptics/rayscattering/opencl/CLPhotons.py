@@ -43,6 +43,7 @@ class CLPhotons:
             photonStruct = np.dtype(
                 [("position", cl.cltypes.float4),
                  ("direction", cl.cltypes.float4),
+                 ("er", cl.cltypes.float4),
                  ("weight", cl.cltypes.float),
                  ("material_id", cl.cltypes.uint)])
             name = "photonStruct"
@@ -89,6 +90,7 @@ class CLPhotons:
         for i, p in enumerate(photons):
             self.HOST_photons[i]["position"] = cl.cltypes.make_float4(p.position.x, p.position.y, p.position.z, 0)
             self.HOST_photons[i]["direction"] = cl.cltypes.make_float4(p.direction.x, p.direction.y, p.direction.z, 0)
+            self.HOST_photons[i]["er"] = cl.cltypes.make_float4(p.er.x, p.er.y, p.er.z, 0)
             self.HOST_photons[i]["weight"] = p.weight
             self.HOST_photons[i]["material_id"] = 0
 
