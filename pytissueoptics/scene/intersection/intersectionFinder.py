@@ -1,9 +1,8 @@
-import math
 import sys
 from dataclasses import dataclass
 from typing import List, Tuple, Optional
 
-from pytissueoptics.scene import Material
+from pytissueoptics.scene import Material, shader
 from pytissueoptics.scene.geometry import Vector, Polygon
 from pytissueoptics.scene.intersection import Ray
 from pytissueoptics.scene.tree import SpacePartition, Node
@@ -54,7 +53,8 @@ class IntersectionFinder:
             return None
         return closestIntersectionInfo
 
-    def _makeIntersection(self, ray: Ray, intersectionInfo: IntersectionInfo) -> Optional[Intersection]:
+    @staticmethod
+    def _makeIntersection(ray: Ray, intersectionInfo: IntersectionInfo) -> Optional[Intersection]:
         if not intersectionInfo:
             return None
         polygon = intersectionInfo.polygon
@@ -63,38 +63,8 @@ class IntersectionFinder:
         if ray.length is not None:
             intersection.distanceLeft = ray.length - intersectionInfo.distance
         if polygon.toSmooth:
-            intersection.normal = self._getSmoothNormal(polygon, intersection.position)
+            intersection.normal = shader.getSmoothNormal(polygon, intersection.position)
         return intersection
-
-    def _getSmoothNormal(self, polygon, position):
-        """ If the intersecting polygon was prepared for smoothing (ie. it has vertex
-        normals), we interpolate the normal at the intersection point using the normal
-        of all its vertices. The interpolation is done using the general barycentric
-        coordinates algorithm from http://www.geometry.caltech.edu/pubs/MHBD02.pdfv. """
-        # todo: move to shader module and test
-        weights = []
-        n = len(polygon.vertices)
-        for i, vertex in enumerate(polygon.vertices):
-            prevVertex = polygon.vertices[(i - 1) % n]
-            nextVertex = polygon.vertices[(i + 1) % n]
-            w = (self._cotangent(position, vertex, prevVertex) +
-                 self._cotangent(position, vertex, nextVertex)) / (position - vertex).getNorm() ** 2
-            weights.append(w)
-        weights = [w/sum(weights) for w in weights]
-
-        smoothNormal = Vector(0, 0, 0)
-        for weight, vertex in zip(weights, polygon.vertices):
-            smoothNormal += weight * vertex.normal
-        smoothNormal.normalize()
-
-        return smoothNormal
-
-    @staticmethod
-    def _cotangent(a, b, c):
-        """ Cotangent of triangle abc at vertex b. """
-        ba = a - b
-        bc = c - b
-        return bc.dot(ba) / bc.cross(ba).getNorm()
 
 
 class SimpleIntersectionFinder(IntersectionFinder):
