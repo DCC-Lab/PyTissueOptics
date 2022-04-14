@@ -20,6 +20,7 @@ class TestCylinder(unittest.TestCase):
         perfectCylinderArea = (2 * math.pi) + (2 * math.pi * 2)
         tolerance = 0.05
         cylinderArea = self._getTotalTrianglesArea(cylinder.getPolygons())
+
         self.assertAlmostEqual(perfectCylinderArea, cylinderArea, delta=tolerance * perfectCylinderArea)
 
     def testGivenAHighOrderCylinder_shouldApproachCorrectCylinderAreaTo1TenthOfAPercent(self):
@@ -27,6 +28,7 @@ class TestCylinder(unittest.TestCase):
         perfectCylinderArea = (2 * math.pi) + (2 * math.pi * 2)
         tolerance = 0.001
         cylinderArea = self._getTotalTrianglesArea(cylinder.getPolygons())
+
         self.assertAlmostEqual(perfectCylinderArea, cylinderArea, delta=tolerance * perfectCylinderArea)
 
     @staticmethod
@@ -42,15 +44,15 @@ class TestCylinder(unittest.TestCase):
         cylinder = Cylinder(radius=1, height=3, u=32, v=2, position=Vector(2, 2, 0))
         cylinder.rotate(0, 30, 0)
         vertices = [Vector(3.4, 2, 2.4), Vector(2, 2, 0.5)]
-        result = cylinder.contains(*vertices)
-        self.assertTrue(result)
+
+        self.assertTrue(cylinder.contains(*vertices))
 
     def testWhenContainsWithVerticesThatAreNotAllInsideTheCylinder_shouldReturnFalse(self):
         cylinder = Cylinder(radius=1, height=3, u=32, v=2, position=Vector(2, 2, 0))
         cylinder.rotate(0, 30, 0)
         vertices = [Vector(3.51, 2, 2.6), Vector(2, 2, 0.5)]
-        result = cylinder.contains(*vertices)
-        self.assertFalse(result)
+                
+        self.assertFalse(cylinder.contains(*vertices))
 
     def testWhenContainsWithVerticesOutsideMinRadius_shouldReturnFalse(self):
         cylinder = Cylinder(radius=1000, height=3, u=6, position=Vector(0, 0, 0))
