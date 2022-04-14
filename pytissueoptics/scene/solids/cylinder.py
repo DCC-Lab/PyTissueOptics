@@ -1,4 +1,5 @@
 from math import cos, sin, pi
+from typing import Optional
 
 from pytissueoptics.scene.geometry import Vector, Triangle, primitives, utils
 from pytissueoptics.scene.materials import Material
@@ -15,7 +16,8 @@ class Cylinder(Solid):
             raise ValueError("u must be > 2 and v must be > 1")
         self._u = u
         self._v = v
-        super().__init__(position=position, material=material, primitive=primitive, vertices=[])
+        self._direction = Vector(0, 0, 1)
+        super().__init__(position=position, material=material, primitive=primitive, vertices=[self._direction])
 
     def _computeTriangleMesh(self):
         verticesGroups = self._computeVertices()
@@ -39,8 +41,9 @@ class Cylinder(Solid):
         return verticesGroups
 
     def getMidVertex(self, i: int, j: int, radianStep: float, verticalStep: float) -> Vector:
-        x = self._radius * cos(i * radianStep)
-        y = self._radius * sin(i * radianStep)
+        shrinkFactor = self._getShrinkFactor(verticalStep * j)
+        x = self._radius * shrinkFactor * cos(i * radianStep)
+        y = self._radius * shrinkFactor * sin(i * radianStep)
         z = j * verticalStep
         return Vector(x, y, z)
 
@@ -77,4 +80,32 @@ class Cylinder(Solid):
         raise NotImplementedError("Quad mesh not implemented for Cylinder")
 
     def contains(self, *vertices: Vector) -> bool:
-        raise NotImplementedError("Contains not implemented for Cylinder")
+        for vertex in vertices:
+            self._direction.normalize()
+            localPoint = vertex - self._position
+            alongCylinder = self._direction.dot(localPoint)
+            if alongCylinder < 0 or alongCylinder > self._height:
+                return False
+            else:
+                radiusCheck = self._radiusAtHeightAlong(alongCylinder)
+                radialDistanceFromBase = (localPoint - self._direction * alongCylinder).getNorm()
+                if radialDistanceFromBase > radiusCheck:
+                    return False
+        return True
+
+    def _radiusAtHeightAlong(self, heightAlong: float) -> float:
+        shrinkFactor = self._getShrinkFactor(heightAlong)
+        return self._radius * shrinkFactor
+
+    @staticmethod
+    def _getShrinkFactor(heightAlong: float) -> float:
+        return 1
+
+    @staticmethod
+    def _intersectPlane(planeNormal: Vector, planePoint: Vector, vertex: Vector, tol=1e-6) -> Optional[Vector]:
+        coplanar = planeNormal.dot(vertex)
+        if abs(coplanar) > tol:
+            t = planePoint.dot(planeNormal) / coplanar
+            hit = vertex * t
+            return hit
+        return None
