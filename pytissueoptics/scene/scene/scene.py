@@ -19,14 +19,15 @@ class Scene:
         if position:
             solid.translateTo(position)
         if not self._ignoreIntersections:
-            self._validate(solid)
+            self._validatePosition(solid)
+        self._validateName(solid)
         self._solids.append(solid)
 
     @property
     def solids(self):
         return self._solids
 
-    def _validate(self, newSolid: Solid):
+    def _validatePosition(self, newSolid: Solid):
         """ Assert newSolid position is valid and make proper adjustments so that the
         material at each solid interface is well defined. """
         if len(self._solids) == 0:
@@ -52,6 +53,16 @@ class Scene:
 
         for (solid, material) in solidUpdates.items():
             solid.setOutsideMaterial(material)
+
+    def _validateName(self, solid):
+        nameSet = set(s.getName() for s in self.solids)
+        if solid.getName() not in nameSet:
+            return
+
+        idx = 0
+        while f"{solid.getName()}_{idx}" in nameSet:
+            idx += 1
+        solid.setName(f"{solid.getName()}_{idx}")
 
     def _findIntersectingSuspectsFor(self, solid) -> List[Solid]:
         solidBBox = solid.getBoundingBox()

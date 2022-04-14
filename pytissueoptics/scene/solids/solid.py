@@ -19,7 +19,7 @@ class Solid:
         self._position = Vector(0, 0, 0)
         self._orientation: Rotation = Rotation()
         self._bbox = None
-        self.name = name
+        self._name = name
 
         if not self._surfaces:
             self._computeMesh()
@@ -54,6 +54,12 @@ class Solid:
 
     def getVertices(self) -> List[Vector]:
         return self.vertices
+
+    def getName(self) -> str:
+        return self._name
+
+    def setName(self, name: str):
+        self._name = name
 
     def _resetBoundingBoxes(self):
         self._bbox = BoundingBox.fromVertices(self._vertices)

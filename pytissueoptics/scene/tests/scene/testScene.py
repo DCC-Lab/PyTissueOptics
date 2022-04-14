@@ -14,7 +14,7 @@ class TestScene(unittest.TestCase):
 
     def testWhenAddingASolidAtAPosition_shouldPlaceTheSolidAtTheDesiredPosition(self):
         SOLID_POSITION = Vector(4, 0, 1)
-        SOLID = mock(Solid)
+        SOLID = self.makeSolidWith()
         when(SOLID).translateTo(...).thenReturn()
 
         self.scene.add(SOLID, position=SOLID_POSITION)
@@ -22,11 +22,8 @@ class TestScene(unittest.TestCase):
         verify(SOLID).translateTo(SOLID_POSITION)
 
     def testWhenAddingASolidAtNoSpecificPosition_shouldKeepTheSolidAtItsPredefinedPosition(self):
-        SOLID = mock(Solid)
-        when(SOLID).translateTo(...).thenReturn()
-
+        SOLID = self.makeSolidWith()
         self.scene.add(SOLID)
-
         verify(SOLID, times=0).translateTo(...)
 
     def testWhenAddingASolidThatPartlyOverlapsWithAnotherOne_shouldNotAdd(self):
@@ -144,9 +141,20 @@ class TestScene(unittest.TestCase):
         scene = Scene()
         self.assertIsNone(scene.getBoundingBox())
 
+    def testWhenAddingASolidWithExistingName_shouldRenameToAUniqueName(self):
+        solid1 = self.makeSolidWith()
+        solid2 = self.makeSolidWith()
+
+        Scene([solid1, solid2], ignoreIntersections=True)
+
+        verify(solid1, times=0).setName(...)
+        verify(solid2).setName("Solid_0")
+
     @staticmethod
-    def makeSolidWith(bbox: BoundingBox, contains=False, isStack=False):
+    def makeSolidWith(bbox: BoundingBox = None, contains=False, isStack=False):
         solid = mock(Solid)
+        when(solid).getName().thenReturn("Solid")
+        when(solid).setName(...).thenReturn()
         when(solid).getBoundingBox().thenReturn(bbox)
         when(solid).isStack().thenReturn(isStack)
         when(solid).getVertices().thenReturn([])
