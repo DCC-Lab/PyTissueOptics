@@ -5,10 +5,8 @@ from pytissueoptics.scene.geometry import Polygon
 
 
 class SurfaceCollection:
-    def __init__(self, surfaces=None):
-        if surfaces is None:
-            surfaces = {}
-        self._surfaces: Dict[str, List[Polygon]] = surfaces
+    def __init__(self):
+        self._surfaces: Dict[str, List[Polygon]] = {}
 
     @property
     def surfaceNames(self) -> List[str]:
@@ -16,7 +14,8 @@ class SurfaceCollection:
 
     def add(self, surfaceName: str, polygons: List[Polygon]):
         assert not self._contains(surfaceName), "A surface with the same name already exists. "
-        self._surfaces[surfaceName] = polygons
+        self._surfaces[surfaceName] = []
+        self.setPolygons(surfaceName, polygons)
 
     def getPolygons(self, surfaceName: str = None) -> List[Polygon]:
         if surfaceName:
@@ -30,6 +29,9 @@ class SurfaceCollection:
 
     def setPolygons(self, surfaceName: str, polygons: List[Polygon]):
         self._assertContains(surfaceName)
+        for polygon in polygons:
+            polygon.surfaceName = surfaceName
+
         self._surfaces[surfaceName] = polygons
 
     def setOutsideMaterial(self, material: Material, surfaceName: str = None):

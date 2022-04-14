@@ -14,11 +14,13 @@ class Polygon:
     """
 
     def __init__(self, vertices: List[Vector], normal: Vector = None,
-                 insideMaterial: Material = None, outsideMaterial: Material = None):
+                 insideMaterial: Material = None, outsideMaterial: Material = None,
+                 surfaceName: str = None):
         self._vertices = vertices
         self._normal = normal
         self._insideMaterial = insideMaterial
         self._outsideMaterial = outsideMaterial
+        self.surfaceName = surfaceName
         if self._normal is None:
             self.resetNormal()
 
