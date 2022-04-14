@@ -19,18 +19,14 @@ class TestEllipsoid(unittest.TestCase):
         ellipsoid = Ellipsoid(a=1, b=1, c=1, order=3)
         perfectSphereArea = 4 * math.pi
         tolerance = 0.05
-
         ellipsoidArea = self._getTotalTrianglesArea(ellipsoid.getPolygons())
-
         self.assertAlmostEqual(perfectSphereArea, ellipsoidArea, delta=tolerance * perfectSphereArea)
 
     def testGivenALowOrderEllipsoid_shouldApproachCorrectEllipsoidAreaTo5Percent(self):
         ellipsoid = Ellipsoid(a=2, b=3, c=5, order=2)
         perfectEllipsoidArea = self._getPerfectEllipsoidArea(ellipsoid)
         tolerance = 0.05
-
         ellipsoidArea = self._getTotalTrianglesArea(ellipsoid.getPolygons())
-
         self.assertAlmostEqual(perfectEllipsoidArea, ellipsoidArea, delta=perfectEllipsoidArea * tolerance)
         self.assertNotAlmostEqual(perfectEllipsoidArea, ellipsoidArea, 1)
 

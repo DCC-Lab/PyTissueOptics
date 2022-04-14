@@ -1,13 +1,15 @@
 from math import cos, sin, pi
 from typing import Optional
 
+from pytissueoptics import Segment
+from pytissueoptics.scene.viewer import MayaviViewer
 from pytissueoptics.scene.geometry import Vector, Triangle, primitives, utils
 from pytissueoptics.scene.materials import Material
 from pytissueoptics.scene.solids import Solid
 
 
 class Cylinder(Solid):
-    def __init__(self, radius: float = 1, height: float = 1, u: int = 32, v: int = 1,
+    def __init__(self, radius: float = 1, height: float = 1, u: int = 32, v: int = 3,
                  position: Vector = Vector(0, 0, 0), material: Material = None,
                  primitive: str = primitives.DEFAULT):
         self._radius = radius
@@ -16,8 +18,14 @@ class Cylinder(Solid):
             raise ValueError("u must be > 2 and v must be > 1")
         self._u = u
         self._v = v
-        self._direction = Vector(0, 0, 1)
-        super().__init__(position=position, material=material, primitive=primitive, vertices=[self._direction])
+        self._bottomCenter = Vector(0, 0, 0)
+        self._topCenter = Vector(0, 0, height)
+        self._minRadius = cos(pi / self._u) * self._radius
+        super().__init__(position=position, material=material, primitive=primitive, vertices=[self._bottomCenter, self._topCenter])
+
+    @property
+    def direction(self) -> Vector:
+        return self._topCenter - self._bottomCenter
 
     def _computeTriangleMesh(self):
         verticesGroups = self._computeVertices()
@@ -59,21 +67,17 @@ class Cylinder(Solid):
         self._surfaces.add("Middle", middleTriangles)
 
     def _computeBottomTriangles(self, vertices):
-        bottomCenterVertex = Vector(0, 0, 0)
         bottomTriangles = []
         for i in range(self._u):
             nextIndex = (i + 1) % self._u
-            bottomTriangles.append(Triangle(bottomCenterVertex, vertices[i], vertices[nextIndex]))
-        self._vertices.append(bottomCenterVertex)
+            bottomTriangles.append(Triangle(self._bottomCenter, vertices[i], vertices[nextIndex]))
         self._surfaces.add("Bottom", bottomTriangles)
 
     def _computeTopTriangles(self, vertices):
-        topCenterVertex = Vector(0, 0, self._height)
         topTriangles = []
         for i in range(self._u):
             nextIndex = (i + 1) % self._u
-            topTriangles.append(Triangle(topCenterVertex, vertices[i], vertices[nextIndex]))
-        self._vertices.append(topCenterVertex)
+            topTriangles.append(Triangle(self._topCenter, vertices[i], vertices[nextIndex]))
         self._surfaces.add("Top", topTriangles)
 
     def _computeQuadMesh(self):
@@ -81,31 +85,25 @@ class Cylinder(Solid):
 
     def contains(self, *vertices: Vector) -> bool:
         for vertex in vertices:
-            self._direction.normalize()
+            direction = self.direction
+            direction.normalize()
             localPoint = vertex - self._position
-            alongCylinder = self._direction.dot(localPoint)
+            alongCylinder = direction.dot(localPoint)
             if alongCylinder < 0 or alongCylinder > self._height:
                 return False
             else:
-                radiusCheck = self._radiusAtHeightAlong(alongCylinder)
-                radialDistanceFromBase = (localPoint - self._direction * alongCylinder).getNorm()
+                radiusCheck = self._minRadiusAtHeightAlong(alongCylinder)
+                radialComponent = localPoint - direction * alongCylinder
+                radialDistanceFromBase = radialComponent.getNorm()
                 if radialDistanceFromBase > radiusCheck:
                     return False
+
         return True
 
-    def _radiusAtHeightAlong(self, heightAlong: float) -> float:
+    def _minRadiusAtHeightAlong(self, heightAlong: float) -> float:
         shrinkFactor = self._getShrinkFactor(heightAlong)
-        return self._radius * shrinkFactor
+        return self._minRadius * shrinkFactor
 
     @staticmethod
     def _getShrinkFactor(heightAlong: float) -> float:
         return 1
-
-    @staticmethod
-    def _intersectPlane(planeNormal: Vector, planePoint: Vector, vertex: Vector, tol=1e-6) -> Optional[Vector]:
-        coplanar = planeNormal.dot(vertex)
-        if abs(coplanar) > tol:
-            t = planePoint.dot(planeNormal) / coplanar
-            hit = vertex * t
-            return hit
-        return None

@@ -1,0 +1,63 @@
+import unittest
+import math
+
+from pytissueoptics.scene.geometry import Vector
+from pytissueoptics.scene.solids import Cylinder
+
+
+class TestCylinder(unittest.TestCase):
+    def testGivenANewDefault_shouldBePlacedAtOrigin(self):
+        cylinder = Cylinder()
+        self.assertEqual(Vector(0, 0, 0), cylinder.position)
+
+    def testGivenANew_shouldBePlacedAtDesiredPosition(self):
+        position = Vector(2, 2, 1)
+        cylinder = Cylinder(position=position)
+        self.assertEqual(Vector(2, 2, 1), cylinder.position)
+
+    def testGivenALowOrderCylinder_shouldApproachCorrectCylinderAreaTo5Percent(self):
+        cylinder = Cylinder(radius=1, height=2, u=12)
+        perfectCylinderArea = (2 * math.pi) + (2 * math.pi * 2)
+        tolerance = 0.05
+        cylinderArea = self._getTotalTrianglesArea(cylinder.getPolygons())
+        self.assertAlmostEqual(perfectCylinderArea, cylinderArea, delta=tolerance * perfectCylinderArea)
+
+    def testGivenAHighOrderCylinder_shouldApproachCorrectCylinderAreaTo1TenthOfAPercent(self):
+        cylinder = Cylinder(radius=1, height=2, u=100)
+        perfectCylinderArea = (2 * math.pi) + (2 * math.pi * 2)
+        tolerance = 0.001
+        cylinderArea = self._getTotalTrianglesArea(cylinder.getPolygons())
+        self.assertAlmostEqual(perfectCylinderArea, cylinderArea, delta=tolerance * perfectCylinderArea)
+
+    @staticmethod
+    def _getTotalTrianglesArea(surfaces):
+        totalArea = 0
+        for surface in surfaces:
+            AB = surface.vertices[0] - surface.vertices[1]
+            AC = surface.vertices[0] - surface.vertices[2]
+            totalArea += 0.5 * AB.cross(AC).getNorm()
+        return totalArea
+
+    def testWhenContainsWithVerticesThatAreAllInsideTheCylinder_shouldReturnTrue(self):
+        cylinder = Cylinder(radius=1, height=3, u=32, v=2, position=Vector(2, 2, 0))
+        cylinder.rotate(0, 30, 0)
+        vertices = [Vector(3.4, 2, 2.4), Vector(2, 2, 0.5)]
+        result = cylinder.contains(*vertices)
+        self.assertTrue(result)
+
+    def testWhenContainsWithVerticesThatAreNotAllInsideTheCylinder_shouldReturnFalse(self):
+        cylinder = Cylinder(radius=1, height=3, u=32, v=2, position=Vector(2, 2, 0))
+        cylinder.rotate(0, 30, 0)
+        vertices = [Vector(3.51, 2, 2.6), Vector(2, 2, 0.5)]
+        result = cylinder.contains(*vertices)
+        self.assertFalse(result)
+
+    def testWhenContainsWithVerticesOutsideMinRadius_shouldReturnFalse(self):
+        cylinder = Cylinder(radius=1000, height=3, u=6, position=Vector(0, 0, 0))
+        vertices = [Vector(0, 867, 0)]
+        self.assertFalse(cylinder.contains(*vertices))
+
+    def testWhenContainsWithVerticesInsideMinRadius_shouldReturnTrue(self):
+        cylinder = Cylinder(radius=1000, height=3, u=6, position=Vector(0, 0, 0))
+        vertices = [Vector(0, 866, 0)]
+        self.assertTrue(cylinder.contains(*vertices))
