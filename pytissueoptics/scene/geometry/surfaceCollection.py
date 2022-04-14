@@ -1,5 +1,6 @@
 from typing import List, Dict
 
+from pytissueoptics.scene.geometry import Environment
 from pytissueoptics.scene.materials import Material
 from pytissueoptics.scene.geometry import Polygon
 
@@ -34,7 +35,7 @@ class SurfaceCollection:
 
         self._surfaces[surfaceName] = polygons
 
-    def setOutsideMaterial(self, material: Material, surfaceName: str = None):
+    def setOutsideEnvironment(self, environment: Environment, surfaceName: str = None):
         if surfaceName:
             outsidePolygons = self.getPolygons(surfaceName)
         else:
@@ -45,15 +46,15 @@ class SurfaceCollection:
                 outsidePolygons.extend(self.getPolygons(surfaceName))
 
         for polygon in outsidePolygons:
-            polygon.setOutsideMaterial(material)
+            polygon.setOutsideEnvironment(environment)
 
-    def getInsideMaterial(self, surfaceName: str) -> Material:
+    def getInsideEnvironment(self, surfaceName: str) -> Environment:
         polygons = self.getPolygons(surfaceName)
-        material = polygons[0].insideMaterial
+        environment = polygons[0].insideEnvironment
         for polygon in polygons:
-            if polygon.insideMaterial != material:
-                raise Exception("Surface inside material is not constant. ")
-        return material
+            if polygon.insideEnvironment != environment:
+                raise Exception("Surface insideMaterial is not constant. ")
+        return environment
 
     def resetNormals(self):
         for polygon in self.getPolygons():

@@ -1,6 +1,6 @@
 from typing import List, Dict, Optional
 
-from pytissueoptics.scene.materials import Material
+from pytissueoptics.scene.geometry import Environment
 from pytissueoptics.scene.geometry import Vector
 from pytissueoptics.scene.solids import Solid
 from pytissueoptics.scene.geometry import Polygon, BoundingBox
@@ -39,20 +39,20 @@ class Scene:
 
         intersectingSuspects.sort(key=lambda s: s.getBoundingBox().xMax - s.getBoundingBox().xMin, reverse=True)
 
-        solidUpdates: Dict[Solid, Material] = {}
+        solidUpdates: Dict[Solid, Environment] = {}
         for otherSolid in intersectingSuspects:
             if newSolid.contains(*otherSolid.getVertices()):
                 self._assertIsNotAStack(newSolid)
-                solidUpdates[otherSolid] = newSolid.getMaterial()
+                solidUpdates[otherSolid] = newSolid.getEnvironment()
                 break
             elif otherSolid.contains(*newSolid.getVertices()):
                 self._assertIsNotAStack(otherSolid)
-                solidUpdates[newSolid] = otherSolid.getMaterial()
+                solidUpdates[newSolid] = otherSolid.getEnvironment()
             else:
                 raise NotImplementedError("Cannot place a solid that partially intersects with an existing solid. ")
 
-        for (solid, material) in solidUpdates.items():
-            solid.setOutsideMaterial(material)
+        for (solid, environment) in solidUpdates.items():
+            solid.setOutsideEnvironment(environment)
 
     def _validateName(self, solid):
         nameSet = set(s.getName() for s in self.solids)

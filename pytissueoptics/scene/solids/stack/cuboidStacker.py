@@ -1,7 +1,7 @@
 from typing import List
-from pytissueoptics.scene.geometry import Vector
+
+from pytissueoptics.scene.geometry import Vector, SurfaceCollection
 from pytissueoptics.scene.solids.stack.stackResult import StackResult
-from pytissueoptics.scene.geometry import SurfaceCollection
 
 
 class CuboidStacker:
@@ -65,10 +65,10 @@ class CuboidStacker:
     def _configureInterfaceMaterial(self):
         """ Set new interface material and remove duplicate surfaces. """
         try:
-            oppositeMaterial = self._otherCuboid.getMaterial(self._otherSurfaceName)
+            oppositeEnvironment = self._otherCuboid.getEnvironment(self._otherSurfaceName)
         except:
             raise Exception("Ill-defined interface material: Can only stack another stack along its stacked axis.")
-        self._onCuboid.setOutsideMaterial(oppositeMaterial, self._onSurfaceName)
+        self._onCuboid.setOutsideEnvironment(oppositeEnvironment, self._onSurfaceName)
 
         self._otherCuboid.setPolygons(surfaceName=self._otherSurfaceName,
                                       polygons=self._onCuboid.getPolygons(self._onSurfaceName))

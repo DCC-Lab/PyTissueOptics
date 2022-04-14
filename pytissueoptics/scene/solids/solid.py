@@ -3,9 +3,8 @@ from typing import List
 import numpy as np
 
 from pytissueoptics.scene.geometry import Vector, utils, Polygon, Rotation, BoundingBox
-from pytissueoptics.scene.geometry import primitives
+from pytissueoptics.scene.geometry import primitives, Environment, SurfaceCollection
 from pytissueoptics.scene.materials import Material
-from pytissueoptics.scene.geometry import SurfaceCollection
 
 
 class Solid:
@@ -25,7 +24,7 @@ class Solid:
             self._computeMesh()
 
         self.translateTo(position)
-        self._setInsideMaterial()
+        self._setInsideEnvironment()
         self._resetBoundingBoxes()
         self._resetPolygonsCentroids()
 
@@ -104,14 +103,14 @@ class Solid:
         self._resetBoundingBoxes()
         self._resetPolygonsCentroids()
 
-    def getMaterial(self, surfaceName: str = None) -> Material:
+    def getEnvironment(self, surfaceName: str = None) -> Environment:
         if surfaceName:
-            return self.surfaces.getInsideMaterial(surfaceName)
+            return self.surfaces.getInsideEnvironment(surfaceName)
         else:
-            return self._material
+            return Environment(self._material, self)
 
-    def setOutsideMaterial(self, material: Material, surfaceName: str = None):
-        self._surfaces.setOutsideMaterial(material, surfaceName)
+    def setOutsideEnvironment(self, environment: Environment, surfaceName: str = None):
+        self._surfaces.setOutsideEnvironment(environment, surfaceName)
 
     @property
     def surfaceNames(self) -> List[str]:
@@ -153,11 +152,9 @@ class Solid:
     def _computeQuadMesh(self):
         raise NotImplementedError(f"Quad mesh not implemented for Solids of type {type(self).__name__}")
 
-    def _setInsideMaterial(self):
-        if self._material is None:
-            return
+    def _setInsideEnvironment(self):
         for polygon in self._surfaces.getPolygons():
-            polygon.setInsideMaterial(self._material)
+            polygon.setInsideEnvironment(Environment(self._material, self))
 
     def contains(self, *vertices: Vector) -> bool:
         raise NotImplementedError
