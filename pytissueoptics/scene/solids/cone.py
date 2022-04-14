@@ -2,7 +2,6 @@ from pytissueoptics.scene.solids import Cylinder
 
 
 class Cone(Cylinder):
-
     def _getShrinkFactor(self, heightAlong: float) -> float:
         return (self._height - heightAlong) / self._height
 
