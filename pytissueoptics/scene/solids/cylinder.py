@@ -1,4 +1,4 @@
-from math import cos, sin, pi
+import math
 from typing import List
 
 from pytissueoptics.scene.geometry import Vector, Triangle, primitives
@@ -18,7 +18,7 @@ class Cylinder(Solid):
         self._v = v
         self._bottomCenter = Vector(0, 0, 0)
         self._topCenter = Vector(0, 0, height)
-        self._minRadius = cos(pi / self._u) * self._radius
+        self._minRadius = math.cos(math.pi / self._u) * self._radius
         super().__init__(position=position, material=material, primitive=primitive,
                          vertices=[self._bottomCenter, self._topCenter])
 
@@ -34,7 +34,7 @@ class Cylinder(Solid):
 
     def _computeVertices(self) -> List[List[Vector]]:
         verticesGroups = []
-        radianStep = 2 * pi / self._u
+        radianStep = 2 * math.pi / self._u
         verticalStep = self._height / self._v
 
         for j in range(0, self._v + 1):
@@ -49,8 +49,8 @@ class Cylinder(Solid):
 
     def getMidVertex(self, i: int, j: int, radianStep: float, verticalStep: float) -> Vector:
         shrinkFactor = self._getShrinkFactor(verticalStep * j)
-        x = self._radius * shrinkFactor * cos(i * radianStep)
-        y = self._radius * shrinkFactor * sin(i * radianStep)
+        x = self._radius * shrinkFactor * math.cos(i * radianStep)
+        y = self._radius * shrinkFactor * math.sin(i * radianStep)
         z = j * verticalStep
         return Vector(x, y, z)
 
