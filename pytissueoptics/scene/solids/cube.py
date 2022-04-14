@@ -7,6 +7,6 @@ from pytissueoptics.scene.solids import Cuboid
 class Cube(Cuboid):
     def __init__(self, edge: float,
                  position: Vector = Vector(0, 0, 0), material: Material = Material(),
-                 primitive: str = primitives.DEFAULT):
+                 name: str = "Cube", primitive: str = primitives.DEFAULT):
         super().__init__(a=edge, b=edge, c=edge, position=position,
-                         material=material, primitive=primitive)
+                         material=material, name=name, primitive=primitive)

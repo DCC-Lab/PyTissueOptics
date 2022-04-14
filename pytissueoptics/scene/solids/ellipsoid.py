@@ -17,14 +17,14 @@ class Ellipsoid(Solid):
 
     def __init__(self, a: float = 1, b: float = 1, c: float = 1, order: int = 3,
                  position: Vector = Vector(0, 0, 0), material: Material = None,
-                 primitive: str = primitives.DEFAULT):
+                 name: str = "Ellipsoid", primitive: str = primitives.DEFAULT):
 
         self._a = a
         self._b = b
         self._c = c
         self._order = order
 
-        super().__init__(position=position, material=material, primitive=primitive, vertices=[])
+        super().__init__(position=position, material=material, name=name, primitive=primitive, vertices=[])
 
     def _computeTriangleMesh(self):
         """

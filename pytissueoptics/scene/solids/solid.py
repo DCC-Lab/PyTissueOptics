@@ -10,7 +10,8 @@ from pytissueoptics.scene.geometry import SurfaceCollection
 
 class Solid:
     def __init__(self, vertices: List[Vector], position: Vector = Vector(0, 0, 0),
-                 surfaces: SurfaceCollection = None, material: Material = None, primitive: str = primitives.DEFAULT):
+                 surfaces: SurfaceCollection = None, material: Material = None,
+                 name: str = "Solid", primitive: str = primitives.DEFAULT):
         self._vertices = vertices
         self._surfaces = surfaces
         self._material = material
@@ -18,6 +19,7 @@ class Solid:
         self._position = Vector(0, 0, 0)
         self._orientation: Rotation = Rotation()
         self._bbox = None
+        self.name = name
 
         if not self._surfaces:
             self._computeMesh()

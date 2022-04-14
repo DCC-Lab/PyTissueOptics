@@ -23,7 +23,7 @@ class Cuboid(Solid):
 
     def __init__(self, a: float, b: float, c: float,
                  vertices: List[Vector] = None, position: Vector = Vector(0, 0, 0), surfaces: SurfaceCollection = None,
-                 material: Material = None, primitive: str = primitives.DEFAULT):
+                 material: Material = None, name: str = "Cuboid", primitive: str = primitives.DEFAULT):
 
         self.shape = [a, b, c]
 
@@ -33,7 +33,7 @@ class Cuboid(Solid):
                         Vector(-a / 2, -b / 2, -c / 2), Vector(a / 2, -b / 2, -c / 2), Vector(a / 2, b / 2, -c / 2),
                         Vector(-a / 2, b / 2, -c / 2)]
 
-        super().__init__(vertices, position, surfaces, material, primitive)
+        super().__init__(vertices, position, surfaces, material, name, primitive)
 
     def _computeTriangleMesh(self):
         V = self._vertices
@@ -73,13 +73,13 @@ class Cuboid(Solid):
         return Cuboid._fromStackResult(stackResult)
 
     @classmethod
-    def _fromStackResult(cls, stackResult: StackResult) -> 'Cuboid':
+    def _fromStackResult(cls, stackResult: StackResult, name="CuboidStack") -> 'Cuboid':
         # subtracting stackCentroid from all vertices because solid creation will translate back to position.
         for vertex in stackResult.vertices:
             vertex.subtract(stackResult.position)
 
         return Cuboid(*stackResult.shape, position=stackResult.position, vertices=stackResult.vertices,
-                      surfaces=stackResult.surfaces, primitive=stackResult.primitive)
+                      surfaces=stackResult.surfaces, name=name, primitive=stackResult.primitive)
 
     def contains(self, *vertices: Vector) -> bool:
         vertices = np.asarray([vertex.array for vertex in vertices])
