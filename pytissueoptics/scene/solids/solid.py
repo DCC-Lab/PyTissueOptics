@@ -10,7 +10,8 @@ from pytissueoptics.scene.geometry import SurfaceCollection
 
 class Solid:
     def __init__(self, vertices: List[Vertex], position: Vector = Vector(0, 0, 0),
-                 surfaces: SurfaceCollection = None, material: Material = None, primitive: str = primitives.DEFAULT):
+                 surfaces: SurfaceCollection = None, material: Material = None,
+                 primitive: str = primitives.DEFAULT, smooth: bool = False):
         self._vertices = vertices
         self._surfaces = surfaces
         self._material = material
@@ -26,6 +27,9 @@ class Solid:
         self._setInsideMaterial()
         self._resetBoundingBoxes()
         self._resetPolygonsCentroids()
+
+        if smooth:
+            self.smooth()
 
     @property
     def position(self) -> Vector:
@@ -164,7 +168,12 @@ class Solid:
         """ Prepare smoothing by calculating vertex normals. This is not done
         by default. The vertex normals are used during ray-polygon intersection
         to return an interpolated (smooth) normal. A vertex normal is defined
-        by taking the average normal of all adjacent polygons. """
+        by taking the average normal of all adjacent polygons.
+
+        This base implementation will smooth all surfaces by default. This can
+        be changed by overwriting the signature with a specific surfaceName in
+        another solid implementation and calling super().smooth(surfaceName).
+        """
 
         polygons = self.getPolygons(surfaceName)
 
