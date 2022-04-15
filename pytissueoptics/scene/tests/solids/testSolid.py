@@ -2,7 +2,7 @@ import unittest
 
 from mockito import mock, verify, when
 
-from pytissueoptics.scene.geometry import Vector, Quad, Polygon
+from pytissueoptics.scene.geometry import Vector, Quad, Polygon, Environment
 from pytissueoptics.scene.geometry import primitives
 from pytissueoptics.scene.materials import Material
 from pytissueoptics.scene.solids import Solid
@@ -33,9 +33,10 @@ class TestSolid(unittest.TestCase):
         self.assertEqual(self.position, self.solid.position)
         self.assertEqual(Vector(-1, -1, -1) + self.position, self.CUBOID_VERTICES[0])
 
-    def testShouldSetInsideMaterialOfAllItsSurfaces(self):
-        self.assertEqual(self.material, self.solid.getMaterial())
-        self.assertEqual(self.material, self.solid.getMaterial("Top"))
+    def testShouldSetInsideEnvironmentOfAllItsSurfaces(self):
+        environment = Environment(self.material, self.solid)
+        self.assertEqual(environment, self.solid.getEnvironment())
+        self.assertEqual(environment, self.solid.getEnvironment("Top"))
 
     def testWhenTranslateTo_shouldTranslateToThisNewPosition(self):
         newPosition = Vector(0, 0, 0)
@@ -116,5 +117,5 @@ class TestSolid(unittest.TestCase):
         when(polygon).resetNormal().thenReturn()
         when(polygon).resetBoundingBox().thenReturn()
         when(polygon).resetCentroid().thenReturn()
-        when(polygon).setInsideMaterial(...).thenReturn()
+        when(polygon).setInsideEnvironment(...).thenReturn()
         return polygon

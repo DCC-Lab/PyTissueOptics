@@ -2,7 +2,7 @@ import unittest
 from math import sqrt
 
 from pytissueoptics.scene import Material
-from pytissueoptics.scene.geometry import Triangle, Vector, BoundingBox
+from pytissueoptics.scene.geometry import Triangle, Vector, BoundingBox, Environment
 from pytissueoptics.scene.intersection import Ray
 from pytissueoptics.scene.tree import Node
 from pytissueoptics.scene.tree.treeConstructor.binary import SplitThreeAxesConstructor, SAHSearchResult
@@ -36,18 +36,18 @@ class TestSplitConstructor(unittest.TestCase):
         self.assertEqual(left[0], expectedLeft[0])
         self.assertEqual(len(right), 2)
 
-    def testGivenAPolygonAndAPlane_whenSplittingPolygon_splitPolygonShouldHaveGoodMaterialAndNormal(self):
-        myMaterial = Material()
-        toBeSplit = [Triangle(Vector(0, 0, 0), Vector(0, 1, 0), Vector(0, 1, 1), insideMaterial=myMaterial)]
+    def testGivenAPolygonAndAPlane_whenSplittingPolygon_splitPolygonShouldHaveGoodEnvironmentAndNormal(self):
+        myEnvironment = Environment(Material())
+        toBeSplit = [Triangle(Vector(0, 0, 0), Vector(0, 1, 0), Vector(0, 1, 1), insideEnvironment=myEnvironment)]
         splitValue = 0.5
         splitAxis = "y"
         self._fbtc.result = SAHSearchResult([], [], toBeSplit, None, None, splitAxis, splitValue)
         normal, dot = self._fbtc._makeSplitPlane(splitAxis, splitValue)
         left, right = self._fbtc._splitTriangles(normal, dot)
-        expectedLeft = [Triangle(Vector(0, 0, 0), Vector(0, 0.5, 0), Vector(0, 0.5, 0.5), insideMaterial=myMaterial)]
+        expectedLeft = [Triangle(Vector(0, 0, 0), Vector(0, 0.5, 0), Vector(0, 0.5, 0.5), insideEnvironment=myEnvironment)]
 
         self.assertEqual(left[0], expectedLeft[0])
-        self.assertEqual(myMaterial, left[0].insideMaterial)
+        self.assertEqual(myEnvironment, left[0].insideEnvironment)
         self.assertEqual(Vector(1, 0, 0), left[0].normal)
         self.assertEqual(Vector(1, 0, 0), right[0].normal)
         self.assertEqual(Vector(1, 0, 0), right[1].normal)

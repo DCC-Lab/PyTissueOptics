@@ -72,14 +72,14 @@ class TestCuboid(unittest.TestCase):
 
         self.assertEqual(baseCuboid.getPolygons('Top'), otherCuboid.getPolygons('Bottom'))
 
-    def testWhenStack_shouldSetOtherCuboidMaterialAtInterface(self):
+    def testWhenStack_shouldSetOtherCuboidEnvironmentAtInterface(self):
         baseCuboid = Cuboid(5, 3, 4)
         otherCuboid = Cuboid(5, 1, 4)
 
         baseCuboid.stack(otherCuboid, onSurface='Top')
 
         for polygon in baseCuboid.getPolygons('Top'):
-            self.assertEqual(polygon.outsideMaterial, otherCuboid.getMaterial())
+            self.assertEqual(polygon.outsideEnvironment, otherCuboid.getEnvironment())
 
     def testWhenStack_shouldReturnANewCuboidMadeOfTheseTwoCuboids(self):
         basePosition = Vector(2, 2, 1)
