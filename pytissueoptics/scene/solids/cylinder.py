@@ -20,7 +20,7 @@ class Cylinder(Solid):
         self._topCenter = Vertex(0, 0, height)
         self._minRadius = math.cos(math.pi / self._u) * self._radius
         super().__init__(position=position, material=material, primitive=primitive,
-                         vertices=[self._bottomCenter, self._topCenter])
+                         vertices=[self._bottomCenter, self._topCenter], smooth=True)
 
     @property
     def direction(self) -> Vector:
@@ -106,3 +106,6 @@ class Cylinder(Solid):
     @staticmethod
     def _getShrinkFactor(heightAlong: float) -> float:
         return 1
+
+    def smooth(self, surfaceName: str = None):
+        super(Cylinder, self).smooth("Middle")
