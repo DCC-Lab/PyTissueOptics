@@ -23,7 +23,6 @@ class Ellipsoid(Solid):
         self._b = b
         self._c = c
         self._order = order
-
         super().__init__(position=position, material=material, primitive=primitive, vertices=[], smooth=smooth)
 
     def _computeTriangleMesh(self):
@@ -31,10 +30,10 @@ class Ellipsoid(Solid):
         The most precise sphere approximation is the IcoSphere, which is generated from the platonic solid,
         the Icosahedron. It is built with 20 equilateral triangles with exactly the same angle between each.
         From Euler's method to generate the vertex for the icosahedron, we cross 3 perpendicular planes,
-        with lenght=2 and width=2*phi. Joining adjscent vertices will produce the Icosahedron.
+        with length=2 and width=2*phi. Joining adjacent vertices will produce the Icosahedron.
 
         From the Icosahedron, we can split each face in 4 triangles, in a recursive manner, to obtain an IcoSphere.
-        The method goes as follow:
+        The method goes as follows:
         1 - Find each mid-point between two connecting vertices on a triangle
         2 - Normalize those new points to project them onto the unit sphere.
         3 - Connect the new vertices in a way to make 4 new triangles.
@@ -70,17 +69,25 @@ class Ellipsoid(Solid):
 
     def _computeNextOrderTriangleMesh(self):
         newPolygons = []
+        self._verticesCache = {}
         for j, polygon in enumerate(self.getPolygons()):
             ai = self._createMidVertex(polygon.vertices[0], polygon.vertices[1])
             bi = self._createMidVertex(polygon.vertices[1], polygon.vertices[2])
             ci = self._createMidVertex(polygon.vertices[2], polygon.vertices[0])
+            newVertices = [ai, bi, ci]
+            for i, vertex in enumerate(newVertices):
+                vHash = hash((vertex.x, vertex.y, vertex.z))
+                if vHash in self._verticesCache:
+                    newVertices[i] = self._verticesCache[vHash]
+                    self._verticesCache.pop(vHash)
+                else:
+                    self._vertices.append(vertex)
+                    self._verticesCache[vHash] = vertex
 
-            self._vertices.extend([ai, bi, ci])
-
-            newPolygons.append(Triangle(polygon.vertices[0], ai, ci))
-            newPolygons.append(Triangle(polygon.vertices[1], bi, ai))
-            newPolygons.append(Triangle(polygon.vertices[2], ci, bi))
-            newPolygons.append(Triangle(ai, bi, ci))
+            newPolygons.append(Triangle(polygon.vertices[0], newVertices[0], newVertices[2]))
+            newPolygons.append(Triangle(polygon.vertices[1], newVertices[1], newVertices[0]))
+            newPolygons.append(Triangle(polygon.vertices[2], newVertices[2], newVertices[1]))
+            newPolygons.append(Triangle(newVertices[0], newVertices[1], newVertices[2]))
 
         self._surfaces.setPolygons("Sphere", newPolygons)
 
@@ -127,7 +134,7 @@ class Ellipsoid(Solid):
                 theta = atan(vertex.y / vertex.x) - pi
 
         return theta, phi
-    
+
     def _radiusTowards(self, vertex):
         theta, phi = self._findThetaPhi(vertex)
         return sqrt(1 / ((cos(theta) ** 2 * sin(phi) ** 2) / self._a ** 2 + (
