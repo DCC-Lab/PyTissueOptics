@@ -1,6 +1,6 @@
 import unittest
 
-from pytissueoptics.scene.geometry import BoundingBox, Vector, Polygon
+from pytissueoptics.scene.geometry import BoundingBox, Vector, Polygon, Vertex
 
 
 class TestBoundingBox(unittest.TestCase):
@@ -29,9 +29,9 @@ class TestBoundingBox(unittest.TestCase):
         self.assertTrue(bbox1 != bbox2)
 
     def testGivenNewBBoxFromVertices_shouldDefineBoundingBoxAroundVertices(self):
-        v1 = Vector(0, 1, 0)
-        v2 = Vector(-1, 1, 2)
-        v3 = Vector(-0.1, -1, 3.001)
+        v1 = Vertex(0, 1, 0)
+        v2 = Vertex(-1, 1, 2)
+        v3 = Vertex(-0.1, -1, 3.001)
         bbox = BoundingBox.fromVertices([v1, v2, v3])
 
         self.assertEqual(bbox.xLim, [-1, 0])
@@ -39,8 +39,8 @@ class TestBoundingBox(unittest.TestCase):
         self.assertEqual(bbox.zLim, [0, 3.001])
 
     def testGivenNewBBoxFromPolygons_shouldDefineBoundingBoxAroundPolygons(self):
-        polygons = [Polygon(vertices=[Vector(0, 0, 0), Vector(1, 2, 1), Vector(1, -1, 1)]),
-                    Polygon(vertices=[Vector(0, 0, 0), Vector(-1, -1, -1), Vector(-2, -2, -3)])]
+        polygons = [Polygon(vertices=[Vertex(0, 0, 0), Vertex(1, 2, 1), Vertex(1, -1, 1)]),
+                    Polygon(vertices=[Vertex(0, 0, 0), Vertex(-1, -1, -1), Vertex(-2, -2, -3)])]
         bbox = BoundingBox.fromPolygons(polygons)
 
         self.assertEqual(bbox.xLim, [-2, 1])

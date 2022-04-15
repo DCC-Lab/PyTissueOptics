@@ -2,7 +2,7 @@ from typing import List
 
 import numpy as np
 
-from pytissueoptics.scene.geometry import Vector, Quad, Triangle, utils
+from pytissueoptics.scene.geometry import Vector, Quad, Triangle, utils, Vertex
 from pytissueoptics.scene.geometry import primitives
 from pytissueoptics.scene.materials import Material
 from pytissueoptics.scene.solids import Solid
@@ -22,16 +22,16 @@ class Cuboid(Solid):
     """
 
     def __init__(self, a: float, b: float, c: float,
-                 vertices: List[Vector] = None, position: Vector = Vector(0, 0, 0), surfaces: SurfaceCollection = None,
+                 vertices: List[Vertex] = None, position: Vector = Vector(0, 0, 0), surfaces: SurfaceCollection = None,
                  material: Material = None, primitive: str = primitives.DEFAULT):
 
         self.shape = [a, b, c]
 
         if not vertices:
-            vertices = [Vector(-a / 2, -b / 2, c / 2), Vector(a / 2, -b / 2, c / 2), Vector(a / 2, b / 2, c / 2),
-                        Vector(-a / 2, b / 2, c / 2),
-                        Vector(-a / 2, -b / 2, -c / 2), Vector(a / 2, -b / 2, -c / 2), Vector(a / 2, b / 2, -c / 2),
-                        Vector(-a / 2, b / 2, -c / 2)]
+            vertices = [Vertex(-a / 2, -b / 2, c / 2), Vertex(a / 2, -b / 2, c / 2), Vertex(a / 2, b / 2, c / 2),
+                        Vertex(-a / 2, b / 2, c / 2),
+                        Vertex(-a / 2, -b / 2, -c / 2), Vertex(a / 2, -b / 2, -c / 2), Vertex(a / 2, b / 2, -c / 2),
+                        Vertex(-a / 2, b / 2, -c / 2)]
 
         super().__init__(vertices, position, surfaces, material, primitive)
 
@@ -81,7 +81,7 @@ class Cuboid(Solid):
         return Cuboid(*stackResult.shape, position=stackResult.position, vertices=stackResult.vertices,
                       surfaces=stackResult.surfaces, primitive=stackResult.primitive)
 
-    def contains(self, *vertices: Vector) -> bool:
+    def contains(self, *vertices: Vertex) -> bool:
         vertices = np.asarray([vertex.array for vertex in vertices])
         relativeVertices = vertices - self.position.array
 

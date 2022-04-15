@@ -1,7 +1,7 @@
 import unittest
 import math
 
-from pytissueoptics.scene.geometry import Vector
+from pytissueoptics.scene.geometry import Vector, Vertex
 from pytissueoptics.scene.solids import Ellipsoid
 
 
@@ -60,12 +60,12 @@ class TestEllipsoid(unittest.TestCase):
     def testWhenContainsWithVerticesThatAreAllInsideTheEllipsoid_shouldReturnTrue(self):
         ellipsoid = Ellipsoid(3, 1, 1, position=Vector(2, 2, 0))
         ellipsoid.rotate(0, 0, 30)
-        vertices = [Vector(3.3, 3, 0), Vector(2, 2, 0)]
+        vertices = [Vertex(3.3, 3, 0), Vertex(2, 2, 0)]
 
         self.assertTrue(ellipsoid.contains(*vertices))
 
     def testWhenContainsWithVerticesThatAreNotAllInsideTheEllipsoid_shouldReturnFalse(self):
         ellipsoid = Ellipsoid(3, 1, 1, position=Vector(2, 2, 0))
-        vertices = [Vector(3.4, 2.9, 0), Vector(2, 2, 0)]
+        vertices = [Vertex(3.4, 2.9, 0), Vertex(2, 2, 0)]
 
         self.assertFalse(ellipsoid.contains(*vertices))

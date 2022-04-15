@@ -88,7 +88,5 @@ class TestFresnelIntersect(unittest.TestCase):
 
     @staticmethod
     def _createIntersection(n1=1.0, n2=1.5, normal=Vector(0, 0, 1)):
-        surfaceElement = Polygon([Vector()], normal=normal,
-                                 insideMaterial=ScatteringMaterial(index=n2),
-                                 outsideMaterial=ScatteringMaterial(index=n1))
-        return Intersection(10, Vector(0, 0, 0), surfaceElement)
+        return Intersection(10, Vector(0, 0, 0), None, normal, insideMaterial=ScatteringMaterial(index=n2),
+                            outsideMaterial=ScatteringMaterial(index=n1), distanceLeft=2)
