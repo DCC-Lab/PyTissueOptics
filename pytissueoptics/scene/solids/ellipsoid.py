@@ -30,10 +30,10 @@ class Ellipsoid(Solid):
         The most precise sphere approximation is the IcoSphere, which is generated from the platonic solid,
         the Icosahedron. It is built with 20 equilateral triangles with exactly the same angle between each.
         From Euler's method to generate the vertex for the icosahedron, we cross 3 perpendicular planes,
-        with lenght=2 and width=2*phi. Joining adjscent vertices will produce the Icosahedron.
+        with length=2 and width=2*phi. Joining adjacent vertices will produce the Icosahedron.
 
         From the Icosahedron, we can split each face in 4 triangles, in a recursive manner, to obtain an IcoSphere.
-        The method goes as follow:
+        The method goes as follows:
         1 - Find each mid-point between two connecting vertices on a triangle
         2 - Normalize those new points to project them onto the unit sphere.
         3 - Connect the new vertices in a way to make 4 new triangles.
@@ -77,7 +77,7 @@ class Ellipsoid(Solid):
             newVertices = [ai, bi, ci]
             for i, vertex in enumerate(newVertices):
                 vHash = hash((vertex.x, vertex.y, vertex.z))
-                if vHash in self._verticesCache.keys():
+                if vHash in self._verticesCache:
                     newVertices[i] = self._verticesCache.get(vHash)
                     self._verticesCache.pop(vHash)
                 else:
