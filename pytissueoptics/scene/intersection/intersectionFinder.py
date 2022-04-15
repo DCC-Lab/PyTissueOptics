@@ -14,19 +14,13 @@ from pytissueoptics.scene.solids import Solid
 
 
 @dataclass
-class IntersectionInfo:
+class Intersection:
     distance: float
     position: Vector = None
     polygon: Polygon = None
-
-
-@dataclass
-class Intersection:
-    distance: float
-    position: Vector
-    normal: Vector
-    insideMaterial: Material
-    outsideMaterial: Material
+    normal: Vector = None
+    insideMaterial: Material = None
+    outsideMaterial: Material = None
     distanceLeft: float = None
 
 
@@ -39,31 +33,32 @@ class IntersectionFinder:
     def findIntersection(self, ray: Ray) -> Optional[Intersection]:
         raise NotImplementedError
 
-    def _findClosestPolygonIntersection(self, ray: Ray, polygons: List[Polygon]) -> Optional[IntersectionInfo]:
-        closestIntersectionInfo = IntersectionInfo(sys.maxsize)
+    def _findClosestPolygonIntersection(self, ray: Ray, polygons: List[Polygon]) -> Optional[Intersection]:
+        closestIntersection = Intersection(sys.maxsize)
         for polygon in polygons:
             intersectionPoint = self._polygonIntersect.getIntersection(ray, polygon)
             if not intersectionPoint:
                 continue
             distance = (intersectionPoint - ray.origin).getNorm()
-            if distance < closestIntersectionInfo.distance:
-                closestIntersectionInfo = IntersectionInfo(distance, intersectionPoint, polygon)
+            if distance < closestIntersection.distance:
+                closestIntersection = Intersection(distance, intersectionPoint, polygon)
 
-        if closestIntersectionInfo.distance == sys.maxsize:
+        if closestIntersection.distance == sys.maxsize:
             return None
-        return closestIntersectionInfo
+        return closestIntersection
 
     @staticmethod
-    def _makeIntersection(ray: Ray, intersectionInfo: IntersectionInfo) -> Optional[Intersection]:
-        if not intersectionInfo:
+    def _composeIntersection(ray: Ray, intersection: Intersection) -> Optional[Intersection]:
+        if not intersection:
             return None
-        polygon = intersectionInfo.polygon
-        intersection = Intersection(intersectionInfo.distance, intersectionInfo.position,
-                                    polygon.normal, polygon.insideMaterial, polygon.outsideMaterial)
-        if ray.length is not None:
-            intersection.distanceLeft = ray.length - intersectionInfo.distance
 
-        intersection.normal = shader.getSmoothNormal(polygon, intersection.position)
+        intersection.normal = shader.getSmoothNormal(intersection.polygon, intersection.position)
+        intersection.insideMaterial = intersection.polygon.insideMaterial
+        intersection.outsideMaterial = intersection.polygon.outsideMaterial
+
+        if ray.length is not None:
+            intersection.distanceLeft = ray.length - intersection.distance
+
         return intersection
 
 
@@ -72,9 +67,9 @@ class SimpleIntersectionFinder(IntersectionFinder):
         bboxIntersections = self._findBBoxIntersectingSolids(ray)
         bboxIntersections.sort(key=lambda x: x[0])
         for (distance, solid) in bboxIntersections:
-            intersectionInfo = self._findClosestPolygonIntersection(ray, solid.getPolygons())
-            if intersectionInfo:
-                return self._makeIntersection(ray, intersectionInfo)
+            intersection = self._findClosestPolygonIntersection(ray, solid.getPolygons())
+            if intersection:
+                return self._composeIntersection(ray, intersection)
         return None
 
     def _findBBoxIntersectingSolids(self, ray) -> Optional[List[Tuple[float, Solid]]]:
@@ -100,27 +95,27 @@ class FastIntersectionFinder(IntersectionFinder):
                                          maxDepth, minLeafSize)
 
     def findIntersection(self, ray: Ray) -> Optional[Intersection]:
-        intersectionInfo = self._findIntersection(ray, self._partition.root)
-        return self._makeIntersection(ray, intersectionInfo)
+        intersection = self._findIntersection(ray, self._partition.root)
+        return self._composeIntersection(ray, intersection)
 
-    def _findIntersection(self, ray: Ray, node: Node, closestDistance=sys.maxsize) -> Optional[IntersectionInfo]:
+    def _findIntersection(self, ray: Ray, node: Node, closestDistance=sys.maxsize) -> Optional[Intersection]:
         if node.isLeaf:
-            intersectionInfo = self._findClosestPolygonIntersection(ray, node.polygons)
-            return intersectionInfo
+            intersection = self._findClosestPolygonIntersection(ray, node.polygons)
+            return intersection
 
         if not self._nodeIsWorthExploring(ray, node, closestDistance):
             return None
 
-        closestIntersectionInfo = None
+        closestIntersection = None
         for child in node.children:
-            intersectionInfo = self._findIntersection(ray, child, closestDistance)
-            if intersectionInfo is None:
+            intersection = self._findIntersection(ray, child, closestDistance)
+            if intersection is None:
                 continue
-            if intersectionInfo.distance < closestDistance:
-                closestDistance = intersectionInfo.distance
-                closestIntersectionInfo = intersectionInfo
+            if intersection.distance < closestDistance:
+                closestDistance = intersection.distance
+                closestIntersection = intersection
 
-        return closestIntersectionInfo
+        return closestIntersection
 
     def _nodeIsWorthExploring(self, ray, node, closestDistance) -> bool:
         bboxIntersectionPoint = self._boxIntersect.getIntersection(ray, node.bbox)
