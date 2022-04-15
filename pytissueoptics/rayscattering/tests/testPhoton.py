@@ -8,7 +8,7 @@ from pytissueoptics.rayscattering import Photon
 from pytissueoptics.rayscattering.fresnel import FresnelIntersection, FresnelIntersect
 from pytissueoptics.rayscattering.materials import ScatteringMaterial
 from pytissueoptics.scene import Vector, Logger
-from pytissueoptics.scene.geometry import Polygon
+from pytissueoptics.scene.geometry import Polygon, Environment
 from pytissueoptics.scene.intersection.intersectionFinder import Intersection, IntersectionFinder
 
 
@@ -31,7 +31,7 @@ class TestPhoton(unittest.TestCase):
 
     def testWhenSetContext_shouldSetInitialMaterial(self):
         material = ScatteringMaterial(mu_s=2, mu_a=1)
-        self.photon.setContext(material)
+        self.photon.setContext(Environment(material))
         self.assertEqual(material, self.photon.material)
 
     def testWhenMoveBy_shouldMovePhotonByTheGivenDistanceTowardsItsDirection(self):
@@ -45,7 +45,7 @@ class TestPhoton(unittest.TestCase):
         incidencePlane = self.photon.direction.cross(surfaceNormal)
         incidencePlane.normalize()
         refractionDeflection = math.pi / 20
-        fresnelIntersection = FresnelIntersection(ScatteringMaterial(), incidencePlane, isReflected=False,
+        fresnelIntersection = FresnelIntersection(Environment(ScatteringMaterial()), incidencePlane, isReflected=False,
                                                   angleDeflection=refractionDeflection)
 
         self.photon.refract(fresnelIntersection)
@@ -56,7 +56,7 @@ class TestPhoton(unittest.TestCase):
 
     def testWhenScatter_shouldDecreasePhotonWeight(self):
         material = ScatteringMaterial(mu_s=2, mu_a=1)
-        self.photon.setContext(material)
+        self.photon.setContext(Environment(material))
 
         self.photon.scatter()
 
@@ -66,7 +66,7 @@ class TestPhoton(unittest.TestCase):
         material = ScatteringMaterial(mu_s=2, mu_a=1)
         theta, phi = math.pi/5, math.pi
         material.getScatteringAngles = lambda: (theta, phi)
-        self.photon.setContext(material)
+        self.photon.setContext(Environment(material))
         self.photon._er = Vector(-1, 0, 0)
 
         self.photon.scatter()
@@ -81,7 +81,7 @@ class TestPhoton(unittest.TestCase):
         incidencePlane = self.photon.direction.cross(surfaceNormal)
         incidencePlane.normalize()
         reflectionDeflection = 2 * incidenceAngle - math.pi
-        fresnelIntersection = FresnelIntersection(ScatteringMaterial(), incidencePlane, isReflected=True,
+        fresnelIntersection = FresnelIntersection(Environment(ScatteringMaterial()), incidencePlane, isReflected=True,
                                                   angleDeflection=reflectionDeflection)
 
         self.photon.reflect(fresnelIntersection)
@@ -91,7 +91,7 @@ class TestPhoton(unittest.TestCase):
 
     def testGivenNoIntersectionFinder_whenPropagate_shouldPropagateUntilItHasNoMoreEnergy(self):
         worldMaterial = ScatteringMaterial(mu_s=2, mu_a=1, g=0.8)
-        self.photon.setContext(worldMaterial)
+        self.photon.setContext(Environment(worldMaterial))
         initialPosition = self.photon.position.copy()
 
         self.photon.propagate()
@@ -103,14 +103,14 @@ class TestPhoton(unittest.TestCase):
         noIntersectionFinder = mock(IntersectionFinder)
         when(noIntersectionFinder).findIntersection(...).thenReturn(None)
 
-        self.photon.setContext(ScatteringMaterial(), intersectionFinder=noIntersectionFinder)
+        self.photon.setContext(Environment(ScatteringMaterial()), intersectionFinder=noIntersectionFinder)
         self.photon.step()
         self.assertFalse(self.photon.isAlive)
 
     def testWhenStepWithIntersection_shouldMovePhotonToIntersection(self):
         distance = 8
         intersectionFinder = self._createIntersectionFinder(distance)
-        self.photon.setContext(ScatteringMaterial(), intersectionFinder=intersectionFinder)
+        self.photon.setContext(Environment(ScatteringMaterial()), intersectionFinder=intersectionFinder)
 
         self.photon.step(distance + 2)
 
@@ -120,7 +120,7 @@ class TestPhoton(unittest.TestCase):
     def testWhenStepWithNoIntersection_shouldMovePhotonAcrossStepDistanceAndScatter(self):
         noIntersectionFinder = mock(IntersectionFinder)
         when(noIntersectionFinder).findIntersection(...).thenReturn(None)
-        self.photon.setContext(ScatteringMaterial(mu_s=2, mu_a=1, g=0.8), intersectionFinder=noIntersectionFinder)
+        self.photon.setContext(Environment(ScatteringMaterial(mu_s=2, mu_a=1, g=0.8)), intersectionFinder=noIntersectionFinder)
         stepDistance = 10
 
         self.photon.step(distance=stepDistance)
@@ -133,7 +133,7 @@ class TestPhoton(unittest.TestCase):
         noIntersectionFinder = mock(IntersectionFinder)
         when(noIntersectionFinder).findIntersection(...).thenReturn(None)
         newScatteringDistance = 10
-        material = self._createMaterial(newScatteringDistance)
+        material = self._createEnvironment(newScatteringDistance)
         self.photon.setContext(material, intersectionFinder=noIntersectionFinder)
 
         self.photon.step()
@@ -144,7 +144,8 @@ class TestPhoton(unittest.TestCase):
     def testWhenStepWithNoIntersection_shouldReturnADistanceLeftOfZero(self):
         noIntersectionFinder = mock(IntersectionFinder)
         when(noIntersectionFinder).findIntersection(...).thenReturn(None)
-        self.photon.setContext(ScatteringMaterial(mu_s=2, mu_a=1, g=0.8), intersectionFinder=noIntersectionFinder)
+        self.photon.setContext(Environment(ScatteringMaterial(mu_s=2, mu_a=1, g=0.8)),
+                               intersectionFinder=noIntersectionFinder)
 
         distanceLeft = self.photon.step()
 
@@ -154,7 +155,7 @@ class TestPhoton(unittest.TestCase):
         totalDistance = 10
         intersectionDistance = 8
         intersectionFinder = self._createIntersectionFinder(intersectionDistance, totalDistance)
-        material = self._createMaterial(scatteringDistance=totalDistance)
+        material = self._createEnvironment(scatteringDistance=totalDistance)
         self.photon.setContext(material, intersectionFinder=intersectionFinder,
                                fresnelIntersectionFactory=self._createFresnelIntersectionFactory(isReflected=True))
 
@@ -164,8 +165,8 @@ class TestPhoton(unittest.TestCase):
 
     def testWhenStepWithRefractingIntersection_shouldUpdatePhotonMaterialToNextMaterial(self):
         nextMaterial = ScatteringMaterial(mu_s=2, mu_a=1, g=0.8)
-        self.photon.setContext(ScatteringMaterial(), intersectionFinder=self._createIntersectionFinder(),
-                               fresnelIntersectionFactory=self._createFresnelIntersectionFactory(nextMaterial, isReflected=False))
+        self.photon.setContext(Environment(ScatteringMaterial()), intersectionFinder=self._createIntersectionFinder(),
+                               fresnelIntersectionFactory=self._createFresnelIntersectionFactory(Environment(nextMaterial), isReflected=False))
 
         self.photon.step()
 
@@ -176,8 +177,8 @@ class TestPhoton(unittest.TestCase):
         intersectionDistance = 8
         material = ScatteringMaterial(mu_s=2, mu_a=1, g=0.8)
         nextMaterial = ScatteringMaterial(mu_s=3, mu_a=1, g=0.8)
-        self.photon.setContext(material, intersectionFinder=self._createIntersectionFinder(intersectionDistance, initialScatteringDistance),
-                               fresnelIntersectionFactory=self._createFresnelIntersectionFactory(nextMaterial, isReflected=False))
+        self.photon.setContext(Environment(material), intersectionFinder=self._createIntersectionFinder(intersectionDistance, initialScatteringDistance),
+                               fresnelIntersectionFactory=self._createFresnelIntersectionFactory(Environment(nextMaterial), isReflected=False))
 
         distanceLeft = self.photon.step(initialScatteringDistance)
 
@@ -187,10 +188,10 @@ class TestPhoton(unittest.TestCase):
     def testWhenStepWithRefractingIntersectionToVacuum_shouldReturnInfiniteDistanceLeft(self):
         initialScatteringDistance = 10
         intersectionDistance = 8
-        material = ScatteringMaterial(mu_s=2, mu_a=1, g=0.8)
-        nextMaterial = ScatteringMaterial(mu_s=0, mu_a=0, g=0)
-        self.photon.setContext(material, intersectionFinder=self._createIntersectionFinder(intersectionDistance, initialScatteringDistance),
-                               fresnelIntersectionFactory=self._createFresnelIntersectionFactory(nextMaterial, isReflected=False))
+        environment = Environment(ScatteringMaterial(mu_s=2, mu_a=1, g=0.8))
+        nextEnvironment = Environment(ScatteringMaterial(mu_s=0, mu_a=0, g=0))
+        self.photon.setContext(environment, intersectionFinder=self._createIntersectionFinder(intersectionDistance, initialScatteringDistance),
+                               fresnelIntersectionFactory=self._createFresnelIntersectionFactory(nextEnvironment, isReflected=False))
 
         distanceLeft = self.photon.step(initialScatteringDistance)
 
@@ -199,10 +200,10 @@ class TestPhoton(unittest.TestCase):
     def testWhenStepWithRefractingIntersectionFromVacuum_shouldReturnZeroDistanceLeft(self):
         initialScatteringDistance = 10
         intersectionDistance = 8
-        material = ScatteringMaterial(mu_s=0, mu_a=0, g=0)
-        nextMaterial = ScatteringMaterial(mu_s=2, mu_a=1, g=0.8)
-        self.photon.setContext(material, intersectionFinder=self._createIntersectionFinder(intersectionDistance, initialScatteringDistance),
-                               fresnelIntersectionFactory=self._createFresnelIntersectionFactory(nextMaterial, isReflected=False))
+        environment = Environment(ScatteringMaterial(mu_s=0, mu_a=0, g=0))
+        nextEnvironment = Environment(ScatteringMaterial(mu_s=2, mu_a=1, g=0.8))
+        self.photon.setContext(environment, intersectionFinder=self._createIntersectionFinder(intersectionDistance, initialScatteringDistance),
+                               fresnelIntersectionFactory=self._createFresnelIntersectionFactory(nextEnvironment, isReflected=False))
 
         distanceLeft = self.photon.step(initialScatteringDistance)
 
@@ -210,7 +211,7 @@ class TestPhoton(unittest.TestCase):
 
     def testGivenALogger_whenPropagate_shouldLogInitialPosition(self):
         logger = self._createLogger()
-        self.photon.setContext(ScatteringMaterial(mu_s=2, mu_a=1, g=0.8), logger=logger)
+        self.photon.setContext(Environment(ScatteringMaterial(mu_s=2, mu_a=1, g=0.8)), logger=logger)
 
         self.photon.propagate()
 
@@ -220,7 +221,7 @@ class TestPhoton(unittest.TestCase):
         logger = self._createLogger()
         distance = 8
         intersectionFinder = self._createIntersectionFinder(distance)
-        self.photon.setContext(ScatteringMaterial(), intersectionFinder=intersectionFinder, logger=logger)
+        self.photon.setContext(Environment(ScatteringMaterial()), intersectionFinder=intersectionFinder, logger=logger)
 
         self.photon.step(distance+2)
 
@@ -229,7 +230,7 @@ class TestPhoton(unittest.TestCase):
 
     def testGivenALogger_whenScatter_shouldLogWeightLossAtThisPosition(self):
         logger = self._createLogger()
-        self.photon.setContext(ScatteringMaterial(mu_s=3, mu_a=1, g=0.8), logger=logger)
+        self.photon.setContext(Environment(ScatteringMaterial(mu_s=3, mu_a=1, g=0.8)), logger=logger)
 
         self.photon.scatter()
 
@@ -237,8 +238,8 @@ class TestPhoton(unittest.TestCase):
         verify(logger).logDataPoint(weightLoss, position=self.INITIAL_POSITION)
 
     def testInteractAtFloatLimitIsStillValid(self):
-        material = self._createMaterial(albedo=1.0)
-        self.photon.setContext(material)
+        environment = self._createEnvironment(albedo=1.0)
+        self.photon.setContext(environment)
         self._weight = sys.float_info.min
         self.assertTrue(self.photon.isAlive)
 
@@ -260,7 +261,8 @@ class TestPhoton(unittest.TestCase):
         if rayLength is None:
             rayLength = intersectionDistance + 2
         aPolygon = Polygon([Vector(), Vector(), Vector()],
-                           insideMaterial=ScatteringMaterial(), outsideMaterial=ScatteringMaterial())
+                           insideEnvironment=Environment(ScatteringMaterial()),
+                           outsideEnvironment=Environment(ScatteringMaterial()))
         intersection = Intersection(intersectionDistance, position=Vector(), polygon=aPolygon,
                                     distanceLeft=rayLength-intersectionDistance)
         intersectionFinder = mock(IntersectionFinder)
@@ -268,16 +270,17 @@ class TestPhoton(unittest.TestCase):
         return intersectionFinder
 
     @staticmethod
-    def _createMaterial(scatteringDistance=1, phi=0.1, theta=0.2, albedo=0.1):
+    def _createEnvironment(scatteringDistance=1, phi=0.1, theta=0.2, albedo=0.1):
         material = mock(ScatteringMaterial)
         when(material).getScatteringDistance().thenReturn(scatteringDistance)
         when(material).getScatteringAngles().thenReturn((theta, phi))
         when(material).getAlbedo().thenReturn(albedo)
-        return material
+        return Environment(material)
 
     @staticmethod
-    def _createFresnelIntersectionFactory(nextMaterial=ScatteringMaterial(), isReflected=True, angleDeflection=0.1):
-        fresnelIntersection = FresnelIntersection(nextMaterial, Vector(), isReflected=isReflected,
+    def _createFresnelIntersectionFactory(nextEnvironment=Environment(ScatteringMaterial()),
+                                          isReflected=True, angleDeflection=0.1):
+        fresnelIntersection = FresnelIntersection(nextEnvironment, Vector(), isReflected=isReflected,
                                                   angleDeflection=angleDeflection)
         fresnelIntersectionFactory = mock(FresnelIntersect)
         when(fresnelIntersectionFactory).compute(...).thenReturn(fresnelIntersection)

@@ -3,9 +3,11 @@ import unittest
 from mockito import mock, when, verify
 
 from pytissueoptics.rayscattering import PencilSource, Photon
+from pytissueoptics.rayscattering.materials import ScatteringMaterial
 from pytissueoptics.rayscattering.source import Source
 from pytissueoptics.rayscattering.tissues.rayScatteringScene import RayScatteringScene
-from pytissueoptics.scene import Vector, Material
+from pytissueoptics.scene import Vector
+from pytissueoptics.scene.geometry import Environment
 
 
 class TestSource(unittest.TestCase):
@@ -14,7 +16,7 @@ class TestSource(unittest.TestCase):
         self.source = Source(position=Vector(), direction=Vector(), photons=[self.photon])
 
     def testWhenPropagate_shouldSetWorldMaterialInTissue(self):
-        worldMaterial = Material()
+        worldMaterial = ScatteringMaterial()
         tissue = self._createTissue()
 
         self.source.propagate(tissue, worldMaterial=worldMaterial)
@@ -22,15 +24,12 @@ class TestSource(unittest.TestCase):
         verify(tissue).setWorldMaterial(worldMaterial)
 
     def testWhenPropagate_shouldSetInitialPhotonMaterialAsWorldMaterial(self):
-        worldMaterial = Material()
-
+        worldMaterial = ScatteringMaterial()
         self.source.propagate(self._createTissue(), worldMaterial=worldMaterial)
-
-        verify(self.photon).setContext(worldMaterial, ...)
+        verify(self.photon).setContext(Environment(worldMaterial), ...)
 
     def testWhenPropagate_shouldPropagateAllPhotons(self):
-        self.source.propagate(self._createTissue(), worldMaterial=Material())
-
+        self.source.propagate(self._createTissue(), worldMaterial=ScatteringMaterial())
         verify(self.photon).propagate()
 
     @staticmethod

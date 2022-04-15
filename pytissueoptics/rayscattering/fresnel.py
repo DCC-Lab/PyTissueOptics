@@ -2,14 +2,14 @@ import math
 import random
 from dataclasses import dataclass
 
-from pytissueoptics.rayscattering.materials import ScatteringMaterial
 from pytissueoptics.scene import Vector
+from pytissueoptics.scene.geometry import Environment
 from pytissueoptics.scene.intersection.intersectionFinder import Intersection
 
 
 @dataclass
 class FresnelIntersection:
-    nextMaterial: ScatteringMaterial
+    nextEnvironment: Environment
     incidencePlane: Vector
     isReflected: bool
     angleDeflection: float
@@ -28,13 +28,13 @@ class FresnelIntersect:
         goingInside = rayDirection.dot(surface.normal) < 0
         if goingInside:
             normal.multiply(-1)
-            self._indexIn = surface.outsideMaterial.index
-            self._indexOut = surface.insideMaterial.index
-            nextMaterial = surface.insideMaterial
+            self._indexIn = surface.outsideEnvironment.material.index
+            self._indexOut = surface.insideEnvironment.material.index
+            nextEnvironment = surface.insideEnvironment
         else:
-            self._indexIn = surface.insideMaterial.index
-            self._indexOut = surface.outsideMaterial.index
-            nextMaterial = surface.outsideMaterial
+            self._indexIn = surface.insideEnvironment.material.index
+            self._indexOut = surface.outsideEnvironment.material.index
+            nextEnvironment = surface.outsideEnvironment
 
         incidencePlane = rayDirection.cross(normal)
         if incidencePlane.getNorm() < 1e-7:
@@ -43,16 +43,16 @@ class FresnelIntersect:
 
         self._thetaIn = math.acos(normal.dot(rayDirection))
 
-        return self._create(nextMaterial, incidencePlane)
+        return self._create(nextEnvironment, incidencePlane)
 
-    def _create(self, nextMaterial, incidencePlane) -> FresnelIntersection:
+    def _create(self, nextEnvironment, incidencePlane) -> FresnelIntersection:
         reflected = self._getIsReflected()
         if reflected:
             angleDeflection = self._getReflectionDeflection()
         else:
             angleDeflection = self._getRefractionDeflection()
 
-        return FresnelIntersection(nextMaterial, incidencePlane, reflected, angleDeflection)
+        return FresnelIntersection(nextEnvironment, incidencePlane, reflected, angleDeflection)
 
     def _getIsReflected(self) -> bool:
         R = self._getReflectionCoefficient()

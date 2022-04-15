@@ -3,7 +3,7 @@ import unittest
 from mockito import mock, verify, when
 
 from pytissueoptics.scene.materials import Material
-from pytissueoptics.scene.geometry import Polygon
+from pytissueoptics.scene.geometry import Polygon, Environment
 from pytissueoptics.scene.geometry import SurfaceCollection
 
 
@@ -59,39 +59,39 @@ class TestSurfaceCollection(unittest.TestCase):
         with self.assertRaises(Exception):
             self.surfaceCollection.setPolygons("Nonexistent surface name", self.SURFACE_POLYGONS)
 
-    def testWhenSetOutsideMaterialOfASurface_shouldSetItForAllItsPolygons(self):
+    def testWhenSetOutsideEnvironmentOfASurface_shouldSetItForAllItsPolygons(self):
         self.surfaceCollection.add(self.SURFACE_NAME, self.SURFACE_POLYGONS)
-        when(self.SURFACE_POLYGON).setOutsideMaterial(...).thenReturn()
-        newMaterial = Material()
+        when(self.SURFACE_POLYGON).setOutsideEnvironment(...).thenReturn()
+        newEnvironment = Environment(Material())
 
-        self.surfaceCollection.setOutsideMaterial(newMaterial, self.SURFACE_NAME)
+        self.surfaceCollection.setOutsideEnvironment(newEnvironment, self.SURFACE_NAME)
 
-        verify(self.SURFACE_POLYGON).setOutsideMaterial(newMaterial)
+        verify(self.SURFACE_POLYGON).setOutsideEnvironment(newEnvironment)
 
-    def testWhenSetOutsideMaterialOfNonexistentSurface_shouldNotSetOutsideMaterial(self):
-        newMaterial = Material()
+    def testWhenSetOutsideEnvironmentOfNonexistentSurface_shouldNotSetOutsideEnvironment(self):
+        newEnvironment = Environment(Material())
         with self.assertRaises(Exception):
-            self.surfaceCollection.setOutsideMaterial(newMaterial, "Nonexistent surface name")
+            self.surfaceCollection.setOutsideEnvironment(newEnvironment, "Nonexistent surface name")
 
-    def testWhenGetInsideMaterialOfASurface_shouldReturnTheMaterialUnderThisSurface(self):
-        MATERIAL_UNDER_SURFACE = Material()
-        self.SURFACE_POLYGON.insideMaterial = MATERIAL_UNDER_SURFACE
+    def testWhenGetInsideEnvironmentOfASurface_shouldReturnTheEnvironmentUnderThisSurface(self):
+        ENVIRONMENT_UNDER_SURFACE = Environment(Material())
+        self.SURFACE_POLYGON.insideEnvironment = ENVIRONMENT_UNDER_SURFACE
         self.surfaceCollection.add(self.SURFACE_NAME, self.SURFACE_POLYGONS)
 
-        self.assertEqual(MATERIAL_UNDER_SURFACE, self.surfaceCollection.getInsideMaterial(self.SURFACE_NAME))
+        self.assertEqual(ENVIRONMENT_UNDER_SURFACE, self.surfaceCollection.getInsideEnvironment(self.SURFACE_NAME))
 
-    def testWhenGetInsideMaterialOfASurfaceComposedOfDifferentMaterials_shouldNotReturn(self):
-        MATERIAL_A = Material()
-        MATERIAL_B = Material()
-        polygonWithMaterialA = mock(Polygon)
-        polygonWithMaterialB = mock(Polygon)
-        polygonWithMaterialA.insideMaterial = MATERIAL_A
-        polygonWithMaterialB.insideMaterial = MATERIAL_B
+    def testWhenGetInsideEnvironmentOfASurfaceComposedOfDifferentEnvironments_shouldNotReturn(self):
+        ENVIRONMENT_A = Environment(Material())
+        ENVIRONMENT_B = Environment(Material())
+        polygonWithEnvironmentA = mock(Polygon)
+        polygonWithEnvironmentB = mock(Polygon)
+        polygonWithEnvironmentA.insideEnvironment = ENVIRONMENT_A
+        polygonWithEnvironmentB.insideEnvironment = ENVIRONMENT_B
 
-        self.surfaceCollection.add(self.SURFACE_NAME, [polygonWithMaterialA, polygonWithMaterialB])
+        self.surfaceCollection.add(self.SURFACE_NAME, [polygonWithEnvironmentA, polygonWithEnvironmentB])
 
         with self.assertRaises(Exception):
-            self.surfaceCollection.getInsideMaterial(self.SURFACE_NAME)
+            self.surfaceCollection.getInsideEnvironment(self.SURFACE_NAME)
 
     def testWhenResetNormals_shouldResetNormalOfAllPolygons(self):
         when(self.SURFACE_POLYGON).resetNormal().thenReturn()
