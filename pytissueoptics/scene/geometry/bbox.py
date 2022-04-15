@@ -1,6 +1,5 @@
 from typing import List
-from copy import deepcopy
-from pytissueoptics.scene.geometry import Vector
+from pytissueoptics.scene.geometry import Vector, Vertex
 
 
 class BoundingBox:
@@ -39,7 +38,7 @@ class BoundingBox:
             raise ValueError("Maximum limit value cannot be lower than minimum limit value.")
 
     @classmethod
-    def fromVertices(cls, vertices: List[Vector]) -> 'BoundingBox':
+    def fromVertices(cls, vertices: List[Vertex]) -> 'BoundingBox':
         x = [vertices[i].x for i in range(len(vertices))]
         y = [vertices[i].y for i in range(len(vertices))]
         z = [vertices[i].z for i in range(len(vertices))]

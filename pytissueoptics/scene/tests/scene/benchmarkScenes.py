@@ -1,5 +1,5 @@
 from pytissueoptics.scene.scene import Scene
-from pytissueoptics.scene.geometry import Vector, Polygon, SurfaceCollection, BoundingBox
+from pytissueoptics.scene.geometry import Vector, Polygon, SurfaceCollection, BoundingBox, Vertex
 from pytissueoptics.scene.solids import Cuboid, Sphere, Cube, Ellipsoid, Solid
 
 
@@ -9,7 +9,7 @@ class AAxisAlignedPolygonScene(Scene):
         self._create()
 
     def _create(self):
-        vertices = [Vector(0, 0, 0), Vector(1, 0, 0), Vector(1, 1, 0)]
+        vertices = [Vertex(0, 0, 0), Vertex(1, 0, 0), Vertex(1, 1, 0)]
         polygon = Polygon(vertices=vertices)
         aSurface = SurfaceCollection()
         aSurface.add("lonely", [polygon])
@@ -24,7 +24,7 @@ class APolygonScene(Scene):
         self._create()
 
     def _create(self):
-        vertices = [Vector(0, 0, 0), Vector(1, 0, 1), Vector(-0.2, -0.5, 3)]
+        vertices = [Vertex(0, 0, 0), Vertex(1, 0, 1), Vertex(-0.2, -0.5, 3)]
         polygon = Polygon(vertices=vertices)
         aSurface = SurfaceCollection()
         aSurface.add("lonely", [polygon])

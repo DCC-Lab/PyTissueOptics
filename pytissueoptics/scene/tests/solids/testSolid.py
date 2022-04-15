@@ -1,8 +1,9 @@
+import math
 import unittest
 
 from mockito import mock, verify, when
 
-from pytissueoptics.scene.geometry import Vector, Quad, Polygon, Environment
+from pytissueoptics.scene.geometry import Vector, Quad, Polygon, Vertex, Environment
 from pytissueoptics.scene.geometry import primitives
 from pytissueoptics.scene.materials import Material
 from pytissueoptics.scene.solids import Solid
@@ -11,10 +12,10 @@ from pytissueoptics.scene.geometry import SurfaceCollection
 
 class TestSolid(unittest.TestCase):
     def setUp(self):
-        self.CUBOID_VERTICES = [Vector(-1, -1, -1), Vector(1, -1, -1),
-                                Vector(1, 1, -1), Vector(-1, 1, -1),
-                                Vector(-1, -1, 1), Vector(1, -1, 1),
-                                Vector(1, 1, 1), Vector(-1, 1, 1)]
+        self.CUBOID_VERTICES = [Vertex(-1, -1, -1), Vertex(1, -1, -1),
+                                Vertex(1, 1, -1), Vertex(-1, 1, -1),
+                                Vertex(-1, -1, 1), Vertex(1, -1, 1),
+                                Vertex(1, 1, 1), Vertex(-1, 1, 1)]
         V = self.CUBOID_VERTICES
         self.CUBOID_SURFACES = SurfaceCollection()
         self.CUBOID_SURFACES.add('Front', [Quad(V[0], V[1], V[2], V[3])])
@@ -110,6 +111,22 @@ class TestSolid(unittest.TestCase):
     def testGivenASolidWithInterfaces_shouldBeAStack(self):
         self.solid.surfaces.add("Interface0", [])
         self.assertTrue(self.solid.isStack())
+
+    def testWhenSmooth_shouldSetVertexNormalAsAverageOfAdjacentPolygonNormals(self):
+        self.solid.smooth()
+
+        frontVertex = self.solid.vertices[0]
+        self.assertAlmostEqual(1/math.sqrt(3), frontVertex.normal.x)
+        self.assertAlmostEqual(1/math.sqrt(3), frontVertex.normal.y)
+        self.assertAlmostEqual(1/math.sqrt(3), frontVertex.normal.z)
+
+    def testWhenSmoothWithSurfaceName_shouldOnlySmoothPolygonsFromThisSurface(self):
+        self.solid.smooth("Front")
+
+        frontVertex = self.solid.vertices[0]
+        self.assertEqual(Vector(0, 0, 1), frontVertex.normal)
+        backVertex = self.solid.vertices[5]
+        self.assertIsNone(backVertex.normal)
 
     @staticmethod
     def createPolygonMock() -> Polygon:

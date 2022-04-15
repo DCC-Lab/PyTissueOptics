@@ -21,20 +21,19 @@ class FresnelIntersect:
     _thetaIn: float
 
     def compute(self, rayDirection: Vector, intersection: Intersection) -> FresnelIntersection:
-        surface = intersection.polygon
         rayDirection = rayDirection
-        normal = surface.normal.copy()
+        normal = intersection.normal.copy()
 
-        goingInside = rayDirection.dot(surface.normal) < 0
+        goingInside = rayDirection.dot(normal) < 0
         if goingInside:
             normal.multiply(-1)
-            self._indexIn = surface.outsideEnvironment.material.index
-            self._indexOut = surface.insideEnvironment.material.index
-            nextEnvironment = surface.insideEnvironment
+            self._indexIn = intersection.outsideEnvironment.material.index
+            self._indexOut = intersection.insideEnvironment.material.index
+            nextEnvironment = intersection.insideEnvironment
         else:
-            self._indexIn = surface.insideEnvironment.material.index
-            self._indexOut = surface.outsideEnvironment.material.index
-            nextEnvironment = surface.outsideEnvironment
+            self._indexIn = intersection.insideEnvironment.material.index
+            self._indexOut = intersection.outsideEnvironment.material.index
+            nextEnvironment = intersection.outsideEnvironment
 
         incidencePlane = rayDirection.cross(normal)
         if incidencePlane.getNorm() < 1e-7:

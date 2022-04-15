@@ -2,7 +2,8 @@ import sys
 from dataclasses import dataclass
 from typing import List, Tuple, Optional
 
-from pytissueoptics.scene.geometry import Vector, Polygon
+from pytissueoptics.scene import shader
+from pytissueoptics.scene.geometry import Vector, Polygon, Environment
 from pytissueoptics.scene.intersection import Ray
 from pytissueoptics.scene.tree import SpacePartition, Node
 from pytissueoptics.scene.tree.treeConstructor.binary import NoSplitThreeAxesConstructor
@@ -17,6 +18,9 @@ class Intersection:
     distance: float
     position: Vector = None
     polygon: Polygon = None
+    normal: Vector = None
+    insideEnvironment: Environment = None
+    outsideEnvironment: Environment = None
     distanceLeft: float = None
 
 
@@ -41,9 +45,21 @@ class IntersectionFinder:
 
         if closestIntersection.distance == sys.maxsize:
             return None
-        if ray.length is not None:
-            closestIntersection.distanceLeft = ray.length - closestIntersection.distance
         return closestIntersection
+
+    @staticmethod
+    def _composeIntersection(ray: Ray, intersection: Intersection) -> Optional[Intersection]:
+        if not intersection:
+            return None
+
+        intersection.normal = shader.getSmoothNormal(intersection.polygon, intersection.position)
+        intersection.insideEnvironment = intersection.polygon.insideEnvironment
+        intersection.outsideEnvironment = intersection.polygon.outsideEnvironment
+
+        if ray.length is not None:
+            intersection.distanceLeft = ray.length - intersection.distance
+
+        return intersection
 
 
 class SimpleIntersectionFinder(IntersectionFinder):
@@ -53,7 +69,7 @@ class SimpleIntersectionFinder(IntersectionFinder):
         for (distance, solid) in bboxIntersections:
             intersection = self._findClosestPolygonIntersection(ray, solid.getPolygons())
             if intersection:
-                return intersection
+                return self._composeIntersection(ray, intersection)
         return None
 
     def _findBBoxIntersectingSolids(self, ray) -> Optional[List[Tuple[float, Solid]]]:
@@ -62,10 +78,10 @@ class SimpleIntersectionFinder(IntersectionFinder):
         and we exit to check the polygons of this solid. """
         solidCandidates = []
         for solid in self._scene.solids:
-            bboxIntersection = self._boxIntersect.getIntersection(ray, solid.bbox)
-            if not bboxIntersection:
+            bboxIntersectionPoint = self._boxIntersect.getIntersection(ray, solid.bbox)
+            if not bboxIntersectionPoint:
                 continue
-            distance = (bboxIntersection - ray.origin).getNorm()
+            distance = (bboxIntersectionPoint - ray.origin).getNorm()
             solidCandidates.append((distance, solid))
             if distance == 0:
                 break
@@ -80,7 +96,7 @@ class FastIntersectionFinder(IntersectionFinder):
 
     def findIntersection(self, ray: Ray) -> Optional[Intersection]:
         intersection = self._findIntersection(ray, self._partition.root)
-        return intersection
+        return self._composeIntersection(ray, intersection)
 
     def _findIntersection(self, ray: Ray, node: Node, closestDistance=sys.maxsize) -> Optional[Intersection]:
         if node.isLeaf:
@@ -102,10 +118,10 @@ class FastIntersectionFinder(IntersectionFinder):
         return closestIntersection
 
     def _nodeIsWorthExploring(self, ray, node, closestDistance) -> bool:
-        bboxIntersection = self._boxIntersect.getIntersection(ray, node.bbox)
-        if bboxIntersection is None:
+        bboxIntersectionPoint = self._boxIntersect.getIntersection(ray, node.bbox)
+        if bboxIntersectionPoint is None:
             return False
-        bboxDistance = (bboxIntersection - ray.origin).getNorm()
+        bboxDistance = (bboxIntersectionPoint - ray.origin).getNorm()
         if bboxDistance > closestDistance:
             return False
         return True

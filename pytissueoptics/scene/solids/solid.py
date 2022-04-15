@@ -2,15 +2,15 @@ from typing import List
 
 import numpy as np
 
-from pytissueoptics.scene.geometry import Vector, utils, Polygon, Rotation, BoundingBox
+from pytissueoptics.scene.geometry import Vector, utils, Polygon, Rotation, BoundingBox, Vertex
 from pytissueoptics.scene.geometry import primitives, Environment, SurfaceCollection
 from pytissueoptics.scene.materials import Material
 
 
 class Solid:
-    def __init__(self, vertices: List[Vector], position: Vector = Vector(0, 0, 0),
+    def __init__(self, vertices: List[Vertex], position: Vector = Vector(0, 0, 0),
                  surfaces: SurfaceCollection = None, material: Material = None,
-                 name: str = "Solid", primitive: str = primitives.DEFAULT):
+                 name: str = "Solid", primitive: str = primitives.DEFAULT, smooth: bool = False):
         self._vertices = vertices
         self._surfaces = surfaces
         self._material = material
@@ -28,12 +28,15 @@ class Solid:
         self._resetBoundingBoxes()
         self._resetPolygonsCentroids()
 
+        if smooth:
+            self.smooth()
+
     @property
     def position(self) -> Vector:
         return self._position
 
     @property
-    def vertices(self) -> List[Vector]:
+    def vertices(self) -> List[Vertex]:
         return self._vertices
 
     @property
@@ -51,7 +54,7 @@ class Solid:
     def getBoundingBox(self) -> BoundingBox:
         return self.bbox
 
-    def getVertices(self) -> List[Vector]:
+    def getVertices(self) -> List[Vertex]:
         return self.vertices
 
     def getName(self) -> str:
@@ -156,7 +159,7 @@ class Solid:
         for polygon in self._surfaces.getPolygons():
             polygon.setInsideEnvironment(Environment(self._material, self))
 
-    def contains(self, *vertices: Vector) -> bool:
+    def contains(self, *vertices: Vertex) -> bool:
         raise NotImplementedError
 
     def isStack(self) -> bool:
@@ -164,3 +167,28 @@ class Solid:
             if "Interface" in surfaceName:
                 return True
         return False
+
+    def smooth(self, surfaceName: str = None):
+        """ Prepare smoothing by calculating vertex normals. This is not done
+        by default. The vertex normals are used during ray-polygon intersection
+        to return an interpolated (smooth) normal. A vertex normal is defined
+        by taking the average normal of all adjacent polygons.
+
+        This base implementation will smooth all surfaces by default. This can
+        be changed by overwriting the signature with a specific surfaceName in
+        another solid implementation and calling super().smooth(surfaceName).
+        """
+
+        polygons = self.getPolygons(surfaceName)
+
+        for polygon in polygons:
+            polygon.toSmooth = True
+            for vertex in polygon.vertices:
+                if vertex.normal:
+                    vertex.normal += polygon.normal
+                else:
+                    vertex.normal = polygon.normal.copy()
+
+        for vertex in self.vertices:
+            if vertex.normal:
+                vertex.normal.normalize()

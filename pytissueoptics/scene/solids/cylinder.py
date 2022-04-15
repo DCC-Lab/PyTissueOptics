@@ -1,7 +1,7 @@
 import math
 from typing import List
 
-from pytissueoptics.scene.geometry import Vector, Triangle, primitives
+from pytissueoptics.scene.geometry import Vector, Triangle, primitives, Vertex
 from pytissueoptics.scene.materials import Material
 from pytissueoptics.scene.solids import Solid
 
@@ -16,11 +16,11 @@ class Cylinder(Solid):
             raise ValueError("u must be > 2 and v must be > 1")
         self._u = u
         self._v = v
-        self._bottomCenter = Vector(0, 0, 0)
-        self._topCenter = Vector(0, 0, height)
+        self._bottomCenter = Vertex(0, 0, 0)
+        self._topCenter = Vertex(0, 0, height)
         self._minRadius = math.cos(math.pi / self._u) * self._radius
         super().__init__(position=position, material=material, primitive=primitive,
-                         vertices=[self._bottomCenter, self._topCenter])
+                         vertices=[self._bottomCenter, self._topCenter], smooth=True)
 
     @property
     def direction(self) -> Vector:
@@ -32,7 +32,7 @@ class Cylinder(Solid):
         self._computeBottomTriangles(verticesGroups[0])
         self._computeTopTriangles(verticesGroups[-1])
 
-    def _computeVertices(self) -> List[List[Vector]]:
+    def _computeVertices(self) -> List[List[Vertex]]:
         verticesGroups = []
         radianStep = 2 * math.pi / self._u
         verticalStep = self._height / self._v
@@ -47,14 +47,14 @@ class Cylinder(Solid):
 
         return verticesGroups
 
-    def getMidVertex(self, i: int, j: int, radianStep: float, verticalStep: float) -> Vector:
+    def getMidVertex(self, i: int, j: int, radianStep: float, verticalStep: float) -> Vertex:
         shrinkFactor = self._getShrinkFactor(verticalStep * j)
         x = self._radius * shrinkFactor * math.cos(i * radianStep)
         y = self._radius * shrinkFactor * math.sin(i * radianStep)
         z = j * verticalStep
-        return Vector(x, y, z)
+        return Vertex(x, y, z)
 
-    def _computeMiddleTriangles(self, verticesGroups: List[List[Vector]]):
+    def _computeMiddleTriangles(self, verticesGroups: List[List[Vertex]]):
         middleTriangles = []
         for i in range(self._v):
             currentGroup = verticesGroups[i]
@@ -65,14 +65,14 @@ class Cylinder(Solid):
                 middleTriangles.append(Triangle(currentGroup[j], currentGroup[nextIndex], nextGroup[nextIndex]))
         self._surfaces.add("Middle", middleTriangles)
 
-    def _computeBottomTriangles(self, vertices: List[Vector]):
+    def _computeBottomTriangles(self, vertices: List[Vertex]):
         bottomTriangles = []
         for i in range(self._u):
             nextIndex = (i + 1) % self._u
             bottomTriangles.append(Triangle(self._bottomCenter, vertices[i], vertices[nextIndex]))
         self._surfaces.add("Bottom", bottomTriangles)
 
-    def _computeTopTriangles(self, vertices: List[Vector]):
+    def _computeTopTriangles(self, vertices: List[Vertex]):
         topTriangles = []
         for i in range(self._u):
             nextIndex = (i + 1) % self._u
@@ -82,7 +82,7 @@ class Cylinder(Solid):
     def _computeQuadMesh(self):
         raise NotImplementedError("Quad mesh not implemented for Cylinder")
 
-    def contains(self, *vertices: Vector) -> bool:
+    def contains(self, *vertices: Vertex) -> bool:
         for vertex in vertices:
             direction = self.direction
             direction.normalize()
@@ -106,3 +106,6 @@ class Cylinder(Solid):
     @staticmethod
     def _getShrinkFactor(heightAlong: float) -> float:
         return 1
+
+    def smooth(self, surfaceName: str = None):
+        super(Cylinder, self).smooth("Middle")

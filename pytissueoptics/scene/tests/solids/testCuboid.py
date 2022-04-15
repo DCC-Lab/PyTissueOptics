@@ -1,6 +1,6 @@
 import unittest
 
-from pytissueoptics.scene.geometry import Vector, primitives
+from pytissueoptics.scene.geometry import Vector, primitives, Vertex
 from pytissueoptics.scene.solids import Cuboid
 
 
@@ -116,13 +116,13 @@ class TestCuboid(unittest.TestCase):
     def testWhenContainsWithVerticesThatAreAllInsideTheCuboid_shouldReturnTrue(self):
         cuboid = Cuboid(1, 1, 8, position=Vector(2, 2, 0))
         cuboid.rotate(30, 0, 0)
-        vertices = [Vector(2, 2 - 1.71, 3), Vector(2, 2, 0)]
+        vertices = [Vertex(2, 2 - 1.71, 3), Vertex(2, 2, 0)]
 
         self.assertTrue(cuboid.contains(*vertices))
 
     def testWhenContainsWithVerticesThatAreNotAllInsideTheCuboid_shouldReturnFalse(self):
         cuboid = Cuboid(1, 1, 8, position=Vector(2, 2, 0))
         cuboid.rotate(30, 180, 0)
-        vertices = [Vector(2, 2, 3), Vector(2, 2, 0)]
+        vertices = [Vertex(2, 2, 3), Vertex(2, 2, 0)]
 
         self.assertFalse(cuboid.contains(*vertices))
