@@ -1,6 +1,6 @@
 from typing import List
 
-from pytissueoptics.scene.geometry import Polygon, Vector
+from pytissueoptics.scene.geometry import Polygon, Vector, Vertex
 
 
 def getSmoothNormal(polygon: Polygon, position: Vector) -> Vector:
@@ -21,7 +21,7 @@ def getSmoothNormal(polygon: Polygon, position: Vector) -> Vector:
     return smoothNormal
 
 
-def _getBarycentricWeights(vertices, position) -> List[float]:
+def _getBarycentricWeights(vertices: List[Vertex], position: Vector) -> List[float]:
     weights = []
     n = len(vertices)
     for i, vertex in enumerate(vertices):
