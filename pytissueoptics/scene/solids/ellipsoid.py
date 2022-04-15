@@ -78,7 +78,7 @@ class Ellipsoid(Solid):
             for i, vertex in enumerate(newVertices):
                 vHash = hash((vertex.x, vertex.y, vertex.z))
                 if vHash in self._verticesCache:
-                    newVertices[i] = self._verticesCache.get(vHash)
+                    newVertices[i] = self._verticesCache[vHash]
                     self._verticesCache.pop(vHash)
                 else:
                     self._vertices.append(vertex)
