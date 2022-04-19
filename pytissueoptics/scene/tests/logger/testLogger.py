@@ -61,3 +61,46 @@ class TestLogger(unittest.TestCase):
         logger.logPoint(Vector(3, 0, 0), anotherKeyWithoutSurface)
 
         self.assertEqual(2, len(logger.getPoints(self.INTERACTION_KEY)))
+
+    def testWhenGetSolidLabels_shouldReturnAListOfUniqueSolidLabels(self):
+        solidLabel1 = "A label"
+        solidLabel2 = "Another label"
+        interactionKey1 = InteractionKey(solidLabel1, "front")
+        interactionKey2 = InteractionKey(solidLabel2)
+        interactionKey3 = InteractionKey(solidLabel2, "back")
+
+        logger = Logger()
+        aPoint = Vector(0, 0, 0)
+        logger.logPoint(aPoint, interactionKey1)
+        logger.logPoint(aPoint, interactionKey2)
+        logger.logPoint(aPoint, interactionKey3)
+
+        solidLabels = logger.getSolidLabels()
+
+        self.assertEqual(2, len(solidLabels))
+        self.assertTrue(solidLabel1 in solidLabels)
+        self.assertTrue(solidLabel2 in solidLabels)
+
+    def testWhenGetSurfaceLabels_shouldReturnAListOfUniqueSurfaceLabelsForTheDesiredSolid(self):
+        solidLabel1 = "A label"
+        solidLabel2 = "Another label"
+        surfaceA = "front"
+        surfaceB = "back"
+        anotherSurface = "top"
+        interactionKey1 = InteractionKey(solidLabel1, surfaceA)
+        interactionKey2 = InteractionKey(solidLabel1, surfaceB)
+        interactionKey3 = InteractionKey(solidLabel1)
+        interactionKey4 = InteractionKey(solidLabel2, anotherSurface)
+
+        logger = Logger()
+        aPoint = Vector(0, 0, 0)
+        logger.logPoint(aPoint, interactionKey1)
+        logger.logPoint(aPoint, interactionKey2)
+        logger.logPoint(aPoint, interactionKey3)
+        logger.logPoint(aPoint, interactionKey4)
+
+        surfaceLabels = logger.getSurfaceLabels(solidLabel1)
+
+        self.assertEqual(2, len(surfaceLabels))
+        self.assertTrue(surfaceA in surfaceLabels)
+        self.assertTrue(surfaceB in surfaceLabels)
