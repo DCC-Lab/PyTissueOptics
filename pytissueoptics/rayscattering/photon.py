@@ -78,7 +78,7 @@ class Photon:
 
         if intersection:
             self.moveBy(intersection.distance)
-            self._logPosition()
+            self._logPosition(intersection.surfaceName)
             distanceLeft = self.reflectOrRefract(intersection)
         else:
             if math.isinf(distance):
@@ -160,9 +160,9 @@ class Photon:
         else:
             self._weight = 0
 
-    def _logPosition(self):
+    def _logPosition(self, surfaceName: str = None):
         if self._logger is not None:
-            key = InteractionKey(self.solidName)
+            key = InteractionKey(self.solidName, surfaceName)
             self._logger.logPoint(self._position, key)
 
     def _logWeightDecrease(self, delta):
