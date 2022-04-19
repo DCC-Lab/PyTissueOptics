@@ -64,7 +64,6 @@ class Photon:
         if not self._hasContext:
             raise NotImplementedError("Cannot propagate photon without context. Use ‘setContext(...)‘. ")
 
-        self._logPosition()
         distance = 0
         while self.isAlive:
             distance = self.step(distance)
@@ -78,7 +77,7 @@ class Photon:
 
         if intersection:
             self.moveBy(intersection.distance)
-            self._logPosition(intersection.surfaceName)
+            self._logIntersection(intersection)
             distanceLeft = self.reflectOrRefract(intersection)
         else:
             if math.isinf(distance):
@@ -160,9 +159,10 @@ class Photon:
         else:
             self._weight = 0
 
-    def _logPosition(self, surfaceName: str = None):
+    def _logIntersection(self, intersection: Intersection):
         if self._logger is not None:
-            key = InteractionKey(self.solidName, surfaceName)
+            key = InteractionKey(intersection.insideEnvironment.solid.getName(),
+                                 intersection.surfaceName)
             self._logger.logPoint(self._position, key)
 
     def _logWeightDecrease(self, delta):
