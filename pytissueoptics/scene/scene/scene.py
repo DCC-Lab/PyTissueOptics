@@ -10,6 +10,7 @@ class Scene:
     def __init__(self, solids: List[Solid] = None, ignoreIntersections=False):
         self._solids = []
         self._ignoreIntersections = ignoreIntersections
+        self._labelsOfHiddenSolids = []
         
         if solids:
             for solid in solids:
@@ -18,9 +19,9 @@ class Scene:
     def add(self, solid: Solid, position: Vector = None):
         if position:
             solid.translateTo(position)
+        self._validateLabel(solid)
         if not self._ignoreIntersections:
             self._validatePosition(solid)
-        self._validatelabel(solid)
         self._solids.append(solid)
 
     @property
@@ -44,17 +45,19 @@ class Scene:
             if newSolid.contains(*otherSolid.getVertices()):
                 self._assertIsNotAStack(newSolid)
                 solidUpdates[otherSolid] = newSolid.getEnvironment()
+                self._labelsOfHiddenSolids.append(otherSolid.getLabel())
                 break
             elif otherSolid.contains(*newSolid.getVertices()):
                 self._assertIsNotAStack(otherSolid)
                 solidUpdates[newSolid] = otherSolid.getEnvironment()
+                self._labelsOfHiddenSolids.append(newSolid.getLabel())
             else:
                 raise NotImplementedError("Cannot place a solid that partially intersects with an existing solid. ")
 
         for (solid, environment) in solidUpdates.items():
             solid.setOutsideEnvironment(environment)
 
-    def _validatelabel(self, solid):
+    def _validateLabel(self, solid):
         labelSet = set(s.getLabel() for s in self.solids)
         if solid.getLabel() not in labelSet:
             return
@@ -94,3 +97,10 @@ class Scene:
         for solid in self._solids[1:]:
             bbox.extendTo(solid.getBoundingBox())
         return bbox
+
+    def setOutsideMaterial(self, material):
+        outsideEnvironment = Environment(material)
+        for solid in self._solids:
+            if solid.getLabel() in self._labelsOfHiddenSolids:
+                continue
+            solid.setOutsideEnvironment(outsideEnvironment)

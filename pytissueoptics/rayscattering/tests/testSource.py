@@ -21,7 +21,7 @@ class TestSource(unittest.TestCase):
 
         self.source.propagate(tissue, worldMaterial=worldMaterial)
 
-        verify(tissue).setWorldMaterial(worldMaterial)
+        verify(tissue).setOutsideMaterial(worldMaterial)
 
     def testWhenPropagate_shouldSetInitialPhotonMaterialAsWorldMaterial(self):
         worldMaterial = ScatteringMaterial()
@@ -35,7 +35,7 @@ class TestSource(unittest.TestCase):
     @staticmethod
     def _createTissue():
         tissue = mock(RayScatteringScene)
-        when(tissue).setWorldMaterial(...).thenReturn()
+        when(tissue).setOutsideMaterial(...).thenReturn()
         when(tissue).getSolids().thenReturn([])
         return tissue
 

@@ -150,10 +150,22 @@ class TestScene(unittest.TestCase):
         verify(solid1, times=0).setLabel(...)
         verify(solid2).setLabel("Solid_0")
 
+    def testWhenSetOutsideMaterial_shouldSetOutsideMaterialOfAllTheSolidsThatAreNotContained(self):
+        INSIDE_SOLID = self.makeSolidWith(BoundingBox([1, 4], [1, 4], [1, 4]), name="InsideSolid")
+        self.scene.add(INSIDE_SOLID)
+        SOLID = self.makeSolidWith(BoundingBox([-1, 6], [-1, 6], [-1, 6]), contains=True, name="Solid")
+        self.scene.add(SOLID)
+        worldMaterial = Material()
+
+        self.scene.setOutsideMaterial(worldMaterial)
+
+        verify(SOLID, times=1).setOutsideEnvironment(Environment(worldMaterial))
+        verify(INSIDE_SOLID, times=0).setOutsideEnvironment(Environment(worldMaterial))
+
     @staticmethod
-    def makeSolidWith(bbox: BoundingBox = None, contains=False, isStack=False):
+    def makeSolidWith(bbox: BoundingBox = None, contains=False, isStack=False, name="Solid"):
         solid = mock(Solid)
-        when(solid).getLabel().thenReturn("Solid")
+        when(solid).getLabel().thenReturn(name)
         when(solid).setLabel(...).thenReturn()
         when(solid).getBoundingBox().thenReturn(bbox)
         when(solid).isStack().thenReturn(isStack)
