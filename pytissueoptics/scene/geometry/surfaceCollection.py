@@ -33,7 +33,16 @@ class SurfaceCollection:
         self._surfaces[surfaceName] = polygons
 
     def setOutsideMaterial(self, material: Material, surfaceName: str = None):
-        for polygon in self.getPolygons(surfaceName):
+        if surfaceName:
+            outsidePolygons = self.getPolygons(surfaceName)
+        else:
+            outsidePolygons = []
+            for surfaceName in self.surfaceNames:
+                if "Interface" in surfaceName:
+                    continue
+                outsidePolygons.extend(self.getPolygons(surfaceName))
+
+        for polygon in outsidePolygons:
             polygon.setOutsideMaterial(material)
 
     def getInsideMaterial(self, surfaceName: str) -> Material:

@@ -1,4 +1,5 @@
 from .vector import Vector
+from .vertex import Vertex
 from .bbox import BoundingBox
 from .polygon import Polygon
 from .triangle import Triangle

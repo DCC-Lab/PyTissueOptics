@@ -1,4 +1,4 @@
-from math import isclose
+import math
 
 
 class Vector:
@@ -29,7 +29,7 @@ class Vector:
 
     def __eq__(self, other: 'Vector'):
         tol = 1e-5
-        if isclose(other.x, self.x, abs_tol=tol) and isclose(other.y, self.y, abs_tol=tol) and isclose(other.z, self.z, abs_tol=tol):
+        if math.isclose(other.x, self.x, abs_tol=tol) and math.isclose(other.y, self.y, abs_tol=tol) and math.isclose(other.z, self.z, abs_tol=tol):
             return True
         else:
             return False
@@ -95,3 +95,46 @@ class Vector:
 
     def copy(self) -> 'Vector':
         return Vector(self._x, self._y, self._z)
+
+    def rotateAround(self, unitAxis: 'Vector', theta: float):
+        # This is the most expensive (and most common)
+        # operation when performing Monte Carlo in tissue
+        # (15% of time spent here). It is difficult to optimize without
+        # making it even less readable than it currently is
+        # http://en.wikipedia.org/wiki/Rotation_matrix
+        #
+        # Several options were tried in the past such as
+        # external not-so-portable C library, unreadable
+        # shortcuts, sine and cosine lookup tables, etc...
+        # and the performance gain was minimal (<20%).
+        # For now, this is the best, most readable solution.
+
+        cost = math.cos(theta)
+        sint = math.sin(theta)
+        one_cost = 1 - cost
+
+        ux = unitAxis.x
+        uy = unitAxis.y
+        uz = unitAxis.z
+
+        X = self.x
+        Y = self.y
+        Z = self.z
+
+        x = (cost + ux * ux * one_cost) * X \
+            + (ux * uy * one_cost - uz * sint) * Y \
+            + (ux * uz * one_cost + uy * sint) * Z
+        y = (uy * ux * one_cost + uz * sint) * X \
+            + (cost + uy * uy * one_cost) * Y \
+            + (uy * uz * one_cost - ux * sint) * Z
+        z = (uz * ux * one_cost - uy * sint) * X \
+            + (uz * uy * one_cost + ux * sint) * Y \
+            + (cost + uz * uz * one_cost) * Z
+
+        self.update(x, y, z)
+
+    def getAnyOrthogonal(self) -> 'Vector':
+        if abs(self.z) < abs(self.x):
+            return Vector(self.y, -self.x, 0)
+
+        return Vector(0, -self.z, self.y)
