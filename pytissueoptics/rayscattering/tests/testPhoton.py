@@ -8,7 +8,7 @@ from pytissueoptics.rayscattering import Photon
 from pytissueoptics.rayscattering.fresnel import FresnelIntersection, FresnelIntersect
 from pytissueoptics.rayscattering.materials import ScatteringMaterial
 from pytissueoptics.scene import Vector, Logger
-from pytissueoptics.scene.geometry import Polygon
+from pytissueoptics.scene.geometry import Polygon, Vertex
 from pytissueoptics.scene.intersection.intersectionFinder import Intersection, IntersectionFinder
 
 
@@ -259,9 +259,8 @@ class TestPhoton(unittest.TestCase):
     def _createIntersectionFinder(intersectionDistance=10, rayLength=None):
         if rayLength is None:
             rayLength = intersectionDistance + 2
-        aPolygon = Polygon([Vector(), Vector(), Vector()],
-                           insideMaterial=ScatteringMaterial(), outsideMaterial=ScatteringMaterial())
-        intersection = Intersection(intersectionDistance, position=Vector(), polygon=aPolygon,
+        intersection = Intersection(intersectionDistance, position=Vector(), normal=Vector(0, 0, 0),
+                                    insideMaterial=ScatteringMaterial(), outsideMaterial=ScatteringMaterial(),
                                     distanceLeft=rayLength-intersectionDistance)
         intersectionFinder = mock(IntersectionFinder)
         when(intersectionFinder).findIntersection(...).thenReturn(intersection)

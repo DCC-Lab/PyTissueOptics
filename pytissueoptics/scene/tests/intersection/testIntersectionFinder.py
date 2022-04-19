@@ -46,13 +46,13 @@ class TestAnyIntersectionFinder:
         self.assertAlmostEqual(4, intersection.position.z)
         self.assertAlmostEqual(4, intersection.distance)
 
-    def testGivenRayIsIntersectingASolidWithTrianglePrimitive_shouldReturnIntersectionTriangle(self):
-        self._testGivenRayIsIntersectingASolidWithAnyPrimitive_shouldReturnIntersectionPolygon(primitives.TRIANGLE)
+    def testGivenRayIsIntersectingASolidWithTrianglePrimitive_shouldReturnIntersectionTriangleNormal(self):
+        self._testGivenRayIsIntersectingASolidWithAnyPrimitive_shouldReturnIntersectionPolygonNormal(primitives.TRIANGLE)
 
-    def testGivenRayIsIntersectingASolidWithQuadPrimitive_shouldReturnIntersectionQuad(self):
-        self._testGivenRayIsIntersectingASolidWithAnyPrimitive_shouldReturnIntersectionPolygon(primitives.QUAD)
+    def testGivenRayIsIntersectingASolidWithQuadPrimitive_shouldReturnIntersectionQuadNormal(self):
+        self._testGivenRayIsIntersectingASolidWithAnyPrimitive_shouldReturnIntersectionPolygonNormal(primitives.QUAD)
 
-    def _testGivenRayIsIntersectingASolidWithAnyPrimitive_shouldReturnIntersectionPolygon(self, anyPrimitive):
+    def _testGivenRayIsIntersectingASolidWithAnyPrimitive_shouldReturnIntersectionPolygonNormal(self, anyPrimitive):
         ray = Ray(origin=Vector(-0.5, 0.5, 0), direction=Vector(0, 0, 1))
         solid = Cube(2, position=Vector(0, 0, 5), primitive=anyPrimitive)
         polygonThatShouldBeHit = solid.surfaces.getPolygons("Front")[0]
@@ -60,7 +60,7 @@ class TestAnyIntersectionFinder:
         intersection = self.getIntersectionFinder([solid]).findIntersection(ray)
 
         self.assertIsNotNone(intersection)
-        self.assertEqual(polygonThatShouldBeHit, intersection.polygon)
+        self.assertEqual(polygonThatShouldBeHit.normal, intersection.normal)
 
     def testGivenRayIsOnlyIntersectingWithASolidBoundingBox_shouldNotFindIntersection(self):
         direction = Vector(0, 0.9, 1)
