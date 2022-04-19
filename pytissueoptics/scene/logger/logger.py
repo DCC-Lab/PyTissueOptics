@@ -40,6 +40,13 @@ class Logger:
     def __init__(self):
         self._data: Dict[InteractionKey, InteractionData] = {}
 
+    def getSolidNames(self) -> List[str]:
+        return list(set(key.solidName for key in self._data.keys()))
+
+    def getSurfaceNames(self, solidName: str) -> List[str]:
+        return [key.surfaceName for key in self._data.keys() if key.solidName == solidName
+                and key.surfaceName is not None]
+
     def logPoint(self, point: Vector, key: InteractionKey):
         self._validateKey(key)
         self._data[key].points.append(point)
