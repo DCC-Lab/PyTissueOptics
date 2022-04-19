@@ -8,7 +8,7 @@ from pytissueoptics.scene import Vector
 from pytissueoptics.scene.geometry import Environment
 from pytissueoptics.scene.intersection import Ray
 from pytissueoptics.scene.intersection.intersectionFinder import IntersectionFinder, Intersection
-from pytissueoptics.scene.logger import Logger
+from pytissueoptics.scene.logger import Logger, InteractionKey
 
 
 class Photon:
@@ -17,10 +17,10 @@ class Photon:
         self._direction = direction
         self._weight = 1
 
-        self._environment = None
+        self._environment: Environment = None
         self._intersectionFinder = None
         self._fresnelIntersect = None
-        self._logger = None
+        self._logger: Logger = None
 
         self._er = self._direction.getAnyOrthogonal()
         self._er.normalize()
@@ -45,6 +45,12 @@ class Photon:
     @property
     def material(self) -> ScatteringMaterial:
         return self._environment.material
+
+    @property
+    def solidName(self):
+        if not self._environment.solid:
+            return None
+        return self._environment.solid.getName()
 
     def setContext(self, environment: Environment, intersectionFinder: IntersectionFinder = None, logger: Logger = None,
                    fresnelIntersectionFactory=FresnelIntersect()):
@@ -156,8 +162,10 @@ class Photon:
 
     def _logPosition(self):
         if self._logger is not None:
-            self._logger.logPoint(self._position)
+            key = InteractionKey(self.solidName)
+            self._logger.logPoint(self._position, key)
 
     def _logWeightDecrease(self, delta):
         if self._logger:
-            self._logger.logDataPoint(delta, position=self._position)
+            key = InteractionKey(self.solidName)
+            self._logger.logDataPoint(delta, self._position, key)

@@ -10,6 +10,7 @@ from pytissueoptics.rayscattering.materials import ScatteringMaterial
 from pytissueoptics.scene import Vector, Logger
 from pytissueoptics.scene.geometry import Environment
 from pytissueoptics.scene.intersection.intersectionFinder import Intersection, IntersectionFinder
+from pytissueoptics.scene.logger import InteractionKey
 
 
 class TestPhoton(unittest.TestCase):
@@ -215,7 +216,7 @@ class TestPhoton(unittest.TestCase):
 
         self.photon.propagate()
 
-        verify(logger).logPoint(self.INITIAL_POSITION)
+        verify(logger).logPoint(self.INITIAL_POSITION, InteractionKey(None))
 
     def testGivenALogger_whenStep_shouldLogIntersectionPositions(self):
         logger = self._createLogger()
@@ -226,7 +227,7 @@ class TestPhoton(unittest.TestCase):
         self.photon.step(distance+2)
 
         intersectionPoint = self.INITIAL_POSITION + self.INITIAL_DIRECTION * distance
-        verify(logger).logPoint(intersectionPoint)
+        verify(logger).logPoint(intersectionPoint, InteractionKey(None))
 
     def testGivenALogger_whenScatter_shouldLogWeightLossAtThisPosition(self):
         logger = self._createLogger()
@@ -235,7 +236,7 @@ class TestPhoton(unittest.TestCase):
         self.photon.scatter()
 
         weightLoss = self.photon.material.getAlbedo()
-        verify(logger).logDataPoint(weightLoss, position=self.INITIAL_POSITION)
+        verify(logger).logDataPoint(weightLoss, self.INITIAL_POSITION, InteractionKey(None))
 
     def testInteractAtFloatLimitIsStillValid(self):
         environment = self._createEnvironment(albedo=1.0)
