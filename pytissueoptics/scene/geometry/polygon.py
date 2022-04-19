@@ -22,12 +22,12 @@ class Polygon:
 
     def __init__(self, vertices: List[Vertex], normal: Vector = None,
                  insideEnvironment: Environment = None, outsideEnvironment: Environment = None,
-                 surfaceName: str = None):
+                 surfaceLabel: str = None):
         self._vertices = vertices
         self._normal = normal
         self._insideEnvironment = insideEnvironment
         self._outsideEnvironment = outsideEnvironment
-        self.surfaceName = surfaceName
+        self.surfaceLabel = surfaceLabel
         if self._normal is None:
             self.resetNormal()
 

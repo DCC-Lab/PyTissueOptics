@@ -47,10 +47,10 @@ class Photon:
         return self._environment.material
 
     @property
-    def solidName(self):
+    def solidLabel(self):
         if not self._environment.solid:
             return None
-        return self._environment.solid.getName()
+        return self._environment.solid.getLabel()
 
     def setContext(self, environment: Environment, intersectionFinder: IntersectionFinder = None, logger: Logger = None,
                    fresnelIntersectionFactory=FresnelIntersect()):
@@ -161,11 +161,12 @@ class Photon:
 
     def _logIntersection(self, intersection: Intersection):
         if self._logger is not None:
-            key = InteractionKey(intersection.insideEnvironment.solid.getName(),
-                                 intersection.surfaceName)
+            solid = intersection.insideEnvironment.solid
+            solidLabel = solid.getLabel() if solid else None
+            key = InteractionKey(solidLabel, intersection.surfaceLabel)
             self._logger.logPoint(self._position, key)
 
     def _logWeightDecrease(self, delta):
         if self._logger:
-            key = InteractionKey(self.solidName)
+            key = InteractionKey(self.solidLabel)
             self._logger.logDataPoint(delta, self._position, key)

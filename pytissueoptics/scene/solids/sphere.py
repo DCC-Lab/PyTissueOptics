@@ -16,12 +16,12 @@ class Sphere(Ellipsoid):
 
     def __init__(self, radius: float = 1.0, order: int = 3,
                  position: Vector = Vector(0, 0, 0), material: Material = None,
-                 name: str = "Sphere", primitive: str = primitives.DEFAULT, smooth: bool = True):
+                 label: str = "Sphere", primitive: str = primitives.DEFAULT, smooth: bool = True):
 
         self._radius = radius
 
         super().__init__(a=radius, b=radius, c=radius, order=order, position=position, material=material,
-                         name=name, primitive=primitive, smooth=smooth)
+                         label=label, primitive=primitive, smooth=smooth)
 
     @property
     def radius(self):

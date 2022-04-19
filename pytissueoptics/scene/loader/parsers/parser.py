@@ -31,7 +31,7 @@ class Parser:
         self._normals: List[List[float]] = []
         self._texCoords: List[List[float]] = []
         self._currentObjectName: str = self.NO_OBJECT
-        self._currentSurfaceName: str = self.NO_SURFACE
+        self._currentsurfaceLabel: str = self.NO_SURFACE
         self._checkFileExtension()
         self._parse()
 
@@ -41,8 +41,8 @@ class Parser:
     def _parse(self):
         raise NotImplementedError
 
-    def _resetSurfaceName(self):
-        self._currentSurfaceName = self.NO_SURFACE
+    def _resetsurfaceLabel(self):
+        self._currentsurfaceLabel = self.NO_SURFACE
 
     @property
     def vertices(self):

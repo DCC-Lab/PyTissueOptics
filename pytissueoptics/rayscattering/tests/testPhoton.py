@@ -210,14 +210,6 @@ class TestPhoton(unittest.TestCase):
 
         self.assertEqual(0, distanceLeft)
 
-    def testGivenALogger_whenPropagate_shouldLogInitialPosition(self):
-        logger = self._createLogger()
-        self.photon.setContext(Environment(ScatteringMaterial(mu_s=2, mu_a=1, g=0.8)), logger=logger)
-
-        self.photon.propagate()
-
-        verify(logger).logPoint(self.INITIAL_POSITION, InteractionKey(None))
-
     def testGivenALogger_whenStep_shouldLogIntersectionPositions(self):
         logger = self._createLogger()
         distance = 8

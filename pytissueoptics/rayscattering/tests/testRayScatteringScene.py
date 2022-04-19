@@ -12,7 +12,7 @@ class TestRayScatteringScene(unittest.TestCase):
     def testWhenSetWorldMaterial_shouldSetOutsideMaterialOfAllItsSolids(self):
         solid = mock(Solid)
         when(solid).setOutsideEnvironment(...).thenReturn()
-        when(solid).getName().thenReturn()
+        when(solid).getLabel().thenReturn()
         tissue = RayScatteringScene([solid])
         worldMaterial = Material()
 

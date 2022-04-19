@@ -20,7 +20,7 @@ class Scene:
             solid.translateTo(position)
         if not self._ignoreIntersections:
             self._validatePosition(solid)
-        self._validateName(solid)
+        self._validatelabel(solid)
         self._solids.append(solid)
 
     @property
@@ -54,15 +54,15 @@ class Scene:
         for (solid, environment) in solidUpdates.items():
             solid.setOutsideEnvironment(environment)
 
-    def _validateName(self, solid):
-        nameSet = set(s.getName() for s in self.solids)
-        if solid.getName() not in nameSet:
+    def _validatelabel(self, solid):
+        labelSet = set(s.getLabel() for s in self.solids)
+        if solid.getLabel() not in labelSet:
             return
 
         idx = 0
-        while f"{solid.getName()}_{idx}" in nameSet:
+        while f"{solid.getLabel()}_{idx}" in labelSet:
             idx += 1
-        solid.setName(f"{solid.getName()}_{idx}")
+        solid.setLabel(f"{solid.getLabel()}_{idx}")
 
     def _findIntersectingSuspectsFor(self, solid) -> List[Solid]:
         solidBBox = solid.getBoundingBox()

@@ -21,7 +21,7 @@ class Intersection:
     normal: Vector = None
     insideEnvironment: Environment = None
     outsideEnvironment: Environment = None
-    surfaceName: str = None
+    surfaceLabel: str = None
     distanceLeft: float = None
 
 
@@ -56,7 +56,7 @@ class IntersectionFinder:
         intersection.normal = shader.getSmoothNormal(intersection.polygon, intersection.position)
         intersection.insideEnvironment = intersection.polygon.insideEnvironment
         intersection.outsideEnvironment = intersection.polygon.outsideEnvironment
-        intersection.surfaceName = intersection.polygon.surfaceName
+        intersection.surfaceLabel = intersection.polygon.surfaceLabel
 
         if ray.length is not None:
             intersection.distanceLeft = ray.length - intersection.distance

@@ -120,7 +120,7 @@ class TestSolid(unittest.TestCase):
         self.assertAlmostEqual(1/math.sqrt(3), frontVertex.normal.y)
         self.assertAlmostEqual(1/math.sqrt(3), frontVertex.normal.z)
 
-    def testWhenSmoothWithSurfaceName_shouldOnlySmoothPolygonsFromThisSurface(self):
+    def testWhenSmoothWithSurfaceLabel_shouldOnlySmoothPolygonsFromThisSurface(self):
         self.solid.smooth("Front")
 
         frontVertex = self.solid.vertices[0]

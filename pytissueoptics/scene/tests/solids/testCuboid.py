@@ -33,9 +33,9 @@ class TestCuboid(unittest.TestCase):
         self.assertEqual(self._getSurfaceCentroid(cuboid, "Back"), Vector(1, 1, 2))
 
     @staticmethod
-    def _getSurfaceCentroid(cuboid, surfaceName: str) -> Vector:
+    def _getSurfaceCentroid(cuboid, surfaceLabel: str) -> Vector:
         centroid = Vector(0, 0, 0)
-        surfacePolygons = cuboid.getPolygons(surfaceName)
+        surfacePolygons = cuboid.getPolygons(surfaceLabel)
         for polygon in surfacePolygons:
             centroid += polygon.getCentroid()
         centroid.divide(len(surfacePolygons))
@@ -99,13 +99,13 @@ class TestCuboid(unittest.TestCase):
 
         cuboidStack = baseCuboid.stack(otherCuboid, onSurface='Top')
 
-        self.assertTrue("Interface0" in cuboidStack.surfaceNames)
+        self.assertTrue("Interface0" in cuboidStack.surfaceLabels)
 
     def testWhenStack_shouldPreserveEnvironmentAtEachLayer(self):
         baseMaterial = Material()
         otherMaterial = Material()
-        baseCuboid = Cuboid(5, 3, 4, material=baseMaterial, name="base")
-        otherCuboid = Cuboid(5, 1, 4, material=otherMaterial, name="other")
+        baseCuboid = Cuboid(5, 3, 4, material=baseMaterial, label="base")
+        otherCuboid = Cuboid(5, 1, 4, material=otherMaterial, label="other")
 
         cuboidStack = baseCuboid.stack(otherCuboid, onSurface='Top')
 
@@ -128,7 +128,7 @@ class TestCuboid(unittest.TestCase):
         cuboidStack = cuboidStack1.stack(cuboidStack2, onSurface='Right')
 
         for i in range(3):
-            self.assertTrue(f"Interface{i}" in cuboidStack.surfaceNames)
+            self.assertTrue(f"Interface{i}" in cuboidStack.surfaceLabels)
 
     def testWhenContainsWithVerticesThatAreAllInsideTheCuboid_shouldReturnTrue(self):
         cuboid = Cuboid(1, 1, 8, position=Vector(2, 2, 0))

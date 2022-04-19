@@ -107,5 +107,5 @@ class Cylinder(Solid):
     def _getShrinkFactor(heightAlong: float) -> float:
         return 1
 
-    def smooth(self, surfaceName: str = None):
+    def smooth(self, surfaceLabel: str = None):
         super(Cylinder, self).smooth("Middle")

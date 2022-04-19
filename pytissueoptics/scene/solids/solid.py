@@ -10,7 +10,7 @@ from pytissueoptics.scene.materials import Material
 class Solid:
     def __init__(self, vertices: List[Vertex], position: Vector = Vector(0, 0, 0),
                  surfaces: SurfaceCollection = None, material: Material = None,
-                 name: str = "Solid", primitive: str = primitives.DEFAULT, smooth: bool = False):
+                 label: str = "Solid", primitive: str = primitives.DEFAULT, smooth: bool = False):
         self._vertices = vertices
         self._surfaces = surfaces
         self._material = material
@@ -18,7 +18,7 @@ class Solid:
         self._position = Vector(0, 0, 0)
         self._orientation: Rotation = Rotation()
         self._bbox = None
-        self._name = name
+        self._label = label
 
         if not self._surfaces:
             self._computeMesh()
@@ -57,11 +57,11 @@ class Solid:
     def getVertices(self) -> List[Vertex]:
         return self.vertices
 
-    def getName(self) -> str:
-        return self._name
+    def getLabel(self) -> str:
+        return self._label
 
-    def setName(self, name: str):
-        self._name = name
+    def setLabel(self, label: str):
+        self._label = label
 
     def _resetBoundingBoxes(self):
         self._bbox = BoundingBox.fromVertices(self._vertices)
@@ -106,24 +106,24 @@ class Solid:
         self._resetBoundingBoxes()
         self._resetPolygonsCentroids()
 
-    def getEnvironment(self, surfaceName: str = None) -> Environment:
-        if surfaceName:
-            return self.surfaces.getInsideEnvironment(surfaceName)
+    def getEnvironment(self, surfaceLabel: str = None) -> Environment:
+        if surfaceLabel:
+            return self.surfaces.getInsideEnvironment(surfaceLabel)
         else:
             return Environment(self._material, self)
 
-    def setOutsideEnvironment(self, environment: Environment, surfaceName: str = None):
-        self._surfaces.setOutsideEnvironment(environment, surfaceName)
+    def setOutsideEnvironment(self, environment: Environment, surfaceLabel: str = None):
+        self._surfaces.setOutsideEnvironment(environment, surfaceLabel)
 
     @property
-    def surfaceNames(self) -> List[str]:
-        return self._surfaces.surfaceNames
+    def surfaceLabels(self) -> List[str]:
+        return self._surfaces.surfaceLabels
 
-    def getPolygons(self, surfaceName: str = None) -> List[Polygon]:
-        return self._surfaces.getPolygons(surfaceName)
+    def getPolygons(self, surfaceLabel: str = None) -> List[Polygon]:
+        return self._surfaces.getPolygons(surfaceLabel)
 
-    def setPolygons(self, surfaceName: str, polygons: List[Polygon]):
-        self._surfaces.setPolygons(surfaceName, polygons)
+    def setPolygons(self, surfaceLabel: str, polygons: List[Polygon]):
+        self._surfaces.setPolygons(surfaceLabel, polygons)
 
         currentVerticesIDs = {id(vertex) for vertex in self._vertices}
         newVertices = []
@@ -166,23 +166,23 @@ class Solid:
         raise NotImplementedError
 
     def isStack(self) -> bool:
-        for surfaceName in self.surfaceNames:
-            if "Interface" in surfaceName:
+        for surfaceLabel in self.surfaceLabels:
+            if "Interface" in surfaceLabel:
                 return True
         return False
 
-    def smooth(self, surfaceName: str = None):
+    def smooth(self, surfaceLabel: str = None):
         """ Prepare smoothing by calculating vertex normals. This is not done
         by default. The vertex normals are used during ray-polygon intersection
         to return an interpolated (smooth) normal. A vertex normal is defined
         by taking the average normal of all adjacent polygons.
 
         This base implementation will smooth all surfaces by default. This can
-        be changed by overwriting the signature with a specific surfaceName in
-        another solid implementation and calling super().smooth(surfaceName).
+        be changed by overwriting the signature with a specific surfaceLabel in
+        another solid implementation and calling super().smooth(surfaceLabel).
         """
 
-        polygons = self.getPolygons(surfaceName)
+        polygons = self.getPolygons(surfaceLabel)
 
         for polygon in polygons:
             polygon.toSmooth = True

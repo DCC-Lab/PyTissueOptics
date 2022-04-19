@@ -5,9 +5,9 @@ from pytissueoptics.scene.logger import Logger, InteractionKey
 
 
 class TestLogger(unittest.TestCase):
-    SOLID_NAME = "mySolid"
-    SURFACE_NAME = "front"
-    INTERACTION_KEY = InteractionKey(SOLID_NAME, SURFACE_NAME)
+    SOLID_LABEL = "mySolid"
+    SURFACE_LABEL = "front"
+    INTERACTION_KEY = InteractionKey(SOLID_LABEL, SURFACE_LABEL)
 
     def testGivenNewLogger_shouldBeEmpty(self):
         logger = Logger()
@@ -50,9 +50,9 @@ class TestLogger(unittest.TestCase):
         self.assertEqual(Vector(1, 0, 0), logger.getSegments()[-1].end)
 
     def testWhenGetDataWithKey_shouldReturnDataStoredForThisKey(self):
-        sameKey = InteractionKey(self.SOLID_NAME, self.SURFACE_NAME)
-        anotherKey = InteractionKey(self.SOLID_NAME, "another surface")
-        anotherKeyWithoutSurface = InteractionKey(self.SOLID_NAME)
+        sameKey = InteractionKey(self.SOLID_LABEL, self.SURFACE_LABEL)
+        anotherKey = InteractionKey(self.SOLID_LABEL, "another surface")
+        anotherKeyWithoutSurface = InteractionKey(self.SOLID_LABEL)
 
         logger = Logger()
         logger.logPoint(Vector(0, 0, 0), self.INTERACTION_KEY)
