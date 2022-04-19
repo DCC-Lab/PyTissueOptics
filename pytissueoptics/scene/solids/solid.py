@@ -156,7 +156,8 @@ class Solid:
         raise NotImplementedError(f"Quad mesh not implemented for Solids of type {type(self).__name__}")
 
     def _setInsideEnvironment(self):
-        if not self._material:
+        polygons = self._surfaces.getPolygons()
+        if not self._material and polygons[0].insideEnvironment is not None:
             return
         for polygon in self._surfaces.getPolygons():
             polygon.setInsideEnvironment(Environment(self._material, self))

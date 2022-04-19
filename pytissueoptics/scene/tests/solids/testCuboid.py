@@ -1,5 +1,6 @@
 import unittest
 
+from pytissueoptics.scene import Material
 from pytissueoptics.scene.geometry import Vector, primitives, Vertex
 from pytissueoptics.scene.solids import Cuboid
 
@@ -75,11 +76,12 @@ class TestCuboid(unittest.TestCase):
     def testWhenStack_shouldSetOtherCuboidEnvironmentAtInterface(self):
         baseCuboid = Cuboid(5, 3, 4)
         otherCuboid = Cuboid(5, 1, 4)
+        topEnvironment = otherCuboid.getEnvironment()
 
         baseCuboid.stack(otherCuboid, onSurface='Top')
 
         for polygon in baseCuboid.getPolygons('Top'):
-            self.assertEqual(polygon.outsideEnvironment, otherCuboid.getEnvironment())
+            self.assertEqual(topEnvironment, polygon.outsideEnvironment)
 
     def testWhenStack_shouldReturnANewCuboidMadeOfTheseTwoCuboids(self):
         basePosition = Vector(2, 2, 1)
@@ -98,6 +100,21 @@ class TestCuboid(unittest.TestCase):
         cuboidStack = baseCuboid.stack(otherCuboid, onSurface='Top')
 
         self.assertTrue("Interface0" in cuboidStack.surfaceNames)
+
+    def testWhenStack_shouldPreserveEnvironmentAtEachLayer(self):
+        baseMaterial = Material()
+        otherMaterial = Material()
+        baseCuboid = Cuboid(5, 3, 4, material=baseMaterial, name="base")
+        otherCuboid = Cuboid(5, 1, 4, material=otherMaterial, name="other")
+
+        cuboidStack = baseCuboid.stack(otherCuboid, onSurface='Top')
+
+        interfacePolygon = cuboidStack.getPolygons("Interface0")[0]
+
+        self.assertEqual(baseMaterial, interfacePolygon.insideEnvironment.material)
+        self.assertEqual(otherMaterial, interfacePolygon.outsideEnvironment.material)
+        self.assertEqual(baseCuboid, interfacePolygon.insideEnvironment.solid)
+        self.assertEqual(otherCuboid, interfacePolygon.outsideEnvironment.solid)
 
     def testWhenStackAnotherStack_shouldReturnANewCuboidWithAllStackInterfaces(self):
         baseCuboid1 = Cuboid(5, 3, 4)

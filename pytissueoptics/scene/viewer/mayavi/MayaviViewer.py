@@ -37,10 +37,10 @@ class MayaviViewer:
 
     def addLogger(self, logger: Logger, colormap="rainbow", reverseColormap=False,
                   pointScale=0.01, dataPointScale=0.15, scaleWithValue=True):
-        self._addPoints(logger.points, colormap=colormap, reverseColormap=reverseColormap, scale=pointScale)
-        self._addDataPoints(logger.dataPoints, colormap=colormap, reverseColormap=reverseColormap,
+        self._addPoints(logger.getPoints(), colormap=colormap, reverseColormap=reverseColormap, scale=pointScale)
+        self._addDataPoints(logger.getDataPoints(), colormap=colormap, reverseColormap=reverseColormap,
                             scale=dataPointScale, scaleWithValue=scaleWithValue)
-        self._addSegments(logger.segments, colormap=colormap, reverseColormap=reverseColormap)
+        self._addSegments(logger.getSegments(), colormap=colormap, reverseColormap=reverseColormap)
 
     @staticmethod
     def _addPoints(points: List[Vector], colormap, reverseColormap, scale=0.01):
