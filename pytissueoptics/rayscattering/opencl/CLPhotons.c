@@ -43,6 +43,13 @@ float random_float(__global unsigned int * rnd_buffer, int id)
 // PHOTON PHYSICS
 // ------------------------------------------------------------------------------------------------
 
+void normalizeVector(float4 *vector)
+    {
+    float length = sqrt(vector->x * vector->x + vector->y * vector->y + vector->z * vector->z);
+    vector->x /= length;
+    vector->y /= length;
+    vector->z /= length;
+    }
 
 void decreaseWeightBy(__global photonStruct *photons, float delta_weight, uint gid)
 {
@@ -62,7 +69,7 @@ void moveBy(__global photonStruct *photons, float distance, uint gid)
 
 float getScatteringDistance(__global photonStruct *photons,__constant materialStruct *materials, __global float * randomNums, uint gid)
 {
-    return -log(randomNums[gid]) / materials[photons[gid].material_id].albedo;
+    return -log(randomNums[gid]) / materials[photons[gid].material_id].mu_t;
 }
 
 float getScatteringAnglePhi(__global photonStruct *photons, __global float * randomNums, uint gid)
@@ -82,8 +89,11 @@ float getScatteringAngleTheta(__global photonStruct *photons,__constant material
     }
 }
 
+
 float4 rotateAround(float4 mainVector, float4 axisVector, float theta)
 {
+    normalizeVector(&axisVector);
+    normalizeVector(&mainVector);
     float sint = sin(theta);
     float cost = cos(theta);
     float one_cost = 1.0f - cost;
@@ -116,7 +126,7 @@ __kernel void propagate(__global photonStruct *photons, __constant materialStruc
     int gid = get_global_id(0);
     //while(photons[gid].weight > 0.0001)
     //{
-    for (int i = 0; i < 5; i++){
+    for (int i = 0; i < 300; i++){
         randomNums[gid] = random_float(rnd_buffer, gid);
         float distance = getScatteringDistance(photons, materials, randomNums, gid);
         moveBy(photons, distance, gid);

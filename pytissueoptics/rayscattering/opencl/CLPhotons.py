@@ -6,6 +6,7 @@ import numpy as np
 
 from pytissueoptics.rayscattering import Photon
 from pytissueoptics.rayscattering.materials import ScatteringMaterial
+np.random.seed(0)
 
 
 class CLPhotons:
@@ -30,6 +31,7 @@ class CLPhotons:
         return self.HOST_logger
 
     def propagate(self):
+        print("propagate")
         program = cl.Program(self.context,
                              self.c_decl_photon + self.c_decl_mat + self.c_decl_logger + open("./CLPhotons.c").read()).build()
 
