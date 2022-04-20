@@ -50,7 +50,7 @@ class OBJParser(Parser):
 
             elif values[0] == 'o':
                 self._currentObjectName = values[1]
-                self._resetsurfaceLabel()
+                self._resetSurfaceLabel()
                 self._objects[self._currentObjectName] = ParsedObject(material="", surfaces={})
 
             elif values[0] == 'g':
@@ -95,5 +95,5 @@ class OBJParser(Parser):
             self._objects[self._currentObjectName].surfaces[self.NO_SURFACE] = ParsedSurface(polygons=[], normals=[],
                                                                                              texCoords=[])
 
-    def _resetsurfaceLabel(self):
+    def _resetSurfaceLabel(self):
         self._currentSurfaceLabel = self.NO_SURFACE
