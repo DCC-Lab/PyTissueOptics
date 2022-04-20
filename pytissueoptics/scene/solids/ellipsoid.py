@@ -1,4 +1,4 @@
-from math import cos, sin, acos, atan, pi, sqrt
+import math
 
 import numpy as np
 
@@ -115,31 +115,31 @@ class Ellipsoid(Solid):
 
     @staticmethod
     def _findThetaPhi(vertex: Vertex):
-        phi = acos(vertex.z / (vertex.x ** 2 + vertex.y ** 2 + vertex.z ** 2))
+        phi = math.acos(vertex.z / (vertex.x ** 2 + vertex.y ** 2 + vertex.z ** 2))
         theta = 0
         if vertex.x == 0.0:
             if vertex.y > 0.0:
-                theta = pi / 2
+                theta = math.pi / 2
 
             elif vertex.y < 0.0:
-                theta = -pi / 2
+                theta = -math.pi / 2
 
         elif vertex.x > 0.0:
-            theta = atan(vertex.y / vertex.x)
+            theta = math.atan(vertex.y / vertex.x)
 
         elif vertex.x < 0.0:
             if vertex.y >= 0.0:
-                theta = atan(vertex.y / vertex.x) + pi
+                theta = math.atan(vertex.y / vertex.x) + math.pi
 
             elif vertex.y < 0.0:
-                theta = atan(vertex.y / vertex.x) - pi
+                theta = math.atan(vertex.y / vertex.x) - math.pi
 
         return theta, phi
 
     def _radiusTowards(self, vertex):
         theta, phi = self._findThetaPhi(vertex)
-        return sqrt(1 / ((cos(theta) ** 2 * sin(phi) ** 2) / self._a ** 2 + (
-                sin(theta) ** 2 * sin(phi) ** 2) / self._b ** 2 + cos(phi) ** 2 / self._c ** 2))
+        return math.sqrt(1 / ((math.cos(theta) ** 2 * math.sin(phi) ** 2) / self._a ** 2 + (
+                math.sin(theta) ** 2 * math.sin(phi) ** 2) / self._b ** 2 + math.cos(phi) ** 2 / self._c ** 2))
 
     def _computeQuadMesh(self):
         raise NotImplementedError
