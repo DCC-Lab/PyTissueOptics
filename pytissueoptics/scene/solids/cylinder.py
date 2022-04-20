@@ -2,13 +2,12 @@ import math
 from typing import List
 
 from pytissueoptics.scene.geometry import Vector, Triangle, primitives, Vertex
-from pytissueoptics.scene.materials import Material
 from pytissueoptics.scene.solids import Solid
 
 
 class Cylinder(Solid):
     def __init__(self, radius: float = 1, height: float = 1, u: int = 32, v: int = 3,
-                 position: Vector = Vector(0, 0, 0), material: Material = None,
+                 position: Vector = Vector(0, 0, 0), material=None,
                  primitive: str = primitives.DEFAULT):
         self._radius = radius
         self._height = height

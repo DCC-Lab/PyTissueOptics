@@ -4,7 +4,6 @@ import numpy as np
 
 from pytissueoptics.scene.geometry import Vector, Quad, Triangle, utils, Vertex
 from pytissueoptics.scene.geometry import primitives
-from pytissueoptics.scene.materials import Material
 from pytissueoptics.scene.solids import Solid
 from pytissueoptics.scene.geometry import SurfaceCollection
 from pytissueoptics.scene.solids.stack.cuboidStacker import CuboidStacker
@@ -23,7 +22,7 @@ class Cuboid(Solid):
 
     def __init__(self, a: float, b: float, c: float,
                  vertices: List[Vertex] = None, position: Vector = Vector(0, 0, 0), surfaces: SurfaceCollection = None,
-                 material: Material = None, label: str = "Cuboid", primitive: str = primitives.DEFAULT):
+                 material=None, label: str = "Cuboid", primitive: str = primitives.DEFAULT):
 
         self.shape = [a, b, c]
 

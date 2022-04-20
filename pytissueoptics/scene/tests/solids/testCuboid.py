@@ -1,6 +1,5 @@
 import unittest
 
-from pytissueoptics.scene import Material
 from pytissueoptics.scene.geometry import Vector, primitives, Vertex
 from pytissueoptics.scene.solids import Cuboid
 
@@ -102,8 +101,8 @@ class TestCuboid(unittest.TestCase):
         self.assertTrue("Interface0" in cuboidStack.surfaceLabels)
 
     def testWhenStack_shouldPreserveEnvironmentAtEachLayer(self):
-        baseMaterial = Material()
-        otherMaterial = Material()
+        baseMaterial = "BaseMaterial"
+        otherMaterial = "OtherMaterial"
         baseCuboid = Cuboid(5, 3, 4, material=baseMaterial, label="base")
         otherCuboid = Cuboid(5, 1, 4, material=otherMaterial, label="other")
 

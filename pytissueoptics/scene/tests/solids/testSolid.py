@@ -5,7 +5,6 @@ from mockito import mock, verify, when
 
 from pytissueoptics.scene.geometry import Vector, Quad, Polygon, Vertex, Environment
 from pytissueoptics.scene.geometry import primitives
-from pytissueoptics.scene.materials import Material
 from pytissueoptics.scene.solids import Solid
 from pytissueoptics.scene.geometry import SurfaceCollection
 
@@ -25,7 +24,7 @@ class TestSolid(unittest.TestCase):
         self.CUBOID_SURFACES.add('Top', [Quad(V[3], V[2], V[6], V[7])])
         self.CUBOID_SURFACES.add('Bottom', [Quad(V[4], V[5], V[1], V[0])])
 
-        self.material = Material()
+        self.material = "A Material"
         self.position = Vector(2, 2, 0)
         self.solid = Solid(position=self.position, material=self.material, vertices=self.CUBOID_VERTICES,
                            surfaces=self.CUBOID_SURFACES, primitive=primitives.TRIANGLE)

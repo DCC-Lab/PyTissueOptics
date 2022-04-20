@@ -1,5 +1,4 @@
 from pytissueoptics.scene.geometry import Vector, Vertex, primitives
-from pytissueoptics.scene.materials import Material
 from pytissueoptics.scene.solids import Ellipsoid
 
 
@@ -15,7 +14,7 @@ class Sphere(Ellipsoid):
     """
 
     def __init__(self, radius: float = 1.0, order: int = 3,
-                 position: Vector = Vector(0, 0, 0), material: Material = None,
+                 position: Vector = Vector(0, 0, 0), material=None,
                  label: str = "Sphere", primitive: str = primitives.DEFAULT, smooth: bool = True):
 
         self._radius = radius

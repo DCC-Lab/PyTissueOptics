@@ -4,12 +4,11 @@ import numpy as np
 
 from pytissueoptics.scene.geometry import Vector, utils, Polygon, Rotation, BoundingBox, Vertex
 from pytissueoptics.scene.geometry import primitives, Environment, SurfaceCollection
-from pytissueoptics.scene.materials import Material
 
 
 class Solid:
     def __init__(self, vertices: List[Vertex], position: Vector = Vector(0, 0, 0),
-                 surfaces: SurfaceCollection = None, material: Material = None,
+                 surfaces: SurfaceCollection = None, material=None,
                  label: str = "Solid", primitive: str = primitives.DEFAULT, smooth: bool = False):
         self._vertices = vertices
         self._surfaces = surfaces

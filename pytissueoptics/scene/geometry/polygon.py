@@ -2,13 +2,12 @@ from dataclasses import dataclass
 from typing import List
 
 from pytissueoptics.scene.geometry import Vector, Vertex
-from pytissueoptics.scene.materials import Material
 from pytissueoptics.scene.geometry import BoundingBox
 
 
 @dataclass
 class Environment:
-    material: Material
+    material: ...
     solid: 'Solid' = None
 
 
@@ -81,10 +80,10 @@ class Polygon:
     def setInsideEnvironment(self, environment: Environment):
         self._insideEnvironment = environment
 
-    def setOutsideMaterial(self, material: Material):
+    def setOutsideMaterial(self, material):
         self._outsideEnvironment.material = material
 
-    def setInsideMaterial(self, material: Material):
+    def setInsideMaterial(self, material):
         self._insideEnvironment.material = material
 
     def resetCentroid(self):

@@ -3,7 +3,6 @@ from math import cos, sin, acos, atan, pi, sqrt
 import numpy as np
 
 from pytissueoptics.scene.geometry import Vector, Triangle, primitives, utils, Vertex
-from pytissueoptics.scene.materials import Material
 from pytissueoptics.scene.solids import Solid
 
 
@@ -16,7 +15,7 @@ class Ellipsoid(Solid):
     """
 
     def __init__(self, a: float = 1, b: float = 1, c: float = 1, order: int = 3,
-                 position: Vector = Vector(0, 0, 0), material: Material = None,
+                 position: Vector = Vector(0, 0, 0), material=None,
                  label: str = "Ellipsoid", primitive: str = primitives.DEFAULT, smooth: bool = True):
 
         self._a = a

@@ -2,7 +2,6 @@ import unittest
 
 from mockito import mock, verify, when
 
-from pytissueoptics.scene.materials import Material
 from pytissueoptics.scene.geometry import Polygon, Environment
 from pytissueoptics.scene.geometry import SurfaceCollection
 
@@ -62,27 +61,27 @@ class TestSurfaceCollection(unittest.TestCase):
     def testWhenSetOutsideEnvironmentOfASurface_shouldSetItForAllItsPolygons(self):
         self.surfaceCollection.add(self.SURFACE_LABEL, self.SURFACE_POLYGONS)
         when(self.SURFACE_POLYGON).setOutsideEnvironment(...).thenReturn()
-        newEnvironment = Environment(Material())
+        newEnvironment = Environment("New material")
 
         self.surfaceCollection.setOutsideEnvironment(newEnvironment, self.SURFACE_LABEL)
 
         verify(self.SURFACE_POLYGON).setOutsideEnvironment(newEnvironment)
 
     def testWhenSetOutsideEnvironmentOfNonexistentSurface_shouldNotSetOutsideEnvironment(self):
-        newEnvironment = Environment(Material())
+        newEnvironment = Environment("New material")
         with self.assertRaises(Exception):
             self.surfaceCollection.setOutsideEnvironment(newEnvironment, "Nonexistent surface label")
 
     def testWhenGetInsideEnvironmentOfASurface_shouldReturnTheEnvironmentUnderThisSurface(self):
-        ENVIRONMENT_UNDER_SURFACE = Environment(Material())
+        ENVIRONMENT_UNDER_SURFACE = Environment("A Material")
         self.SURFACE_POLYGON.insideEnvironment = ENVIRONMENT_UNDER_SURFACE
         self.surfaceCollection.add(self.SURFACE_LABEL, self.SURFACE_POLYGONS)
 
         self.assertEqual(ENVIRONMENT_UNDER_SURFACE, self.surfaceCollection.getInsideEnvironment(self.SURFACE_LABEL))
 
     def testWhenGetInsideEnvironmentOfASurfaceComposedOfDifferentEnvironments_shouldNotReturn(self):
-        ENVIRONMENT_A = Environment(Material())
-        ENVIRONMENT_B = Environment(Material())
+        ENVIRONMENT_A = Environment("Material A")
+        ENVIRONMENT_B = Environment("Material B")
         polygonWithEnvironmentA = mock(Polygon)
         polygonWithEnvironmentB = mock(Polygon)
         polygonWithEnvironmentA.insideEnvironment = ENVIRONMENT_A

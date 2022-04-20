@@ -1,7 +1,6 @@
 import unittest
 from math import sqrt
 
-from pytissueoptics.scene import Material
 from pytissueoptics.scene.geometry import Triangle, Vector, BoundingBox, Environment
 from pytissueoptics.scene.intersection import Ray
 from pytissueoptics.scene.tree import Node
@@ -37,8 +36,8 @@ class TestSplitConstructor(unittest.TestCase):
         self.assertEqual(len(right), 2)
 
     def testGivenAPolygonAndAPlane_whenSplittingPolygon_splitPolygonShouldHaveGoodEnvironmentAndNormal(self):
-        myEnvironment = Environment(Material())
         toBeSplit = [Triangle(Vector(0, 0, 0), Vector(0, 1, 0), Vector(0, 1, 1), insideEnvironment=myEnvironment)]
+        myEnvironment = Environment("A material")
         splitValue = 0.5
         splitAxis = "y"
         self._fbtc.result = SAHSearchResult([], [], toBeSplit, None, None, splitAxis, splitValue)
