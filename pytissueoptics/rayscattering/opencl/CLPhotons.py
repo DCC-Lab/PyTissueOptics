@@ -35,8 +35,8 @@ class CLPhotons:
         program = cl.Program(self.context,
                              self.c_decl_photon + self.c_decl_mat + self.c_decl_logger + open("./CLPhotons.c").read()).build()
 
-        program.propagate(self.mainQueue, self.HOST_photons.shape, None, self.DEVICE_photons, self.DEVICE_material,
-                          self.DEVICE_randomFloat, self.DEVICE_randomInt)
+        program.propagate(self.mainQueue, self.HOST_photons.shape, None, np.uint32(len(self.photons)), self.DEVICE_photons, self.DEVICE_material,
+                          self.DEVICE_logger, self.DEVICE_randomFloat, self.DEVICE_randomInt)
         self.mainQueue.finish()
         cl.enqueue_copy(self.mainQueue, dest=self.HOST_photons, src=self.DEVICE_photons)
 
@@ -71,7 +71,7 @@ class CLPhotons:
             loggerStruct = np.dtype(
                 [("position", cl.cltypes.float4),
                  ("delta_weight", cl.cltypes.float)])
-            name = "logger"
+            name = "loggerStruct"
             loggerStruct, c_decl_logger = cl.tools.match_dtype_to_c_struct(self.device, name, loggerStruct)
             logger_dtype = cl.tools.get_or_register_dtype(name, loggerStruct)
             return logger_dtype, c_decl_logger
@@ -83,7 +83,7 @@ class CLPhotons:
     def makeBuffers(self):
         self.makePhotonsBuffer()
         self.makeMaterialsBuffer()
-        # self.makeLoggerBuffer()
+        self.makeLoggerBuffer()
         self.makeRandomBuffer()
 
     def makePhotonsBuffer(self):

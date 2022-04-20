@@ -51,15 +51,19 @@ void normalizeVector(float4 *vector)
     vector->z /= length;
     }
 
-void decreaseWeightBy(__global photonStruct *photons, float delta_weight, uint gid)
+void decreaseWeightBy(__global photonStruct *photons, float delta_weight, __global loggerStruct *logger, uint gid)
 {
         photons[gid].weight -= delta_weight;
 }
 
-void interact(__global photonStruct *photons, __constant materialStruct *materials, uint gid)
+void interact(__global photonStruct *photons, __constant materialStruct *materials, __global loggerStruct *logger, uint globalCounter, uint datasize, uint gid)
 {
     float delta_weight = photons[gid].weight * materials[photons[gid].material_id].albedo;
-    decreaseWeightBy(photons, delta_weight, gid);
+    decreaseWeightBy(photons, delta_weight, logger, gid);
+    uint logIndex = gid + globalCounter * datasize;
+    logger[logIndex].position = photons[gid].position;
+    logger[logIndex].delta_weight = delta_weight;
+
 }
 
 void moveBy(__global photonStruct *photons, float distance, uint gid)
@@ -121,12 +125,13 @@ void scatterBy(__global photonStruct *photons, float phi, float theta, uint gid)
     photons[gid].direction = rotateAround(photons[gid].direction, photons[gid].er, theta);
 }
 // PROPAGATE KERNELS
-__kernel void propagate(__global photonStruct *photons, __constant materialStruct *materials, __global float *randomNums, __global uint * rnd_buffer)
+__kernel void propagate(uint datasize, __global photonStruct *photons, __constant materialStruct *materials, __global loggerStruct *logger, __global float *randomNums, __global uint *rnd_buffer)
 {
-    int gid = get_global_id(0);
-    //while(photons[gid].weight > 0.0001)
-    //{
-    for (int i = 0; i < 300; i++){
+    unsigned int gid = get_global_id(0);
+    unsigned int globalCounter = 0;
+    while(photons[gid].weight > 0.0001)
+    {
+//    for (int i = 0; i < 30; i++){
         randomNums[gid] = random_float(rnd_buffer, gid);
         float distance = getScatteringDistance(photons, materials, randomNums, gid);
         moveBy(photons, distance, gid);
@@ -134,7 +139,9 @@ __kernel void propagate(__global photonStruct *photons, __constant materialStruc
         float phi = getScatteringAnglePhi(photons, randomNums, gid);
         randomNums[gid] = random_float(rnd_buffer, gid);
         float theta = getScatteringAngleTheta(photons, materials, randomNums, gid);
-        scatterBy(photons, phi, theta, gid);
-        interact(photons, materials, gid);
+        //scatterBy(photons, phi, theta, gid);
+        interact(photons, materials, logger, globalCounter, datasize, gid);
+        globalCounter++;
     }
+    photons[gid].weight = 0.0f;
 }
