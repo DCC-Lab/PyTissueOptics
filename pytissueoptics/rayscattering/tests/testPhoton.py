@@ -210,7 +210,7 @@ class TestPhoton(unittest.TestCase):
 
         self.assertEqual(0, distanceLeft)
 
-    def testGivenALogger_whenStep_shouldLogIntersectionPositions(self):
+    def testGivenALogger_whenStep_shouldLogWeightAtIntersections(self):
         logger = self._createLogger()
         distance = 8
         intersectionFinder = self._createIntersectionFinder(distance)
@@ -219,7 +219,7 @@ class TestPhoton(unittest.TestCase):
         self.photon.step(distance+2)
 
         intersectionPoint = self.INITIAL_POSITION + self.INITIAL_DIRECTION * distance
-        verify(logger).logPoint(intersectionPoint, InteractionKey(None))
+        verify(logger).logDataPoint(self.photon.weight, intersectionPoint, InteractionKey(None))
 
     def testGivenALogger_whenScatter_shouldLogWeightLossAtThisPosition(self):
         logger = self._createLogger()

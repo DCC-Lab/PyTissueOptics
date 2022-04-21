@@ -164,7 +164,7 @@ class Photon:
             solid = intersection.insideEnvironment.solid
             solidLabel = solid.getLabel() if solid else None
             key = InteractionKey(solidLabel, intersection.surfaceLabel)
-            self._logger.logPoint(self._position, key)
+            self._logger.logDataPoint(self._weight, self._position, key)
 
     def _logWeightDecrease(self, delta):
         if self._logger:
