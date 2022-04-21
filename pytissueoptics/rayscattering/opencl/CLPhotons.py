@@ -1,3 +1,4 @@
+import time
 from typing import List
 
 import pyopencl as cl
@@ -31,14 +32,22 @@ class CLPhotons:
         return self.HOST_logger
 
     def propagate(self):
-        print("propagate")
+        print(" === PROPAGATE === ")
+        t00 = time.time_ns()
         program = cl.Program(self.context,
                              self.c_decl_photon + self.c_decl_mat + self.c_decl_logger + open("./CLPhotons.c").read()).build()
-
+        t0 = time.time_ns()
         program.propagate(self.mainQueue, self.HOST_photons.shape, None, np.uint32(len(self.photons)), self.DEVICE_photons, self.DEVICE_material,
                           self.DEVICE_logger, self.DEVICE_randomFloat, self.DEVICE_randomInt)
         self.mainQueue.finish()
+        t1 = time.time_ns()
         cl.enqueue_copy(self.mainQueue, dest=self.HOST_photons, src=self.DEVICE_photons)
+        cl.enqueue_copy(self.mainQueue, dest=self.HOST_logger, src=self.DEVICE_logger)
+        t2 = time.time_ns()
+        print("Compile Time:", (t0 - t00) / 1e9)
+        print("Execution Time:", (t1 - t0) / 1e9)
+        print("Copy Time:", (t2 - t1) / 1e9)
+        print("Total Time:", (t2 - t00) / 1e9)
 
     def makeTypes(self):
         def makePhotonType(self):
@@ -101,17 +110,16 @@ class CLPhotons:
 
     def makeRandomBuffer(self):
         self.HOST_randomInt = np.random.randint(low=0, high=2**32-1, size=len(self.photons), dtype=cl.cltypes.uint)
-        self.DEVICE_randomInt = cl.Buffer(self.context, cl.mem_flags.READ_ONLY | cl.mem_flags.COPY_HOST_PTR,
+        self.DEVICE_randomInt = cl.Buffer(self.context, cl.mem_flags.READ_WRITE | cl.mem_flags.COPY_HOST_PTR,
                                      hostbuf=self.HOST_randomInt)
         self.HOST_randomFloat = np.empty(len(self.photons), dtype=cl.cltypes.float)
-        self.DEVICE_randomFloat = cl.Buffer(self.context, cl.mem_flags.READ_ONLY | cl.mem_flags.COPY_HOST_PTR,
+        self.DEVICE_randomFloat = cl.Buffer(self.context, cl.mem_flags.READ_WRITE | cl.mem_flags.COPY_HOST_PTR,
                                      hostbuf=self.HOST_randomFloat)
 
     def makeMaterialsBuffer(self):
         materials = [self.worldMaterial]
         self.HOST_material = np.empty(len(materials), dtype=self.material_dtype)
         for i, mat in enumerate(materials):
-            print(mat.getAlbedo())
             self.HOST_material[i]["mu_s"] = np.float32(mat.mu_s)
             self.HOST_material[i]["mu_a"] = np.float32(mat.mu_a)
             self.HOST_material[i]["mu_t"] = np.float32(mat.mu_t)
@@ -126,6 +134,7 @@ class CLPhotons:
         photons = self.photons
         # the number of absorption events per photon is approx ln(0.0001)*mu_t/mu_a
         loggerLength = int((-np.log(0.0001) * photons[0].material.mu_t / photons[0].material.mu_a) * len(photons))
+        print(loggerLength)
         self.HOST_logger = np.empty(loggerLength, dtype=self.logger_dtype)
         self.DEVICE_logger = cl.Buffer(self.context, cl.mem_flags.WRITE_ONLY | cl.mem_flags.COPY_HOST_PTR,
                                        hostbuf=self.HOST_logger)

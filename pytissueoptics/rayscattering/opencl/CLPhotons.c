@@ -139,7 +139,7 @@ __kernel void propagate(uint datasize, __global photonStruct *photons, __constan
         float phi = getScatteringAnglePhi(photons, randomNums, gid);
         randomNums[gid] = random_float(rnd_buffer, gid);
         float theta = getScatteringAngleTheta(photons, materials, randomNums, gid);
-        //scatterBy(photons, phi, theta, gid);
+        scatterBy(photons, phi, theta, gid);
         interact(photons, materials, logger, globalCounter, datasize, gid);
         globalCounter++;
     }
