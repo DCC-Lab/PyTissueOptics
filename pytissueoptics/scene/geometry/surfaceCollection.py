@@ -40,7 +40,7 @@ class SurfaceCollection:
         else:
             outsidePolygons = []
             for surfaceLabel in self.surfaceLabels:
-                if "Interface" in surfaceLabel:
+                if "interface" in surfaceLabel:
                     continue
                 outsidePolygons.extend(self.getPolygons(surfaceLabel))
 

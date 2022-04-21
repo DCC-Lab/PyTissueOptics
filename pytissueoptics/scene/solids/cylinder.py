@@ -8,7 +8,7 @@ from pytissueoptics.scene.solids import Solid
 class Cylinder(Solid):
     def __init__(self, radius: float = 1, height: float = 1, u: int = 32, v: int = 3,
                  position: Vector = Vector(0, 0, 0), material=None,
-                 primitive: str = primitives.DEFAULT):
+                 primitive: str = primitives.DEFAULT, label: str = "Cylinder"):
         self._radius = radius
         self._height = height
         if u < 2 or v < 1:
@@ -19,7 +19,7 @@ class Cylinder(Solid):
         self._topCenter = Vertex(0, 0, height)
         self._minRadius = math.cos(math.pi / self._u) * self._radius
         super().__init__(position=position, material=material, primitive=primitive,
-                         vertices=[self._bottomCenter, self._topCenter], smooth=True)
+                         vertices=[self._bottomCenter, self._topCenter], smooth=True, label=label)
 
     @property
     def direction(self) -> Vector:
@@ -62,21 +62,21 @@ class Cylinder(Solid):
                 nextIndex = (j + 1) % self._u
                 middleTriangles.append(Triangle(currentGroup[j], nextGroup[nextIndex], nextGroup[j]))
                 middleTriangles.append(Triangle(currentGroup[j], currentGroup[nextIndex], nextGroup[nextIndex]))
-        self._surfaces.add("Middle", middleTriangles)
+        self._surfaces.add("middle", middleTriangles)
 
     def _computeBottomTriangles(self, vertices: List[Vertex]):
         bottomTriangles = []
         for i in range(self._u):
             nextIndex = (i + 1) % self._u
             bottomTriangles.append(Triangle(self._bottomCenter, vertices[i], vertices[nextIndex]))
-        self._surfaces.add("Bottom", bottomTriangles)
+        self._surfaces.add("bottom", bottomTriangles)
 
     def _computeTopTriangles(self, vertices: List[Vertex]):
         topTriangles = []
         for i in range(self._u):
             nextIndex = (i + 1) % self._u
             topTriangles.append(Triangle(self._topCenter, vertices[i], vertices[nextIndex]))
-        self._surfaces.add("Top", topTriangles)
+        self._surfaces.add("top", topTriangles)
 
     def _computeQuadMesh(self):
         raise NotImplementedError("Quad mesh not implemented for Cylinder")
@@ -107,4 +107,4 @@ class Cylinder(Solid):
         return 1
 
     def smooth(self, surfaceLabel: str = None):
-        super(Cylinder, self).smooth("Middle")
+        super(Cylinder, self).smooth("middle")

@@ -55,7 +55,7 @@ class TestAnyIntersectionFinder:
     def _testGivenRayIsIntersectingASolidWithAnyPrimitive_shouldReturnIntersectionPolygonNormal(self, anyPrimitive):
         ray = Ray(origin=Vector(-0.5, 0.5, 0), direction=Vector(0, 0, 1))
         solid = Cube(2, position=Vector(0, 0, 5), primitive=anyPrimitive)
-        polygonThatShouldBeHit = solid.surfaces.getPolygons("Front")[0]
+        polygonThatShouldBeHit = solid.surfaces.getPolygons("front")[0]
 
         intersection = self.getIntersectionFinder([solid]).findIntersection(ray)
 

@@ -17,12 +17,12 @@ class TestSolid(unittest.TestCase):
                                 Vertex(1, 1, 1), Vertex(-1, 1, 1)]
         V = self.CUBOID_VERTICES
         self.CUBOID_SURFACES = SurfaceCollection()
-        self.CUBOID_SURFACES.add('Front', [Quad(V[0], V[1], V[2], V[3])])
-        self.CUBOID_SURFACES.add('Back', [Quad(V[5], V[4], V[7], V[6])])
-        self.CUBOID_SURFACES.add('Left', [Quad(V[4], V[0], V[3], V[7])])
-        self.CUBOID_SURFACES.add('Right', [Quad(V[1], V[5], V[6], V[2])])
-        self.CUBOID_SURFACES.add('Top', [Quad(V[3], V[2], V[6], V[7])])
-        self.CUBOID_SURFACES.add('Bottom', [Quad(V[4], V[5], V[1], V[0])])
+        self.CUBOID_SURFACES.add('front', [Quad(V[0], V[1], V[2], V[3])])
+        self.CUBOID_SURFACES.add('back', [Quad(V[5], V[4], V[7], V[6])])
+        self.CUBOID_SURFACES.add('left', [Quad(V[4], V[0], V[3], V[7])])
+        self.CUBOID_SURFACES.add('right', [Quad(V[1], V[5], V[6], V[2])])
+        self.CUBOID_SURFACES.add('top', [Quad(V[3], V[2], V[6], V[7])])
+        self.CUBOID_SURFACES.add('bottom', [Quad(V[4], V[5], V[1], V[0])])
 
         self.material = "A Material"
         self.position = Vector(2, 2, 0)
@@ -36,7 +36,7 @@ class TestSolid(unittest.TestCase):
     def testShouldSetInsideEnvironmentOfAllItsSurfaces(self):
         environment = Environment(self.material, self.solid)
         self.assertEqual(environment, self.solid.getEnvironment())
-        self.assertEqual(environment, self.solid.getEnvironment("Top"))
+        self.assertEqual(environment, self.solid.getEnvironment("top"))
 
     def testWhenTranslateTo_shouldTranslateToThisNewPosition(self):
         newPosition = Vector(0, 0, 0)
@@ -70,7 +70,7 @@ class TestSolid(unittest.TestCase):
 
     def testWhenRotate_shouldRotateItsPolygons(self):
         polygon = self.createPolygonMock()
-        self.CUBOID_SURFACES.setPolygons('Front', [polygon])
+        self.CUBOID_SURFACES.setPolygons('front', [polygon])
         solid = Solid(position=self.position, material=self.material, vertices=self.CUBOID_VERTICES,
                       surfaces=self.CUBOID_SURFACES, primitive=primitives.TRIANGLE)
 
@@ -80,7 +80,7 @@ class TestSolid(unittest.TestCase):
 
     def testWhenRotate_shouldRotateBBoxOfSolidAndPolygons(self):
         polygon = self.createPolygonMock()
-        self.CUBOID_SURFACES.setPolygons('Front', [polygon])
+        self.CUBOID_SURFACES.setPolygons('front', [polygon])
         solid = Solid(position=self.position, material=self.material, vertices=self.CUBOID_VERTICES,
                       surfaces=self.CUBOID_SURFACES, primitive=primitives.TRIANGLE)
         oldBbox = solid.bbox
@@ -93,7 +93,7 @@ class TestSolid(unittest.TestCase):
 
     def testWhenTranslate_shouldTranslateBBoxOfSolidAndPolygons(self):
         polygon = self.createPolygonMock()
-        self.CUBOID_SURFACES.setPolygons('Front', [polygon])
+        self.CUBOID_SURFACES.setPolygons('front', [polygon])
         solid = Solid(position=self.position, material=self.material, vertices=self.CUBOID_VERTICES,
                       surfaces=self.CUBOID_SURFACES, primitive=primitives.TRIANGLE)
         oldBbox = solid.bbox
@@ -108,7 +108,7 @@ class TestSolid(unittest.TestCase):
         self.assertFalse(self.solid.isStack())
 
     def testGivenASolidWithInterfaces_shouldBeAStack(self):
-        self.solid.surfaces.add("Interface0", [])
+        self.solid.surfaces.add("interface0", [])
         self.assertTrue(self.solid.isStack())
 
     def testWhenSmooth_shouldSetVertexNormalAsAverageOfAdjacentPolygonNormals(self):
@@ -120,7 +120,7 @@ class TestSolid(unittest.TestCase):
         self.assertAlmostEqual(1/math.sqrt(3), frontVertex.normal.z)
 
     def testWhenSmoothWithSurfaceLabel_shouldOnlySmoothPolygonsFromThisSurface(self):
-        self.solid.smooth("Front")
+        self.solid.smooth("front")
 
         frontVertex = self.solid.vertices[0]
         self.assertEqual(Vector(0, 0, 1), frontVertex.normal)

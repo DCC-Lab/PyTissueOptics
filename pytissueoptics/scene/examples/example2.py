@@ -14,8 +14,8 @@ def exampleCode():
     viewer.add(cuboid1, cuboid2, cuboid3, representation="wireframe", lineWidth=5)
     viewer.show()
 
-    cuboidStack = cuboid1.stack(cuboid2, onSurface="Right")
-    cuboidStack = cuboidStack.stack(cuboid3, onSurface="Top")
+    cuboidStack = cuboid1.stack(cuboid2, onSurface="right")
+    cuboidStack = cuboidStack.stack(cuboid3, onSurface="top")
 
     viewer.clear()
     viewer.add(cuboidStack, representation="wireframe", lineWidth=5)

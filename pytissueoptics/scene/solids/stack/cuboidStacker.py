@@ -6,8 +6,8 @@ from pytissueoptics.scene.solids.stack.stackResult import StackResult
 
 class CuboidStacker:
     """ Internal helper class to prepare and assemble a cuboid stack from 2 cuboids. """
-    SURFACE_KEYS = ['Left', 'Right', 'Bottom', 'Top', 'Front', 'Back']
-    SURFACE_PAIRS = [('Left', 'Right'), ('Bottom', 'Top'), ('Front', 'Back')]
+    SURFACE_KEYS = ['left', 'right', 'bottom', 'top', 'front', 'back']
+    SURFACE_PAIRS = [('left', 'right'), ('bottom', 'top'), ('front', 'back')]
 
     def __init__(self):
         self._onCuboid = None
@@ -16,7 +16,7 @@ class CuboidStacker:
         self._otherSurfaceLabel = None
         self._stackAxis = None
 
-    def stack(self, onCuboid: 'Cuboid', otherCuboid: 'Cuboid', onSurface: str = 'Top') -> StackResult:
+    def stack(self, onCuboid: 'Cuboid', otherCuboid: 'Cuboid', onSurface: str = 'top') -> StackResult:
         self._initStacking(onCuboid, otherCuboid, onSurface)
         self._translateOtherCuboid()
         self._configureInterfaceMaterial()
@@ -114,16 +114,16 @@ class CuboidStacker:
     def _getStackInterfaces(self) -> SurfaceCollection:
         interfaces = SurfaceCollection()
 
-        onCuboidInterfaces = [label for label in self._onCuboid.surfaceLabels if "Interface" in label]
+        onCuboidInterfaces = [label for label in self._onCuboid.surfaceLabels if "interface" in label]
         for interface in onCuboidInterfaces:
             interfaces.add(interface, self._onCuboid.getPolygons(interface))
 
         newInterfaceIndex = len(onCuboidInterfaces)
-        interfaces.add(f'Interface{newInterfaceIndex}', self._onCuboid.getPolygons(self._onSurfaceLabel))
+        interfaces.add(f'interface{newInterfaceIndex}', self._onCuboid.getPolygons(self._onSurfaceLabel))
 
-        otherCuboidInterfaceKeys = [label for label in self._otherCuboid.surfaceLabels if "Interface" in label]
+        otherCuboidInterfaceKeys = [label for label in self._otherCuboid.surfaceLabels if "interface" in label]
         for i, otherInterfaceKey in enumerate(otherCuboidInterfaceKeys):
             newOtherInterfaceIndex = newInterfaceIndex + 1 + i
-            interfaces.add(f'Interface{newOtherInterfaceIndex}', self._otherCuboid.getPolygons(otherInterfaceKey))
+            interfaces.add(f'interface{newOtherInterfaceIndex}', self._otherCuboid.getPolygons(otherInterfaceKey))
 
         return interfaces

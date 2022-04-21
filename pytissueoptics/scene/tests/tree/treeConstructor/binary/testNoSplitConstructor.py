@@ -25,7 +25,7 @@ class TestModernKDTreeConstructor(unittest.TestCase):
         self.assertEqual(both[0].normal, triangle1.normal)
 
     def testGivenTrianglesWith1ContainedVertex_whenClassifying_shouldSendTriangleOnGoodSide(self):
-        with self.subTest("Left"):
+        with self.subTest("left"):
             triangle0 = Triangle(Vector(0, 0, 0), Vector(1, 0, 0), Vector(1, 1, 0))
             toClassify = [triangle0]
             self._fbtc.currentNode = Node(polygons=toClassify)
@@ -33,7 +33,7 @@ class TestModernKDTreeConstructor(unittest.TestCase):
             self.assertListEqual(left, [triangle0])
             self.assertListEqual(right, [])
             self.assertListEqual(both, [])
-        with self.subTest("Right"):
+        with self.subTest("right"):
             triangle0 = Triangle(Vector(0, 2, 0), Vector(1, 2, 0), Vector(1, 1, 0))
             toClassify = [triangle0]
             self._fbtc.currentNode = Node(polygons=toClassify)
@@ -51,7 +51,7 @@ class TestModernKDTreeConstructor(unittest.TestCase):
             self.assertListEqual(toSplit, [triangle0])
 
     def testGivenTrianglesWith2ContainedVertex_whenClassifying_shouldSendTriangleOnGoodSide(self):
-        with self.subTest("Left"):
+        with self.subTest("left"):
             triangle0 = Triangle(Vector(0, 0, 0), Vector(1, 1, 0), Vector(1, 1, 0))
             toClassify = [triangle0]
             self._fbtc.currentNode = Node(polygons=toClassify)
@@ -59,7 +59,7 @@ class TestModernKDTreeConstructor(unittest.TestCase):
             self.assertListEqual(left, [triangle0])
             self.assertListEqual(right, [])
             self.assertListEqual(both, [])
-        with self.subTest("Right"):
+        with self.subTest("right"):
             triangle0 = Triangle(Vector(0, 2, 0), Vector(1, 1, 0), Vector(1, 1, 0))
             toClassify = [triangle0]
             self._fbtc.currentNode = Node(polygons=toClassify)

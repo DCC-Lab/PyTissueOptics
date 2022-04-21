@@ -7,7 +7,7 @@ from pytissueoptics.scene.geometry import SurfaceCollection
 
 
 class TestSurfaceCollection(unittest.TestCase):
-    SURFACE_LABEL = "Top"
+    SURFACE_LABEL = "top"
     SURFACE_POLYGON = mock(Polygon)
 
     def setUp(self):
