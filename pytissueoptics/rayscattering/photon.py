@@ -16,15 +16,15 @@ class Photon:
         self._position = position
         self._direction = direction
         self._weight = 1
-
         self._environment: Environment = None
-        self._intersectionFinder = None
-        self._fresnelIntersect = None
-        self._logger: Logger = None
 
         self._er = self._direction.getAnyOrthogonal()
         self._er.normalize()
         self._hasContext = False
+        self._fresnelIntersect: FresnelIntersect = None
+
+        self._intersectionFinder: Optional[IntersectionFinder] = None
+        self._logger: Optional[Logger] = None
 
     @property
     def isAlive(self) -> bool:
@@ -53,12 +53,12 @@ class Photon:
         return self._environment.solid.getLabel()
 
     def setContext(self, environment: Environment, intersectionFinder: IntersectionFinder = None, logger: Logger = None,
-                   fresnelIntersectionFactory=FresnelIntersect()):
-        self._environment = environment
+                   fresnelIntersect=FresnelIntersect()):
+        self._environment: Environment = environment
         self._intersectionFinder = intersectionFinder
         self._logger = logger
         self._hasContext = True
-        self._fresnelIntersect = fresnelIntersectionFactory
+        self._fresnelIntersect = fresnelIntersect
 
     def propagate(self):
         if not self._hasContext:
