@@ -32,7 +32,7 @@ float random_float(__global unsigned int * rnd_buffer, int id)
        randomize_buffer_seed(rnd_buffer, id);
     }
 
- __kernel void fill_random_float_buffer(__global unsigned int * rnd_buffer, float * float_buffer)
+ __kernel void fill_random_float_buffer(__global unsigned int * rnd_buffer, __global float * float_buffer)
     {
     int id = get_global_id(0);
     float_buffer[id] = random_float(rnd_buffer, id);
