@@ -87,6 +87,5 @@ class Stats:
         raise NotImplementedError()
 
 
-# todo: test logger.getDataPoints(Key[None, None]), and test keyError
 # todo: accept Scene and display related polygons in 3D display
 # todo: rename surfaceLabels to lowercase
