@@ -2,10 +2,8 @@ import math
 
 import numpy as np
 
-from pytissueoptics.scene import Material
 
-
-class ScatteringMaterial(Material):
+class ScatteringMaterial:
     def __init__(self, mu_s=0, mu_a=0, g=0, index=1.0):
         self.mu_s = mu_s
         self.mu_a = mu_a

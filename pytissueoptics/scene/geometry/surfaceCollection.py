@@ -1,57 +1,59 @@
 from typing import List, Dict
 
-from pytissueoptics.scene.materials import Material
+from pytissueoptics.scene.geometry import Environment
 from pytissueoptics.scene.geometry import Polygon
 
 
 class SurfaceCollection:
-    def __init__(self, surfaces=None):
-        if surfaces is None:
-            surfaces = {}
-        self._surfaces: Dict[str, List[Polygon]] = surfaces
+    def __init__(self):
+        self._surfaces: Dict[str, List[Polygon]] = {}
 
     @property
-    def surfaceNames(self) -> List[str]:
+    def surfaceLabels(self) -> List[str]:
         return list(self._surfaces.keys())
 
-    def add(self, surfaceName: str, polygons: List[Polygon]):
-        assert not self._contains(surfaceName), "A surface with the same name already exists. "
-        self._surfaces[surfaceName] = polygons
+    def add(self, surfaceLabel: str, polygons: List[Polygon]):
+        assert not self._contains(surfaceLabel), "A surface with the same label already exists. "
+        self._surfaces[surfaceLabel] = []
+        self.setPolygons(surfaceLabel, polygons)
 
-    def getPolygons(self, surfaceName: str = None) -> List[Polygon]:
-        if surfaceName:
-            self._assertContains(surfaceName)
-            return self._surfaces[surfaceName]
+    def getPolygons(self, surfaceLabel: str = None) -> List[Polygon]:
+        if surfaceLabel:
+            self._assertContains(surfaceLabel)
+            return self._surfaces[surfaceLabel]
         else:
             allPolygons = []
             for surfacePolygons in self._surfaces.values():
                 allPolygons.extend(surfacePolygons)
             return allPolygons
 
-    def setPolygons(self, surfaceName: str, polygons: List[Polygon]):
-        self._assertContains(surfaceName)
-        self._surfaces[surfaceName] = polygons
+    def setPolygons(self, surfaceLabel: str, polygons: List[Polygon]):
+        self._assertContains(surfaceLabel)
+        for polygon in polygons:
+            polygon.surfaceLabel = surfaceLabel
 
-    def setOutsideMaterial(self, material: Material, surfaceName: str = None):
-        if surfaceName:
-            outsidePolygons = self.getPolygons(surfaceName)
+        self._surfaces[surfaceLabel] = polygons
+
+    def setOutsideEnvironment(self, environment: Environment, surfaceLabel: str = None):
+        if surfaceLabel:
+            outsidePolygons = self.getPolygons(surfaceLabel)
         else:
             outsidePolygons = []
-            for surfaceName in self.surfaceNames:
-                if "Interface" in surfaceName:
+            for surfaceLabel in self.surfaceLabels:
+                if "Interface" in surfaceLabel:
                     continue
-                outsidePolygons.extend(self.getPolygons(surfaceName))
+                outsidePolygons.extend(self.getPolygons(surfaceLabel))
 
         for polygon in outsidePolygons:
-            polygon.setOutsideMaterial(material)
+            polygon.setOutsideEnvironment(environment)
 
-    def getInsideMaterial(self, surfaceName: str) -> Material:
-        polygons = self.getPolygons(surfaceName)
-        material = polygons[0].insideMaterial
+    def getInsideEnvironment(self, surfaceLabel: str) -> Environment:
+        polygons = self.getPolygons(surfaceLabel)
+        environment = polygons[0].insideEnvironment
         for polygon in polygons:
-            if polygon.insideMaterial != material:
-                raise Exception("Surface inside material is not constant. ")
-        return material
+            if polygon.insideEnvironment != environment:
+                raise Exception("Surface insideMaterial is not constant. ")
+        return environment
 
     def resetNormals(self):
         for polygon in self.getPolygons():
@@ -66,12 +68,12 @@ class SurfaceCollection:
             polygon.resetCentroid()
 
     def extend(self, other: 'SurfaceCollection'):
-        assert not any(self._contains(surface) for surface in other.surfaceNames)
+        assert not any(self._contains(surface) for surface in other.surfaceLabels)
         self._surfaces.update(other._surfaces)
 
-    def _assertContains(self, surfaceName: str):
-        assert self._contains(surfaceName), f"Surface named {surfaceName} not found in available surfaces: " \
-                                            f"{self.surfaceNames}. "
+    def _assertContains(self, surfaceLabel: str):
+        assert self._contains(surfaceLabel), f"Surface labeled {surfaceLabel} not found in available surfaces: " \
+                                            f"{self.surfaceLabels}. "
 
-    def _contains(self, surfaceName: str) -> bool:
-        return surfaceName in self.surfaceNames
+    def _contains(self, surfaceLabel: str) -> bool:
+        return surfaceLabel in self.surfaceLabels

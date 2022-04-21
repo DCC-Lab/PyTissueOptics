@@ -3,15 +3,13 @@ from typing import List
 import numpy as np
 
 from pytissueoptics.scene.geometry import Vector, utils, Polygon, Rotation, BoundingBox, Vertex
-from pytissueoptics.scene.geometry import primitives
-from pytissueoptics.scene.materials import Material
-from pytissueoptics.scene.geometry import SurfaceCollection
+from pytissueoptics.scene.geometry import primitives, Environment, SurfaceCollection
 
 
 class Solid:
     def __init__(self, vertices: List[Vertex], position: Vector = Vector(0, 0, 0),
-                 surfaces: SurfaceCollection = None, material: Material = None,
-                 primitive: str = primitives.DEFAULT, smooth: bool = False):
+                 surfaces: SurfaceCollection = None, material=None,
+                 label: str = "Solid", primitive: str = primitives.DEFAULT, smooth: bool = False):
         self._vertices = vertices
         self._surfaces = surfaces
         self._material = material
@@ -19,12 +17,13 @@ class Solid:
         self._position = Vector(0, 0, 0)
         self._orientation: Rotation = Rotation()
         self._bbox = None
+        self._label = label
 
         if not self._surfaces:
             self._computeMesh()
 
         self.translateTo(position)
-        self._setInsideMaterial()
+        self._setInsideEnvironment()
         self._resetBoundingBoxes()
         self._resetPolygonsCentroids()
 
@@ -56,6 +55,12 @@ class Solid:
 
     def getVertices(self) -> List[Vertex]:
         return self.vertices
+
+    def getLabel(self) -> str:
+        return self._label
+
+    def setLabel(self, label: str):
+        self._label = label
 
     def _resetBoundingBoxes(self):
         self._bbox = BoundingBox.fromVertices(self._vertices)
@@ -100,24 +105,24 @@ class Solid:
         self._resetBoundingBoxes()
         self._resetPolygonsCentroids()
 
-    def getMaterial(self, surfaceName: str = None) -> Material:
-        if surfaceName:
-            return self.surfaces.getInsideMaterial(surfaceName)
+    def getEnvironment(self, surfaceLabel: str = None) -> Environment:
+        if surfaceLabel:
+            return self.surfaces.getInsideEnvironment(surfaceLabel)
         else:
-            return self._material
+            return Environment(self._material, self)
 
-    def setOutsideMaterial(self, material: Material, surfaceName: str = None):
-        self._surfaces.setOutsideMaterial(material, surfaceName)
+    def setOutsideEnvironment(self, environment: Environment, surfaceLabel: str = None):
+        self._surfaces.setOutsideEnvironment(environment, surfaceLabel)
 
     @property
-    def surfaceNames(self) -> List[str]:
-        return self._surfaces.surfaceNames
+    def surfaceLabels(self) -> List[str]:
+        return self._surfaces.surfaceLabels
 
-    def getPolygons(self, surfaceName: str = None) -> List[Polygon]:
-        return self._surfaces.getPolygons(surfaceName)
+    def getPolygons(self, surfaceLabel: str = None) -> List[Polygon]:
+        return self._surfaces.getPolygons(surfaceLabel)
 
-    def setPolygons(self, surfaceName: str, polygons: List[Polygon]):
-        self._surfaces.setPolygons(surfaceName, polygons)
+    def setPolygons(self, surfaceLabel: str, polygons: List[Polygon]):
+        self._surfaces.setPolygons(surfaceLabel, polygons)
 
         currentVerticesIDs = {id(vertex) for vertex in self._vertices}
         newVertices = []
@@ -149,33 +154,34 @@ class Solid:
     def _computeQuadMesh(self):
         raise NotImplementedError(f"Quad mesh not implemented for Solids of type {type(self).__name__}")
 
-    def _setInsideMaterial(self):
-        if self._material is None:
+    def _setInsideEnvironment(self):
+        polygons = self._surfaces.getPolygons()
+        if not self._material and polygons[0].insideEnvironment is not None:
             return
         for polygon in self._surfaces.getPolygons():
-            polygon.setInsideMaterial(self._material)
+            polygon.setInsideEnvironment(Environment(self._material, self))
 
     def contains(self, *vertices: Vertex) -> bool:
         raise NotImplementedError
 
     def isStack(self) -> bool:
-        for surfaceName in self.surfaceNames:
-            if "Interface" in surfaceName:
+        for surfaceLabel in self.surfaceLabels:
+            if "Interface" in surfaceLabel:
                 return True
         return False
 
-    def smooth(self, surfaceName: str = None):
+    def smooth(self, surfaceLabel: str = None):
         """ Prepare smoothing by calculating vertex normals. This is not done
         by default. The vertex normals are used during ray-polygon intersection
         to return an interpolated (smooth) normal. A vertex normal is defined
         by taking the average normal of all adjacent polygons.
 
         This base implementation will smooth all surfaces by default. This can
-        be changed by overwriting the signature with a specific surfaceName in
-        another solid implementation and calling super().smooth(surfaceName).
+        be changed by overwriting the signature with a specific surfaceLabel in
+        another solid implementation and calling super().smooth(surfaceLabel).
         """
 
-        polygons = self.getPolygons(surfaceName)
+        polygons = self.getPolygons(surfaceLabel)
 
         for polygon in polygons:
             polygon.toSmooth = True

@@ -1,5 +1,6 @@
 from dataclasses import dataclass
-from typing import List
+from typing import List, Dict
+from enum import Enum
 
 from pytissueoptics.scene.geometry import Vector
 
@@ -16,47 +17,66 @@ class Segment:
     end: Vector
 
 
+@dataclass(frozen=True)
+class InteractionKey:
+    solidLabel: str
+    surfaceLabel: str = None
+
+
+class InteractionData:
+    def __init__(self):
+        self.points: List[Vector] = []
+        self.dataPoints: List[DataPoint] = []
+        self.segments: List[Segment] = []
+
+
+class DataType(Enum):
+    POINT = "points"
+    DATA_POINT = "dataPoints"
+    SEGMENT = "segments"
+
+
 class Logger:
     def __init__(self):
-        self._points: List[Vector] = []
-        self._dataPoints: List[DataPoint] = []
-        self._segments: List[Segment] = []
+        self._data: Dict[InteractionKey, InteractionData] = {}
 
-    @property
-    def points(self):
-        return self._points
+    def getSolidLabels(self) -> List[str]:
+        return list(set(key.solidLabel for key in self._data.keys()))
 
-    @property
-    def dataPoints(self):
-        return self._dataPoints
+    def getSurfaceLabels(self, solidLabel: str) -> List[str]:
+        return [key.surfaceLabel for key in self._data.keys() if key.solidLabel == solidLabel
+                and key.surfaceLabel is not None]
 
-    @property
-    def segments(self):
-        return self._segments
+    def logPoint(self, point: Vector, key: InteractionKey):
+        self._validateKey(key)
+        self._data[key].points.append(point)
 
-    def logPoint(self, point: Vector):
-        self._points.append(point)
+    def logDataPoint(self, value: float, position: Vector, key: InteractionKey):
+        self._validateKey(key)
+        self._data[key].dataPoints.append(DataPoint(value, position))
 
-    def logDataPoint(self, value: float, position: Vector):
-        self._dataPoints.append(DataPoint(value, position))
+    def logSegment(self, start: Vector, end: Vector, key: InteractionKey):
+        self._validateKey(key)
+        self._data[key].segments.append(Segment(start, end))
 
-    def logSegment(self, start: Vector, end: Vector):
-        self._segments.append(Segment(start, end))
+    def _validateKey(self, key: InteractionKey):
+        if key not in self._data:
+            self._data[key] = InteractionData()
 
+    def getPoints(self, key: InteractionKey = None):
+        return self._getData(DataType.POINT, key)
 
-if __name__ == '__main__':
-    from pytissueoptics.scene import Sphere, Vector, MayaviViewer
+    def getDataPoints(self, key: InteractionKey = None):
+        return self._getData(DataType.DATA_POINT, key)
 
-    logger = Logger()
-    for i in range(10):
-        logger.logPoint(Vector(i, i / 2, 0))
-        logger.logDataPoint(i, Vector(i, i, 0))
-        logger.logSegment(Vector(10, 10, 0), Vector(10 + (2 * i), 0, 0))
+    def getSegments(self, key: InteractionKey = None):
+        return self._getData(DataType.SEGMENT, key)
 
-    viewer = MayaviViewer()
-
-    sphere1 = Sphere(radius=2, order=2, position=Vector(-2, 2, 0))
-    viewer.add(sphere1, lineWidth=1)
-
-    viewer.addLogger(logger)
-    viewer.show()
+    def _getData(self, dataType: DataType, key: InteractionKey = None):
+        if key:
+            return getattr(self._data[key], dataType.value)
+        else:
+            data = []
+            for interactionData in self._data.values():
+                data.extend(getattr(interactionData, dataType.value))
+            return data

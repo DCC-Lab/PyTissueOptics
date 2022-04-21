@@ -32,9 +32,9 @@ class TestCuboid(unittest.TestCase):
         self.assertEqual(self._getSurfaceCentroid(cuboid, "Back"), Vector(1, 1, 2))
 
     @staticmethod
-    def _getSurfaceCentroid(cuboid, surfaceName: str) -> Vector:
+    def _getSurfaceCentroid(cuboid, surfaceLabel: str) -> Vector:
         centroid = Vector(0, 0, 0)
-        surfacePolygons = cuboid.getPolygons(surfaceName)
+        surfacePolygons = cuboid.getPolygons(surfaceLabel)
         for polygon in surfacePolygons:
             centroid += polygon.getCentroid()
         centroid.divide(len(surfacePolygons))
@@ -72,14 +72,15 @@ class TestCuboid(unittest.TestCase):
 
         self.assertEqual(baseCuboid.getPolygons('Top'), otherCuboid.getPolygons('Bottom'))
 
-    def testWhenStack_shouldSetOtherCuboidMaterialAtInterface(self):
+    def testWhenStack_shouldSetOtherCuboidEnvironmentAtInterface(self):
         baseCuboid = Cuboid(5, 3, 4)
         otherCuboid = Cuboid(5, 1, 4)
+        topEnvironment = otherCuboid.getEnvironment()
 
         baseCuboid.stack(otherCuboid, onSurface='Top')
 
         for polygon in baseCuboid.getPolygons('Top'):
-            self.assertEqual(polygon.outsideMaterial, otherCuboid.getMaterial())
+            self.assertEqual(topEnvironment, polygon.outsideEnvironment)
 
     def testWhenStack_shouldReturnANewCuboidMadeOfTheseTwoCuboids(self):
         basePosition = Vector(2, 2, 1)
@@ -97,7 +98,22 @@ class TestCuboid(unittest.TestCase):
 
         cuboidStack = baseCuboid.stack(otherCuboid, onSurface='Top')
 
-        self.assertTrue("Interface0" in cuboidStack.surfaceNames)
+        self.assertTrue("Interface0" in cuboidStack.surfaceLabels)
+
+    def testWhenStack_shouldPreserveEnvironmentAtEachLayer(self):
+        baseMaterial = "BaseMaterial"
+        otherMaterial = "OtherMaterial"
+        baseCuboid = Cuboid(5, 3, 4, material=baseMaterial, label="base")
+        otherCuboid = Cuboid(5, 1, 4, material=otherMaterial, label="other")
+
+        cuboidStack = baseCuboid.stack(otherCuboid, onSurface='Top')
+
+        interfacePolygon = cuboidStack.getPolygons("Interface0")[0]
+
+        self.assertEqual(baseMaterial, interfacePolygon.insideEnvironment.material)
+        self.assertEqual(otherMaterial, interfacePolygon.outsideEnvironment.material)
+        self.assertEqual(baseCuboid, interfacePolygon.insideEnvironment.solid)
+        self.assertEqual(otherCuboid, interfacePolygon.outsideEnvironment.solid)
 
     def testWhenStackAnotherStack_shouldReturnANewCuboidWithAllStackInterfaces(self):
         baseCuboid1 = Cuboid(5, 3, 4)
@@ -111,7 +127,7 @@ class TestCuboid(unittest.TestCase):
         cuboidStack = cuboidStack1.stack(cuboidStack2, onSurface='Right')
 
         for i in range(3):
-            self.assertTrue(f"Interface{i}" in cuboidStack.surfaceNames)
+            self.assertTrue(f"Interface{i}" in cuboidStack.surfaceLabels)
 
     def testWhenContainsWithVerticesThatAreAllInsideTheCuboid_shouldReturnTrue(self):
         cuboid = Cuboid(1, 1, 8, position=Vector(2, 2, 0))

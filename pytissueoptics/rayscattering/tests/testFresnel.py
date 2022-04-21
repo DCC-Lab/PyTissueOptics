@@ -4,7 +4,7 @@ import unittest
 from pytissueoptics.rayscattering.fresnel import FresnelIntersect
 from pytissueoptics.rayscattering.materials import ScatteringMaterial
 from pytissueoptics.scene import Vector
-from pytissueoptics.scene.geometry import Polygon
+from pytissueoptics.scene.geometry import Environment
 from pytissueoptics.scene.intersection.intersectionFinder import Intersection
 
 
@@ -75,7 +75,7 @@ class TestFresnelIntersect(unittest.TestCase):
 
         fresnelIntersection = self.fresnelIntersect.compute(self.rayAt45, intersection)
 
-        self.assertEqual(n2, fresnelIntersection.nextMaterial.index)
+        self.assertEqual(n2, fresnelIntersection.nextEnvironment.material.index)
 
     def testIfGoingOutside_shouldSetNextMaterialAsMaterialOutsideSurface(self):
         n1, n2 = 1.0, 1.5
@@ -84,9 +84,11 @@ class TestFresnelIntersect(unittest.TestCase):
 
         fresnelIntersection = self.fresnelIntersect.compute(self.rayAt45, intersection)
 
-        self.assertEqual(n1, fresnelIntersection.nextMaterial.index)
+        self.assertEqual(n1, fresnelIntersection.nextEnvironment.material.index)
 
     @staticmethod
     def _createIntersection(n1=1.0, n2=1.5, normal=Vector(0, 0, 1)):
-        return Intersection(10, Vector(0, 0, 0), None, normal, insideMaterial=ScatteringMaterial(index=n2),
-                            outsideMaterial=ScatteringMaterial(index=n1), distanceLeft=2)
+        insideEnvironment = Environment(ScatteringMaterial(index=n2))
+        outsideEnvironment = Environment(ScatteringMaterial(index=n1))
+        return Intersection(10, Vector(0, 0, 0), None, normal,
+                            insideEnvironment, outsideEnvironment, distanceLeft=2)

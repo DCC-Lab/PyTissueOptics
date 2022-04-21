@@ -4,7 +4,6 @@ import numpy as np
 
 from pytissueoptics.scene.geometry import Vector, Quad, Triangle, utils, Vertex
 from pytissueoptics.scene.geometry import primitives
-from pytissueoptics.scene.materials import Material
 from pytissueoptics.scene.solids import Solid
 from pytissueoptics.scene.geometry import SurfaceCollection
 from pytissueoptics.scene.solids.stack.cuboidStacker import CuboidStacker
@@ -23,7 +22,7 @@ class Cuboid(Solid):
 
     def __init__(self, a: float, b: float, c: float,
                  vertices: List[Vertex] = None, position: Vector = Vector(0, 0, 0), surfaces: SurfaceCollection = None,
-                 material: Material = None, primitive: str = primitives.DEFAULT):
+                 material=None, label: str = "Cuboid", primitive: str = primitives.DEFAULT):
 
         self.shape = [a, b, c]
 
@@ -33,7 +32,7 @@ class Cuboid(Solid):
                         Vertex(-a / 2, -b / 2, -c / 2), Vertex(a / 2, -b / 2, -c / 2), Vertex(a / 2, b / 2, -c / 2),
                         Vertex(-a / 2, b / 2, -c / 2)]
 
-        super().__init__(vertices, position, surfaces, material, primitive)
+        super().__init__(vertices, position, surfaces, material, label, primitive)
 
     def _computeTriangleMesh(self):
         V = self._vertices
@@ -73,13 +72,13 @@ class Cuboid(Solid):
         return Cuboid._fromStackResult(stackResult)
 
     @classmethod
-    def _fromStackResult(cls, stackResult: StackResult) -> 'Cuboid':
+    def _fromStackResult(cls, stackResult: StackResult, label="CuboidStack") -> 'Cuboid':
         # subtracting stackCentroid from all vertices because solid creation will translate back to position.
         for vertex in stackResult.vertices:
             vertex.subtract(stackResult.position)
 
         return Cuboid(*stackResult.shape, position=stackResult.position, vertices=stackResult.vertices,
-                      surfaces=stackResult.surfaces, primitive=stackResult.primitive)
+                      surfaces=stackResult.surfaces, label=label, primitive=stackResult.primitive)
 
     def contains(self, *vertices: Vertex) -> bool:
         vertices = np.asarray([vertex.array for vertex in vertices])

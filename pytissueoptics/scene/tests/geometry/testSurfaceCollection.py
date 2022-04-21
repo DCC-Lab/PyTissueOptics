@@ -2,13 +2,12 @@ import unittest
 
 from mockito import mock, verify, when
 
-from pytissueoptics.scene.materials import Material
-from pytissueoptics.scene.geometry import Polygon
+from pytissueoptics.scene.geometry import Polygon, Environment
 from pytissueoptics.scene.geometry import SurfaceCollection
 
 
 class TestSurfaceCollection(unittest.TestCase):
-    SURFACE_NAME = "Top"
+    SURFACE_LABEL = "Top"
     SURFACE_POLYGON = mock(Polygon)
 
     def setUp(self):
@@ -17,85 +16,85 @@ class TestSurfaceCollection(unittest.TestCase):
         self.SURFACE_POLYGONS = [self.SURFACE_POLYGON]
 
     def testShouldBeEmpty(self):
-        self.assertEqual(0, len(self.surfaceCollection.surfaceNames))
+        self.assertEqual(0, len(self.surfaceCollection.surfaceLabels))
         self.assertEqual(0, len(self.surfaceCollection.getPolygons()))
 
-    def testWhenAddSurface_shouldAddItsNameToTheCollection(self):
-        self.surfaceCollection.add(self.SURFACE_NAME, self.SURFACE_POLYGONS)
-        self.assertTrue(self.SURFACE_NAME in self.surfaceCollection.surfaceNames)
+    def testWhenAddSurface_shouldAddItsLabelToTheCollection(self):
+        self.surfaceCollection.add(self.SURFACE_LABEL, self.SURFACE_POLYGONS)
+        self.assertTrue(self.SURFACE_LABEL in self.surfaceCollection.surfaceLabels)
 
     def testWhenAddSurface_shouldAddItsPolygonsToTheCollection(self):
-        self.surfaceCollection.add(self.SURFACE_NAME, self.SURFACE_POLYGONS)
+        self.surfaceCollection.add(self.SURFACE_LABEL, self.SURFACE_POLYGONS)
         self.assertEqual(self.SURFACE_POLYGONS, self.surfaceCollection.getPolygons())
 
-    def testWhenAddSurfaceWithExistingName_shouldNotAddToCollection(self):
-        self.surfaceCollection.add(self.SURFACE_NAME, self.SURFACE_POLYGONS)
+    def testWhenAddSurfaceWithExistingLabel_shouldNotAddToCollection(self):
+        self.surfaceCollection.add(self.SURFACE_LABEL, self.SURFACE_POLYGONS)
         with self.assertRaises(Exception):
-            self.surfaceCollection.add(self.SURFACE_NAME, self.SURFACE_POLYGONS)
+            self.surfaceCollection.add(self.SURFACE_LABEL, self.SURFACE_POLYGONS)
 
     def testWhenGetPolygonsOfNonexistentSurface_shouldNotReturn(self):
         with self.assertRaises(Exception):
-            self.surfaceCollection.getPolygons("Nonexistent surface name")
+            self.surfaceCollection.getPolygons("Nonexistent surface label")
 
     def testWhenGetPolygonsOfNoSpecificSurface_shouldReturnThePolygonsOfAllSurfaces(self):
         otherPolygons = [mock(Polygon)]
         allPolygons = self.SURFACE_POLYGONS + otherPolygons
-        self.surfaceCollection.add(self.SURFACE_NAME, self.SURFACE_POLYGONS)
-        self.surfaceCollection.add("Another surface name", otherPolygons)
+        self.surfaceCollection.add(self.SURFACE_LABEL, self.SURFACE_POLYGONS)
+        self.surfaceCollection.add("Another surface label", otherPolygons)
 
         polygons = self.surfaceCollection.getPolygons()
 
         self.assertEqual(allPolygons, polygons)
 
     def testWhenSetPolygonsOfASurface_shouldReplaceTheSurfacePolygonsWithTheProvidedPolygons(self):
-        self.surfaceCollection.add(self.SURFACE_NAME, self.SURFACE_POLYGONS)
+        self.surfaceCollection.add(self.SURFACE_LABEL, self.SURFACE_POLYGONS)
         newPolygons = [mock(Polygon)]
 
-        self.surfaceCollection.setPolygons(self.SURFACE_NAME, newPolygons)
+        self.surfaceCollection.setPolygons(self.SURFACE_LABEL, newPolygons)
 
-        self.assertEqual(newPolygons, self.surfaceCollection.getPolygons(self.SURFACE_NAME))
+        self.assertEqual(newPolygons, self.surfaceCollection.getPolygons(self.SURFACE_LABEL))
 
     def testWhenSetPolygonsOfNonexistentSurface_shouldNotSetPolygons(self):
         with self.assertRaises(Exception):
-            self.surfaceCollection.setPolygons("Nonexistent surface name", self.SURFACE_POLYGONS)
+            self.surfaceCollection.setPolygons("Nonexistent surface label", self.SURFACE_POLYGONS)
 
-    def testWhenSetOutsideMaterialOfASurface_shouldSetItForAllItsPolygons(self):
-        self.surfaceCollection.add(self.SURFACE_NAME, self.SURFACE_POLYGONS)
-        when(self.SURFACE_POLYGON).setOutsideMaterial(...).thenReturn()
-        newMaterial = Material()
+    def testWhenSetOutsideEnvironmentOfASurface_shouldSetItForAllItsPolygons(self):
+        self.surfaceCollection.add(self.SURFACE_LABEL, self.SURFACE_POLYGONS)
+        when(self.SURFACE_POLYGON).setOutsideEnvironment(...).thenReturn()
+        newEnvironment = Environment("New material")
 
-        self.surfaceCollection.setOutsideMaterial(newMaterial, self.SURFACE_NAME)
+        self.surfaceCollection.setOutsideEnvironment(newEnvironment, self.SURFACE_LABEL)
 
-        verify(self.SURFACE_POLYGON).setOutsideMaterial(newMaterial)
+        verify(self.SURFACE_POLYGON).setOutsideEnvironment(newEnvironment)
 
-    def testWhenSetOutsideMaterialOfNonexistentSurface_shouldNotSetOutsideMaterial(self):
-        newMaterial = Material()
+    def testWhenSetOutsideEnvironmentOfNonexistentSurface_shouldNotSetOutsideEnvironment(self):
+        newEnvironment = Environment("New material")
         with self.assertRaises(Exception):
-            self.surfaceCollection.setOutsideMaterial(newMaterial, "Nonexistent surface name")
+            self.surfaceCollection.setOutsideEnvironment(newEnvironment, "Nonexistent surface label")
 
-    def testWhenGetInsideMaterialOfASurface_shouldReturnTheMaterialUnderThisSurface(self):
-        MATERIAL_UNDER_SURFACE = Material()
-        self.SURFACE_POLYGON.insideMaterial = MATERIAL_UNDER_SURFACE
-        self.surfaceCollection.add(self.SURFACE_NAME, self.SURFACE_POLYGONS)
+    def testWhenGetInsideEnvironmentOfASurface_shouldReturnTheEnvironmentUnderThisSurface(self):
+        ENVIRONMENT_UNDER_SURFACE = Environment("A Material")
+        self.SURFACE_POLYGON.insideEnvironment = ENVIRONMENT_UNDER_SURFACE
+        self.surfaceCollection.add(self.SURFACE_LABEL, self.SURFACE_POLYGONS)
 
-        self.assertEqual(MATERIAL_UNDER_SURFACE, self.surfaceCollection.getInsideMaterial(self.SURFACE_NAME))
+        self.assertEqual(ENVIRONMENT_UNDER_SURFACE, self.surfaceCollection.getInsideEnvironment(self.SURFACE_LABEL))
 
-    def testWhenGetInsideMaterialOfASurfaceComposedOfDifferentMaterials_shouldNotReturn(self):
-        MATERIAL_A = Material()
-        MATERIAL_B = Material()
-        polygonWithMaterialA = mock(Polygon)
-        polygonWithMaterialB = mock(Polygon)
-        polygonWithMaterialA.insideMaterial = MATERIAL_A
-        polygonWithMaterialB.insideMaterial = MATERIAL_B
+    def testWhenGetInsideEnvironmentOfASurfaceComposedOfDifferentEnvironments_shouldNotReturn(self):
+        ENVIRONMENT_A = Environment("Material A")
+        ENVIRONMENT_B = Environment("Material B")
+        polygonWithEnvironmentA = mock(Polygon)
+        polygonWithEnvironmentB = mock(Polygon)
+        polygonWithEnvironmentA.insideEnvironment = ENVIRONMENT_A
+        polygonWithEnvironmentB.insideEnvironment = ENVIRONMENT_B
 
-        self.surfaceCollection.add(self.SURFACE_NAME, [polygonWithMaterialA, polygonWithMaterialB])
+        self.surfaceCollection.add(self.SURFACE_LABEL, [polygonWithEnvironmentA, polygonWithEnvironmentB])
 
         with self.assertRaises(Exception):
-            self.surfaceCollection.getInsideMaterial(self.SURFACE_NAME)
+            self.surfaceCollection.getInsideEnvironment(self.SURFACE_LABEL)
 
     def testWhenResetNormals_shouldResetNormalOfAllPolygons(self):
         when(self.SURFACE_POLYGON).resetNormal().thenReturn()
-        self.surfaceCollection.add(self.SURFACE_NAME, self.SURFACE_POLYGONS)
+        self.surfaceCollection.add(self.SURFACE_LABEL, self.SURFACE_POLYGONS)
 
         self.surfaceCollection.resetNormals()
 
@@ -103,7 +102,7 @@ class TestSurfaceCollection(unittest.TestCase):
 
     def testWhenResetBoundingBoxes_shouldResetBoundingBoxOfAllPolygons(self):
         when(self.SURFACE_POLYGON).resetBoundingBox().thenReturn()
-        self.surfaceCollection.add(self.SURFACE_NAME, self.SURFACE_POLYGONS)
+        self.surfaceCollection.add(self.SURFACE_LABEL, self.SURFACE_POLYGONS)
 
         self.surfaceCollection.resetBoundingBoxes()
 
@@ -111,29 +110,29 @@ class TestSurfaceCollection(unittest.TestCase):
 
     def testWhenResetCentroids_shouldResetCentroidOfAllPolygons(self):
         when(self.SURFACE_POLYGON).resetCentroid().thenReturn()
-        self.surfaceCollection.add(self.SURFACE_NAME, self.SURFACE_POLYGONS)
+        self.surfaceCollection.add(self.SURFACE_LABEL, self.SURFACE_POLYGONS)
 
         self.surfaceCollection.resetCentroids()
 
         verify(self.SURFACE_POLYGON).resetCentroid()
 
     def testWhenExtendWithAnotherSurfaceCollection_shouldAddTheOtherSurfacesToItsCollection(self):
-        otherSurfaceName = "Another surface name"
+        otherSurfaceLabel = "Another surface label"
         otherSurfacePolygons = [mock(Polygon)]
         otherSurfaceCollection = SurfaceCollection()
-        otherSurfaceCollection.add(otherSurfaceName, otherSurfacePolygons)
-        self.surfaceCollection.add(self.SURFACE_NAME, self.SURFACE_POLYGONS)
+        otherSurfaceCollection.add(otherSurfaceLabel, otherSurfacePolygons)
+        self.surfaceCollection.add(self.SURFACE_LABEL, self.SURFACE_POLYGONS)
 
         self.surfaceCollection.extend(otherSurfaceCollection)
 
-        self.assertEqual(self.surfaceCollection.surfaceNames, [self.SURFACE_NAME, otherSurfaceName])
+        self.assertEqual(self.surfaceCollection.surfaceLabels, [self.SURFACE_LABEL, otherSurfaceLabel])
         self.assertEqual(self.surfaceCollection.getPolygons(), self.SURFACE_POLYGONS + otherSurfacePolygons)
 
     def testWhenExtendWithAnotherSurfaceCollectionContainingExistingSurfaces_shouldNotExtend(self):
         otherSurfacePolygons = [mock(Polygon)]
         otherSurfaceCollection = SurfaceCollection()
-        otherSurfaceCollection.add(self.SURFACE_NAME, otherSurfacePolygons)
-        self.surfaceCollection.add(self.SURFACE_NAME, self.SURFACE_POLYGONS)
+        otherSurfaceCollection.add(self.SURFACE_LABEL, otherSurfacePolygons)
+        self.surfaceCollection.add(self.SURFACE_LABEL, self.SURFACE_POLYGONS)
 
         with self.assertRaises(Exception):
             self.surfaceCollection.extend(otherSurfaceCollection)

@@ -1,9 +1,8 @@
-from math import cos, sin, acos, atan, pi, sqrt
+import math
 
 import numpy as np
 
 from pytissueoptics.scene.geometry import Vector, Triangle, primitives, utils, Vertex
-from pytissueoptics.scene.materials import Material
 from pytissueoptics.scene.solids import Solid
 
 
@@ -16,14 +15,16 @@ class Ellipsoid(Solid):
     """
 
     def __init__(self, a: float = 1, b: float = 1, c: float = 1, order: int = 3,
-                 position: Vector = Vector(0, 0, 0), material: Material = None,
-                 primitive: str = primitives.DEFAULT, smooth: bool = True):
+                 position: Vector = Vector(0, 0, 0), material=None,
+                 label: str = "Ellipsoid", primitive: str = primitives.DEFAULT, smooth: bool = True):
 
         self._a = a
         self._b = b
         self._c = c
         self._order = order
-        super().__init__(position=position, material=material, primitive=primitive, vertices=[], smooth=smooth)
+
+        super().__init__(position=position, material=material, label=label, primitive=primitive,
+                         vertices=[], smooth=smooth)
 
     def _computeTriangleMesh(self):
         """
@@ -114,31 +115,31 @@ class Ellipsoid(Solid):
 
     @staticmethod
     def _findThetaPhi(vertex: Vertex):
-        phi = acos(vertex.z / (vertex.x ** 2 + vertex.y ** 2 + vertex.z ** 2))
+        phi = math.acos(vertex.z / (vertex.x ** 2 + vertex.y ** 2 + vertex.z ** 2))
         theta = 0
         if vertex.x == 0.0:
             if vertex.y > 0.0:
-                theta = pi / 2
+                theta = math.pi / 2
 
             elif vertex.y < 0.0:
-                theta = -pi / 2
+                theta = -math.pi / 2
 
         elif vertex.x > 0.0:
-            theta = atan(vertex.y / vertex.x)
+            theta = math.atan(vertex.y / vertex.x)
 
         elif vertex.x < 0.0:
             if vertex.y >= 0.0:
-                theta = atan(vertex.y / vertex.x) + pi
+                theta = math.atan(vertex.y / vertex.x) + math.pi
 
             elif vertex.y < 0.0:
-                theta = atan(vertex.y / vertex.x) - pi
+                theta = math.atan(vertex.y / vertex.x) - math.pi
 
         return theta, phi
 
     def _radiusTowards(self, vertex):
         theta, phi = self._findThetaPhi(vertex)
-        return sqrt(1 / ((cos(theta) ** 2 * sin(phi) ** 2) / self._a ** 2 + (
-                sin(theta) ** 2 * sin(phi) ** 2) / self._b ** 2 + cos(phi) ** 2 / self._c ** 2))
+        return math.sqrt(1 / ((math.cos(theta) ** 2 * math.sin(phi) ** 2) / self._a ** 2 + (
+                math.sin(theta) ** 2 * math.sin(phi) ** 2) / self._b ** 2 + math.cos(phi) ** 2 / self._c ** 2))
 
     def _computeQuadMesh(self):
         raise NotImplementedError

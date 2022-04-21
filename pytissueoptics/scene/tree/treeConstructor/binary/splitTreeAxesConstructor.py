@@ -147,8 +147,8 @@ class SplitThreeAxesConstructor(NoSplitOneAxisConstructor):
     @staticmethod
     def _makeTriangleFromVertices(parent: Polygon, vertices: List[Vector]) -> Polygon:
         if len(vertices) == 3:
-            return Triangle(*vertices, normal=parent.normal, insideMaterial=parent.insideMaterial,
-                            outsideMaterial=parent.outsideMaterial)
+            return Triangle(*vertices, normal=parent.normal, insideEnvironment=parent.insideEnvironment,
+                            outsideEnvironment=parent.outsideEnvironment)
 
     @staticmethod
     def _checkVerticesPlaneSide(vertices: List[Vector], planeNormal: Vector, planePoint: Vector, tol=1e-6) -> Tuple[
