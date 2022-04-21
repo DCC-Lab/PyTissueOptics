@@ -61,6 +61,7 @@ class TestLogger(unittest.TestCase):
         logger.logPoint(Vector(3, 0, 0), anotherKeyWithoutSurface)
 
         self.assertEqual(2, len(logger.getPoints(self.INTERACTION_KEY)))
+        self.assertEqual(1, len(logger.getPoints(anotherKeyWithoutSurface)))
 
     def testWhenGetSolidLabels_shouldReturnAListOfUniqueSolidLabels(self):
         solidLabel1 = "A label"
