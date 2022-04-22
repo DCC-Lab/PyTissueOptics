@@ -23,7 +23,7 @@ void wang_rnd_0(__global unsigned int * rnd_buffer, int id)
  __kernel void rnd_init(__global unsigned int *rnd_buffer)
     {
        int id=get_global_id(0);
-       wang_rnd_0(rnd_buffer, id);  // each (id) thread has its own random seed now           
+       wang_rnd_0(rnd_buffer, id);  // each (id) thread has its own cl_random seed now           
     }
  
 float wang_rnd(__global unsigned int * rnd_buffer, int id)                
@@ -39,7 +39,7 @@ float wang_rnd(__global unsigned int * rnd_buffer, int id)
     {
     int id=get_global_id(0);
     
-    // can use this to populate a buffer with random numbers 
+    // can use this to populate a buffer with cl_random numbers 
     // concurrently on all cores of a gpu
     float thread_private_random_number=wang_rnd(rnd_buffer,id);
     }
@@ -72,8 +72,8 @@ DEVICE_result = cl.Buffer(context, cl.mem_flags.READ_WRITE | cl.mem_flags.COPY_H
 HOST_rand = np.zeros(N, dtype=cl.cltypes.uint)
 DEVICE_rand = cl.Buffer(context, cl.mem_flags.READ_ONLY | cl.mem_flags.COPY_HOST_PTR, hostbuf=HOST_rand)
 
-# rng = np.random.default_rng()
-# HOST_rand = np.random.randint(size=N, low=0, high=2**32-1, dtype=cl.cltypes.uint)
+# rng = np.cl_random.default_rng()
+# HOST_rand = np.cl_random.randint(size=N, low=0, high=2**32-1, dtype=cl.cltypes.uint)
 # DEVICE_rand = cl.Buffer(context, cl.mem_flags.READ_ONLY | cl.mem_flags.COPY_HOST_PTR, hostbuf=HOST_rand)
 
 program.rnd_init(queue, (N,), None, DEVICE_rand)

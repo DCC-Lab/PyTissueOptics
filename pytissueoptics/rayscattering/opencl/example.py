@@ -1,29 +1,23 @@
-import time
-
-from CLPhotons import CLPhotons
-from CLSource import CLPencilSource
-from stats import Stats
+from pytissueoptics.rayscattering.opencl.CLBasicSimulation import CLBasicSimulation
+from pytissueoptics.rayscattering.opencl.CLSource import CLPencilSource
+from pytissueoptics.rayscattering.opencl.CLStatistics import CLStatistics
+import matplotlib.pyplot as plt
+import numpy as np
 from pytissueoptics.rayscattering.materials import ScatteringMaterial
 
 
-worldMaterial = ScatteringMaterial(mu_s=30, mu_a=0.1, g=0.8, index=1.4)
-print(" === CREATION ===")
-t0 = time.time_ns()
-source = CLPencilSource(N=10, worldMaterial=worldMaterial)
-t1 = time.time_ns()
-photons = CLPhotons(source.photons, worldMaterial=worldMaterial)
-t2 = time.time_ns()
-print("Create CPU Photons: ", (t1-t0)/1e9, "s")
-print("Create GPU Photons: ", (t2-t1)/1e9, "s")
+worldMaterial = ScatteringMaterial(mu_s=30, mu_a=0.8, g=0.8, index=1.4)
+stats = CLStatistics()
 
+source = CLPencilSource(N=500000)
+mcSimulation = CLBasicSimulation(source, worldMaterial, stats=stats, stepSize=100)
+mcSimulation.launch()
 
-photons.propagate()
+energySum = stats.energy.sum(axis=1)
+plt.imshow(np.log(energySum + 0.0001), cmap='viridis',
+                          extent=[stats.minBounds[2], stats.maxBounds[2], stats.minBounds[0], stats.maxBounds[0]],
+                          aspect='auto')
+plt.pause(20)
 
-print(" === RESULTS ===")
-t3 = time.time_ns()
-for i in photons.logger:
-    print(i)
-# stats = Stats(photons.logger)
-t4 = time.time_ns()
-print("Calculate Stats: ", (t4-t3)/1e9, "s")
-# stats.showEnergy2D(plane='xz', integratedAlong='y', title="Final photons", realtime=False)
+# stats.showEnergy2D(plane='xz', integratedAlong='y', title="Final photons")
+# print(mcSimulation.HOST_photons)
