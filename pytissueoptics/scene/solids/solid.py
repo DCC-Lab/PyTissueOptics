@@ -2,7 +2,7 @@ from typing import List
 
 import numpy as np
 
-from pytissueoptics.scene.geometry import Vector, utils, Polygon, Rotation, BoundingBox, Vertex
+from pytissueoptics.scene.geometry import Vector, utils, Polygon, Rotation, BoundingBox, Vertex, Triangle
 from pytissueoptics.scene.geometry import primitives, Environment, SurfaceCollection
 
 
@@ -194,3 +194,16 @@ class Solid:
         for vertex in self.vertices:
             if vertex.normal:
                 vertex.normal.normalize()
+
+    def extractSurfaceSolid(self, surfaceLabel: str) -> 'Solid':
+        polygons = self.getPolygons(surfaceLabel)
+
+        vertices = set()
+        for polygon in polygons:
+            vertices.update(polygon.vertices)
+        vertices = list(vertices)
+
+        surfaces = SurfaceCollection()
+        surfaces.setPolygons(surfaceLabel, polygons)
+
+        return Solid(vertices, surfaces=surfaces, label=self._label, primitive=self._primitive)
