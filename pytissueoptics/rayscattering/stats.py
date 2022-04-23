@@ -1,5 +1,4 @@
 import copy
-from dataclasses import dataclass
 from typing import List, Optional, Union, Tuple
 
 import matplotlib
@@ -12,10 +11,13 @@ from pytissueoptics.scene import Logger, Vector
 from pytissueoptics.scene.logger import DataPoint, InteractionKey
 
 
-@dataclass
 class PointCloud:
-    solidPoints: Optional[List[DataPoint]] = None
-    surfacePoints: Optional[List[DataPoint]] = None
+    def __init__(self, solidPoints: Optional[List[DataPoint]] = None,
+                 surfacePoints: Optional[List[DataPoint]] = None):
+        self.solidPoints = solidPoints if solidPoints is not None else []
+        self.surfacePoints = surfacePoints if surfacePoints is not None else []
+        self.leavingSurfacePoints = [p for p in self.surfacePoints if p.value >= 0]
+        self.enteringSurfacePoints = [p for p in self.surfacePoints if p.value < 0]
 
 
 class DisplayConfig:
@@ -68,7 +70,7 @@ class Stats:
                                  scaleWithValue=config.scaleWithValue, colormap=config.colormap,
                                  reverseColormap=config.reverseColormap)
         if pointCloud.surfacePoints:
-            viewer.addDataPoints(pointCloud.surfacePoints, scale=config.surfacePointSize,
+            viewer.addDataPoints(pointCloud.leavingSurfacePoints, scale=config.surfacePointSize,
                                  scaleWithValue=config.surfaceScaleWithValue, colormap=config.surfaceColormap,
                                  reverseColormap=config.surfaceReverseColormap)
         viewer.show()
@@ -125,14 +127,14 @@ class Stats:
         assert projection in self.AXES, 'Projection of arbitrary plane is not supported yet.'
         projectionIndex = self.AXES.index(projection)
 
-        scatter = self._getScatter(solidLabel, surfaceLabel)
+        scatter = self._get3DScatter(solidLabel, surfaceLabel)
         u, v, c = np.delete(scatter, projectionIndex, axis=0)
         return u, v, c
 
-    def _getScatter(self, solidLabel: str = None, surfaceLabel: str = None):
+    def _get3DScatter(self, solidLabel: str = None, surfaceLabel: str = None):
         pointCloud = self.getPointCloud(solidLabel, surfaceLabel)
         if surfaceLabel:
-            points = pointCloud.surfacePoints
+            points = pointCloud.leavingSurfacePoints
         else:
             points = pointCloud.solidPoints
         scatter = np.asarray([(p.position.x, p.position.y, p.position.z, p.value) for p in points])
@@ -152,27 +154,30 @@ class Stats:
         assert along in self.AXES, 'Projection of arbitrary plane is not supported yet.'
         alongIndex = self.AXES.index(along)
 
-        scatter = self._getScatter(solidLabel, surfaceLabel)
+        scatter = self._get3DScatter(solidLabel, surfaceLabel)
         x, c = scatter[alongIndex], scatter[-1]
         return x, c
 
     def getAbsorbance(self, solidLabel: str = None) -> float:
         points = self.getPointCloud(solidLabel).solidPoints
         energy = sum([p.value for p in points])
-        return energy / self._photonCount
+        return energy / self._getEnergyInput(solidLabel)
+
+    def _getEnergyInput(self, solidLabel: str = None) -> float:
+        if solidLabel is None:
+            return self._photonCount
+        points = self._getPointCloudOfSurfaces(solidLabel).enteringSurfacePoints
+        energy = -sum([p.value for p in points])
+        return energy
 
     def getTransmittance(self, solidLabel: str = None, surfaceLabel: str = None):
-        # fixme: transmittance is wrong for now since we don't discriminate between
-        #   energy that entered or left the surface (easy fix would be to discriminate
-        #   during logging by logging negative energy if the photon entered the surface)
-        # CuboidStacks might create a problem since they are not closed (currently)
         if surfaceLabel is None:
-            points = self._getPointCloudOfSurfaces(solidLabel).surfacePoints
+            points = self._getPointCloudOfSurfaces(solidLabel).leavingSurfacePoints
         else:
-            points = self.getPointCloud(solidLabel, surfaceLabel).surfacePoints
+            points = self.getPointCloud(solidLabel, surfaceLabel).leavingSurfacePoints
 
         energy = sum([p.value for p in points])
-        return energy / self._photonCount
+        return energy / self._getEnergyInput(solidLabel)
 
     def report(self, solidLabel: str = None):
         if solidLabel:
@@ -182,10 +187,10 @@ class Stats:
 
     def _reportSolid(self, solidLabel: str):
         print("Report of solid '{}'".format(solidLabel))
-        print("  Absorbance: {0:.1f}% of total power. ".format(100 * self.getAbsorbance(solidLabel)))
+        print("  Absorbance: {0:.1f}% ".format(100 * self.getAbsorbance(solidLabel)))
         for surfaceLabel in self._logger.getSurfaceLabels(solidLabel):
             transmittance = "{0:.1f}".format(100 * self.getTransmittance(solidLabel, surfaceLabel))
-            print(f"  Transmittance at '{surfaceLabel}': {transmittance}% of total power.")
+            print(f"  Transmittance at '{surfaceLabel}': {transmittance}%")
 
 
 # todo: create binned Logger class to bin any logger data dynamically to it (extending)
