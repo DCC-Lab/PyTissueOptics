@@ -34,6 +34,8 @@ class DisplayConfig:
 
 
 class Stats:
+    AXES = ["x", "y", "z"]
+
     def __init__(self, logger: Logger, scene: RayScatteringScene):
         self._logger = logger
         self._scene = scene
@@ -92,32 +94,42 @@ class Stats:
 
     def showEnergy2D(self, solidLabel: str = None, surfaceLabel: str = None,
                      projection: Union[str, Vector] = 'y', bins: Union[int, Tuple[int, int]] = None):
-        axes = ['x', 'y', 'z']
-        assert projection in axes
-        pointCloud = self.getPointCloud(solidLabel, surfaceLabel)
-        if surfaceLabel:
-            points = pointCloud.surfacePoints
-        else:
-            points = pointCloud.solidPoints
+        u, v, c = self._get2DScatter(solidLabel, surfaceLabel, projection)
 
-        scatter = np.asarray([(p.position.x, p.position.y, p.position.z, p.value) for p in points])
-        projectionIndex = axes.index(projection)
-        scatter = np.delete(scatter, projectionIndex, axis=1)
-        u, v, c = scatter.T
-        plt.scatter(u, v, c=c)
+        if bins is not None:
+            plt.hist2d(u, v, bins=bins, weights=c)
+        else:
+            plt.scatter(u, v, c=c)
+
         uIndex = 0 if projection != 'x' else 1
         vIndex = 1 if projection != 'y' else 2
-        plt.xlabel(axes[uIndex])
-        plt.ylabel(axes[vIndex])
+        plt.xlabel(self.AXES[uIndex])
+        plt.ylabel(self.AXES[vIndex])
         plt.show()
 
         # todo:
-        #  - support binning
         #  - support any projection plane
         #  - add projection of scene interfaces
 
         # if surfaceLabel : projection = surfaceNormal (mean polygon normal to start)
         # else: default projection to y axis
+
+    def _get2DScatter(self, solidLabel: str = None, surfaceLabel: str = None,
+                      projection: Union[str, Vector] = 'y') -> tuple:
+        assert projection in self.AXES, 'Projection of arbitrary plane is not supported yet.'
+
+        pointCloud = self.getPointCloud(solidLabel, surfaceLabel)
+        if surfaceLabel:
+            points = pointCloud.surfacePoints
+        else:
+            points = pointCloud.solidPoints
+        scatter = np.asarray([(p.position.x, p.position.y, p.position.z, p.value) for p in points])
+
+        projectionIndex = self.AXES.index(projection)
+        scatter = np.delete(scatter, projectionIndex, axis=1)
+        u, v, c = scatter.T
+        return u, v, c
+
 
 # todo: create binned Logger class to bin any logger data dynamically to it (extending)
 # binnedLogger.logPoints()
