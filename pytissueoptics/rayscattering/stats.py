@@ -1,6 +1,8 @@
+import copy
 from dataclasses import dataclass
 from typing import List, Optional, Union, Tuple
 
+import matplotlib
 import numpy as np
 from matplotlib import pyplot as plt
 
@@ -93,13 +95,18 @@ class Stats:
         return PointCloud(None, points)
 
     def showEnergy2D(self, solidLabel: str = None, surfaceLabel: str = None,
-                     projection: Union[str, Vector] = 'y', bins: Union[int, Tuple[int, int]] = None):
+                     projection: Union[str, Vector] = 'y', bins: Union[int, Tuple[int, int]] = None,
+                     logScale: bool = False, colormap: str = 'viridis'):
         u, v, c = self._get2DScatter(solidLabel, surfaceLabel, projection)
 
+        norm = matplotlib.colors.LogNorm() if logScale else None
+        cmap = copy.copy(matplotlib.cm.get_cmap(colormap))
+        cmap.set_bad(cmap.colors[0])
+        
         if bins is not None:
-            plt.hist2d(u, v, bins=bins, weights=c)
+            plt.hist2d(u, v, bins=bins, weights=c, norm=norm, cmap=cmap)
         else:
-            plt.scatter(u, v, c=c)
+            plt.scatter(u, v, c=c, norm=norm, cmap=cmap)
 
         uIndex = 0 if projection != 'x' else 1
         vIndex = 1 if projection != 'y' else 2
@@ -120,7 +127,7 @@ class Stats:
         projectionIndex = self.AXES.index(projection)
 
         scatter = self._getScatter(solidLabel, surfaceLabel)
-        u, v, c = np.delete(scatter, projectionIndex)
+        u, v, c = np.delete(scatter, projectionIndex, axis=0)
         return u, v, c
 
     def _getScatter(self, solidLabel: str = None, surfaceLabel: str = None):
