@@ -29,6 +29,10 @@ class Source:
     def photons(self):
         return self._photons
 
+    @property
+    def photonCount(self) -> int:
+        return len(self._photons)
+
 
 class PencilSource(Source):
     def __init__(self, position=Vector(0, 0, 0), direction=Vector(0, 0, 1), N=100):
