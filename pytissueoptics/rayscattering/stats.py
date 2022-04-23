@@ -165,6 +165,7 @@ class Stats:
         # fixme: transmittance is wrong for now since we don't discriminate between
         #   energy that entered or left the surface (easy fix would be to discriminate
         #   during logging by logging negative energy if the photon entered the surface)
+        # CuboidStacks might create a problem since they are not closed (currently)
         if surfaceLabel is None:
             points = self._getPointCloudOfSurfaces(solidLabel).surfacePoints
         else:
@@ -190,3 +191,4 @@ class Stats:
 # todo: create binned Logger class to bin any logger data dynamically to it (extending)
 # binnedLogger.logPoints()
 # or logger.bin() ...
+# todo: test private _getScatter/projection logic

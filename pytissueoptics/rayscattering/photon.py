@@ -77,7 +77,6 @@ class Photon:
 
         if intersection:
             self.moveBy(intersection.distance)
-            self._logIntersection(intersection)
             distanceLeft = self.reflectOrRefract(intersection)
         else:
             if math.isinf(distance):
@@ -104,6 +103,7 @@ class Photon:
         if fresnelIntersection.isReflected:
             self.reflect(fresnelIntersection)
         else:
+            self._logIntersection(intersection)
             self.refract(fresnelIntersection)
 
             mut1 = self.material.mu_t
