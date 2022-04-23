@@ -70,13 +70,13 @@ class Logger:
             raise KeyError(f"Invalid surface label '{key.surfaceLabel}' for solid '{key.solidLabel}'. "
                            f"Available: {self.getSurfaceLabels(key.solidLabel)}. ")
 
-    def getPoints(self, key: InteractionKey = None):
+    def getPoints(self, key: InteractionKey = None) -> List[Vector]:
         return self._getData(DataType.POINT, key)
 
-    def getDataPoints(self, key: InteractionKey = None):
+    def getDataPoints(self, key: InteractionKey = None) -> List[DataPoint]:
         return self._getData(DataType.DATA_POINT, key)
 
-    def getSegments(self, key: InteractionKey = None):
+    def getSegments(self, key: InteractionKey = None) -> List[Segment]:
         return self._getData(DataType.SEGMENT, key)
 
     def _getData(self, dataType: DataType, key: InteractionKey = None):

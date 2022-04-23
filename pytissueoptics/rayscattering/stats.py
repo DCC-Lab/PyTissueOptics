@@ -1,10 +1,12 @@
 from dataclasses import dataclass
-from typing import List, Optional
+from typing import List, Optional, Union, Tuple
+
+import numpy as np
+from matplotlib import pyplot as plt
 
 from pytissueoptics.rayscattering.tissues.rayScatteringScene import RayScatteringScene
 from pytissueoptics.scene import Logger, Vector
 from pytissueoptics.scene.logger import DataPoint, InteractionKey
-from pytissueoptics.scene.solids import Solid
 
 
 @dataclass
@@ -88,5 +90,35 @@ class Stats:
                 points.extend(self.getPointCloud(_solidLabel, surfaceLabel).surfacePoints)
         return PointCloud(None, points)
 
-    def showEnergy2D(self, solidLabel: str, surfaceLabel: str = None, direction: Vector = None):
-        raise NotImplementedError()
+    def showEnergy2D(self, solidLabel: str = None, surfaceLabel: str = None,
+                     projection: Union[str, Vector] = 'y', bins: Union[int, Tuple[int, int]] = None):
+        axes = ['x', 'y', 'z']
+        assert projection in axes
+        pointCloud = self.getPointCloud(solidLabel, surfaceLabel)
+        if surfaceLabel:
+            points = pointCloud.surfacePoints
+        else:
+            points = pointCloud.solidPoints
+
+        scatter = np.asarray([(p.position.x, p.position.y, p.position.z, p.value) for p in points])
+        projectionIndex = axes.index(projection)
+        scatter = np.delete(scatter, projectionIndex, axis=1)
+        u, v, c = scatter.T
+        plt.scatter(u, v, c=c)
+        uIndex = 0 if projection != 'x' else 1
+        vIndex = 1 if projection != 'y' else 2
+        plt.xlabel(axes[uIndex])
+        plt.ylabel(axes[vIndex])
+        plt.show()
+
+        # todo:
+        #  - support binning
+        #  - support any projection plane
+        #  - add projection of scene interfaces
+
+        # if surfaceLabel : projection = surfaceNormal (mean polygon normal to start)
+        # else: default projection to y axis
+
+# todo: create binned Logger class to bin any logger data dynamically to it (extending)
+# binnedLogger.logPoints()
+# or logger.bin() ...
