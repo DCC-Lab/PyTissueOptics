@@ -194,16 +194,3 @@ class Solid:
         for vertex in self.vertices:
             if vertex.normal:
                 vertex.normal.normalize()
-
-    def extractSurfaceSolid(self, surfaceLabel: str) -> 'Solid':
-        polygons = self.getPolygons(surfaceLabel)
-
-        vertices = set()
-        for polygon in polygons:
-            vertices.update(polygon.vertices)
-        vertices = list(vertices)
-
-        surfaces = SurfaceCollection()
-        surfaces.setPolygons(surfaceLabel, polygons)
-
-        return Solid(vertices, surfaces=surfaces, label=self._label, primitive=self._primitive)

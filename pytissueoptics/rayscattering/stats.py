@@ -1,7 +1,8 @@
 from dataclasses import dataclass
 from typing import List, Optional
 
-from pytissueoptics.scene import Logger, Vector, Scene
+from pytissueoptics.rayscattering.tissues.rayScatteringScene import RayScatteringScene
+from pytissueoptics.scene import Logger, Vector
 from pytissueoptics.scene.logger import DataPoint, InteractionKey
 from pytissueoptics.scene.solids import Solid
 
@@ -14,10 +15,10 @@ class PointCloud:
 
 class DisplayConfig:
     """ 3D display configuration dataclass for solid and surface point cloud. """
-    def __init__(self, showObject: bool = True,
+    def __init__(self, showScene: bool = True,
                  pointSize: float = 0.15, scaleWithValue: bool = True, colormap: str = "rainbow", reverseColormap: bool = False,
                  surfacePointSize: float = 0.01, surfaceScaleWithValue: bool = False, surfaceColormap: str = None, surfaceReverseColormap: bool = None):
-        self.showObject = showObject
+        self.showScene = showScene
 
         self.pointSize = pointSize
         self.scaleWithValue = scaleWithValue
@@ -31,33 +32,28 @@ class DisplayConfig:
 
 
 class Stats:
-    def __init__(self, logger: Logger, scene: Scene):
+    def __init__(self, logger: Logger, scene: RayScatteringScene):
         self._logger = logger
         self._scene = scene
 
     def showEnergy3D(self, solidLabel: str = None, surfaceLabel: str = None, config=DisplayConfig()):
         pointCloud = self.getPointCloud(solidLabel, surfaceLabel)
-        solids = self._scene.getSolids(solidLabel, surfaceLabel)
-        return self._show3DPointCloud(pointCloud, config=config, solids=solids)
+        return self._show3DPointCloud(pointCloud, config=config)
 
     def showEnergy3DOfSolids(self, config=DisplayConfig()):
         pointCloud = self._getPointCloudOfSolids()
-        solids = self._scene.getSolids()
-        return self._show3DPointCloud(pointCloud, config=config, solids=solids)
+        return self._show3DPointCloud(pointCloud, config=config)
 
     def showEnergy3DOfSurfaces(self, solidLabel: str = None, config=DisplayConfig()):
         pointCloud = self._getPointCloudOfSurfaces(solidLabel)
-        solids = self._scene.getSolids(solidLabel)
-        return self._show3DPointCloud(pointCloud, config=config, solids=solids)
+        return self._show3DPointCloud(pointCloud, config=config)
 
-    @staticmethod
-    def _show3DPointCloud(pointCloud: PointCloud, config: DisplayConfig,
-                          solids: List[Solid] = None):
+    def _show3DPointCloud(self, pointCloud: PointCloud, config: DisplayConfig):
         from pytissueoptics.scene import MayaviViewer
         viewer = MayaviViewer()
 
-        if config.showObject:
-            viewer.add(*solids, representation="surface", colormap="bone", constantColor=False, opacity=0.1)
+        if config.showScene:
+            self._scene.addToViewer(viewer)
 
         if pointCloud.solidPoints:
             viewer.addDataPoints(pointCloud.solidPoints, scale=config.pointSize,
@@ -94,10 +90,3 @@ class Stats:
 
     def showEnergy2D(self, solidLabel: str, surfaceLabel: str = None, direction: Vector = None):
         raise NotImplementedError()
-
-
-# todo:
-#  - accept Scene and display related polygons in 3D display
-#  - 2D display
-#  - test Scene.getSolids(...)
-#  - test Solid.extractSurfaceSolid
