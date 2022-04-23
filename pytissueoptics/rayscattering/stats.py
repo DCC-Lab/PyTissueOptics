@@ -117,19 +117,38 @@ class Stats:
     def _get2DScatter(self, solidLabel: str = None, surfaceLabel: str = None,
                       projection: Union[str, Vector] = 'y') -> tuple:
         assert projection in self.AXES, 'Projection of arbitrary plane is not supported yet.'
+        projectionIndex = self.AXES.index(projection)
 
+        scatter = self._getScatter(solidLabel, surfaceLabel)
+        u, v, c = np.delete(scatter, projectionIndex)
+        return u, v, c
+
+    def _getScatter(self, solidLabel: str = None, surfaceLabel: str = None):
         pointCloud = self.getPointCloud(solidLabel, surfaceLabel)
         if surfaceLabel:
             points = pointCloud.surfacePoints
         else:
             points = pointCloud.solidPoints
         scatter = np.asarray([(p.position.x, p.position.y, p.position.z, p.value) for p in points])
+        return scatter.T
 
-        projectionIndex = self.AXES.index(projection)
-        scatter = np.delete(scatter, projectionIndex, axis=1)
-        u, v, c = scatter.T
-        return u, v, c
+    def showEnergy1D(self, solidLabel: str = None, surfaceLabel: str = None, along: str = 'z', bins: int = None):
+        x, c = self._get1DScatter(solidLabel, surfaceLabel, along)
+        if bins is not None:
+            plt.hist(x, bins=bins, weights=c)
+        else:
+            plt.scatter(x, c)
+        plt.xlabel(along)
+        plt.ylabel('Energy')
+        plt.show()
 
+    def _get1DScatter(self, solidLabel: str = None, surfaceLabel: str = None, along: str = 'z') -> tuple:
+        assert along in self.AXES, 'Projection of arbitrary plane is not supported yet.'
+        alongIndex = self.AXES.index(along)
+
+        scatter = self._getScatter(solidLabel, surfaceLabel)
+        x, c = scatter[alongIndex], scatter[-1]
+        return x, c
 
 # todo: create binned Logger class to bin any logger data dynamically to it (extending)
 # binnedLogger.logPoints()
