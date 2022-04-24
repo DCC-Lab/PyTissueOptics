@@ -1,7 +1,7 @@
 import unittest
 import numpy as np
 
-from pytissueoptics.rayscattering import Photon, PencilSource
+from pytissueoptics.rayscattering import PencilSource
 from pytissueoptics.rayscattering.materials import ScatteringMaterial
 from pytissueoptics.rayscattering.opencl.CLSource import CLPencilSource
 from pytissueoptics.rayscattering.tissues.rayScatteringScene import RayScatteringScene
