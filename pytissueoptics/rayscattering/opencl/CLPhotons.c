@@ -112,10 +112,9 @@ void decreaseWeightBy(__global photonStruct *photons, float delta_weight, __glob
     photons[gid].weight -= delta_weight;
 }
 
-void interact(__global photonStruct *photons, __constant materialStruct *materials, __global loggerStruct *logger, uint stepIndex, uint datasize, uint gid){
+void interact(__global photonStruct *photons, __constant materialStruct *materials, __global loggerStruct *logger, uint gid, uint logIndex){
     float delta_weight = photons[gid].weight * materials[photons[gid].material_id].albedo;
     decreaseWeightBy(photons, delta_weight, logger, gid);
-    uint logIndex = gid + stepIndex * datasize;
     logger[logIndex].position = photons[gid].position;
     logger[logIndex].delta_weight = delta_weight;
 }
@@ -148,54 +147,24 @@ void scatterBy(__global photonStruct *photons, float phi, float theta, uint gid)
     rotateAround(&photons[gid].direction, &photons[gid].er, theta);
 }
 
-
-__kernel void oneStep(uint dataSize, uint stepIndex, __global uint *isAlive, __global photonStruct *photons, __constant materialStruct *materials, __global loggerStruct *logger, __global float *randomNums, __global uint *seedBuffer){
+__kernel void propagate(uint dataSize, float weightThreshold, __global photonStruct *photons, __constant materialStruct *materials, __global loggerStruct *logger, __global float *randomNums, __global uint *seedBuffer){
     uint gid = get_global_id(0);
-    randomNums[gid] = getRandomFloatValue(seedBuffer, gid);
-    float distance = getScatteringDistance(photons, materials, randomNums, gid);
-    moveBy(photons, distance, gid);
-    randomNums[gid] = getRandomFloatValue(seedBuffer, gid);
-    float phi = getScatteringAnglePhi(photons, randomNums, gid);
-    randomNums[gid] = getRandomFloatValue(seedBuffer, gid);
-    float theta = getScatteringAngleTheta(photons, materials, randomNums, gid);
-    scatterBy(photons, phi, theta, gid);
-    interact(photons, materials, logger, stepIndex, dataSize, gid);
-    if (photons[gid].weight <= 0.0001f){
-        photons[gid].weight = 0.0f;
-        isAlive[gid] = 0;
+    uint stepIndex = 0;
+    uint logIndex = 0;
+    while (photons[gid].weight > weightThreshold){
+        logIndex = gid + stepIndex * dataSize;
+        randomNums[gid] = getRandomFloatValue(seedBuffer, gid);
+        float distance = getScatteringDistance(photons, materials, randomNums, gid);
+        moveBy(photons, distance, gid);
+        randomNums[gid] = getRandomFloatValue(seedBuffer, gid);
+        float phi = getScatteringAnglePhi(photons, randomNums, gid);
+        randomNums[gid] = getRandomFloatValue(seedBuffer, gid);
+        float theta = getScatteringAngleTheta(photons, materials, randomNums, gid);
+        scatterBy(photons, phi, theta, gid);
+        interact(photons, materials, logger, gid, logIndex);
+        if (photons[gid].weight <= weightThreshold){
+            photons[gid].weight = 0.0f;
+        }
+        stepIndex++;
     }
 }
-
-__kernel void scoreInVolume(__global loggerStruct *logger, __global float *bins, __global binConfigStruct * binConfig){
-
-    const uint i = get_global_id(0);
-    const uint j = get_global_id(1);
-    const uint k = get_global_id(2);
-
-    const int depth  = get_global_size(0); // unused here
-    const int row    = get_global_size(1);
-    const int column = get_global_size(2);
-
-    bins[gix][giy][giz] += logger[i].delta_weight;
-
-}
-
-//__kernel void propagate(uint stepSize, uint datasize, __global photonStruct *photons, __constant materialStruct *materials, __global loggerStruct *logger, __global float *randomNums, __global uint *seedBuffer)
-//{
-//    unsigned int gid = get_global_id(0);
-//    unsigned int globalCounter = 0;
-//
-//    for (int i = 0; i < stepSize; i++){
-//        randomNums[gid] = getRandomFloatValue(seedBuffer, gid);
-//        float distance = getScatteringDistance(photons, materials, randomNums, gid);
-//        moveBy(photons, distance, gid);
-//        randomNums[gid] = getRandomFloatValue(seedBuffer, gid);
-//        float phi = getScatteringAnglePhi(photons, randomNums, gid);
-//        randomNums[gid] = getRandomFloatValue(seedBuffer, gid);
-//        float theta = getScatteringAngleTheta(photons, materials, randomNums, gid);
-//        scatterBy(photons, phi, theta, gid);
-//        interact(photons, materials, logger, globalCounter, datasize, gid);
-//        globalCounter++;
-//    }
-//    photons[gid].weight = 0.0f;
-//}

@@ -1,23 +1,29 @@
-from pytissueoptics.rayscattering.opencl.CLBasicSimulation import CLBasicSimulation
+from pytissueoptics.rayscattering.opencl.CLPhotons import CLPhotons
 from pytissueoptics.rayscattering.opencl.CLSource import CLPencilSource
-from pytissueoptics.rayscattering.opencl.CLStatistics import CLStatistics
 import matplotlib.pyplot as plt
 import numpy as np
 from pytissueoptics.rayscattering.materials import ScatteringMaterial
+from pytissueoptics.scene import Vector, Logger, MayaviViewer
+
+"""
+Jacques, Steven. (2013). Optical Properties of Biological Tissues: 
+A Review. Physics in medicine and biology. 58. R37-R61. 10.1088/0031-9155/58/11/R37.
+
+From this paper, it is possible to gather the following information:
+It shows that the maximum scattering length density (Mu_s) of biological tissues is around 30 - 40 cm-1.
+The average absorption length density (Mu_a) is around 0.1 - 0.2 cm-1.
+The average anisotropy coefficient is around 0.8 - 0.9
+
+These parameters will be used to mimic the parameters a typical user would utilize in a simulation.
+"""
 
 
-worldMaterial = ScatteringMaterial(mu_s=30, mu_a=0.8, g=0.8, index=1.4)
-stats = CLStatistics()
+worldMaterial = ScatteringMaterial(mu_s=30, mu_a=0.1, g=0.8, index=1.4)
+logger = Logger()
+source = CLPencilSource(position=Vector(0, 0, 0), direction=Vector(0, 0, 1), N=1000000)
 
-source = CLPencilSource(N=500000)
-mcSimulation = CLBasicSimulation(source, worldMaterial, stats=stats, stepSize=100)
-mcSimulation.launch()
+source.propagate(worldMaterial=worldMaterial, logger=logger)
 
-energySum = stats.energy.sum(axis=1)
-plt.imshow(np.log(energySum + 0.0001), cmap='viridis',
-                          extent=[stats.minBounds[2], stats.maxBounds[2], stats.minBounds[0], stats.maxBounds[0]],
-                          aspect='auto')
-plt.pause(20)
-
-# stats.showEnergy2D(plane='xz', integratedAlong='y', title="Final photons")
-# print(mcSimulation.HOST_photons)
+viewer = MayaviViewer()
+viewer.addLogger(logger)
+viewer.show()

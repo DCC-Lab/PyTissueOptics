@@ -1,8 +1,6 @@
-from typing import List
-
 from pytissueoptics.rayscattering.materials import ScatteringMaterial
-from pytissueoptics.scene import Vector
-from pytissueoptics.rayscattering.photon import Photon
+from pytissueoptics.rayscattering.opencl.CLPhotons import CLPhotons
+from pytissueoptics.scene import Vector, Logger
 
 
 class CLSource:
@@ -12,6 +10,10 @@ class CLSource:
         self.direction.normalize()
         self.N = N
         self._worldMaterial = worldMaterial
+
+    def propagate(self, worldMaterial: ScatteringMaterial, logger: Logger = None):
+        photons = CLPhotons(self, worldMaterial, logger)
+        photons.propagate()
 
 
 class CLPencilSource(CLSource):
