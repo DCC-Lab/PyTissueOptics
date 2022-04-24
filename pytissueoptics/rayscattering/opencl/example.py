@@ -20,7 +20,7 @@ These parameters will be used to mimic the parameters a typical user would utili
 
 worldMaterial = ScatteringMaterial(mu_s=30, mu_a=0.1, g=0.8, index=1.4)
 logger = Logger()
-source = CLPencilSource(position=Vector(0, 0, 0), direction=Vector(0, 0, 1), N=1000000)
+source = CLPencilSource(position=Vector(0, 0, 0), direction=Vector(0, 0, 1), N=20000)
 
 source.propagate(worldMaterial=worldMaterial, logger=logger)
 

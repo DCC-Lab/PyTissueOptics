@@ -40,6 +40,9 @@ class Logger:
     def logDataPoint(self, value: float, position: Vector):
         self._dataPoints.append(DataPoint(value, position))
 
+    def logDataPoints(self, dataPoints: List[DataPoint]):
+        self._dataPoints.extend(dataPoints)
+
     def logSegment(self, start: Vector, end: Vector):
         self._segments.append(Segment(start, end))
 

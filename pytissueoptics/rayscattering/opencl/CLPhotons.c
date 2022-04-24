@@ -108,13 +108,13 @@ __kernel void fillIsotropicPhotonsBuffer(__global photonStruct *photons, __globa
 // PROPAGATION PHYSICS
 // ------------------------------------------------------------------------------------------------
 
-void decreaseWeightBy(__global photonStruct *photons, float delta_weight, __global loggerStruct *logger, uint gid){
+void decreaseWeightBy(__global photonStruct *photons, float delta_weight, uint gid){
     photons[gid].weight -= delta_weight;
 }
 
 void interact(__global photonStruct *photons, __constant materialStruct *materials, __global loggerStruct *logger, uint gid, uint logIndex){
     float delta_weight = photons[gid].weight * materials[photons[gid].material_id].albedo;
-    decreaseWeightBy(photons, delta_weight, logger, gid);
+    decreaseWeightBy(photons, delta_weight, gid);
     logger[logIndex].position = photons[gid].position;
     logger[logIndex].delta_weight = delta_weight;
 }
@@ -162,9 +162,6 @@ __kernel void propagate(uint dataSize, float weightThreshold, __global photonStr
         float theta = getScatteringAngleTheta(photons, materials, randomNums, gid);
         scatterBy(photons, phi, theta, gid);
         interact(photons, materials, logger, gid, logIndex);
-        if (photons[gid].weight <= weightThreshold){
-            photons[gid].weight = 0.0f;
-        }
         stepIndex++;
     }
 }
