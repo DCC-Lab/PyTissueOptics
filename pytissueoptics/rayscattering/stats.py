@@ -118,10 +118,6 @@ class Stats:
         plt.ylabel(self.AXES[vIndex])
         plt.show()
 
-        # todo:
-        #  - support any projection plane (if surfaceLabel : projection = surfaceNormal (mean polygon normal to start))
-        #  - add projection of scene interfaces
-
     def _get2DScatter(self, solidLabel: str = None, surfaceLabel: str = None,
                       projection: Union[str, Vector] = 'y') -> tuple:
         assert projection in self.AXES, 'Projection of arbitrary plane is not supported yet.'
@@ -158,10 +154,11 @@ class Stats:
         x, c = scatter[alongIndex], scatter[-1]
         return x, c
 
-    def getAbsorbance(self, solidLabel: str = None) -> float:
+    def getAbsorbance(self, solidLabel: str = None, useTotalEnergy=False) -> float:
         points = self.getPointCloud(solidLabel).solidPoints
         energy = sum([p.value for p in points])
-        return energy / self._getEnergyInput(solidLabel)
+        energyInput = self._getEnergyInput(solidLabel) if not useTotalEnergy else self._photonCount
+        return energy / energyInput
 
     def _getEnergyInput(self, solidLabel: str = None) -> float:
         if solidLabel is None:
@@ -170,14 +167,19 @@ class Stats:
         energy = -sum([p.value for p in points])
         return energy
 
-    def getTransmittance(self, solidLabel: str = None, surfaceLabel: str = None):
+    def getTransmittance(self, solidLabel: str = None, surfaceLabel: str = None, useTotalEnergy=False):
+        """ Uses local energy input for the desired solid by default. Specify 'useTotalEnergy' = True
+        to compare instead with total input energy of the scene. """
+        # fixme: transmittance is wrong for cuboid stacks since each stacked layer loses reference to its
+        #  previous interface (only base layer will be complete)
         if surfaceLabel is None:
             points = self._getPointCloudOfSurfaces(solidLabel).leavingSurfacePoints
         else:
             points = self.getPointCloud(solidLabel, surfaceLabel).leavingSurfacePoints
 
         energy = sum([p.value for p in points])
-        return energy / self._getEnergyInput(solidLabel)
+        energyInput = self._getEnergyInput(solidLabel) if not useTotalEnergy else self._photonCount
+        return energy / energyInput
 
     def report(self, solidLabel: str = None):
         if solidLabel:
@@ -187,13 +189,10 @@ class Stats:
 
     def _reportSolid(self, solidLabel: str):
         print("Report of solid '{}'".format(solidLabel))
-        print("  Absorbance: {0:.1f}% ".format(100 * self.getAbsorbance(solidLabel)))
+        print("  Absorbance: {:.1f}% ({:.1f}% of total power)".format(100 * self.getAbsorbance(solidLabel),
+              100 * self.getAbsorbance(solidLabel, useTotalEnergy=True)))
+        print("  Absorbance + Transmittance: {:.1f}%".format(100 * (self.getAbsorbance(solidLabel) +
+                                                                    self.getTransmittance(solidLabel))))
         for surfaceLabel in self._logger.getSurfaceLabels(solidLabel):
             transmittance = "{0:.1f}".format(100 * self.getTransmittance(solidLabel, surfaceLabel))
-            print(f"  Transmittance at '{surfaceLabel}': {transmittance}%")
-
-
-# todo: create binned Logger class to bin any logger data dynamically to it (extending)
-# binnedLogger.logPoints()
-# or logger.bin() ...
-# todo: test private _getScatter/projection logic
+            print(f"    Transmittance at '{surfaceLabel}': {transmittance}%")
