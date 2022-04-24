@@ -9,7 +9,7 @@ class CLSource:
         self.direction = direction
         self.direction.normalize()
         self.N = N
-        self._worldMaterial = worldMaterial
+        self.worldMaterial = worldMaterial
 
     def propagate(self, worldMaterial: ScatteringMaterial, logger: Logger = None):
         photons = CLPhotons(self, worldMaterial, logger)
