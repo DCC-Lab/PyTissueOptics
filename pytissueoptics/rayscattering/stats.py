@@ -17,8 +17,14 @@ class PointCloud:
                  surfacePoints: Optional[List[DataPoint]] = None):
         self.solidPoints = solidPoints if solidPoints is not None else []
         self.surfacePoints = surfacePoints if surfacePoints is not None else []
-        self.leavingSurfacePoints = [p for p in self.surfacePoints if p.value >= 0]
-        self.enteringSurfacePoints = [p for p in self.surfacePoints if p.value < 0]
+
+    @property
+    def leavingSurfacePoints(self) -> List[DataPoint]:
+        return [p for p in self.surfacePoints if p.value >= 0]
+
+    @property
+    def enteringSurfacePoints(self) -> List[DataPoint]:
+        return [p for p in self.surfacePoints if p.value < 0]
 
 
 class DisplayConfig:
@@ -104,8 +110,8 @@ class Stats:
 
     def showEnergy2D(self, solidLabel: str = None, surfaceLabel: str = None,
                      projection: Union[str, Vector] = 'y', bins: Union[int, Tuple[int, int]] = None,
-                     logScale: bool = False, colormap: str = 'viridis'):
-        u, v, c = self._get2DScatter(solidLabel, surfaceLabel, projection)
+                     logScale: bool = False, enteringSurface=False, colormap: str = 'viridis'):
+        u, v, c = self._get2DScatter(solidLabel, surfaceLabel, projection, enteringSurface)
 
         norm = matplotlib.colors.LogNorm() if logScale else None
         cmap = copy.copy(matplotlib.cm.get_cmap(colormap))
@@ -123,19 +129,23 @@ class Stats:
         plt.show()
 
     def _get2DScatter(self, solidLabel: str = None, surfaceLabel: str = None,
-                      projection: Union[str, Vector] = 'y') -> tuple:
+                      projection: Union[str, Vector] = 'y', enteringSurface=False) -> tuple:
         assert projection in self.AXES, 'Projection of arbitrary plane is not supported yet.'
         projectionIndex = self.AXES.index(projection)
 
-        scatter = self._get3DScatter(solidLabel, surfaceLabel)
+        scatter = self._get3DScatter(solidLabel, surfaceLabel, enteringSurface=enteringSurface)
         if len(scatter) == 0:
             return [], [], []
         u, v, c = np.delete(scatter, projectionIndex, axis=0)
         return u, v, c
 
-    def _get3DScatter(self, solidLabel: str = None, surfaceLabel: str = None):
+    def _get3DScatter(self, solidLabel: str = None, surfaceLabel: str = None, enteringSurface=False):
         pointCloud = self.getPointCloud(solidLabel, surfaceLabel)
-        if surfaceLabel:
+        if surfaceLabel and enteringSurface:
+            points = pointCloud.enteringSurfacePoints
+            for p in points:
+                p.value = -p.value
+        elif surfaceLabel:
             points = pointCloud.leavingSurfacePoints
         else:
             points = pointCloud.solidPoints

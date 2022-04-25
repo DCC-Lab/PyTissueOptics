@@ -12,12 +12,12 @@ logger = Logger()
 
 source.propagate(tissue, logger=logger)
 
-stats = Stats(logger, tissue, source)
+stats = Stats(logger, source, tissue)
 stats.report()
 
 stats.showEnergy3D()
 stats.showEnergy3DOfSurfaces()
 stats.showEnergy2D()
-stats.showEnergy2D("middleLayer", bins=50)
-stats.showEnergy2D("middleLayer", "interface1", projection='z', bins=51, logScale=True)
+stats.showEnergy2D("middleLayer", bins=51)
+stats.showEnergy2D("middleLayer", "interface1", projection='z', bins=51, logScale=True, enteringSurface=True)
 stats.showEnergy1D(bins=100)

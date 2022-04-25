@@ -28,6 +28,14 @@ class TestStats(unittest.TestCase):
         self.assertEqual(backScatter.shape, (4, 1))
         self.assertEqual(0.2, backScatter[3])
 
+    def testWhenGet3DScatterOfPointsEnteringSurface_shouldReturnScatterOfAllPointsEnteringTheSurface(self):
+        frontScatter = self.stats._get3DScatter(solidLabel="cube", surfaceLabel="front", enteringSurface=True)
+        self.assertEqual(frontScatter.shape, (4, 1))
+        self.assertEqual(1, frontScatter[3])
+
+        backScatter = self.stats._get3DScatter(solidLabel="cube", surfaceLabel="back", enteringSurface=True)
+        self.assertEqual(0, len(backScatter))
+
     def testWhenGet2DScatterWithYProjection_shouldReturnScatterOfAllSolidPointsProjectedToXZ(self):
         x, z, value = self.stats._get2DScatter(projection="y")
         self.assertTrue(np.array_equal(value, np.full(8, 0.1)))
@@ -63,7 +71,7 @@ class TestStats(unittest.TestCase):
         """ We log a few points taken from a unit cube centered at the origin where a single photon
         was propagated. We log one point entering front surface at z=0 with weight=1, then 8 points
         of weight 0.1 centered from z=0.1 to z=0.8, and one point exiting back surface at z=1 with
-        a weight left of 0.2.
+        a remaining weight of 0.2 so it correctly adds up to 1.
         """
         logger = Logger()
         solidInteraction = InteractionKey("cube")
