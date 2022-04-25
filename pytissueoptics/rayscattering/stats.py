@@ -1,4 +1,5 @@
 import copy
+import warnings
 from typing import List, Optional, Union, Tuple
 
 import matplotlib
@@ -41,10 +42,10 @@ class DisplayConfig:
 class Stats:
     AXES = ["x", "y", "z"]
 
-    def __init__(self, logger: Logger, scene: RayScatteringScene, source: Source):
+    def __init__(self, logger: Logger, source: Source, scene: RayScatteringScene = None):
         self._logger = logger
         self._scene = scene
-        self._photonCount = source.photonCount
+        self._photonCount = source.getPhotonCount()
 
     def showEnergy3D(self, solidLabel: str = None, surfaceLabel: str = None, config=DisplayConfig()):
         pointCloud = self.getPointCloud(solidLabel, surfaceLabel)
@@ -63,7 +64,10 @@ class Stats:
         viewer = MayaviViewer()
 
         if config.showScene:
-            self._scene.addToViewer(viewer)
+            if self._scene is None:
+                warnings.warn("Cannot display Scene objects when no scene was provided to the Stats.")
+            else:
+                self._scene.addToViewer(viewer)
 
         if pointCloud.solidPoints:
             viewer.addDataPoints(pointCloud.solidPoints, scale=config.pointSize,
@@ -124,6 +128,8 @@ class Stats:
         projectionIndex = self.AXES.index(projection)
 
         scatter = self._get3DScatter(solidLabel, surfaceLabel)
+        if len(scatter) == 0:
+            return [], [], []
         u, v, c = np.delete(scatter, projectionIndex, axis=0)
         return u, v, c
 

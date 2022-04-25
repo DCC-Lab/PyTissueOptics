@@ -29,8 +29,7 @@ class Source:
     def photons(self):
         return self._photons
 
-    @property
-    def photonCount(self) -> int:
+    def getPhotonCount(self) -> int:
         return len(self._photons)
 
 
