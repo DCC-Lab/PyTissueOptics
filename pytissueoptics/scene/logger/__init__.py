@@ -1,1 +1,1 @@
-from .logger import Logger, InteractionKey, DataPoint
+from .logger import Logger, InteractionKey

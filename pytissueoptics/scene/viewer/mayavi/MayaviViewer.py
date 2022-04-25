@@ -1,7 +1,6 @@
 from typing import List
 
 from pytissueoptics.scene.logger import Logger
-from pytissueoptics.scene.logger.logger import DataPoint, Segment
 
 try:
     from mayavi import mlab
@@ -51,7 +50,7 @@ class MayaviViewer:
         s.module_manager.scalar_lut_manager.reverse_lut = reverseColormap
 
     @staticmethod
-    def addDataPoints(dataPoints: List[DataPoint], colormap="rainbow", reverseColormap=False, scale=0.15, scaleWithValue=True):
+    def addDataPoints(dataPoints, colormap="rainbow", reverseColormap=False, scale=0.15, scaleWithValue=True):
         x = [dataPoint.position.x for dataPoint in dataPoints]
         y = [dataPoint.position.y for dataPoint in dataPoints]
         z = [dataPoint.position.z for dataPoint in dataPoints]
@@ -62,7 +61,7 @@ class MayaviViewer:
         s.module_manager.scalar_lut_manager.reverse_lut = reverseColormap
 
     @staticmethod
-    def addSegments(segments: List[Segment], colormap="rainbow", reverseColormap=False):
+    def addSegments(segments, colormap="rainbow", reverseColormap=False):
         for segment in segments:
             x = [vector.x for vector in [segment.start, segment.end]]
             y = [vector.y for vector in [segment.start, segment.end]]
