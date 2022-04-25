@@ -210,16 +210,29 @@ class TestPhoton(unittest.TestCase):
 
         self.assertEqual(0, distanceLeft)
 
-    def testGivenALogger_whenStep_shouldLogWeightAtIntersections(self):
+    def testGivenALogger_whenSteppingOutsideASurface_shouldLogWeightAtIntersection(self):
         logger = self._createLogger()
         distance = 8
-        intersectionFinder = self._createIntersectionFinder(distance)
+        intersectionFinder = self._createIntersectionFinder(distance, normal=self.INITIAL_DIRECTION.copy())
         self.photon.setContext(Environment(ScatteringMaterial()), intersectionFinder=intersectionFinder, logger=logger)
 
         self.photon.step(distance+2)
 
         intersectionPoint = self.INITIAL_POSITION + self.INITIAL_DIRECTION * distance
         verify(logger).logDataPoint(self.photon.weight, intersectionPoint, InteractionKey(None))
+
+    def testGivenALogger_whenSteppingInsideASurface_shouldLogNegativeWeightAtIntersection(self):
+        logger = self._createLogger()
+        distance = 8
+        enteringSurfaceNormal = self.INITIAL_DIRECTION.copy()
+        enteringSurfaceNormal.multiply(-1)
+        intersectionFinder = self._createIntersectionFinder(distance, normal=enteringSurfaceNormal)
+        self.photon.setContext(Environment(ScatteringMaterial()), intersectionFinder=intersectionFinder, logger=logger)
+
+        self.photon.step(distance+2)
+
+        intersectionPoint = self.INITIAL_POSITION + self.INITIAL_DIRECTION * distance
+        verify(logger).logDataPoint(-self.photon.weight, intersectionPoint, InteractionKey(None))
 
     def testGivenALogger_whenScatter_shouldLogWeightLossAtThisPosition(self):
         logger = self._createLogger()
@@ -250,10 +263,10 @@ class TestPhoton(unittest.TestCase):
         self.assertNotAlmostEqual(v1.z, v2.z)
 
     @staticmethod
-    def _createIntersectionFinder(intersectionDistance=10, rayLength=None):
+    def _createIntersectionFinder(intersectionDistance=10, rayLength=None, normal=Vector(0, 0, 1)):
         if rayLength is None:
             rayLength = intersectionDistance + 2
-        intersection = Intersection(intersectionDistance, position=Vector(), normal=Vector(0, 0, 0),
+        intersection = Intersection(intersectionDistance, position=Vector(), normal=normal,
                                     insideEnvironment=Environment(ScatteringMaterial()),
                                     outsideEnvironment=Environment(ScatteringMaterial()),
                                     distanceLeft=rayLength-intersectionDistance)
