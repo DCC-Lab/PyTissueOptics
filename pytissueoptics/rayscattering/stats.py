@@ -19,11 +19,15 @@ class PointCloud:
         self.surfacePoints = surfacePoints
 
     @property
-    def leavingSurfacePoints(self) -> np.ndarray:
+    def leavingSurfacePoints(self) -> Optional[np.ndarray]:
+        if self.surfacePoints is None:
+            return None
         return self.surfacePoints[:, np.where(self.surfacePoints[0] >= 0)[0]]
 
     @property
-    def enteringSurfacePoints(self) -> np.ndarray:
+    def enteringSurfacePoints(self) -> Optional[np.ndarray]:
+        if self.surfacePoints is None:
+            return None
         return self.surfacePoints[:, np.where(self.surfacePoints[0] < 0)[0]]
 
 
@@ -185,6 +189,8 @@ class Stats:
         if solidLabel is None:
             return self._photonCount
         points = self._getPointCloudOfSurfaces(solidLabel).enteringSurfacePoints
+        if points is None:
+            return 0
         energy = -np.sum(points[0])
         return energy
 
@@ -210,10 +216,17 @@ class Stats:
 
     def _reportSolid(self, solidLabel: str):
         print("Report of solid '{}'".format(solidLabel))
-        print("  Absorbance: {:.1f}% ({:.1f}% of total power)".format(100 * self.getAbsorbance(solidLabel),
-              100 * self.getAbsorbance(solidLabel, useTotalEnergy=True)))
-        print("  Absorbance + Transmittance: {:.1f}%".format(100 * (self.getAbsorbance(solidLabel) +
-                                                                    self.getTransmittance(solidLabel))))
+        try:
+            print("  Absorbance: {:.1f}% ({:.1f}% of total power)".format(100 * self.getAbsorbance(solidLabel),
+                  100 * self.getAbsorbance(solidLabel, useTotalEnergy=True)))
+            print("  Absorbance + Transmittance: {:.1f}%".format(100 * (self.getAbsorbance(solidLabel) +
+                                                                        self.getTransmittance(solidLabel))))
+        except ZeroDivisionError:
+            warnings.warn("No energy input for solid '{}'".format(solidLabel))
+            print("  Absorbance: N/A ({:.1f}% of total power)".format(100 * self.getAbsorbance(solidLabel,
+                                                                                               useTotalEnergy=True)))
+            print("  Absorbance + Transmittance: N/A")
+
         for surfaceLabel in self._logger.getSurfaceLabels(solidLabel):
             transmittance = "{0:.1f}".format(100 * self.getTransmittance(solidLabel, surfaceLabel))
             print(f"    Transmittance at '{surfaceLabel}': {transmittance}%")
