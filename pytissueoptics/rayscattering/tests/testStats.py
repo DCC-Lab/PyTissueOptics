@@ -22,7 +22,7 @@ class TestStats(unittest.TestCase):
 
     def testWhenGet3DScatterOfSurface_shouldReturnScatterOfAllPointsLeavingTheSurface(self):
         frontScatter = self.stats._get3DScatter(solidLabel="cube", surfaceLabel="front")
-        self.assertEqual(0, len(frontScatter))
+        self.assertEqual(0, frontScatter.size)
 
         backScatter = self.stats._get3DScatter(solidLabel="cube", surfaceLabel="back")
         self.assertEqual(backScatter.shape, (4, 1))
@@ -34,7 +34,7 @@ class TestStats(unittest.TestCase):
         self.assertEqual(1, frontScatter[3])
 
         backScatter = self.stats._get3DScatter(solidLabel="cube", surfaceLabel="back", enteringSurface=True)
-        self.assertEqual(0, len(backScatter))
+        self.assertEqual(0, backScatter.size)
 
     def testWhenGet2DScatterWithYProjection_shouldReturnScatterOfAllSolidPointsProjectedToXZ(self):
         x, z, value = self.stats._get2DScatter(projection="y")

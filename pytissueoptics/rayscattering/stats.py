@@ -1,6 +1,6 @@
 import copy
 import warnings
-from typing import List, Optional, Union, Tuple
+from typing import Optional, Union, Tuple
 
 import matplotlib
 import numpy as np
@@ -9,22 +9,22 @@ from matplotlib import pyplot as plt
 from pytissueoptics.rayscattering.source import Source
 from pytissueoptics.rayscattering.tissues.rayScatteringScene import RayScatteringScene
 from pytissueoptics.scene import Logger, Vector
-from pytissueoptics.scene.logger import DataPoint, InteractionKey
+from pytissueoptics.scene.logger import InteractionKey
 
 
 class PointCloud:
-    def __init__(self, solidPoints: Optional[List[DataPoint]] = None,
-                 surfacePoints: Optional[List[DataPoint]] = None):
-        self.solidPoints = solidPoints if solidPoints is not None else []
-        self.surfacePoints = surfacePoints if surfacePoints is not None else []
+    def __init__(self, solidPoints: Optional[np.ndarray] = None,
+                 surfacePoints: Optional[np.ndarray] = None):
+        self.solidPoints = solidPoints
+        self.surfacePoints = surfacePoints
 
     @property
-    def leavingSurfacePoints(self) -> List[DataPoint]:
-        return [p for p in self.surfacePoints if p.value >= 0]
+    def leavingSurfacePoints(self) -> np.ndarray:
+        return self.surfacePoints[:, np.where(self.surfacePoints[0] >= 0)[0]]
 
     @property
-    def enteringSurfacePoints(self) -> List[DataPoint]:
-        return [p for p in self.surfacePoints if p.value < 0]
+    def enteringSurfacePoints(self) -> np.ndarray:
+        return self.surfacePoints[:, np.where(self.surfacePoints[0] < 0)[0]]
 
 
 class DisplayConfig:
@@ -75,11 +75,11 @@ class Stats:
             else:
                 self._scene.addToViewer(viewer)
 
-        if pointCloud.solidPoints:
+        if pointCloud.solidPoints is not None:
             viewer.addDataPoints(pointCloud.solidPoints, scale=config.pointSize,
                                  scaleWithValue=config.scaleWithValue, colormap=config.colormap,
                                  reverseColormap=config.reverseColormap)
-        if pointCloud.surfacePoints:
+        if pointCloud.surfacePoints is not None:
             viewer.addDataPoints(pointCloud.leavingSurfacePoints, scale=config.surfacePointSize,
                                  scaleWithValue=config.surfaceScaleWithValue, colormap=config.surfaceColormap,
                                  reverseColormap=config.surfaceReverseColormap)
@@ -97,16 +97,21 @@ class Stats:
     def _getPointCloudOfSolids(self) -> PointCloud:
         points = []
         for solidLabel in self._logger.getSolidLabels():
-            points.extend(self.getPointCloud(solidLabel).solidPoints)
-        return PointCloud(points, None)
+            points.append(self.getPointCloud(solidLabel).solidPoints)
+        if len(points) == 0:
+            return PointCloud(None, None)
+        return PointCloud(np.concatenate(points, axis=1), None)
 
     def _getPointCloudOfSurfaces(self, solidLabel: str = None) -> PointCloud:
         points = []
         solidLabels = [solidLabel] if solidLabel else [_solidLabel for _solidLabel in self._logger.getSolidLabels()]
         for _solidLabel in solidLabels:
             for surfaceLabel in self._logger.getSurfaceLabels(_solidLabel):
-                points.extend(self.getPointCloud(_solidLabel, surfaceLabel).surfacePoints)
-        return PointCloud(None, points)
+                points.append(self.getPointCloud(_solidLabel, surfaceLabel).surfacePoints)
+
+        if len(points) == 0:
+            return PointCloud(None, None)
+        return PointCloud(None, np.concatenate(points, axis=1))
 
     def showEnergy2D(self, solidLabel: str = None, surfaceLabel: str = None,
                      projection: Union[str, Vector] = 'y', bins: Union[int, Tuple[int, int]] = None,
@@ -143,14 +148,14 @@ class Stats:
         pointCloud = self.getPointCloud(solidLabel, surfaceLabel)
         if surfaceLabel and enteringSurface:
             points = pointCloud.enteringSurfacePoints
-            for p in points:
-                p.value = -p.value
+            points[:1] = -points[:1]
         elif surfaceLabel:
             points = pointCloud.leavingSurfacePoints
         else:
             points = pointCloud.solidPoints
-        scatter = np.asarray([(p.position.x, p.position.y, p.position.z, p.value) for p in points])
-        return scatter.T
+        # todo: follow base implementation with value first
+        scatter = np.concatenate([points[1:], points[:1]], axis=0)
+        return scatter
 
     def showEnergy1D(self, solidLabel: str = None, surfaceLabel: str = None, along: str = 'z', bins: int = None):
         x, c = self._get1DScatter(solidLabel, surfaceLabel, along)
@@ -172,7 +177,7 @@ class Stats:
 
     def getAbsorbance(self, solidLabel: str = None, useTotalEnergy=False) -> float:
         points = self.getPointCloud(solidLabel).solidPoints
-        energy = sum([p.value for p in points])
+        energy = np.sum(points[0])
         energyInput = self._getEnergyInput(solidLabel) if not useTotalEnergy else self._photonCount
         return energy / energyInput
 
@@ -180,7 +185,7 @@ class Stats:
         if solidLabel is None:
             return self._photonCount
         points = self._getPointCloudOfSurfaces(solidLabel).enteringSurfacePoints
-        energy = -sum([p.value for p in points])
+        energy = -np.sum(points[0])
         return energy
 
     def getTransmittance(self, solidLabel: str = None, surfaceLabel: str = None, useTotalEnergy=False):
@@ -193,7 +198,7 @@ class Stats:
         else:
             points = self.getPointCloud(solidLabel, surfaceLabel).leavingSurfacePoints
 
-        energy = sum([p.value for p in points])
+        energy = np.sum(points[0])
         energyInput = self._getEnergyInput(solidLabel) if not useTotalEnergy else self._photonCount
         return energy / energyInput
 
