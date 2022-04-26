@@ -8,7 +8,6 @@ import numpy as np
 from pytissueoptics.rayscattering.materials import ScatteringMaterial
 
 
-
 class CLPhotons:
     def __init__(self, source: 'CLSource', worldMaterial: ScatteringMaterial, logger=None, weightThreshold=0.0001):
         self._kernelPath = os.path.dirname(os.path.abspath(__file__)) + "{}CLPhotons.c".format(os.sep)

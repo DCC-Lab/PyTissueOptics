@@ -1,6 +1,7 @@
+from pytissueoptics.rayscattering import Stats
 from pytissueoptics.rayscattering.opencl.CLSource import CLPencilSource
 from pytissueoptics.rayscattering.materials import ScatteringMaterial
-from pytissueoptics.scene import Vector, Logger, MayaviViewer
+from pytissueoptics.scene import Vector, Logger
 
 """
 This example shows how to use the OpenCL Source.
@@ -22,6 +23,5 @@ source = CLPencilSource(position=Vector(0, 0, 0), direction=Vector(0, 0, 1), N=1
 
 source.propagate(worldMaterial=worldMaterial, logger=logger)
 
-viewer = MayaviViewer()
-viewer.addLogger(logger)
-viewer.show()
+stats = Stats(logger, source)
+stats.showEnergy2D()
