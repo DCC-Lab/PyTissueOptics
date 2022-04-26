@@ -1,7 +1,6 @@
-from typing import List
+import numpy as np
 
 from pytissueoptics.scene.logger import Logger
-from pytissueoptics.scene.logger.logger import DataPoint, Segment
 
 try:
     from mayavi import mlab
@@ -10,7 +9,6 @@ except ImportError:
 
 from pytissueoptics.scene.viewer.mayavi import MayaviSolid
 from pytissueoptics.scene.solids import Solid
-from pytissueoptics.scene.geometry import Vector, Polygon
 
 
 class MayaviViewer:
@@ -37,36 +35,33 @@ class MayaviViewer:
 
     def addLogger(self, logger: Logger, colormap="rainbow", reverseColormap=False,
                   pointScale=0.01, dataPointScale=0.15, scaleWithValue=True):
-        self._addPoints(logger.points, colormap=colormap, reverseColormap=reverseColormap, scale=pointScale)
-        self._addDataPoints(logger.dataPoints, colormap=colormap, reverseColormap=reverseColormap,
-                            scale=dataPointScale, scaleWithValue=scaleWithValue)
-        self._addSegments(logger.segments, colormap=colormap, reverseColormap=reverseColormap)
+        self.addPoints(logger.getPoints(), colormap=colormap, reverseColormap=reverseColormap, scale=pointScale)
+        self.addDataPoints(logger.getDataPoints(), colormap=colormap, reverseColormap=reverseColormap,
+                           scale=dataPointScale, scaleWithValue=scaleWithValue)
+        self.addSegments(logger.getSegments(), colormap=colormap, reverseColormap=reverseColormap)
 
     @staticmethod
-    def _addPoints(points: List[Vector], colormap, reverseColormap, scale=0.01):
-        x = [vector.x for vector in points]
-        y = [vector.y for vector in points]
-        z = [vector.z for vector in points]
+    def addPoints(points: np.ndarray, colormap="rainbow", reverseColormap=False, scale=0.01):
+        """ 'points' has to be of shape (3, n) where the first axis is (x, y, z). """
+        x, y, z = points
         s = mlab.points3d(x, y, z, mode="sphere", scale_factor=scale, scale_mode="none", colormap=colormap)
         s.module_manager.scalar_lut_manager.reverse_lut = reverseColormap
 
     @staticmethod
-    def _addDataPoints(dataPoints: List[DataPoint], colormap, reverseColormap, scale=0.15, scaleWithValue=True):
-        x = [dataPoint.position.x for dataPoint in dataPoints]
-        y = [dataPoint.position.y for dataPoint in dataPoints]
-        z = [dataPoint.position.z for dataPoint in dataPoints]
-        v = [dataPoint.value for dataPoint in dataPoints]
-
+    def addDataPoints(dataPoints: np.ndarray, colormap="rainbow", reverseColormap=False, scale=0.15, scaleWithValue=True):
+        """ 'dataPoints' has to be of shape (4, n) where the first axis is (value, x, y, z). """
+        v, x, y, z = dataPoints
         scaleMode = "scalar" if scaleWithValue else "none"
         s = mlab.points3d(x, y, z, v, mode="sphere", scale_factor=scale, scale_mode=scaleMode, colormap=colormap)
         s.module_manager.scalar_lut_manager.reverse_lut = reverseColormap
 
     @staticmethod
-    def _addSegments(segments: List[Segment], colormap, reverseColormap):
-        for segment in segments:
-            x = [vector.x for vector in [segment.start, segment.end]]
-            y = [vector.y for vector in [segment.start, segment.end]]
-            z = [vector.z for vector in [segment.start, segment.end]]
+    def addSegments(segments: np.ndarray, colormap="rainbow", reverseColormap=False):
+        """ 'segments' has to be of shape (6, n) where the first axis is (x1, y1, z1, x2, y2, z2). """
+        for i in range(segments.shape[1]):
+            x = [segments[0, i], segments[3, i]]
+            y = [segments[1, i], segments[4, i]]
+            z = [segments[2, i], segments[5, i]]
             s = mlab.plot3d(x, y, z, tube_radius=None, line_width=1, colormap=colormap)
             s.module_manager.scalar_lut_manager.reverse_lut = reverseColormap
 

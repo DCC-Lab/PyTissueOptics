@@ -11,7 +11,9 @@ class AAxisAlignedPolygonScene(Scene):
     def _create(self):
         vertices = [Vertex(0, 0, 0), Vertex(1, 0, 0), Vertex(1, 1, 0)]
         polygon = Polygon(vertices=vertices)
-        aSolid = Solid(position=Vector(0, 0, 0), vertices=vertices, surfaces=SurfaceCollection({"lonely": [polygon]}))
+        aSurface = SurfaceCollection()
+        aSurface.add("lonely", [polygon])
+        aSolid = Solid(position=Vector(0, 0, 0), vertices=vertices, surfaces=aSurface)
         aSolid._bbox = BoundingBox([-10, 10], [-10, 10], [-10, 10])
         self._solids.extend([aSolid])
 
@@ -24,7 +26,9 @@ class APolygonScene(Scene):
     def _create(self):
         vertices = [Vertex(0, 0, 0), Vertex(1, 0, 1), Vertex(-0.2, -0.5, 3)]
         polygon = Polygon(vertices=vertices)
-        aSolid = Solid(position=Vector(0, 0, 0), vertices=vertices, surfaces=SurfaceCollection({"lonely": [polygon]}))
+        aSurface = SurfaceCollection()
+        aSurface.add("lonely", [polygon])
+        aSolid = Solid(position=Vector(0, 0, 0), vertices=vertices, surfaces=aSurface)
         aSolid._bbox = BoundingBox([-10, 10], [-10, 10], [-10, 10])
         self._solids.extend([aSolid])
 

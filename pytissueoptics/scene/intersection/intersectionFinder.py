@@ -2,8 +2,8 @@ import sys
 from dataclasses import dataclass
 from typing import List, Tuple, Optional
 
-from pytissueoptics.scene import Material, shader
-from pytissueoptics.scene.geometry import Vector, Polygon
+from pytissueoptics.scene import shader
+from pytissueoptics.scene.geometry import Vector, Polygon, Environment
 from pytissueoptics.scene.intersection import Ray
 from pytissueoptics.scene.tree import SpacePartition, Node
 from pytissueoptics.scene.tree.treeConstructor.binary import NoSplitThreeAxesConstructor
@@ -19,8 +19,9 @@ class Intersection:
     position: Vector = None
     polygon: Polygon = None
     normal: Vector = None
-    insideMaterial: Material = None
-    outsideMaterial: Material = None
+    insideEnvironment: Environment = None
+    outsideEnvironment: Environment = None
+    surfaceLabel: str = None
     distanceLeft: float = None
 
 
@@ -53,8 +54,9 @@ class IntersectionFinder:
             return None
 
         intersection.normal = shader.getSmoothNormal(intersection.polygon, intersection.position)
-        intersection.insideMaterial = intersection.polygon.insideMaterial
-        intersection.outsideMaterial = intersection.polygon.outsideMaterial
+        intersection.insideEnvironment = intersection.polygon.insideEnvironment
+        intersection.outsideEnvironment = intersection.polygon.outsideEnvironment
+        intersection.surfaceLabel = intersection.polygon.surfaceLabel
 
         if ray.length is not None:
             intersection.distanceLeft = ray.length - intersection.distance

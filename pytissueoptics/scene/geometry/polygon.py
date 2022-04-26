@@ -1,8 +1,14 @@
+from dataclasses import dataclass
 from typing import List
 
 from pytissueoptics.scene.geometry import Vector, Vertex
-from pytissueoptics.scene.materials import Material
 from pytissueoptics.scene.geometry import BoundingBox
+
+
+@dataclass
+class Environment:
+    material: ...
+    solid: 'Solid' = None
 
 
 class Polygon:
@@ -14,11 +20,13 @@ class Polygon:
     """
 
     def __init__(self, vertices: List[Vertex], normal: Vector = None,
-                 insideMaterial: Material = None, outsideMaterial: Material = None):
+                 insideEnvironment: Environment = None, outsideEnvironment: Environment = None,
+                 surfaceLabel: str = None):
         self._vertices = vertices
         self._normal = normal
-        self._insideMaterial = insideMaterial
-        self._outsideMaterial = outsideMaterial
+        self._insideEnvironment = insideEnvironment
+        self._outsideEnvironment = outsideEnvironment
+        self.surfaceLabel = surfaceLabel
         if self._normal is None:
             self.resetNormal()
 
@@ -43,12 +51,20 @@ class Polygon:
         return self._vertices
 
     @property
+    def insideEnvironment(self):
+        return self._insideEnvironment
+
+    @property
+    def outsideEnvironment(self):
+        return self._outsideEnvironment
+
+    @property
     def insideMaterial(self):
-        return self._insideMaterial
+        return self._insideEnvironment.material
 
     @property
     def outsideMaterial(self):
-        return self._outsideMaterial
+        return self._outsideEnvironment.material
 
     @property
     def bbox(self) -> BoundingBox:
@@ -58,11 +74,17 @@ class Polygon:
     def centroid(self) -> Vector:
         return self._centroid
 
-    def setOutsideMaterial(self, material: Material):
-        self._outsideMaterial = material
+    def setOutsideEnvironment(self, environment: Environment):
+        self._outsideEnvironment = environment
 
-    def setInsideMaterial(self, material: Material):
-        self._insideMaterial = material
+    def setInsideEnvironment(self, environment: Environment):
+        self._insideEnvironment = environment
+
+    def setOutsideMaterial(self, material):
+        self._outsideEnvironment.material = material
+
+    def setInsideMaterial(self, material):
+        self._insideEnvironment.material = material
 
     def resetCentroid(self):
         vertexSum = Vector(0, 0, 0)

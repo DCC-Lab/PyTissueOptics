@@ -2,9 +2,8 @@ import unittest
 
 from mockito import mock, verify, when
 
-from pytissueoptics.scene import Material
 from pytissueoptics.scene.scene import Scene
-from pytissueoptics.scene.geometry import Vector, BoundingBox
+from pytissueoptics.scene.geometry import Vector, BoundingBox, Environment
 from pytissueoptics.scene.solids import Solid
 
 
@@ -14,7 +13,7 @@ class TestScene(unittest.TestCase):
 
     def testWhenAddingASolidAtAPosition_shouldPlaceTheSolidAtTheDesiredPosition(self):
         SOLID_POSITION = Vector(4, 0, 1)
-        SOLID = mock(Solid)
+        SOLID = self.makeSolidWith()
         when(SOLID).translateTo(...).thenReturn()
 
         self.scene.add(SOLID, position=SOLID_POSITION)
@@ -22,11 +21,8 @@ class TestScene(unittest.TestCase):
         verify(SOLID).translateTo(SOLID_POSITION)
 
     def testWhenAddingASolidAtNoSpecificPosition_shouldKeepTheSolidAtItsPredefinedPosition(self):
-        SOLID = mock(Solid)
-        when(SOLID).translateTo(...).thenReturn()
-
+        SOLID = self.makeSolidWith()
         self.scene.add(SOLID)
-
         verify(SOLID, times=0).translateTo(...)
 
     def testWhenAddingASolidThatPartlyOverlapsWithAnotherOne_shouldNotAdd(self):
@@ -40,30 +36,30 @@ class TestScene(unittest.TestCase):
     def testWhenAddingASolidInsideAnotherOne_shouldUpdateOutsideMaterialOfThisSolid(self):
         OUTSIDE_SOLID = self.makeSolidWith(BoundingBox([0, 5], [0, 5], [0, 5]), contains=True)
         SOLID = self.makeSolidWith(BoundingBox([1, 3], [1, 3], [1, 3]))
-        OUTSIDE_SOLID_MATERIAL = Material()
-        when(OUTSIDE_SOLID).getMaterial().thenReturn(OUTSIDE_SOLID_MATERIAL)
+        OUTSIDE_SOLID_ENV = Environment("A material")
+        when(OUTSIDE_SOLID).getEnvironment().thenReturn(OUTSIDE_SOLID_ENV)
         self.scene.add(OUTSIDE_SOLID)
 
         self.scene.add(SOLID)
 
-        verify(SOLID).setOutsideMaterial(OUTSIDE_SOLID_MATERIAL)
+        verify(SOLID).setOutsideEnvironment(OUTSIDE_SOLID_ENV)
 
     def testWhenAddingASolidOverAnotherOne_shouldUpdateOutsideMaterialOfTheOtherSolid(self):
         INSIDE_SOLID = self.makeSolidWith(BoundingBox([0, 5], [0, 5], [0, 5]))
         self.scene.add(INSIDE_SOLID)
 
         SOLID = self.makeSolidWith(BoundingBox([-1, 6], [-1, 6], [-1, 6]), contains=True)
-        SOLID_MATERIAL = Material()
-        when(SOLID).getMaterial().thenReturn(SOLID_MATERIAL)
+        SOLID_ENV = Environment("A material")
+        when(SOLID).getEnvironment().thenReturn(SOLID_ENV)
 
         self.scene.add(SOLID)
 
-        verify(INSIDE_SOLID).setOutsideMaterial(SOLID_MATERIAL)
+        verify(INSIDE_SOLID).setOutsideEnvironment(SOLID_ENV)
 
     def testWhenAddingASolidInsideMultipleOtherSolids_shouldUpdateOutsideMaterialOfThisSolid(self):
         OUTSIDE_SOLID = self.makeSolidWith(BoundingBox([1, 4], [1, 4], [1, 4]))
-        OUTSIDE_SOLID_MATERIAL = Material()
-        when(OUTSIDE_SOLID).getMaterial().thenReturn(OUTSIDE_SOLID_MATERIAL)
+        OUTSIDE_SOLID_ENV = Environment("A material")
+        when(OUTSIDE_SOLID).getEnvironment().thenReturn(OUTSIDE_SOLID_ENV)
         self.scene.add(OUTSIDE_SOLID)
 
         TOPMOST_OUTSIDE_SOLID = self.makeSolidWith(BoundingBox([0, 5], [0, 5], [0, 5]), contains=True)
@@ -74,7 +70,7 @@ class TestScene(unittest.TestCase):
 
         self.scene.add(SOLID)
 
-        verify(SOLID).setOutsideMaterial(OUTSIDE_SOLID_MATERIAL)
+        verify(SOLID).setOutsideEnvironment(OUTSIDE_SOLID_ENV)
 
     def testWhenAddingASolidOverMultipleOtherSolids_shouldUpdateOutsideMaterialOfTheTopMostSolid(self):
         TOPMOST_INSIDE_SOLID = self.makeSolidWith(BoundingBox([0, 5], [0, 5], [0, 5]), contains=True)
@@ -84,31 +80,31 @@ class TestScene(unittest.TestCase):
         self.scene.add(INSIDE_SOLID)
 
         SOLID = self.makeSolidWith(BoundingBox([-1, 6], [-1, 6], [-1, 6]), contains=True)
-        SOLID_MATERIAL = Material()
-        when(SOLID).getMaterial().thenReturn(SOLID_MATERIAL)
+        SOLID_MATERIAL = "A material"
+        when(SOLID).getEnvironment().thenReturn(SOLID_MATERIAL)
 
         self.scene.add(SOLID)
 
-        verify(TOPMOST_INSIDE_SOLID).setOutsideMaterial(SOLID_MATERIAL)
+        verify(TOPMOST_INSIDE_SOLID).setOutsideEnvironment(SOLID_MATERIAL)
 
     def testWhenAddingASolidThatFitsInsideOneButAlsoContainsOne_shouldUpdateOutsideMaterialOfThisSolidAndTheOneInside(self):
         INSIDE_SOLID = self.makeSolidWith(BoundingBox([2, 3], [2, 3], [2, 3]))
         self.scene.add(INSIDE_SOLID)
 
         OUTSIDE_SOLID = self.makeSolidWith(BoundingBox([0, 5], [0, 5], [0, 5]), contains=True)
-        OUTSIDE_SOLID_MATERIAL = Material()
-        when(OUTSIDE_SOLID).getMaterial().thenReturn(OUTSIDE_SOLID_MATERIAL)
+        OUTSIDE_SOLID_ENV = Environment("Outside material")
+        when(OUTSIDE_SOLID).getEnvironment().thenReturn(OUTSIDE_SOLID_ENV)
         self.scene.add(OUTSIDE_SOLID)
 
         SOLID = self.makeSolidWith(BoundingBox([1, 4], [1, 4], [1, 4]))
-        SOLID_MATERIAL = Material()
-        when(SOLID).getMaterial().thenReturn(SOLID_MATERIAL)
+        SOLID_ENV = Environment("Inside material")
+        when(SOLID).getEnvironment().thenReturn(SOLID_ENV)
         when(SOLID).contains(...).thenReturn(False).thenReturn(True)
 
         self.scene.add(SOLID)
 
-        verify(SOLID).setOutsideMaterial(OUTSIDE_SOLID_MATERIAL)
-        verify(INSIDE_SOLID).setOutsideMaterial(SOLID_MATERIAL)
+        verify(SOLID).setOutsideEnvironment(OUTSIDE_SOLID_ENV)
+        verify(INSIDE_SOLID).setOutsideEnvironment(SOLID_ENV)
 
     def testWhenAddingASolidInsideASolidStack_shouldRaiseNotImplementedError(self):
         CUBOID_STACK = self.makeSolidWith(BoundingBox([1, 4], [1, 4], [1, 4]), contains=True, isStack=True)
@@ -144,14 +140,37 @@ class TestScene(unittest.TestCase):
         scene = Scene()
         self.assertIsNone(scene.getBoundingBox())
 
+    def testWhenAddingASolidWithExistingLabel_shouldRelabelToAUniqueLabel(self):
+        solid1 = self.makeSolidWith()
+        solid2 = self.makeSolidWith()
+
+        Scene([solid1, solid2], ignoreIntersections=True)
+
+        verify(solid1, times=0).setLabel(...)
+        verify(solid2).setLabel("solid_0")
+
+    def testWhenSetOutsideMaterial_shouldSetOutsideMaterialOfAllTheSolidsThatAreNotContained(self):
+        INSIDE_SOLID = self.makeSolidWith(BoundingBox([1, 4], [1, 4], [1, 4]), name="InsideSolid")
+        self.scene.add(INSIDE_SOLID)
+        SOLID = self.makeSolidWith(BoundingBox([-1, 6], [-1, 6], [-1, 6]), contains=True, name="solid")
+        self.scene.add(SOLID)
+        worldMaterial = "World"
+
+        self.scene.setOutsideMaterial(worldMaterial)
+
+        verify(SOLID, times=1).setOutsideEnvironment(Environment(worldMaterial))
+        verify(INSIDE_SOLID, times=0).setOutsideEnvironment(Environment(worldMaterial))
+
     @staticmethod
-    def makeSolidWith(bbox: BoundingBox, contains=False, isStack=False):
+    def makeSolidWith(bbox: BoundingBox = None, contains=False, isStack=False, name="solid"):
         solid = mock(Solid)
+        when(solid).getLabel().thenReturn(name)
+        when(solid).setLabel(...).thenReturn()
         when(solid).getBoundingBox().thenReturn(bbox)
         when(solid).isStack().thenReturn(isStack)
         when(solid).getVertices().thenReturn([])
-        when(solid).setOutsideMaterial(...).thenReturn()
-        when(solid).getMaterial().thenReturn(Material())
+        when(solid).setOutsideEnvironment(...).thenReturn()
+        when(solid).getEnvironment().thenReturn(Environment("A material"))
         when(solid).getVertices().thenReturn([])
         when(solid).contains(...).thenReturn(contains)
         return solid

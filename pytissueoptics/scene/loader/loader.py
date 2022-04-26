@@ -49,8 +49,8 @@ class Loader:
         solids = []
         for objectName, _object in self._parser.objects.items():
             surfaces = SurfaceCollection()
-            for surfaceName, surface in _object.surfaces.items():
-                surfaces.add(surfaceName, self._convertSurfaceToPolygons(surface, vertices))
+            for surfaceLabel, surface in _object.surfaces.items():
+                surfaces.add(surfaceLabel, self._convertSurfaceToPolygons(surface, vertices))
             solids.append(Solid(position=Vector(0, 0, 0), vertices=vertices, surfaces=surfaces))
 
         return solids

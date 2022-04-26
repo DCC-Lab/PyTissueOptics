@@ -50,13 +50,13 @@ class OBJParser(Parser):
 
             elif values[0] == 'o':
                 self._currentObjectName = values[1]
-                self._resetSurfaceName()
+                self._resetSurfaceLabel()
                 self._objects[self._currentObjectName] = ParsedObject(material="", surfaces={})
 
             elif values[0] == 'g':
-                self._currentSurfaceName = values[1]
+                self._currentSurfaceLabel = values[1]
                 self._checkForNoObject()
-                self._objects[self._currentObjectName].surfaces[self._currentSurfaceName] = ParsedSurface(polygons=[],
+                self._objects[self._currentObjectName].surfaces[self._currentSurfaceLabel] = ParsedSurface(polygons=[],
                                                                                                           normals=[],
                                                                                                           texCoords=[])
         file.close()
@@ -81,9 +81,9 @@ class OBJParser(Parser):
         self._checkForNoObject()
         self._checkForNoSurface()
 
-        self._objects[self._currentObjectName].surfaces[self._currentSurfaceName].polygons.append(faceIndices)
-        self._objects[self._currentObjectName].surfaces[self._currentSurfaceName].normals.append(normalIndices)
-        self._objects[self._currentObjectName].surfaces[self._currentSurfaceName].texCoords.append(texCoordsIndices)
+        self._objects[self._currentObjectName].surfaces[self._currentSurfaceLabel].polygons.append(faceIndices)
+        self._objects[self._currentObjectName].surfaces[self._currentSurfaceLabel].normals.append(normalIndices)
+        self._objects[self._currentObjectName].surfaces[self._currentSurfaceLabel].texCoords.append(texCoordsIndices)
 
     def _checkForNoObject(self):
         if len(self._objects) == 0 and self._currentObjectName == self.NO_OBJECT:
@@ -91,9 +91,9 @@ class OBJParser(Parser):
                 self.NO_OBJECT: ParsedObject(material="", surfaces={})}
 
     def _checkForNoSurface(self):
-        if len(self._objects[self._currentObjectName].surfaces) == 0 and self._currentSurfaceName == self.NO_SURFACE:
+        if len(self._objects[self._currentObjectName].surfaces) == 0 and self._currentSurfaceLabel == self.NO_SURFACE:
             self._objects[self._currentObjectName].surfaces[self.NO_SURFACE] = ParsedSurface(polygons=[], normals=[],
                                                                                              texCoords=[])
 
-    def _resetSurfaceName(self):
-        self._currentSurfaceName = self.NO_SURFACE
+    def _resetSurfaceLabel(self):
+        self._currentSurfaceLabel = self.NO_SURFACE

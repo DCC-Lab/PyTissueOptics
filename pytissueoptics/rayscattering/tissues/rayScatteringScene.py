@@ -1,6 +1,6 @@
 from typing import List
 
-from pytissueoptics.scene import MayaviViewer, Material, Scene
+from pytissueoptics.scene import MayaviViewer, Scene
 from pytissueoptics.scene.solids import Solid
 
 
@@ -15,7 +15,3 @@ class RayScatteringScene(Scene):
         viewer = MayaviViewer()
         self.addToViewer(viewer)
         viewer.show()
-
-    def setWorldMaterial(self, material: Material):
-        for solid in self._solids:
-            solid.setOutsideMaterial(material)

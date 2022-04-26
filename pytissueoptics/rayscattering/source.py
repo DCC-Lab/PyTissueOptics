@@ -4,6 +4,7 @@ from pytissueoptics.rayscattering.materials import ScatteringMaterial
 from pytissueoptics.rayscattering.tissues.rayScatteringScene import RayScatteringScene
 from pytissueoptics.scene import Vector
 from pytissueoptics.rayscattering.photon import Photon
+from pytissueoptics.scene.geometry import Environment
 from pytissueoptics.scene.intersection import SimpleIntersectionFinder
 from pytissueoptics.scene.logger import Logger
 
@@ -18,14 +19,18 @@ class Source:
 
     def propagate(self, scene: RayScatteringScene, worldMaterial: ScatteringMaterial = ScatteringMaterial(), logger: Logger = None):
         intersectionFinder = SimpleIntersectionFinder(scene)
-        scene.setWorldMaterial(worldMaterial)
+        scene.setOutsideMaterial(worldMaterial)
+        worldEnvironment = Environment(worldMaterial)
         for photon in self._photons:
-            photon.setContext(worldMaterial, intersectionFinder=intersectionFinder, logger=logger)
+            photon.setContext(worldEnvironment, intersectionFinder=intersectionFinder, logger=logger)
             photon.propagate()
 
     @property
     def photons(self):
         return self._photons
+
+    def getPhotonCount(self) -> int:
+        return len(self._photons)
 
 
 class PencilSource(Source):

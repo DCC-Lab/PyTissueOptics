@@ -1,6 +1,6 @@
 from typing import List, Dict, Optional
 
-from pytissueoptics.scene.materials import Material
+from pytissueoptics.scene.geometry import Environment
 from pytissueoptics.scene.geometry import Vector
 from pytissueoptics.scene.solids import Solid
 from pytissueoptics.scene.geometry import Polygon, BoundingBox
@@ -10,6 +10,7 @@ class Scene:
     def __init__(self, solids: List[Solid] = None, ignoreIntersections=False):
         self._solids = []
         self._ignoreIntersections = ignoreIntersections
+        self._labelsOfHiddenSolids = []
         
         if solids:
             for solid in solids:
@@ -18,15 +19,16 @@ class Scene:
     def add(self, solid: Solid, position: Vector = None):
         if position:
             solid.translateTo(position)
+        self._validateLabel(solid)
         if not self._ignoreIntersections:
-            self._validate(solid)
+            self._validatePosition(solid)
         self._solids.append(solid)
 
     @property
     def solids(self):
         return self._solids
 
-    def _validate(self, newSolid: Solid):
+    def _validatePosition(self, newSolid: Solid):
         """ Assert newSolid position is valid and make proper adjustments so that the
         material at each solid interface is well defined. """
         if len(self._solids) == 0:
@@ -38,20 +40,32 @@ class Scene:
 
         intersectingSuspects.sort(key=lambda s: s.getBoundingBox().xMax - s.getBoundingBox().xMin, reverse=True)
 
-        solidUpdates: Dict[Solid, Material] = {}
+        solidUpdates: Dict[Solid, Environment] = {}
         for otherSolid in intersectingSuspects:
             if newSolid.contains(*otherSolid.getVertices()):
                 self._assertIsNotAStack(newSolid)
-                solidUpdates[otherSolid] = newSolid.getMaterial()
+                solidUpdates[otherSolid] = newSolid.getEnvironment()
+                self._labelsOfHiddenSolids.append(otherSolid.getLabel())
                 break
             elif otherSolid.contains(*newSolid.getVertices()):
                 self._assertIsNotAStack(otherSolid)
-                solidUpdates[newSolid] = otherSolid.getMaterial()
+                solidUpdates[newSolid] = otherSolid.getEnvironment()
+                self._labelsOfHiddenSolids.append(newSolid.getLabel())
             else:
                 raise NotImplementedError("Cannot place a solid that partially intersects with an existing solid. ")
 
-        for (solid, material) in solidUpdates.items():
-            solid.setOutsideMaterial(material)
+        for (solid, environment) in solidUpdates.items():
+            solid.setOutsideEnvironment(environment)
+
+    def _validateLabel(self, solid):
+        labelSet = set(s.getLabel() for s in self.solids)
+        if solid.getLabel() not in labelSet:
+            return
+
+        idx = 0
+        while f"{solid.getLabel()}_{idx}" in labelSet:
+            idx += 1
+        solid.setLabel(f"{solid.getLabel()}_{idx}")
 
     def _findIntersectingSuspectsFor(self, solid) -> List[Solid]:
         solidBBox = solid.getBoundingBox()
@@ -66,7 +80,7 @@ class Scene:
         if solid.isStack():
             raise NotImplementedError("Cannot place a solid inside a solid stack. ")
 
-    def getSolids(self):
+    def getSolids(self) -> List[Solid]:
         return self._solids
 
     def getPolygons(self) -> List[Polygon]:
@@ -83,3 +97,10 @@ class Scene:
         for solid in self._solids[1:]:
             bbox.extendTo(solid.getBoundingBox())
         return bbox
+
+    def setOutsideMaterial(self, material):
+        outsideEnvironment = Environment(material)
+        for solid in self._solids:
+            if solid.getLabel() in self._labelsOfHiddenSolids:
+                continue
+            solid.setOutsideEnvironment(outsideEnvironment)
