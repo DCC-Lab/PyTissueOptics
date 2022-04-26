@@ -26,15 +26,15 @@ class TestLogger(unittest.TestCase):
 
         logger.logPoint(newPoint, self.INTERACTION_KEY)
 
-        self.assertEqual(3, logger.getPoints().shape[1])
-        self.assertTrue(np.array_equal([2, 0, 0], logger.getPoints()[:, -1]))
+        self.assertEqual(3, len(logger.getPoints()))
+        self.assertTrue(np.array_equal([2, 0, 0], logger.getPoints()[-1]))
 
     def testWhenLogPointArray_shouldAddAllPointsToTheLoggedPoints(self):
         logger = Logger()
-        logger.logPointArray(np.array([[0, 0, 0], [1, 0, 0]]).T, self.INTERACTION_KEY)
+        logger.logPointArray(np.array([[0, 0, 0], [1, 0, 0]]), self.INTERACTION_KEY)
 
-        self.assertEqual(2, logger.getPoints().shape[1])
-        self.assertTrue(np.array_equal([1, 0, 0], logger.getPoints()[:, -1]))
+        self.assertEqual(2, len(logger.getPoints()))
+        self.assertTrue(np.array_equal([1, 0, 0], logger.getPoints()[-1]))
 
     def testWhenLogNewDataPoint_shouldAddDataPointToTheLoggedDataPoints(self):
         logger = Logger()
@@ -43,15 +43,15 @@ class TestLogger(unittest.TestCase):
 
         logger.logDataPoint(10, Vector(2, 0, 0), self.INTERACTION_KEY)
 
-        self.assertEqual(3, logger.getDataPoints().shape[1])
-        self.assertTrue(np.array_equal([10, 2, 0, 0], logger.getDataPoints()[:, -1]))
+        self.assertEqual(3, len(logger.getDataPoints()))
+        self.assertTrue(np.array_equal([10, 2, 0, 0], logger.getDataPoints()[-1]))
 
     def testWhenLogDataPointArray_shouldAddAllDataPointsToTheLoggedDataPoints(self):
         logger = Logger()
-        logger.logDataPointArray(np.array([[2, 0, 0, 0], [1, 1, 0, 0]]).T, self.INTERACTION_KEY)
+        logger.logDataPointArray(np.array([[2, 0, 0, 0], [1, 1, 0, 0]]), self.INTERACTION_KEY)
 
-        self.assertEqual(2, logger.getDataPoints().shape[1])
-        self.assertTrue(np.array_equal([1, 1, 0, 0], logger.getDataPoints()[:, -1]))
+        self.assertEqual(2, len(logger.getDataPoints()))
+        self.assertTrue(np.array_equal([1, 1, 0, 0], logger.getDataPoints()[-1]))
 
     def testWhenLogNewSegment_shouldAddSegmentToTheLoggedSegments(self):
         logger = Logger()
@@ -60,15 +60,15 @@ class TestLogger(unittest.TestCase):
 
         logger.logSegment(Vector(0, 0, 0), Vector(1, 0, 0), self.INTERACTION_KEY)
 
-        self.assertEqual(3, logger.getSegments().shape[1])
-        self.assertTrue(np.array_equal([0, 0, 0, 1, 0, 0], logger.getSegments()[:, -1]))
+        self.assertEqual(3, len(logger.getSegments()))
+        self.assertTrue(np.array_equal([0, 0, 0, 1, 0, 0], logger.getSegments()[-1]))
 
     def testWhenLogSegmentArray_shouldAddAllSegmentsToTheLoggedSegments(self):
         logger = Logger()
-        logger.logSegmentArray(np.array([[0, 0, 0, 1, 1, 1], [1, 1, 1, 2, 2, 2]]).T, self.INTERACTION_KEY)
+        logger.logSegmentArray(np.array([[0, 0, 0, 1, 1, 1], [1, 1, 1, 2, 2, 2]]), self.INTERACTION_KEY)
 
-        self.assertEqual(2, logger.getSegments().shape[1])
-        self.assertTrue(np.array_equal([1, 1, 1, 2, 2, 2], logger.getSegments()[:, -1]))
+        self.assertEqual(2, len(logger.getSegments()))
+        self.assertTrue(np.array_equal([1, 1, 1, 2, 2, 2], logger.getSegments()[-1]))
 
     def testWhenGetDataWithKey_shouldReturnDataStoredForThisKey(self):
         sameKey = InteractionKey(self.SOLID_LABEL, self.SURFACE_LABEL)
@@ -81,8 +81,8 @@ class TestLogger(unittest.TestCase):
         logger.logPoint(Vector(2, 0, 0), anotherKey)
         logger.logPoint(Vector(3, 0, 0), anotherKeyWithoutSurface)
 
-        self.assertEqual(2, logger.getPoints(self.INTERACTION_KEY).shape[1])
-        self.assertEqual(1, logger.getPoints(anotherKeyWithoutSurface).shape[1])
+        self.assertEqual(2, len(logger.getPoints(self.INTERACTION_KEY)))
+        self.assertEqual(1, len(logger.getPoints(anotherKeyWithoutSurface)))
 
     def testWhenGetDataWithEmptyKey_shouldReturnAllData(self):
         anotherKey = InteractionKey(self.SOLID_LABEL, "another surface")
@@ -91,8 +91,8 @@ class TestLogger(unittest.TestCase):
         logger.logPoint(Vector(1, 0, 0), self.INTERACTION_KEY)
         logger.logPoint(Vector(2, 0, 0), anotherKey)
 
-        self.assertEqual(3, logger.getPoints().shape[1])
-        self.assertEqual(3, logger.getPoints(InteractionKey(None, None)).shape[1])
+        self.assertEqual(3, len(logger.getPoints()))
+        self.assertEqual(3, len(logger.getPoints(InteractionKey(None, None))))
 
     def testWhenGetDataWithNonExistentKey_shouldRaiseKeyError(self):
         logger = Logger()
