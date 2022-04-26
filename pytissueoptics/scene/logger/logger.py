@@ -89,7 +89,10 @@ class Logger:
         else:
             data = []
             for interactionData in self._data.values():
-                data.append(getattr(interactionData, dataType.value))
+                points = getattr(interactionData, dataType.value)
+                if points is None:
+                    continue
+                data.append(points)
             if len(data) == 0:
                 return None
             return np.concatenate(data, axis=1)

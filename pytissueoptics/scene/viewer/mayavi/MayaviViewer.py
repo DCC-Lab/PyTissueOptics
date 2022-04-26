@@ -43,6 +43,8 @@ class MayaviViewer:
     @staticmethod
     def addPoints(points: np.ndarray, colormap="rainbow", reverseColormap=False, scale=0.01):
         """ 'points' has to be of shape (3, n) where the first axis is (x, y, z). """
+        if points is None:
+            return
         x, y, z = points
         s = mlab.points3d(x, y, z, mode="sphere", scale_factor=scale, scale_mode="none", colormap=colormap)
         s.module_manager.scalar_lut_manager.reverse_lut = reverseColormap
@@ -50,6 +52,8 @@ class MayaviViewer:
     @staticmethod
     def addDataPoints(dataPoints: np.ndarray, colormap="rainbow", reverseColormap=False, scale=0.15, scaleWithValue=True):
         """ 'dataPoints' has to be of shape (4, n) where the first axis is (value, x, y, z). """
+        if dataPoints is None:
+            return
         v, x, y, z = dataPoints
         scaleMode = "scalar" if scaleWithValue else "none"
         s = mlab.points3d(x, y, z, v, mode="sphere", scale_factor=scale, scale_mode=scaleMode, colormap=colormap)
@@ -58,6 +62,8 @@ class MayaviViewer:
     @staticmethod
     def addSegments(segments: np.ndarray, colormap="rainbow", reverseColormap=False):
         """ 'segments' has to be of shape (6, n) where the first axis is (x1, y1, z1, x2, y2, z2). """
+        if segments is None:
+            return
         for i in range(segments.shape[1]):
             x = [segments[0, i], segments[3, i]]
             y = [segments[1, i], segments[4, i]]

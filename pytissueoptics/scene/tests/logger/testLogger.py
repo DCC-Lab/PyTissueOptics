@@ -105,6 +105,13 @@ class TestLogger(unittest.TestCase):
 
         self.assertRaises(KeyError, logger.getPoints, InteractionKey(self.SOLID_LABEL, "another surface"))
 
+    def testGivenEmptyLogger_whenGetData_shouldReturnNone(self):
+        logger = Logger()
+
+        self.assertIsNone(logger.getPoints())
+        self.assertIsNone(logger.getSegments())
+        self.assertIsNone(logger.getDataPoints())
+
     def testWhenGetSolidLabels_shouldReturnAListOfUniqueSolidLabels(self):
         solidLabel1 = "A label"
         solidLabel2 = "Another label"
