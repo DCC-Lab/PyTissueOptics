@@ -29,6 +29,13 @@ class TestLogger(unittest.TestCase):
         self.assertEqual(3, logger.getPoints().shape[1])
         self.assertTrue(np.array_equal([2, 0, 0], logger.getPoints()[:, -1]))
 
+    def testWhenLogPointArray_shouldAddAllPointsToTheLoggedPoints(self):
+        logger = Logger()
+        logger.logPointArray(np.array([[0, 0, 0], [1, 0, 0]]).T, self.INTERACTION_KEY)
+
+        self.assertEqual(2, logger.getPoints().shape[1])
+        self.assertTrue(np.array_equal([1, 0, 0], logger.getPoints()[:, -1]))
+
     def testWhenLogNewDataPoint_shouldAddDataPointToTheLoggedDataPoints(self):
         logger = Logger()
         logger.logDataPoint(-10.5, Vector(0, 0, 0), self.INTERACTION_KEY)
@@ -39,6 +46,13 @@ class TestLogger(unittest.TestCase):
         self.assertEqual(3, logger.getDataPoints().shape[1])
         self.assertTrue(np.array_equal([10, 2, 0, 0], logger.getDataPoints()[:, -1]))
 
+    def testWhenLogDataPointArray_shouldAddAllDataPointsToTheLoggedDataPoints(self):
+        logger = Logger()
+        logger.logDataPointArray(np.array([[2, 0, 0, 0], [1, 1, 0, 0]]).T, self.INTERACTION_KEY)
+
+        self.assertEqual(2, logger.getDataPoints().shape[1])
+        self.assertTrue(np.array_equal([1, 1, 0, 0], logger.getDataPoints()[:, -1]))
+
     def testWhenLogNewSegment_shouldAddSegmentToTheLoggedSegments(self):
         logger = Logger()
         logger.logSegment(Vector(0, 0, 0), Vector(0, 0, 1), self.INTERACTION_KEY)
@@ -48,6 +62,13 @@ class TestLogger(unittest.TestCase):
 
         self.assertEqual(3, logger.getSegments().shape[1])
         self.assertTrue(np.array_equal([0, 0, 0, 1, 0, 0], logger.getSegments()[:, -1]))
+
+    def testWhenLogSegmentArray_shouldAddAllSegmentsToTheLoggedSegments(self):
+        logger = Logger()
+        logger.logSegmentArray(np.array([[0, 0, 0, 1, 1, 1], [1, 1, 1, 2, 2, 2]]).T, self.INTERACTION_KEY)
+
+        self.assertEqual(2, logger.getSegments().shape[1])
+        self.assertTrue(np.array_equal([1, 1, 1, 2, 2, 2], logger.getSegments()[:, -1]))
 
     def testWhenGetDataWithKey_shouldReturnDataStoredForThisKey(self):
         sameKey = InteractionKey(self.SOLID_LABEL, self.SURFACE_LABEL)
