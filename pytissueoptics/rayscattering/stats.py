@@ -22,13 +22,13 @@ class PointCloud:
     def leavingSurfacePoints(self) -> Optional[np.ndarray]:
         if self.surfacePoints is None:
             return None
-        return self.surfacePoints[:, np.where(self.surfacePoints[0] >= 0)[0]]
+        return self.surfacePoints[np.where(self.surfacePoints[:, 0] >= 0)[0]]
 
     @property
     def enteringSurfacePoints(self) -> Optional[np.ndarray]:
         if self.surfacePoints is None:
             return None
-        return self.surfacePoints[:, np.where(self.surfacePoints[0] < 0)[0]]
+        return self.surfacePoints[np.where(self.surfacePoints[:, 0] < 0)[0]]
 
 
 class DisplayConfig:
@@ -104,7 +104,7 @@ class Stats:
             points.append(self.getPointCloud(solidLabel).solidPoints)
         if len(points) == 0:
             return PointCloud(None, None)
-        return PointCloud(np.concatenate(points, axis=1), None)
+        return PointCloud(np.concatenate(points, axis=0), None)
 
     def _getPointCloudOfSurfaces(self, solidLabel: str = None) -> PointCloud:
         points = []
@@ -115,7 +115,7 @@ class Stats:
 
         if len(points) == 0:
             return PointCloud(None, None)
-        return PointCloud(None, np.concatenate(points, axis=1))
+        return PointCloud(None, np.concatenate(points, axis=0))
 
     def showEnergy2D(self, solidLabel: str = None, surfaceLabel: str = None,
                      projection: Union[str, Vector] = 'y', bins: Union[int, Tuple[int, int]] = None,
@@ -145,20 +145,20 @@ class Stats:
         scatter = self._get3DScatter(solidLabel, surfaceLabel, enteringSurface=enteringSurface)
         if len(scatter) == 0:
             return [], [], []
-        u, v, c = np.delete(scatter, projectionIndex, axis=0)
+        u, v, c = [scatter[:, i] for i in range(4) if i != projectionIndex]
         return u, v, c
 
     def _get3DScatter(self, solidLabel: str = None, surfaceLabel: str = None, enteringSurface=False):
         pointCloud = self.getPointCloud(solidLabel, surfaceLabel)
         if surfaceLabel and enteringSurface:
             points = pointCloud.enteringSurfacePoints
-            points[:1] = -points[:1]
+            points[:, :1] = -points[:, :1]
         elif surfaceLabel:
             points = pointCloud.leavingSurfacePoints
         else:
             points = pointCloud.solidPoints
         # todo: follow base implementation with value first
-        scatter = np.concatenate([points[1:], points[:1]], axis=0)
+        scatter = np.concatenate([points[:, 1:], points[:, :1]], axis=1)
         return scatter
 
     def showEnergy1D(self, solidLabel: str = None, surfaceLabel: str = None, along: str = 'z', bins: int = None):
@@ -176,12 +176,12 @@ class Stats:
         alongIndex = self.AXES.index(along)
 
         scatter = self._get3DScatter(solidLabel, surfaceLabel)
-        x, c = scatter[alongIndex], scatter[-1]
+        x, c = scatter[:, alongIndex], scatter[:, -1]
         return x, c
 
     def getAbsorbance(self, solidLabel: str = None, useTotalEnergy=False) -> float:
         points = self.getPointCloud(solidLabel).solidPoints
-        energy = np.sum(points[0])
+        energy = np.sum(points[:, 0])
         energyInput = self._getEnergyInput(solidLabel) if not useTotalEnergy else self._photonCount
         return energy / energyInput
 
@@ -191,7 +191,7 @@ class Stats:
         points = self._getPointCloudOfSurfaces(solidLabel).enteringSurfacePoints
         if points is None:
             return 0
-        energy = -np.sum(points[0])
+        energy = -np.sum(points[:, 0])
         return energy
 
     def getTransmittance(self, solidLabel: str = None, surfaceLabel: str = None, useTotalEnergy=False):
@@ -204,7 +204,7 @@ class Stats:
         else:
             points = self.getPointCloud(solidLabel, surfaceLabel).leavingSurfacePoints
 
-        energy = np.sum(points[0])
+        energy = np.sum(points[:, 0])
         energyInput = self._getEnergyInput(solidLabel) if not useTotalEnergy else self._photonCount
         return energy / energyInput
 
