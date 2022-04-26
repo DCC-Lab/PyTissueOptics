@@ -6,7 +6,7 @@ import pyopencl.tools
 import numpy as np
 
 from pytissueoptics.rayscattering.materials import ScatteringMaterial
-from pytissueoptics.scene import Vector
+
 
 
 class CLPhotons:
@@ -65,9 +65,7 @@ class CLPhotons:
         t1 = time.time_ns()
         print("CLPhotons.propagate: {} s".format((t1 - t0)/ 1e9))
 
-        for position, value in self._HOST_logger:
-            self._logger.logDataPoint(value, Vector(position[0], position[1], position[2]))
-        print("CLPhotons.log: {} s".format((time.time_ns() - t1)/ 1e9))
+        self._logger.logPointDataArray(self._HOST_logger, InteractionKey("world", None))
 
     def _makeTypes(self):
         def makePhotonType():
@@ -98,8 +96,10 @@ class CLPhotons:
 
         def makeLoggerType():
             loggerStruct = np.dtype(
-                [("position", cl.cltypes.float4),
-                 ("delta_weight", cl.cltypes.float)])
+                [("delta_weight", cl.cltypes.float),
+                 ("x", cl.cltypes.float),
+                 ("y", cl.cltypes.float),
+                 ("z", cl.cltypes.float)])
             name = "loggerStruct"
             loggerStruct, c_decl_logger = cl.tools.match_dtype_to_c_struct(self._device, name, loggerStruct)
             logger_dtype = cl.tools.get_or_register_dtype(name, loggerStruct)

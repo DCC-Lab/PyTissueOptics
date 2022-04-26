@@ -115,7 +115,9 @@ void decreaseWeightBy(__global photonStruct *photons, float delta_weight, uint g
 void interact(__global photonStruct *photons, __constant materialStruct *materials, __global loggerStruct *logger, uint gid, uint logIndex){
     float delta_weight = photons[gid].weight * materials[photons[gid].material_id].albedo;
     decreaseWeightBy(photons, delta_weight, gid);
-    logger[logIndex].position = photons[gid].position;
+    logger[logIndex].x = photons[gid].position.x;
+    logger[logIndex].y = photons[gid].position.y;
+    logger[logIndex].z = photons[gid].position.z;
     logger[logIndex].delta_weight = delta_weight;
 }
 
