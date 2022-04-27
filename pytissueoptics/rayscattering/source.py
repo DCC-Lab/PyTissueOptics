@@ -2,7 +2,7 @@ from typing import List
 
 from pytissueoptics.rayscattering.tissues.rayScatteringScene import RayScatteringScene
 from pytissueoptics.rayscattering.photon import Photon
-from pytissueoptics.scene.geometry import Vector
+from pytissueoptics.scene.geometry import Vector, Environment
 from pytissueoptics.scene.intersection import SimpleIntersectionFinder
 from pytissueoptics.scene.logger import Logger
 
@@ -14,12 +14,14 @@ class Source:
         self._direction.normalize()
 
         self._photons = photons
+        self._environment = None
 
     def propagate(self, scene: RayScatteringScene, logger: Logger = None):
         intersectionFinder = SimpleIntersectionFinder(scene)
-        sourceEnvironment = scene.getEnvironmentAt(self._position)
+        self._environment = scene.getEnvironmentAt(self._position)
+
         for photon in self._photons:
-            photon.setContext(sourceEnvironment, intersectionFinder=intersectionFinder, logger=logger)
+            photon.setContext(self._environment, intersectionFinder=intersectionFinder, logger=logger)
             photon.propagate()
 
     @property
@@ -28,6 +30,14 @@ class Source:
 
     def getPhotonCount(self) -> int:
         return len(self._photons)
+
+    def getPosition(self) -> Vector:
+        return self._position
+
+    def getEnvironment(self) -> Environment:
+        if self._environment is None:
+            return Environment(None)
+        return self._environment
 
 
 class PencilSource(Source):

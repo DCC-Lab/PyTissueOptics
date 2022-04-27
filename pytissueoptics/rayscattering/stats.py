@@ -55,6 +55,9 @@ class Stats:
     def __init__(self, logger: Logger, source: Source, scene: RayScatteringScene = None):
         self._logger = logger
         self._scene = scene
+
+        solidSource = source.getEnvironment().solid
+        self._sourceSolidLabel = solidSource.getLabel() if solidSource else None
         self._photonCount = source.getPhotonCount()
 
     def showEnergy3D(self, solidLabel: str = None, surfaceLabel: str = None, config=DisplayConfig()):
@@ -157,7 +160,6 @@ class Stats:
             points = pointCloud.leavingSurfacePoints
         else:
             points = pointCloud.solidPoints
-        # todo: follow base implementation with value first
         scatter = np.concatenate([points[:, 1:], points[:, :1]], axis=1)
         return scatter
 
@@ -189,16 +191,15 @@ class Stats:
         if solidLabel is None:
             return self._photonCount
         points = self._getPointCloudOfSurfaces(solidLabel).enteringSurfacePoints
-        if points is None:
-            return 0
-        energy = -np.sum(points[:, 0])
+        energy = -np.sum(points[:, 0]) if points is not None else 0
+
+        if self._sourceSolidLabel == solidLabel:
+            energy += self._photonCount
         return energy
 
     def getTransmittance(self, solidLabel: str = None, surfaceLabel: str = None, useTotalEnergy=False):
         """ Uses local energy input for the desired solid by default. Specify 'useTotalEnergy' = True
         to compare instead with total input energy of the scene. """
-        # fixme: transmittance is wrong for cuboid stacks since each stacked layer loses reference to its
-        #  previous interface (only base layer will be complete)
         if surfaceLabel is None:
             points = self._getPointCloudOfSurfaces(solidLabel).leavingSurfacePoints
         else:
