@@ -2,7 +2,7 @@ import os
 import pyopencl as cl
 import numpy as np
 import unittest
-
+from numpy.lib import recfunctions as rfn
 from pytissueoptics.scene import Vector
 
 
@@ -19,9 +19,10 @@ class TestVectorOperations(unittest.TestCase):
         N = 3
 
         # Make Random Values
-        randomErValues = np.random.random((N, 3))
-        randomAxisValues = np.random.random((N, 3))
-        randomPhiValues = np.random.random((N, 1))
+        rng = np.random.default_rng()
+        randomErValues = rng.random((N, 3), dtype=np.float32)
+        randomAxisValues = rng.random((N, 3), dtype=np.float32)
+        randomPhiValues = rng.random((N, 1), dtype=np.float32)
 
         # Create the Vectors to be used on the CPU Functions
         CPU_VectorEr = [Vector(*randomErValues[i, :]) for i in range(N)]
@@ -45,19 +46,23 @@ class TestVectorOperations(unittest.TestCase):
         HOST_Phi = np.array(randomPhiValues, dtype=cl.cltypes.float)
         DEVICE_Phi = cl.Buffer(self.ctx, self.mf.READ_ONLY | self.mf.COPY_HOST_PTR, hostbuf=HOST_Phi)
 
-        print(HOST_ErVectors)
+        #print(HOST_ErVectors)
 
         # Execute the CPU Functions
         for i, vector in enumerate(CPU_VectorEr):
             vector.rotateAround(CPU_VectorAxis[i], CPU_ScalarPhi[i])
+        CPU_VectorErResults = np.array([[vector.x, vector.y, vector.z] for vector in CPU_VectorEr])
+        print(CPU_VectorErResults)
 
         # Execute the GPU Functions
         self.program.rotateAroundAxisKernel(self.queue, HOST_AxisVectors.shape, None, DEVICE_ErVectors, DEVICE_AxisVectors, DEVICE_Phi)
         cl.enqueue_copy(self.queue, HOST_ErVectors, DEVICE_ErVectors)
 
-        print(HOST_ErVectors)
+        #print(HOST_ErVectors)
+        GPU_VectorErResults = rfn.structured_to_unstructured(HOST_ErVectors)
+        GPU_VectorErResults = np.delete(GPU_VectorErResults, -1, axis=1)
+        print(GPU_VectorErResults)
 
-        
 
 
 #

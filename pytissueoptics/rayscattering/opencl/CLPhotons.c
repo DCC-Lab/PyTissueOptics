@@ -38,7 +38,7 @@ void normalizeVector(float4 *vector){
 
 void rotateAround(float4 *mainVector, float4 *axisVector, float theta){
     normalizeVector(axisVector);
-    normalizeVector(mainVector);
+    //normalizeVector(mainVector);
     float sint = sin(theta);
     float cost = cos(theta);
     float one_cost = 1.0f - cost;
