@@ -11,9 +11,14 @@ from pytissueoptics.scene import Vector, Logger
 from pytissueoptics.scene.geometry import Environment
 from pytissueoptics.scene.intersection.intersectionFinder import Intersection, IntersectionFinder
 from pytissueoptics.scene.logger import InteractionKey
+from pytissueoptics.scene.solids import Solid
 
 
 class TestPhoton(unittest.TestCase):
+    SOLID_INSIDE_LABEL = "solidInside"
+    SOLID_OUTSIDE_LABEL = "solidOutside"
+    SURFACE_LABEL = "surface"
+
     def setUp(self):
         self.INITIAL_POSITION = Vector(2, 2, 0)
         self.INITIAL_DIRECTION = Vector(0, 0, -1)
@@ -210,29 +215,55 @@ class TestPhoton(unittest.TestCase):
 
         self.assertEqual(0, distanceLeft)
 
-    def testGivenALogger_whenSteppingOutsideASurface_shouldLogWeightAtIntersection(self):
+    def givenALogger_whenSteppingOutsideASolidAt(self, distance):
         logger = self._createLogger()
-        distance = 8
         intersectionFinder = self._createIntersectionFinder(distance, normal=self.INITIAL_DIRECTION.copy())
         self.photon.setContext(Environment(ScatteringMaterial()), intersectionFinder=intersectionFinder, logger=logger)
 
-        self.photon.step(distance+2)
+        self.photon.step(distance + 2)
+        return logger
+
+    def testGivenALogger_whenSteppingOutsideASolid_shouldLogPositiveWeightOnSurfaceIntersection(self):
+        distance = 8
+        logger = self.givenALogger_whenSteppingOutsideASolidAt(distance)
 
         intersectionPoint = self.INITIAL_POSITION + self.INITIAL_DIRECTION * distance
-        verify(logger).logDataPoint(self.photon.weight, intersectionPoint, InteractionKey(None))
+        interactionKey = InteractionKey(self.SOLID_INSIDE_LABEL, self.SURFACE_LABEL)
+        verify(logger).logDataPoint(self.photon.weight, intersectionPoint, interactionKey)
 
-    def testGivenALogger_whenSteppingInsideASurface_shouldLogNegativeWeightAtIntersection(self):
-        logger = self._createLogger()
+    def testGivenALogger_whenSteppingOutsideASolid_shouldLogNegativeWeightOnOtherSolidSurfaceIntersection(self):
         distance = 8
+        logger = self.givenALogger_whenSteppingOutsideASolidAt(distance)
+
+        intersectionPoint = self.INITIAL_POSITION + self.INITIAL_DIRECTION * distance
+        interactionKey = InteractionKey(self.SOLID_OUTSIDE_LABEL, self.SURFACE_LABEL)
+        verify(logger).logDataPoint(-self.photon.weight, intersectionPoint, interactionKey)
+
+    def givenALogger_whenSteppingInsideASolidAt(self, distance):
+        logger = self._createLogger()
         enteringSurfaceNormal = self.INITIAL_DIRECTION.copy()
         enteringSurfaceNormal.multiply(-1)
         intersectionFinder = self._createIntersectionFinder(distance, normal=enteringSurfaceNormal)
         self.photon.setContext(Environment(ScatteringMaterial()), intersectionFinder=intersectionFinder, logger=logger)
 
-        self.photon.step(distance+2)
+        self.photon.step(distance + 2)
+        return logger
+
+    def testGivenALogger_whenSteppingInsideASurface_shouldLogNegativeWeightAtIntersection(self):
+        distance = 8
+        logger = self.givenALogger_whenSteppingInsideASolidAt(distance)
 
         intersectionPoint = self.INITIAL_POSITION + self.INITIAL_DIRECTION * distance
-        verify(logger).logDataPoint(-self.photon.weight, intersectionPoint, InteractionKey(None))
+        interactionKey = InteractionKey(self.SOLID_INSIDE_LABEL, self.SURFACE_LABEL)
+        verify(logger).logDataPoint(-self.photon.weight, intersectionPoint, interactionKey)
+
+    def testGivenALogger_whenSteppingInsideASurface_shouldLogPositiveWeightOnOtherSolidSurfaceIntersection(self):
+        distance = 8
+        logger = self.givenALogger_whenSteppingInsideASolidAt(distance)
+
+        intersectionPoint = self.INITIAL_POSITION + self.INITIAL_DIRECTION * distance
+        interactionKey = InteractionKey(self.SOLID_OUTSIDE_LABEL, self.SURFACE_LABEL)
+        verify(logger).logDataPoint(self.photon.weight, intersectionPoint, interactionKey)
 
     def testGivenALogger_whenScatter_shouldLogWeightLossAtThisPosition(self):
         logger = self._createLogger()
@@ -262,14 +293,18 @@ class TestPhoton(unittest.TestCase):
         self.assertNotAlmostEqual(v1.y, v2.y)
         self.assertNotAlmostEqual(v1.z, v2.z)
 
-    @staticmethod
-    def _createIntersectionFinder(intersectionDistance=10, rayLength=None, normal=Vector(0, 0, 1)):
+    def _createIntersectionFinder(self, intersectionDistance=10, rayLength=None, normal=Vector(0, 0, 1)):
         if rayLength is None:
             rayLength = intersectionDistance + 2
+        solidInside = mock(Solid)
+        when(solidInside).getLabel().thenReturn(self.SOLID_INSIDE_LABEL)
+        solidOutside = mock(Solid)
+        when(solidOutside).getLabel().thenReturn(self.SOLID_OUTSIDE_LABEL)
+
         intersection = Intersection(intersectionDistance, position=Vector(), normal=normal,
-                                    insideEnvironment=Environment(ScatteringMaterial()),
-                                    outsideEnvironment=Environment(ScatteringMaterial()),
-                                    distanceLeft=rayLength-intersectionDistance)
+                                    insideEnvironment=Environment(ScatteringMaterial(), solidInside),
+                                    outsideEnvironment=Environment(ScatteringMaterial(), solidOutside),
+                                    surfaceLabel=self.SURFACE_LABEL, distanceLeft=rayLength-intersectionDistance)
         intersectionFinder = mock(IntersectionFinder)
         when(intersectionFinder).findIntersection(...).thenReturn(intersection)
         return intersectionFinder
