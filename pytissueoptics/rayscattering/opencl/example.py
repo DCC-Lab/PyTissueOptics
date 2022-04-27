@@ -24,10 +24,5 @@ logger = Logger()
 source = CLPencilSource(position=Vector(0, 0, 0), direction=Vector(0, 0, 1), N=50000)
 
 source.propagate(worldMaterial=worldMaterial, logger=logger)
-# a = logger.getDataPoints()
-# for i, data in enumerate(a):
-#     for d in data:
-#         if np.isnan(d) or np.isinf(d):
-#             print(data)
 stats = Stats(logger, source)
 stats.showEnergy2D(bins=50, logScale=True)
