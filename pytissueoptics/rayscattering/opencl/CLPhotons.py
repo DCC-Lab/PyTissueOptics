@@ -9,6 +9,7 @@ from numpy.lib import recfunctions as rfn
 from pytissueoptics.rayscattering.materials import ScatteringMaterial
 from pytissueoptics.scene.logger import InteractionKey
 
+
 class CLPhotons:
     def __init__(self, source: 'CLSource', worldMaterial: ScatteringMaterial, logger=None, weightThreshold=0.0001):
         self._kernelPath = os.path.dirname(os.path.abspath(__file__)) + "{}CLPhotons.c".format(os.sep)

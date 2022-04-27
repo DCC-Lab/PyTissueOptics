@@ -31,7 +31,7 @@ float getRandomFloatValue(__global unsigned int *seedBuffer, unsigned int id){
 
 void normalizeVectorLocal(float4 *vector){
     float length = sqrt(vector->x * vector->x + vector->y * vector->y + vector->z * vector->z);
-    if length != 0.0f {
+    if (length != 0.0f) {
         vector->x /= length;
         vector->y /= length;
         vector->z /= length;
@@ -41,7 +41,7 @@ void normalizeVectorLocal(float4 *vector){
 void normalizeVectorGlobal(__global float4 *vector){
 
     float length = sqrt(vector->x * vector->x + vector->y * vector->y + vector->z * vector->z);
-    if length != 0.0f {
+    if (length != 0.0f) {
         vector->x /= length;
         vector->y /= length;
         vector->z /= length;
@@ -168,18 +168,19 @@ float getScatteringDistance(__global photonStruct *photons,__constant materialSt
     return -log(randomNums[gid]) / materials[photons[gid].material_id].mu_t;
 }
 
-float getScatteringAnglePhi(__global photonStruct *photons, __global float * randomNums, uint gid){
+float getScatteringAnglePhi(__global float * randomNums, uint gid){
     float phi = 2.0f * M_PI * randomNums[gid];
     return phi;
 }
 
 float getScatteringAngleTheta(__global photonStruct *photons,__constant materialStruct *materials,  __global float * randomNums, uint gid){
-    if (materials[gid].g == 0){
+    materialStruct material = materials[photons[gid].material_id];
+    if (material.g == 0){
         return acos(2.0f * randomNums[gid] - 1.0f);
     }
     else{
-        float temp = (1.0f - materials[gid].g * materials[gid].g) / (1 - materials[gid].g + 2 * materials[gid].g * randomNums[gid]);
-        return acos((1.0f + materials[gid].g * materials[gid].g - temp * temp) / (2 * materials[gid].g));
+        float temp = (1.0f - material.g * material.g) / (1 - material.g + 2 * material.g * randomNums[gid]);
+        return acos((1.0f + material.g * material.g - temp * temp) / (2 * material.g));
     }
 }
 
@@ -208,7 +209,7 @@ __kernel void propagate(uint dataSize, float weightThreshold, __global photonStr
         float distance = getScatteringDistance(photons, materials, randomNums, gid);
         moveBy(photons, distance, gid);
         randomNums[gid] = getRandomFloatValue(seedBuffer, gid);
-        float phi = getScatteringAnglePhi(photons, randomNums, gid);
+        float phi = getScatteringAnglePhi(randomNums, gid);
         randomNums[gid] = getRandomFloatValue(seedBuffer, gid);
         float theta = getScatteringAngleTheta(photons, materials, randomNums, gid);
         scatterBy(photons, phi, theta, gid);
