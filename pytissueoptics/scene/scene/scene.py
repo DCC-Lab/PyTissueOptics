@@ -1,3 +1,4 @@
+import sys
 from typing import List, Dict, Optional
 
 from pytissueoptics.scene.geometry import Environment
@@ -104,3 +105,36 @@ class Scene:
             if solid.getLabel() in self._labelsOfHiddenSolids:
                 continue
             solid.setOutsideEnvironment(outsideEnvironment)
+
+    def getEnvironmentAt(self, position: Vector) -> Environment:
+        for solid in self._solids:
+            if solid.contains(position):
+                if solid.isStack():
+                    return self._getEnvironmentOfStackAt(position, solid)
+                return solid.getEnvironment()
+        # return self._worldEnvironement
+        return None
+
+    @staticmethod
+    def _getEnvironmentOfStackAt(position: Vector, stack: Solid) -> Environment:
+        """ Returns the environment of the stack at the given position.
+
+        To do that we first find the interface in the stack that is closest to the given position.
+        At the same time we find on which side of the interface we are and return the environment
+        of this side from any surface polygon.
+        """
+        environment = None
+        closestDistance = sys.maxsize
+        for surfaceLabel in stack.surfaceLabels:
+            if "interface" not in surfaceLabel:
+                continue
+            planePolygon = stack.surfaces.getPolygons(surfaceLabel)[0]
+            planeNormal = planePolygon.normal
+            planePoint = planePolygon.vertices[0]
+            v = position - planePoint
+            distanceFromPlane = v.dot(planeNormal)
+            if abs(distanceFromPlane) < closestDistance:
+                closestDistance = abs(distanceFromPlane)
+                isInside = distanceFromPlane < 0
+                environment = planePolygon.insideEnvironment if isInside else planePolygon.outsideEnvironment
+        return environment
