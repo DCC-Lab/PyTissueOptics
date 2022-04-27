@@ -31,17 +31,23 @@ float getRandomFloatValue(__global unsigned int *seedBuffer, unsigned int id){
 
 void normalizeVectorLocal(float4 *vector){
     float length = sqrt(vector->x * vector->x + vector->y * vector->y + vector->z * vector->z);
-    vector->x /= length;
-    vector->y /= length;
-    vector->z /= length;
+    if length != 0.0f {
+        vector->x /= length;
+        vector->y /= length;
+        vector->z /= length;
+    }
     }
 
 void normalizeVectorGlobal(__global float4 *vector){
+
     float length = sqrt(vector->x * vector->x + vector->y * vector->y + vector->z * vector->z);
-    vector->x /= length;
-    vector->y /= length;
-    vector->z /= length;
+    if length != 0.0f {
+        vector->x /= length;
+        vector->y /= length;
+        vector->z /= length;
     }
+    }
+
 
 void rotateAroundGlobal(__global float4 *mainVector, __global float4 *axisVector, float theta){
     normalizeVectorGlobal(axisVector);

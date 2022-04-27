@@ -15,68 +15,58 @@ class TestVectorOperations(unittest.TestCase):
         self.mf = cl.mem_flags
         self.program = cl.Program(self.ctx, open(kernelPath, 'r').read()).build()
 
+    def makeRandomVectorsAndBuffers(self, N):
+        rng = np.random.default_rng()
+        randomErValues = rng.random((N, 3), dtype=np.float32)
+        float4AddOn = np.zeros((N, 1), dtype=np.float32)
+        CPU_VectorEr = [Vector(*randomErValues[i, :]) for i in range(N)]
+        randomErValues = np.append(randomErValues, float4AddOn, axis=1)
+        randomErValuesFloat4 = [cl.cltypes.make_float4(*randomErValues[i, :]) for i in range(N)]
+        HOST_ErVectors = np.array(randomErValuesFloat4, dtype=cl.cltypes.float4)
+        DEVICE_ErVectors = cl.Buffer(self.ctx, self.mf.READ_WRITE | self.mf.COPY_HOST_PTR, hostbuf=HOST_ErVectors)
+        return CPU_VectorEr, HOST_ErVectors, DEVICE_ErVectors
+
+    def makeRandomScalarsAndBuffers(self, N):
+        rng = np.random.default_rng()
+        randomScalarValues = rng.random((N, 1), dtype=np.float32)
+        CPU_scalarValues = [randomScalarValues[i, 0] for i in range(N)]
+        HOST_ScalarValues = np.array(randomScalarValues, dtype=np.float32)
+        DEVICE_ScalarValues = cl.Buffer(self.ctx, self.mf.READ_WRITE | self.mf.COPY_HOST_PTR, hostbuf=HOST_ScalarValues)
+        return CPU_scalarValues, HOST_ScalarValues, DEVICE_ScalarValues
+
     def test_whenRotateAroundVector_GPU_and_CPU_shouldReturnSameValues(self):
         N = 3
 
-        # Make Random Values
-        rng = np.random.default_rng()
-        randomErValues = rng.random((N, 3), dtype=np.float32)
-        randomAxisValues = rng.random((N, 3), dtype=np.float32)
-        randomPhiValues = rng.random((N, 1), dtype=np.float32)
+        CPU_ErVectors, HOST_ErVectors, DEVICE_ErVectors = self.makeRandomVectorsAndBuffers(N)
+        CPU_AxisVectors, HOST_AxisVectors, DEVICE_AxisVectors = self.makeRandomVectorsAndBuffers(N)
+        CPU_PhiValues, HOST_PhiValues, DEVICE_PhiValues = self.makeRandomScalarsAndBuffers(N)
 
-        # Create the Vectors to be used on the CPU Functions
-        CPU_VectorEr = [Vector(*randomErValues[i, :]) for i in range(N)]
-        CPU_VectorAxis = [Vector(*randomAxisValues[i, :]) for i in range(N)]
-        CPU_ScalarPhi = [randomPhiValues[i, 0] for i in range(N)]
-
-        # Create the Vectors to be used on the GPU Functions
-        float4AddOn = np.zeros((N, 1))
-
-        randomAxisValues = np.append(randomAxisValues, float4AddOn, axis=1)
-        randomAxisValuesFloat4 = [cl.cltypes.make_float4(*randomAxisValues[i, :]) for i in range(N)]
-
-        randomErValues = np.append(randomErValues, float4AddOn, axis=1)
-        randomErValuesFloat4 = [cl.cltypes.make_float4(*randomErValues[i, :]) for i in range(N)]
-
-        # Create the GPU Buffers
-        HOST_AxisVectors = np.array(randomAxisValuesFloat4, dtype=cl.cltypes.float4)
-        DEVICE_AxisVectors = cl.Buffer(self.ctx, self.mf.READ_ONLY | self.mf.COPY_HOST_PTR, hostbuf=HOST_AxisVectors)
-        HOST_ErVectors = np.array(randomErValuesFloat4, dtype=cl.cltypes.float4)
-        DEVICE_ErVectors = cl.Buffer(self.ctx, self.mf.READ_WRITE | self.mf.COPY_HOST_PTR, hostbuf=HOST_ErVectors)
-        HOST_Phi = np.array(randomPhiValues, dtype=cl.cltypes.float)
-        DEVICE_Phi = cl.Buffer(self.ctx, self.mf.READ_ONLY | self.mf.COPY_HOST_PTR, hostbuf=HOST_Phi)
-
-        #print(HOST_ErVectors)
-
-        # Execute the CPU Functions
-        for i, vector in enumerate(CPU_VectorEr):
-            vector.rotateAround(CPU_VectorAxis[i], CPU_ScalarPhi[i])
-        CPU_VectorErResults = np.array([[vector.x, vector.y, vector.z] for vector in CPU_VectorEr])
+        for vector in CPU_AxisVectors:
+            vector.normalize()
+        for i, vector in enumerate(CPU_ErVectors):
+            vector.rotateAround(CPU_AxisVectors[i], CPU_PhiValues[i])
+        CPU_VectorErResults = np.array([[vector.x, vector.y, vector.z] for vector in CPU_ErVectors])
         print(CPU_VectorErResults)
 
-        # Execute the GPU Functions
-        self.program.rotateAroundAxisKernel(self.queue, HOST_AxisVectors.shape, None, DEVICE_ErVectors, DEVICE_AxisVectors, DEVICE_Phi)
+        self.program.rotateAroundAxisKernel(self.queue, HOST_AxisVectors.shape, None, DEVICE_ErVectors, DEVICE_AxisVectors, DEVICE_PhiValues)
         cl.enqueue_copy(self.queue, HOST_ErVectors, DEVICE_ErVectors)
 
-        #print(HOST_ErVectors)
         GPU_VectorErResults = rfn.structured_to_unstructured(HOST_ErVectors)
         GPU_VectorErResults = np.delete(GPU_VectorErResults, -1, axis=1)
+        self.assertTrue(np.allclose(GPU_VectorErResults, CPU_VectorErResults))
+
+    def test_whenNormalizeVector_GPU_and_CPU_shouldReturnSameValue(self):
+        N = 3
+        CPU_VectorEr, HOST_ErVectors, DEVICE_ErVectors = self.makeRandomVectorsAndBuffers(N)
+
+        self.program.normalizeVectorKernel(self.queue, HOST_ErVectors.shape, None, DEVICE_ErVectors)
+        cl.enqueue_copy(self.queue, HOST_ErVectors, DEVICE_ErVectors)
+
+        GPU_VectorErResults = rfn.structured_to_unstructured(HOST_ErVectors)
+        GPU_VectorErResults = np.delete(GPU_VectorErResults, -1, axis=1)
+        for i, vector in enumerate(CPU_VectorEr):
+            vector.normalize()
+        CPU_VectorErResults = np.array([[vector.x, vector.y, vector.z] for vector in CPU_VectorEr])
         print(GPU_VectorErResults)
-
-
-
-#
-# HOST_random_er = np.random.random((N, 4), dtype=cl.cltypes.float4)
-# DEVICE_random_er = cl.Buffer(context, cl.mem_flags.READ_WRITE | cl.mem_flags.COPY_HOST_PTR,
-#                                     hostbuf=HOST_random_er)
-# # HOST_randomFloat = np.empty(N, dtype=cl.cltypes.float)
-# # DEVICE_randomFloat = cl.Buffer(context, cl.mem_flags.READ_WRITE | cl.mem_flags.COPY_HOST_PTR,
-# #                                      hostbuf=HOST_randomFloat)
-#
-# with open(kernelPath, "r") as kernelFile:
-#     kernelSource = kernelFile.read()
-#     program = cl.Program(context, kernelSource).build()
-
-# program.fillRandomFloatBuffer(mainQueue, (N,), None, DEVICE_randomSeed, DEVICE_randomFloat)
-# cl.enqueue_copy(mainQueue, HOST_randomFloat, DEVICE_randomFloat)
-# randomVectors
+        print(CPU_VectorErResults)
+        self.assertTrue(np.all(np.isclose(GPU_VectorErResults, CPU_VectorErResults)))

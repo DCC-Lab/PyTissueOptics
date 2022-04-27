@@ -5,12 +5,15 @@ void normalizeVector(__global float4 *vector){
     vector->z /= length;
     }
 
-
+__kernel void normalizeVectorKernel(__global float4 *vectors){
+    uint id = get_global_id(0);
+    normalizeVector(&vectors[id]);
+    }
 
 
 void rotateAroundAxis(__global float4 *mainVector, __global float4 *axisVector, float theta){
     normalizeVector(axisVector);
-    normalizeVector(mainVector);
+    //normalizeVector(mainVector);
     float sint = sin(theta);
     float cost = cos(theta);
     float one_cost = 1.0f - cost;
@@ -35,7 +38,7 @@ void rotateAroundAxis(__global float4 *mainVector, __global float4 *axisVector, 
     }
 
 __kernel void rotateAroundAxisKernel(__global float4 *vector, __global float4 *axis, __global float *angle){
-    int i = get_global_id(0);
+    uint i = get_global_id(0);
     rotateAroundAxis(&vector[i], &axis[i], angle[i]);
     }
 
