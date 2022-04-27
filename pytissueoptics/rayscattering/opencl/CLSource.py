@@ -15,6 +15,8 @@ class CLSource:
         photons = CLPhotons(self, worldMaterial, logger)
         photons.propagate()
 
+    def getPhotonCount(self):
+        return self.N
 
 class CLPencilSource(CLSource):
     def __init__(self, position=Vector(0, 0, 0), direction=Vector(0, 0, 1), N=100, worldMaterial=ScatteringMaterial()):

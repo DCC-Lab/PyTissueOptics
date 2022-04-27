@@ -1,3 +1,5 @@
+import numpy as np
+
 from pytissueoptics.rayscattering import Stats
 from pytissueoptics.rayscattering.opencl.CLSource import CLPencilSource
 from pytissueoptics.rayscattering.materials import ScatteringMaterial
@@ -19,9 +21,13 @@ These parameters will be used to mimic the parameters a typical user would utili
 
 worldMaterial = ScatteringMaterial(mu_s=30, mu_a=0.1, g=0.8, index=1.4)
 logger = Logger()
-source = CLPencilSource(position=Vector(0, 0, 0), direction=Vector(0, 0, 1), N=1000)
+source = CLPencilSource(position=Vector(0, 0, 0), direction=Vector(0, 0, 1), N=9900)
 
 source.propagate(worldMaterial=worldMaterial, logger=logger)
+a = logger.getDataPoints()
+for i, data in enumerate(a):
+    for d in data:
+        if np.isnan(d) or np.isinf(d):
+            print(data)
 
-stats = Stats(logger, source)
-stats.showEnergy2D()
+

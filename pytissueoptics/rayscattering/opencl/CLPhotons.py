@@ -4,9 +4,10 @@ import time
 import pyopencl as cl
 import pyopencl.tools
 import numpy as np
+from numpy.lib import recfunctions as rfn
 
 from pytissueoptics.rayscattering.materials import ScatteringMaterial
-
+from pytissueoptics.scene.logger import InteractionKey
 
 class CLPhotons:
     def __init__(self, source: 'CLSource', worldMaterial: ScatteringMaterial, logger=None, weightThreshold=0.0001):
@@ -63,8 +64,11 @@ class CLPhotons:
         cl.enqueue_copy(self._mainQueue, dest=self._HOST_logger, src=self._DEVICE_logger)
         t1 = time.time_ns()
         print("CLPhotons.propagate: {} s".format((t1 - t0)/ 1e9))
-
-        self._logger.logPointDataArray(self._HOST_logger, InteractionKey("world", None))
+        # print(np.asarray(self._HOST_logger, dtype=np.float32).shape)
+        print(self._HOST_logger)
+        log = rfn.structured_to_unstructured(self._HOST_logger)
+        print(log)
+        self._logger.logDataPointArray(log, InteractionKey("world", None))
 
     def _makeTypes(self):
         def makePhotonType():

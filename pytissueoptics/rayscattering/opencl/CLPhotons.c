@@ -149,11 +149,21 @@ void scatterBy(__global photonStruct *photons, float phi, float theta, uint gid)
     rotateAround(&photons[gid].direction, &photons[gid].er, theta);
 }
 
+void roulette(__global photonStruct *photons, __global uint * randomSeedBuffer, uint gid){
+    float randomFloat = getRandomFloatValue(randomSeedBuffer, gid);
+    if (randomFloat < 0.1f){
+        photons[gid].weight /= 0.1f;
+    }
+    else{
+        photons[gid].weight = 0.0f;
+    }
+}
+
 __kernel void propagate(uint dataSize, float weightThreshold, __global photonStruct *photons, __constant materialStruct *materials, __global loggerStruct *logger, __global float *randomNums, __global uint *seedBuffer){
     uint gid = get_global_id(0);
     uint stepIndex = 0;
     uint logIndex = 0;
-    while (photons[gid].weight > weightThreshold){
+    while (photons[gid].weight >= weightThreshold){
         logIndex = gid + stepIndex * dataSize;
         randomNums[gid] = getRandomFloatValue(seedBuffer, gid);
         float distance = getScatteringDistance(photons, materials, randomNums, gid);
@@ -165,5 +175,8 @@ __kernel void propagate(uint dataSize, float weightThreshold, __global photonStr
         scatterBy(photons, phi, theta, gid);
         interact(photons, materials, logger, gid, logIndex);
         stepIndex++;
+        //if (photons[gid].weight <= weightThreshold){
+         //   roulette(photons, seedBuffer, gid);
+//        }
     }
 }
