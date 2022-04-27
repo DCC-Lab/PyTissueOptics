@@ -29,15 +29,48 @@ float getRandomFloatValue(__global unsigned int *seedBuffer, unsigned int id){
 // VECTOR OPERATIONS
 //----------------------------------------------------------------------------------------------------------------------
 
-void normalizeVector(float4 *vector){
+void normalizeVectorLocal(float4 *vector){
     float length = sqrt(vector->x * vector->x + vector->y * vector->y + vector->z * vector->z);
     vector->x /= length;
     vector->y /= length;
     vector->z /= length;
     }
 
-void rotateAround(float4 *mainVector, float4 *axisVector, float theta){
-    normalizeVector(axisVector);
+void normalizeVectorGlobal(__global float4 *vector){
+    float length = sqrt(vector->x * vector->x + vector->y * vector->y + vector->z * vector->z);
+    vector->x /= length;
+    vector->y /= length;
+    vector->z /= length;
+    }
+
+void rotateAroundGlobal(__global float4 *mainVector, __global float4 *axisVector, float theta){
+    normalizeVectorGlobal(axisVector);
+    //normalizeVector(mainVector);
+    float sint = sin(theta);
+    float cost = cos(theta);
+    float one_cost = 1.0f - cost;
+    float ux = axisVector->x;
+    float uy = axisVector->y;
+    float uz = axisVector->z;
+    float X = mainVector->x;
+    float Y = mainVector->y;
+    float Z = mainVector->z;
+    float x = (cost + ux * ux * one_cost) * X \
+            + (ux * uy * one_cost - uz * sint) * Y \
+            + (ux * uz * one_cost + uy * sint) * Z;
+    float y = (uy * ux * one_cost + uz * sint) * X \
+            + (cost + uy * uy * one_cost) * Y \
+            + (uy * uz * one_cost - ux * sint) * Z;
+    float z = (uz * ux * one_cost - uy * sint) * X \
+            + (uz * uy * one_cost + ux * sint) * Y \
+            + (cost + uz * uz * one_cost) * Z;
+    mainVector->x = x;
+    mainVector->y = y;
+    mainVector->z = z;
+    }
+
+void rotateAroundLocal(float4 *mainVector, float4 *axisVector, float theta){
+    normalizeVectorLocal(axisVector);
     //normalizeVector(mainVector);
     float sint = sin(theta);
     float cost = cos(theta);
@@ -96,8 +129,8 @@ __kernel void fillIsotropicPhotonsBuffer(__global photonStruct *photons, __globa
     float phi = 2.0f * M_PI * randomFloat;
     float randomFloat2 = getRandomFloatValue(randomSeedBuffer, gid);
     float theta = acos(2.0f * randomFloat2 - 1.0f);
-    rotateAround(&er, &direction, phi);
-    rotateAround(&direction, &er, theta);
+    rotateAroundLocal(&er, &direction, phi);
+    rotateAroundLocal(&direction, &er, theta);
     photons[gid].direction = direction;
     photons[gid].er = er;
     photons[gid].weight = 1.0f;
@@ -145,8 +178,8 @@ float getScatteringAngleTheta(__global photonStruct *photons,__constant material
 }
 
 void scatterBy(__global photonStruct *photons, float phi, float theta, uint gid){
-    rotateAround(&photons[gid].er, &photons[gid].direction, phi);
-    rotateAround(&photons[gid].direction, &photons[gid].er, theta);
+    rotateAroundGlobal(&photons[gid].er, &photons[gid].direction, phi);
+    rotateAroundGlobal(&photons[gid].direction, &photons[gid].er, theta);
 }
 
 void roulette(__global photonStruct *photons, __global uint * randomSeedBuffer, uint gid){
