@@ -9,8 +9,10 @@ from pytissueoptics.scene.solids import Solid
 
 
 class TestScene(unittest.TestCase):
+    WORLD_MATERIAL = "worldMaterial"
+
     def setUp(self):
-        self.scene = Scene()
+        self.scene = Scene(worldMaterial=self.WORLD_MATERIAL)
 
     def testWhenAddingASolidAtAPosition_shouldPlaceTheSolidAtTheDesiredPosition(self):
         SOLID_POSITION = Vector(4, 0, 1)
@@ -150,17 +152,25 @@ class TestScene(unittest.TestCase):
         verify(solid1, times=0).setLabel(...)
         verify(solid2).setLabel("solid_0")
 
-    def testWhenSetOutsideMaterial_shouldSetOutsideMaterialOfAllTheSolidsThatAreNotContained(self):
+    def testWhenResetOutsideMaterial_shouldSetOutsideMaterialOfAllTheSolidsThatAreNotContained(self):
         INSIDE_SOLID = self.makeSolidWith(BoundingBox([1, 4], [1, 4], [1, 4]), name="InsideSolid")
         self.scene.add(INSIDE_SOLID)
         SOLID = self.makeSolidWith(BoundingBox([-1, 6], [-1, 6], [-1, 6]), contains=True, name="solid")
         self.scene.add(SOLID)
-        worldMaterial = "World"
 
-        self.scene.setOutsideMaterial(worldMaterial)
+        self.scene.resetOutsideMaterial()
 
-        verify(SOLID, times=1).setOutsideEnvironment(Environment(worldMaterial))
-        verify(INSIDE_SOLID, times=0).setOutsideEnvironment(Environment(worldMaterial))
+        verify(SOLID, times=1).setOutsideEnvironment(Environment(self.WORLD_MATERIAL))
+        verify(INSIDE_SOLID, times=0).setOutsideEnvironment(Environment(self.WORLD_MATERIAL))
+
+    def testWhenCreatingSceneFromSolids_shouldAutomaticallyResetOutsideMaterialOfAllSolidsThatAreNotContained(self):
+        INSIDE_SOLID = self.makeSolidWith(BoundingBox([1, 4], [1, 4], [1, 4]), name="InsideSolid")
+        SOLID = self.makeSolidWith(BoundingBox([-1, 6], [-1, 6], [-1, 6]), contains=True, name="solid")
+
+        Scene([SOLID, INSIDE_SOLID], worldMaterial=self.WORLD_MATERIAL)
+
+        verify(SOLID, times=1).setOutsideEnvironment(Environment(self.WORLD_MATERIAL))
+        verify(INSIDE_SOLID, times=0).setOutsideEnvironment(Environment(self.WORLD_MATERIAL))
 
     def testWhenGetEnvironmentWithPositionContainedInASolid_shouldReturnEnvironmentOfThisSolid(self):
         SOLID = self.makeSolidWith(BoundingBox([1, 4], [1, 4], [1, 4]), contains=True)
@@ -170,13 +180,13 @@ class TestScene(unittest.TestCase):
 
         self.assertEqual(SOLID.getEnvironment(), env)
 
-    def testWhenGetEnvironmentWithPositionOutsideAllSolids_shouldReturnNone(self):
+    def testWhenGetEnvironmentWithPositionOutsideAllSolids_shouldReturnWorldEnvironment(self):
         SOLID = self.makeSolidWith(BoundingBox([1, 4], [1, 4], [1, 4]))
         self.scene.add(SOLID)
 
         env = self.scene.getEnvironmentAt(Vector(0, 0, 0))
 
-        self.assertIsNone(env)
+        self.assertEqual(self.scene.getWorldEnvironment(), env)
 
     def testWhenGetEnvironmentWithPositionContainedInAStack_shouldReturnEnvironmentOfProperStackLayer(self):
         frontLayer = Cuboid(1, 1, 1, material="frontMaterial")

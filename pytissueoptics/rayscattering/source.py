@@ -1,10 +1,8 @@
 from typing import List
 
-from pytissueoptics.rayscattering.materials import ScatteringMaterial
 from pytissueoptics.rayscattering.tissues.rayScatteringScene import RayScatteringScene
-from pytissueoptics.scene import Vector
 from pytissueoptics.rayscattering.photon import Photon
-from pytissueoptics.scene.geometry import Environment
+from pytissueoptics.scene.geometry import Vector
 from pytissueoptics.scene.intersection import SimpleIntersectionFinder
 from pytissueoptics.scene.logger import Logger
 
@@ -17,12 +15,11 @@ class Source:
 
         self._photons = photons
 
-    def propagate(self, scene: RayScatteringScene, worldMaterial: ScatteringMaterial = ScatteringMaterial(), logger: Logger = None):
+    def propagate(self, scene: RayScatteringScene, logger: Logger = None):
         intersectionFinder = SimpleIntersectionFinder(scene)
-        scene.setOutsideMaterial(worldMaterial)
-        worldEnvironment = Environment(worldMaterial)
+        sourceEnvironment = scene.getEnvironmentAt(self._position)
         for photon in self._photons:
-            photon.setContext(worldEnvironment, intersectionFinder=intersectionFinder, logger=logger)
+            photon.setContext(sourceEnvironment, intersectionFinder=intersectionFinder, logger=logger)
             photon.propagate()
 
     @property

@@ -8,14 +8,18 @@ from pytissueoptics.scene.geometry import Polygon, BoundingBox
 
 
 class Scene:
-    def __init__(self, solids: List[Solid] = None, ignoreIntersections=False):
+    def __init__(self, solids: List[Solid] = None, ignoreIntersections=False,
+                 worldMaterial=None):
         self._solids = []
         self._ignoreIntersections = ignoreIntersections
         self._labelsOfHiddenSolids = []
+        self._worldMaterial = worldMaterial
         
         if solids:
             for solid in solids:
                 self.add(solid)
+
+        self.resetOutsideMaterial()
 
     def add(self, solid: Solid, position: Vector = None):
         if position:
@@ -28,6 +32,9 @@ class Scene:
     @property
     def solids(self):
         return self._solids
+
+    def getWorldEnvironment(self) -> Environment:
+        return Environment(self._worldMaterial)
 
     def _validatePosition(self, newSolid: Solid):
         """ Assert newSolid position is valid and make proper adjustments so that the
@@ -99,8 +106,8 @@ class Scene:
             bbox.extendTo(solid.getBoundingBox())
         return bbox
 
-    def setOutsideMaterial(self, material):
-        outsideEnvironment = Environment(material)
+    def resetOutsideMaterial(self):
+        outsideEnvironment = self.getWorldEnvironment()
         for solid in self._solids:
             if solid.getLabel() in self._labelsOfHiddenSolids:
                 continue
@@ -112,8 +119,7 @@ class Scene:
                 if solid.isStack():
                     return self._getEnvironmentOfStackAt(position, solid)
                 return solid.getEnvironment()
-        # return self._worldEnvironement
-        return None
+        return self.getWorldEnvironment()
 
     @staticmethod
     def _getEnvironmentOfStackAt(position: Vector, stack: Solid) -> Environment:
