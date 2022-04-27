@@ -2,6 +2,7 @@ import unittest
 
 from mockito import mock, verify, when
 
+from pytissueoptics.scene import Cuboid
 from pytissueoptics.scene.scene import Scene
 from pytissueoptics.scene.geometry import Vector, BoundingBox, Environment
 from pytissueoptics.scene.solids import Solid
@@ -160,6 +161,37 @@ class TestScene(unittest.TestCase):
 
         verify(SOLID, times=1).setOutsideEnvironment(Environment(worldMaterial))
         verify(INSIDE_SOLID, times=0).setOutsideEnvironment(Environment(worldMaterial))
+
+    def testWhenGetEnvironmentWithPositionContainedInASolid_shouldReturnEnvironmentOfThisSolid(self):
+        SOLID = self.makeSolidWith(BoundingBox([1, 4], [1, 4], [1, 4]), contains=True)
+        self.scene.add(SOLID)
+
+        env = self.scene.getEnvironmentAt(Vector(2, 2, 2))
+
+        self.assertEqual(SOLID.getEnvironment(), env)
+
+    def testWhenGetEnvironmentWithPositionOutsideAllSolids_shouldReturnNone(self):
+        SOLID = self.makeSolidWith(BoundingBox([1, 4], [1, 4], [1, 4]))
+        self.scene.add(SOLID)
+
+        env = self.scene.getEnvironmentAt(Vector(0, 0, 0))
+
+        self.assertIsNone(env)
+
+    def testWhenGetEnvironmentWithPositionContainedInAStack_shouldReturnEnvironmentOfProperStackLayer(self):
+        frontLayer = Cuboid(1, 1, 1, material="frontMaterial")
+        middleLayer = Cuboid(1, 1, 1, material="middleMaterial")
+        backLayer = Cuboid(1, 1, 1, material="backMaterial")
+        stack = backLayer.stack(middleLayer, 'front').stack(frontLayer, 'front')
+        self.scene.add(stack, position=Vector(0, 0, 0))
+
+        frontEnv = self.scene.getEnvironmentAt(Vector(0, 0, -1))
+        middleEnv = self.scene.getEnvironmentAt(Vector(0, 0, 0))
+        backEnv = self.scene.getEnvironmentAt(Vector(0, 0, 1))
+
+        self.assertEqual(Environment("frontMaterial", frontLayer), frontEnv)
+        self.assertEqual(Environment("middleMaterial", middleLayer), middleEnv)
+        self.assertEqual(Environment("backMaterial", backLayer), backEnv)
 
     @staticmethod
     def makeSolidWith(bbox: BoundingBox = None, contains=False, isStack=False, name="solid"):
