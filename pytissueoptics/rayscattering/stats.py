@@ -33,10 +33,12 @@ class PointCloud:
 
 class DisplayConfig:
     """ 3D display configuration dataclass for solid and surface point cloud. """
-    def __init__(self, showScene: bool = True,
+    def __init__(self, showScene: bool = True, showSource: bool = True, sourceSize: float = 0.1,
                  pointSize: float = 0.15, scaleWithValue: bool = True, colormap: str = "rainbow", reverseColormap: bool = False,
                  surfacePointSize: float = 0.01, surfaceScaleWithValue: bool = False, surfaceColormap: str = None, surfaceReverseColormap: bool = None):
         self.showScene = showScene
+        self.showSource = showSource
+        self.sourceSize = sourceSize
 
         self.pointSize = pointSize
         self.scaleWithValue = scaleWithValue
@@ -59,6 +61,7 @@ class Stats:
         solidSource = source.getEnvironment().solid
         self._sourceSolidLabel = solidSource.getLabel() if solidSource else None
         self._photonCount = source.getPhotonCount()
+        self._source = source
 
     def showEnergy3D(self, solidLabel: str = None, surfaceLabel: str = None, config=DisplayConfig()):
         pointCloud = self.getPointCloud(solidLabel, surfaceLabel)
@@ -81,6 +84,9 @@ class Stats:
                 warnings.warn("Cannot display Scene objects when no scene was provided to the Stats.")
             else:
                 self._scene.addToViewer(viewer)
+
+        if config.showSource:
+            self._source.addToViewer(viewer, size=config.sourceSize)
 
         if pointCloud.solidPoints is not None:
             viewer.addDataPoints(pointCloud.solidPoints, scale=config.pointSize,
