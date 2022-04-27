@@ -35,7 +35,7 @@ class TestVectorOperations(unittest.TestCase):
         return CPU_scalarValues, HOST_ScalarValues, DEVICE_ScalarValues
 
     def test_whenRotateAroundVector_GPU_and_CPU_shouldReturnSameValues(self):
-        N = 3
+        N = 500
 
         CPU_ErVectors, HOST_ErVectors, DEVICE_ErVectors = self.makeRandomVectorsAndBuffers(N)
         CPU_AxisVectors, HOST_AxisVectors, DEVICE_AxisVectors = self.makeRandomVectorsAndBuffers(N)
@@ -46,17 +46,17 @@ class TestVectorOperations(unittest.TestCase):
         for i, vector in enumerate(CPU_ErVectors):
             vector.rotateAround(CPU_AxisVectors[i], CPU_PhiValues[i])
         CPU_VectorErResults = np.array([[vector.x, vector.y, vector.z] for vector in CPU_ErVectors])
-        print(CPU_VectorErResults)
 
         self.program.rotateAroundAxisKernel(self.queue, HOST_AxisVectors.shape, None, DEVICE_ErVectors, DEVICE_AxisVectors, DEVICE_PhiValues)
         cl.enqueue_copy(self.queue, HOST_ErVectors, DEVICE_ErVectors)
 
         GPU_VectorErResults = rfn.structured_to_unstructured(HOST_ErVectors)
         GPU_VectorErResults = np.delete(GPU_VectorErResults, -1, axis=1)
-        self.assertTrue(np.allclose(GPU_VectorErResults, CPU_VectorErResults))
+
+        self.assertTrue(np.allclose(GPU_VectorErResults, CPU_VectorErResults, atol=1e-3))
 
     def test_whenNormalizeVector_GPU_and_CPU_shouldReturnSameValue(self):
-        N = 3
+        N = 300
         CPU_VectorEr, HOST_ErVectors, DEVICE_ErVectors = self.makeRandomVectorsAndBuffers(N)
 
         self.program.normalizeVectorKernel(self.queue, HOST_ErVectors.shape, None, DEVICE_ErVectors)
@@ -67,6 +67,5 @@ class TestVectorOperations(unittest.TestCase):
         for i, vector in enumerate(CPU_VectorEr):
             vector.normalize()
         CPU_VectorErResults = np.array([[vector.x, vector.y, vector.z] for vector in CPU_VectorEr])
-        print(GPU_VectorErResults)
-        print(CPU_VectorErResults)
+
         self.assertTrue(np.all(np.isclose(GPU_VectorErResults, CPU_VectorErResults)))
