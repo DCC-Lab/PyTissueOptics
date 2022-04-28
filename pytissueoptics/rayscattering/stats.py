@@ -33,10 +33,12 @@ class PointCloud:
 
 class DisplayConfig:
     """ 3D display configuration dataclass for solid and surface point cloud. """
-    def __init__(self, showScene: bool = True,
+    def __init__(self, showScene: bool = True, showSource: bool = True, sourceSize: float = 0.1,
                  pointSize: float = 0.15, scaleWithValue: bool = True, colormap: str = "rainbow", reverseColormap: bool = False,
                  surfacePointSize: float = 0.01, surfaceScaleWithValue: bool = False, surfaceColormap: str = None, surfaceReverseColormap: bool = None):
         self.showScene = showScene
+        self.showSource = showSource
+        self.sourceSize = sourceSize
 
         self.pointSize = pointSize
         self.scaleWithValue = scaleWithValue
@@ -55,7 +57,11 @@ class Stats:
     def __init__(self, logger: Logger, source: Source, scene: RayScatteringScene = None):
         self._logger = logger
         self._scene = scene
+
+        solidSource = source.getEnvironment().solid
+        self._sourceSolidLabel = solidSource.getLabel() if solidSource else None
         self._photonCount = source.getPhotonCount()
+        self._source = source
 
     def showEnergy3D(self, solidLabel: str = None, surfaceLabel: str = None, config=DisplayConfig()):
         pointCloud = self.getPointCloud(solidLabel, surfaceLabel)
@@ -78,6 +84,9 @@ class Stats:
                 warnings.warn("Cannot display Scene objects when no scene was provided to the Stats.")
             else:
                 self._scene.addToViewer(viewer)
+
+        if config.showSource:
+            self._source.addToViewer(viewer, size=config.sourceSize)
 
         if pointCloud.solidPoints is not None:
             viewer.addDataPoints(pointCloud.solidPoints, scale=config.pointSize,
@@ -157,7 +166,6 @@ class Stats:
             points = pointCloud.leavingSurfacePoints
         else:
             points = pointCloud.solidPoints
-        # todo: follow base implementation with value first
         scatter = np.concatenate([points[:, 1:], points[:, :1]], axis=1)
         return scatter
 
@@ -189,16 +197,15 @@ class Stats:
         if solidLabel is None:
             return self._photonCount
         points = self._getPointCloudOfSurfaces(solidLabel).enteringSurfacePoints
-        if points is None:
-            return 0
-        energy = -np.sum(points[:, 0])
+        energy = -np.sum(points[:, 0]) if points is not None else 0
+
+        if self._sourceSolidLabel == solidLabel:
+            energy += self._photonCount
         return energy
 
     def getTransmittance(self, solidLabel: str = None, surfaceLabel: str = None, useTotalEnergy=False):
         """ Uses local energy input for the desired solid by default. Specify 'useTotalEnergy' = True
         to compare instead with total input energy of the scene. """
-        # fixme: transmittance is wrong for cuboid stacks since each stacked layer loses reference to its
-        #  previous interface (only base layer will be complete)
         if surfaceLabel is None:
             points = self._getPointCloudOfSurfaces(solidLabel).leavingSurfacePoints
         else:

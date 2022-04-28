@@ -7,9 +7,9 @@ class PhantomTissue(RayScatteringScene):
     """ Phantom tissue consisting of 3 layers with various optical properties. """
     TISSUE = []
 
-    def __init__(self):
+    def __init__(self, worldMaterial=ScatteringMaterial()):
         self._create()
-        super().__init__(self.TISSUE)
+        super().__init__(self.TISSUE, worldMaterial)
 
     def _create(self):
         n = [1.4, 1.7, 1.4]

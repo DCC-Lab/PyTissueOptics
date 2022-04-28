@@ -2,14 +2,17 @@ import unittest
 
 from mockito import mock, verify, when
 
+from pytissueoptics.scene import Cuboid
 from pytissueoptics.scene.scene import Scene
 from pytissueoptics.scene.geometry import Vector, BoundingBox, Environment
 from pytissueoptics.scene.solids import Solid
 
 
 class TestScene(unittest.TestCase):
+    WORLD_MATERIAL = "worldMaterial"
+
     def setUp(self):
-        self.scene = Scene()
+        self.scene = Scene(worldMaterial=self.WORLD_MATERIAL)
 
     def testWhenAddingASolidAtAPosition_shouldPlaceTheSolidAtTheDesiredPosition(self):
         SOLID_POSITION = Vector(4, 0, 1)
@@ -149,17 +152,56 @@ class TestScene(unittest.TestCase):
         verify(solid1, times=0).setLabel(...)
         verify(solid2).setLabel("solid_0")
 
-    def testWhenSetOutsideMaterial_shouldSetOutsideMaterialOfAllTheSolidsThatAreNotContained(self):
+    def testWhenResetOutsideMaterial_shouldSetOutsideMaterialOfAllTheSolidsThatAreNotContained(self):
         INSIDE_SOLID = self.makeSolidWith(BoundingBox([1, 4], [1, 4], [1, 4]), name="InsideSolid")
         self.scene.add(INSIDE_SOLID)
         SOLID = self.makeSolidWith(BoundingBox([-1, 6], [-1, 6], [-1, 6]), contains=True, name="solid")
         self.scene.add(SOLID)
-        worldMaterial = "World"
 
-        self.scene.setOutsideMaterial(worldMaterial)
+        self.scene.resetOutsideMaterial()
 
-        verify(SOLID, times=1).setOutsideEnvironment(Environment(worldMaterial))
-        verify(INSIDE_SOLID, times=0).setOutsideEnvironment(Environment(worldMaterial))
+        verify(SOLID, times=1).setOutsideEnvironment(Environment(self.WORLD_MATERIAL))
+        verify(INSIDE_SOLID, times=0).setOutsideEnvironment(Environment(self.WORLD_MATERIAL))
+
+    def testWhenCreatingSceneFromSolids_shouldAutomaticallyResetOutsideMaterialOfAllSolidsThatAreNotContained(self):
+        INSIDE_SOLID = self.makeSolidWith(BoundingBox([1, 4], [1, 4], [1, 4]), name="InsideSolid")
+        SOLID = self.makeSolidWith(BoundingBox([-1, 6], [-1, 6], [-1, 6]), contains=True, name="solid")
+
+        Scene([SOLID, INSIDE_SOLID], worldMaterial=self.WORLD_MATERIAL)
+
+        verify(SOLID, times=1).setOutsideEnvironment(Environment(self.WORLD_MATERIAL))
+        verify(INSIDE_SOLID, times=0).setOutsideEnvironment(Environment(self.WORLD_MATERIAL))
+
+    def testWhenGetEnvironmentWithPositionContainedInASolid_shouldReturnEnvironmentOfThisSolid(self):
+        SOLID = self.makeSolidWith(BoundingBox([1, 4], [1, 4], [1, 4]), contains=True)
+        self.scene.add(SOLID)
+
+        env = self.scene.getEnvironmentAt(Vector(2, 2, 2))
+
+        self.assertEqual(SOLID.getEnvironment(), env)
+
+    def testWhenGetEnvironmentWithPositionOutsideAllSolids_shouldReturnWorldEnvironment(self):
+        SOLID = self.makeSolidWith(BoundingBox([1, 4], [1, 4], [1, 4]))
+        self.scene.add(SOLID)
+
+        env = self.scene.getEnvironmentAt(Vector(0, 0, 0))
+
+        self.assertEqual(self.scene.getWorldEnvironment(), env)
+
+    def testWhenGetEnvironmentWithPositionContainedInAStack_shouldReturnEnvironmentOfProperStackLayer(self):
+        frontLayer = Cuboid(1, 1, 1, material="frontMaterial")
+        middleLayer = Cuboid(1, 1, 1, material="middleMaterial")
+        backLayer = Cuboid(1, 1, 1, material="backMaterial")
+        stack = backLayer.stack(middleLayer, 'front').stack(frontLayer, 'front')
+        self.scene.add(stack, position=Vector(0, 0, 0))
+
+        frontEnv = self.scene.getEnvironmentAt(Vector(0, 0, -1))
+        middleEnv = self.scene.getEnvironmentAt(Vector(0, 0, 0))
+        backEnv = self.scene.getEnvironmentAt(Vector(0, 0, 1))
+
+        self.assertEqual(Environment("frontMaterial", frontLayer), frontEnv)
+        self.assertEqual(Environment("middleMaterial", middleLayer), middleEnv)
+        self.assertEqual(Environment("backMaterial", backLayer), backEnv)
 
     @staticmethod
     def makeSolidWith(bbox: BoundingBox = None, contains=False, isStack=False, name="solid"):

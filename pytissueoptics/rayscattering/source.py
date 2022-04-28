@@ -1,12 +1,12 @@
 from typing import List
 
-from pytissueoptics.rayscattering.materials import ScatteringMaterial
 from pytissueoptics.rayscattering.tissues.rayScatteringScene import RayScatteringScene
-from pytissueoptics.scene import Vector
 from pytissueoptics.rayscattering.photon import Photon
-from pytissueoptics.scene.geometry import Environment
+from pytissueoptics.scene.solids import Sphere
+from pytissueoptics.scene.geometry import Vector, Environment
 from pytissueoptics.scene.intersection import SimpleIntersectionFinder
 from pytissueoptics.scene.logger import Logger
+from pytissueoptics.scene.viewer import MayaviViewer
 
 
 class Source:
@@ -16,13 +16,14 @@ class Source:
         self._direction.normalize()
 
         self._photons = photons
+        self._environment = None
 
-    def propagate(self, scene: RayScatteringScene, worldMaterial: ScatteringMaterial = ScatteringMaterial(), logger: Logger = None):
+    def propagate(self, scene: RayScatteringScene, logger: Logger = None):
         intersectionFinder = SimpleIntersectionFinder(scene)
-        scene.setOutsideMaterial(worldMaterial)
-        worldEnvironment = Environment(worldMaterial)
+        self._environment = scene.getEnvironmentAt(self._position)
+
         for photon in self._photons:
-            photon.setContext(worldEnvironment, intersectionFinder=intersectionFinder, logger=logger)
+            photon.setContext(self._environment, intersectionFinder=intersectionFinder, logger=logger)
             photon.propagate()
 
     @property
@@ -31,6 +32,18 @@ class Source:
 
     def getPhotonCount(self) -> int:
         return len(self._photons)
+
+    def getPosition(self) -> Vector:
+        return self._position
+
+    def getEnvironment(self) -> Environment:
+        if self._environment is None:
+            return Environment(None)
+        return self._environment
+
+    def addToViewer(self, viewer: MayaviViewer, size: float = 0.1):
+        sphere = Sphere(radius=size/2, position=self._position)
+        viewer.add(sphere, representation="surface", colormap="Wistia", opacity=0.8)
 
 
 class PencilSource(Source):
