@@ -12,16 +12,27 @@ void interact(__global photonStruct *photons, __constant materialStruct *materia
 }
 
 void moveBy(__global photonStruct *photons, float distance, uint gid){
-    photons[gid].position += distance * photons[gid].direction;
+    photons[gid].position += (distance * photons[gid].direction);
 }
 
-float getScatteringDistance(__global photonStruct *photons,__constant materialStruct *materials, __global float * randomNums, uint gid){
-    return -log(randomNums[gid]) / materials[photons[gid].material_id].mu_t;
+float getScatteringDistance(__global float * randomNums, float mu_t, uint gid){
+    return -log(randomNums[gid]) / mu_t;
 }
 
+__kernel void getScatteringDistanceKernel(__global float * distanceBuffer, __global float * randomNums, float mu_t){
+    uint gid = get_global_id(0);
+    distanceBuffer[gid] = getScatteringDistance(randomNums, mu_t, gid);
+}
+
+// GET ANGLES
 float getScatteringAnglePhi(__global float * randomNums, uint gid){
     float phi = 2.0f * M_PI * randomNums[gid];
     return phi;
+}
+
+__kernel void getScatteringAnglePhiKernel(__global float * angleBuffer,  __global float * randomNums){
+    uint gid = get_global_id(0);
+    angleBuffer[gid] = getScatteringAnglePhi(randomNums, gid);
 }
 
 float getScatteringAngleTheta(float g,  __global float * randomNums, uint gid){
@@ -39,6 +50,8 @@ __kernel void getScatteringAngleThetaKernel(__global float * angleBuffer,  __glo
     angleBuffer[gid] = getScatteringAngleTheta(g, randomNums, gid);
 }
 
+
+// GET DIRECTIONS
 void scatterBy(__global photonStruct *photons, float phi, float theta, uint gid){
     rotateAroundGlobal(&photons[gid].er, &photons[gid].direction, phi);
     rotateAroundGlobal(&photons[gid].direction, &photons[gid].er, theta);

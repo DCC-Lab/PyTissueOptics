@@ -73,8 +73,8 @@ class TestPropagationPhysics(unittest.TestCase):
 
     def makeRandomScalarsAndBuffers(self, N):
         rng = np.random.default_rng()
-        randomScalarValues = rng.random((N, 1), dtype=np.float32)
-        CPU_scalarValues = [randomScalarValues[i, 0] for i in range(N)]
+        randomScalarValues = rng.uniform(low=0.0000, high=1.0, size=N)
+        CPU_scalarValues = [np.float32(randomScalarValues[i]) for i in range(N)]
         HOST_ScalarValues = np.array(randomScalarValues, dtype=np.float32)
         DEVICE_ScalarValues = cl.Buffer(self.ctx, self.mf.READ_WRITE | self.mf.COPY_HOST_PTR, hostbuf=HOST_ScalarValues)
         return CPU_scalarValues, HOST_ScalarValues, DEVICE_ScalarValues
@@ -86,6 +86,14 @@ class TestPropagationPhysics(unittest.TestCase):
             temp = (1 - g * g) / (1 - g + 2 * g * rndValue)
             cost = (1 + g * g - temp * temp) / (2 * g)
         return np.arccos(cost)
+
+    def getScatteringDistance(self, rndValue, mu_t):
+        if mu_t == 0:
+            return np.inf
+
+        if rndValue == 0:
+            raise ValueError("rndValue cannot be 0")
+        return -np.log(rndValue) / mu_t
 
     def test_whenGetScatteringAngleTheta_GPU_and_CPU_shouldReturnSameValues(self):
         N = 500
@@ -104,4 +112,33 @@ class TestPropagationPhysics(unittest.TestCase):
         self.assertTrue(np.all(np.isclose(CPU_angleResults, GPU_angleResults, atol=1e-3)))
 
     def test_whenGetScatteringAnglePhi_GPU_and_CPU_shouldReturnSameValues(self):
-        pass
+        N = 50000
+        CPU_rndValues, HOST_rndValues, DEVICE_rndValues = self.makeRandomScalarsAndBuffers(N)
+        HOST_angleResults = np.zeros(N, dtype=np.float32)
+        DEVICE_angleResults = cl.Buffer(self.ctx, self.mf.READ_WRITE | self.mf.COPY_HOST_PTR, hostbuf=HOST_angleResults)
+
+        CPU_angleResults = np.array([rndValue * 2 * np.pi for rndValue in CPU_rndValues])
+
+        self.program.getScatteringAnglePhiKernel(self.queue, HOST_rndValues.shape, None, DEVICE_angleResults, DEVICE_rndValues)
+        cl.enqueue_copy(self.queue, HOST_angleResults, DEVICE_angleResults)
+
+        GPU_angleResults = HOST_angleResults
+
+        self.assertTrue(np.all(np.isclose(CPU_angleResults, GPU_angleResults, atol=1e-3)))
+
+    def test_whenGetScatteringDistance_GPU_and_CPU_shouldReturnSameValues(self):
+        N = 500
+        mu_t = 30.1
+        CPU_rndValues, HOST_rndValues, DEVICE_rndValues = self.makeRandomScalarsAndBuffers(N)
+        HOST_distanceResults = np.zeros(N, dtype=np.float32)
+        DEVICE_distanceResults = cl.Buffer(self.ctx, self.mf.READ_WRITE | self.mf.COPY_HOST_PTR, hostbuf=HOST_distanceResults)
+
+        CPU_distanceResults = np.array([self.getScatteringDistance(rndValue, mu_t) for rndValue in CPU_rndValues])
+
+        self.program.getScatteringDistanceKernel(self.queue, HOST_rndValues.shape, None, DEVICE_distanceResults, DEVICE_rndValues,  np.float32(mu_t))
+        cl.enqueue_copy(self.queue, HOST_distanceResults, DEVICE_distanceResults)
+
+        GPU_distanceResults = HOST_distanceResults
+        print(CPU_distanceResults)
+        print(GPU_distanceResults)
+        self.assertTrue(np.all(np.isclose(CPU_distanceResults, GPU_distanceResults, atol=1e-3)))
