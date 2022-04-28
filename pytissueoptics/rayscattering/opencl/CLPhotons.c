@@ -12,11 +12,13 @@ uint wangHash(uint seed){
 }
 
 float getRandomFloatValue(__global unsigned int *seedBuffer, unsigned int id){
-     uint maxint = 0;
-     maxint--;
-     uint rnd_int = wangHash(seedBuffer[id]);
-     seedBuffer[id] = rnd_int;
-     return ((float)rnd_int) / (float)maxint;
+     float result = 0.0f;
+     while(result == 0.0f){
+         uint rnd_seed = wangHash(seedBuffer[id]);
+         seedBuffer[id] = rnd_seed;
+         result = (float)rnd_seed / (float)UINT_MAX;
+     }
+     return result;
     }
 
  __kernel void fillRandomFloatBuffer(__global unsigned int *seedBuffer, __global float *randomFloatBuffer){
@@ -140,6 +142,7 @@ __kernel void fillIsotropicPhotonsBuffer(__global photonStruct *photons, __globa
     photons[gid].direction = direction;
     photons[gid].er = er;
     photons[gid].weight = 1.0f;
+    photons[gid].material_id = 0;
 }
 
 
@@ -164,8 +167,8 @@ void moveBy(__global photonStruct *photons, float distance, uint gid){
     photons[gid].position += distance * photons[gid].direction;
 }
 
-float getScatteringDistance(__global photonStruct *photons,__constant materialStruct *materials, __global float * randomNums, uint gid){
-    return -log(randomNums[gid]) / materials[photons[gid].material_id].mu_t;
+float getScatteringDistance(__global float * randomNums, float mu_t, uint gid){
+    return -log(randomNums[gid]) / mu_t;
 }
 
 float getScatteringAnglePhi(__global float * randomNums, uint gid){
@@ -173,14 +176,13 @@ float getScatteringAnglePhi(__global float * randomNums, uint gid){
     return phi;
 }
 
-float getScatteringAngleTheta(__global photonStruct *photons,__constant materialStruct *materials,  __global float * randomNums, uint gid){
-    materialStruct material = materials[photons[gid].material_id];
-    if (material.g == 0){
+float getScatteringAngleTheta(__global float * randomNums, float g, uint gid){
+    if (g == 0){
         return acos(2.0f * randomNums[gid] - 1.0f);
     }
     else{
-        float temp = (1.0f - material.g * material.g) / (1 - material.g + 2 * material.g * randomNums[gid]);
-        return acos((1.0f + material.g * material.g - temp * temp) / (2 * material.g));
+        float temp = (1.0f - g * g) / (1 - g + 2 * g * randomNums[gid]);
+        return acos((1.0f + g * g - temp * temp) / (2 * g));
     }
 }
 
@@ -203,20 +205,21 @@ __kernel void propagate(uint dataSize, float weightThreshold, __global photonStr
     uint gid = get_global_id(0);
     uint stepIndex = 0;
     uint logIndex = 0;
+    float g = materials[0].g;
+    float mu_t = materials[0].mu_t;
+
     while (photons[gid].weight >= weightThreshold){
         logIndex = gid + stepIndex * dataSize;
         randomNums[gid] = getRandomFloatValue(seedBuffer, gid);
-        float distance = getScatteringDistance(photons, materials, randomNums, gid);
+        float distance = getScatteringDistance(randomNums, mu_t, gid);
         moveBy(photons, distance, gid);
         randomNums[gid] = getRandomFloatValue(seedBuffer, gid);
         float phi = getScatteringAnglePhi(randomNums, gid);
         randomNums[gid] = getRandomFloatValue(seedBuffer, gid);
-        float theta = getScatteringAngleTheta(photons, materials, randomNums, gid);
+        float g = materials[0].g;
+        float theta = getScatteringAngleTheta(randomNums, g, gid);
         scatterBy(photons, phi, theta, gid);
         interact(photons, materials, logger, gid, logIndex);
         stepIndex++;
-        //if (photons[gid].weight <= weightThreshold){
-         //   roulette(photons, seedBuffer, gid);
-//        }
     }
 }

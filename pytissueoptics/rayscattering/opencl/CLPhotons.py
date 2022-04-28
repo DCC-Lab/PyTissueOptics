@@ -134,16 +134,14 @@ class CLPhotons:
                                              hostbuf=self._HOST_randomFloat)
 
     def _makeMaterialsBuffer(self):
-        materials = [self._worldMaterial]
-        self._HOST_material = np.empty(len(materials), dtype=self._material_dtype)
-        for i, mat in enumerate(materials):
-            self._HOST_material[i]["mu_s"] = np.float32(mat.mu_s)
-            self._HOST_material[i]["mu_a"] = np.float32(mat.mu_a)
-            self._HOST_material[i]["mu_t"] = np.float32(mat.mu_t)
-            self._HOST_material[i]["g"] = np.float32(mat.g)
-            self._HOST_material[i]["n"] = np.float32(mat.index)
-            self._HOST_material[i]["albedo"] = np.float32(mat.getAlbedo())
-            self._HOST_material[i]["material_id"] = np.uint32(i)
+        self._HOST_material = np.empty(1, dtype=self._material_dtype)
+        self._HOST_material["mu_s"] = np.float32(self._worldMaterial.mu_s)
+        self._HOST_material["mu_a"] = np.float32(self._worldMaterial.mu_a)
+        self._HOST_material["mu_t"] = np.float32(self._worldMaterial.mu_t)
+        self._HOST_material["g"] = np.float32(self._worldMaterial.g)
+        self._HOST_material["n"] = np.float32(self._worldMaterial.index)
+        self._HOST_material["albedo"] = np.float32(self._worldMaterial.getAlbedo())
+        self._HOST_material["material_id"] = np.uint32(0)
         self._DEVICE_material = cl.Buffer(self._context, cl.mem_flags.READ_ONLY | cl.mem_flags.COPY_HOST_PTR,
                                           hostbuf=self._HOST_material)
 

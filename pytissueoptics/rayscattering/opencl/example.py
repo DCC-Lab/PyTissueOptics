@@ -19,10 +19,10 @@ These parameters will be used to mimic the parameters a typical user would utili
 """
 
 
-worldMaterial = ScatteringMaterial(mu_s=30, mu_a=0.1, g=0.8, index=1.4)
+worldMaterial = ScatteringMaterial(mu_s=2, mu_a=0.1, g=0.99, index=1.4)
 logger = Logger()
 source = CLPencilSource(position=Vector(0, 0, 0), direction=Vector(0, 0, 1), N=50000)
 
 source.propagate(worldMaterial=worldMaterial, logger=logger)
 stats = Stats(logger, source)
-stats.showEnergy2D(bins=50, logScale=True)
+stats.showEnergy2D(bins=51, logScale=False)
