@@ -128,7 +128,7 @@ class Stats:
 
     def showEnergy2D(self, solidLabel: str = None, surfaceLabel: str = None,
                      projection: Union[str, Vector] = 'y', bins: Union[int, Tuple[int, int]] = None,
-                     logScale: bool = False, enteringSurface=False, colormap: str = 'viridis'):
+                     range=None, logScale: bool = False, enteringSurface=False, colormap: str = 'viridis'):
         u, v, c = self._get2DScatter(solidLabel, surfaceLabel, projection, enteringSurface)
 
         norm = matplotlib.colors.LogNorm() if logScale else None
@@ -136,7 +136,7 @@ class Stats:
         cmap.set_bad(cmap.colors[0])
 
         if bins is not None:
-            plt.hist2d(u, v, bins=bins, weights=c, norm=norm, cmap=cmap)
+            plt.hist2d(u, v, bins=bins, weights=c, range=range, norm=norm, cmap=cmap)
         else:
             plt.scatter(u, v, c=c, norm=norm, cmap=cmap)
 
