@@ -1,3 +1,3 @@
 from .MayaviTriangleMesh import MayaviTriangleMesh
-from .MayaviSolid import MayaviSolid
+from .MayaviSolid import MayaviSolid, MayaviObject
 from .MayaviViewer import MayaviViewer

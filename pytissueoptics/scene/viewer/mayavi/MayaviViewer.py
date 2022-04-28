@@ -37,13 +37,13 @@ class MayaviViewer:
 
     def addLogger(self, logger: Logger, colormap="rainbow", reverseColormap=False,
                   pointScale=0.01, dataPointScale=0.15, scaleWithValue=True):
-        self._addPoints(logger.getPoints(), colormap=colormap, reverseColormap=reverseColormap, scale=pointScale)
-        self._addDataPoints(logger.getDataPoints(), colormap=colormap, reverseColormap=reverseColormap,
-                            scale=dataPointScale, scaleWithValue=scaleWithValue)
-        self._addSegments(logger.getSegments(), colormap=colormap, reverseColormap=reverseColormap)
+        self.addPoints(logger.getPoints(), colormap=colormap, reverseColormap=reverseColormap, scale=pointScale)
+        self.addDataPoints(logger.getDataPoints(), colormap=colormap, reverseColormap=reverseColormap,
+                           scale=dataPointScale, scaleWithValue=scaleWithValue)
+        self.addSegments(logger.getSegments(), colormap=colormap, reverseColormap=reverseColormap)
 
     @staticmethod
-    def _addPoints(points: List[Vector], colormap, reverseColormap, scale=0.01):
+    def addPoints(points: List[Vector], colormap="rainbow", reverseColormap=False, scale=0.01):
         x = [vector.x for vector in points]
         y = [vector.y for vector in points]
         z = [vector.z for vector in points]
@@ -51,7 +51,7 @@ class MayaviViewer:
         s.module_manager.scalar_lut_manager.reverse_lut = reverseColormap
 
     @staticmethod
-    def _addDataPoints(dataPoints: List[DataPoint], colormap, reverseColormap, scale=0.15, scaleWithValue=True):
+    def addDataPoints(dataPoints: List[DataPoint], colormap="rainbow", reverseColormap=False, scale=0.15, scaleWithValue=True):
         x = [dataPoint.position.x for dataPoint in dataPoints]
         y = [dataPoint.position.y for dataPoint in dataPoints]
         z = [dataPoint.position.z for dataPoint in dataPoints]
@@ -62,7 +62,7 @@ class MayaviViewer:
         s.module_manager.scalar_lut_manager.reverse_lut = reverseColormap
 
     @staticmethod
-    def _addSegments(segments: List[Segment], colormap, reverseColormap):
+    def addSegments(segments: List[Segment], colormap="rainbow", reverseColormap=False):
         for segment in segments:
             x = [vector.x for vector in [segment.start, segment.end]]
             y = [vector.y for vector in [segment.start, segment.end]]

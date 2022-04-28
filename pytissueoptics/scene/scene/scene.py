@@ -80,7 +80,7 @@ class Scene:
         if solid.isStack():
             raise NotImplementedError("Cannot place a solid inside a solid stack. ")
 
-    def getSolids(self):
+    def getSolids(self) -> List[Solid]:
         return self._solids
 
     def getPolygons(self) -> List[Polygon]:

@@ -23,7 +23,7 @@ class PhantomTissue(RayScatteringScene):
         frontLayer = Cuboid(w, w, t[0], material=ScatteringMaterial(mu_s[0], mu_a, g, n[0]), label="frontLayer")
         middleLayer = Cuboid(w, w, t[1], material=ScatteringMaterial(mu_s[1], mu_a, g, n[1]), label="middleLayer")
         backLayer = Cuboid(w, w, t[2], material=ScatteringMaterial(mu_s[2], mu_a, g, n[2]), label="backLayer")
-        layerStack = backLayer.stack(middleLayer, 'Front').stack(frontLayer, 'Front')
+        layerStack = backLayer.stack(middleLayer, 'front').stack(frontLayer, 'front')
         layerStack.translateTo(Vector(0, 0, sum(t) / 2))
 
         self.TISSUE = [layerStack]

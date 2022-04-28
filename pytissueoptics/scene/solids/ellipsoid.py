@@ -16,7 +16,7 @@ class Ellipsoid(Solid):
 
     def __init__(self, a: float = 1, b: float = 1, c: float = 1, order: int = 3,
                  position: Vector = Vector(0, 0, 0), material=None,
-                 label: str = "Ellipsoid", primitive: str = primitives.DEFAULT, smooth: bool = True):
+                 label: str = "ellipsoid", primitive: str = primitives.DEFAULT, smooth: bool = True):
 
         self._a = a
         self._b = b
@@ -57,7 +57,7 @@ class Ellipsoid(Solid):
         self._vertices = [*xyPlaneVertices, *yzPlaneVertices, *xzPlaneVertices]
         V = self._vertices
 
-        self._surfaces.add("Sphere", [Triangle(V[0], V[11], V[5]), Triangle(V[0], V[5], V[1]),
+        self._surfaces.add("sphere", [Triangle(V[0], V[11], V[5]), Triangle(V[0], V[5], V[1]),
                                       Triangle(V[0], V[1], V[7]), Triangle(V[0], V[7], V[10]),
                                       Triangle(V[0], V[10], V[11]), Triangle(V[1], V[5], V[9]),
                                       Triangle(V[5], V[11], V[4]), Triangle(V[11], V[10], V[2]),
@@ -90,7 +90,7 @@ class Ellipsoid(Solid):
             newPolygons.append(Triangle(polygon.vertices[2], newVertices[2], newVertices[1]))
             newPolygons.append(Triangle(newVertices[0], newVertices[1], newVertices[2]))
 
-        self._surfaces.setPolygons("Sphere", newPolygons)
+        self._surfaces.setPolygons("sphere", newPolygons)
 
     @staticmethod
     def _createMidVertex(p1, p2):

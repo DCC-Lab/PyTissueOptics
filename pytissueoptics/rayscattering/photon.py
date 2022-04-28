@@ -77,7 +77,6 @@ class Photon:
 
         if intersection:
             self.moveBy(intersection.distance)
-            self._logIntersection(intersection)
             distanceLeft = self.reflectOrRefract(intersection)
         else:
             if math.isinf(distance):
@@ -104,6 +103,7 @@ class Photon:
         if fresnelIntersection.isReflected:
             self.reflect(fresnelIntersection)
         else:
+            self._logIntersection(intersection)
             self.refract(fresnelIntersection)
 
             mut1 = self.material.mu_t
@@ -160,11 +160,21 @@ class Photon:
             self._weight = 0
 
     def _logIntersection(self, intersection: Intersection):
-        if self._logger is not None:
-            solid = intersection.insideEnvironment.solid
-            solidLabel = solid.getLabel() if solid else None
-            key = InteractionKey(solidLabel, intersection.surfaceLabel)
-            self._logger.logPoint(self._position, key)
+        if self._logger is None:
+            return
+        solidA = intersection.insideEnvironment.solid
+        solidLabelA = solidA.getLabel() if solidA else None
+        key = InteractionKey(solidLabelA, intersection.surfaceLabel)
+        isLeavingSurface = self._direction.dot(intersection.normal) > 0
+        sign = 1 if isLeavingSurface else -1
+        self._logger.logDataPoint(sign * self._weight, self._position, key)
+
+        solidB = intersection.outsideEnvironment.solid
+        if solidB is None:
+            return
+        solidLabelB = solidB.getLabel()
+        key = InteractionKey(solidLabelB, intersection.surfaceLabel)
+        self._logger.logDataPoint(-sign * self._weight, self._position, key)
 
     def _logWeightDecrease(self, delta):
         if self._logger:

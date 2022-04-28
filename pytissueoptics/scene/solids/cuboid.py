@@ -22,7 +22,7 @@ class Cuboid(Solid):
 
     def __init__(self, a: float, b: float, c: float,
                  vertices: List[Vertex] = None, position: Vector = Vector(0, 0, 0), surfaces: SurfaceCollection = None,
-                 material=None, label: str = "Cuboid", primitive: str = primitives.DEFAULT):
+                 material=None, label: str = "cuboid", primitive: str = primitives.DEFAULT):
 
         self.shape = [a, b, c]
 
@@ -36,29 +36,29 @@ class Cuboid(Solid):
 
     def _computeTriangleMesh(self):
         V = self._vertices
-        self._surfaces.add('Left', [Triangle(V[4], V[0], V[3]), Triangle(V[3], V[7], V[4])])
-        self._surfaces.add('Right', [Triangle(V[1], V[5], V[6]), Triangle(V[6], V[2], V[1])])
-        self._surfaces.add('Bottom', [Triangle(V[4], V[5], V[1]), Triangle(V[1], V[0], V[4])])
-        self._surfaces.add('Top', [Triangle(V[3], V[2], V[6]), Triangle(V[6], V[7], V[3])])
-        self._surfaces.add('Front', [Triangle(V[5], V[4], V[7]), Triangle(V[7], V[6], V[5])])
-        self._surfaces.add('Back', [Triangle(V[0], V[1], V[2]), Triangle(V[2], V[3], V[0])])
+        self._surfaces.add('left', [Triangle(V[4], V[0], V[3]), Triangle(V[3], V[7], V[4])])
+        self._surfaces.add('right', [Triangle(V[1], V[5], V[6]), Triangle(V[6], V[2], V[1])])
+        self._surfaces.add('bottom', [Triangle(V[4], V[5], V[1]), Triangle(V[1], V[0], V[4])])
+        self._surfaces.add('top', [Triangle(V[3], V[2], V[6]), Triangle(V[6], V[7], V[3])])
+        self._surfaces.add('front', [Triangle(V[5], V[4], V[7]), Triangle(V[7], V[6], V[5])])
+        self._surfaces.add('back', [Triangle(V[0], V[1], V[2]), Triangle(V[2], V[3], V[0])])
 
     def _computeQuadMesh(self):
         V = self._vertices
-        self._surfaces.add('Left', [Quad(V[4], V[0], V[3], V[7])])
-        self._surfaces.add('Right', [Quad(V[1], V[5], V[6], V[2])])
-        self._surfaces.add('Bottom', [Quad(V[4], V[5], V[1], V[0])])
-        self._surfaces.add('Top', [Quad(V[3], V[2], V[6], V[7])])
-        self._surfaces.add('Front', [Quad(V[5], V[4], V[7], V[6])])
-        self._surfaces.add('Back', [Quad(V[0], V[1], V[2], V[3])])
+        self._surfaces.add('left', [Quad(V[4], V[0], V[3], V[7])])
+        self._surfaces.add('right', [Quad(V[1], V[5], V[6], V[2])])
+        self._surfaces.add('bottom', [Quad(V[4], V[5], V[1], V[0])])
+        self._surfaces.add('top', [Quad(V[3], V[2], V[6], V[7])])
+        self._surfaces.add('front', [Quad(V[5], V[4], V[7], V[6])])
+        self._surfaces.add('back', [Quad(V[0], V[1], V[2], V[3])])
 
-    def stack(self, other: 'Cuboid', onSurface: str = 'Top') -> 'Cuboid':
+    def stack(self, other: 'Cuboid', onSurface: str = 'top') -> 'Cuboid':
         """
         Basic implementation for stacking cuboids along an axis.
 
-        For example, stacking on 'Top' will move the other cuboid on top of the this cuboid. They will now share
+        For example, stacking on 'top' will move the other cuboid on top of the this cuboid. They will now share
          the same mesh at the interface and inside/outside materials at the interface will be properly defined.
-         This will return a new cuboid that represents the stack, with a new 'Interface<i>' surface group.
+         This will return a new cuboid that represents the stack, with a new 'interface<i>' surface group.
 
         Limitations:
             - Requires cuboids with the same shape except along the stack axis.
@@ -99,7 +99,7 @@ if __name__ == "__main__":
     cuboid1 = Cuboid(5, 1, 4, position=Vector(4, 0.5, 0))
     cuboid2 = Cuboid(5, 2, 4, position=Vector(4, 1, -6))
     cuboid3 = Cuboid(2, 3, 4, position=Vector(-2, 1.5, -3))
-    cuboidStack = cuboid1.stack(cuboid2).stack(cuboid3, onSurface='Right')
+    cuboidStack = cuboid1.stack(cuboid2).stack(cuboid3, onSurface='right')
 
     viewer = MayaviViewer()
     viewer.add(cuboidStack, representation="wireframe", lineWidth=3)

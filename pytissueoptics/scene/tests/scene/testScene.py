@@ -147,12 +147,12 @@ class TestScene(unittest.TestCase):
         Scene([solid1, solid2], ignoreIntersections=True)
 
         verify(solid1, times=0).setLabel(...)
-        verify(solid2).setLabel("Solid_0")
+        verify(solid2).setLabel("solid_0")
 
     def testWhenSetOutsideMaterial_shouldSetOutsideMaterialOfAllTheSolidsThatAreNotContained(self):
         INSIDE_SOLID = self.makeSolidWith(BoundingBox([1, 4], [1, 4], [1, 4]), name="InsideSolid")
         self.scene.add(INSIDE_SOLID)
-        SOLID = self.makeSolidWith(BoundingBox([-1, 6], [-1, 6], [-1, 6]), contains=True, name="Solid")
+        SOLID = self.makeSolidWith(BoundingBox([-1, 6], [-1, 6], [-1, 6]), contains=True, name="solid")
         self.scene.add(SOLID)
         worldMaterial = "World"
 
@@ -162,7 +162,7 @@ class TestScene(unittest.TestCase):
         verify(INSIDE_SOLID, times=0).setOutsideEnvironment(Environment(worldMaterial))
 
     @staticmethod
-    def makeSolidWith(bbox: BoundingBox = None, contains=False, isStack=False, name="Solid"):
+    def makeSolidWith(bbox: BoundingBox = None, contains=False, isStack=False, name="solid"):
         solid = mock(Solid)
         when(solid).getLabel().thenReturn(name)
         when(solid).setLabel(...).thenReturn()

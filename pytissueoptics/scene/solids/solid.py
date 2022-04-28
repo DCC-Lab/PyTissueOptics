@@ -2,14 +2,14 @@ from typing import List
 
 import numpy as np
 
-from pytissueoptics.scene.geometry import Vector, utils, Polygon, Rotation, BoundingBox, Vertex
+from pytissueoptics.scene.geometry import Vector, utils, Polygon, Rotation, BoundingBox, Vertex, Triangle
 from pytissueoptics.scene.geometry import primitives, Environment, SurfaceCollection
 
 
 class Solid:
     def __init__(self, vertices: List[Vertex], position: Vector = Vector(0, 0, 0),
                  surfaces: SurfaceCollection = None, material=None,
-                 label: str = "Solid", primitive: str = primitives.DEFAULT, smooth: bool = False):
+                 label: str = "solid", primitive: str = primitives.DEFAULT, smooth: bool = False):
         self._vertices = vertices
         self._surfaces = surfaces
         self._material = material
@@ -166,7 +166,7 @@ class Solid:
 
     def isStack(self) -> bool:
         for surfaceLabel in self.surfaceLabels:
-            if "Interface" in surfaceLabel:
+            if "interface" in surfaceLabel:
                 return True
         return False
 

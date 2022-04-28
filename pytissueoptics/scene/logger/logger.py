@@ -63,17 +63,25 @@ class Logger:
         if key not in self._data:
             self._data[key] = InteractionData()
 
-    def getPoints(self, key: InteractionKey = None):
+    def _assertKeyExists(self, key: InteractionKey):
+        if key.solidLabel not in self.getSolidLabels():
+            raise KeyError(f"Invalid solid label '{key.solidLabel}'. Available: {self.getSolidLabels()}. ")
+        if key.surfaceLabel and key.surfaceLabel not in self.getSurfaceLabels(key.solidLabel):
+            raise KeyError(f"Invalid surface label '{key.surfaceLabel}' for solid '{key.solidLabel}'. "
+                           f"Available: {self.getSurfaceLabels(key.solidLabel)}. ")
+
+    def getPoints(self, key: InteractionKey = None) -> List[Vector]:
         return self._getData(DataType.POINT, key)
 
-    def getDataPoints(self, key: InteractionKey = None):
+    def getDataPoints(self, key: InteractionKey = None) -> List[DataPoint]:
         return self._getData(DataType.DATA_POINT, key)
 
-    def getSegments(self, key: InteractionKey = None):
+    def getSegments(self, key: InteractionKey = None) -> List[Segment]:
         return self._getData(DataType.SEGMENT, key)
 
     def _getData(self, dataType: DataType, key: InteractionKey = None):
-        if key:
+        if key and key.solidLabel:
+            self._assertKeyExists(key)
             return getattr(self._data[key], dataType.value)
         else:
             data = []
