@@ -24,15 +24,19 @@ float getScatteringAnglePhi(__global float * randomNums, uint gid){
     return phi;
 }
 
-float getScatteringAngleTheta(__global photonStruct *photons,__constant materialStruct *materials,  __global float * randomNums, uint gid){
-    materialStruct material = materials[photons[gid].material_id];
-    if (material.g == 0){
+float getScatteringAngleTheta(float g,  __global float * randomNums, uint gid){
+    if (g == 0){
         return acos(2.0f * randomNums[gid] - 1.0f);
     }
     else{
-        float temp = (1.0f - material.g * material.g) / (1 - material.g + 2 * material.g * randomNums[gid]);
-        return acos((1.0f + material.g * material.g - temp * temp) / (2 * material.g));
+        float temp = (1.0f - g * g) / (1 - g + 2 * g * randomNums[gid]);
+        return acos((1.0f + g * g - temp * temp) / (2 * g));
     }
+}
+
+__kernel void getScatteringAngleThetaKernel(__global float * angleBuffer,  __global float * randomNums, float g){
+    uint gid = get_global_id(0);
+    angleBuffer[gid] = getScatteringAngleTheta(g, randomNums, gid);
 }
 
 void scatterBy(__global photonStruct *photons, float phi, float theta, uint gid){
@@ -40,34 +44,11 @@ void scatterBy(__global photonStruct *photons, float phi, float theta, uint gid)
     rotateAroundGlobal(&photons[gid].direction, &photons[gid].er, theta);
 }
 
-void roulette(__global photonStruct *photons, __global uint * randomSeedBuffer, uint gid){
-    float randomFloat = getRandomFloatValue(randomSeedBuffer, gid);
-    if (randomFloat < 0.1f){
+void roulette(__global photonStruct *photons, __global float  * randomNums, uint gid){
+    if (randomNums[gid] < 0.1f){
         photons[gid].weight /= 0.1f;
     }
     else{
         photons[gid].weight = 0.0f;
-    }
-}
-
-__kernel void propagate(uint dataSize, float weightThreshold, __global photonStruct *photons, __constant materialStruct *materials, __global loggerStruct *logger, __global float *randomNums, __global uint *seedBuffer){
-    uint gid = get_global_id(0);
-    uint stepIndex = 0;
-    uint logIndex = 0;
-    while (photons[gid].weight >= weightThreshold){
-        logIndex = gid + stepIndex * dataSize;
-        randomNums[gid] = getRandomFloatValue(seedBuffer, gid);
-        float distance = getScatteringDistance(photons, materials, randomNums, gid);
-        moveBy(photons, distance, gid);
-        randomNums[gid] = getRandomFloatValue(seedBuffer, gid);
-        float phi = getScatteringAnglePhi(photons, randomNums, gid);
-        randomNums[gid] = getRandomFloatValue(seedBuffer, gid);
-        float theta = getScatteringAngleTheta(photons, materials, randomNums, gid);
-        scatterBy(photons, phi, theta, gid);
-        interact(photons, materials, logger, gid, logIndex);
-        stepIndex++;
-        //if (photons[gid].weight <= weightThreshold){
-         //   roulette(photons, seedBuffer, gid);
-//        }
     }
 }
