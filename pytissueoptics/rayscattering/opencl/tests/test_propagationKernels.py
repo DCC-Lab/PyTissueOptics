@@ -1,21 +1,26 @@
 import os
+import unittest
+
 import pyopencl as cl
 import pyopencl.tools
 import numpy as np
-import unittest
 from numpy.lib import recfunctions as rfn
+import matplotlib.pyplot as plt
+
 from pytissueoptics.scene import Vector
 
 
-class TestPropagationPhysics(unittest.TestCase):
+class TestCLPropagationKernels(unittest.TestCase):
     def setUp(self):
-        kernelPath = os.path.dirname(os.path.abspath(__file__)) + "{}propagation_physics.c".format(os.sep)
+        randomKernel = open(os.path.dirname(os.path.abspath(__file__)) + "{0}..{0}src{0}random.c".format(os.sep)).read()
+        propagationKernel = open(os.path.dirname(os.path.abspath(__file__)) + "{0}..{0}src{0}propagation.c".format(os.sep)).read()
+        vectorKernel = open(os.path.dirname(os.path.abspath(__file__)) + "{0}..{0}src{0}vector_operators.c".format(os.sep)).read()
         self.ctx = cl.create_some_context()
         self.queue = cl.CommandQueue(self.ctx)
         self.device = self.ctx.devices[0]
         self.mf = cl.mem_flags
         c_decl = self._makeTypes()
-        self.program = cl.Program(self.ctx, c_decl + open(kernelPath, 'r').read()).build()
+        self.program = cl.Program(self.ctx, c_decl + randomKernel + vectorKernel + propagationKernel).build()
 
     def _makeTypes(self):
         def makePhotonType():
@@ -79,7 +84,8 @@ class TestPropagationPhysics(unittest.TestCase):
         DEVICE_ScalarValues = cl.Buffer(self.ctx, self.mf.READ_WRITE | self.mf.COPY_HOST_PTR, hostbuf=HOST_ScalarValues)
         return CPU_scalarValues, HOST_ScalarValues, DEVICE_ScalarValues
 
-    def getScatteringTheta(self, rndValue, g):
+    @staticmethod
+    def getScatteringTheta(rndValue, g):
         if g == 0:
             cost = 2 * rndValue - 1
         else:
@@ -87,7 +93,8 @@ class TestPropagationPhysics(unittest.TestCase):
             cost = (1 + g * g - temp * temp) / (2 * g)
         return np.arccos(cost)
 
-    def getScatteringDistance(self, rndValue, mu_t):
+    @staticmethod
+    def getScatteringDistance(rndValue, mu_t):
         if mu_t == 0:
             return np.inf
 
@@ -139,6 +146,55 @@ class TestPropagationPhysics(unittest.TestCase):
         cl.enqueue_copy(self.queue, HOST_distanceResults, DEVICE_distanceResults)
 
         GPU_distanceResults = HOST_distanceResults
-        print(CPU_distanceResults)
-        print(GPU_distanceResults)
         self.assertTrue(np.all(np.isclose(CPU_distanceResults, GPU_distanceResults, atol=1e-3)))
+
+    def test_whenRotateAroundVector_GPU_and_CPU_shouldReturnSameValues(self):
+        N = 500
+
+        CPU_ErVectors, HOST_ErVectors, DEVICE_ErVectors = self.makeRandomVectorsAndBuffers(N)
+        CPU_AxisVectors, HOST_AxisVectors, DEVICE_AxisVectors = self.makeRandomVectorsAndBuffers(N)
+        CPU_PhiValues, HOST_PhiValues, DEVICE_PhiValues = self.makeRandomScalarsAndBuffers(N)
+
+        for vector in CPU_AxisVectors:
+            vector.normalize()
+        for i, vector in enumerate(CPU_ErVectors):
+            vector.rotateAround(CPU_AxisVectors[i], CPU_PhiValues[i])
+        CPU_VectorErResults = np.array([[vector.x, vector.y, vector.z] for vector in CPU_ErVectors])
+
+        self.program.rotateAroundAxisGlobalKernel(self.queue, HOST_AxisVectors.shape, None, DEVICE_ErVectors, DEVICE_AxisVectors, DEVICE_PhiValues)
+        cl.enqueue_copy(self.queue, HOST_ErVectors, DEVICE_ErVectors)
+
+        GPU_VectorErResults = rfn.structured_to_unstructured(HOST_ErVectors)
+        GPU_VectorErResults = np.delete(GPU_VectorErResults, -1, axis=1)
+
+        self.assertTrue(np.allclose(GPU_VectorErResults, CPU_VectorErResults, atol=1e-3))
+
+    def test_whenNormalizeVector_GPU_and_CPU_shouldReturnSameValue(self):
+        N = 300
+        CPU_VectorEr, HOST_ErVectors, DEVICE_ErVectors = self.makeRandomVectorsAndBuffers(N)
+
+        self.program.normalizeVectorGlobalKernel(self.queue, HOST_ErVectors.shape, None, DEVICE_ErVectors)
+        cl.enqueue_copy(self.queue, HOST_ErVectors, DEVICE_ErVectors)
+
+        GPU_VectorErResults = rfn.structured_to_unstructured(HOST_ErVectors)
+        GPU_VectorErResults = np.delete(GPU_VectorErResults, -1, axis=1)
+        for i, vector in enumerate(CPU_VectorEr):
+            vector.normalize()
+        CPU_VectorErResults = np.array([[vector.x, vector.y, vector.z] for vector in CPU_VectorEr])
+
+        self.assertTrue(np.all(np.isclose(GPU_VectorErResults, CPU_VectorErResults)))
+
+    @unittest.skip("A visual test, not a unit test")
+    def test_whenGeneratingRandomNumberImage_shouldBeNoizyWithoutApparentPatterns(self):
+        N = 1000000
+        HOST_randomSeed = np.random.randint(low=0, high=2 ** 32 - 1, size=N, dtype=cl.cltypes.uint)
+        DEVICE_randomSeed = cl.Buffer(self.ctx, cl.mem_flags.READ_WRITE | cl.mem_flags.COPY_HOST_PTR,
+                                      hostbuf=HOST_randomSeed)
+        HOST_randomFloat = np.empty(N, dtype=cl.cltypes.float)
+        DEVICE_randomFloat = cl.Buffer(self.ctx, cl.mem_flags.READ_WRITE | cl.mem_flags.COPY_HOST_PTR,
+                                       hostbuf=HOST_randomFloat)
+        self.program.fillRandomFloatBuffer(self.queue, (N,), None, DEVICE_randomSeed, DEVICE_randomFloat)
+        cl.enqueue_copy(self.queue, HOST_randomFloat, DEVICE_randomFloat)
+
+        plt.imshow(HOST_randomFloat.reshape((1000, 1000)))
+        plt.show()

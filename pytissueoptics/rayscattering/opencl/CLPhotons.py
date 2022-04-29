@@ -15,7 +15,7 @@ from pytissueoptics.scene.logger import InteractionKey
 
 class CLPhotons:
     def __init__(self, source: 'Source', weightThreshold: float = 0.0001):
-        self._kernelPath = os.path.dirname(os.path.abspath(__file__)) + "{}CLPhotons.c".format(os.sep)
+        self._sourceFolderPath = os.path.dirname(os.path.abspath(__file__)) + "{0}src{0}".format(os.sep)
         self._source = source
         self._weightThreshold = np.float32(weightThreshold)
         self._logger = None
@@ -56,8 +56,13 @@ class CLPhotons:
         cl.enqueue_copy(self._mainQueue, self._HOST_photons, self._DEVICE_photons)
 
     def _buildProgram(self):
+        randomSource = open(os.path.join(self._sourceFolderPath, "random.c")).read()
+        vectorSource = open(os.path.join(self._sourceFolderPath, "vector_operators.c")).read()
+        propagationSource = open(os.path.join(self._sourceFolderPath, "propagation.c")).read()
+        photonSource = open(os.path.join(self._sourceFolderPath, "source.c")).read()
+
         self._program = cl.Program(self._context, self._c_decl_photon + self._c_decl_mat + self._c_decl_logger +
-                                   open(self._kernelPath).read()).build()
+                                   randomSource + vectorSource + photonSource + propagationSource).build()
 
     def prepareAndPropagate(self, scene: RayScatteringScene, logger: Logger):
         self._logger = logger
