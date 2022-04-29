@@ -1,8 +1,6 @@
-import numpy as np
-
-from pytissueoptics.rayscattering import Stats
-from pytissueoptics.rayscattering.opencl.CLSource import CLPencilSource
+from pytissueoptics.rayscattering import *
 from pytissueoptics.rayscattering.materials import ScatteringMaterial
+from pytissueoptics.rayscattering.tissues import CubeTissue
 from pytissueoptics.scene import Vector, Logger
 
 """
@@ -19,10 +17,11 @@ These parameters will be used to mimic the parameters a typical user would utili
 """
 
 
-worldMaterial = ScatteringMaterial(mu_s=30, mu_a=0.1, g=0.8, index=1.4)
+tissue = CubeTissue(side=10, material=ScatteringMaterial(30, 0.1, 0.8, 1.4))
+source = PencilSource(position=Vector(0, 0, 0), direction=Vector(0, 0, 1), N=20000, use_opencl=True)
 logger = Logger()
-source = CLPencilSource(position=Vector(0, 0, 0), direction=Vector(0, 0, 1), N=50000)
 
-source.propagate(worldMaterial=worldMaterial, logger=logger)
-stats = Stats(logger, source)
+source.propagate(tissue, logger=logger)
+
+stats = Stats(logger, source, tissue)
 stats.showEnergy2D(bins=101, logScale=True, range=[[-10, 10], [-10, 10]])
