@@ -1,6 +1,6 @@
 from typing import List, Union
+import numpy as np
 
-from pytissueoptics.rayscattering.tissues import CubeTissue
 from pytissueoptics.rayscattering.tissues.rayScatteringScene import RayScatteringScene
 from pytissueoptics.rayscattering.photon import Photon
 from pytissueoptics.rayscattering.opencl import CLPhotons
@@ -25,7 +25,7 @@ class Source:
             self.propagate = self._propagateCPU
 
     def propagate(self, scene: RayScatteringScene, logger: Logger = None):
-        pass
+        raise NotImplementedError
 
     def _makePhotonsCPU(self):
         raise NotImplementedError
@@ -76,3 +76,18 @@ class PencilSource(Source):
     def _makePhotonsCPU(self):
         for _ in range(self._N):
             self._photons.append(Photon(position=self._position.copy(), direction=self._direction.copy()))
+
+
+class IsotropicPointSource(Source):
+    @staticmethod
+    def _getRandomDirection():
+        phi = np.random.random() * 2 * np.pi
+        theta = np.arccos(2 * np.random.random() - 1)
+        return theta, phi
+
+    def _makePhotonsCPU(self):
+        for _ in range(self._N):
+            p = Photon(position=self._position.copy(), direction=Vector(0, 0, 1))
+            theta, phi = self._getRandomDirection()
+            p.scatterBy(theta, phi)
+            self._photons.append(p)

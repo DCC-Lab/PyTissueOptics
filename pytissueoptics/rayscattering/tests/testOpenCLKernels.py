@@ -9,11 +9,12 @@ import matplotlib.pyplot as plt
 from pytissueoptics.scene import Vector
 
 
-class TestCLPropagationKernels(unittest.TestCase):
+class TestOpenCLKernels(unittest.TestCase):
     def setUp(self):
-        randomKernel = open(os.path.dirname(os.path.abspath(__file__)) + "{0}..{0}src{0}random.c".format(os.sep)).read()
-        propagationKernel = open(os.path.dirname(os.path.abspath(__file__)) + "{0}..{0}src{0}propagation.c".format(os.sep)).read()
-        vectorKernel = open(os.path.dirname(os.path.abspath(__file__)) + "{0}..{0}src{0}vector_operators.c".format(os.sep)).read()
+        sourcePath = os.path.dirname(os.path.abspath(__file__)) + "{0}..{0}opencl{0}src{0}".format(os.path.sep)
+        randomKernel = open(sourcePath + "random.c").read() 
+        propagationKernel = open(os.path.dirname(os.path.abspath(__file__)) + "{0}..{0}opencl{0}src{0}propagation.c".format(os.sep)).read()
+        vectorKernel = open(os.path.dirname(os.path.abspath(__file__)) + "{0}..{0}opencl{0}src{0}vectorOperators.c".format(os.sep)).read()
         self.ctx = cl.create_some_context()
         self.queue = cl.CommandQueue(self.ctx)
         self.device = self.ctx.devices[0]
@@ -118,7 +119,7 @@ class TestCLPropagationKernels(unittest.TestCase):
         self.assertTrue(np.all(np.isclose(CPU_angleResults, GPU_angleResults, atol=1e-3)))
 
     def test_whenGetScatteringAnglePhi_GPU_and_CPU_shouldReturnSameValues(self):
-        N = 50000
+        N = 500
         CPU_rndValues, HOST_rndValues, DEVICE_rndValues = self.makeRandomScalarsAndBuffers(N)
         HOST_angleResults = np.zeros(N, dtype=np.float32)
         DEVICE_angleResults = cl.Buffer(self.ctx, self.mf.READ_WRITE | self.mf.COPY_HOST_PTR, hostbuf=HOST_angleResults)
