@@ -1,4 +1,6 @@
+import os
 import pickle
+import warnings
 from dataclasses import dataclass
 from typing import List, Dict, Optional
 from enum import Enum
@@ -28,9 +30,13 @@ class DataType(Enum):
 
 
 class Logger:
-    def __init__(self):
+    def __init__(self, fromFilepath: str = None):
         self._data: Dict[InteractionKey, InteractionData] = {}
         self.info: dict = {}
+        self._filepath = None
+
+        if fromFilepath:
+            self.load(fromFilepath)
 
     def getSolidLabels(self) -> List[str]:
         return list(set(key.solidLabel for key in self._data.keys()))
@@ -106,16 +112,22 @@ class Logger:
             raise KeyError(f"Invalid surface label '{key.surfaceLabel}' for solid '{key.solidLabel}'. "
                            f"Available: {self.getSurfaceLabels(key.solidLabel)}. ")
 
-    def save(self, filepath: str):
+    def save(self, filepath: str = None):
+        if filepath is None and self._filepath is None:
+            filepath = "simulation.log"
+            warnings.warn(f"No filepath specified. Saving to {filepath}.")
+        elif filepath is None:
+            filepath = self._filepath
+
         with open(filepath, "wb") as file:
             pickle.dump((self._data, self.info), file)
 
     def load(self, filepath: str):
+        self._filepath = filepath
+
+        if not os.path.exists(filepath):
+            warnings.warn("No logger file found at '{}'. No data loaded.".format(filepath))
+            return
+
         with open(filepath, "rb") as file:
             self._data, self.info = pickle.load(file)
-
-    @classmethod
-    def fromFile(cls, filepath: str) -> 'Logger':
-        logger = Logger()
-        logger.load(filepath)
-        return logger

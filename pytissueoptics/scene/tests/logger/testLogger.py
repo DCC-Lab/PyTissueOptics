@@ -194,7 +194,7 @@ class TestLogger(unittest.TestCase):
             filePath = os.path.join(tempDir, "test.log")
             previousLogger.save(filePath)
 
-            logger = Logger.fromFile(filePath)
+            logger = Logger(filePath)
 
             self.assertTrue(np.array_equal(previousLogger.getPoints(), logger.getPoints()))
             self.assertEqual(previousLogger.info, logger.info)
