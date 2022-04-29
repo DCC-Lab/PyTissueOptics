@@ -1,3 +1,4 @@
+
 void normalizeVectorLocal(float4 *vector){
     float length = sqrt(vector->x * vector->x + vector->y * vector->y + vector->z * vector->z);
     if (length != 0.0f) {

@@ -1,3 +1,4 @@
+
 void decreaseWeightBy(__global photonStruct *photons, float delta_weight, uint gid){
     photons[gid].weight -= delta_weight;
 }
@@ -10,7 +11,6 @@ void interact(__global photonStruct *photons, __constant materialStruct *materia
     logger[logIndex].z = photons[gid].position.z;
     logger[logIndex].delta_weight = delta_weight;
 }
-
 
 void moveBy(__global photonStruct *photons, float distance, uint gid){
     photons[gid].position += (distance * photons[gid].direction);
@@ -72,7 +72,6 @@ __kernel void propagate(uint dataSize, float weightThreshold, __global photonStr
         stepIndex++;
     }
 }
-
 
 
 __kernel void getScatteringDistanceKernel(__global float * distanceBuffer, __global float * randomNums, float mu_t){

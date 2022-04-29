@@ -1,6 +1,5 @@
 import os
 import time
-
 import pyopencl as cl
 import pyopencl.tools
 import numpy as np
@@ -9,7 +8,6 @@ from numpy.lib import recfunctions as rfn
 from pytissueoptics.rayscattering.tissues import CubeTissue
 from pytissueoptics.rayscattering.tissues.rayScatteringScene import RayScatteringScene
 from pytissueoptics.scene import Logger
-
 from pytissueoptics.scene.logger import InteractionKey
 
 

@@ -1,6 +1,5 @@
 import os
 import unittest
-
 import pyopencl as cl
 import pyopencl.tools
 import numpy as np
