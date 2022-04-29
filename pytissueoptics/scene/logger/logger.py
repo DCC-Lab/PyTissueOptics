@@ -1,3 +1,4 @@
+import pickle
 from dataclasses import dataclass
 from typing import List, Dict, Optional
 from enum import Enum
@@ -29,6 +30,7 @@ class DataType(Enum):
 class Logger:
     def __init__(self):
         self._data: Dict[InteractionKey, InteractionData] = {}
+        self.info: dict = {}
 
     def getSolidLabels(self) -> List[str]:
         return list(set(key.solidLabel for key in self._data.keys()))
@@ -103,3 +105,11 @@ class Logger:
         if key.surfaceLabel and key.surfaceLabel not in self.getSurfaceLabels(key.solidLabel):
             raise KeyError(f"Invalid surface label '{key.surfaceLabel}' for solid '{key.solidLabel}'. "
                            f"Available: {self.getSurfaceLabels(key.solidLabel)}. ")
+
+    def save(self, filepath: str):
+        with open(filepath, "wb") as file:
+            pickle.dump((self._data, self.info), file)
+
+    def load(self, filepath: str):
+        with open(filepath, "rb") as file:
+            self._data, self.info = pickle.load(file)
