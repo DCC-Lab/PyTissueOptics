@@ -182,3 +182,19 @@ class TestLogger(unittest.TestCase):
 
             self.assertTrue(np.array_equal(previousLogger.getPoints(), logger.getPoints()))
             self.assertEqual(previousLogger.info, logger.info)
+
+    def testGivenALoggerPreviouslySaved_whenCreatingNewLoggerFromFile_shouldLoadPreviousLoggerFromFile(self):
+        previousLogger = Logger()
+        previousLogger.logPoint(Vector(0, 0, 0), self.INTERACTION_KEY)
+        previousLogger.logPoint(Vector(1, 0, 0), self.INTERACTION_KEY)
+        previousLogger.logPoint(Vector(2, 0, 0), self.INTERACTION_KEY)
+        previousLogger.info["some key"] = "some metadata"
+
+        with tempfile.TemporaryDirectory() as tempDir:
+            filePath = os.path.join(tempDir, "test.log")
+            previousLogger.save(filePath)
+
+            logger = Logger.fromFile(filePath)
+
+            self.assertTrue(np.array_equal(previousLogger.getPoints(), logger.getPoints()))
+            self.assertEqual(previousLogger.info, logger.info)

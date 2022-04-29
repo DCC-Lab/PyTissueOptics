@@ -113,3 +113,9 @@ class Logger:
     def load(self, filepath: str):
         with open(filepath, "rb") as file:
             self._data, self.info = pickle.load(file)
+
+    @classmethod
+    def fromFile(cls, filepath: str) -> 'Logger':
+        logger = Logger()
+        logger.load(filepath)
+        return logger
