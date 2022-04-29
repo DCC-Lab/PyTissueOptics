@@ -1,1 +1,1 @@
-from .CLSource import CLPencilSource, CLIsotropicSource
+from .CLPhotons import CLPhotons

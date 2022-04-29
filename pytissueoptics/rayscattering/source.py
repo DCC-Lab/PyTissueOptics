@@ -1,37 +1,55 @@
-from typing import List
+from typing import List, Union
 
+from pytissueoptics.rayscattering.tissues import CubeTissue
 from pytissueoptics.rayscattering.tissues.rayScatteringScene import RayScatteringScene
 from pytissueoptics.rayscattering.photon import Photon
+from pytissueoptics.rayscattering.opencl import CLPhotons
 from pytissueoptics.scene.solids import Sphere
 from pytissueoptics.scene.geometry import Vector, Environment
-from pytissueoptics.scene.intersection import SimpleIntersectionFinder
+from pytissueoptics.scene.intersection import FastIntersectionFinder
 from pytissueoptics.scene.logger import Logger
 from pytissueoptics.scene.viewer import MayaviViewer
 
 
 class Source:
-    def __init__(self, position: Vector, direction: Vector, photons: List[Photon]):
+    def __init__(self, position: Vector, N: int, use_opencl: bool = False):
         self._position = position
-        self._direction = direction
-        self._direction.normalize()
-
-        self._photons = photons
+        self._N = N
+        self._photons: Union[List[Photon], CLPhotons] = []
         self._environment = None
+        if use_opencl:
+            self._makePhotonsOpenCL()
+            self.propagate = self._propagateOpenCL
+        else:
+            self._makePhotonsCPU()
+            self.propagate = self._propagateCPU
 
     def propagate(self, scene: RayScatteringScene, logger: Logger = None):
-        intersectionFinder = SimpleIntersectionFinder(scene)
+        pass
+
+    def _makePhotonsCPU(self):
+        raise NotImplementedError
+
+    def _propagateCPU(self, scene: RayScatteringScene, logger: Logger = None):
+        intersectionFinder = FastIntersectionFinder(scene)
         self._environment = scene.getEnvironmentAt(self._position)
 
         for photon in self._photons:
             photon.setContext(self._environment, intersectionFinder=intersectionFinder, logger=logger)
             photon.propagate()
 
+    def _makePhotonsOpenCL(self):
+        self._photons = CLPhotons(self)
+
+    def _propagateOpenCL(self, scene: RayScatteringScene, logger: Logger = None):
+        self._photons.prepareAndPropagate(scene, logger)
+
     @property
     def photons(self):
         return self._photons
 
     def getPhotonCount(self) -> int:
-        return len(self._photons)
+        return self._N
 
     def getPosition(self) -> Vector:
         return self._position
@@ -47,9 +65,14 @@ class Source:
 
 
 class PencilSource(Source):
-    def __init__(self, position=Vector(0, 0, 0), direction=Vector(0, 0, 1), N=100):
-        photons = []
-        for _ in range(N):
-            photons.append(Photon(position=position.copy(), direction=direction.copy()))
+    def __init__(self, position: Vector, direction: Vector, N: int, use_opencl: bool = False):
+        self._direction = direction
+        self._direction.normalize()
+        super().__init__(position, N, use_opencl)
 
-        super().__init__(position, direction, photons)
+    def getDirection(self) -> Vector:
+        return self._direction
+
+    def _makePhotonsCPU(self):
+        for _ in range(self._N):
+            self._photons.append(Photon(position=self._position.copy(), direction=self._direction.copy()))

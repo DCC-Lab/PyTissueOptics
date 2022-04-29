@@ -6,17 +6,19 @@ import pyopencl.tools
 import numpy as np
 from numpy.lib import recfunctions as rfn
 
-from pytissueoptics.rayscattering.materials import ScatteringMaterial
+from pytissueoptics.rayscattering.tissues import CubeTissue
+from pytissueoptics.rayscattering.tissues.rayScatteringScene import RayScatteringScene
+from pytissueoptics.scene import Logger
+
 from pytissueoptics.scene.logger import InteractionKey
 
 
 class CLPhotons:
-    def __init__(self, source: 'CLSource', worldMaterial: ScatteringMaterial, logger=None, weightThreshold=0.0001):
+    def __init__(self, source: 'Source', weightThreshold: float = 0.0001):
         self._kernelPath = os.path.dirname(os.path.abspath(__file__)) + "{}CLPhotons.c".format(os.sep)
         self._source = source
-        self._worldMaterial = worldMaterial
         self._weightThreshold = np.float32(weightThreshold)
-        self._logger = logger
+        self._logger = None
 
         self._context = cl.create_some_context()
         self._mainQueue = cl.CommandQueue(self._context)
@@ -29,20 +31,25 @@ class CLPhotons:
         self._HOST_randomSeed, self._DEVICE_randomSeed, self._HOST_randomFloat, self._DEVICE_randomFloat = None, None, None, None
 
         self._makeTypes()
-        self._makeBuffers()
+
+    def _extractFromScene(self, scene: RayScatteringScene):
+        if type(scene) is not CubeTissue:
+            raise TypeError("OpenCL propagation is only supported for CubeTissue for the moment.")
+        self._worldMaterial = scene.solids[0].getEnvironment().material
+        self._label = scene.solids[0].getLabel()
 
     def _fillPhotons(self):
-        position = self._source.position
-        direction = self._source.direction
+        position = self._source.getPosition()
         datasize = np.uint32(len(self._HOST_photons))
-        if type(self._source).__name__ == "CLPencilSource":
+        if type(self._source).__name__ == "PencilSource":
+            direction = self._source.getDirection()
             self._program.fillPencilPhotonsBuffer(self._mainQueue, (datasize,), None,
                                                   self._DEVICE_photons,
                                                   self._DEVICE_randomSeed,
                                                   cl.cltypes.make_float4(position.x, position.y, position.z, 0),
                                                   cl.cltypes.make_float4(direction.x, direction.y, direction.z, 0))
 
-        elif type(self._source).__name__ == "CLIsotropicSource":
+        elif type(self._source).__name__ == "IsotropicSource":
             self._program.fillIsotropicPhotonsBuffer(self._mainQueue, (datasize,), None,
                                                      self._DEVICE_photons, self._DEVICE_randomSeed,
                                                      cl.cltypes.make_float4(position.x, position.y, position.z, 0))
@@ -52,10 +59,16 @@ class CLPhotons:
         self._program = cl.Program(self._context, self._c_decl_photon + self._c_decl_mat + self._c_decl_logger +
                                    open(self._kernelPath).read()).build()
 
-    def propagate(self):
-        t0 = time.time_ns()
+    def prepareAndPropagate(self, scene: RayScatteringScene, logger: Logger):
+        self._logger = logger
+        self._extractFromScene(scene)
+        self._makeBuffers()
         self._buildProgram()
         self._fillPhotons()
+        self._propagate()
+
+    def _propagate(self):
+        t0 = time.time_ns()
         datasize = np.uint32(len(self._HOST_photons))
         self._program.propagate(self._mainQueue, self._HOST_photons.shape, None, datasize, self._weightThreshold,
                                 self._DEVICE_photons,
@@ -64,12 +77,10 @@ class CLPhotons:
         self._mainQueue.finish()
         cl.enqueue_copy(self._mainQueue, dest=self._HOST_logger, src=self._DEVICE_logger)
         t1 = time.time_ns()
-        print("CLPhotons.propagate: {} s".format((t1 - t0)/ 1e9))
-        # print(np.asarray(self._HOST_logger, dtype=np.float32).shape)
-        print(self._HOST_logger)
+        print("CLPhotons.propagate: {} s".format((t1 - t0) / 1e9))
+
         log = rfn.structured_to_unstructured(self._HOST_logger)
-        print(log)
-        self._logger.logDataPointArray(log, InteractionKey("world", None))
+        self._logger.logDataPointArray(log, InteractionKey(self._label, None))
 
     def _makeTypes(self):
         def makePhotonType():
@@ -120,16 +131,17 @@ class CLPhotons:
         self._makeRandomBuffer()
 
     def _makePhotonsBuffer(self):
-        self._HOST_photons = np.empty(self._source.N, dtype=self._photon_dtype)
+        self._HOST_photons = np.empty(self._source.getPhotonCount(), dtype=self._photon_dtype)
 
         self._DEVICE_photons = cl.Buffer(self._context, cl.mem_flags.READ_WRITE | cl.mem_flags.COPY_HOST_PTR,
                                          hostbuf=self._HOST_photons)
 
     def _makeRandomBuffer(self):
-        self._HOST_randomSeed = np.random.randint(low=0, high=2 ** 32 - 1, size=self._source.N, dtype=cl.cltypes.uint)
+        self._HOST_randomSeed = np.random.randint(low=0, high=2 ** 32 - 1, size=self._source.getPhotonCount(),
+                                                  dtype=cl.cltypes.uint)
         self._DEVICE_randomSeed = cl.Buffer(self._context, cl.mem_flags.READ_WRITE | cl.mem_flags.COPY_HOST_PTR,
                                             hostbuf=self._HOST_randomSeed)
-        self._HOST_randomFloat = np.empty(self._source.N, dtype=cl.cltypes.float)
+        self._HOST_randomFloat = np.empty(self._source.getPhotonCount(), dtype=cl.cltypes.float)
         self._DEVICE_randomFloat = cl.Buffer(self._context, cl.mem_flags.READ_WRITE | cl.mem_flags.COPY_HOST_PTR,
                                              hostbuf=self._HOST_randomFloat)
 
@@ -146,7 +158,8 @@ class CLPhotons:
                                           hostbuf=self._HOST_material)
 
     def _makeLoggerBuffer(self):
-        loggerSize = int(-np.log(self._weightThreshold) / self._worldMaterial.getAlbedo()) * self._source.N
+        loggerSize = int(
+            -np.log(self._weightThreshold) / self._worldMaterial.getAlbedo()) * self._source.getPhotonCount()
         self._HOST_logger = np.empty(loggerSize, dtype=self._logger_dtype)
         self._DEVICE_logger = cl.Buffer(self._context, cl.mem_flags.WRITE_ONLY | cl.mem_flags.COPY_HOST_PTR,
                                         hostbuf=self._HOST_logger)
