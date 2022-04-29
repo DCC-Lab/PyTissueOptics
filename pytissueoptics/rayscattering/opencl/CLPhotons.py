@@ -1,10 +1,10 @@
 import os
 import time
 import pyopencl as cl
-import pyopencl.tools
 import numpy as np
 from numpy.lib import recfunctions as rfn
 
+from pytissueoptics.rayscattering.opencl.types import makePhotonType, makeMaterialType, makeLoggerType
 from pytissueoptics.rayscattering.tissues import CubeTissue
 from pytissueoptics.rayscattering.tissues.rayScatteringScene import RayScatteringScene
 from pytissueoptics.scene import Logger
@@ -47,15 +47,16 @@ class CLPhotons:
                                                   cl.cltypes.make_float4(position.x, position.y, position.z, 0),
                                                   cl.cltypes.make_float4(direction.x, direction.y, direction.z, 0))
 
-        elif type(self._source).__name__ == "IsotropicSource":
+        elif type(self._source).__name__ == "IsotropicPointSource":
             self._program.fillIsotropicPhotonsBuffer(self._mainQueue, (datasize,), None,
                                                      self._DEVICE_photons, self._DEVICE_randomSeed,
                                                      cl.cltypes.make_float4(position.x, position.y, position.z, 0))
         cl.enqueue_copy(self._mainQueue, self._HOST_photons, self._DEVICE_photons)
+        print(self._HOST_photons)
 
     def _buildProgram(self):
         randomSource = open(os.path.join(self._sourceFolderPath, "random.c")).read()
-        vectorSource = open(os.path.join(self._sourceFolderPath, "vector_operators.c")).read()
+        vectorSource = open(os.path.join(self._sourceFolderPath, "vectorOperators.c")).read()
         propagationSource = open(os.path.join(self._sourceFolderPath, "propagation.c")).read()
         photonSource = open(os.path.join(self._sourceFolderPath, "source.c")).read()
 
@@ -86,46 +87,9 @@ class CLPhotons:
         self._logger.logDataPointArray(log, InteractionKey(self._label, None))
 
     def _makeTypes(self):
-        def makePhotonType():
-            photonStruct = np.dtype(
-                [("position", cl.cltypes.float4),
-                 ("direction", cl.cltypes.float4),
-                 ("er", cl.cltypes.float4),
-                 ("weight", cl.cltypes.float),
-                 ("material_id", cl.cltypes.uint)])
-            name = "photonStruct"
-            photonStruct, c_decl_photon = cl.tools.match_dtype_to_c_struct(self._device, name, photonStruct)
-            photon_dtype = cl.tools.get_or_register_dtype(name, photonStruct)
-            return photon_dtype, c_decl_photon
-
-        def makeMaterialType():
-            materialStruct = np.dtype(
-                [("mu_s", cl.cltypes.float),
-                 ("mu_a", cl.cltypes.float),
-                 ("mu_t", cl.cltypes.float),
-                 ("g", cl.cltypes.float),
-                 ("n", cl.cltypes.float),
-                 ("albedo", cl.cltypes.float),
-                 ("material_id", cl.cltypes.uint)])
-            name = "materialStruct"
-            materialStruct, c_decl_mat = cl.tools.match_dtype_to_c_struct(self._device, name, materialStruct)
-            material_dtype = cl.tools.get_or_register_dtype(name, materialStruct)
-            return material_dtype, c_decl_mat
-
-        def makeLoggerType():
-            loggerStruct = np.dtype(
-                [("delta_weight", cl.cltypes.float),
-                 ("x", cl.cltypes.float),
-                 ("y", cl.cltypes.float),
-                 ("z", cl.cltypes.float)])
-            name = "loggerStruct"
-            loggerStruct, c_decl_logger = cl.tools.match_dtype_to_c_struct(self._device, name, loggerStruct)
-            logger_dtype = cl.tools.get_or_register_dtype(name, loggerStruct)
-            return logger_dtype, c_decl_logger
-
-        self._photon_dtype, self._c_decl_photon = makePhotonType()
-        self._material_dtype, self._c_decl_mat = makeMaterialType()
-        self._logger_dtype, self._c_decl_logger = makeLoggerType()
+        self._photon_dtype, self._c_decl_photon = makePhotonType(self._device)
+        self._material_dtype, self._c_decl_mat = makeMaterialType(self._device)
+        self._logger_dtype, self._c_decl_logger = makeLoggerType(self._device)
 
     def _makeBuffers(self):
         self._makePhotonsBuffer()
