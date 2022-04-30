@@ -17,24 +17,24 @@ class TestStats(unittest.TestCase):
 
     def testWhenGet3DScatter_shouldReturnScatterOfAllSolidPoints(self):
         scatter = self.stats._get3DScatter()
-        self.assertEqual(scatter.shape, (4, 8))
-        self.assertTrue(np.array_equal(scatter[3], np.full(8, 0.1)))
+        self.assertEqual(scatter.shape, (8, 4))
+        self.assertTrue(np.array_equal(scatter[:, 3], np.full(8, 0.1)))
 
     def testWhenGet3DScatterOfSurface_shouldReturnScatterOfAllPointsLeavingTheSurface(self):
         frontScatter = self.stats._get3DScatter(solidLabel="cube", surfaceLabel="front")
-        self.assertEqual(0, len(frontScatter))
+        self.assertEqual(0, frontScatter.size)
 
         backScatter = self.stats._get3DScatter(solidLabel="cube", surfaceLabel="back")
-        self.assertEqual(backScatter.shape, (4, 1))
-        self.assertEqual(0.2, backScatter[3])
+        self.assertEqual(backScatter.shape, (1, 4))
+        self.assertEqual(0.2, backScatter[:, 3])
 
     def testWhenGet3DScatterOfPointsEnteringSurface_shouldReturnScatterOfAllPointsEnteringTheSurface(self):
         frontScatter = self.stats._get3DScatter(solidLabel="cube", surfaceLabel="front", enteringSurface=True)
-        self.assertEqual(frontScatter.shape, (4, 1))
-        self.assertEqual(1, frontScatter[3])
+        self.assertEqual(frontScatter.shape, (1, 4))
+        self.assertEqual(1, frontScatter[:, 3])
 
         backScatter = self.stats._get3DScatter(solidLabel="cube", surfaceLabel="back", enteringSurface=True)
-        self.assertEqual(0, len(backScatter))
+        self.assertEqual(0, backScatter.size)
 
     def testWhenGet2DScatterWithYProjection_shouldReturnScatterOfAllSolidPointsProjectedToXZ(self):
         x, z, value = self.stats._get2DScatter(projection="y")
@@ -50,9 +50,9 @@ class TestStats(unittest.TestCase):
 
         backScatter = self.stats._get2DScatter(solidLabel="cube", surfaceLabel="back")
         x, z, value = backScatter
-        self.assertEqual([0.], x)
-        self.assertEqual([1.], z)
-        self.assertEqual([0.2], value)
+        self.assertEqual(0, x)
+        self.assertEqual(1, z)
+        self.assertEqual(0.2, value)
 
     def testWhenGet1DScatterAlongZ_shouldReturnScatterOfAllSolidPointsProjectedOnZAxis(self):
         z, value = self.stats._get1DScatter(along="z")

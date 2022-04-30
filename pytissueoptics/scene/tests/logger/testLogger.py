@@ -1,5 +1,7 @@
 import unittest
 
+import numpy as np
+
 from pytissueoptics.scene.geometry import Vector
 from pytissueoptics.scene.logger import Logger, InteractionKey
 
@@ -12,9 +14,9 @@ class TestLogger(unittest.TestCase):
     def testGivenNewLogger_shouldBeEmpty(self):
         logger = Logger()
 
-        self.assertEqual(0, len(logger.getPoints()))
-        self.assertEqual(0, len(logger.getDataPoints()))
-        self.assertEqual(0, len(logger.getSegments()))
+        self.assertIsNone(logger.getPoints())
+        self.assertIsNone(logger.getDataPoints())
+        self.assertIsNone(logger.getSegments())
 
     def testWhenLogNewPoint_shouldAddPointToTheLoggedPoints(self):
         logger = Logger()
@@ -25,7 +27,14 @@ class TestLogger(unittest.TestCase):
         logger.logPoint(newPoint, self.INTERACTION_KEY)
 
         self.assertEqual(3, len(logger.getPoints()))
-        self.assertEqual(newPoint, logger.getPoints()[-1])
+        self.assertTrue(np.array_equal([2, 0, 0], logger.getPoints()[-1]))
+
+    def testWhenLogPointArray_shouldAddAllPointsToTheLoggedPoints(self):
+        logger = Logger()
+        logger.logPointArray(np.array([[0, 0, 0], [1, 0, 0]]), self.INTERACTION_KEY)
+
+        self.assertEqual(2, len(logger.getPoints()))
+        self.assertTrue(np.array_equal([1, 0, 0], logger.getPoints()[-1]))
 
     def testWhenLogNewDataPoint_shouldAddDataPointToTheLoggedDataPoints(self):
         logger = Logger()
@@ -35,8 +44,14 @@ class TestLogger(unittest.TestCase):
         logger.logDataPoint(10, Vector(2, 0, 0), self.INTERACTION_KEY)
 
         self.assertEqual(3, len(logger.getDataPoints()))
-        self.assertEqual(10, logger.getDataPoints()[-1].value)
-        self.assertEqual(Vector(2, 0, 0), logger.getDataPoints()[-1].position)
+        self.assertTrue(np.array_equal([10, 2, 0, 0], logger.getDataPoints()[-1]))
+
+    def testWhenLogDataPointArray_shouldAddAllDataPointsToTheLoggedDataPoints(self):
+        logger = Logger()
+        logger.logDataPointArray(np.array([[2, 0, 0, 0], [1, 1, 0, 0]]), self.INTERACTION_KEY)
+
+        self.assertEqual(2, len(logger.getDataPoints()))
+        self.assertTrue(np.array_equal([1, 1, 0, 0], logger.getDataPoints()[-1]))
 
     def testWhenLogNewSegment_shouldAddSegmentToTheLoggedSegments(self):
         logger = Logger()
@@ -46,8 +61,14 @@ class TestLogger(unittest.TestCase):
         logger.logSegment(Vector(0, 0, 0), Vector(1, 0, 0), self.INTERACTION_KEY)
 
         self.assertEqual(3, len(logger.getSegments()))
-        self.assertEqual(Vector(0, 0, 0), logger.getSegments()[-1].start)
-        self.assertEqual(Vector(1, 0, 0), logger.getSegments()[-1].end)
+        self.assertTrue(np.array_equal([0, 0, 0, 1, 0, 0], logger.getSegments()[-1]))
+
+    def testWhenLogSegmentArray_shouldAddAllSegmentsToTheLoggedSegments(self):
+        logger = Logger()
+        logger.logSegmentArray(np.array([[0, 0, 0, 1, 1, 1], [1, 1, 1, 2, 2, 2]]), self.INTERACTION_KEY)
+
+        self.assertEqual(2, len(logger.getSegments()))
+        self.assertTrue(np.array_equal([1, 1, 1, 2, 2, 2], logger.getSegments()[-1]))
 
     def testWhenGetDataWithKey_shouldReturnDataStoredForThisKey(self):
         sameKey = InteractionKey(self.SOLID_LABEL, self.SURFACE_LABEL)
@@ -83,6 +104,13 @@ class TestLogger(unittest.TestCase):
         logger.logPoint(Vector(0, 0, 0), self.INTERACTION_KEY)
 
         self.assertRaises(KeyError, logger.getPoints, InteractionKey(self.SOLID_LABEL, "another surface"))
+
+    def testGivenEmptyLogger_whenGetData_shouldReturnNone(self):
+        logger = Logger()
+
+        self.assertIsNone(logger.getPoints())
+        self.assertIsNone(logger.getSegments())
+        self.assertIsNone(logger.getDataPoints())
 
     def testWhenGetSolidLabels_shouldReturnAListOfUniqueSolidLabels(self):
         solidLabel1 = "A label"
