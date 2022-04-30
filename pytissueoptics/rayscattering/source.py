@@ -1,4 +1,4 @@
-from typing import List, Union, Optional
+from typing import List, Union, Optional, Tuple
 import numpy as np
 
 from pytissueoptics.rayscattering.tissues.rayScatteringScene import RayScatteringScene
@@ -19,10 +19,8 @@ class Source:
         self._environment = None
 
         self._use_opencl = use_opencl
-        if use_opencl:
-            self._makePhotonsOpenCL()
-        else:
-            self._makePhotonsCPU()
+
+        self._loadPhotons()
 
     def propagate(self, scene: RayScatteringScene, logger: Logger = None):
         if self._use_opencl:
@@ -42,18 +40,33 @@ class Source:
     def _propagateOpenCL(self, scene: RayScatteringScene, logger: Logger = None):
         self._photons.prepareAndPropagate(scene, logger)
 
+    def getInitialPhotons(self) -> Tuple[np.ndarray, np.ndarray]:
+        """ To be implemented by subclasses. Needs to return a tuple containing the
+        initial positions and directions of the photons as (N, 3) numpy arrays. """
+        raise NotImplementedError
+
+    def _loadPhotons(self):
+        if self._use_opencl:
+            self._loadPhotonsOpenCL()
+        else:
+            self._loadPhotonsCPU()
+
+    def _loadPhotonsCPU(self):
+        positions, directions = self.getInitialPhotons()
+        for i in range(self._N):
+            self._photons.append(Photon(Vector(*positions[i]), Vector(*directions[i])))
+
+    def _loadPhotonsOpenCL(self):
+        positions, directions = self.getInitialPhotons()
+        # TODO ... CLPhotons(positions, directions) or something
+        self._photons = CLPhotons(self)
+
     def _prepareLogger(self, logger: Optional[Logger]):
         if logger is None:
             return
         if "photonCount" not in logger.info:
             logger.info["photonCount"] = 0
         logger.info["photonCount"] += self.getPhotonCount()
-
-    def _makePhotonsCPU(self):
-        raise NotImplementedError
-
-    def _makePhotonsOpenCL(self):
-        self._photons = CLPhotons(self)
 
     @property
     def photons(self):
@@ -84,21 +97,16 @@ class PencilSource(Source):
     def getDirection(self) -> Vector:
         return self._direction
 
-    def _makePhotonsCPU(self):
-        for _ in range(self._N):
-            self._photons.append(Photon(position=self._position.copy(), direction=self._direction.copy()))
+    def getInitialPhotons(self) -> Tuple[np.ndarray, np.ndarray]:
+        positions = np.full((self._N, 3), self._position.array)
+        directions = np.full((self._N, 3), self._direction.array)
+        return positions, directions
 
 
 class IsotropicPointSource(Source):
-    @staticmethod
-    def _getRandomDirection():
-        phi = np.random.random() * 2 * np.pi
-        theta = np.arccos(2 * np.random.random() - 1)
-        return theta, phi
-
-    def _makePhotonsCPU(self):
-        for _ in range(self._N):
-            p = Photon(position=self._position.copy(), direction=Vector(0, 0, 1))
-            theta, phi = self._getRandomDirection()
-            p.scatterBy(theta, phi)
-            self._photons.append(p)
+    def getInitialPhotons(self) -> Tuple[np.ndarray, np.ndarray]:
+        positions = np.full((self._N, 3), self._position.array)
+        # TODO: test if this really leads to a uniformly sampled sphere
+        directions = np.random.randn(self._N, 3)
+        directions /= np.linalg.norm(directions, axis=1, keepdims=True)
+        return positions, directions
