@@ -1,4 +1,4 @@
-from typing import List
+from typing import List, Optional
 
 from pytissueoptics.rayscattering.tissues.rayScatteringScene import RayScatteringScene
 from pytissueoptics.rayscattering.photon import Photon
@@ -21,10 +21,18 @@ class Source:
     def propagate(self, scene: RayScatteringScene, logger: Logger = None):
         intersectionFinder = SimpleIntersectionFinder(scene)
         self._environment = scene.getEnvironmentAt(self._position)
+        self._prepareLogger(logger)
 
         for photon in self._photons:
             photon.setContext(self._environment, intersectionFinder=intersectionFinder, logger=logger)
             photon.propagate()
+
+    def _prepareLogger(self, logger: Optional[Logger]):
+        if logger is None:
+            return
+        if "photonCount" not in logger.info:
+            logger.info["photonCount"] = 0
+        logger.info["photonCount"] += self.getPhotonCount()
 
     @property
     def photons(self):
