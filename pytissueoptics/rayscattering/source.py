@@ -33,10 +33,18 @@ class Source:
     def _propagateCPU(self, scene: RayScatteringScene, logger: Logger = None):
         intersectionFinder = FastIntersectionFinder(scene)
         self._environment = scene.getEnvironmentAt(self._position)
+        self._prepareLogger(logger)
 
         for photon in self._photons:
             photon.setContext(self._environment, intersectionFinder=intersectionFinder, logger=logger)
             photon.propagate()
+
+    def _prepareLogger(self, logger: Optional[Logger]):
+        if logger is None:
+            return
+        if "photonCount" not in logger.info:
+            logger.info["photonCount"] = 0
+        logger.info["photonCount"] += self.getPhotonCount()
 
     def _makePhotonsOpenCL(self):
         self._photons = CLPhotons(self)

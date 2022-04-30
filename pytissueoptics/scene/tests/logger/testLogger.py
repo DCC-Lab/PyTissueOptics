@@ -1,4 +1,6 @@
+import os
 import unittest
+import tempfile
 
 import numpy as np
 
@@ -154,3 +156,45 @@ class TestLogger(unittest.TestCase):
         self.assertEqual(2, len(surfaceLabels))
         self.assertTrue(surfaceA in surfaceLabels)
         self.assertTrue(surfaceB in surfaceLabels)
+
+    def testWhenSave_shouldSaveLoggerToFile(self):
+        logger = Logger()
+
+        with tempfile.TemporaryDirectory() as tempDir:
+            filePath = os.path.join(tempDir, "test.log")
+            logger.save(filePath)
+
+            self.assertTrue(os.path.exists(filePath))
+
+    def testGivenALoggerPreviouslySaved_whenLoad_shouldLoadPreviousLoggerFromFile(self):
+        previousLogger = Logger()
+        previousLogger.logPoint(Vector(0, 0, 0), self.INTERACTION_KEY)
+        previousLogger.logPoint(Vector(1, 0, 0), self.INTERACTION_KEY)
+        previousLogger.logPoint(Vector(2, 0, 0), self.INTERACTION_KEY)
+        previousLogger.info["some key"] = "some metadata"
+
+        with tempfile.TemporaryDirectory() as tempDir:
+            filePath = os.path.join(tempDir, "test.log")
+            previousLogger.save(filePath)
+
+            logger = Logger()
+            logger.load(filePath)
+
+            self.assertTrue(np.array_equal(previousLogger.getPoints(), logger.getPoints()))
+            self.assertEqual(previousLogger.info, logger.info)
+
+    def testGivenALoggerPreviouslySaved_whenCreatingNewLoggerFromFile_shouldLoadPreviousLoggerFromFile(self):
+        previousLogger = Logger()
+        previousLogger.logPoint(Vector(0, 0, 0), self.INTERACTION_KEY)
+        previousLogger.logPoint(Vector(1, 0, 0), self.INTERACTION_KEY)
+        previousLogger.logPoint(Vector(2, 0, 0), self.INTERACTION_KEY)
+        previousLogger.info["some key"] = "some metadata"
+
+        with tempfile.TemporaryDirectory() as tempDir:
+            filePath = os.path.join(tempDir, "test.log")
+            previousLogger.save(filePath)
+
+            logger = Logger(filePath)
+
+            self.assertTrue(np.array_equal(previousLogger.getPoints(), logger.getPoints()))
+            self.assertEqual(previousLogger.info, logger.info)

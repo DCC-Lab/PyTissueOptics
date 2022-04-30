@@ -60,7 +60,6 @@ class Stats:
 
         solidSource = source.getEnvironment().solid
         self._sourceSolidLabel = solidSource.getLabel() if solidSource else None
-        self._photonCount = source.getPhotonCount()
         self._source = source
 
     def showEnergy3D(self, solidLabel: str = None, surfaceLabel: str = None, config=DisplayConfig()):
@@ -74,6 +73,11 @@ class Stats:
     def showEnergy3DOfSurfaces(self, solidLabel: str = None, config=DisplayConfig()):
         pointCloud = self._getPointCloudOfSurfaces(solidLabel)
         return self._show3DPointCloud(pointCloud, config=config)
+
+    def getPhotonCount(self) -> int:
+        if "photonCount" not in self._logger.info:
+            return self._source.getPhotonCount()
+        return self._logger.info["photonCount"]
 
     def _show3DPointCloud(self, pointCloud: PointCloud, config: DisplayConfig):
         from pytissueoptics.scene import MayaviViewer
@@ -190,17 +194,17 @@ class Stats:
     def getAbsorbance(self, solidLabel: str = None, useTotalEnergy=False) -> float:
         points = self.getPointCloud(solidLabel).solidPoints
         energy = np.sum(points[:, 0])
-        energyInput = self._getEnergyInput(solidLabel) if not useTotalEnergy else self._photonCount
+        energyInput = self._getEnergyInput(solidLabel) if not useTotalEnergy else self.getPhotonCount()
         return energy / energyInput
 
     def _getEnergyInput(self, solidLabel: str = None) -> float:
         if solidLabel is None:
-            return self._photonCount
+            return self.getPhotonCount()
         points = self._getPointCloudOfSurfaces(solidLabel).enteringSurfacePoints
         energy = -np.sum(points[:, 0]) if points is not None else 0
 
         if self._sourceSolidLabel == solidLabel:
-            energy += self._photonCount
+            energy += self.getPhotonCount()
         return energy
 
     def getTransmittance(self, solidLabel: str = None, surfaceLabel: str = None, useTotalEnergy=False):
@@ -212,7 +216,7 @@ class Stats:
             points = self.getPointCloud(solidLabel, surfaceLabel).leavingSurfacePoints
 
         energy = np.sum(points[:, 0])
-        energyInput = self._getEnergyInput(solidLabel) if not useTotalEnergy else self._photonCount
+        energyInput = self._getEnergyInput(solidLabel) if not useTotalEnergy else self.getPhotonCount()
         return energy / energyInput
 
     def report(self, solidLabel: str = None):
