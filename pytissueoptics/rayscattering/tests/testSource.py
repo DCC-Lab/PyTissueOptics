@@ -1,5 +1,6 @@
 import unittest
 
+import numpy as np
 from mockito import mock, when, verify
 
 from pytissueoptics.rayscattering import PencilSource, Photon
@@ -16,7 +17,7 @@ class TestSource(unittest.TestCase):
 
     def setUp(self):
         self.photon = self._createPhoton()
-        self.source = Source(position=Vector(), direction=Vector(), photons=[self.photon])
+        self.source = SinglePhotonSource(position=Vector(), photons=[self.photon])
 
     def testWhenPropagate_shouldSetInitialPhotonEnvironmentAsSourceEnvironment(self):
         self.source.propagate(self._createTissue())
@@ -39,6 +40,8 @@ class TestSource(unittest.TestCase):
         tissue = mock(RayScatteringScene)
         when(tissue).getEnvironmentAt(self.SOURCE_POSITION).thenReturn(self.SOURCE_ENV)
         when(tissue).resetOutsideMaterial(...).thenReturn()
+        when(tissue).getBoundingBox().thenReturn()
+        when(tissue).getPolygons().thenReturn([])
         when(tissue).getSolids().thenReturn([])
         return tissue
 
@@ -53,12 +56,21 @@ class TestSource(unittest.TestCase):
 class TestPencilSource(unittest.TestCase):
     def testShouldHavePhotonsAllPointingInTheSourceDirection(self):
         sourceDirection = Vector(1, 0, 0)
-        pencilSource = PencilSource(direction=sourceDirection, N=10)
+        pencilSource = PencilSource(position=Vector(), direction=sourceDirection, N=10)
         for photon in pencilSource.photons:
             self.assertEqual(sourceDirection, photon.direction)
 
     def testShouldHavePhotonsAllPositionedAtTheSourcePosition(self):
         sourcePosition = Vector(3, 3, 0)
-        pencilSource = PencilSource(position=sourcePosition, N=10)
+        pencilSource = PencilSource(position=sourcePosition, direction=Vector(0, 0, 1), N=10)
         for photon in pencilSource.photons:
             self.assertEqual(sourcePosition, photon.position)
+
+
+class SinglePhotonSource(Source):
+    def __init__(self, position, photons):
+        super().__init__(position, N=len(photons))
+        self._photons = photons
+
+    def getInitialPhotons(self):
+        return np.array([[0, 0, 0]]), np.array([[0, 0, 1]])

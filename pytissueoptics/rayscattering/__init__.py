@@ -1,4 +1,5 @@
 from .photon import Photon
-from .source import PencilSource
+from .materials import ScatteringMaterial
+from .source import PencilSource, IsotropicPointSource
 from .stats import Stats
 

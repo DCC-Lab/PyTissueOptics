@@ -1,5 +1,4 @@
 from pytissueoptics.rayscattering import *
-from pytissueoptics.rayscattering.materials import ScatteringMaterial
 from pytissueoptics.rayscattering.tissues import CubeTissue
 from pytissueoptics.scene import Vector, Logger
 
