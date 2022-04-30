@@ -1,4 +1,4 @@
-from typing import List, Union
+from typing import List, Union, Optional
 import numpy as np
 
 from pytissueoptics.rayscattering.tissues.rayScatteringScene import RayScatteringScene
@@ -17,18 +17,18 @@ class Source:
         self._N = N
         self._photons: Union[List[Photon], CLPhotons] = []
         self._environment = None
+
+        self._use_opencl = use_opencl
         if use_opencl:
             self._makePhotonsOpenCL()
-            self.propagate = self._propagateOpenCL
         else:
             self._makePhotonsCPU()
-            self.propagate = self._propagateCPU
 
     def propagate(self, scene: RayScatteringScene, logger: Logger = None):
-        raise NotImplementedError
-
-    def _makePhotonsCPU(self):
-        raise NotImplementedError
+        if self._use_opencl:
+            self._propagateOpenCL(scene, logger)
+        else:
+            self._propagateCPU(scene, logger)
 
     def _propagateCPU(self, scene: RayScatteringScene, logger: Logger = None):
         intersectionFinder = FastIntersectionFinder(scene)
@@ -39,6 +39,9 @@ class Source:
             photon.setContext(self._environment, intersectionFinder=intersectionFinder, logger=logger)
             photon.propagate()
 
+    def _propagateOpenCL(self, scene: RayScatteringScene, logger: Logger = None):
+        self._photons.prepareAndPropagate(scene, logger)
+
     def _prepareLogger(self, logger: Optional[Logger]):
         if logger is None:
             return
@@ -46,11 +49,11 @@ class Source:
             logger.info["photonCount"] = 0
         logger.info["photonCount"] += self.getPhotonCount()
 
+    def _makePhotonsCPU(self):
+        raise NotImplementedError
+
     def _makePhotonsOpenCL(self):
         self._photons = CLPhotons(self)
-
-    def _propagateOpenCL(self, scene: RayScatteringScene, logger: Logger = None):
-        self._photons.prepareAndPropagate(scene, logger)
 
     @property
     def photons(self):
