@@ -1,6 +1,6 @@
 from pytissueoptics.rayscattering.materials import ScatteringMaterial
 from pytissueoptics.rayscattering.tissues.rayScatteringScene import RayScatteringScene
-from pytissueoptics.scene import Cube, MayaviViewer
+from pytissueoptics.scene import Cube
 
 
 class CubeTissue(RayScatteringScene):
@@ -16,6 +16,3 @@ class CubeTissue(RayScatteringScene):
     def _create(self):
         tissue = Cube(self.side, material=self.material, label="cube")
         self.TISSUE = [tissue]
-
-    def addToViewer(self, viewer: MayaviViewer):
-        viewer.add(*self.TISSUE, representation="surface", colormap="bone", constantColor=False, opacity=0.1)
