@@ -193,15 +193,14 @@ class Stats:
 
     def getAbsorbance(self, solidLabel: str = None, useTotalEnergy=False) -> float:
         points = self.getPointCloud(solidLabel).solidPoints
-        energy = np.sum(points[:, 0])
         energyInput = self._getEnergyInput(solidLabel) if not useTotalEnergy else self.getPhotonCount()
-        return energy / energyInput
+        return self._sumEnergy(points) / energyInput
 
     def _getEnergyInput(self, solidLabel: str = None) -> float:
         if solidLabel is None:
             return self.getPhotonCount()
         points = self._getPointCloudOfSurfaces(solidLabel).enteringSurfacePoints
-        energy = -np.sum(points[:, 0]) if points is not None else 0
+        energy = self._sumEnergy(points)
 
         if self._sourceSolidLabel == solidLabel:
             energy += self.getPhotonCount()
@@ -215,9 +214,12 @@ class Stats:
         else:
             points = self.getPointCloud(solidLabel, surfaceLabel).leavingSurfacePoints
 
-        energy = np.sum(points[:, 0])
         energyInput = self._getEnergyInput(solidLabel) if not useTotalEnergy else self.getPhotonCount()
-        return energy / energyInput
+        return self._sumEnergy(points) / energyInput
+
+    @staticmethod
+    def _sumEnergy(points: np.ndarray):
+        return np.abs(np.sum(points[:, 0])) if points is not None else 0
 
     def report(self, solidLabel: str = None):
         if solidLabel:
@@ -232,12 +234,13 @@ class Stats:
                   100 * self.getAbsorbance(solidLabel, useTotalEnergy=True)))
             print("  Absorbance + Transmittance: {:.1f}%".format(100 * (self.getAbsorbance(solidLabel) +
                                                                         self.getTransmittance(solidLabel))))
+
+            for surfaceLabel in self._logger.getSurfaceLabels(solidLabel):
+                transmittance = "{0:.1f}".format(100 * self.getTransmittance(solidLabel, surfaceLabel))
+                print(f"    Transmittance at '{surfaceLabel}': {transmittance}%")
+
         except ZeroDivisionError:
             warnings.warn("No energy input for solid '{}'".format(solidLabel))
             print("  Absorbance: N/A ({:.1f}% of total power)".format(100 * self.getAbsorbance(solidLabel,
                                                                                                useTotalEnergy=True)))
             print("  Absorbance + Transmittance: N/A")
-
-        for surfaceLabel in self._logger.getSurfaceLabels(solidLabel):
-            transmittance = "{0:.1f}".format(100 * self.getTransmittance(solidLabel, surfaceLabel))
-            print(f"    Transmittance at '{surfaceLabel}': {transmittance}%")
