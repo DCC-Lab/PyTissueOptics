@@ -5,7 +5,7 @@ from mockito import mock, when, verify
 
 from pytissueoptics.rayscattering import PencilSource, Photon
 from pytissueoptics.rayscattering.materials import ScatteringMaterial
-from pytissueoptics.rayscattering.source import Source
+from pytissueoptics.rayscattering.source import Source, IsotropicPointSource
 from pytissueoptics.rayscattering.tissues.rayScatteringScene import RayScatteringScene
 from pytissueoptics.scene import Logger
 from pytissueoptics.scene.geometry import Environment, Vector
@@ -64,6 +64,14 @@ class TestPencilSource(unittest.TestCase):
         sourcePosition = Vector(3, 3, 0)
         pencilSource = PencilSource(position=sourcePosition, direction=Vector(0, 0, 1), N=10)
         for photon in pencilSource.photons:
+            self.assertEqual(sourcePosition, photon.position)
+
+
+class TestIsotropicPointSource(unittest.TestCase):
+    def testShouldHavePhotonsAllPositionedAtTheSourcePosition(self):
+        sourcePosition = Vector(3, 3, 0)
+        pointSource = IsotropicPointSource(position=sourcePosition, N=10)
+        for photon in pointSource.photons:
             self.assertEqual(sourcePosition, photon.position)
 
 
