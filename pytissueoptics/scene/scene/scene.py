@@ -1,3 +1,4 @@
+import sys
 from typing import List, Dict, Optional
 
 from pytissueoptics.scene.geometry import Environment
@@ -7,14 +8,18 @@ from pytissueoptics.scene.geometry import Polygon, BoundingBox
 
 
 class Scene:
-    def __init__(self, solids: List[Solid] = None, ignoreIntersections=False):
+    def __init__(self, solids: List[Solid] = None, ignoreIntersections=False,
+                 worldMaterial=None):
         self._solids = []
         self._ignoreIntersections = ignoreIntersections
         self._labelsOfHiddenSolids = []
+        self._worldMaterial = worldMaterial
         
         if solids:
             for solid in solids:
                 self.add(solid)
+
+        self.resetOutsideMaterial()
 
     def add(self, solid: Solid, position: Vector = None):
         if position:
@@ -27,6 +32,9 @@ class Scene:
     @property
     def solids(self):
         return self._solids
+
+    def getWorldEnvironment(self) -> Environment:
+        return Environment(self._worldMaterial)
 
     def _validatePosition(self, newSolid: Solid):
         """ Assert newSolid position is valid and make proper adjustments so that the
@@ -98,9 +106,41 @@ class Scene:
             bbox.extendTo(solid.getBoundingBox())
         return bbox
 
-    def setOutsideMaterial(self, material):
-        outsideEnvironment = Environment(material)
+    def resetOutsideMaterial(self):
+        outsideEnvironment = self.getWorldEnvironment()
         for solid in self._solids:
             if solid.getLabel() in self._labelsOfHiddenSolids:
                 continue
             solid.setOutsideEnvironment(outsideEnvironment)
+
+    def getEnvironmentAt(self, position: Vector) -> Environment:
+        for solid in self._solids:
+            if solid.contains(position):
+                if solid.isStack():
+                    return self._getEnvironmentOfStackAt(position, solid)
+                return solid.getEnvironment()
+        return self.getWorldEnvironment()
+
+    @staticmethod
+    def _getEnvironmentOfStackAt(position: Vector, stack: Solid) -> Environment:
+        """ Returns the environment of the stack at the given position.
+
+        To do that we first find the interface in the stack that is closest to the given position.
+        At the same time we find on which side of the interface we are and return the environment
+        of this side from any surface polygon.
+        """
+        environment = None
+        closestDistance = sys.maxsize
+        for surfaceLabel in stack.surfaceLabels:
+            if "interface" not in surfaceLabel:
+                continue
+            planePolygon = stack.surfaces.getPolygons(surfaceLabel)[0]
+            planeNormal = planePolygon.normal
+            planePoint = planePolygon.vertices[0]
+            v = position - planePoint
+            distanceFromPlane = v.dot(planeNormal)
+            if abs(distanceFromPlane) < closestDistance:
+                closestDistance = abs(distanceFromPlane)
+                isInside = distanceFromPlane < 0
+                environment = planePolygon.insideEnvironment if isInside else planePolygon.outsideEnvironment
+        return environment

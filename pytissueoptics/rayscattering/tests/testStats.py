@@ -6,13 +6,14 @@ from mockito import mock, when
 from pytissueoptics.rayscattering import Stats
 from pytissueoptics.rayscattering.source import Source
 from pytissueoptics.scene import Logger, Vector
+from pytissueoptics.scene.geometry import Environment
 from pytissueoptics.scene.logger import InteractionKey
+from pytissueoptics.scene.solids import Solid
 
 
 class TestStats(unittest.TestCase):
     def setUp(self):
-        source = mock(Source)
-        when(source).getPhotonCount().thenReturn(1)
+        source = self.makeTestSource()
         self.stats = Stats(self.makeTestCubeLogger(),  source=source)
 
     def testWhenGet3DScatter_shouldReturnScatterOfAllSolidPoints(self):
@@ -60,6 +61,20 @@ class TestStats(unittest.TestCase):
         self.assertTrue(len(z) == len(value))
         self.assertTrue(np.isclose(z, np.arange(0.1, 0.9, 0.1)).all())
 
+    def testWhenGetEnergyInput_shouldReturnSumOfAllEnergyEnteringTheSolidSurfaces(self):
+        energyInput = self.stats._getEnergyInput("cube")
+        self.assertEqual(1, energyInput)
+
+    def testGivenSourceInSolid_whenGetEnergyInput_shouldAddSourceEnergyToSolidInputEnergy(self):
+        solid = mock(Solid)
+        when(solid).getLabel().thenReturn("cube")
+        source = self.makeTestSource(solid)
+        self.stats = Stats(self.makeTestCubeLogger(), source=source)
+
+        energy = self.stats._getEnergyInput("cube")
+
+        self.assertEqual(1 + 1, energy)
+
     def testAbsorbanceOfSolid(self):
         self.assertAlmostEqual(0.8, self.stats.getAbsorbance("cube"))
 
@@ -82,3 +97,11 @@ class TestStats(unittest.TestCase):
         logger.logDataPoint(-1, Vector(0, 0, 0), frontInteraction)
         logger.logDataPoint(0.2, Vector(0, 0, 1), backInteraction)
         return logger
+
+    @staticmethod
+    def makeTestSource(inSolid: Solid = None):
+        source = mock(Source)
+        sourceEnv = Environment(None, inSolid)
+        when(source).getPhotonCount().thenReturn(1)
+        when(source).getEnvironment().thenReturn(sourceEnv)
+        return source

@@ -6,36 +6,39 @@ from pytissueoptics.rayscattering import PencilSource, Photon
 from pytissueoptics.rayscattering.materials import ScatteringMaterial
 from pytissueoptics.rayscattering.source import Source
 from pytissueoptics.rayscattering.tissues.rayScatteringScene import RayScatteringScene
-from pytissueoptics.scene import Vector
-from pytissueoptics.scene.geometry import Environment
+from pytissueoptics.scene import Logger
+from pytissueoptics.scene.geometry import Environment, Vector
 
 
 class TestSource(unittest.TestCase):
+    SOURCE_ENV = Environment(ScatteringMaterial())
+    SOURCE_POSITION = Vector(0, 0, 0)
+
     def setUp(self):
         self.photon = self._createPhoton()
         self.source = Source(position=Vector(), direction=Vector(), photons=[self.photon])
 
-    def testWhenPropagate_shouldSetWorldMaterialInTissue(self):
-        worldMaterial = ScatteringMaterial()
-        tissue = self._createTissue()
+    def testWhenPropagate_shouldSetInitialPhotonEnvironmentAsSourceEnvironment(self):
+        self.source.propagate(self._createTissue())
+        verify(self.photon).setContext(self.SOURCE_ENV, ...)
 
-        self.source.propagate(tissue, worldMaterial=worldMaterial)
+    def testWhenPropagate_shouldUpdatePhotonCountInLogger(self):
+        logger = Logger()
+        self.source.propagate(self._createTissue(), logger=logger)
+        self.assertEqual(logger.info['photonCount'], 1)
 
-        verify(tissue).setOutsideMaterial(worldMaterial)
-
-    def testWhenPropagate_shouldSetInitialPhotonMaterialAsWorldMaterial(self):
-        worldMaterial = ScatteringMaterial()
-        self.source.propagate(self._createTissue(), worldMaterial=worldMaterial)
-        verify(self.photon).setContext(Environment(worldMaterial), ...)
+        logger.info['photonCount'] = 10
+        self.source.propagate(self._createTissue(), logger=logger)
+        self.assertEqual(logger.info['photonCount'], 10+1)
 
     def testWhenPropagate_shouldPropagateAllPhotons(self):
-        self.source.propagate(self._createTissue(), worldMaterial=ScatteringMaterial())
+        self.source.propagate(self._createTissue())
         verify(self.photon).propagate()
 
-    @staticmethod
-    def _createTissue():
+    def _createTissue(self):
         tissue = mock(RayScatteringScene)
-        when(tissue).setOutsideMaterial(...).thenReturn()
+        when(tissue).getEnvironmentAt(self.SOURCE_POSITION).thenReturn(self.SOURCE_ENV)
+        when(tissue).resetOutsideMaterial(...).thenReturn()
         when(tissue).getSolids().thenReturn([])
         return tissue
 
