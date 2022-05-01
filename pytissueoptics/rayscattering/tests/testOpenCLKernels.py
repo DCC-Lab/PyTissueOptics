@@ -1,14 +1,17 @@
 import os
 import unittest
 import pyopencl as cl
-import pyopencl.tools
 import numpy as np
 from numpy.lib import recfunctions as rfn
 import matplotlib.pyplot as plt
 
 from pytissueoptics.scene import Vector
+from pytissueoptics.rayscattering.opencl.types import makePhotonType, makeMaterialType, makeLoggerType
+
+execTest = False
 
 
+@unittest.skipIf(execTest is not True, 'Skip if not run as main, this is an integration/technology test')
 class TestOpenCLKernels(unittest.TestCase):
     def setUp(self):
         sourcePath = os.path.dirname(os.path.abspath(__file__)) + "{0}..{0}opencl{0}src{0}".format(os.path.sep)
@@ -23,46 +26,9 @@ class TestOpenCLKernels(unittest.TestCase):
         self.program = cl.Program(self.ctx, c_decl + randomKernel + vectorKernel + propagationKernel).build()
 
     def _makeTypes(self):
-        def makePhotonType():
-            photonStruct = np.dtype(
-                [("position", cl.cltypes.float4),
-                 ("direction", cl.cltypes.float4),
-                 ("er", cl.cltypes.float4),
-                 ("weight", cl.cltypes.float),
-                 ("material_id", cl.cltypes.uint)])
-            name = "photonStruct"
-            photonStruct, c_decl_photon = cl.tools.match_dtype_to_c_struct(self.device, name, photonStruct)
-            photon_dtype = cl.tools.get_or_register_dtype(name, photonStruct)
-            return photon_dtype, c_decl_photon
-
-        def makeMaterialType():
-            materialStruct = np.dtype(
-                [("mu_s", cl.cltypes.float),
-                 ("mu_a", cl.cltypes.float),
-                 ("mu_t", cl.cltypes.float),
-                 ("g", cl.cltypes.float),
-                 ("n", cl.cltypes.float),
-                 ("albedo", cl.cltypes.float),
-                 ("material_id", cl.cltypes.uint)])
-            name = "materialStruct"
-            materialStruct, c_decl_mat = cl.tools.match_dtype_to_c_struct(self.device, name, materialStruct)
-            material_dtype = cl.tools.get_or_register_dtype(name, materialStruct)
-            return material_dtype, c_decl_mat
-
-        def makeLoggerType():
-            loggerStruct = np.dtype(
-                [("delta_weight", cl.cltypes.float),
-                 ("x", cl.cltypes.float),
-                 ("y", cl.cltypes.float),
-                 ("z", cl.cltypes.float)])
-            name = "loggerStruct"
-            loggerStruct, c_decl_logger = cl.tools.match_dtype_to_c_struct(self.device, name, loggerStruct)
-            logger_dtype = cl.tools.get_or_register_dtype(name, loggerStruct)
-            return logger_dtype, c_decl_logger
-
-        photon_dtype, c_decl_photon = makePhotonType()
-        material_dtype, c_decl_mat = makeMaterialType()
-        logger_dtype, c_decl_logger = makeLoggerType()
+        photon_dtype, c_decl_photon = makePhotonType(self.device)
+        material_dtype, c_decl_mat = makeMaterialType(self.device)
+        logger_dtype, c_decl_logger = makeLoggerType(self.device)
         return c_decl_photon + c_decl_mat + c_decl_logger
 
     def makeRandomVectorsAndBuffers(self, N):
@@ -184,7 +150,7 @@ class TestOpenCLKernels(unittest.TestCase):
 
         self.assertTrue(np.all(np.isclose(GPU_VectorErResults, CPU_VectorErResults)))
 
-    @unittest.skip("A visual test, not a unit test")
+    @unittest.skip("A visual test, must run manually")
     def test_whenGeneratingRandomNumberImage_shouldBeNoizyWithoutApparentPatterns(self):
         N = 1000000
         HOST_randomSeed = np.random.randint(low=0, high=2 ** 32 - 1, size=N, dtype=cl.cltypes.uint)
@@ -198,3 +164,7 @@ class TestOpenCLKernels(unittest.TestCase):
 
         plt.imshow(HOST_randomFloat.reshape((1000, 1000)))
         plt.show()
+
+
+if __name__ == '__main__':
+    unittest.main()

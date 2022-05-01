@@ -70,15 +70,15 @@ class TestPencilSource(unittest.TestCase):
 class TestIsotropicPointSource(unittest.TestCase):
     def testShouldHavePhotonsAllPositionedAtTheSourcePosition(self):
         sourcePosition = Vector(3, 3, 0)
-        pointSource = IsotropicPointSource(position=sourcePosition, N=10)
+        pointSource = IsotropicPointSource(position=sourcePosition, N=10, useHardwareAcceleration=False)
         for photon in pointSource.photons:
             self.assertEqual(sourcePosition, photon.position)
 
 
 class SinglePhotonSource(Source):
     def __init__(self, position, photons):
-        super().__init__(position, N=len(photons))
+        super().__init__(position, N=len(photons), useHardwareAcceleration=False)
         self._photons = photons
 
-    def getInitialPhotons(self):
+    def getInitialPositionsAndDirections(self):
         return np.array([[0, 0, 0]]), np.array([[0, 0, 1]])
