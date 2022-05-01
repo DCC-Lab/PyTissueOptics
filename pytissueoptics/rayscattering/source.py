@@ -88,13 +88,10 @@ class Source:
 
 
 class PencilSource(Source):
-    def __init__(self, position: Vector, direction: Vector, N: int, use_opencl: bool = False):
+    def __init__(self, position: Vector, direction: Vector, N: int, useHardwareAcceleration: bool = False):
         self._direction = direction
         self._direction.normalize()
-        super().__init__(position, N, use_opencl)
-
-    def getDirection(self) -> Vector:
-        return self._direction
+        super().__init__(position=position, N=N, useHardwareAcceleration=useHardwareAcceleration)
 
     def getInitialPositionsAndDirections(self) -> Tuple[np.ndarray, np.ndarray]:
         positions = np.full((self._N, 3), self._position.array)
