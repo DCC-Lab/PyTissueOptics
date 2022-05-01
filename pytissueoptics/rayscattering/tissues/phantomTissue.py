@@ -1,6 +1,6 @@
 from pytissueoptics.rayscattering.materials import ScatteringMaterial
 from pytissueoptics.rayscattering.tissues.rayScatteringScene import RayScatteringScene
-from pytissueoptics.scene import Cuboid, Vector, MayaviViewer
+from pytissueoptics.scene import Cuboid, Vector
 
 
 class PhantomTissue(RayScatteringScene):
@@ -27,6 +27,3 @@ class PhantomTissue(RayScatteringScene):
         layerStack.translateTo(Vector(0, 0, sum(t) / 2))
 
         self.TISSUE = [layerStack]
-
-    def addToViewer(self, viewer: MayaviViewer):
-        viewer.add(*self.TISSUE, representation="surface", colormap="bone", constantColor=False, opacity=0.1)

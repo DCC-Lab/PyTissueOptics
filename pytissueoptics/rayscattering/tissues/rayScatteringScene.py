@@ -10,7 +10,7 @@ class RayScatteringScene(Scene):
         super().__init__(solids, worldMaterial=worldMaterial)
 
     def addToViewer(self, viewer: MayaviViewer):
-        raise NotImplementedError
+        viewer.add(*self.solids, representation="surface", colormap="bone", constantColor=False, opacity=0.1)
 
     def display(self):
         viewer = MayaviViewer()

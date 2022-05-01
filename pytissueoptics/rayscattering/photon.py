@@ -39,6 +39,10 @@ class Photon:
         return self._direction
 
     @property
+    def er(self) -> Vector:
+        return self._er
+
+    @property
     def weight(self) -> float:
         return self._weight
 

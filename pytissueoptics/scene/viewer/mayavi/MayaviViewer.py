@@ -41,22 +41,25 @@ class MayaviViewer:
         self.addSegments(logger.getSegments(), colormap=colormap, reverseColormap=reverseColormap)
 
     @staticmethod
-    def addPoints(points: np.ndarray, colormap="rainbow", reverseColormap=False, scale=0.01):
+    def addPoints(points: np.ndarray, colormap="rainbow", reverseColormap=False, scale=0.01, asSpheres=True):
         """ 'points' has to be of shape (n, 3) where the second axis is (x, y, z). """
         if points is None:
             return
         x, y, z = [points[:, i] for i in range(3)]
-        s = mlab.points3d(x, y, z, mode="sphere", scale_factor=scale, scale_mode="none", colormap=colormap)
+        mode = "sphere" if asSpheres else "point"
+        s = mlab.points3d(x, y, z, mode=mode, scale_factor=scale, scale_mode="none", colormap=colormap)
         s.module_manager.scalar_lut_manager.reverse_lut = reverseColormap
 
     @staticmethod
-    def addDataPoints(dataPoints: np.ndarray, colormap="rainbow", reverseColormap=False, scale=0.15, scaleWithValue=True):
+    def addDataPoints(dataPoints: np.ndarray, colormap="rainbow", reverseColormap=False, scale=0.15,
+                      scaleWithValue=True, asSpheres=True):
         """ 'dataPoints' has to be of shape (n, 4) where the second axis is (value, x, y, z). """
         if dataPoints is None:
             return
         v, x, y, z = [dataPoints[:, i] for i in range(4)]
         scaleMode = "scalar" if scaleWithValue else "none"
-        s = mlab.points3d(x, y, z, v, mode="sphere", scale_factor=scale, scale_mode=scaleMode, colormap=colormap)
+        mode = "sphere" if asSpheres else "point"
+        s = mlab.points3d(x, y, z, v, mode=mode, scale_factor=scale, scale_mode=scaleMode, colormap=colormap)
         s.module_manager.scalar_lut_manager.reverse_lut = reverseColormap
 
     @staticmethod
