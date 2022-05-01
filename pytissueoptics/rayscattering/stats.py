@@ -33,12 +33,13 @@ class PointCloud:
 
 class DisplayConfig:
     """ 3D display configuration dataclass for solid and surface point cloud. """
-    def __init__(self, showScene: bool = True, showSource: bool = True, sourceSize: float = 0.1,
+    def __init__(self, showScene: bool = True, showSource: bool = True, sourceSize: float = 0.1, showPointsAsSpheres: bool = True,
                  pointSize: float = 0.15, scaleWithValue: bool = True, colormap: str = "rainbow", reverseColormap: bool = False,
                  surfacePointSize: float = 0.01, surfaceScaleWithValue: bool = False, surfaceColormap: str = None, surfaceReverseColormap: bool = None):
         self.showScene = showScene
         self.showSource = showSource
         self.sourceSize = sourceSize
+        self.showPointsAsSpheres = showPointsAsSpheres
 
         self.pointSize = pointSize
         self.scaleWithValue = scaleWithValue
@@ -95,11 +96,11 @@ class Stats:
         if pointCloud.solidPoints is not None:
             viewer.addDataPoints(pointCloud.solidPoints, scale=config.pointSize,
                                  scaleWithValue=config.scaleWithValue, colormap=config.colormap,
-                                 reverseColormap=config.reverseColormap)
+                                 reverseColormap=config.reverseColormap, asSpheres=config.showPointsAsSpheres)
         if pointCloud.surfacePoints is not None:
             viewer.addDataPoints(pointCloud.leavingSurfacePoints, scale=config.surfacePointSize,
                                  scaleWithValue=config.surfaceScaleWithValue, colormap=config.surfaceColormap,
-                                 reverseColormap=config.surfaceReverseColormap)
+                                 reverseColormap=config.surfaceReverseColormap, asSpheres=config.showPointsAsSpheres)
         viewer.show()
 
     def getPointCloud(self, solidLabel: str = None, surfaceLabel: str = None) -> PointCloud:
