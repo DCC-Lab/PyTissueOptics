@@ -1,2 +1,2 @@
 from .phantomTissue import PhantomTissue
-from .cubeTissue import CubeTissue
+from .infiniteTissue import InfiniteTissue

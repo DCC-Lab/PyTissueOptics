@@ -1,5 +1,5 @@
 from pytissueoptics.rayscattering import *
-from pytissueoptics.rayscattering.tissues import CubeTissue
+from pytissueoptics.rayscattering.tissues import InfiniteTissue
 from pytissueoptics.scene import Vector, Logger
 
 """
@@ -16,7 +16,7 @@ These parameters will be used to mimic the parameters a typical user would utili
 """
 
 
-tissue = CubeTissue(side=10, material=ScatteringMaterial(30, 0.1, 0.8, 1.4))
+tissue = InfiniteTissue(material=ScatteringMaterial(30, 0.1, 0.8, 1.4))
 source = PencilSource(position=Vector(0, 0, 0), direction=Vector(0, 0, 1), N=50000, useHardwareAcceleration=True)
 logger = Logger()
 

@@ -5,7 +5,7 @@ import numpy as np
 from numpy.lib import recfunctions as rfn
 
 from pytissueoptics.rayscattering.opencl.types import makePhotonType, makeMaterialType, makeLoggerType
-from pytissueoptics.rayscattering.tissues import CubeTissue
+from pytissueoptics.rayscattering.tissues import InfiniteTissue
 from pytissueoptics.rayscattering.tissues.rayScatteringScene import RayScatteringScene
 from pytissueoptics.scene import Logger
 from pytissueoptics.scene.logger import InteractionKey
@@ -33,15 +33,9 @@ class CLPhotons:
         self._makeTypes()
 
     def _extractFromScene(self, scene: RayScatteringScene):
-        if type(scene) is not CubeTissue:
+        if type(scene) is not InfiniteTissue:
             raise TypeError("OpenCL propagation is only supported for CubeTissue for the moment.")
-        self._worldMaterial = scene.solids[0].getEnvironment().material
-        self._label = scene.solids[0].getLabel()
-
-    def _fillPhotonsEr(self):
-
-        cl.enqueue_copy(self._mainQueue, self._HOST_photons, self._DEVICE_photons)
-        print(self._HOST_photons)
+        self._worldMaterial = scene.getWorldEnvironment().material
 
     def _buildProgram(self):
         randomSource = open(os.path.join(self._sourceFolderPath, "random.c")).read()
@@ -56,7 +50,6 @@ class CLPhotons:
         self._extractFromScene(scene)
         self._makeBuffers()
         self._buildProgram()
-        self._fillPhotonsEr()
         self._propagate()
 
     def _propagate(self):
@@ -72,7 +65,7 @@ class CLPhotons:
         print("CLPhotons.propagate: {} s".format((t1 - t0) / 1e9))
 
         log = rfn.structured_to_unstructured(self._HOST_logger)
-        self._logger.logDataPointArray(log, InteractionKey(self._label, None))
+        self._logger.logDataPointArray(log, InteractionKey("universe", None))
 
     def _makeTypes(self):
         self._photon_dtype, self._c_decl_photon = makePhotonType(self._device)
