@@ -11,7 +11,7 @@ from pytissueoptics.rayscattering.opencl.types import makePhotonType, makeMateri
 execTest = False
 
 
-@unittest.skipIf(execTest is not True, 'Skip if not run as main, this is an integration/technology test')
+@unittest.skipIf(execTest is not True, 'Skipped by default, this is a validation/technology test.')
 class TestOpenCLKernels(unittest.TestCase):
     def setUp(self):
         sourcePath = os.path.dirname(os.path.abspath(__file__)) + "{0}..{0}opencl{0}src{0}".format(os.path.sep)
