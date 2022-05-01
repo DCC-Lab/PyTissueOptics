@@ -56,6 +56,8 @@ __kernel void propagate(uint dataSize, float weightThreshold, __global photonStr
     uint logIndex = 0;
     float g = materials[0].g;
     float mu_t = materials[0].mu_t;
+    float4 er = getAnyOrthogonalGlobal(&photons[gid].direction);
+    photons[gid].er = er;
 
     while (photons[gid].weight >= weightThreshold){
         logIndex = gid + stepIndex * dataSize;

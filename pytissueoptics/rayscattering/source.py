@@ -12,18 +12,18 @@ from pytissueoptics.scene.viewer import MayaviViewer
 
 
 class Source:
-    def __init__(self, position: Vector, N: int, use_opencl: bool = False):
+    def __init__(self, position: Vector, N: int, useHardwareAcceleration: bool = True):
         self._position = position
         self._N = N
         self._photons: Union[List[Photon], CLPhotons] = []
         self._environment = None
 
-        self._use_opencl = use_opencl
+        self._useHardwareAcceleration = useHardwareAcceleration
 
         self._loadPhotons()
 
     def propagate(self, scene: RayScatteringScene, logger: Logger = None):
-        if self._use_opencl:
+        if self._useHardwareAcceleration:
             self._propagateOpenCL(scene, logger)
         else:
             self._propagateCPU(scene, logger)
@@ -40,26 +40,25 @@ class Source:
     def _propagateOpenCL(self, scene: RayScatteringScene, logger: Logger = None):
         self._photons.prepareAndPropagate(scene, logger)
 
-    def getInitialPhotons(self) -> Tuple[np.ndarray, np.ndarray]:
+    def getInitialPositionsAndDirections(self) -> Tuple[np.ndarray, np.ndarray]:
         """ To be implemented by subclasses. Needs to return a tuple containing the
-        initial positions and directions of the photons as (N, 3) numpy arrays. """
+        initial positions and normalized directions of the photons as (N, 3) numpy arrays. """
         raise NotImplementedError
 
     def _loadPhotons(self):
-        if self._use_opencl:
+        if self._useHardwareAcceleration:
             self._loadPhotonsOpenCL()
         else:
             self._loadPhotonsCPU()
 
     def _loadPhotonsCPU(self):
-        positions, directions = self.getInitialPhotons()
+        positions, directions = self.getInitialPositionsAndDirections()
         for i in range(self._N):
             self._photons.append(Photon(Vector(*positions[i]), Vector(*directions[i])))
 
     def _loadPhotonsOpenCL(self):
-        positions, directions = self.getInitialPhotons()
-        # TODO ... CLPhotons(positions, directions) or something
-        self._photons = CLPhotons(self)
+        positions, directions = self.getInitialPositionsAndDirections()
+        self._photons = CLPhotons(positions, directions, self._N)
 
     def _prepareLogger(self, logger: Optional[Logger]):
         if logger is None:
@@ -97,14 +96,14 @@ class PencilSource(Source):
     def getDirection(self) -> Vector:
         return self._direction
 
-    def getInitialPhotons(self) -> Tuple[np.ndarray, np.ndarray]:
+    def getInitialPositionsAndDirections(self) -> Tuple[np.ndarray, np.ndarray]:
         positions = np.full((self._N, 3), self._position.array)
         directions = np.full((self._N, 3), self._direction.array)
         return positions, directions
 
 
 class IsotropicPointSource(Source):
-    def getInitialPhotons(self) -> Tuple[np.ndarray, np.ndarray]:
+    def getInitialPositionsAndDirections(self) -> Tuple[np.ndarray, np.ndarray]:
         positions = np.full((self._N, 3), self._position.array)
         directions = np.random.randn(self._N, 3) * 2 - 1
         directions /= np.linalg.norm(directions, axis=1, keepdims=True)

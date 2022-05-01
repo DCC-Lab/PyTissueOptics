@@ -67,7 +67,7 @@ void rotateAroundAxisLocal(float4 *mainVector, float4 *axisVector, float theta){
     mainVector->z = z;
     }
 
-float4 getAnyOrthogonal(float4 *vector){
+float4 getAnyOrthogonalGlobal(__global float4 *vector){
     if (fabs(vector->z) < fabs(vector->x)){
         float4 r = (float4)(vector->y, -vector->x, 0.0f, 0.0f);
         return r;
