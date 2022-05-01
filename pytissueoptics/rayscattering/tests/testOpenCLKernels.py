@@ -68,7 +68,7 @@ class TestOpenCLKernels(unittest.TestCase):
             raise ValueError("rndValue cannot be 0")
         return -np.log(rndValue) / mu_t
 
-    def test_whenGetScatteringAngleTheta_GPU_and_CPU_shouldReturnSameValues(self):
+    def testWhenGetScatteringAngleTheta_GPU_and_CPU_shouldReturnSameValues(self):
         N = 500
         g = 0.8
         CPU_rndValues, HOST_rndValues, DEVICE_rndValues = self.makeRandomScalarsAndBuffers(N)
@@ -84,7 +84,7 @@ class TestOpenCLKernels(unittest.TestCase):
 
         self.assertTrue(np.all(np.isclose(CPU_angleResults, GPU_angleResults, atol=1e-3)))
 
-    def test_whenGetScatteringAnglePhi_GPU_and_CPU_shouldReturnSameValues(self):
+    def testWhenGetScatteringAnglePhi_GPU_and_CPU_shouldReturnSameValues(self):
         N = 500
         CPU_rndValues, HOST_rndValues, DEVICE_rndValues = self.makeRandomScalarsAndBuffers(N)
         HOST_angleResults = np.zeros(N, dtype=np.float32)
@@ -99,7 +99,7 @@ class TestOpenCLKernels(unittest.TestCase):
 
         self.assertTrue(np.all(np.isclose(CPU_angleResults, GPU_angleResults, atol=1e-3)))
 
-    def test_whenGetScatteringDistance_GPU_and_CPU_shouldReturnSameValues(self):
+    def testWhenGetScatteringDistance_GPU_and_CPU_shouldReturnSameValues(self):
         N = 500
         mu_t = 30.1
         CPU_rndValues, HOST_rndValues, DEVICE_rndValues = self.makeRandomScalarsAndBuffers(N)
@@ -114,7 +114,7 @@ class TestOpenCLKernels(unittest.TestCase):
         GPU_distanceResults = HOST_distanceResults
         self.assertTrue(np.all(np.isclose(CPU_distanceResults, GPU_distanceResults, atol=1e-3)))
 
-    def test_whenRotateAroundVector_GPU_and_CPU_shouldReturnSameValues(self):
+    def testWhenRotateAroundVector_GPU_and_CPU_shouldReturnSameValues(self):
         N = 500
 
         CPU_ErVectors, HOST_ErVectors, DEVICE_ErVectors = self.makeRandomVectorsAndBuffers(N)
@@ -135,7 +135,7 @@ class TestOpenCLKernels(unittest.TestCase):
 
         self.assertTrue(np.allclose(GPU_VectorErResults, CPU_VectorErResults, atol=1e-3))
 
-    def test_whenNormalizeVector_GPU_and_CPU_shouldReturnSameValue(self):
+    def testWhenNormalizeVector_GPU_and_CPU_shouldReturnSameValue(self):
         N = 300
         CPU_VectorEr, HOST_ErVectors, DEVICE_ErVectors = self.makeRandomVectorsAndBuffers(N)
 
@@ -151,7 +151,7 @@ class TestOpenCLKernels(unittest.TestCase):
         self.assertTrue(np.all(np.isclose(GPU_VectorErResults, CPU_VectorErResults)))
 
     @unittest.skip("A visual test, must run manually")
-    def test_whenGeneratingRandomNumberImage_shouldBeNoizyWithoutApparentPatterns(self):
+    def testWhenGeneratingRandomNumberImage_shouldBeNoisyWithoutApparentPatterns(self):
         N = 1000000
         HOST_randomSeed = np.random.randint(low=0, high=2 ** 32 - 1, size=N, dtype=cl.cltypes.uint)
         DEVICE_randomSeed = cl.Buffer(self.ctx, cl.mem_flags.READ_WRITE | cl.mem_flags.COPY_HOST_PTR,
