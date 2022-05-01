@@ -12,9 +12,11 @@ from pytissueoptics.scene.logger import InteractionKey
 
 
 class CLPhotons:
-    def __init__(self, source: 'Source', weightThreshold: float = 0.0001):
+    def __init__(self, positions: np.ndarray, directions: np.ndarray, N: int, weightThreshold: float = 0.0001):
         self._sourceFolderPath = os.path.dirname(os.path.abspath(__file__)) + "{0}src{0}".format(os.sep)
-        self._source = source
+        self._positions = positions
+        self._directions = directions
+        self._N = N
         self._weightThreshold = np.float32(weightThreshold)
         self._logger = None
 
@@ -36,21 +38,8 @@ class CLPhotons:
         self._worldMaterial = scene.solids[0].getEnvironment().material
         self._label = scene.solids[0].getLabel()
 
-    def _fillPhotons(self):
-        position = self._source.getPosition()
-        datasize = np.uint32(len(self._HOST_photons))
-        if type(self._source).__name__ == "PencilSource":
-            direction = self._source.getDirection()
-            self._program.fillPencilPhotonsBuffer(self._mainQueue, (datasize,), None,
-                                                  self._DEVICE_photons,
-                                                  self._DEVICE_randomSeed,
-                                                  cl.cltypes.make_float4(position.x, position.y, position.z, 0),
-                                                  cl.cltypes.make_float4(direction.x, direction.y, direction.z, 0))
+    def _fillPhotonsEr(self):
 
-        elif type(self._source).__name__ == "IsotropicPointSource":
-            self._program.fillIsotropicPhotonsBuffer(self._mainQueue, (datasize,), None,
-                                                     self._DEVICE_photons, self._DEVICE_randomSeed,
-                                                     cl.cltypes.make_float4(position.x, position.y, position.z, 0))
         cl.enqueue_copy(self._mainQueue, self._HOST_photons, self._DEVICE_photons)
         print(self._HOST_photons)
 
@@ -58,17 +47,16 @@ class CLPhotons:
         randomSource = open(os.path.join(self._sourceFolderPath, "random.c")).read()
         vectorSource = open(os.path.join(self._sourceFolderPath, "vectorOperators.c")).read()
         propagationSource = open(os.path.join(self._sourceFolderPath, "propagation.c")).read()
-        photonSource = open(os.path.join(self._sourceFolderPath, "source.c")).read()
 
         self._program = cl.Program(self._context, self._c_decl_photon + self._c_decl_mat + self._c_decl_logger +
-                                   randomSource + vectorSource + photonSource + propagationSource).build()
+                                   randomSource + vectorSource + propagationSource).build()
 
     def prepareAndPropagate(self, scene: RayScatteringScene, logger: Logger):
         self._logger = logger
         self._extractFromScene(scene)
         self._makeBuffers()
         self._buildProgram()
-        self._fillPhotons()
+        self._fillPhotonsEr()
         self._propagate()
 
     def _propagate(self):
@@ -98,17 +86,22 @@ class CLPhotons:
         self._makeRandomBuffer()
 
     def _makePhotonsBuffer(self):
-        self._HOST_photons = np.empty(self._source.getPhotonCount(), dtype=self._photon_dtype)
-
+        photonsPrototype = np.zeros(self._N, dtype=self._photon_dtype)
+        photonsPrototype = rfn.structured_to_unstructured(photonsPrototype)
+        photonsPrototype[:, 0:3] = self._positions[:, ::]
+        photonsPrototype[:, 4:7] = self._directions[:, ::]
+        photonsPrototype[:, 12] = 1.0
+        photonsPrototype[:, 13] = 0
+        self._HOST_photons = rfn.unstructured_to_structured(photonsPrototype, self._photon_dtype)
         self._DEVICE_photons = cl.Buffer(self._context, cl.mem_flags.READ_WRITE | cl.mem_flags.COPY_HOST_PTR,
                                          hostbuf=self._HOST_photons)
 
     def _makeRandomBuffer(self):
-        self._HOST_randomSeed = np.random.randint(low=0, high=2 ** 32 - 1, size=self._source.getPhotonCount(),
+        self._HOST_randomSeed = np.random.randint(low=0, high=2 ** 32 - 1, size=self._N,
                                                   dtype=cl.cltypes.uint)
         self._DEVICE_randomSeed = cl.Buffer(self._context, cl.mem_flags.READ_WRITE | cl.mem_flags.COPY_HOST_PTR,
                                             hostbuf=self._HOST_randomSeed)
-        self._HOST_randomFloat = np.empty(self._source.getPhotonCount(), dtype=cl.cltypes.float)
+        self._HOST_randomFloat = np.empty(self._N, dtype=cl.cltypes.float)
         self._DEVICE_randomFloat = cl.Buffer(self._context, cl.mem_flags.READ_WRITE | cl.mem_flags.COPY_HOST_PTR,
                                              hostbuf=self._HOST_randomFloat)
 
@@ -126,7 +119,7 @@ class CLPhotons:
 
     def _makeLoggerBuffer(self):
         loggerSize = int(
-            -np.log(self._weightThreshold) / self._worldMaterial.getAlbedo()) * self._source.getPhotonCount()
+            -np.log(self._weightThreshold) / self._worldMaterial.getAlbedo()) * self._N
         self._HOST_logger = np.empty(loggerSize, dtype=self._logger_dtype)
         self._DEVICE_logger = cl.Buffer(self._context, cl.mem_flags.WRITE_ONLY | cl.mem_flags.COPY_HOST_PTR,
                                         hostbuf=self._HOST_logger)
