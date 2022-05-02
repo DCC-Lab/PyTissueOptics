@@ -1,15 +1,15 @@
 import numpy as np
 
-from ...logger import Logger
-from ...scene import Scene
+from pytissueoptics.scene.logger import Logger
+from pytissueoptics.scene.scene import Scene
 
 try:
     from mayavi import mlab
 except ImportError:
     pass
 
-from ...viewer.mayavi import MayaviSolid
-from ...solids import Solid
+from pytissueoptics.scene.viewer.mayavi import MayaviSolid
+from pytissueoptics.scene.solids import Solid
 
 
 class MayaviViewer:
