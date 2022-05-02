@@ -34,7 +34,7 @@ class CLPhotons:
 
     def _extractFromScene(self, scene: RayScatteringScene):
         if type(scene) is not InfiniteTissue:
-            raise TypeError("OpenCL propagation is only supported for CubeTissue for the moment.")
+            raise TypeError("OpenCL propagation is only supported for InfiniteTissue for the moment.")
         self._worldMaterial = scene.getWorldEnvironment().material
 
     def _buildProgram(self):
