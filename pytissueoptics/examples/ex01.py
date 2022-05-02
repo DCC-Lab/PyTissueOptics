@@ -6,7 +6,7 @@ Then we propagate the PencilSource photons in the tissue and then show the distr
 
 
 def exampleCode():
-    from pytissueoptics.rayscattering import PencilSource, Stats
+    from pytissueoptics.rayscattering import PencilSource, Stats, DisplayConfig
     from pytissueoptics.rayscattering.tissues import PhantomTissue
     from pytissueoptics.scene import Vector, Logger
 
@@ -18,7 +18,9 @@ def exampleCode():
 
     stats = Stats(logger, source, tissue)
     stats.report()
-    stats.showEnergy3D()
+
+    displayConfig = DisplayConfig(showPointsAsSpheres=False)
+    stats.showEnergy3D(config=displayConfig)
     stats.showEnergy3DOfSurfaces()
     stats.showEnergy2D()
     stats.showEnergy2D("middleLayer", bins=51)
