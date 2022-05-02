@@ -1,14 +1,15 @@
 import numpy as np
 
-from pytissueoptics.scene.logger import Logger
+from ...logger import Logger
+from ...scene import Scene
 
 try:
     from mayavi import mlab
 except ImportError:
     pass
 
-from pytissueoptics.scene.viewer.mayavi import MayaviSolid
-from pytissueoptics.scene.solids import Solid
+from ...viewer.mayavi import MayaviSolid
+from ...solids import Solid
 
 
 class MayaviViewer:
@@ -18,6 +19,12 @@ class MayaviViewer:
                              "Solids": [], }}
         self._view = {"azimuth": 0, "zenith": 0, "distance": None, "pointingTowards": None, "roll": None}
         self.clear()
+
+    def addScene(self, scene: Scene, representation="wireframe", lineWidth=0.25, showNormals=False, normalLength=0.3,
+            colormap="viridis", reverseColormap=False, constantColor=False, opacity=1, **kwargs):
+        self.add(*scene.solids, representation=representation, lineWidth=lineWidth, showNormals=showNormals,
+                 normalLength=normalLength, colormap=colormap, reverseColormap=reverseColormap,
+                 constantColor=constantColor, opacity=opacity, **kwargs)
 
     def add(self, *solids: 'Solid', representation="wireframe", lineWidth=0.25, showNormals=False, normalLength=0.3,
             colormap="viridis", reverseColormap=False, constantColor=False, opacity=1, **kwargs):
@@ -95,7 +102,7 @@ class MayaviViewer:
 
 
 if __name__ == "__main__":
-    from pytissueoptics.scene import Sphere, Cuboid, Vector
+    from pytissueoptics.scene import Sphere, Cuboid, Vector, Scene
 
     sphere1 = Sphere(order=2)
     cuboid1 = Cuboid(1, 3, 3, position=Vector(4, 0, 0))
