@@ -1,5 +1,5 @@
-from pytissueoptics.rayscattering import PencilSource, Stats
-from pytissueoptics.scene import Logger
+from pytissueoptics import *
+
 
 TITLE = "Propagate in a custom scene"
 
@@ -10,10 +10,6 @@ We can use the MayaviViewer to view our scene before propagation. Then, we repea
 
 
 def exampleCode():
-    from pytissueoptics.scene import Vector, Cuboid, Sphere, Ellipsoid, MayaviViewer
-    from pytissueoptics.rayscattering.tissues.rayScatteringScene import RayScatteringScene
-    from pytissueoptics.rayscattering import ScatteringMaterial
-
     myMaterial1 = ScatteringMaterial(mu_s=1.0, mu_a=1.0, g=0.7)
     myMaterial2 = ScatteringMaterial(mu_s=5.0, mu_a=0.5, g=0.8)
 
@@ -22,9 +18,9 @@ def exampleCode():
     ellipsoid = Ellipsoid(a=1, b=3, c=2, position=Vector(-2, 0, 0), material=myMaterial1)
     myCustomScene = RayScatteringScene([cuboid, sphere, ellipsoid], worldMaterial=myMaterial2)
 
-    # viewer = MayaviViewer()
-    # viewer.addScene(myCustomScene)
-    # viewer.show()
+    viewer = MayaviViewer()
+    viewer.addScene(myCustomScene)
+    viewer.show()
 
     logger = Logger()
     source = PencilSource(position=Vector(-3, 0, 0), direction=Vector(1, 0, 0), N=100)
