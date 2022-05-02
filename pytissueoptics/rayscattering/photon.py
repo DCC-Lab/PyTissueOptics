@@ -10,6 +10,8 @@ from pytissueoptics.scene.intersection import Ray
 from pytissueoptics.scene.intersection.intersectionFinder import IntersectionFinder, Intersection
 from pytissueoptics.scene.logger import Logger, InteractionKey
 
+WORLD_LABEL = "world"
+
 
 class Photon:
     def __init__(self, position: Vector, direction: Vector):
@@ -53,7 +55,7 @@ class Photon:
     @property
     def solidLabel(self):
         if not self._environment.solid:
-            return None
+            return WORLD_LABEL
         return self._environment.solid.getLabel()
 
     def setContext(self, environment: Environment, intersectionFinder: IntersectionFinder = None, logger: Logger = None,

@@ -5,6 +5,7 @@ import unittest
 from mockito import mock, when, verify
 
 from pytissueoptics.rayscattering import Photon
+from pytissueoptics.rayscattering.photon import WORLD_LABEL
 from pytissueoptics.rayscattering.fresnel import FresnelIntersection, FresnelIntersect
 from pytissueoptics.rayscattering.materials import ScatteringMaterial
 from pytissueoptics.scene import Vector, Logger
@@ -265,14 +266,25 @@ class TestPhoton(unittest.TestCase):
         interactionKey = InteractionKey(self.SOLID_OUTSIDE_LABEL, self.SURFACE_LABEL)
         verify(logger).logDataPoint(self.photon.weight, intersectionPoint, interactionKey)
 
-    def testGivenALogger_whenScatter_shouldLogWeightLossAtThisPosition(self):
+    def testGivenALogger_whenScatter_shouldLogWeightLossAtThisPositionWithSolidLabel(self):
+        solidInside = mock(Solid)
+        when(solidInside).getLabel().thenReturn(self.SOLID_INSIDE_LABEL)
+        logger = self._createLogger()
+        self.photon.setContext(Environment(ScatteringMaterial(mu_s=3, mu_a=1, g=0.8), solid=solidInside), logger=logger)
+
+        self.photon.scatter()
+
+        weightLoss = self.photon.material.getAlbedo()
+        verify(logger).logDataPoint(weightLoss, self.INITIAL_POSITION, InteractionKey(self.SOLID_INSIDE_LABEL))
+
+    def testGivenALogger_whenScatterInWorldMaterial_shouldLogWeightLossAtThisPositionWithWorldLabel(self):
         logger = self._createLogger()
         self.photon.setContext(Environment(ScatteringMaterial(mu_s=3, mu_a=1, g=0.8)), logger=logger)
 
         self.photon.scatter()
 
         weightLoss = self.photon.material.getAlbedo()
-        verify(logger).logDataPoint(weightLoss, self.INITIAL_POSITION, InteractionKey(None))
+        verify(logger).logDataPoint(weightLoss, self.INITIAL_POSITION, InteractionKey(WORLD_LABEL))
 
     def testInteractAtFloatLimitIsStillValid(self):
         environment = self._createEnvironment(albedo=1.0)
