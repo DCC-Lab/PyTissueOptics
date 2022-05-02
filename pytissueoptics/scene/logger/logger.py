@@ -108,7 +108,7 @@ class Logger:
     def _assertKeyExists(self, key: InteractionKey):
         if key.solidLabel not in self.getSolidLabels():
             raise KeyError(f"Invalid solid label '{key.solidLabel}'. Available: {self.getSolidLabels()}. ")
-        if key.surfaceLabel not in self.getSurfaceLabels(key.solidLabel):
+        if key.surfaceLabel and key.surfaceLabel not in self.getSurfaceLabels(key.solidLabel):
             raise KeyError(f"Invalid surface label '{key.surfaceLabel}' for solid '{key.solidLabel}'. "
                            f"Available: {self.getSurfaceLabels(key.solidLabel)}. ")
 
