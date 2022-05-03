@@ -7,11 +7,11 @@
 </p>
 
 This python package is an object-oriented implementation of Monte Carlo Light Propagation simulation in diffuse media.
-The package is **extremely easy to use**, and **polyvalent** as it allows simulations in arbitrary complex scene,
+The package is **extremely easy to use**, and **polyvalent** as it allows simulations in arbitrary complex scenes,
 but as it is in python, it is **very slow** compared to C++ alternatives.
 
 However, as discussed in the [why use this package](#why-use-this-package) section, code efficiency isn't the only
-variable at play. it is **extremely easy to understand**, **easily scalable** and **very simple to modify** for your need.
+variable at play. it is **easy to understand**, **easily scalable** and **very simple to modify** for your need.
 It was designed with **research and education** in mind.
 
 ## Getting started
@@ -25,13 +25,14 @@ pip install pytissueoptics
 To launch a simple simulation, follow these steps.
 1. Import the `pytissueoptics` module
 2. Define the following objects:
-    - `scene`: a `RayScatteringScene` object, which defines the scene and the optical properties of the media. This objects takes in a list of `Solid` as its argument. These `Solid` will have a `Materials` and a positions. This is clear in the example code below.
-    - `source`: a `Source` object, which defines the source of light
+    - `scene`: a `RayScatteringScene` object, which defines the scene and the optical properties of the media. This objects takes in a list of `Solid` as its argument. These `Solid` will have a `ScatteringMaterial` and a position. This is clear in the example code below.
+    - `source`: a `Source` object, which defines the source of photons
     - `logger`: a `Logger` object, which logs the simulation progress
     - `stats`: a `Stats` object, which computes the statistics of the simulation and displays the results
-3. launch the simulation with `source.propagate` in your `scene`.
+3. propagate the photons in your `scene` with `source.propagate`.
 4. display the results by calling the appropriate method from your `stats` object.
 
+Here's what it might look like:
 ```python
 from pytissueoptics import *
 
