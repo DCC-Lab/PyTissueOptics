@@ -21,6 +21,14 @@ class TestStats(unittest.TestCase):
         self.assertEqual(scatter.shape, (8, 4))
         self.assertTrue(np.array_equal(scatter[:, 3], np.full(8, 0.1)))
 
+    def testGivenEmptyLogger_whenGet3DScatter_shouldReturnEmptyArray(self):
+        logger = Logger()
+        stats = Stats(logger, self.makeTestSource())
+
+        scatter = stats._get3DScatter()
+
+        self.assertTrue(len(scatter) == 0)
+
     def testWhenGet3DScatterOfSurface_shouldReturnScatterOfAllPointsLeavingTheSurface(self):
         frontScatter = self.stats._get3DScatter(solidLabel="cube", surfaceLabel="front")
         self.assertEqual(0, frontScatter.size)
@@ -80,6 +88,14 @@ class TestStats(unittest.TestCase):
 
     def testTransmittanceOfSolid(self):
         self.assertAlmostEqual(0.2, self.stats.getTransmittance("cube"))
+
+    def testGivenALoggerWithNoSolidInteractions_whenGet3DScatter_shouldWarnAndReturnEmptyArray(self):
+        logger = self.makeTestCubeLogger()
+        logger._data.pop(InteractionKey("cube"))
+        stats = Stats(logger, source=self.makeTestSource())
+
+        with self.assertWarns(UserWarning):
+            self.assertEqual(0, len(stats._get3DScatter(solidLabel="cube")))
 
     @staticmethod
     def makeTestCubeLogger() -> Logger:

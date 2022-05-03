@@ -2,3 +2,4 @@ numpy
 mockito
 mayavi
 pyqt5
+tqdm
