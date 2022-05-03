@@ -1,33 +1,16 @@
-# Light propagation with Monte Carlo in Python
+# Light Propagation with Monte Carlo in Python
 
-This is an extremely simple object-oriented code in Python that simulates the propagation of light in scattering tissue. It is not just *simple*: it is **outrageously simple** and **very slow** (see below). However, it is **extremely easy to understand** and most importantly **very simple modify**. It is a Python implementation of Monte Carlo, as beautifully illustrated by the standard, tested, and loved [MCML from Wang, Jacques and Zheng](https://omlc.org/software/mc/mcpubs/1995LWCMPBMcml.pdf) , itself based on [Prahl](https://omlc.org/~prahl/pubs/abs/prahl89.html) and completely documented, explained, dissected by [Jacques](https://omlc.org/software/mc/) and [Prahl](https://omlc.org/~prahl/pubs/abs/prahl89.html). Everyone is doing Monte Carlo in tissue, and nothing would be possible without the work of these pionneers.
+This python package is an object-oriented implementation of Monte Carlo Light Propagation simulation in diffuse media. The package is **extremely easy to use**, but as it is in python, it is **very slow** compared to C++ alternatives. (Parrallel-acceleration coming)
 
-It may be slow, but speed is more than code performance: anyone with little to no experience can simulate something instantly instead of having to understand C, C++ or, god forbid, GPU code.  Therefore, you can quickly modifiy everything in an afternoon and get your results in a few hours, instead of learning C (a few weeks?), learn to work with compiled code (a few days? libraries anyone?) and finally modify the C code written by someone else (days? weeks?). I think the overall speed to be concerned about is "the time it takes to get an answer", not necessarily "the time it takes to run 100,000 photons". Considering many calculations with high performance code (in C for instance) take a few minutes, it is fairly reasonable to imagine you could start a calculation in Python, run it overnight and get an answer the next day after a few hours of calculations. I think there is a need for such a solution, and you will find it here.
-
-Therefore, the whole point is the following: this code is perfect for quickly prototyping a small calculation, and then determine if you need performance or not. For many things, you actually don't.
+However, as discussed in the [why use this package](#why-use-this-package) section, code efficiency isn't the only variable at play. it is **extremely easy to understand**, **easily scalable** and **very simple to modify** for your need. It was designed with research and education in mind.
 
 ## Getting started
 
-Install with pip or get the [code](https://github.com/DCC-Lab/PyTissueOptics) from GitHub. You can run the example code immediately:
+Install with `pip` or get the [code](https://github.com/DCC-Lab/PyTissueOptics) from GitHub.
 
 ```shell
-pip install pytissueoptics --upgrade
-python -m pytissueoptics
+pip install pytissueoptics
 ```
-
-You need Python 3, it will not work with Python 2. The example code will show you a graph of the energy deposited in the plane xz from a isotropic source at the origin:
-
-<img src="https://raw.githubusercontent.com/DCC-Lab/PyTissueOptics/main/README.assets/image-20210116103556173.png" alt="image-20210116103556173" style="zoom:50%;" />
-
-Then it will display the logarithm (`log10`) of the intensity as a fonction of distance along the x direction:
-
-<img src="https://raw.githubusercontent.com/DCC-Lab/PyTissueOptics/main/README.assets/image-20210116104020740.png" alt="image-20210116104020740" style="zoom:50%;" />
-
-We can also display the intensity on surfaces:
-
-<img src="https://raw.githubusercontent.com/DCC-Lab/PyTissueOptics/main/README.assets/image-20210121112646920.png" alt="image-20210121112646920" style="zoom:50%;" />
-
-Then, the idea would be to modify the code for your geometry (layers, boxes, cubes, spheres, etc...) and compute what you want.
 
 ## What it can do
 
@@ -39,151 +22,6 @@ There are 6 main concepts (or `Class` in object-oriented language) in this code:
 4. `Geometry`: A real-world geometry (`Box`, `Cube`, `Sphere`, `Layer`, etc...). The geometry has two important variables: a `Material` (which will dictate its optical properties i.e. scattering and index) and a `Stats` object to keep track of physical values of interest.  The material will provide the required functions to compute the scattering angles, and the photon will use these angles to compute its next position.  The `Stats` object will compute the relevant statistics.
 5. `Stats`: An object to keep track of something you want. For now, it keeps track of volumetric quantities (i.e. the energy deposited in the tissue) and intensities through the surfaces delimiting geometries.
 6. Finally, very useful `Vector`, `UnitVector` and `Surface` helper classes with their subclasses are used to simplify any 3D computation with vectors, planes, surfaces, because they can be used like other values (they can be added, subtracted, normalized, etc...).
-
-## Limitations
-
-There are many limitations, as this is mostly a teaching tool, but I use it for real calculations in my research:
-1. It really is not fully tested yet as of 1.0.4, especially with `reflections`.  Setting all indices to 1.0 is a safe measure to get safe results (but obviously without reflections).
-2. It only uses Henyey-Greenstein because it is sufficient most of the time.
-3. Documentation is sparse at best.
-4. You have probably noticed that the axes on the graphs are currently not labelled. Don't tell my students.
-5. Did I say it was slow? It is approximately 50x slower than the well-known code [MCML](https://omlc.org/software/mc/mcml/) on the same machine. I know, and now I know that *you* know, but see **Advantages** below.
-
-## Advantages
-
-However, there are advantages:
-
-1. It is extremely simple to understand.
-2. The code is very clear with only a few files in a single directory.
-3. It can be used for teaching tissue optics.
-4. It can be used for teaching object-oriented programming for those not familiar with it.
-5. It is fairly easy to modify for your own purpose. Many modifications do not even require to subclass.
-6. In addition, because it is very easy to parallelize a Monte Carlo calculations (all runs are independant), splitting the job onto several CPUs is a good option to gain a factor of close to 10 in perfromance on many computers. I have not done it yet.
-
-## The core of the code
-
-The code is in fact so simple, here is the complete code that can create graphs similar to the ones above in 10 seconds on my computer:
-
-```python
-from pytissueoptics import *
-
-world = World()
-# We choose a material with scattering properties
-mat    = Material(mu_s=30, mu_a = 0.1, g = 0.8, index = 1.4)
-
-# We want stats: we must determine over what volume we want the energy
-stats  = Stats(min = (-2,-2,-2), max = (2,2,2), size = (50,50,50))
-
-# We pick a light source
-source = PencilSource(direction=UnitVector(0,0,1), maxCount=10000)
-
-# We pick a geometry
-tissue = Layer(thickness=1, material=mat, stats=stats)
-
-# We propagate the photons from the source inside the geometry
-world.place(source, position=Vector(0,0,-1))
-world.place(tissue, position=Vector(0,0,0))
-
-world.compute(graphs=True)
-
-# Report the results for all geometries
-world.report()
-```
-
-The main function where the physics is *hidden* is `Geometry.propagate()`. `World.compute()` is a helper to call the function several times, and could possibly be parallelized:
-
-```python
-class Geometry:
-  [...]
-  
-    def propagate(self, photon):
-        photon.transformToLocalCoordinates(self.origin)
-        self.scoreWhenStarting(photon)
-        d = 0
-        while photon.isAlive and self.contains(photon.r):
-            # Pick distance to scattering point
-            if d <= 0:
-                d = self.material.getScatteringDistance(photon)
-                
-            distToPropagate, surface = self.nextExitInterface(photon.r, photon.ez, d)
-
-            if surface is None:
-                # If the scattering point is still inside, we simply move
-                # Default is simply photon.moveBy(d) but other things 
-                # would be here. Create a new material for other behaviour
-                self.material.move(photon, d=d)
-                d = 0
-                # Interact with volume: default is absorption only
-                # Default is simply absorb energy. Create a Material
-                # for other behaviour
-                delta = self.material.interactWith(photon)
-                self.scoreInVolume(photon, delta)
-
-                # Scatter within volume
-                theta, phi = self.material.getScatteringAngles(photon)
-                photon.scatterBy(theta, phi)
-            else:
-                # If the photon crosses an interface, we move to the surface
-                self.material.move(photon, d=distToPropagate)
-
-                # Determine if reflected or not with Fresnel coefficients
-                if self.isReflected(photon, surface): 
-                    # reflect photon and keep propagating
-                    photon.reflect(surface)
-                    photon.moveBy(d=1e-3) # Move away from surface
-                    d -= distToPropagate
-                else:
-                    # transmit, score, and leave
-                    photon.refract(surface)
-                    self.scoreWhenCrossing(photon, surface)
-                    photon.moveBy(d=1e-3) # We make sure we are out
-                    break
-
-            # And go again    
-            photon.roulette()
-
-        # Because the code will not typically calculate millions of photons, it is
-        # inexpensive to keep all the propagated photons.  This allows users
-        # to go through the list after the fact for a calculation of their choice
-        self.scoreWhenFinal(photon)
-        photon.transformFromLocalCoordinates(self.origin)
-
-        
-[...]
-class World:
-  [...]
-    @classmethod
-    def compute(self, graphs):
-        World.startCalculation()
-        N = 0
-        for source in World.sources:
-            N += source.maxCount
-
-            for i, photon in enumerate(source):
-                while photon.isAlive:
-                    currentGeometry = World.contains(photon.r)
-                    if currentGeometry is not None:
-                        currentGeometry.propagate(photon)
-                    else:
-                        distance, surface, nextGeometry = World.nextObstacle(photon)
-                        if surface is not None:
-                            # Moving to next object in air
-                            photon.moveBy(distance)
-                            R = photon.fresnelCoefficient(surface)
-                            photon.refract(surface)
-                            photon.decreaseWeightBy(R*photon.weight)
-                            photon.moveBy(1e-4)
-                        else:
-                            photon.weight = 0
-
-                World.showProgress(i+1, maxCount=source.maxCount, graphs=graphs)
-
-        duration = World.completeCalculation()
-        print("{0:.1f} ms per photon\n".format(duration*1000/N))
-  
-```
-
-Note that this `propagate` function is part of the `Geometry` object and does not make any assumption on the details of the geometry, and relies on whatever material was provided to get the scattering angles. 
 
 ## How to go about modifying for your own purpose
 
@@ -227,3 +65,26 @@ Note that this `propagate` function is part of the `Geometry` object and does no
 
 5. Maybe your have a special geometry? Subclass `Geometry` and override the `contains` method to compute whether or not a given position is inside your object or not, and `intersection` to compute the point on the surface of your object where the photon exits.
 
+
+## Why use this package
+It may be slow, but speed is more than code performance: anyone with little to no experience can simulate something instantly instead of having to understand C, C++ or, GPU code. With this package, you can quickly build your simulation in minutes and get your results in a few hours, instead of learning C (a few weeks?), learn to work with compiled code (a few days? libraries anyone?) and finally modify the C code written by someone else (days? weeks?). Considering this, the overall speed to be concerned about is "the time it takes to get an answer", not necessarily "the time it takes to run 100,000 photons". It is fairly reasonable to imagine you could start a calculation in Python, run it overnight and get an answer the next day after a few hours of calculations. This is the solution that the CPU-based portion of this package offers you.
+
+Therefore, the whole point is the following: this code is perfect for quickly prototyping a small calculation, and then determine if you need performance or not. For many things, you actually don't.
+
+### Advantages
+However, there are advantages:
+
+1. It is extremely simple to understand and to use.
+2. It can be used for teaching tissue optics.
+3. It can be used for teaching object-oriented programming for those not familiar with it.
+5. It is fairly easy to modify for your own purpose. Many modifications do not even require to subclass.
+
+### Limitations
+There are some limitations as of now.
+
+1. It uses Henyey-Greenstein approximation for scattering direction because it is sufficient most of the time.
+2. Reflections are specular, which does not accounts for the roughness of materials. It is planned to implement Bling-Phong reflection model in a future release.
+2. It is approximately 50x slower than the well-known code [MCML](https://omlc.org/software/mc/mcml/) on the same machine. However, this will be accounted for when photons intersections will be coded in OpenCL in a future release.
+
+## Acknowledgment
+This package was first inspired by the standard, tested, and loved [MCML from Wang, Jacques and Zheng](https://omlc.org/software/mc/mcpubs/1995LWCMPBMcml.pdf) , itself based on [Prahl](https://omlc.org/~prahl/pubs/abs/prahl89.html) and completely documented, explained, dissected by [Jacques](https://omlc.org/software/mc/) and [Prahl](https://omlc.org/~prahl/pubs/abs/prahl89.html). This would not be possible without the work of these pionneers.
