@@ -4,7 +4,7 @@ TITLE = "Hardware Accelerated Monte Carlo in Infinite Medium"
 DESCRIPTION = """ Here we simulate the propagation of a pencil source through an InfiniteTissue. We give the Tissue a
 material to propagate through and we use the useHardwareAcceleration flag to propagate the source. Since it is
 parallelized, the simulation is done on all available cores. This allows to simulate in media that are more scattering
-then when we use the series-based implementation. For now, hardware acceleration only supports InfiniteTissues. Usually,
+than when we use the series-based implementation. For now, hardware acceleration only supports InfiniteTissues. Usually,
 it is not possible to view the data in 3D without binning as this generates too much data.
 """
 
