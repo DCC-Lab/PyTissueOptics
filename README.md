@@ -1,14 +1,15 @@
 
 <h1 align="center"><b>PyTissueOptics</b></h1>
 
-<p align="center"><i>MonteCarlo light propagation simulations made easy.</i></p>
+<p align="center"><i>Monte Carlo light propagation simulations made easy.</i></p>
 <p align="center">
 <img src="./docs/README.assets/pytissue-demo-banenr.jpg">
 </p>
 
 This python package is an object-oriented implementation of Monte Carlo Light Propagation simulation in diffuse media.
 The package is **extremely easy to use**, and **polyvalent** as it allows simulations in arbitrary complex scenes,
-but as it is in python, it is **very slow** compared to C++ alternatives.
+but as it is in python, it is **very slow** compared to C++ alternatives. However, we are working on a **very fast** OpenCL
+implementation, which will be released soon.
 
 However, as discussed in the [why use this package](#why-use-this-package) section, code efficiency isn't the only
 variable at play. it is **easy to understand**, **easily scalable** and **very simple to modify** for your need.
