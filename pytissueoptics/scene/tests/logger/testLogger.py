@@ -96,16 +96,17 @@ class TestLogger(unittest.TestCase):
         self.assertEqual(3, len(logger.getPoints()))
         self.assertEqual(3, len(logger.getPoints(InteractionKey(None, None))))
 
-    def testWhenGetDataWithNonExistentKey_shouldRaiseKeyError(self):
+    def testWhenGetDataWithNonExistentKey_shouldWarnAndReturnNone(self):
         logger = Logger()
+        with self.assertWarns(UserWarning):
+            self.assertIsNone(logger.getPoints(self.INTERACTION_KEY))
 
-        self.assertRaises(KeyError, logger.getPoints, self.INTERACTION_KEY)
-
-    def testWhenGetDataWithNonSurfaceLabelKey_shouldRaiseKeyError(self):
+    def testWhenGetDataWithNonSurfaceLabelKey_shouldWarnAndReturnNone(self):
         logger = Logger()
         logger.logPoint(Vector(0, 0, 0), self.INTERACTION_KEY)
 
-        self.assertRaises(KeyError, logger.getPoints, InteractionKey(self.SOLID_LABEL, "another surface"))
+        with self.assertWarns(UserWarning):
+            self.assertIsNone(logger.getPoints(InteractionKey(self.SOLID_LABEL, "another surface")))
 
     def testGivenEmptyLogger_whenGetData_shouldReturnNone(self):
         logger = Logger()

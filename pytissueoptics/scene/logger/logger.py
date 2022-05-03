@@ -92,7 +92,8 @@ class Logger:
 
     def _getData(self, dataType: DataType, key: InteractionKey = None) -> Optional[np.ndarray]:
         if key and key.solidLabel:
-            self._assertKeyExists(key)
+            if not self._keyExists(key):
+                return None
             return getattr(self._data[key], dataType.value)
         else:
             data = []
@@ -105,12 +106,17 @@ class Logger:
                 return None
             return np.concatenate(data, axis=0)
 
-    def _assertKeyExists(self, key: InteractionKey):
+    def _keyExists(self, key: InteractionKey) -> bool:
         if key.solidLabel not in self.getSolidLabels():
-            raise KeyError(f"Invalid solid label '{key.solidLabel}'. Available: {self.getSolidLabels()}. ")
+            warnings.warn(f"No data stored for solid labeled '{key.solidLabel}'. Available: {self.getSolidLabels()}. ")
         if key.surfaceLabel and key.surfaceLabel not in self.getSurfaceLabels(key.solidLabel):
-            raise KeyError(f"Invalid surface label '{key.surfaceLabel}' for solid '{key.solidLabel}'. "
-                           f"Available: {self.getSurfaceLabels(key.solidLabel)}. ")
+            warnings.warn(f"No data stored for surface labeled '{key.surfaceLabel}' for solid '{key.solidLabel}'. "
+                          f"Available: {self.getSurfaceLabels(key.solidLabel)}. ")
+        if key in self._data:
+            return True
+        if not key.surfaceLabel:
+            warnings.warn(f"No data stored inside the solid labeled '{key.solidLabel}'.")
+        return False
 
     def save(self, filepath: str = None):
         if filepath is None and self._filepath is None:
