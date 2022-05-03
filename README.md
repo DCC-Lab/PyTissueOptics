@@ -35,11 +35,22 @@ To launch a simple simulation, follow these steps.
 ```python
 from pytissueoptics import *
 
+ 
+ myMaterial1 = ScatteringMaterial(mu_s=3.0, mu_a=1.0, g=0.8, n=1.5)
 
-source = PencilSource(position=Vector(0, 0, -1), direction=Vector(0, 0, 1), N=5000)
-customMaterial = Material(mu_a=0.5, mu_s=0.5, g=1.5)
+ cuboid = Cuboid(a=1, b=3, c=1, position=Vector(2, 0, 0), material=myMaterial1)
+ myCustomScene = RayScatteringScene([cuboid])
 
+ logger = Logger()
+ source = PencilSource(position=Vector(-3, 0, 0), direction=Vector(1, 0, 0), N=1000)
+ source.propagate(myCustomScene, logger)
+
+ stats = Stats(logger, source, myCustomScene)
+ stats.showEnergy3D()
 ```
+For more details on how to use this package for your own research, please refer to the [documentation](https://pytissueoptics.readthedocs.io/en/latest/).
+
+Also, you can check out the `pytissueoptics/example` folder for more examples on how to use the package.
 
 
 ## Why use this package
@@ -63,7 +74,7 @@ However, there are advantages:
 3. It can be used for teaching object-oriented programming for those not familiar with it.
 5. It is fairly easy to modify for your own purpose. Many modifications do not even require to subclass.
 
-### Limitations
+### Known Limitations
 There are some limitations as of now.
 
 1. It uses Henyey-Greenstein approximation for scattering direction because it is sufficient most of the time.
