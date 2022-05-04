@@ -38,9 +38,9 @@ Here's what it might look like:
 from pytissueoptics import *
 
  
- myMaterial1 = ScatteringMaterial(mu_s=3.0, mu_a=1.0, g=0.8, n=1.5)
+ myMaterial = ScatteringMaterial(mu_s=3.0, mu_a=1.0, g=0.8, n=1.5)
 
- cuboid = Cuboid(a=1, b=3, c=1, position=Vector(2, 0, 0), material=myMaterial1)
+ cuboid = Cuboid(a=1, b=3, c=1, position=Vector(2, 0, 0), material=myMaterial)
  myCustomScene = RayScatteringScene([cuboid])
 
  logger = Logger()
@@ -56,29 +56,14 @@ Also, you can check out the `pytissueoptics/example` folder for more examples on
 
 
 ## Why use this package
-It may be slow, but speed is more than code performance: anyone with little to no experience can simulate
-something instantly instead of having to understand C, C++ or, GPU code. With this package,
-you can quickly build your simulation in minutes and get your results in a few hours, instead of learning C
-(a few weeks?), learn to work with compiled code (a few days? libraries anyone?) and finally modify the C code written
-by someone else (days? weeks?). Considering this, the overall speed to be concerned about is "the time it takes to get
-an answer", not necessarily "the time it takes to run 100,000 photons". It is fairly reasonable to imagine you could
-start a calculation in Python, run it overnight and get an answer the next day after a few hours of calculations. This
-is the solution that the CPU-based portion of this package offers you.
-
-Therefore, the whole point is the following: this code is perfect for quickly prototyping a small calculation,
-and then determine if you need performance or not. For many things, you actually don't.
-
-### Advantages
-However, there are advantages:
-
-1. It is extremely simple to understand and to use.
-2. It can be used for teaching tissue optics.
-3. It can be used for teaching object-oriented programming for those not familiar with it.
-5. It is fairly easy to modify for your own purpose. Many modifications do not even require to subclass.
+It is known, as April of 2022, Python is **the most used** language [Tiobe index](https://www.tiobe.com/tiobe-index/).
+This is due to the ease of use, the gentle learning curve, and growing community and tools. There was a need for 
+such a package in Python, so that not only long hardened C/C++ programmers could access the power of Monte Carlo simulations.
+It is fairly reasonable to imagine you could  start a calculation in Python in a few minutes, run it overnight and get
+an answer the next day after a few hours of calculations. This is the solution that the CPU-based portion of this package 
+offers you. With the OpenCL implementation, speed won't even be an issue, so using `pytissueoptics` should not even be a question.
 
 ### Known Limitations
-There are some limitations as of now.
-
 1. It uses Henyey-Greenstein approximation for scattering direction because it is sufficient most of the time.
 2. Reflections are specular, which does not accounts for the roughness of materials. It is planned to implement Bling-Phong reflection model in a future release.
 2. It is approximately 50x slower than the well-known code [MCML](https://omlc.org/software/mc/mcml/) on the same machine. However, this will be accounted for when photons intersections will be coded in OpenCL in a future release.
