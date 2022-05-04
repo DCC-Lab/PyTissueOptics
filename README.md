@@ -11,8 +11,8 @@ The package is **extremely easy to use**, and **polyvalent** as it allows simula
 but as it is in python, it is **very slow** compared to C++ alternatives. However, we are working on a **very fast** OpenCL
 implementation, which will be released soon.
 
-However, as discussed in the [why use this package](#why-use-this-package) section, code efficiency isn't the only
-variable at play. it is **easy to understand**, **easily scalable** and **very simple to modify** for your need.
+As discussed in the [why use this package](#why-use-this-package) section, code efficiency isn't the only
+variable at play. This code is **easy to understand**, **easily scalable** and **very simple to modify** for your need.
 It was designed with **research and education** in mind.
 
 ## Getting started
@@ -81,7 +81,7 @@ There are some limitations as of now.
 
 1. It uses Henyey-Greenstein approximation for scattering direction because it is sufficient most of the time.
 2. Reflections are specular, which does not accounts for the roughness of materials. It is planned to implement Bling-Phong reflection model in a future release.
-2. It is approximately 50x slower than the well-known code [MCML](https://omlc.org/software/mc/mcml/) on the same machine. However, this will be accounted for when photons intersections will be coded in OpenCL in a future release.
+2. It is approximately 50x slower than the well-known code [MCML](https://omlc.org/software/mc/mcml/) on the same machine. However, this won't be the case anymore once we move the intersectionFinder to OpenCL, which we are currently working on.
 
 ## Acknowledgment
 This package was first inspired by the standard, tested, and loved [MCML from Wang, Jacques and Zheng](https://omlc.org/software/mc/mcpubs/1995LWCMPBMcml.pdf) , itself based on [Prahl](https://omlc.org/~prahl/pubs/abs/prahl89.html) and completely documented, explained, dissected by [Jacques](https://omlc.org/software/mc/) and [Prahl](https://omlc.org/~prahl/pubs/abs/prahl89.html). This would not be possible without the work of these pionneers.
