@@ -53,9 +53,10 @@ Also, you can check out the `pytissueoptics/example` folder for more examples on
 ## Why use this package
 It is known, as April of 2022, Python is **the most used** language [Tiobe index](https://www.tiobe.com/tiobe-index/).
 This is due to the ease of use, the gentle learning curve, and growing community and tools. There was a need for 
-such a package in Python, so that not only long hardened C/C++ programmers could access the power of Monte Carlo simulations.
+such a package in Python, so that not only long hardened C/C++ programmers could use the power of Monte Carlo simulations.
 It is fairly reasonable to imagine you could  start a calculation in Python in a few minutes, run it overnight and get
-an answer the next day after a few hours of calculations. This is the solution that the CPU-based portion of this package 
+an answer the next day after a few hours of calculations. It is also reasonable to think you could **modify** the code
+yourself to suit your exact needs! (Do not attempt this in C). This is the solution that the CPU-based portion of this package 
 offers you. With the OpenCL implementation, speed won't even be an issue, so using `pytissueoptics` should not even be a question.
 
 ### Known Limitations
