@@ -1,7 +1,7 @@
 from typing import List, Tuple, Optional
 import sys
 
-from pytissueoptics import Vector
+from pytissueoptics.scene import Vector
 from pytissueoptics.scene.intersection import Ray
 from pytissueoptics.scene.geometry import Polygon, Triangle
 from pytissueoptics.scene.tree import Node
