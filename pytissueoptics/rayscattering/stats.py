@@ -115,7 +115,9 @@ class Stats:
     def _getPointCloudOfSolids(self) -> PointCloud:
         points = []
         for solidLabel in self._logger.getSolidLabels():
-            points.append(self.getPointCloud(solidLabel).solidPoints)
+            solidPoints = self.getPointCloud(solidLabel).solidPoints
+            if solidPoints is not None:
+                points.append(solidPoints)
         if len(points) == 0:
             return PointCloud(None, None)
         return PointCloud(np.concatenate(points, axis=0), None)
@@ -171,6 +173,9 @@ class Stats:
             points = pointCloud.leavingSurfacePoints
         else:
             points = pointCloud.solidPoints
+
+        if points is None:
+            return np.empty(0)
         scatter = np.concatenate([points[:, 1:], points[:, :1]], axis=1)
         return scatter
 
@@ -189,6 +194,8 @@ class Stats:
         alongIndex = self.AXES.index(along)
 
         scatter = self._get3DScatter(solidLabel, surfaceLabel)
+        if len(scatter) == 0:
+            return [], []
         x, c = scatter[:, alongIndex], scatter[:, -1]
         return x, c
 

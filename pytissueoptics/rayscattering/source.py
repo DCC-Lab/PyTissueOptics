@@ -1,5 +1,6 @@
 from typing import List, Union, Optional, Tuple
 import numpy as np
+from tqdm import tqdm
 
 from pytissueoptics.rayscattering.tissues.rayScatteringScene import RayScatteringScene
 from pytissueoptics.rayscattering.photon import Photon
@@ -33,9 +34,9 @@ class Source:
         self._environment = scene.getEnvironmentAt(self._position)
         self._prepareLogger(logger)
 
-        for photon in self._photons:
-            photon.setContext(self._environment, intersectionFinder=intersectionFinder, logger=logger)
-            photon.propagate()
+        for i in tqdm(range(self._N), desc="Propagating photons"):
+            self._photons[i].setContext(self._environment, intersectionFinder=intersectionFinder, logger=logger)
+            self._photons[i].propagate()
 
     def _propagateOpenCL(self, scene: RayScatteringScene, logger: Logger = None):
         self._photons.prepareAndPropagate(scene, logger)
