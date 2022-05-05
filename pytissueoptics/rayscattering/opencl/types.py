@@ -1,9 +1,12 @@
 import numpy as np
-import pyopencl as cl
-import pyopencl.tools
+try:
+    import pyopencl as cl
+    import pyopencl.tools
+except ImportError:
+    pass
 
 
-def makePhotonType(device: cl.Device):
+def makePhotonType(device: 'cl.Device'):
     photonStruct = np.dtype(
         [("position", cl.cltypes.float4),
          ("direction", cl.cltypes.float4),
@@ -16,7 +19,7 @@ def makePhotonType(device: cl.Device):
     return photon_dtype, c_decl_photon
 
 
-def makeMaterialType(device: cl.Device):
+def makeMaterialType(device: 'cl.Device'):
     materialStruct = np.dtype(
         [("mu_s", cl.cltypes.float),
          ("mu_a", cl.cltypes.float),
@@ -31,7 +34,7 @@ def makeMaterialType(device: cl.Device):
     return material_dtype, c_decl_mat
 
 
-def makeLoggerType(device: cl.Device):
+def makeLoggerType(device: 'cl.Device'):
     loggerStruct = np.dtype(
         [("delta_weight", cl.cltypes.float),
          ("x", cl.cltypes.float),

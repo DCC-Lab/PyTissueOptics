@@ -1,1 +1,1 @@
-from .CLPhotons import CLPhotons
+from .CLPhotons import CLPhotons, OPENCL_AVAILABLE

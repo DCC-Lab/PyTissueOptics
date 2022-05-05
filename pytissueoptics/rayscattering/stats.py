@@ -81,7 +81,11 @@ class Stats:
         return self._logger.info["photonCount"]
 
     def _show3DPointCloud(self, pointCloud: PointCloud, config: DisplayConfig):
-        from pytissueoptics.scene import MayaviViewer
+        from pytissueoptics.scene import MayaviViewer, MAYAVI_AVAILABLE
+        if not MAYAVI_AVAILABLE:
+            warnings.warn("Package 'mayavi' is not available. Please install it to use 3D visualizations.")
+            return
+
         viewer = MayaviViewer()
 
         if config.showScene:

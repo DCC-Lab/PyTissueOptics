@@ -5,8 +5,9 @@ from pytissueoptics.scene.scene import Scene
 
 try:
     from mayavi import mlab
+    MAYAVI_AVAILABLE = True
 except ImportError:
-    pass
+    MAYAVI_AVAILABLE = False
 
 from pytissueoptics.scene.viewer.mayavi import MayaviSolid
 from pytissueoptics.scene.solids import Solid
