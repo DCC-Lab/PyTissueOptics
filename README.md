@@ -10,8 +10,14 @@ This python package is an object-oriented implementation of Monte Carlo modeling
 
 As discussed in the [why use this package](#why-use-this-package) section, code efficiency isn't the only variable at play. This code is **easy to understand**, **easily scalable** and **very simple to modify** for your need. It was designed with **research and education** in mind.
 
-## Getting started
+## Notable Features
+- Arbitrary complex 3D environments.
+- Import external 3D models (.OBJ).
+- Great data visualization with `Mayavi`.
+- Multi layered tissues.
+- Hardware-Accelerated Rendering with `OpenCL` for `InfiniteTissue` (Full support coming soon).
 
+## Getting started
 Install with `pip` or get the [code](https://github.com/DCC-Lab/PyTissueOptics) from GitHub. If you're having trouble installing,
 please [read the documentation](https://pytissueoptics.readthedocs.io/en/latest/).
 
@@ -51,7 +57,7 @@ Also, you can check out the `pytissueoptics/example` folder for more examples on
 
 
 ## Why use this package
-It is known, as April of 2022, Python is **the most used** language [Tiobe index](https://www.tiobe.com/tiobe-index/).
+It is known, as April of 2022, Python is **the most used** language ([Tiobe index](https://www.tiobe.com/tiobe-index/)).
 This is due to the ease of use, the gentle learning curve, and growing community and tools. There was a need for 
 such a package in Python, so that not only long hardened C/C++ programmers could use the power of Monte Carlo simulations.
 It is fairly reasonable to imagine you could  start a calculation in Python in a few minutes, run it overnight and get
