@@ -27,12 +27,12 @@ class FresnelIntersect:
         goingInside = rayDirection.dot(normal) < 0
         if goingInside:
             normal.multiply(-1)
-            self._indexIn = intersection.outsideEnvironment.material.index
-            self._indexOut = intersection.insideEnvironment.material.index
+            self._indexIn = intersection.outsideEnvironment.material.n
+            self._indexOut = intersection.insideEnvironment.material.n
             nextEnvironment = intersection.insideEnvironment
         else:
-            self._indexIn = intersection.insideEnvironment.material.index
-            self._indexOut = intersection.outsideEnvironment.material.index
+            self._indexIn = intersection.insideEnvironment.material.n
+            self._indexOut = intersection.outsideEnvironment.material.n
             nextEnvironment = intersection.outsideEnvironment
 
         incidencePlane = rayDirection.cross(normal)
