@@ -4,7 +4,7 @@ import numpy as np
 
 
 class ScatteringMaterial:
-    def __init__(self, mu_s=0, mu_a=0, g=0, index=1.0):
+    def __init__(self, mu_s=0, mu_a=0, g=0, n=1.0):
         self.mu_s = mu_s
         self.mu_a = mu_a
         self.mu_t = self.mu_a + self.mu_s
@@ -15,7 +15,7 @@ class ScatteringMaterial:
             self._albedo = 0
 
         self.g = g
-        self.index = index
+        self.n = n
 
     def getAlbedo(self):
         return self._albedo
