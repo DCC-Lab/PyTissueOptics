@@ -1,6 +1,13 @@
+import warnings
 from typing import List, Union, Optional, Tuple
 import numpy as np
-from tqdm import tqdm
+try:
+    from tqdm import tqdm
+except ImportError:
+    def mock_tqdm(iterable, *args, **kwargs):
+        warnings.warn("Package 'tqdm' not found. Progress bar will not be shown.")
+        return iterable
+    tqdm = mock_tqdm
 
 from pytissueoptics.rayscattering.tissues.rayScatteringScene import RayScatteringScene
 from pytissueoptics.rayscattering.photon import Photon
