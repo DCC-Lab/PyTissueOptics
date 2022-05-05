@@ -1,4 +1,4 @@
-from .solids import Cuboid, Cube, Sphere, Ellipsoid, Cylinder, Cone
+from .solids import Cuboid, Cube, Sphere, Ellipsoid, Cylinder, Cone, SolidModel
 from .geometry import Vector
 from .scene import Scene
 from .loader import Loader

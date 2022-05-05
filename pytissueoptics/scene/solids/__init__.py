@@ -1,4 +1,6 @@
 from .solid import Solid
+from .solidGroup import SolidGroup
+from .solidModel import SolidModel
 from .cuboid import Cuboid
 from .cube import Cube
 from .ellipsoid import Ellipsoid
