@@ -50,6 +50,7 @@ from pytissueoptics import *
 
  stats = Stats(logger, source, scene)
  stats.showEnergy3D()
+ stats.report()
 ```
 For more details on how to use this package for your own research, please refer to the [documentation](https://pytissueoptics.readthedocs.io/en/latest/).
 
