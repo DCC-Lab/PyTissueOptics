@@ -10,12 +10,12 @@ This python package is an object-oriented implementation of Monte Carlo modeling
 
 As discussed in the [why use this package](#why-use-this-package) section, code efficiency isn't the only variable at play. This code is **easy to understand**, **easily scalable** and **very simple to modify** for your need. It was designed with **research and education** in mind.
 
-## Notable Features
+## Notable features
 - Arbitrary complex 3D environments.
 - Import external 3D models (.OBJ).
 - Great data visualization with `Mayavi`.
-- Multi layered tissues.
-- Hardware-Accelerated Rendering with `OpenCL` for `InfiniteTissue` (Full support coming soon).
+- Multi-layered tissues.
+- Hardware acceleration with `OpenCL` for `InfiniteTissue` (full support coming soon).
 
 ## Getting started
 Install with `pip` or get the [code](https://github.com/DCC-Lab/PyTissueOptics) from GitHub. If you're having trouble installing,
@@ -39,16 +39,16 @@ Here's what it might look like:
 from pytissueoptics import *
 
  
- myMaterial = ScatteringMaterial(mu_s=3.0, mu_a=1.0, g=0.8, n=1.5)
+ material = ScatteringMaterial(mu_s=3.0, mu_a=1.0, g=0.8, n=1.5)
 
- cuboid = Cuboid(a=1, b=3, c=1, position=Vector(2, 0, 0), material=myMaterial)
- myCustomScene = RayScatteringScene([cuboid])
+ tissue = Cuboid(a=1, b=3, c=1, position=Vector(2, 0, 0), material=material)
+ scene = RayScatteringScene([tissue])
 
  logger = Logger()
  source = PencilSource(position=Vector(-3, 0, 0), direction=Vector(1, 0, 0), N=1000)
- source.propagate(myCustomScene, logger)
+ source.propagate(scene, logger)
 
- stats = Stats(logger, source, myCustomScene)
+ stats = Stats(logger, source, scene)
  stats.showEnergy3D()
 ```
 For more details on how to use this package for your own research, please refer to the [documentation](https://pytissueoptics.readthedocs.io/en/latest/).
@@ -60,12 +60,12 @@ Also, you can check out the `pytissueoptics/example` folder for more examples on
 It is known, as April of 2022, Python is **the most used** language ([Tiobe index](https://www.tiobe.com/tiobe-index/)).
 This is due to the ease of use, the gentle learning curve, and growing community and tools. There was a need for 
 such a package in Python, so that not only long hardened C/C++ programmers could use the power of Monte Carlo simulations.
-It is fairly reasonable to imagine you could  start a calculation in Python in a few minutes, run it overnight and get
+It is fairly reasonable to imagine you could start a calculation in Python in a few minutes, run it overnight and get
 an answer the next day after a few hours of calculations. It is also reasonable to think you could **modify** the code
 yourself to suit your exact needs! (Do not attempt this in C). This is the solution that the CPU-based portion of this package 
 offers you. With the OpenCL implementation, speed won't even be an issue, so using `pytissueoptics` should not even be a question.
 
-### Known Limitations
+### Known limitations
 1. It uses Henyey-Greenstein approximation for scattering direction because it is sufficient most of the time.
 2. Reflections are specular, which does not accounts for the roughness of materials. It is planned to implement Bling-Phong reflection model in a future release.
 2. It is approximately 50x slower than the well-known code [MCML](https://omlc.org/software/mc/mcml/) on the same machine. However, this won't be the case anymore once we move the intersectionFinder to OpenCL, which we are currently working on.
