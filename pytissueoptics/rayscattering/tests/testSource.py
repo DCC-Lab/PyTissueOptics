@@ -20,20 +20,20 @@ class TestSource(unittest.TestCase):
         self.source = SinglePhotonSource(position=Vector(), photons=[self.photon])
 
     def testWhenPropagate_shouldSetInitialPhotonEnvironmentAsSourceEnvironment(self):
-        self.source.propagate(self._createTissue())
+        self.source.propagate(self._createTissue(), progressBar=False)
         verify(self.photon).setContext(self.SOURCE_ENV, ...)
 
     def testWhenPropagate_shouldUpdatePhotonCountInLogger(self):
         logger = Logger()
-        self.source.propagate(self._createTissue(), logger=logger)
+        self.source.propagate(self._createTissue(), logger=logger, progressBar=False)
         self.assertEqual(logger.info['photonCount'], 1)
 
         logger.info['photonCount'] = 10
-        self.source.propagate(self._createTissue(), logger=logger)
+        self.source.propagate(self._createTissue(), logger=logger, progressBar=False)
         self.assertEqual(logger.info['photonCount'], 10+1)
 
     def testWhenPropagate_shouldPropagateAllPhotons(self):
-        self.source.propagate(self._createTissue())
+        self.source.propagate(self._createTissue(), progressBar=False)
         verify(self.photon).propagate()
 
     def _createTissue(self):

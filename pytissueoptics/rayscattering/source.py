@@ -23,18 +23,18 @@ class Source:
 
         self._loadPhotons()
 
-    def propagate(self, scene: RayScatteringScene, logger: Logger = None):
+    def propagate(self, scene: RayScatteringScene, logger: Logger = None, progressBar: bool = True):
         if self._useHardwareAcceleration:
             self._propagateOpenCL(scene, logger)
         else:
-            self._propagateCPU(scene, logger)
+            self._propagateCPU(scene, logger, progressBar)
 
-    def _propagateCPU(self, scene: RayScatteringScene, logger: Logger = None):
+    def _propagateCPU(self, scene: RayScatteringScene, logger: Logger = None, progressBar: bool = True):
         intersectionFinder = FastIntersectionFinder(scene)
         self._environment = scene.getEnvironmentAt(self._position)
         self._prepareLogger(logger)
 
-        for i in tqdm(range(self._N), desc="Propagating photons"):
+        for i in tqdm(range(self._N), desc="Propagating photons", disable=not progressBar):
             self._photons[i].setContext(self._environment, intersectionFinder=intersectionFinder, logger=logger)
             self._photons[i].propagate()
 
