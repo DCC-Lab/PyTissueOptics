@@ -11,7 +11,7 @@ except ImportError:
 
 from pytissueoptics.rayscattering.tissues.rayScatteringScene import RayScatteringScene
 from pytissueoptics.rayscattering.photon import Photon
-from pytissueoptics.rayscattering.opencl import CLPhotons
+from pytissueoptics.rayscattering.opencl import CLPhotons, OPENCL_AVAILABLE
 from pytissueoptics.scene.solids import Sphere
 from pytissueoptics.scene.geometry import Vector, Environment
 from pytissueoptics.scene.intersection import FastIntersectionFinder
@@ -26,6 +26,9 @@ class Source:
         self._photons: Union[List[Photon], CLPhotons] = []
         self._environment = None
 
+        if useHardwareAcceleration and not OPENCL_AVAILABLE:
+            warnings.warn("Hardware acceleration not available. Falling back to CPU. Please install pyopencl.")
+            useHardwareAcceleration = False
         self._useHardwareAcceleration = useHardwareAcceleration
 
         self._loadPhotons()
