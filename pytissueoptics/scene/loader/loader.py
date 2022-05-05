@@ -55,7 +55,8 @@ class Loader:
 
         return solids
 
-    def _convertSurfaceToPolygons(self, surface: ParsedSurface, vertices: List[Vertex]) -> List[Triangle]:
+    @staticmethod
+    def _convertSurfaceToPolygons(surface: ParsedSurface, vertices: List[Vertex]) -> List[Triangle]:
         polygons = []
         for polygonIndices in surface.polygons:
             polygonVertices = [vertices[i] for i in polygonIndices]

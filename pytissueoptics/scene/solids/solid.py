@@ -9,7 +9,7 @@ from pytissueoptics.scene.geometry import primitives, Environment, SurfaceCollec
 class Solid:
     def __init__(self, vertices: List[Vertex], position: Vector = Vector(0, 0, 0),
                  surfaces: SurfaceCollection = None, material=None,
-                 label: str = "solid", primitive: str = primitives.DEFAULT, smooth: bool = False):
+                 label: str = "solid", primitive: str = primitives.POLYGON, smooth: bool = False):
         self._vertices = vertices
         self._surfaces = surfaces
         self._material = material
