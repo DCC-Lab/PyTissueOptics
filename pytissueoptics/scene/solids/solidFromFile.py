@@ -3,8 +3,8 @@ from pytissueoptics.scene.solids import SolidGroupMerge
 from pytissueoptics.scene.loader import Loader
 
 
-class SolidModel(SolidGroupMerge):
+class SolidFromFile(SolidGroupMerge):
     def __init__(self, filepath: str, position: Vector = Vector(0, 0, 0), material=None,
-                 label: str = "solidModel"):
+                 label: str = "solidFromFile"):
         solids = Loader().load(filepath)
-        super(SolidModel, self).__init__(solids, position, material, label)
+        super(SolidFromFile, self).__init__(solids, position, material, label)
