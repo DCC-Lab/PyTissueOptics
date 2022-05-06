@@ -9,7 +9,7 @@ def exampleCode():
     solid = SolidModel("exampleFile.obj")
 
     viewer = MayaviViewer()
-    viewer.add(*solid.getSolids(), representation="surface")
+    viewer.add(solid, representation="surface", showNormals=True)
     viewer.show()
 
 

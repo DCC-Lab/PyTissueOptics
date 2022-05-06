@@ -13,7 +13,7 @@ from pytissueoptics.scene.viewer import MayaviViewer
 
 
 class Source:
-    def __init__(self, position: Vector, N: int, useHardwareAcceleration: bool = True):
+    def __init__(self, position: Vector, N: int, useHardwareAcceleration: bool = False):
         self._position = position
         self._N = N
         self._photons: Union[List[Photon], CLPhotons] = []
