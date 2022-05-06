@@ -1,10 +1,17 @@
+import warnings
 from typing import List, Union, Optional, Tuple
 import numpy as np
-from tqdm import tqdm
+try:
+    from tqdm import tqdm
+except ImportError:
+    def mock_tqdm(iterable, *args, **kwargs):
+        warnings.warn("Package 'tqdm' not found. Progress bar will not be shown.")
+        return iterable
+    tqdm = mock_tqdm
 
 from pytissueoptics.rayscattering.tissues.rayScatteringScene import RayScatteringScene
 from pytissueoptics.rayscattering.photon import Photon
-from pytissueoptics.rayscattering.opencl import CLPhotons
+from pytissueoptics.rayscattering.opencl import CLPhotons, OPENCL_AVAILABLE
 from pytissueoptics.scene.solids import Sphere
 from pytissueoptics.scene.geometry import Vector, Environment
 from pytissueoptics.scene.intersection import FastIntersectionFinder
@@ -19,22 +26,25 @@ class Source:
         self._photons: Union[List[Photon], CLPhotons] = []
         self._environment = None
 
+        if useHardwareAcceleration and not OPENCL_AVAILABLE:
+            warnings.warn("Hardware acceleration not available. Falling back to CPU. Please install pyopencl.")
+            useHardwareAcceleration = False
         self._useHardwareAcceleration = useHardwareAcceleration
 
         self._loadPhotons()
 
-    def propagate(self, scene: RayScatteringScene, logger: Logger = None):
+    def propagate(self, scene: RayScatteringScene, logger: Logger = None, progressBar: bool = True):
         if self._useHardwareAcceleration:
             self._propagateOpenCL(scene, logger)
         else:
-            self._propagateCPU(scene, logger)
+            self._propagateCPU(scene, logger, progressBar)
 
-    def _propagateCPU(self, scene: RayScatteringScene, logger: Logger = None):
+    def _propagateCPU(self, scene: RayScatteringScene, logger: Logger = None, progressBar: bool = True):
         intersectionFinder = FastIntersectionFinder(scene)
         self._environment = scene.getEnvironmentAt(self._position)
         self._prepareLogger(logger)
 
-        for i in tqdm(range(self._N), desc="Propagating photons"):
+        for i in tqdm(range(self._N), desc="Propagating photons", disable=not progressBar):
             self._photons[i].setContext(self._environment, intersectionFinder=intersectionFinder, logger=logger)
             self._photons[i].propagate()
 

@@ -82,6 +82,15 @@ class Solid:
         self._resetBoundingBoxes()
         self._resetPolygonsCentroids()
 
+    def scale(self, factor: float):
+        for v in self._vertices:
+            v.multiply(factor)
+
+        previousPosition = self._position.copy()
+        self._position = self._position * factor
+        positionDifference = previousPosition - self._position
+        self.translateBy(positionDifference)
+
     def rotate(self, xTheta=0, yTheta=0, zTheta=0, rotationCenter: Vector = None):
         """
         Requires the angle in degrees for each axis around which the solid will be rotated.

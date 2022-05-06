@@ -91,6 +91,15 @@ class TestSolid(unittest.TestCase):
         verify(polygon, times=3).resetBoundingBox()
         self.assertNotEqual(oldBbox, solid.bbox)
 
+    def testWhenScale_shouldScaleAllVerticesFromTheCenter(self):
+        self.solid.translateTo(Vector(5, 5, 5))
+
+        self.solid.scale(5)
+
+        self.assertEqual(Vector(5, 5, 5), self.solid.position)
+        self.assertEqual(Vector(0, 0, 0), self.solid.vertices[0])
+        self.assertEqual(Vector(10, 10, 10), self.solid.vertices[6])
+
     def testWhenRotateAroundAnotherCenterOfRotation_shouldRotateCorrectlyVertices(self):
         expectedRotatedVertex0 = Vector(-1, -1, -1) + self.position
         expectedRotatedVertex5 = Vector(1, -3, -1) + self.position

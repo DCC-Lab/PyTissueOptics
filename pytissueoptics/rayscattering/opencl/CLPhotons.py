@@ -1,6 +1,11 @@
 import os
 import time
-import pyopencl as cl
+
+try:
+    import pyopencl as cl
+    OPENCL_AVAILABLE = True
+except ImportError:
+    OPENCL_AVAILABLE = False
 import numpy as np
 from numpy.lib import recfunctions as rfn
 
