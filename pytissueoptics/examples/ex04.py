@@ -1,6 +1,5 @@
 from pytissueoptics import *
 
-
 TITLE = "Propagation in an imported .obj 3d model."
 
 DESCRIPTION = """  
@@ -13,7 +12,7 @@ give objects a material before you can propagate photons in them.
 def exampleCode():
     material = ScatteringMaterial(mu_s=1.0, mu_a=1.0, g=0.9)
 
-    toyModel = SolidModel("exampleFile.obj", position=Vector(0, 0, 0,),  material=material)
+    toyModel = SolidModel("exampleFile.obj", position=Vector(0, 0, 0), material=material)
     myCustomScene = RayScatteringScene([toyModel])
 
     logger = Logger()

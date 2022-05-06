@@ -1,6 +1,6 @@
 import unittest
 
-from pytissueoptics.scene.geometry import Vector, Vertex
+from pytissueoptics.scene.geometry import Vector
 from pytissueoptics.scene.solids import SolidGroupMerge, Cube
 
 

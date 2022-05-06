@@ -13,13 +13,13 @@ class SolidGroupMerge(Solid):
         for solid in self._solids:
             solidLabel = self._validateSolidLabel(solid.getLabel(), surfaces.surfaceLabels)
             for surfaceLabel in solid.surfaceLabels:
-                surfaces.add(solidLabel+"_"+surfaceLabel, solid.getPolygons(surfaceLabel))
+                surfaces.add(solidLabel + "_" + surfaceLabel, solid.getPolygons(surfaceLabel))
                 currentVerticesIDs = {id(vertex) for vertex in vertices}
                 for vertex in solid.getVertices():
                     if id(vertex) not in currentVerticesIDs:
                         vertices.append(vertex)
         super(SolidGroupMerge, self).__init__(vertices, Vector(0, 0, 0), surfaces, material, label,
-                                         primitive=primitives.POLYGON)
+                                              primitive=primitives.POLYGON)
         self._position = self.getSolidsCentroid()
         self.translateTo(position)
         self._position = position

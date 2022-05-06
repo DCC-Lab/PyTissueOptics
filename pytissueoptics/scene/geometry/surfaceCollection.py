@@ -78,7 +78,7 @@ class SurfaceCollection:
 
     def _assertContains(self, surfaceLabel: str):
         assert self._contains(surfaceLabel), f"Surface labeled {surfaceLabel} not found in available surfaces: " \
-                                            f"{self.surfaceLabels}. "
+                                             f"{self.surfaceLabels}. "
 
     def _contains(self, surfaceLabel: str) -> bool:
         return surfaceLabel in self.surfaceLabels
