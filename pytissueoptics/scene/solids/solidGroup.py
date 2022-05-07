@@ -46,7 +46,7 @@ class SolidGroupMerge(Solid):
         return f"{solidLabel}_{idx}"
 
     def _computeTriangleMesh(self):
-        raise NotImplementedError(f"Triangle mesh not implemented for Solids of type {type(self).__name__}")
+        raise NotImplementedError(f"Triangle mesh not implemented for SolidGroupMerge")
 
     def _computeQuadMesh(self):
-        raise NotImplementedError(f"Quad mesh not implemented for Solids of type {type(self).__name__}")
+        raise NotImplementedError(f"Quad mesh not implemented for SolidGroupMerge")

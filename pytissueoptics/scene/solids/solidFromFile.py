@@ -8,3 +8,9 @@ class SolidFromFile(SolidGroupMerge):
                  label: str = "solidFromFile"):
         solids = Loader().load(filepath)
         super(SolidFromFile, self).__init__(solids, position, material, label)
+
+    def _computeTriangleMesh(self):
+        raise NotImplementedError(f"Triangle mesh not defined for SolidFromFile")
+
+    def _computeQuadMesh(self):
+        raise NotImplementedError(f"Quad mesh not defined for SolidFromFile")
