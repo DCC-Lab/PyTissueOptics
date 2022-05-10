@@ -18,9 +18,9 @@ class InteractionKey:
 
 @dataclass
 class InteractionData:
-    points: [] = None
-    dataPoints: [] = None
-    segments: [] = None
+    points: list = None
+    dataPoints: list = None
+    segments: list = None
 
 
 class DataType(Enum):
