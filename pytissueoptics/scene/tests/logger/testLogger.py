@@ -94,7 +94,6 @@ class TestLogger(unittest.TestCase):
         logger.logPoint(Vector(2, 0, 0), anotherKey)
         logger.logPoint(Vector(3, 0, 0), anotherKey)
 
-        print(logger.getPoints())
         self.assertEqual(4, len(logger.getPoints()))
         self.assertEqual(4, len(logger.getPoints(InteractionKey(None, None))))
 
