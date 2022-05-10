@@ -1,16 +1,16 @@
 import unittest
 
 from pytissueoptics.scene.geometry import Vector
-from pytissueoptics.scene.solids import SolidGroupMerge, Cube
+from pytissueoptics.scene.solids import Cube, SolidFactory
 
 
-class TestSolidGroupMerge(unittest.TestCase):
+class TestSolidGroup(unittest.TestCase):
     def setUp(self):
         self.material = "A Material"
-        self.position = Vector(0, 0, 0)
+        self.position = Vector(0, 0, 10)
         cuboid1 = Cube(edge=2, position=Vector(2, 0, 0), material=self.material, label="cuboid")
         cuboid2 = Cube(edge=2, position=Vector(-2, 0, 0), material=self.material, label="cuboid")
-        self.solidGroup = SolidGroupMerge([cuboid1, cuboid2])
+        self.solidGroup = SolidFactory().fromSolids([cuboid1, cuboid2], position=self.position)
 
     def testShouldHave12SurfacesWithAppropriateLabels(self):
         self.assertEqual(len(self.solidGroup.surfaceLabels), 12)
@@ -29,4 +29,4 @@ class TestSolidGroupMerge(unittest.TestCase):
         self.assertEqual(self.solidGroup.surfaceLabels[11], "cuboid_0_back")
 
     def testShouldMoveCentroidToBeAtDesiredPosition(self):
-        self.assertEqual(self.solidGroup.getSolidsCentroid(), self.position)
+        self.assertEqual(self.solidGroup.position, self.position)

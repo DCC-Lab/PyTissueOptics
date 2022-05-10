@@ -1,6 +1,5 @@
 from .solid import Solid
-from .solidGroupMerge import SolidGroupMerge
-from .solidFromFile import SolidFromFile
+from .solidFactory import SolidFactory
 from .cuboid import Cuboid
 from .cube import Cube
 from .ellipsoid import Ellipsoid
