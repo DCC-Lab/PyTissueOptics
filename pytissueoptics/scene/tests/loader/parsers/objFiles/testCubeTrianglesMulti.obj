@@ -1,5 +1,6 @@
 # WaveFront *.obj file made by hand for testing purposes
 # This is a unit cube with 6 faces and 6 groups
+# one face has 5 vertices, and will build 3 triangles.
 
 v -0.5 -0.5 -0.5
 v 0.5 -0.5 -0.5
