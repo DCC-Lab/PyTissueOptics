@@ -241,7 +241,7 @@ class Stats:
             reportString += self._reportSolid(solidLabel)
         else:
             for solidLabel in self._logger.getSolidLabels():
-                reportString = self._makeReport(solidLabel, reportString)
+                reportString += self._makeReport(solidLabel, reportString)
         return reportString
 
     def report(self, solidLabel: str = None, save=True, filepath=None):
