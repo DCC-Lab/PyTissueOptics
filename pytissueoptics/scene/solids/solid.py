@@ -91,7 +91,7 @@ class Solid:
         positionDifference = previousPosition - self._position
         self.translateBy(positionDifference)
 
-    def rotate(self, xTheta=0, yTheta=0, zTheta=0):
+    def rotate(self, xTheta=0, yTheta=0, zTheta=0, rotationCenter: Vector = None):
         """
         Requires the angle in degrees for each axis around which the solid will be rotated.
 
@@ -101,13 +101,16 @@ class Solid:
         solid surface to compute its new normal.
         """
         rotation = Rotation(xTheta, yTheta, zTheta)
-
-        verticesArrayAtOrigin = self._verticesArray - self.position.array
+        if rotationCenter is None:
+            rotationCenter = self.position
+        verticesArrayAtOrigin = np.concatenate((self._verticesArray, np.array([self._position.array]))) - rotationCenter.array
         rotatedVerticesArrayAtOrigin = utils.rotateVerticesArray(verticesArrayAtOrigin, rotation)
-        rotatedVerticesArray = rotatedVerticesArrayAtOrigin + self.position.array
+        rotatedVerticesArray = rotatedVerticesArrayAtOrigin + rotationCenter.array
 
         for (vertex, rotatedVertexArray) in zip(self._vertices, rotatedVerticesArray):
             vertex.update(*rotatedVertexArray)
+
+        self._position = Vector(*rotatedVerticesArray[-1])
 
         self._orientation.add(rotation)
         self._surfaces.resetNormals()
@@ -170,8 +173,12 @@ class Solid:
         for polygon in self._surfaces.getPolygons():
             polygon.setInsideEnvironment(Environment(self._material, self))
 
+    def setMaterial(self, material):
+        self._material = material
+        self._setInsideEnvironment()
+
     def contains(self, *vertices: Vertex) -> bool:
-        raise NotImplementedError
+        return False
 
     def isStack(self) -> bool:
         for surfaceLabel in self.surfaceLabels:

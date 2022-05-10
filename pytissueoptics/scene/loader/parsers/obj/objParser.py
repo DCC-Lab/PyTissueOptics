@@ -56,9 +56,10 @@ class OBJParser(Parser):
             elif values[0] == 'g':
                 self._currentSurfaceLabel = values[1]
                 self._checkForNoObject()
+                self._validateSurfaceLabel()
                 self._objects[self._currentObjectName].surfaces[self._currentSurfaceLabel] = ParsedSurface(polygons=[],
-                                                                                                          normals=[],
-                                                                                                          texCoords=[])
+                                                                                                           normals=[],
+                                                                                                           texCoords=[])
         file.close()
 
     def _parseFace(self, values: List[Any]):

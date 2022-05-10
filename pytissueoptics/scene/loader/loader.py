@@ -4,7 +4,7 @@ from typing import List
 from pytissueoptics.scene.loader.parsers import OBJParser
 from pytissueoptics.scene.loader.parsers.parsedSurface import ParsedSurface
 from pytissueoptics.scene.solids import Solid
-from pytissueoptics.scene.geometry import Vector, Triangle, SurfaceCollection, Quad, Polygon, Vertex
+from pytissueoptics.scene.geometry import Vector, Triangle, SurfaceCollection, Quad, Polygon, Vertex, primitives
 
 
 class Loader:
@@ -51,11 +51,13 @@ class Loader:
             surfaces = SurfaceCollection()
             for surfaceLabel, surface in _object.surfaces.items():
                 surfaces.add(surfaceLabel, self._convertSurfaceToPolygons(surface, vertices))
-            solids.append(Solid(position=Vector(0, 0, 0), vertices=vertices, surfaces=surfaces))
+            solids.append(Solid(position=Vector(0, 0, 0), vertices=vertices, surfaces=surfaces,
+                                primitive=primitives.POLYGON, label=objectName))
 
         return solids
 
-    def _convertSurfaceToPolygons(self, surface: ParsedSurface, vertices: List[Vertex]) -> List[Triangle]:
+    @staticmethod
+    def _convertSurfaceToPolygons(surface: ParsedSurface, vertices: List[Vertex]) -> List[Polygon]:
         polygons = []
         for polygonIndices in surface.polygons:
             polygonVertices = [vertices[i] for i in polygonIndices]

@@ -4,13 +4,12 @@ DESCRIPTION = """ """
 
 
 def exampleCode():
-    from pytissueoptics.scene import Loader, MayaviViewer
+    from pytissueoptics.scene import loadSolid, MayaviViewer
 
-    loader = Loader()
-    scene = loader.load("exampleFile.obj")
+    solid = loadSolid("exampleFile.obj")
 
     viewer = MayaviViewer()
-    viewer.add(*scene, representation="surface")
+    viewer.add(solid, representation="surface", showNormals=True)
     viewer.show()
 
 
