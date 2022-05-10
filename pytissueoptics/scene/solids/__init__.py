@@ -1,5 +1,5 @@
 from .solid import Solid
-from .solidGroup import SolidGroupMerge
+from .solidGroupMerge import SolidGroupMerge
 from .solidFromFile import SolidFromFile
 from .cuboid import Cuboid
 from .cube import Cube
