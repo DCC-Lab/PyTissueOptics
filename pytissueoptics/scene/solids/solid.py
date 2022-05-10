@@ -178,7 +178,7 @@ class Solid:
         self._setInsideEnvironment()
 
     def contains(self, *vertices: Vertex) -> bool:
-        raise NotImplementedError
+        return False
 
     def isStack(self) -> bool:
         for surfaceLabel in self.surfaceLabels:

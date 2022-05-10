@@ -4,9 +4,9 @@ DESCRIPTION = """ """
 
 
 def exampleCode():
-    from pytissueoptics.scene import SolidFromFile, MayaviViewer
+    from pytissueoptics.scene import loadSolid, MayaviViewer
 
-    solid = SolidFromFile("exampleFile.obj")
+    solid = loadSolid("exampleFile.obj")
 
     viewer = MayaviViewer()
     viewer.add(solid, representation="surface", showNormals=True)

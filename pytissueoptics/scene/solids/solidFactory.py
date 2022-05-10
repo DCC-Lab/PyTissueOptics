@@ -4,31 +4,31 @@ from pytissueoptics.scene.geometry import Vector, Vertex, SurfaceCollection, pri
 from pytissueoptics.scene.solids import Solid
 
 
-class SolidGroupMerge(Solid):
-    def __init__(self, solids: List[Solid], position: Vector = Vector(0, 0, 0), material=None,
-                 label: str = "solidGroup"):
-        self._solids = solids
-        self._surfaces = SurfaceCollection()
+class SolidFactory:
+    _vertices: List[Vertex]
+    _surfaces: SurfaceCollection
+
+    def fromSolids(self, solids: List[Solid], position: Vector = Vector(0, 0, 0), material=None,
+                   label: str = "solidGroup") -> Solid:
         self._vertices = []
-        self._fillSurfacesAndVertices()
+        self._surfaces = SurfaceCollection()
+        self._fillSurfacesAndVertices(solids)
 
-        super(SolidGroupMerge, self).__init__(self._vertices, Vector(0, 0, 0), self._surfaces, material, label,
-                                              primitive=primitives.POLYGON)
-        self._position = self.getSolidsCentroid()
-        self.translateTo(position)
-        self._position = position
+        solid = Solid(vertices=self._vertices, surfaces=self._surfaces, material=material, label=label,
+                      primitive=primitives.POLYGON)
+        solid._position = self._getCentroid(solids)
+        solid.translateTo(position)
+        return solid
 
-    def getSolidsCentroid(self) -> Vector:
+    @staticmethod
+    def _getCentroid(solids) -> Vector:
         vertexSum = Vector(0, 0, 0)
-        for solid in self._solids:
+        for solid in solids:
             vertexSum += solid.position
-        return vertexSum / (len(self._solids))
+        return vertexSum / (len(solids))
 
-    def contains(self, *vertices: Vertex) -> bool:
-        return False
-
-    def _fillSurfacesAndVertices(self):
-        for solid in self._solids:
+    def _fillSurfacesAndVertices(self, solids):
+        for solid in solids:
             self._addSolidVertices(solid)
             solidLabel = self._validateSolidLabel(solid.getLabel())
             for surfaceLabel in solid.surfaceLabels:
@@ -49,13 +49,6 @@ class SolidGroupMerge(Solid):
             return solidLabel
         idx = 0
         solidLabelsWithNumbers = ["_".join(surfaceLabel.split("_")[0:2]) for surfaceLabel in self._surfaces.surfaceLabels]
-        print(solidLabelsWithNumbers)
         while f"{solidLabel}_{idx}" in solidLabelsWithNumbers:
             idx += 1
         return f"{solidLabel}_{idx}"
-
-    def _computeTriangleMesh(self):
-        raise NotImplementedError(f"Triangle mesh not implemented for SolidGroupMerge")
-
-    def _computeQuadMesh(self):
-        raise NotImplementedError(f"Quad mesh not implemented for SolidGroupMerge")
