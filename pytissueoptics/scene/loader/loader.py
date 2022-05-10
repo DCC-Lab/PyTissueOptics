@@ -50,22 +50,18 @@ class Loader:
         for objectName, _object in self._parser.objects.items():
             surfaces = SurfaceCollection()
             for surfaceLabel, surface in _object.surfaces.items():
-                surfaces.add(surfaceLabel, self._convertSurfaceToPolygons(surface, vertices))
+                surfaces.add(surfaceLabel, self._convertSurfaceToTriangles(surface, vertices))
             solids.append(Solid(position=Vector(0, 0, 0), vertices=vertices, surfaces=surfaces,
                                 primitive=primitives.POLYGON, label=objectName))
 
         return solids
 
     @staticmethod
-    def _convertSurfaceToPolygons(surface: ParsedSurface, vertices: List[Vertex]) -> List[Polygon]:
-        polygons = []
+    def _convertSurfaceToTriangles(surface: ParsedSurface, vertices: List[Vertex]) -> List[Triangle]:
+        """ Converting to triangles only since loaded polygons are often not planar. """
+        triangles = []
         for polygonIndices in surface.polygons:
             polygonVertices = [vertices[i] for i in polygonIndices]
-            if len(polygonIndices) == 3:
-                polygon = Triangle(*polygonVertices)
-            elif len(polygonIndices) == 4:
-                polygon = Quad(*polygonVertices)
-            else:
-                polygon = Polygon(polygonVertices)
-            polygons.append(polygon)
-        return polygons
+            for i in range(len(polygonVertices) - 2):
+                triangles.append(Triangle(polygonVertices[0], polygonVertices[i + 1], polygonVertices[i + 2]))
+        return triangles
