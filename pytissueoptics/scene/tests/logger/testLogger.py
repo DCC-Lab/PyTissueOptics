@@ -92,9 +92,11 @@ class TestLogger(unittest.TestCase):
         logger.logPoint(Vector(0, 0, 0), self.INTERACTION_KEY)
         logger.logPoint(Vector(1, 0, 0), self.INTERACTION_KEY)
         logger.logPoint(Vector(2, 0, 0), anotherKey)
+        logger.logPoint(Vector(3, 0, 0), anotherKey)
 
-        self.assertEqual(3, len(logger.getPoints()))
-        self.assertEqual(3, len(logger.getPoints(InteractionKey(None, None))))
+        print(logger.getPoints())
+        self.assertEqual(4, len(logger.getPoints()))
+        self.assertEqual(4, len(logger.getPoints(InteractionKey(None, None))))
 
     def testWhenGetDataWithNonExistentKey_shouldWarnAndReturnNone(self):
         logger = Logger()
