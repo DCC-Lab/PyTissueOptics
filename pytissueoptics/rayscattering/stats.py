@@ -1,4 +1,5 @@
 import copy
+import os
 import warnings
 from typing import Optional, Union, Tuple, List
 
@@ -244,11 +245,12 @@ class Stats:
                 reportString = self._makeReport(solidLabel, reportString)
         return reportString
 
-    def report(self, solidLabel: str = None, save=True, filepath=None):
+    def report(self, solidLabel: str = None, saveToFile: str = None, verbose=True):
         reportString = self._makeReport(solidLabel=solidLabel)
-        if save:
-            self.saveReport(reportString, filepath)
-        print(reportString)
+        if saveToFile:
+            self.saveReport(reportString, saveToFile)
+        if verbose:
+            print(reportString)
 
     def _reportSolid(self, solidLabel: str):
         reportString = "Report of solid '{}'\n".format(solidLabel)
@@ -275,8 +277,17 @@ class Stats:
     @staticmethod
     def saveReport(report: str, filepath: str = None):
         if filepath is None:
-            filepath = "simulation.results"
+            filepath = "simulation_report"
             warnings.warn(f"No filepath specified. Saving to {filepath}.")
+        i = 0
+        filename, extension = filepath.split(".")
+        if extension == "":
+            extension = "txt"
+        if os.path.exists(filepath):
+            while os.path.exists("{}_{}.{}".format(filepath, i, extension)):
+                i += 1
+            filename = "{}_{}".format(filepath, i)
+        filepath = "{}.{}".format(filename, extension)
         with open(filepath, "wb") as file:
             file.write(report.encode("utf-8"))
             file.close()
