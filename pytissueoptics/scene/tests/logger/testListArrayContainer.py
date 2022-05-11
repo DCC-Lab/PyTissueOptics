@@ -34,7 +34,7 @@ class TestListArrayContainer(unittest.TestCase):
     def test_whenMergingData_withArrayNone_shouldSetToList(self):
         self.listArrayContainer.append([1, 2, 3])
         self.listArrayContainer.merge()
-        self.assertEqual([[1, 2, 3]], self.listArrayContainer.mergedData)
+        self.assertTrue(np.array_equal(np.array([[1, 2, 3]]), self.listArrayContainer.mergedData))
 
     def test_whenMergingData_withBothSet_shouldSetToAnArrayWithBothData(self):
         self.listArrayContainer.append([1, 2, 3])

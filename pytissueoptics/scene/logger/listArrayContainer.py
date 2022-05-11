@@ -56,7 +56,7 @@ class ListArrayContainer:
             self.mergedData = self.array
 
         elif self.array is None:
-            self.mergedData = self.list
+            self.mergedData = np.array(self.list)
 
         else:
             self.mergedData = None

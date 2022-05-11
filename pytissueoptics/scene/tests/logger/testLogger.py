@@ -97,6 +97,12 @@ class TestLogger(unittest.TestCase):
         self.assertEqual(4, len(logger.getPoints()))
         self.assertEqual(4, len(logger.getPoints(InteractionKey(None, None))))
 
+    def testWhenGetData_shouldReturnNumpyArrayFormat(self):
+        logger = Logger()
+        logger.logPoint(Vector(0, 0, 0), self.INTERACTION_KEY)
+        self.assertTrue(isinstance((logger.getPoints()), np.ndarray))
+        self.assertTrue(isinstance((logger.getPoints(self.INTERACTION_KEY)), np.ndarray))
+
     def testWhenGetDataWithNonExistentKey_shouldWarnAndReturnNone(self):
         logger = Logger()
         with self.assertWarns(UserWarning):
