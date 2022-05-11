@@ -1,3 +1,5 @@
+import copy
+
 import numpy as np
 
 
@@ -18,25 +20,25 @@ class ListArrayContainer:
     def append(self, item):
         if isinstance(item, list):
             if self.list is None:
-                self.list = [item]
+                self.list = [copy.deepcopy(item)]
             else:
                 self.list.append(item)
         elif isinstance(item, np.ndarray):
             if self.array is None:
-                self.array = item
+                self.array = copy.deepcopy(item)
             else:
                 self.array = np.concatenate((self.array, item), axis=0)
 
     def extend(self, other: 'ListArrayContainer'):
         if self.list is None:
-            self.list = other.list
+            self.list = copy.deepcopy(other.list)
         elif other.list is None:
             return
         else:
             self.list.extend(other.list)
 
         if self.array is None:
-            self.array = other.array
+            self.array = copy.deepcopy(other.array)
         elif other.array is None:
             return
         else:

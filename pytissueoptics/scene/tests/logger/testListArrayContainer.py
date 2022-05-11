@@ -65,7 +65,16 @@ class TestListArrayContainer(unittest.TestCase):
         self.otherListArrayContainer.append(np.array([[10, 11, 12]]))
         self.listArrayContainer.extend(self.otherListArrayContainer)
         self.listArrayContainer.merge()
-        self.assertTrue(np.array_equal(np.array([[1, 2, 3], [7, 8, 9], [4, 5, 6], [10, 11, 12]]), self.listArrayContainer.mergedData))
+        self.assertTrue(np.array_equal(np.array([[1, 2, 3], [7, 8, 9], [4, 5, 6], [10, 11, 12]]),
+                                       self.listArrayContainer.mergedData))
         self.assertEqual([[7, 8, 9]], self.otherListArrayContainer.list)
         self.assertTrue(np.array_equal(np.array([[10, 11, 12]]), self.otherListArrayContainer.array))
 
+    def test_whenExtendingAnEmptyArray_secondArrayShouldNotHaveReference(self):
+        self.otherListArrayContainer.append(np.array([[4, 5, 6]]))
+        self.listArrayContainer.extend(self.otherListArrayContainer)
+        thirdListArrayContainer = ListArrayContainer()
+        thirdListArrayContainer.append(np.array([[7, 8, 9]]))
+        self.listArrayContainer.extend(thirdListArrayContainer)
+
+        self.assertTrue(np.array_equal(self.otherListArrayContainer.array, np.array([[4, 5, 6]])))
