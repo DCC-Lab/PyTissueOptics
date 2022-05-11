@@ -78,12 +78,19 @@ class TestListArrayContainer(unittest.TestCase):
         self.assertEqual([[7, 8, 9]], self.otherListArrayContainer.list)
         self.assertTrue(np.array_equal(np.array([[10, 11, 12]]), self.otherListArrayContainer.array))
 
-    def testWhenExtendingAnEmptyArray_secondArrayShouldNotHaveReference(self):
-        self.otherListArrayContainer.append(np.array([[4, 5, 6]]))
+    def testWhenExtendingAnEmptyContainerWithAnother_shouldNotExtendListDataWithAReferenceOfTheOthersListData(self):
+        self.otherListArrayContainer.append([4, 5, 6])
+
         self.listArrayContainer.extend(self.otherListArrayContainer)
-        thirdListArrayContainer = ListArrayContainer()
-        thirdListArrayContainer.append(np.array([[7, 8, 9]]))
 
-        self.listArrayContainer.extend(thirdListArrayContainer)
+        self.otherListArrayContainer.append([7, 8, 9])
+        self.assertTrue(np.array_equal(self.listArrayContainer.list, [[4, 5, 6]]))
 
-        self.assertTrue(np.array_equal(self.otherListArrayContainer.array, np.array([[4, 5, 6]])))
+    def testWhenExtendingAnEmptyContainerWithAnother_shouldNotExtendArrayDataWithAReferenceOfTheOthersArrayData(self):
+        data = np.array([[4, 5, 6]])
+        self.otherListArrayContainer.append(data)
+
+        self.listArrayContainer.extend(self.otherListArrayContainer)
+
+        self.otherListArrayContainer.array[0][0] = 7
+        self.assertTrue(np.array_equal(self.listArrayContainer.array, np.array([[4, 5, 6]])))
