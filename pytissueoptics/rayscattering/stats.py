@@ -1,4 +1,5 @@
 import copy
+import os
 import warnings
 from typing import Optional, Union, Tuple, List
 
@@ -33,9 +34,11 @@ class PointCloud:
 
 class DisplayConfig:
     """ 3D display configuration dataclass for solid and surface point cloud. """
-    def __init__(self, showScene: bool = True, showSource: bool = True, sourceSize: float = 0.1, showPointsAsSpheres: bool = True,
-                 pointSize: float = 0.15, scaleWithValue: bool = True, colormap: str = "rainbow", reverseColormap: bool = False,
-                 surfacePointSize: float = 0.01, surfaceScaleWithValue: bool = False, surfaceColormap: str = None, surfaceReverseColormap: bool = None):
+
+    def __init__(self, showScene: bool = True, showSource: bool = True, sourceSize: float = 0.1,
+                 showPointsAsSpheres: bool = True, pointSize: float = 0.15, scaleWithValue: bool = True,
+                 colormap: str = "rainbow", reverseColormap: bool = False, surfacePointSize: float = 0.01,
+                 surfaceScaleWithValue: bool = False, surfaceColormap: str = None, surfaceReverseColormap: bool = None):
         self.showScene = showScene
         self.showSource = showSource
         self.sourceSize = sourceSize
@@ -139,7 +142,8 @@ class Stats:
 
     def showEnergy2D(self, solidLabel: str = None, surfaceLabel: str = None,
                      projection: Union[str, Vector] = 'y', bins: Union[int, Tuple[int, int]] = None,
-                     limits: List[List[float]] = None, logScale: bool = False, enteringSurface=False, colormap: str = 'viridis'):
+                     limits: List[List[float]] = None, logScale: bool = False, enteringSurface=False,
+                     colormap: str = 'viridis'):
         u, v, c = self._get2DScatter(solidLabel, surfaceLabel, projection, enteringSurface)
 
         norm = matplotlib.colors.LogNorm() if logScale else None
@@ -233,26 +237,57 @@ class Stats:
     def _sumEnergy(points: np.ndarray):
         return np.abs(np.sum(points[:, 0])) if points is not None else 0
 
-    def report(self, solidLabel: str = None):
+    def _makeReport(self, solidLabel: str = None, reportString: str = ""):
         if solidLabel:
-            return self._reportSolid(solidLabel)
-        for solidLabel in self._logger.getSolidLabels():
-            self.report(solidLabel)
+            reportString += self._reportSolid(solidLabel)
+        else:
+            for solidLabel in self._logger.getSolidLabels():
+                reportString = self._makeReport(solidLabel, reportString)
+        return reportString
+
+    def report(self, solidLabel: str = None, saveToFile: str = None, verbose=True):
+        reportString = self._makeReport(solidLabel=solidLabel)
+        if saveToFile:
+            self.saveReport(reportString, saveToFile)
+        if verbose:
+            print(reportString)
 
     def _reportSolid(self, solidLabel: str):
-        print("Report of solid '{}'".format(solidLabel))
+        reportString = "Report of solid '{}'\n".format(solidLabel)
         try:
-            print("  Absorbance: {:.1f}% ({:.1f}% of total power)".format(100 * self.getAbsorbance(solidLabel),
-                  100 * self.getAbsorbance(solidLabel, useTotalEnergy=True)))
-            print("  Absorbance + Transmittance: {:.1f}%".format(100 * (self.getAbsorbance(solidLabel) +
-                                                                        self.getTransmittance(solidLabel))))
+            reportString += (
+                "  Absorbance: {:.1f}% ({:.1f}% of total power)\n".format(100 * self.getAbsorbance(solidLabel),
+                                                                          100 * self.getAbsorbance(solidLabel,
+                                                                                                   useTotalEnergy=True)))
+            reportString += ("  Absorbance + Transmittance: {:.1f}%\n".format(100 * (self.getAbsorbance(solidLabel) +
+                                                                                     self.getTransmittance(
+                                                                                         solidLabel))))
 
             for surfaceLabel in self._logger.getSurfaceLabels(solidLabel):
                 transmittance = "{0:.1f}".format(100 * self.getTransmittance(solidLabel, surfaceLabel))
-                print(f"    Transmittance at '{surfaceLabel}': {transmittance}%")
+                reportString += f"    Transmittance at '{surfaceLabel}': {transmittance}%\n"
 
         except ZeroDivisionError:
             warnings.warn("No energy input for solid '{}'".format(solidLabel))
-            print("  Absorbance: N/A ({:.1f}% of total power)".format(100 * self.getAbsorbance(solidLabel,
-                                                                                               useTotalEnergy=True)))
-            print("  Absorbance + Transmittance: N/A")
+            reportString += ("  Absorbance: N/A ({:.1f}% of total power)\n".format(100 * self.getAbsorbance(solidLabel,
+                                                                                                            useTotalEnergy=True)))
+            reportString += "  Absorbance + Transmittance: N/A\n"
+        return reportString
+
+    @staticmethod
+    def saveReport(report: str, filepath: str = None):
+        if filepath is None:
+            filepath = "simulation_report"
+            warnings.warn(f"No filepath specified. Saving to {filepath}.")
+        i = 0
+        filename, extension = filepath.split(".")
+        if extension == "":
+            extension = "txt"
+        if os.path.exists(filepath):
+            while os.path.exists("{}_{}.{}".format(filepath, i, extension)):
+                i += 1
+            filename = "{}_{}".format(filepath, i)
+        filepath = "{}.{}".format(filename, extension)
+        with open(filepath, "wb") as file:
+            file.write(report.encode("utf-8"))
+            file.close()

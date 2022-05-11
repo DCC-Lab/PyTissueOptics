@@ -2,11 +2,12 @@ import os
 import pickle
 import warnings
 from dataclasses import dataclass
-from typing import List, Dict, Optional
+from typing import List, Dict, Optional, Union
 from enum import Enum
 
 import numpy as np
 
+from pytissueoptics.scene.logger.listArrayContainer import ListArrayContainer
 from pytissueoptics.scene.geometry import Vector
 
 
@@ -18,9 +19,9 @@ class InteractionKey:
 
 @dataclass
 class InteractionData:
-    points: np.ndarray = None
-    dataPoints: np.ndarray = None
-    segments: np.ndarray = None
+    points: ListArrayContainer = None
+    dataPoints: ListArrayContainer = None
+    segments: ListArrayContainer = None
 
 
 class DataType(Enum):
@@ -46,13 +47,13 @@ class Logger:
                 and key.surfaceLabel is not None]
 
     def logPoint(self, point: Vector, key: InteractionKey):
-        self._appendData(np.array([[point.x, point.y, point.z]]), DataType.POINT, key)
+        self._appendData([point.x, point.y, point.z], DataType.POINT, key)
 
     def logDataPoint(self, value: float, position: Vector, key: InteractionKey):
-        self._appendData(np.array([[value, position.x, position.y, position.z]]), DataType.DATA_POINT, key)
+        self._appendData([value, position.x, position.y, position.z], DataType.DATA_POINT, key)
 
     def logSegment(self, start: Vector, end: Vector, key: InteractionKey):
-        self._appendData(np.array([[start.x, start.y, start.z, end.x, end.y, end.z]]), DataType.SEGMENT, key)
+        self._appendData([start.x, start.y, start.z, end.x, end.y, end.z], DataType.SEGMENT, key)
 
     def logPointArray(self, array: np.ndarray, key: InteractionKey):
         """ 'array' must be of shape (n, 3) where second axis is (x, y, z) """
@@ -69,13 +70,15 @@ class Logger:
         assert array.shape[1] == 6 and array.ndim == 2, "Segment array must be of shape (n, 6)"
         self._appendData(array, DataType.SEGMENT, key)
 
-    def _appendData(self, dataArray: np.ndarray, dataType: DataType, key: InteractionKey):
+    def _appendData(self, data: Union[List, np.ndarray], dataType: DataType, key: InteractionKey):
         self._validateKey(key)
         previousData = getattr(self._data[key], dataType.value)
         if previousData is None:
-            setattr(self._data[key], dataType.value, dataArray)
+            previousData = ListArrayContainer()
+            previousData.append(data)
+            setattr(self._data[key], dataType.value, previousData)
         else:
-            setattr(self._data[key], dataType.value, np.concatenate((previousData, dataArray), axis=0))
+            previousData.append(data)
 
     def _validateKey(self, key: InteractionKey):
         if key not in self._data:
@@ -94,17 +97,20 @@ class Logger:
         if key and key.solidLabel:
             if not self._keyExists(key):
                 return None
-            return getattr(self._data[key], dataType.value)
+            data = getattr(self._data[key], dataType.value)
+            data.merge()
+            return data.mergedData
         else:
-            data = []
+            tempData = ListArrayContainer()
             for interactionData in self._data.values():
                 points = getattr(interactionData, dataType.value)
                 if points is None:
                     continue
-                data.append(points)
-            if len(data) == 0:
+                tempData.extend(points)
+            if len(tempData) == 0:
                 return None
-            return np.concatenate(data, axis=0)
+            tempData.merge()
+            return tempData.mergedData
 
     def _keyExists(self, key: InteractionKey) -> bool:
         if key.solidLabel not in self.getSolidLabels():

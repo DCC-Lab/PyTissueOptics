@@ -109,7 +109,7 @@ class CLPhotons:
         self._HOST_material["mu_a"] = np.float32(self._worldMaterial.mu_a)
         self._HOST_material["mu_t"] = np.float32(self._worldMaterial.mu_t)
         self._HOST_material["g"] = np.float32(self._worldMaterial.g)
-        self._HOST_material["n"] = np.float32(self._worldMaterial.index)
+        self._HOST_material["n"] = np.float32(self._worldMaterial.n)
         self._HOST_material["albedo"] = np.float32(self._worldMaterial.getAlbedo())
         self._HOST_material["material_id"] = np.uint32(0)
         self._DEVICE_material = cl.Buffer(self._context, cl.mem_flags.READ_ONLY | cl.mem_flags.COPY_HOST_PTR,

@@ -92,9 +92,16 @@ class TestLogger(unittest.TestCase):
         logger.logPoint(Vector(0, 0, 0), self.INTERACTION_KEY)
         logger.logPoint(Vector(1, 0, 0), self.INTERACTION_KEY)
         logger.logPoint(Vector(2, 0, 0), anotherKey)
+        logger.logPoint(Vector(3, 0, 0), anotherKey)
 
-        self.assertEqual(3, len(logger.getPoints()))
-        self.assertEqual(3, len(logger.getPoints(InteractionKey(None, None))))
+        self.assertEqual(4, len(logger.getPoints()))
+        self.assertEqual(4, len(logger.getPoints(InteractionKey(None, None))))
+
+    def testWhenGetData_shouldReturnNumpyArrayFormat(self):
+        logger = Logger()
+        logger.logPoint(Vector(0, 0, 0), self.INTERACTION_KEY)
+        self.assertTrue(isinstance((logger.getPoints()), np.ndarray))
+        self.assertTrue(isinstance((logger.getPoints(self.INTERACTION_KEY)), np.ndarray))
 
     def testWhenGetDataWithNonExistentKey_shouldWarnAndReturnNone(self):
         logger = Logger()
