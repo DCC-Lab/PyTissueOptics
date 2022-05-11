@@ -100,6 +100,27 @@ class TestSolid(unittest.TestCase):
         self.assertEqual(Vector(0, 0, 0), self.solid.vertices[0])
         self.assertEqual(Vector(10, 10, 10), self.solid.vertices[6])
 
+    def testWhenRotateAroundAnotherCenterOfRotation_shouldRotateCorrectlyVertices(self):
+        expectedRotatedVertex0 = Vector(-1, -1, -1) + self.position
+        expectedRotatedVertex5 = Vector(1, -3, -1) + self.position
+
+        self.solid.rotate(xTheta=90, yTheta=0, zTheta=0, rotationCenter=Vector(1, 1, -1))
+
+        self.assertAlmostEqual(expectedRotatedVertex0.x, self.CUBOID_VERTICES[0].x)
+        self.assertAlmostEqual(expectedRotatedVertex0.y, self.CUBOID_VERTICES[0].y)
+        self.assertAlmostEqual(expectedRotatedVertex0.z, self.CUBOID_VERTICES[0].z)
+
+        self.assertAlmostEqual(expectedRotatedVertex5.x, self.CUBOID_VERTICES[5].x)
+        self.assertAlmostEqual(expectedRotatedVertex5.y, self.CUBOID_VERTICES[5].y)
+        self.assertAlmostEqual(expectedRotatedVertex5.z, self.CUBOID_VERTICES[5].z)
+
+    def testWhenRotateAroundAnotherCenterOfRotation_shouldRotatePositionOfSolid(self):
+        self.solid.rotate(xTheta=90, yTheta=0, zTheta=0, rotationCenter=Vector(1, 1, -1))
+        expectedPosition = Vector(2, 0, 0)
+        self.assertAlmostEqual(expectedPosition.x, self.solid.position.x)
+        self.assertAlmostEqual(expectedPosition.y, self.solid.position.y)
+        self.assertAlmostEqual(expectedPosition.z, self.solid.position.z)
+
     def testWhenTranslate_shouldTranslateBBoxOfSolidAndPolygons(self):
         polygon = self.createPolygonMock()
         self.CUBOID_SURFACES.setPolygons('front', [polygon])

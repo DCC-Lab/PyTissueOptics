@@ -27,10 +27,10 @@ class TestSurfaceCollection(unittest.TestCase):
         self.surfaceCollection.add(self.SURFACE_LABEL, self.SURFACE_POLYGONS)
         self.assertEqual(self.SURFACE_POLYGONS, self.surfaceCollection.getPolygons())
 
-    def testWhenAddSurfaceWithExistingLabel_shouldNotAddToCollection(self):
+    def testWhenAddSurfaceWithExistingLabel_shouldNotIncrementLabel(self):
         self.surfaceCollection.add(self.SURFACE_LABEL, self.SURFACE_POLYGONS)
-        with self.assertRaises(Exception):
-            self.surfaceCollection.add(self.SURFACE_LABEL, self.SURFACE_POLYGONS)
+        self.surfaceCollection.add(self.SURFACE_LABEL, self.SURFACE_POLYGONS)
+        self.assertEqual("{}_0".format(self.SURFACE_LABEL), self.surfaceCollection.surfaceLabels[1])
 
     def testWhenGetPolygonsOfNonexistentSurface_shouldNotReturn(self):
         with self.assertRaises(Exception):

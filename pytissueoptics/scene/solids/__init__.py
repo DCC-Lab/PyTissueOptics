@@ -1,4 +1,5 @@
 from .solid import Solid
+from .solidFactory import SolidFactory
 from .cuboid import Cuboid
 from .cube import Cube
 from .ellipsoid import Ellipsoid
