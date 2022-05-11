@@ -7,6 +7,7 @@ from enum import Enum
 
 import numpy as np
 
+from pytissueoptics.scene.logger.listArrayContainer import ListArrayContainer
 from pytissueoptics.scene.geometry import Vector
 
 
@@ -18,9 +19,9 @@ class InteractionKey:
 
 @dataclass
 class InteractionData:
-    points: list = None
-    dataPoints: list = None
-    segments: list = None
+    points: ListArrayContainer = None
+    dataPoints: ListArrayContainer = None
+    segments: ListArrayContainer = None
 
 
 class DataType(Enum):
@@ -73,15 +74,11 @@ class Logger:
         self._validateKey(key)
         previousData = getattr(self._data[key], dataType.value)
         if previousData is None:
-            if type(data) == list:
-                setattr(self._data[key], dataType.value, [data])
-            elif type(data) == np.ndarray:
-                setattr(self._data[key], dataType.value, data.tolist())
+            previousData = ListArrayContainer()
+            previousData.append(data)
+            setattr(self._data[key], dataType.value, previousData)
         else:
-            if type(data) == list:
-                previousData.append(data)
-            elif type(data) == np.ndarray:
-                previousData.extend(data.tolist())
+            previousData.append(data)
 
     def _validateKey(self, key: InteractionKey):
         if key not in self._data:
@@ -100,17 +97,20 @@ class Logger:
         if key and key.solidLabel:
             if not self._keyExists(key):
                 return None
-            return np.array(getattr(self._data[key], dataType.value))
+            data = getattr(self._data[key], dataType.value)
+            data.merge()
+            return data.mergedData
         else:
-            data = []
+            tempData = ListArrayContainer()
             for interactionData in self._data.values():
                 points = getattr(interactionData, dataType.value)
                 if points is None:
                     continue
-                data.extend(points)
-            if len(data) == 0:
+                tempData.extend(points)
+            if len(tempData) == 0:
                 return None
-            return np.array(data)
+            tempData.merge()
+            return tempData.mergedData
 
     def _keyExists(self, key: InteractionKey) -> bool:
         if key.solidLabel not in self.getSolidLabels():
