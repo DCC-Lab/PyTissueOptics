@@ -32,16 +32,12 @@ class ListArrayContainer:
     def extend(self, other: 'ListArrayContainer'):
         if self.list is None:
             self.list = copy.deepcopy(other.list)
-        elif other.list is None:
-            return
-        else:
+        elif other.list is not None:
             self.list.extend(other.list)
 
         if self.array is None:
             self.array = copy.deepcopy(other.array)
-        elif other.array is None:
-            return
-        else:
+        elif other.array is not None:
             self.array = np.concatenate((self.array, other.array), axis=0)
 
     def merge(self):

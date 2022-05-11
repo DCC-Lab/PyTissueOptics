@@ -94,3 +94,12 @@ class TestListArrayContainer(unittest.TestCase):
 
         self.otherListArrayContainer.array[0][0] = 7
         self.assertTrue(np.array_equal(self.listArrayContainer.array, np.array([[4, 5, 6]])))
+
+    def testGivenAContainer_whenExtendingWithArrayData_shouldExtendThisContainerArrayData(self):
+        self.listArrayContainer.append([1, 2, 3])
+        self.listArrayContainer.append(np.array([[4, 5, 6]]))
+        self.otherListArrayContainer.append(np.array([[10, 11, 12]]))
+
+        self.listArrayContainer.extend(self.otherListArrayContainer)
+
+        self.assertTrue(np.array_equal(np.array([[4, 5, 6], [10, 11, 12]]), self.listArrayContainer.array))
