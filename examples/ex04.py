@@ -4,7 +4,8 @@ TITLE = "Propagation in a custom layer stack."
 
 DESCRIPTION = """  
 This example shows how to make a layer stack. You initialize multiple Cuboid() and stack them in a layer stack.
-You can do this using cuboid.stack(secondCuboid).
+You can do this using cuboid.stack(secondCuboid). The cuboid sides on the stacked face has to have the same dimensions
+on both cuboids.
 """
 
 
