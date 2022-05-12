@@ -1,29 +1,31 @@
 from pytissueoptics import *
 
-
-TITLE = "Propagate in a custom scene"
+TITLE = "Propagate in a custom scene and play with focal of different objects."
 
 DESCRIPTION = """  
-There is a Cuboid(), a Sphere() and an Ellipsoid(). They all go into a RayScatteringScene which takes a list of solid.
-We can use the MayaviViewer to view our scene before propagation. Then, we repeat the usual steps of propagation.
+There are Cuboid() which serve as a screens for visualization, and an Ellipsoid() as a lens. They all go into a RayScatteringScene
+which takes a list of solid. We can use the MayaviViewer to view our scene before propagation. Then, we repeat the
+usual steps of propagation. By changing the index 'n' of the lens material, we can see how the focal is affected.
 """
 
 
 def exampleCode():
-    myMaterial1 = ScatteringMaterial(mu_s=1.0, mu_a=1.0, g=0.7)
-    myMaterial2 = ScatteringMaterial(mu_s=5.0, mu_a=0.5, g=0.8)
+    diffusiveMaterial = ScatteringMaterial(mu_s=0.0, mu_a=0, g=0.7, n=1.34)
+    absorptiveMaterial = ScatteringMaterial(mu_s=1.0, mu_a=0.5, g=1.0)
 
-    cuboid = Cuboid(a=1, b=3, c=1, position=Vector(2, 0, 0), material=myMaterial1)
-    sphere = Sphere(radius=0.5, position=Vector(0, 0, 0), material=myMaterial2)
-    ellipsoid = Ellipsoid(a=1, b=3, c=2, position=Vector(-2, 0, 0), material=myMaterial1)
-    myCustomScene = RayScatteringScene([cuboid, sphere, ellipsoid], worldMaterial=myMaterial2)
+    screen = Cuboid(a=0.1, b=4, c=4, position=Vector(10, 0, 0), material=absorptiveMaterial)
+    screen2 = Cuboid(a=0.1, b=4, c=4, position=Vector(5, 0, 0), material=absorptiveMaterial)
+    screen3 = Cuboid(a=0.1, b=4, c=4, position=Vector(3, 0, 0), material=absorptiveMaterial)
+
+    ellipsoid = Ellipsoid(a=0.5, b=2, c=2, position=Vector(-1, 0, 0), material=diffusiveMaterial)
+    myCustomScene = RayScatteringScene([screen, screen2, screen3, ellipsoid])
 
     viewer = MayaviViewer()
     viewer.addScene(myCustomScene)
     viewer.show()
 
     logger = Logger()
-    source = PencilSource(position=Vector(-3, 0, 0), direction=Vector(1, 0, 0), N=100)
+    source = DirectionalSource(position=Vector(-3, 0, 0), direction=Vector(1, 0, 0), radius=1, N=10000)
     source.propagate(myCustomScene, logger)
 
     stats = Stats(logger, source, myCustomScene)
