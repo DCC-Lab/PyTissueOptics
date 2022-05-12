@@ -17,7 +17,7 @@ These parameters will be used to mimic the parameters a typical user would utili
 
 
 tissue = InfiniteTissue(material=ScatteringMaterial(30, 0.1, 0.8, 1.4))
-source = PencilSource(position=Vector(0, 0, 0), direction=Vector(0, 0, 1), N=50000, useHardwareAcceleration=True)
+source = PencilPointSource(position=Vector(0, 0, 0), direction=Vector(0, 0, 1), N=50000, useHardwareAcceleration=True)
 logger = Logger()
 
 source.propagate(tissue, logger=logger)

@@ -98,16 +98,49 @@ class Source:
         viewer.add(sphere, representation="surface", colormap="Wistia", opacity=0.8)
 
 
-class PencilSource(Source):
-    def __init__(self, position: Vector, direction: Vector, N: int, useHardwareAcceleration: bool = False):
+class DirectionalSource(Source):
+    def __init__(self, position: Vector, direction: Vector, radius: float, N: int, useHardwareAcceleration: bool = False):
+        self._radius = radius
         self._direction = direction
         self._direction.normalize()
+        self._xAxis = self._direction.getAnyOrthogonal()
+        self._xAxis.normalize()
+        self._yAxis = self._direction.cross(self._xAxis)
+        self._yAxis.normalize()
         super().__init__(position=position, N=N, useHardwareAcceleration=useHardwareAcceleration)
 
     def getInitialPositionsAndDirections(self) -> Tuple[np.ndarray, np.ndarray]:
-        positions = np.full((self._N, 3), self._position.array)
-        directions = np.full((self._N, 3), self._direction.array)
+        positions = self._getInitialPositions()
+        directions = self._getInitialDirections()
         return positions, directions
+
+    def _getInitialPositions(self):
+        # The square root method was used, since the rejection method was slower in numpy because of index lookup.
+        # https://stackoverflow.com/questions/5837572/generate-a-random-point-within-a-circle-uniformly
+        r = self._radius * np.sqrt(np.random.random((self._N, 1)))
+        theta = np.random.random((self._N, 1)) * 2 * np.pi
+        x = r * np.cos(theta)
+        y = r * np.sin(theta)
+        x = np.tile(x, (1, 3))
+        y = np.tile(y, (1, 3))
+        xAxisArray = np.full((self._N, 3), self._xAxis.array)
+        yAxisArray = np.full((self._N, 3), self._yAxis.array)
+        xadd = np.multiply(x, xAxisArray)
+        yadd = np.multiply(y, yAxisArray)
+        positions = np.full((self._N, 3), self._position.array)
+        positions = np.add(positions, xadd)
+        positions = np.add(positions, yadd)
+
+        return positions
+
+    def _getInitialDirections(self):
+        directions = np.full((self._N, 3), self._direction.array)
+        return directions
+
+
+class PencilPointSource(DirectionalSource):
+    def __init__(self, position: Vector, direction: Vector, N: int, useHardwareAcceleration: bool = False):
+        super().__init__(position=position, direction=direction, radius=0, N=N, useHardwareAcceleration=useHardwareAcceleration)
 
 
 class IsotropicPointSource(Source):
@@ -116,3 +149,35 @@ class IsotropicPointSource(Source):
         directions = np.random.randn(self._N, 3) * 2 - 1
         directions /= np.linalg.norm(directions, axis=1, keepdims=True)
         return positions, directions
+
+
+class MultimodeFiberSource(DirectionalSource):
+    def __init__(self, position: Vector, direction: Vector, diameter: float, NA: float, index: float, N: int, useHardwareAcceleration: bool = False):
+        self._position = position
+        self._direction = direction
+        self._direction.normalize()
+        self._xAxis = self._direction.getAnyOrthogonal()
+        self._xAxis.normalize()
+        self._yAxis = self._direction.cross(self._xAxis)
+        self._yAxis.normalize()
+        self._radius = diameter / 2
+        self._NA = NA
+        self._index = index
+        super().__init__(position=self._position, direction=self._direction, radius=self._radius, N=N,
+                         useHardwareAcceleration=useHardwareAcceleration)
+
+    @property
+    def maxAngle(self):
+        return np.arcsin(self._NA / self._index)
+
+    def _getInitialDirections(self):
+        # Generating a uniformly distributed random vector in a cone is funky:
+        # https://math.stackexchange.com/questions/56784/generate-a-random-direction-within-a-cone
+        z = np.random.uniform(np.cos(self.maxAngle), 1, (self._N, 1))
+        theta1 = np.arccos(z)
+        theta2 = 2 * np.pi * np.random.random((self._N, 1))
+        beta = (np.pi / 2) - theta1
+        a = z / np.tan(beta)
+        x = np.cos(theta2) * a
+        y = np.sin(theta2) * a
+        return np.concatenate((x, y, z), axis=1)
