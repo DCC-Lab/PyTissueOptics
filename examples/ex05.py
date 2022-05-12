@@ -10,13 +10,23 @@ give objects a material before you can propagate photons in them.
 
 
 def exampleCode():
-    material = ScatteringMaterial(mu_s=5.0, mu_a=1.0, g=0.9)
+    material = ScatteringMaterial(mu_s=0.0, mu_a=0.0, g=1.0, n=1.2)
+    absorptiveMaterial = ScatteringMaterial(mu_s=0.0, mu_a=10.0, g=1.0)
 
-    toyModel = loadSolid("exampleFile.obj", position=Vector(0, 0, 0), material=material)
-    myCustomScene = RayScatteringScene([toyModel])
+    toyModel = loadSolid("trisphere.obj", position=Vector(0, 0, 0), material=material, smooth=True)
+    toyModel.scale(0.3)
+    toyModel.rotate(0, 15, 0)
+    screen1 = Cuboid(a=0.1, b=30, c=30, position=Vector(15, 0, 0), material=absorptiveMaterial)
+    screen2 = Cuboid(a=0.1, b=30, c=30, position=Vector(15, 0, 0), material=absorptiveMaterial)
+    screen3 = Cuboid(a=0.1, b=30, c=30, position=Vector(15, 0, 0), material=absorptiveMaterial)
+    screen2.rotate(0, 90, 0, rotationCenter=Vector(0, 0, 0))
+    screen2.translateBy(Vector(0, 0, -0.1))
+    screen3.rotate(0, -90, 0, rotationCenter=Vector(0, 0, 0))
+    screen3.translateBy(Vector(0, 0, 0.1))
+    myCustomScene = RayScatteringScene([toyModel, screen1, screen2, screen3])
 
     logger = Logger()
-    source = IsotropicPointSource(position=Vector(-1, 4, 0), N=1000)
+    source = DirectionalSource(position=Vector(-10, 0, 0), direction=Vector(1, 0, 0), radius=3, N=20000)
     source.propagate(myCustomScene, logger)
 
     stats = Stats(logger, source, myCustomScene)
