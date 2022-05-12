@@ -10,14 +10,14 @@ usual steps of propagation. By changing the index 'n' of the lens material, we c
 
 
 def exampleCode():
-    diffusiveMaterial = ScatteringMaterial(mu_s=0.0, mu_a=0, g=0.7, n=1.34)
+    glassMaterial = ScatteringMaterial(mu_s=0.0, mu_a=0, g=0.7, n=1.34)
     absorptiveMaterial = ScatteringMaterial(mu_s=1.0, mu_a=0.5, g=1.0)
 
     screen = Cuboid(a=0.1, b=4, c=4, position=Vector(10, 0, 0), material=absorptiveMaterial)
     screen2 = Cuboid(a=0.1, b=4, c=4, position=Vector(5, 0, 0), material=absorptiveMaterial)
     screen3 = Cuboid(a=0.1, b=4, c=4, position=Vector(3, 0, 0), material=absorptiveMaterial)
 
-    ellipsoid = Ellipsoid(a=0.5, b=2, c=2, position=Vector(-1, 0, 0), material=diffusiveMaterial)
+    ellipsoid = Ellipsoid(a=0.5, b=2, c=2, position=Vector(-1, 0, 0), material=glassMaterial)
     myCustomScene = RayScatteringScene([screen, screen2, screen3, ellipsoid])
 
     viewer = MayaviViewer()
