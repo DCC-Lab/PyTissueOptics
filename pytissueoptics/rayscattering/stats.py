@@ -155,7 +155,7 @@ class Stats:
         else:
             plt.scatter(u, v, c=c, norm=norm, cmap=cmap)
 
-        uIndex = 0 if projection != 'x' else 1
+        uIndex = 0 if projection != 'x' else 2
         vIndex = 1 if projection != 'y' else 2
         plt.xlabel(self.AXES[uIndex])
         plt.ylabel(self.AXES[vIndex])
