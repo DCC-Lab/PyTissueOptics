@@ -3,8 +3,9 @@ from pytissueoptics.scene.geometry import Vector, Vertex
 
 
 class BoundingBox:
-        self._axisKeys = ["x", "y", "z"]
-        self._limitKeys = ["min", "max"]
+    _AXIS_KEYS = ['x', 'y', 'z']
+    _LIMIT_KEYS = ['min', 'max']
+
     def __init__(self, xLim: List[float], yLim: List[float], zLim: List[float], validate=True):
         self._xLim = xLim
         self._yLim = yLim
@@ -125,13 +126,13 @@ class BoundingBox:
             return self.zWidth
 
     def getAxisLimit(self, axis: str, limit: str) -> float:
-        return self._xyzLimits[self._axisKeys.index(axis)][self._limitKeys.index(limit)]
+        return self._xyzLimits[self._AXIS_KEYS.index(axis)][self._LIMIT_KEYS.index(limit)]
 
     def getAxisLimits(self, axis: str) -> List[float]:
-        return self._xyzLimits[self._axisKeys.index(axis)]
+        return self._xyzLimits[self._AXIS_KEYS.index(axis)]
 
     def update(self, axis: str, limit: str, value: float):
-        self._xyzLimits[self._axisKeys.index(axis)][self._limitKeys.index(limit)] = value
+        self._xyzLimits[self._AXIS_KEYS.index(axis)][self._LIMIT_KEYS.index(limit)] = value
         self._checkIfCoherent()
 
     def getArea(self):
