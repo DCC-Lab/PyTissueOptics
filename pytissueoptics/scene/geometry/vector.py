@@ -25,20 +25,20 @@ class Vector:
         return self._z
 
     def __repr__(self):
-        return f"<Vector>:({self.x}, {self.y}, {self.z})"
+        return f"<Vector>:({self._x}, {self._y}, {self._z})"
 
     def __eq__(self, other: 'Vector'):
         tol = 1e-5
-        if math.isclose(other.x, self.x, abs_tol=tol) and math.isclose(other.y, self.y, abs_tol=tol) and math.isclose(other.z, self.z, abs_tol=tol):
+        if math.isclose(other._x, self._x, abs_tol=tol) and math.isclose(other._y, self._y, abs_tol=tol) and math.isclose(other._z, self._z, abs_tol=tol):
             return True
         else:
             return False
 
     def __sub__(self, other: 'Vector') -> 'Vector':
-        return Vector(self._x - other.x, self._y - other.y, self._z - other.z)
+        return Vector(self._x - other._x, self._y - other._y, self._z - other._z)
 
     def __add__(self, other: 'Vector') -> 'Vector':
-        return Vector(self._x + other.x, self._y + other.y, self._z + other.z)
+        return Vector(self._x + other._x, self._y + other._y, self._z + other._z)
 
     def __mul__(self, scalar: float) -> 'Vector':
         return Vector(self._x * scalar, self._y * scalar, self._z * scalar)
@@ -47,14 +47,14 @@ class Vector:
         return Vector(self._x / scalar, self._y / scalar, self._z / scalar)
 
     def add(self, other: 'Vector'):
-        self._x += other.x
-        self._y += other.y
-        self._z += other.z
+        self._x += other._x
+        self._y += other._y
+        self._z += other._z
 
     def subtract(self, other: 'Vector'):
-        self._x -= other.x
-        self._y -= other.y
-        self._z -= other.z
+        self._x -= other._x
+        self._y -= other._y
+        self._z -= other._z
 
     def multiply(self, scalar: float):
         self._x *= scalar
@@ -78,11 +78,11 @@ class Vector:
 
     def cross(self, other: 'Vector') -> 'Vector':
         ux, uy, uz = self._x, self._y, self._z
-        vx, vy, vz = other.x, other.y, other.z
+        vx, vy, vz = other._x, other._y, other._z
         return Vector(uy * vz - uz * vy, uz * vx - ux * vz, ux * vy - uy * vx)
 
     def dot(self, other: 'Vector') -> float:
-        return self.x*other.x + self.y*other.y + self.z*other.z
+        return self._x*other._x + self._y*other._y + self._z*other._z
 
     @property
     def array(self) -> list:
@@ -117,9 +117,9 @@ class Vector:
         uy = unitAxis.y
         uz = unitAxis.z
 
-        X = self.x
-        Y = self.y
-        Z = self.z
+        X = self._x
+        Y = self._y
+        Z = self._z
 
         x = (cost + ux * ux * one_cost) * X \
             + (ux * uy * one_cost - uz * sint) * Y \
@@ -134,7 +134,7 @@ class Vector:
         self.update(x, y, z)
 
     def getAnyOrthogonal(self) -> 'Vector':
-        if abs(self.z) < abs(self.x):
-            return Vector(self.y, -self.x, 0)
+        if abs(self._z) < abs(self._x):
+            return Vector(self._y, -self._x, 0)
 
-        return Vector(0, -self.z, self.y)
+        return Vector(0, -self._z, self._y)
