@@ -3,7 +3,6 @@ from typing import List, Any
 from pytissueoptics.scene.loader.parsers import Parser
 from pytissueoptics.scene.loader.parsers.parsedObject import ParsedObject
 from pytissueoptics.scene.loader.parsers.parsedSurface import ParsedSurface
-from pytissueoptics.scene.utils.mytqdm import tqdm
 
 
 class OBJParser(Parser):
@@ -23,9 +22,7 @@ class OBJParser(Parser):
         - New objects will start with 'o'
         """
         file = open(self._filepath, "r")
-        nonempty_lines = [line.strip("\n") for line in file if line != "\n"]
-        for i in tqdm(range(len(nonempty_lines)), desc="Parsing File '{}'".format(self._filepath.split('/')[-1]), unit="lines"):
-            line = nonempty_lines[i]
+        for line in file:
             if line.startswith('#'):
                 continue
 
