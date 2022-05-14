@@ -170,7 +170,7 @@ class Solid:
         polygons = self._surfaces.getPolygons()
         if not self._material and polygons[0].insideEnvironment is not None:
             return
-        for polygon in self._surfaces.getPolygons():
+        for polygon in polygons:
             polygon.setInsideEnvironment(Environment(self._material, self))
 
     def setMaterial(self, material):
