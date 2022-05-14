@@ -37,10 +37,14 @@ class MayaviObject:
             self._z.append(vertex.z)
 
     def _findPolygonIndices(self):
+        vertexToIndex = {}
+        for i, vertex in enumerate(self._vertices):
+            vertexToIndex[id(vertex)] = i
+
         for polygon in self._polygons:
             polygonIndices = []
             for vertex in polygon.vertices:
-                index = self._vertices.index(vertex)
+                index = vertexToIndex[id(vertex)]
                 polygonIndices.append(index)
             self._polygonsIndices.append(tuple(polygonIndices))
 
