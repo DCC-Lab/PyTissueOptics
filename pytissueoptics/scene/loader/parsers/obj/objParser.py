@@ -53,12 +53,18 @@ class OBJParser(Parser):
                 self._parseFace(values)
 
             elif values[0] == 'o':
-                self._currentObjectName = values[1]
+                try:
+                    self._currentObjectName = values[1]
+                except IndexError:
+                    self._currentObjectName = self.NO_OBJECT
                 self._resetSurfaceLabel()
                 self._objects[self._currentObjectName] = ParsedObject(material="", surfaces={})
 
             elif values[0] == 'g':
-                self._currentSurfaceLabel = values[1]
+                try:
+                    self._currentSurfaceLabel = values[1]
+                except IndexError:
+                    self._currentSurfaceLabel = self.NO_SURFACE
                 self._checkForNoObject()
                 self._validateSurfaceLabel()
                 self._objects[self._currentObjectName].surfaces[self._currentSurfaceLabel] = ParsedSurface(polygons=[],

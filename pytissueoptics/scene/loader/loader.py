@@ -58,9 +58,10 @@ class Loader:
             surfaces = SurfaceCollection()
             for surfaceLabel, surface in _object.surfaces.items():
                 surfaces.add(surfaceLabel, self._convertSurfaceToTriangles(surface, vertices))
+                pbar.update(1)
             solids.append(Solid(position=Vector(0, 0, 0), vertices=vertices, surfaces=surfaces,
                                 primitive=primitives.POLYGON, label=objectName))
-            pbar.update(1)
+
         pbar.close()
         return solids
 
