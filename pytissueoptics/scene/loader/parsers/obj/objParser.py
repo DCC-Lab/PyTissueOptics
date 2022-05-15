@@ -1,4 +1,4 @@
-from typing import List, Any
+from typing import List
 
 from pytissueoptics.scene.loader.parsers import Parser
 from pytissueoptics.scene.loader.parsers.parsedObject import ParsedObject
@@ -22,34 +22,34 @@ class OBJParser(Parser):
         - Groups start with 'g'
         - New objects will start with 'o'
         """
-        PARSE_MAP = {'v': self._parseVertices,
-                    'vt': self._parseTexCoords,
-                    'vn': self._parseNormals,
-                    'usemtl': self._parseMaterial,
-                    'usemat': self._parseMaterial,
-                    'f': self._parseFace,
-                    'g': self._parseGroup,
-                    'o': self._parseObject}
+        self._PARSE_MAP = {'v': self._parseVertices,
+                           'vt': self._parseTexCoords,
+                           'vn': self._parseNormals,
+                           'usemtl': self._parseMaterial,
+                           'usemat': self._parseMaterial,
+                           'f': self._parseFace,
+                           'g': self._parseGroup,
+                           'o': self._parseObject}
 
-        file = open(self._filepath, "r")
-        nonempty_lines = [line.strip("\n") for line in file if line != "\n"]
-        for i in tqdm(range(len(nonempty_lines)), desc="Parsing File '{}'".format(self._filepath.split('/')[-1]),
-                      unit="lines"):
-            line = nonempty_lines[i]
-            if line.startswith('#'):
-                continue
+        with open(self._filepath, "r") as file:
+            lines = [line.strip('\n') for line in file.readlines() if line != "\n"]
 
-            values = line.split()
-            if not values:
-                continue
+        for i in tqdm(range(len(lines)), desc="Parsing File '{}'".format(self._filepath.split('/')[-1]), unit=" lines"):
+            self._parseLine(lines[i])
 
-            typeChar = values[0]
-            if typeChar not in PARSE_MAP:
-                continue
+    def _parseLine(self, line: str):
+        if line.startswith('#'):
+            return
 
-            PARSE_MAP[typeChar](values)
+        values = line.split()
+        if not values:
+            return
 
-        file.close()
+        typeChar = values[0]
+        if typeChar not in self._PARSE_MAP:
+            return
+
+        self._PARSE_MAP[typeChar](values)
 
     def _parseVertices(self, values: List[str]):
         v = list(map(float, values[1:4]))
