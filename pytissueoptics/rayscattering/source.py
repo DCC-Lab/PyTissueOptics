@@ -93,7 +93,8 @@ class Source:
 
 
 class DirectionalSource(Source):
-    def __init__(self, position: Vector, direction: Vector, diameter: float, N: int, useHardwareAcceleration: bool = False):
+    def __init__(self, position: Vector, direction: Vector, diameter: float, N: int,
+                 useHardwareAcceleration: bool = False):
         self._diameter = diameter
         self._direction = direction
         self._direction.normalize()
@@ -119,11 +120,12 @@ class DirectionalSource(Source):
         y = np.tile(y, (1, 3))
         xAxisArray = np.full((self._N, 3), self._xAxis.array)
         yAxisArray = np.full((self._N, 3), self._yAxis.array)
-        xadd = np.multiply(x, xAxisArray)
-        yadd = np.multiply(y, yAxisArray)
+        xDifference = np.multiply(x, xAxisArray)
+        yDifference = np.multiply(y, yAxisArray)
+
         positions = np.full((self._N, 3), self._position.array)
-        positions = np.add(positions, xadd)
-        positions = np.add(positions, yadd)
+        positions = np.add(positions, xDifference)
+        positions = np.add(positions, yDifference)
 
         return positions
 
