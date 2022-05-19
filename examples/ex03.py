@@ -31,7 +31,7 @@ def exampleCode():
     viewer.show()
 
     logger = Logger()
-    source = DirectionalSource(position=Vector(-3, 0, 0), direction=Vector(1, 0, 0), radius=1, N=10000)
+    source = DirectionalSource(position=Vector(-3, 0, 0), direction=Vector(1, 0, 0), diameter=1, N=10000)
     source.propagate(myCustomScene, logger)
     # logger.load("ex03.log")
 

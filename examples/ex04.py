@@ -23,7 +23,7 @@ def exampleCode():
     layerTissueScene = RayScatteringScene([stackedTissue])
 
     logger = Logger()
-    source = PencilSource(position=Vector(0, 0, -5), direction=Vector(0, 0, 1), N=500)
+    source = PencilPointSource(position=Vector(0, 0, -5), direction=Vector(0, 0, 1), N=500)
     source.propagate(layerTissueScene, logger)
 
     stats = Stats(logger, source, layerTissueScene)

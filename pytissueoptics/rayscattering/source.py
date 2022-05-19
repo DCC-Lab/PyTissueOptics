@@ -99,8 +99,8 @@ class Source:
 
 
 class DirectionalSource(Source):
-    def __init__(self, position: Vector, direction: Vector, radius: float, N: int, useHardwareAcceleration: bool = False):
-        self._radius = radius
+    def __init__(self, position: Vector, direction: Vector, diameter: float, N: int, useHardwareAcceleration: bool = False):
+        self._diameter = diameter
         self._direction = direction
         self._direction.normalize()
         self._xAxis = self._direction.getAnyOrthogonal()
@@ -117,7 +117,7 @@ class DirectionalSource(Source):
     def _getInitialPositions(self):
         # The square root method was used, since the rejection method was slower in numpy because of index lookup.
         # https://stackoverflow.com/questions/5837572/generate-a-random-point-within-a-circle-uniformly
-        r = self._radius * np.sqrt(np.random.random((self._N, 1)))
+        r = self._diameter / 2 * np.sqrt(np.random.random((self._N, 1)))
         theta = np.random.random((self._N, 1)) * 2 * np.pi
         x = r * np.cos(theta)
         y = r * np.sin(theta)
@@ -140,7 +140,8 @@ class DirectionalSource(Source):
 
 class PencilPointSource(DirectionalSource):
     def __init__(self, position: Vector, direction: Vector, N: int, useHardwareAcceleration: bool = False):
-        super().__init__(position=position, direction=direction, radius=0, N=N, useHardwareAcceleration=useHardwareAcceleration)
+        super().__init__(position=position, direction=direction, diameter=0, N=N,
+                         useHardwareAcceleration=useHardwareAcceleration)
 
 
 class IsotropicPointSource(Source):

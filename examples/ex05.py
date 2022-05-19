@@ -26,7 +26,7 @@ def exampleCode():
     myCustomScene = RayScatteringScene([toyModel, screen1, screen2, screen3])
 
     logger = Logger()
-    source = DirectionalSource(position=Vector(-10, 0, 0), direction=Vector(1, 0, 0), radius=3, N=20000)
+    source = DirectionalSource(position=Vector(-10, 0, 0), direction=Vector(1, 0, 0), diameter=3, N=20000)
     source.propagate(myCustomScene, logger)
 
     stats = Stats(logger, source, myCustomScene)
