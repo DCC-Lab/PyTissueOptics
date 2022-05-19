@@ -149,35 +149,3 @@ class IsotropicPointSource(Source):
         directions = np.random.randn(self._N, 3) * 2 - 1
         directions /= np.linalg.norm(directions, axis=1, keepdims=True)
         return positions, directions
-
-
-class MultimodeFiberSource(DirectionalSource):
-    def __init__(self, position: Vector, direction: Vector, diameter: float, NA: float, index: float, N: int, useHardwareAcceleration: bool = False):
-        self._position = position
-        self._direction = direction
-        self._direction.normalize()
-        self._xAxis = self._direction.getAnyOrthogonal()
-        self._xAxis.normalize()
-        self._yAxis = self._direction.cross(self._xAxis)
-        self._yAxis.normalize()
-        self._radius = diameter / 2
-        self._NA = NA
-        self._index = index
-        super().__init__(position=self._position, direction=self._direction, radius=self._radius, N=N,
-                         useHardwareAcceleration=useHardwareAcceleration)
-
-    @property
-    def maxAngle(self):
-        return np.arcsin(self._NA / self._index)
-
-    def _getInitialDirections(self):
-        # Generating a uniformly distributed random vector in a cone is funky:
-        # https://math.stackexchange.com/questions/56784/generate-a-random-direction-within-a-cone
-        z = np.random.uniform(np.cos(self.maxAngle), 1, (self._N, 1))
-        theta1 = np.arccos(z)
-        theta2 = 2 * np.pi * np.random.random((self._N, 1))
-        beta = (np.pi / 2) - theta1
-        a = z / np.tan(beta)
-        x = np.cos(theta2) * a
-        y = np.sin(theta2) * a
-        return np.concatenate((x, y, z), axis=1)
