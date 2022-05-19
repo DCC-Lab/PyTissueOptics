@@ -19,19 +19,19 @@ class Loader:
         self._fileExtension: str = ""
         self._parser = None
 
-    def load(self, filepath: str) -> List[Solid]:
+    def load(self, filepath: str, showProgress: bool = True) -> List[Solid]:
         self._filepath = filepath
         self._fileExtension = self._getFileExtension()
-        self._selectParser()
-        return self._convert()
+        self._selectParser(showProgress)
+        return self._convert(showProgress)
 
     def _getFileExtension(self) -> str:
         return pathlib.Path(self._filepath).suffix
 
-    def _selectParser(self):
+    def _selectParser(self, showProgress: bool = True):
         ext = self._fileExtension
         if ext == ".obj":
-            self._parser = OBJParser(self._filepath)
+            self._parser = OBJParser(self._filepath, showProgress)
 
         elif ext == ".dae":
             raise NotImplementedError
@@ -42,7 +42,7 @@ class Loader:
         else:
             raise ValueError("This format is not supported.")
 
-    def _convert(self) -> List[Solid]:
+    def _convert(self, showProgress: bool = True) -> List[Solid]:
         vertices = []
         for vertex in self._parser.vertices:
             vertices.append(Vertex(*vertex))
@@ -51,7 +51,7 @@ class Loader:
         for objectName, _object in self._parser.objects.items():
             totalProgressBarLength += len(_object.surfaces.items())
         pbar = progressBar(total=totalProgressBarLength, desc="Converting File '{}'".format(self._filepath.split('/')[-1]),
-                           unit="surfaces")
+                           unit="surfaces", disable=not showProgress)
 
         solids = []
         for objectName, _object in self._parser.objects.items():

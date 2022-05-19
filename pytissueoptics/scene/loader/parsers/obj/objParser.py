@@ -13,7 +13,7 @@ class OBJParser(Parser):
         else:
             raise TypeError
 
-    def _parse(self):
+    def _parse(self, showProgress: bool = True):
         """
         The .OBJ file format is well described here: https://en.wikipedia.org/wiki/Wavefront_.obj_file
         Summary of important points for our purposes
@@ -34,7 +34,8 @@ class OBJParser(Parser):
         with open(self._filepath, "r") as file:
             lines = [line.strip('\n') for line in file.readlines() if line != "\n"]
 
-        for i in progressBar(range(len(lines)), desc="Parsing File '{}'".format(self._filepath.split('/')[-1]), unit=" lines"):
+        for i in progressBar(range(len(lines)), desc="Parsing File '{}'".format(self._filepath.split('/')[-1]),
+                             unit=" lines", disable=not showProgress):
             self._parseLine(lines[i])
 
     def _parseLine(self, line: str):
