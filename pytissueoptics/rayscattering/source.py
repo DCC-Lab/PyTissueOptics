@@ -143,6 +143,6 @@ class PencilPointSource(DirectionalSource):
 class IsotropicPointSource(Source):
     def getInitialPositionsAndDirections(self) -> Tuple[np.ndarray, np.ndarray]:
         positions = np.full((self._N, 3), self._position.array)
-        directions = np.random.randn(self._N, 3) * 2 - 1
+        directions = np.random.randn(self._N, 3)
         directions /= np.linalg.norm(directions, axis=1, keepdims=True)
         return positions, directions
