@@ -4,13 +4,13 @@ TITLE = "Propagate in a custom scene and play with focal of different objects." 
         "Learn to save and load your data so you don't have to simulate again."
 
 DESCRIPTION = """  
-There are Cuboid() which serve as a screens for visualization, and an Ellipsoid() as a lens. They all go into a RayScatteringScene
-which takes a list of solid. We can use the MayaviViewer to view our scene before propagation. Then, we repeat the
+There are Cuboid() which serve as screens for visualization, and an Ellipsoid() as a lens. They all go into a 
+RayScatteringScene which takes a list of solid. We can display our scene before propagation. Then, we repeat the
 usual steps of propagation. By changing the index 'n' of the lens material, we can see how the focal is affected.
 
-The logger can save data to a file. You can then use logger.load() to load the data. At that point you cant comment
-the sour.propagate() line if you don't want to simulate again. You can explore the different views and informations
-that the object Stats provides.
+The logger can save data to a file. You can then use logger.load(filepath) or Logger(filepath) to load the data. 
+At that point you can comment out the line ‘source.propagate()‘ if you don't want to simulate again. You can explore 
+the different views and information the object Stats provides.
 """
 
 
@@ -26,21 +26,18 @@ def exampleCode():
     ellipsoid = Ellipsoid(a=0.5, b=2, c=2, position=Vector(-1, 0, 0), material=glassMaterial)
     myCustomScene = RayScatteringScene([screen1, screen2, screen3, ellipsoid])
 
-    viewer = MayaviViewer()
-    viewer.addScene(myCustomScene)
-    viewer.show()
+    myCustomScene.display()
 
-    logger = Logger()
+    logger = Logger("ex03.log")
     source = DirectionalSource(position=Vector(-3, 0, 0), direction=Vector(1, 0, 0), diameter=1, N=10000)
     source.propagate(myCustomScene, logger)
-    # logger.load("ex03.log")
 
     stats = Stats(logger, source, myCustomScene)
     stats.showEnergy3D()
     stats.showEnergy2D("Screen1", bins=100, projection="x", limits=[[-2, 2], [-2, 2]])
     stats.showEnergy2D("Screen2", "left", enteringSurface=True, bins=100, projection="x", limits=[[-2, 2], [-2, 2]])
     stats.showEnergy2D("Screen3", bins=100, projection="x", logScale=True, limits=[[-2, 2], [-2, 2]])
-    logger.save("ex03.log")
+    logger.save()
 
 
 if __name__ == "__main__":

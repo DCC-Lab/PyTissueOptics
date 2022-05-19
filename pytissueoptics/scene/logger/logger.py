@@ -138,7 +138,8 @@ class Logger:
         self._filepath = filepath
 
         if not os.path.exists(filepath):
-            warnings.warn("No logger file found at '{}'. No data loaded.".format(filepath))
+            warnings.warn("No logger file found at '{}'. No data loaded, but it will create a new file "
+                          "at this location if the logger is saved later on.".format(filepath))
             return
 
         with open(filepath, "rb") as file:
