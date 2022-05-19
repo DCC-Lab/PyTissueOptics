@@ -1,13 +1,6 @@
 import warnings
 from typing import List, Union, Optional, Tuple
 import numpy as np
-try:
-    from tqdm import tqdm
-except ImportError:
-    def mock_tqdm(iterable, *args, **kwargs):
-        warnings.warn("Package 'tqdm' not found. Progress bar will not be shown.")
-        return iterable
-    tqdm = mock_tqdm
 
 from pytissueoptics.rayscattering.tissues.rayScatteringScene import RayScatteringScene
 from pytissueoptics.rayscattering.photon import Photon
@@ -16,6 +9,7 @@ from pytissueoptics.scene.solids import Sphere
 from pytissueoptics.scene.geometry import Vector, Environment
 from pytissueoptics.scene.intersection import FastIntersectionFinder
 from pytissueoptics.scene.logger import Logger
+from pytissueoptics.scene.utils import progressBar
 from pytissueoptics.scene.viewer import MayaviViewer
 
 
@@ -33,18 +27,18 @@ class Source:
 
         self._loadPhotons()
 
-    def propagate(self, scene: RayScatteringScene, logger: Logger = None, progressBar: bool = True):
+    def propagate(self, scene: RayScatteringScene, logger: Logger = None, showProgress: bool = True):
         if self._useHardwareAcceleration:
             self._propagateOpenCL(scene, logger)
         else:
-            self._propagateCPU(scene, logger, progressBar)
+            self._propagateCPU(scene, logger, showProgress)
 
-    def _propagateCPU(self, scene: RayScatteringScene, logger: Logger = None, progressBar: bool = True):
+    def _propagateCPU(self, scene: RayScatteringScene, logger: Logger = None, showProgress: bool = True):
         intersectionFinder = FastIntersectionFinder(scene)
         self._environment = scene.getEnvironmentAt(self._position)
         self._prepareLogger(logger)
 
-        for i in tqdm(range(self._N), desc="Propagating photons", disable=not progressBar):
+        for i in progressBar(range(self._N), desc="Propagating photons", disable=not showProgress):
             self._photons[i].setContext(self._environment, intersectionFinder=intersectionFinder, logger=logger)
             self._photons[i].propagate()
 

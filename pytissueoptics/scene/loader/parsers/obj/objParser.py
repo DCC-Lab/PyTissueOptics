@@ -3,7 +3,7 @@ from typing import List
 from pytissueoptics.scene.loader.parsers import Parser
 from pytissueoptics.scene.loader.parsers.parsedObject import ParsedObject
 from pytissueoptics.scene.loader.parsers.parsedSurface import ParsedSurface
-from pytissueoptics.scene.utils.mytqdm import tqdm
+from pytissueoptics.scene.utils.progressBar import progressBar
 
 
 class OBJParser(Parser):
@@ -34,7 +34,7 @@ class OBJParser(Parser):
         with open(self._filepath, "r") as file:
             lines = [line.strip('\n') for line in file.readlines() if line != "\n"]
 
-        for i in tqdm(range(len(lines)), desc="Parsing File '{}'".format(self._filepath.split('/')[-1]), unit=" lines"):
+        for i in progressBar(range(len(lines)), desc="Parsing File '{}'".format(self._filepath.split('/')[-1]), unit=" lines"):
             self._parseLine(lines[i])
 
     def _parseLine(self, line: str):

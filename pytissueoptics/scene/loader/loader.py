@@ -5,7 +5,7 @@ from pytissueoptics.scene.loader.parsers import OBJParser
 from pytissueoptics.scene.loader.parsers.parsedSurface import ParsedSurface
 from pytissueoptics.scene.solids import Solid
 from pytissueoptics.scene.geometry import Vector, Triangle, SurfaceCollection, Vertex, primitives
-from pytissueoptics.scene.utils.mytqdm import tqdm
+from pytissueoptics.scene.utils.progressBar import progressBar
 
 
 class Loader:
@@ -50,8 +50,8 @@ class Loader:
         totalProgressBarLength = 0
         for objectName, _object in self._parser.objects.items():
             totalProgressBarLength += len(_object.surfaces.items())
-        pbar = tqdm(total=totalProgressBarLength, desc="Converting File '{}'".format(self._filepath.split('/')[-1]),
-                    unit="surfaces")
+        pbar = progressBar(total=totalProgressBarLength, desc="Converting File '{}'".format(self._filepath.split('/')[-1]),
+                           unit="surfaces")
 
         solids = []
         for objectName, _object in self._parser.objects.items():
