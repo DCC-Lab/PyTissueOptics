@@ -6,10 +6,10 @@ DESCRIPTION = """ """
 def exampleCode():
     from pytissueoptics.scene import loadSolid, MayaviViewer
 
-    solid = loadSolid("exampleFile.obj")
+    solid = loadSolid("droid.obj")
 
     viewer = MayaviViewer()
-    viewer.add(solid, representation="surface", showNormals=True)
+    viewer.add(solid, representation="surface", showNormals=True, normalLength=0.2)
     viewer.show()
 
 
