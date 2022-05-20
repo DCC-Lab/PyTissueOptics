@@ -15,11 +15,11 @@ class TestLoader(unittest.TestCase):
 
     def testWhenLoadingOBJ_shouldLoad(self):
         loader = Loader()
-        _ = loader.load(self._filepath("droid.obj"), showProgress=False)
+        _ = loader.load(self._filepath("testCubeTrianglesMulti.obj"), showProgress=False)
 
     def testWhenLoadingOBJ_shouldReturnListOfSolids(self):
         loader = Loader()
-        solids = loader.load(self._filepath("droid.obj"), showProgress=False)
+        solids = loader.load(self._filepath("testCubeTrianglesMulti.obj"), showProgress=False)
         self.assertIsInstance(solids, List)
         for solid in solids:
             self.assertIsInstance(solid, Solid)
