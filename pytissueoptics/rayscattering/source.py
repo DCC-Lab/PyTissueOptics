@@ -110,9 +110,12 @@ class DirectionalSource(Source):
         return positions, directions
 
     def _getInitialPositions(self):
+        return self._getUniformlySampledDisc(self._diameter) + self._position.array
+
+    def _getUniformlySampledDisc(self, diameter) -> np.ndarray:
         # The square root method was used, since the rejection method was slower in numpy because of index lookup.
         # https://stackoverflow.com/questions/5837572/generate-a-random-point-within-a-circle-uniformly
-        r = self._diameter / 2 * np.sqrt(np.random.random((self._N, 1)))
+        r = diameter / 2 * np.sqrt(np.random.random((self._N, 1)))
         theta = np.random.random((self._N, 1)) * 2 * np.pi
         x = r * np.cos(theta)
         y = r * np.sin(theta)
@@ -123,15 +126,11 @@ class DirectionalSource(Source):
         xDifference = np.multiply(x, xAxisArray)
         yDifference = np.multiply(y, yAxisArray)
 
-        positions = np.full((self._N, 3), self._position.array)
-        positions = np.add(positions, xDifference)
-        positions = np.add(positions, yDifference)
-
-        return positions
+        discPositions = xDifference + yDifference
+        return discPositions
 
     def _getInitialDirections(self):
-        directions = np.full((self._N, 3), self._direction.array)
-        return directions
+        return np.full((self._N, 3), self._direction.array)
 
 
 class PencilPointSource(DirectionalSource):
@@ -146,3 +145,19 @@ class IsotropicPointSource(Source):
         directions = np.random.randn(self._N, 3)
         directions /= np.linalg.norm(directions, axis=1, keepdims=True)
         return positions, directions
+
+
+class DivergentSource(DirectionalSource):
+    def __init__(self, position: Vector, direction: Vector, diameter: float, divergence: float, N: int,
+                 useHardwareAcceleration: bool = False):
+        self._divergence = divergence
+
+        super().__init__(position=position, direction=direction, diameter=diameter, N=N,
+                         useHardwareAcceleration=useHardwareAcceleration)
+
+    def _getInitialDirections(self):
+        thetaDiameter = np.tan(self._divergence/2) * 2
+        directions = self._getUniformlySampledDisc(thetaDiameter)
+        directions += self._direction.array
+        directions /= np.linalg.norm(directions, axis=1, keepdims=True)
+        return directions
