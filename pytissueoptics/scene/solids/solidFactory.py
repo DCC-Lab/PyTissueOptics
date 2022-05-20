@@ -9,13 +9,13 @@ class SolidFactory:
     _surfaces: SurfaceCollection
 
     def fromSolids(self, solids: List[Solid], position: Vector = Vector(0, 0, 0), material=None,
-                   label: str = "solidGroup") -> Solid:
+                   label: str = "solidGroup", smooth=False) -> Solid:
         self._vertices = []
         self._surfaces = SurfaceCollection()
         self._fillSurfacesAndVertices(solids)
 
         solid = Solid(vertices=self._vertices, surfaces=self._surfaces, material=material, label=label,
-                      primitive=primitives.POLYGON)
+                      primitive=primitives.POLYGON, smooth=smooth)
         solid._position = self._getCentroid(solids)
         solid.translateTo(position)
         return solid

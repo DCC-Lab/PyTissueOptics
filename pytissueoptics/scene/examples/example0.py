@@ -1,9 +1,9 @@
 TITLE = "Explore different Shapes"
 
 DESCRIPTION = """  
-Spawning a Cuboid() of side lenghts = 1,3,1 @(1,0,0)
-Sphere() of radius 0.5 @(0,0,0).
-Ellipsoid() of eccentricity 3,1,1 @(-2, 0, 0)
+Spawning a Cuboid() of side lengths = 1,3,1 at (1,0,0)
+Sphere() of radius 0.5 at (0,0,0).
+Ellipsoid() of eccentricity 3,1,1 at (-2, 0, 0)
 A Mayavi Viewer allows for the display of those solids."""
 
 

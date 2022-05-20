@@ -1,8 +1,9 @@
-from typing import List, Any
+from typing import List
 
 from pytissueoptics.scene.loader.parsers import Parser
 from pytissueoptics.scene.loader.parsers.parsedObject import ParsedObject
 from pytissueoptics.scene.loader.parsers.parsedSurface import ParsedSurface
+from pytissueoptics.scene.utils.progressBar import progressBar
 
 
 class OBJParser(Parser):
@@ -12,7 +13,7 @@ class OBJParser(Parser):
         else:
             raise TypeError
 
-    def _parse(self):
+    def _parse(self, showProgress: bool = True):
         """
         The .OBJ file format is well described here: https://en.wikipedia.org/wiki/Wavefront_.obj_file
         Summary of important points for our purposes
@@ -21,48 +22,52 @@ class OBJParser(Parser):
         - Groups start with 'g'
         - New objects will start with 'o'
         """
-        file = open(self._filepath, "r")
-        for line in file:
-            if line.startswith('#'):
-                continue
+        self._PARSE_MAP = {'v': self._parseVertices,
+                           'vt': self._parseTexCoords,
+                           'vn': self._parseNormals,
+                           'usemtl': self._parseMaterial,
+                           'usemat': self._parseMaterial,
+                           'f': self._parseFace,
+                           'g': self._parseGroup,
+                           'o': self._parseObject}
 
-            values = line.split()
-            if not values:
-                continue
+        with open(self._filepath, "r") as file:
+            lines = [line.strip('\n') for line in file.readlines() if line != "\n"]
 
-            if values[0] == 'v':
-                v = list(map(float, values[1:4]))
-                self._vertices.append(v)
+        for i in progressBar(range(len(lines)), desc="Parsing File '{}'".format(self._filepath.split('/')[-1]),
+                             unit=" lines", disable=not showProgress):
+            self._parseLine(lines[i])
 
-            elif values[0] == 'vn':
-                vn = list(map(float, values[1:4]))
-                self._normals.append(vn)
+    def _parseLine(self, line: str):
+        if line.startswith('#'):
+            return
 
-            elif values[0] == 'vt':
-                vt = list(map(float, values[1:3]))
-                self._texCoords.append(vt)
+        values = line.split()
+        if not values:
+            return
 
-            elif values[0] in ('usemtl', 'usemat'):
-                self._objects[self._currentObjectName].material = values[1]
+        typeChar = values[0]
+        if typeChar not in self._PARSE_MAP:
+            return
 
-            elif values[0] == 'f':
-                self._parseFace(values)
+        self._PARSE_MAP[typeChar](values)
 
-            elif values[0] == 'o':
-                self._currentObjectName = values[1]
-                self._resetSurfaceLabel()
-                self._objects[self._currentObjectName] = ParsedObject(material="", surfaces={})
+    def _parseVertices(self, values: List[str]):
+        v = list(map(float, values[1:4]))
+        self._vertices.append(v)
 
-            elif values[0] == 'g':
-                self._currentSurfaceLabel = values[1]
-                self._checkForNoObject()
-                self._validateSurfaceLabel()
-                self._objects[self._currentObjectName].surfaces[self._currentSurfaceLabel] = ParsedSurface(polygons=[],
-                                                                                                           normals=[],
-                                                                                                           texCoords=[])
-        file.close()
+    def _parseNormals(self, values: List[str]):
+        vn = list(map(float, values[1:4]))
+        self._normals.append(vn)
 
-    def _parseFace(self, values: List[Any]):
+    def _parseTexCoords(self, values: List[str]):
+        vt = list(map(float, values[1:3]))
+        self._texCoords.append(vt)
+
+    def _parseMaterial(self, values: List[str]):
+        self._objects[self._currentObjectName].material = values[1]
+
+    def _parseFace(self, values: List[str]):
         faceIndices = []
         texCoordsIndices = []
         normalIndices = []
@@ -70,6 +75,7 @@ class OBJParser(Parser):
         for verticesIndices in values[1:]:
             vertexIndices = verticesIndices.split('/')
             faceIndices.append(int(vertexIndices[0]) - 1)
+
             if len(vertexIndices) >= 2 and len(vertexIndices[1]) > 0:
                 texCoordsIndices.append(int(vertexIndices[1]) - 1)
             else:
@@ -85,6 +91,25 @@ class OBJParser(Parser):
         self._objects[self._currentObjectName].surfaces[self._currentSurfaceLabel].polygons.append(faceIndices)
         self._objects[self._currentObjectName].surfaces[self._currentSurfaceLabel].normals.append(normalIndices)
         self._objects[self._currentObjectName].surfaces[self._currentSurfaceLabel].texCoords.append(texCoordsIndices)
+
+    def _parseObject(self, values: List[str]):
+        try:
+            self._currentObjectName = values[1]
+        except IndexError:
+            self._currentObjectName = self.NO_OBJECT
+        self._resetSurfaceLabel()
+        self._objects[self._currentObjectName] = ParsedObject(material="", surfaces={})
+
+    def _parseGroup(self, values: List[str]):
+        try:
+            self._currentSurfaceLabel = values[1]
+        except IndexError:
+            self._currentSurfaceLabel = self.NO_SURFACE
+        self._checkForNoObject()
+        self._validateSurfaceLabel()
+        self._objects[self._currentObjectName].surfaces[self._currentSurfaceLabel] = ParsedSurface(polygons=[],
+                                                                                                   normals=[],
+                                                                                                   texCoords=[])
 
     def _checkForNoObject(self):
         if len(self._objects) == 0 and self._currentObjectName == self.NO_OBJECT:

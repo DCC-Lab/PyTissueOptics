@@ -24,7 +24,7 @@ class Parser:
     NO_OBJECT = "noObject"
     NO_SURFACE = "noSurface"
 
-    def __init__(self, filepath: str):
+    def __init__(self, filepath: str, showProgress: bool = True):
         self._filepath = filepath
         self._objects: Dict[str, ParsedObject] = {}
         self._vertices: List[List[float]] = []
@@ -33,12 +33,12 @@ class Parser:
         self._currentObjectName: str = self.NO_OBJECT
         self._currentSurfaceLabel: str = self.NO_SURFACE
         self._checkFileExtension()
-        self._parse()
+        self._parse(showProgress)
 
     def _checkFileExtension(self):
         raise NotImplementedError
 
-    def _parse(self):
+    def _parse(self, showProgress: bool = True):
         raise NotImplementedError
 
     def _resetSurfaceLabel(self):

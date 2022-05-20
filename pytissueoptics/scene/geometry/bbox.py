@@ -3,14 +3,16 @@ from pytissueoptics.scene.geometry import Vector, Vertex
 
 
 class BoundingBox:
-    def __init__(self, xLim: List[float], yLim: List[float], zLim: List[float]):
-        self._axisKeys = ["x", "y", "z"]
-        self._limitKeys = ["min", "max"]
+    _AXIS_KEYS = ['x', 'y', 'z']
+    _LIMIT_KEYS = ['min', 'max']
+
+    def __init__(self, xLim: List[float], yLim: List[float], zLim: List[float], validate=True):
         self._xLim = xLim
         self._yLim = yLim
         self._zLim = zLim
         self._xyzLimits = [self._xLim, self._yLim, self._zLim]
-        self._checkIfCoherent()
+        if validate:
+            self._checkIfCoherent()
 
     def __repr__(self) -> str:
         return str([self._xLim, self._yLim, self._zLim])
@@ -39,13 +41,14 @@ class BoundingBox:
 
     @classmethod
     def fromVertices(cls, vertices: List[Vertex]) -> 'BoundingBox':
-        x = [vertices[i].x for i in range(len(vertices))]
-        y = [vertices[i].y for i in range(len(vertices))]
-        z = [vertices[i].z for i in range(len(vertices))]
-        xLim = [min(x), max(x)]
-        yLim = [min(y), max(y)]
-        zLim = [min(z), max(z)]
-        return BoundingBox(xLim, yLim, zLim)
+        vertexIter = range(len(vertices))
+        x = sorted([vertices[i].x for i in vertexIter])
+        y = sorted([vertices[i].y for i in vertexIter])
+        z = sorted([vertices[i].z for i in vertexIter])
+        xLim = [x[0], x[-1]]
+        yLim = [y[0], y[-1]]
+        zLim = [z[0], z[-1]]
+        return BoundingBox(xLim, yLim, zLim, validate=False)
 
     @classmethod
     def fromPolygons(cls, polygons: List['Polygon']) -> 'BoundingBox':
@@ -123,13 +126,13 @@ class BoundingBox:
             return self.zWidth
 
     def getAxisLimit(self, axis: str, limit: str) -> float:
-        return self._xyzLimits[self._axisKeys.index(axis)][self._limitKeys.index(limit)]
+        return self._xyzLimits[self._AXIS_KEYS.index(axis)][self._LIMIT_KEYS.index(limit)]
 
     def getAxisLimits(self, axis: str) -> List[float]:
-        return self._xyzLimits[self._axisKeys.index(axis)]
+        return self._xyzLimits[self._AXIS_KEYS.index(axis)]
 
     def update(self, axis: str, limit: str, value: float):
-        self._xyzLimits[self._axisKeys.index(axis)][self._limitKeys.index(limit)] = value
+        self._xyzLimits[self._AXIS_KEYS.index(axis)][self._LIMIT_KEYS.index(limit)] = value
         self._checkIfCoherent()
 
     def getArea(self):

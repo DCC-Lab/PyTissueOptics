@@ -1,13 +1,6 @@
 import warnings
 from typing import List, Union, Optional, Tuple
 import numpy as np
-try:
-    from tqdm import tqdm
-except ImportError:
-    def mock_tqdm(iterable, *args, **kwargs):
-        warnings.warn("Package 'tqdm' not found. Progress bar will not be shown.")
-        return iterable
-    tqdm = mock_tqdm
 
 from pytissueoptics.rayscattering.tissues.rayScatteringScene import RayScatteringScene
 from pytissueoptics.rayscattering.photon import Photon
@@ -16,6 +9,7 @@ from pytissueoptics.scene.solids import Sphere
 from pytissueoptics.scene.geometry import Vector, Environment
 from pytissueoptics.scene.intersection import FastIntersectionFinder
 from pytissueoptics.scene.logger import Logger
+from pytissueoptics.scene.utils import progressBar
 from pytissueoptics.scene.viewer import MayaviViewer
 
 
@@ -33,18 +27,18 @@ class Source:
 
         self._loadPhotons()
 
-    def propagate(self, scene: RayScatteringScene, logger: Logger = None, progressBar: bool = True):
+    def propagate(self, scene: RayScatteringScene, logger: Logger = None, showProgress: bool = True):
         if self._useHardwareAcceleration:
             self._propagateOpenCL(scene, logger)
         else:
-            self._propagateCPU(scene, logger, progressBar)
+            self._propagateCPU(scene, logger, showProgress)
 
-    def _propagateCPU(self, scene: RayScatteringScene, logger: Logger = None, progressBar: bool = True):
+    def _propagateCPU(self, scene: RayScatteringScene, logger: Logger = None, showProgress: bool = True):
         intersectionFinder = FastIntersectionFinder(scene)
         self._environment = scene.getEnvironmentAt(self._position)
         self._prepareLogger(logger)
 
-        for i in tqdm(range(self._N), desc="Propagating photons", disable=not progressBar):
+        for i in progressBar(range(self._N), desc="Propagating photons", disable=not showProgress):
             self._photons[i].setContext(self._environment, intersectionFinder=intersectionFinder, logger=logger)
             self._photons[i].propagate()
 
@@ -98,21 +92,72 @@ class Source:
         viewer.add(sphere, representation="surface", colormap="Wistia", opacity=0.8)
 
 
-class PencilSource(Source):
-    def __init__(self, position: Vector, direction: Vector, N: int, useHardwareAcceleration: bool = False):
+class DirectionalSource(Source):
+    def __init__(self, position: Vector, direction: Vector, diameter: float, N: int,
+                 useHardwareAcceleration: bool = False):
+        self._diameter = diameter
         self._direction = direction
         self._direction.normalize()
+        self._xAxis = self._direction.getAnyOrthogonal()
+        self._xAxis.normalize()
+        self._yAxis = self._direction.cross(self._xAxis)
+        self._yAxis.normalize()
         super().__init__(position=position, N=N, useHardwareAcceleration=useHardwareAcceleration)
 
     def getInitialPositionsAndDirections(self) -> Tuple[np.ndarray, np.ndarray]:
-        positions = np.full((self._N, 3), self._position.array)
-        directions = np.full((self._N, 3), self._direction.array)
+        positions = self._getInitialPositions()
+        directions = self._getInitialDirections()
         return positions, directions
+
+    def _getInitialPositions(self):
+        return self._getUniformlySampledDisc(self._diameter) + self._position.array
+
+    def _getUniformlySampledDisc(self, diameter) -> np.ndarray:
+        # The square root method was used, since the rejection method was slower in numpy because of index lookup.
+        # https://stackoverflow.com/questions/5837572/generate-a-random-point-within-a-circle-uniformly
+        r = diameter / 2 * np.sqrt(np.random.random((self._N, 1)))
+        theta = np.random.random((self._N, 1)) * 2 * np.pi
+        x = r * np.cos(theta)
+        y = r * np.sin(theta)
+        x = np.tile(x, (1, 3))
+        y = np.tile(y, (1, 3))
+        xAxisArray = np.full((self._N, 3), self._xAxis.array)
+        yAxisArray = np.full((self._N, 3), self._yAxis.array)
+        xDifference = np.multiply(x, xAxisArray)
+        yDifference = np.multiply(y, yAxisArray)
+
+        discPositions = xDifference + yDifference
+        return discPositions
+
+    def _getInitialDirections(self):
+        return np.full((self._N, 3), self._direction.array)
+
+
+class PencilPointSource(DirectionalSource):
+    def __init__(self, position: Vector, direction: Vector, N: int, useHardwareAcceleration: bool = False):
+        super().__init__(position=position, direction=direction, diameter=0, N=N,
+                         useHardwareAcceleration=useHardwareAcceleration)
 
 
 class IsotropicPointSource(Source):
     def getInitialPositionsAndDirections(self) -> Tuple[np.ndarray, np.ndarray]:
         positions = np.full((self._N, 3), self._position.array)
-        directions = np.random.randn(self._N, 3) * 2 - 1
+        directions = np.random.randn(self._N, 3)
         directions /= np.linalg.norm(directions, axis=1, keepdims=True)
         return positions, directions
+
+
+class DivergentSource(DirectionalSource):
+    def __init__(self, position: Vector, direction: Vector, diameter: float, divergence: float, N: int,
+                 useHardwareAcceleration: bool = False):
+        self._divergence = divergence
+
+        super().__init__(position=position, direction=direction, diameter=diameter, N=N,
+                         useHardwareAcceleration=useHardwareAcceleration)
+
+    def _getInitialDirections(self):
+        thetaDiameter = np.tan(self._divergence/2) * 2
+        directions = self._getUniformlySampledDisc(thetaDiameter)
+        directions += self._direction.array
+        directions /= np.linalg.norm(directions, axis=1, keepdims=True)
+        return directions

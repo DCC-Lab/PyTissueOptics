@@ -38,19 +38,18 @@ Here's what it might look like:
 ```python
 from pytissueoptics import *
 
- 
- material = ScatteringMaterial(mu_s=3.0, mu_a=1.0, g=0.8, n=1.5)
+material = ScatteringMaterial(mu_s=3.0, mu_a=1.0, g=0.8, n=1.5)
 
- tissue = Cuboid(a=1, b=3, c=1, position=Vector(2, 0, 0), material=material)
- scene = RayScatteringScene([tissue])
+tissue = Cuboid(a=1, b=3, c=1, position=Vector(2, 0, 0), material=material)
+scene = RayScatteringScene([tissue])
 
- logger = Logger()
- source = PencilSource(position=Vector(-3, 0, 0), direction=Vector(1, 0, 0), N=1000)
- source.propagate(scene, logger)
+logger = Logger()
+source = PencilPointSource(position=Vector(-3, 0, 0), direction=Vector(1, 0, 0), N=1000)
+source.propagate(scene, logger)
 
- stats = Stats(logger, source, scene)
- stats.showEnergy3D()
- stats.report()
+stats = Stats(logger, source, scene)
+stats.showEnergy3D()
+stats.report()
 ```
 For more details on how to use this package for your own research, please refer to the [documentation](https://pytissueoptics.readthedocs.io/en/latest/).
 
