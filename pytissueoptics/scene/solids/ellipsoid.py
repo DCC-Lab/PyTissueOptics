@@ -144,6 +144,14 @@ class Ellipsoid(Solid):
 
     def _radiusTowards(self, vertex):
         theta, phi = self._findThetaPhi(vertex)
+        x = self._a * (math.cos(theta) ** 2 * math.sin(phi) ** 2)
+        y = self._b * (math.cos(theta) ** 2 * math.sin(phi) ** 2)
+        z = self._c * math.cos(phi) ** 2
+        # return math.sqrt(x**2 + y**2 + z**2)
+        return math.sqrt(1 / ((math.cos(theta) ** 2 * math.sin(phi) ** 2) / self._a ** 2 + (
+                math.sin(theta) ** 2 * math.sin(phi) ** 2) / self._b ** 2 + math.cos(phi) ** 2 / self._c ** 2))
+
+    def _radiusTowardsThetaPhi(self, theta, phi):
         return math.sqrt(1 / ((math.cos(theta) ** 2 * math.sin(phi) ** 2) / self._a ** 2 + (
                 math.sin(theta) ** 2 * math.sin(phi) ** 2) / self._b ** 2 + math.cos(phi) ** 2 / self._c ** 2))
 

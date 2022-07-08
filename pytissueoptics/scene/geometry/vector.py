@@ -5,6 +5,8 @@ class Vector:
     """
     Basic implementation of a mutable 3D Vector. It implements most of the basic vector operation.
     Mutability is necessary when working with shared object references for expected behavior.
+
+
     """
 
     def __init__(self, x: float = 0, y: float = 0, z: float = 0):

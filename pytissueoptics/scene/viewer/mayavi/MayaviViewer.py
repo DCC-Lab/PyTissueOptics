@@ -29,6 +29,7 @@ class MayaviViewer:
 
     def add(self, *solids: 'Solid', representation="wireframe", lineWidth=0.25, showNormals=False, normalLength=0.3,
             colormap="viridis", reverseColormap=False, constantColor=False, opacity=1, **kwargs):
+        surfaces = []
         for solid in solids:
             mayaviSolid = MayaviSolid(solid, loadNormals=showNormals)
             self._scenes["DefaultScene"]["Solids"].append(mayaviSolid)
@@ -40,6 +41,8 @@ class MayaviViewer:
             if showNormals:
                 mlab.quiver3d(*mayaviSolid.normals.components, line_width=lineWidth, scale_factor=normalLength,
                               color=(1, 1, 1))
+            surfaces.append(s)
+        return surfaces
 
     def addLogger(self, logger: Logger, colormap="rainbow", reverseColormap=False,
                   pointScale=0.01, dataPointScale=0.15, scaleWithValue=True):
