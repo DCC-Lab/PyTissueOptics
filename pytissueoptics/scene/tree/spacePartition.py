@@ -89,6 +89,22 @@ class SpacePartition:
         if node.isRoot:
             return nodesList
 
+    def getAllSubNodes(self, node=None, nodesList=None) -> List[Node]:
+        if nodesList is None and node is None:
+            nodesList = []
+            node = self._root
+        if not node.isLeaf:
+            for childNode in node.children:
+                self.getAllSubNodes(childNode, nodesList)
+        nodesList.append(node)
+        if node.isRoot:
+            return nodesList
+
+    def getAllSubNodeBoundingBoxes(self)-> List[BoundingBox]:
+        nodesList = self.getAllSubNodes()
+        nodesBbox = [node.bbox for node in nodesList]
+        return nodesBbox
+
     def getLeafBoundingBoxes(self) -> List[BoundingBox]:
         nodesList = self.getLeafNodes()
         nodesBbox = [node.bbox for node in nodesList]
@@ -97,6 +113,15 @@ class SpacePartition:
     def getLeafBoundingBoxesAsCuboids(self) -> List[Cuboid]:
         cuboids = []
         for bbox in self.getLeafBoundingBoxes():
+            a = bbox.xMax - bbox.xMin
+            b = bbox.yMax - bbox.yMin
+            c = bbox.zMax - bbox.zMin
+            cuboids.append(Cuboid(a=a, b=b, c=c, position=bbox.center))
+        return cuboids
+
+    def getAllSubNodeBoundingBoxesAsCuboids(self) -> List[BoundingBox]:
+        cuboids = []
+        for bbox in self.getAllSubNodeBoundingBoxes():
             a = bbox.xMax - bbox.xMin
             b = bbox.yMax - bbox.yMin
             c = bbox.zMax - bbox.zMin
