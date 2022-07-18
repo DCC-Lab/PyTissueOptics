@@ -11,6 +11,8 @@ class Node:
         self._polygons = polygons
         self._bbox = bbox
         self._depth = depth
+        self._axis = ""
+        self._splitValue = 0
 
     @property
     def children(self) -> List['Node']:

@@ -14,6 +14,8 @@ class NoSplitThreeAxesConstructor(NoSplitOneAxisConstructor):
             thisSAH = self._searchMinSAHOnAxis(splitBbox, axis, minSAH)
             if thisSAH < minSAH:
                 minSAH = thisSAH
+        self.currentNode._axis = self.result.splitAxis
+        self.currentNode._splitValue = self.result.splitValue
         self.result.leftPolygons.extend(self.result.splitPolygons)
         self.result.rightPolygons.extend(self.result.splitPolygons)
         self._trimChildrenBbox()

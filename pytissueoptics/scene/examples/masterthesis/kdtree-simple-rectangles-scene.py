@@ -12,7 +12,7 @@ cuboid1 = Cuboid(1, 1, 1, position=Vector(5, 5, 5))
 cuboid2 = Cuboid(1, 1, 2, position=Vector(0, 5, 0))
 cuboid3 = Cuboid(1, 1, 2, position=Vector(0, 0, 0))
 cuboid4 = Cuboid(1, 1, 2, position=Vector(0, 0, 5))
-cuboid5 = Sphere(position=Vector(2, 2, 2))
+cuboid5 = Cuboid(1,1,1, position=Vector(2, 2, 2))
 cuboid5.rotate(45, 45, 45)
 scene = Scene([cuboid1, cuboid2, cuboid3, cuboid4, cuboid5])
 
@@ -22,7 +22,8 @@ kdTree = SpacePartition(scene.getBoundingBox(), scene.getPolygons(), constructor
 t1 = time.time()
 
 bBoxes = kdTree.getAllSubNodeBoundingBoxesAsCuboids()
-
+bBoxesLeaves = kdTree.getLeafBoundingBoxesAsCuboids()
+print(kdTree.getJSONBranching())
 print(f"Scene Poly Count:{len(scene.getPolygons())}\n"
       f"Min Leaf Size:{kdTree._minLeafSize}\n"
       f"Max Tree Depth:{kdTree._maxDepth}\n"
@@ -32,7 +33,9 @@ print(f"Scene Poly Count:{len(scene.getPolygons())}\n"
 
 viewer = MayaviViewer()
 mayaviSolids = viewer.add(*scene.getSolids(), representation="wireframe", lineWidth=0.1)
-mayaviBoxes = viewer.add(*bBoxes, representation="surface", lineWidth=25, opacity=0.1)
+mayaviBoxes = viewer.add(*bBoxes, representation="wireframe", lineWidth=25, opacity=0.1)
+mayaviLeafBoxes = viewer.add(*bBoxesLeaves, representation="surface", lineWidth=25, opacity=0.25)
+
 sceneProp = mayaviSolids[0].parent.parent.parent.parent
 sceneProp.scene.background = (1, 1, 1)
 
@@ -51,6 +54,16 @@ for y in mayaviBoxes:
       y.actor.property.representation = "surface"
       y.actor.property.opacity = 0.1
       y.module_manager.scalar_lut_manager.lut.table = np.array([[255, 15, 15, 255]] * 255)
+#       y.actor.property.line_as_tube
+      y.actor.property.edge_visibility = False
+      y.actor.property.line_width = 5
+      y.actor.property.edge_color = (0, 0, 0)
+      y.actor.property.interpolation = "flat"
+
+for y in mayaviLeafBoxes:
+      y.actor.property.representation = "surface"
+      y.actor.property.opacity = 0.25
+      y.module_manager.scalar_lut_manager.lut.table = np.array([[15, 15, 255, 255]] * 255)
 #       y.actor.property.line_as_tube
       y.actor.property.edge_visibility = False
       y.actor.property.line_width = 25

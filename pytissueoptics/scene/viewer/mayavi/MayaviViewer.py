@@ -18,7 +18,7 @@ class MayaviViewer:
         self._scenes = {
             "DefaultScene": {"figureParameters": {"bgColor": (0.11, 0.11, 0.11), "fgColor": (0.9, 0.9, 0.9)},
                              "Solids": [], }}
-        self._view = {"azimuth": 0, "zenith": 0, "distance": None, "pointingTowards": None, "roll": None}
+        self._view = {"azimuth": -30, "zenith": 10, "distance": None, "pointingTowards": None, "roll": None}
         self.clear()
 
     def addScene(self, scene: Scene, representation="wireframe", lineWidth=0.25, showNormals=False, normalLength=0.3,
