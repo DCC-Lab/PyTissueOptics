@@ -6,6 +6,37 @@ except ImportError:
     pass
 
 
+class CLType:
+    def __init__(self, name: str, struct: np.dtype, device: 'cl.Device'):
+        self._name = name
+
+        cl_struct, self._declaration = cl.tools.match_dtype_to_c_struct(device, self._name, struct)
+        self._dtype = cl.tools.get_or_register_dtype(self._name, cl_struct)
+
+    @property
+    def name(self) -> str:
+        return self._name
+
+    @property
+    def declaration(self) -> str:
+        return self._declaration
+
+    @property
+    def dtype(self) -> ...:
+        return self._dtype
+
+
+class PhotonCLType(CLType):
+    def __init__(self, device: 'cl.Device'):
+        photonStruct = np.dtype(
+            [("position", cl.cltypes.float4),
+             ("direction", cl.cltypes.float4),
+             ("er", cl.cltypes.float4),
+             ("weight", cl.cltypes.float),
+             ("material_id", cl.cltypes.uint)])
+        super().__init__(name="photonStruct", struct=photonStruct, device=device)
+
+
 def makePhotonType(device: 'cl.Device'):
     photonStruct = np.dtype(
         [("position", cl.cltypes.float4),
