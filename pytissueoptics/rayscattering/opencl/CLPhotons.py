@@ -9,11 +9,16 @@ except ImportError:
 import numpy as np
 from numpy.lib import recfunctions as rfn
 
-from pytissueoptics.rayscattering.opencl.types import makePhotonType, makeMaterialType, makeLoggerType
+from pytissueoptics.rayscattering.opencl.types import makePhotonType, makeMaterialType, makeLoggerType, CLType, \
+    PhotonCLType
 from pytissueoptics.rayscattering.tissues import InfiniteTissue
 from pytissueoptics.rayscattering.tissues.rayScatteringScene import RayScatteringScene
 from pytissueoptics.scene import Logger
 from pytissueoptics.scene.logger import InteractionKey
+
+        for sourceFile in sourceFiles:
+
+        self._program = cl.Program(self._context, typeDeclarations + sourceCode).build()
 
 
 class CLPhotons:
