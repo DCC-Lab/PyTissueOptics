@@ -4,6 +4,7 @@ from typing import List
 
 try:
     import pyopencl as cl
+
     OPENCL_AVAILABLE = True
 except ImportError:
     OPENCL_AVAILABLE = False
@@ -28,7 +29,15 @@ class CLProgram:
         self._device = self._context.devices[0]
         self._program = None
 
-    def build(self, CLObjects: List[CLType]):
+    def launchKernel(self, kernelName: str, N: int, arguments: list):
+        self._build(CLObjects=[x for x in arguments if isinstance(x, CLType)])
+        arguments = [x.deviceBuffer if isinstance(x, CLType) else x for x in arguments]
+
+        kernel = getattr(self._program, kernelName)
+        kernel(self._mainQueue, (N,), None, *arguments)
+        self._mainQueue.finish()
+
+    def _build(self, CLObjects: List[CLType]):
         for CLObject in CLObjects:
             CLObject.build(self._device, self._context)
 
@@ -38,8 +47,13 @@ class CLProgram:
         includeDir = os.path.dirname(self._sourcePath).replace('\\', '/')
         self._program = cl.Program(self._context, sourceCode).build(options=f"-I {includeDir}")
 
+    def getData(self, CLObject: CLType):
+        cl.enqueue_copy(self._mainQueue, dest=CLObject.hostBuffer, src=CLObject.deviceBuffer)
+        return rfn.structured_to_unstructured(CLObject.hostBuffer)
+
 
 class CLPhotons:
+    # todo: might have to rename this class at some point (conflicts with PhotonCLType)
     def __init__(self, positions: np.ndarray, directions: np.ndarray, N: int, weightThreshold: float = 0.0001):
         self._positions = positions
         self._directions = directions
@@ -52,9 +66,6 @@ class CLPhotons:
         self._extractFromScene(scene)
         self._createCLObjects()
 
-        self._program.build(CLObjects=[self._photons, self._material, self._logger,
-                                       self._randomSeed, self._randomFloat])
-
         self._propagate(sceneLogger=logger)
 
     def _extractFromScene(self, scene: RayScatteringScene):
@@ -65,7 +76,7 @@ class CLPhotons:
     def _createCLObjects(self):
         self._photons = PhotonCLType(self._positions, self._directions)
         self._material = MaterialCLType(self._worldMaterial)
-        self._logger = LoggerCLType(self._requiredLoggerSize())
+        self._logger = LoggerCLType(size=self._requiredLoggerSize())
         self._randomSeed = RandomSeedCLType(size=self._N)
         self._randomFloat = RandomFloatCLType(size=self._N)
 
@@ -75,19 +86,14 @@ class CLPhotons:
     def _propagate(self, sceneLogger: Logger = None):
         t0 = time.time_ns()
 
-        # todo: whats up with this signature ? first 3 arguments not in C decl
-        self._program._program.propagate(self._program._mainQueue, self._photons._HOST_buffer.shape, None, self._N,
-                                         self._weightThreshold,
-                                         self._photons._DEVICE_buffer,
-                                         self._material._DEVICE_buffer, self._logger._DEVICE_buffer,
-                                         self._randomFloat._DEVICE_buffer,
-                                         self._randomSeed._DEVICE_buffer)
-        self._program._mainQueue.finish()
-        cl.enqueue_copy(self._program._mainQueue, dest=self._logger._HOST_buffer, src=self._logger._DEVICE_buffer)
+        self._program.launchKernel(kernelName='propagate', N=self._N,
+                                   arguments=[self._N, self._weightThreshold,
+                                              self._photons, self._material, self._logger,
+                                              self._randomFloat, self._randomSeed])
+        log = self._program.getData(self._logger)
 
         t1 = time.time_ns()
         print("CLPhotons.propagate: {} s".format((t1 - t0) / 1e9))
 
-        log = rfn.structured_to_unstructured(self._logger._HOST_buffer)
         if sceneLogger:
             sceneLogger.logDataPointArray(log, InteractionKey("universe", None))

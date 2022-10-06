@@ -47,6 +47,10 @@ class CLType:
         return self._dtype
 
     @property
+    def hostBuffer(self):
+        return self._HOST_buffer
+
+    @property
     def deviceBuffer(self):
         return self._DEVICE_buffer
 
