@@ -10,7 +10,7 @@ from numpy.lib import recfunctions as rfn
 
 
 class CLType:
-    def __init__(self, name: str, struct: np.dtype):
+    def __init__(self, name: str = None, struct: np.dtype = None):
         self._name = name
         self._struct = struct
         self._declaration = None
@@ -20,8 +20,9 @@ class CLType:
         self._DEVICE_buffer = None
 
     def build(self, device: 'cl.Device', context):
-        cl_struct, self._declaration = cl.tools.match_dtype_to_c_struct(device, self._name, self._struct)
-        self._dtype = cl.tools.get_or_register_dtype(self._name, cl_struct)
+        if self._struct:
+            cl_struct, self._declaration = cl.tools.match_dtype_to_c_struct(device, self._name, self._struct)
+            self._dtype = cl.tools.get_or_register_dtype(self._name, cl_struct)
 
         self._HOST_buffer = self._getHostBuffer()
         self._DEVICE_buffer = cl.Buffer(context, cl.mem_flags.READ_WRITE | cl.mem_flags.COPY_HOST_PTR,
@@ -36,6 +37,8 @@ class CLType:
 
     @property
     def declaration(self) -> str:
+        if not self._declaration:
+            return ''
         return self._declaration
 
     @property
@@ -117,3 +120,21 @@ class LoggerCLType(CLType):
 
     def _getHostBuffer(self) -> np.ndarray:
         return np.empty(self._size, dtype=self._dtype)
+
+
+class RandomSeedCLType(CLType):
+    def __init__(self, size: int):
+        self._size = size
+        super().__init__()
+
+    def _getHostBuffer(self) -> np.ndarray:
+        return np.random.randint(low=0, high=2 ** 32 - 1, size=self._size, dtype=cl.cltypes.uint)
+
+
+class RandomFloatCLType(CLType):
+    def __init__(self, size: int):
+        self._size = size
+        super().__init__()
+
+    def _getHostBuffer(self) -> np.ndarray:
+        return np.empty(self._size, dtype=cl.cltypes.float)
