@@ -17,12 +17,12 @@ from pytissueoptics.rayscattering.tissues.rayScatteringScene import RayScatterin
 from pytissueoptics.scene import Logger
 from pytissueoptics.scene.logger import InteractionKey
 
-PROPAGATION_SOURCE_DIR = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'src')
+PROPAGATION_SOURCE_PATH = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'src', 'propagation.c')
 
 
 class CLProgram:
-    def __init__(self, sourceDir: str):
-        self._sourceDir = sourceDir
+    def __init__(self, sourcePath: str):
+        self._sourcePath = sourcePath
         self._context = cl.create_some_context()
         self._mainQueue = cl.CommandQueue(self._context)
         self._device = self._context.devices[0]
@@ -32,18 +32,11 @@ class CLProgram:
         for CLObject in CLObjects:
             CLObject.build(self._device, self._context)
 
-        self._program = cl.Program(self._context, self._getSourceCode(CLObjects)).build()
-
-    def _getSourceCode(self, CLObjects: List[CLType]) -> str:
-        sourceFiles = ['random.c', 'vectorOperators.c', 'propagation.c']
-        # fixme: source file ordering matters. Maybe set propagation.c as single sourceFile with #includes at start...
-        # sourceFiles = [f for f in list(os.walk(self._sourceDir))[0][2] if f.endswith('.c')]
-        sourceCode = ''
-        for sourceFile in sourceFiles:
-            sourceCode += open(os.path.join(self._sourceDir, sourceFile)).read()
-
         typeDeclarations = ''.join([CLObject.declaration for CLObject in CLObjects])
-        return typeDeclarations + sourceCode
+        sourceCode = typeDeclarations + open(self._sourcePath).read()
+
+        includeDir = os.path.dirname(self._sourcePath).replace('\\', '/')
+        self._program = cl.Program(self._context, sourceCode).build(options=f"-I {includeDir}")
 
 
 class CLPhotons:
@@ -53,9 +46,9 @@ class CLPhotons:
         self._N = np.uint32(N)
         self._weightThreshold = np.float32(weightThreshold)
 
-        self._program = CLProgram(sourceDir=PROPAGATION_SOURCE_DIR)
+        self._program = CLProgram(sourcePath=PROPAGATION_SOURCE_PATH)
 
-    def prepareAndPropagate(self, scene: RayScatteringScene, logger: Logger):
+    def prepareAndPropagate(self, scene: RayScatteringScene, logger: Logger = None):
         self._extractFromScene(scene)
         self._createCLObjects()
 
@@ -79,18 +72,22 @@ class CLPhotons:
     def _requiredLoggerSize(self) -> int:
         return int(-np.log(self._weightThreshold) / self._worldMaterial.getAlbedo()) * self._N
 
-    def _propagate(self, sceneLogger: Logger):
+    def _propagate(self, sceneLogger: Logger = None):
         t0 = time.time_ns()
 
         # todo: whats up with this signature ? first 3 arguments not in C decl
-        self._program._program.propagate(self._program._mainQueue, self._photons._HOST_buffer.shape, None, self._N, self._weightThreshold,
-                                self._photons._DEVICE_buffer,
-                                self._material._DEVICE_buffer, self._logger._DEVICE_buffer, self._randomFloat._DEVICE_buffer,
-                                self._randomSeed._DEVICE_buffer)
+        self._program._program.propagate(self._program._mainQueue, self._photons._HOST_buffer.shape, None, self._N,
+                                         self._weightThreshold,
+                                         self._photons._DEVICE_buffer,
+                                         self._material._DEVICE_buffer, self._logger._DEVICE_buffer,
+                                         self._randomFloat._DEVICE_buffer,
+                                         self._randomSeed._DEVICE_buffer)
         self._program._mainQueue.finish()
         cl.enqueue_copy(self._program._mainQueue, dest=self._logger._HOST_buffer, src=self._logger._DEVICE_buffer)
+
         t1 = time.time_ns()
         print("CLPhotons.propagate: {} s".format((t1 - t0) / 1e9))
 
         log = rfn.structured_to_unstructured(self._logger._HOST_buffer)
-        sceneLogger.logDataPointArray(log, InteractionKey("universe", None))
+        if sceneLogger:
+            sceneLogger.logDataPointArray(log, InteractionKey("universe", None))

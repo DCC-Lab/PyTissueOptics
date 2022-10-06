@@ -1,3 +1,6 @@
+#include "random.c"
+#include "vectorOperators.c"
+
 
 void decreaseWeightBy(__global photonStruct *photons, float delta_weight, uint gid){
     photons[gid].weight -= delta_weight;
