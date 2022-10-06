@@ -9,7 +9,7 @@ import numpy as np
 from numpy.lib import recfunctions as rfn
 
 
-class CLType:
+class CLObject:
     def __init__(self, name: str = None, struct: np.dtype = None):
         self._name = name
         self._struct = struct
@@ -55,7 +55,9 @@ class CLType:
         return self._DEVICE_buffer
 
 
-class PhotonCLType(CLType):
+class PhotonCL(CLObject):
+    STRUCT_NAME = "photonStruct"
+
     def __init__(self, positions: np.ndarray, directions: np.ndarray):
         self._positions = positions
         self._directions = directions
@@ -67,9 +69,7 @@ class PhotonCLType(CLType):
              ("er", cl.cltypes.float4),
              ("weight", cl.cltypes.float),
              ("material_id", cl.cltypes.uint)])
-
-        # todo: whats name for? if static, move out as public CONST_STRING
-        super().__init__(name="photonStruct", struct=photonStruct)
+        super().__init__(name=self.STRUCT_NAME, struct=photonStruct)
 
     def _getHostBuffer(self) -> np.ndarray:
         photonsPrototype = np.zeros(self._N, dtype=self._dtype)
@@ -81,10 +81,9 @@ class PhotonCLType(CLType):
         return rfn.unstructured_to_structured(photonsPrototype, self._dtype)
 
 
-# todo: prep all other types. implement in CLPhotons, improve CLPhotons and CLProgram, improve call to propagate kernel.
+class MaterialCL(CLObject):
+    STRUCT_NAME = "materialStruct"
 
-
-class MaterialCLType(CLType):
     def __init__(self, material: ScatteringMaterial):
         self._material = material
 
@@ -96,7 +95,7 @@ class MaterialCLType(CLType):
              ("n", cl.cltypes.float),
              ("albedo", cl.cltypes.float),
              ("material_id", cl.cltypes.uint)])
-        super().__init__(name="materialStruct", struct=materialStruct)
+        super().__init__(name=self.STRUCT_NAME, struct=materialStruct)
 
     def _getHostBuffer(self) -> np.ndarray:
         # todo: there might be a way to abstract both struct and buffer under a single def (DRY, PO)
@@ -111,7 +110,9 @@ class MaterialCLType(CLType):
         return buffer
 
 
-class LoggerCLType(CLType):
+class LoggerCL(CLObject):
+    STRUCT_NAME = "loggerStruct"
+
     def __init__(self, size: int):
         self._size = size
 
@@ -120,13 +121,13 @@ class LoggerCLType(CLType):
              ("x", cl.cltypes.float),
              ("y", cl.cltypes.float),
              ("z", cl.cltypes.float)])
-        super().__init__(name="loggerStruct", struct=loggerStruct)
+        super().__init__(name=self.STRUCT_NAME, struct=loggerStruct)
 
     def _getHostBuffer(self) -> np.ndarray:
         return np.empty(self._size, dtype=self._dtype)
 
 
-class RandomSeedCLType(CLType):
+class RandomSeedCL(CLObject):
     def __init__(self, size: int):
         self._size = size
         super().__init__()
@@ -135,7 +136,7 @@ class RandomSeedCLType(CLType):
         return np.random.randint(low=0, high=2 ** 32 - 1, size=self._size, dtype=cl.cltypes.uint)
 
 
-class RandomFloatCLType(CLType):
+class RandomFloatCL(CLObject):
     def __init__(self, size: int):
         self._size = size
         super().__init__()
