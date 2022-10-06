@@ -64,8 +64,6 @@ class CLPhotons:
 
     def prepareAndPropagate(self, scene: RayScatteringScene, logger: Logger = None):
         self._extractFromScene(scene)
-        self._createCLObjects()
-
         self._propagate(sceneLogger=logger)
 
     def _extractFromScene(self, scene: RayScatteringScene):
@@ -73,27 +71,25 @@ class CLPhotons:
             raise TypeError("OpenCL propagation is only supported for InfiniteTissue for the moment.")
         self._worldMaterial = scene.getWorldEnvironment().material
 
-    def _createCLObjects(self):
-        self._photons = PhotonCLType(self._positions, self._directions)
-        self._material = MaterialCLType(self._worldMaterial)
-        self._logger = LoggerCLType(size=self._requiredLoggerSize())
-        self._randomSeed = RandomSeedCLType(size=self._N)
-        self._randomFloat = RandomFloatCLType(size=self._N)
-
-    def _requiredLoggerSize(self) -> int:
-        return int(-np.log(self._weightThreshold) / self._worldMaterial.getAlbedo()) * self._N
-
     def _propagate(self, sceneLogger: Logger = None):
-        t0 = time.time_ns()
+        photons = PhotonCLType(self._positions, self._directions)
+        material = MaterialCLType(self._worldMaterial)
+        logger = LoggerCLType(size=self._requiredLoggerSize())
+        randomFloat = RandomFloatCLType(size=self._N)
+        randomSeed = RandomSeedCLType(size=self._N)
 
+        t0 = time.time_ns()
         self._program.launchKernel(kernelName='propagate', N=self._N,
                                    arguments=[self._N, self._weightThreshold,
-                                              self._photons, self._material, self._logger,
-                                              self._randomFloat, self._randomSeed])
-        log = self._program.getData(self._logger)
+                                              photons, material, logger, randomFloat, randomSeed])
+
+        log = self._program.getData(logger)
 
         t1 = time.time_ns()
         print("CLPhotons.propagate: {} s".format((t1 - t0) / 1e9))
 
         if sceneLogger:
             sceneLogger.logDataPointArray(log, InteractionKey("universe", None))
+
+    def _requiredLoggerSize(self) -> int:
+        return int(-np.log(self._weightThreshold) / self._worldMaterial.getAlbedo()) * self._N
