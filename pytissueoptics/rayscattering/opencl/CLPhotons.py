@@ -27,8 +27,6 @@ class CLPhotons:
         self._N = np.uint32(N)
         self._weightThreshold = np.float32(weightThreshold)
 
-        self._program = CLProgram(sourcePath=PROPAGATION_SOURCE_PATH)
-
     def prepareAndPropagate(self, scene: RayScatteringScene, logger: Logger = None):
         self._extractFromScene(scene)
         self._propagate(sceneLogger=logger)
@@ -45,13 +43,13 @@ class CLPhotons:
         randomFloat = RandomFloatCL(size=self._N)
         randomSeed = RandomSeedCL(size=self._N)
 
+        program = CLProgram(sourcePath=PROPAGATION_SOURCE_PATH)
+
         t0 = time.time_ns()
-        self._program.launchKernel(kernelName='propagate', N=self._N,
-                                   arguments=[self._N, self._weightThreshold,
-                                              photons, material, logger, randomFloat, randomSeed])
-
-        log = self._program.getData(logger)
-
+        program.launchKernel(kernelName='propagate', N=self._N,
+                             arguments=[self._N, self._weightThreshold,
+                                        photons, material, logger, randomFloat, randomSeed])
+        log = program.getData(logger)
         t1 = time.time_ns()
         print("CLPhotons.propagate: {} s".format((t1 - t0) / 1e9))
 
