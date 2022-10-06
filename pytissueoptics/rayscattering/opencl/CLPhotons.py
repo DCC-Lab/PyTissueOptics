@@ -27,6 +27,9 @@ class CLPhotons:
         self._N = np.uint32(N)
         self._weightThreshold = np.float32(weightThreshold)
 
+        self._materials = None
+        self._requiredLoggerSize = None
+
     def prepareAndPropagate(self, scene: RayScatteringScene, logger: Logger = None):
         self._extractFromScene(scene)
         self._propagate(sceneLogger=logger)
@@ -34,12 +37,14 @@ class CLPhotons:
     def _extractFromScene(self, scene: RayScatteringScene):
         if type(scene) is not InfiniteTissue:
             raise TypeError("OpenCL propagation is only supported for InfiniteTissue for the moment.")
-        self._worldMaterial = scene.getWorldEnvironment().material
+        worldMaterial = scene.getWorldEnvironment().material
+        self._materials = [worldMaterial]
+        self._requiredLoggerSize = int(-np.log(self._weightThreshold) / worldMaterial.getAlbedo()) * self._N
 
     def _propagate(self, sceneLogger: Logger = None):
         photons = PhotonCL(self._positions, self._directions)
-        material = MaterialCL(self._worldMaterial)
-        logger = LoggerCL(size=self._requiredLoggerSize())
+        material = MaterialCL(self._materials)
+        logger = LoggerCL(size=self._requiredLoggerSize)
         randomFloat = RandomFloatCL(size=self._N)
         randomSeed = RandomSeedCL(size=self._N)
 
@@ -55,6 +60,3 @@ class CLPhotons:
 
         if sceneLogger:
             sceneLogger.logDataPointArray(log, InteractionKey("universe", None))
-
-    def _requiredLoggerSize(self) -> int:
-        return int(-np.log(self._weightThreshold) / self._worldMaterial.getAlbedo()) * self._N

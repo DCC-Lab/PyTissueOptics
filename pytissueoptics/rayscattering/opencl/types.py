@@ -1,3 +1,5 @@
+from typing import List, Dict
+
 from pytissueoptics.rayscattering.materials.scatteringMaterial import ScatteringMaterial
 
 try:
@@ -58,10 +60,11 @@ class CLObject:
 class PhotonCL(CLObject):
     STRUCT_NAME = "photonStruct"
 
-    def __init__(self, positions: np.ndarray, directions: np.ndarray):
+    def __init__(self, positions: np.ndarray, directions: np.ndarray, material_id: int = 0):
         self._positions = positions
         self._directions = directions
         self._N = positions.shape[0]
+        self._material_id = material_id
 
         photonStruct = np.dtype(
             [("position", cl.cltypes.float4),
@@ -72,20 +75,21 @@ class PhotonCL(CLObject):
         super().__init__(name=self.STRUCT_NAME, struct=photonStruct)
 
     def _getHostBuffer(self) -> np.ndarray:
-        photonsPrototype = np.zeros(self._N, dtype=self._dtype)
-        photonsPrototype = rfn.structured_to_unstructured(photonsPrototype)
-        photonsPrototype[:, 0:3] = self._positions[:, ::]
-        photonsPrototype[:, 4:7] = self._directions[:, ::]
-        photonsPrototype[:, 12] = 1.0
-        photonsPrototype[:, 13] = 0
-        return rfn.unstructured_to_structured(photonsPrototype, self._dtype)
+        buffer = np.zeros(self._N, dtype=self._dtype)
+        buffer = rfn.structured_to_unstructured(buffer)
+        buffer[:, 0:3] = self._positions
+        buffer[:, 4:7] = self._directions
+        buffer = rfn.unstructured_to_structured(buffer, self._dtype)
+        buffer["weight"] = 1.0
+        buffer["material_id"] = self._material_id
+        return buffer
 
 
 class MaterialCL(CLObject):
     STRUCT_NAME = "materialStruct"
 
-    def __init__(self, material: ScatteringMaterial):
-        self._material = material
+    def __init__(self, materials: List[ScatteringMaterial]):
+        self._materials = materials
 
         materialStruct = np.dtype(
             [("mu_s", cl.cltypes.float),
@@ -99,14 +103,15 @@ class MaterialCL(CLObject):
 
     def _getHostBuffer(self) -> np.ndarray:
         # todo: there might be a way to abstract both struct and buffer under a single def (DRY, PO)
-        buffer = np.empty(1, dtype=self._dtype)
-        buffer["mu_s"] = np.float32(self._material.mu_s)
-        buffer["mu_a"] = np.float32(self._material.mu_a)
-        buffer["mu_t"] = np.float32(self._material.mu_t)
-        buffer["g"] = np.float32(self._material.g)
-        buffer["n"] = np.float32(self._material.n)
-        buffer["albedo"] = np.float32(self._material.getAlbedo())
-        buffer["material_id"] = np.uint32(0)
+        buffer = np.empty(len(self._materials), dtype=self._dtype)
+        for i, material in enumerate(self._materials):
+            buffer[i]["mu_s"] = np.float32(material.mu_s)
+            buffer[i]["mu_a"] = np.float32(material.mu_a)
+            buffer[i]["mu_t"] = np.float32(material.mu_t)
+            buffer[i]["g"] = np.float32(material.g)
+            buffer[i]["n"] = np.float32(material.n)
+            buffer[i]["albedo"] = np.float32(material.getAlbedo())
+            buffer[i]["material_id"] = np.uint32(i)
         return buffer
 
 

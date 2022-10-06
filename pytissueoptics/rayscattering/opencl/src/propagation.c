@@ -57,8 +57,8 @@ __kernel void propagate(uint dataSize, float weightThreshold, __global photonStr
     uint gid = get_global_id(0);
     uint stepIndex = 0;
     uint logIndex = 0;
-    float g = materials[0].g;
-    float mu_t = materials[0].mu_t;
+    float g = materials[photons[gid].material_id].g;
+    float mu_t = materials[photons[gid].material_id].mu_t;
     float4 er = getAnyOrthogonalGlobal(&photons[gid].direction);
     photons[gid].er = er;
 
@@ -70,7 +70,7 @@ __kernel void propagate(uint dataSize, float weightThreshold, __global photonStr
         randomNums[gid] = getRandomFloatValue(seedBuffer, gid);
         float phi = getScatteringAnglePhi(randomNums, gid);
         randomNums[gid] = getRandomFloatValue(seedBuffer, gid);
-        float g = materials[0].g;
+        float g = materials[photons[gid].material_id].g;
         float theta = getScatteringAngleTheta(randomNums, g, gid);
         scatterBy(photons, phi, theta, gid);
         interact(photons, materials, logger, gid, logIndex);
