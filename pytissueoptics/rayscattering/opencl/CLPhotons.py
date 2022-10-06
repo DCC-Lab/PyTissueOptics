@@ -10,7 +10,8 @@ except ImportError:
 import numpy as np
 from numpy.lib import recfunctions as rfn
 
-from pytissueoptics.rayscattering.opencl.types import CLType, PhotonCLType, MaterialCLType, LoggerCLType
+from pytissueoptics.rayscattering.opencl.types import CLType, PhotonCLType, MaterialCLType, LoggerCLType, \
+    RandomSeedCLType, RandomFloatCLType
 from pytissueoptics.rayscattering.tissues import InfiniteTissue
 from pytissueoptics.rayscattering.tissues.rayScatteringScene import RayScatteringScene
 from pytissueoptics.scene import Logger
@@ -28,6 +29,12 @@ class CLProgram:
         self._program = None
 
     def build(self, CLObjects: List[CLType]):
+        for CLObject in CLObjects:
+            CLObject.build(self._device, self._context)
+
+        self._program = cl.Program(self._context, self._getSourceCode(CLObjects)).build()
+
+    def _getSourceCode(self, CLObjects: List[CLType]) -> str:
         sourceFiles = ['random.c', 'vectorOperators.c', 'propagation.c']
         # fixme: source file ordering matters. Maybe set propagation.c as single sourceFile with #includes at start...
         # sourceFiles = [f for f in list(os.walk(self._sourceDir))[0][2] if f.endswith('.c')]
@@ -35,81 +42,55 @@ class CLProgram:
         for sourceFile in sourceFiles:
             sourceCode += open(os.path.join(self._sourceDir, sourceFile)).read()
 
-        typeDeclarations = ''
-        for CLObject in CLObjects:
-            CLObject.build(self._device, self._context)
-            typeDeclarations += CLObject.declaration
-        # todo: replace with ''.join(List[str])
-
-        self._program = cl.Program(self._context, typeDeclarations + sourceCode).build()
+        typeDeclarations = ''.join([CLObject.declaration for CLObject in CLObjects])
+        return typeDeclarations + sourceCode
 
 
 class CLPhotons:
     def __init__(self, positions: np.ndarray, directions: np.ndarray, N: int, weightThreshold: float = 0.0001):
         self._positions = positions
         self._directions = directions
-        self._N = N
+        self._N = np.uint32(N)
         self._weightThreshold = np.float32(weightThreshold)
-        self._logger = None
 
         self._program = CLProgram(sourceDir=PROPAGATION_SOURCE_DIR)
 
-        self._photons = PhotonCLType(positions, directions)
-        self._material = None
-        self._logger = None
-        # self._randomSeed = None
-        # self._randomFloat = None
+    def prepareAndPropagate(self, scene: RayScatteringScene, logger: Logger):
+        self._extractFromScene(scene)
+        self._createCLObjects()
 
-        self._HOST_randomSeed, self._DEVICE_randomSeed = None, None
-        self._HOST_randomFloat, self._DEVICE_randomFloat = None, None
+        self._program.build(CLObjects=[self._photons, self._material, self._logger,
+                                       self._randomSeed, self._randomFloat])
+
+        self._propagate(sceneLogger=logger)
 
     def _extractFromScene(self, scene: RayScatteringScene):
         if type(scene) is not InfiniteTissue:
             raise TypeError("OpenCL propagation is only supported for InfiniteTissue for the moment.")
         self._worldMaterial = scene.getWorldEnvironment().material
 
-    def prepareAndPropagate(self, scene: RayScatteringScene, logger: Logger):
-        self._sceneLogger = logger
-        self._extractFromScene(scene)
-
+    def _createCLObjects(self):
+        self._photons = PhotonCLType(self._positions, self._directions)
         self._material = MaterialCLType(self._worldMaterial)
         self._logger = LoggerCLType(self._requiredLoggerSize())
+        self._randomSeed = RandomSeedCLType(size=self._N)
+        self._randomFloat = RandomFloatCLType(size=self._N)
 
-        self._makeBuffers()
+    def _requiredLoggerSize(self) -> int:
+        return int(-np.log(self._weightThreshold) / self._worldMaterial.getAlbedo()) * self._N
 
-        # self._buildProgram()
-        self._program.build(CLObjects=[self._photons, self._material, self._logger])
-
-        self._propagate()
-
-    def _propagate(self):
+    def _propagate(self, sceneLogger: Logger):
         t0 = time.time_ns()
-        datasize = np.uint32(len(self._photons._HOST_buffer))  # todo: isnt that supposed to be self.N ?
 
         # todo: whats up with this signature ? first 3 arguments not in C decl
-        self._program._program.propagate(self._program._mainQueue, self._photons._HOST_buffer.shape, None, datasize, self._weightThreshold,
+        self._program._program.propagate(self._program._mainQueue, self._photons._HOST_buffer.shape, None, self._N, self._weightThreshold,
                                 self._photons._DEVICE_buffer,
-                                self._material._DEVICE_buffer, self._logger._DEVICE_buffer, self._DEVICE_randomFloat,
-                                self._DEVICE_randomSeed)
+                                self._material._DEVICE_buffer, self._logger._DEVICE_buffer, self._randomFloat._DEVICE_buffer,
+                                self._randomSeed._DEVICE_buffer)
         self._program._mainQueue.finish()
         cl.enqueue_copy(self._program._mainQueue, dest=self._logger._HOST_buffer, src=self._logger._DEVICE_buffer)
         t1 = time.time_ns()
         print("CLPhotons.propagate: {} s".format((t1 - t0) / 1e9))
 
         log = rfn.structured_to_unstructured(self._logger._HOST_buffer)
-        self._sceneLogger.logDataPointArray(log, InteractionKey("universe", None))
-
-    def _makeBuffers(self):
-        self._makeRandomBuffer()
-
-    def _makeRandomBuffer(self):
-        self._HOST_randomSeed = np.random.randint(low=0, high=2 ** 32 - 1, size=self._N,
-                                                  dtype=cl.cltypes.uint)
-        self._DEVICE_randomSeed = cl.Buffer(self._program._context, cl.mem_flags.READ_WRITE | cl.mem_flags.COPY_HOST_PTR,
-                                            hostbuf=self._HOST_randomSeed)
-        self._HOST_randomFloat = np.empty(self._N, dtype=cl.cltypes.float)
-        self._DEVICE_randomFloat = cl.Buffer(self._program._context, cl.mem_flags.READ_WRITE | cl.mem_flags.COPY_HOST_PTR,
-                                             hostbuf=self._HOST_randomFloat)
-
-    def _requiredLoggerSize(self) -> int:
-        return int(-np.log(self._weightThreshold) / self._worldMaterial.getAlbedo()) * self._N
+        sceneLogger.logDataPointArray(log, InteractionKey("universe", None))
