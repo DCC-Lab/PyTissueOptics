@@ -4,6 +4,7 @@ import warnings
 from typing import Optional, Union, Tuple, List
 
 import matplotlib
+matplotlib.use("qt5agg")
 import numpy as np
 from matplotlib import pyplot as plt
 
