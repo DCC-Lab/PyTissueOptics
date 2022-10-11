@@ -15,6 +15,7 @@ from pytissueoptics.rayscattering.tissues import InfiniteTissue
 from pytissueoptics.rayscattering.tissues.rayScatteringScene import RayScatteringScene
 from pytissueoptics.scene import Logger
 from pytissueoptics.scene.logger import InteractionKey
+from pytissueoptics.scene.geometry import Environment
 
 PROPAGATION_SOURCE_PATH = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'src', 'propagation.c')
 
@@ -29,19 +30,18 @@ class CLPhotons:
 
         self._materials = None
         self._requiredLoggerSize = None
+        self._sceneLogger = None
 
-    def prepareAndPropagate(self, scene: RayScatteringScene, logger: Logger = None):
-        self._extractFromScene(scene)
-        self._propagate(sceneLogger=logger)
-
-    def _extractFromScene(self, scene: RayScatteringScene):
+    def setContext(self, scene: RayScatteringScene, environment: Environment, logger: Logger = None):
         if type(scene) is not InfiniteTissue:
             raise TypeError("OpenCL propagation is only supported for InfiniteTissue for the moment.")
-        worldMaterial = scene.getWorldEnvironment().material
+
+        worldMaterial = environment.material
         self._materials = [worldMaterial]
         self._requiredLoggerSize = int(-np.log(self._weightThreshold) / worldMaterial.getAlbedo()) * self._N
+        self._sceneLogger = logger
 
-    def _propagate(self, sceneLogger: Logger = None):
+    def propagate(self):
         photons = PhotonCL(self._positions, self._directions)
         material = MaterialCL(self._materials)
         logger = LoggerCL(size=self._requiredLoggerSize)
@@ -58,5 +58,5 @@ class CLPhotons:
         t1 = time.time_ns()
         print("CLPhotons.propagate: {} s".format((t1 - t0) / 1e9))
 
-        if sceneLogger:
-            sceneLogger.logDataPointArray(log, InteractionKey("universe", None))
+        if self._sceneLogger:
+            self._sceneLogger.logDataPointArray(log, InteractionKey("universe", None))

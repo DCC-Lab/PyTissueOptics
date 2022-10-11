@@ -43,7 +43,10 @@ class Source:
             self._photons[i].propagate()
 
     def _propagateOpenCL(self, scene: RayScatteringScene, logger: Logger = None):
-        self._photons.prepareAndPropagate(scene, logger)
+        self._environment = scene.getEnvironmentAt(self._position)
+
+        self._photons.setContext(scene, self._environment, logger=logger)
+        self._photons.propagate()
 
     def getInitialPositionsAndDirections(self) -> Tuple[np.ndarray, np.ndarray]:
         """ To be implemented by subclasses. Needs to return a tuple containing the
