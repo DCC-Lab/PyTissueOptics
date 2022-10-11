@@ -9,7 +9,7 @@ except ImportError:
     OPENCL_AVAILABLE = False
 from numpy.lib import recfunctions as rfn
 
-from pytissueoptics.rayscattering.opencl.types import CLObject
+from pytissueoptics.rayscattering.opencl.CLObjects import CLObject
 
 
 class CLProgram:

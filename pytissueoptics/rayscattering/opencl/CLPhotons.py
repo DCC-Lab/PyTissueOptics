@@ -10,7 +10,7 @@ except ImportError:
 import numpy as np
 
 from pytissueoptics.rayscattering.opencl.CLProgram import CLProgram
-from pytissueoptics.rayscattering.opencl.types import PhotonCL, MaterialCL, LoggerCL, RandomSeedCL, RandomFloatCL
+from pytissueoptics.rayscattering.opencl.CLObjects import PhotonCL, MaterialCL, LoggerCL, RandomSeedCL, RandomFloatCL
 from pytissueoptics.rayscattering.tissues import InfiniteTissue
 from pytissueoptics.rayscattering.tissues.rayScatteringScene import RayScatteringScene
 from pytissueoptics.scene import Logger
