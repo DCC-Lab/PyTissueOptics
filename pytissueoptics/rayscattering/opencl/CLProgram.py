@@ -1,4 +1,5 @@
 import os
+import sys
 from typing import List
 
 try:
@@ -21,10 +22,15 @@ class CLProgram:
 
     def launchKernel(self, kernelName: str, N: int, arguments: list):
         self._build(objects=[x for x in arguments if isinstance(x, CLObject)])
+        sizeOnDevice = sum([x.hostBuffer.nbytes for x in arguments if isinstance(x, CLObject)])
         arguments = [x.deviceBuffer if isinstance(x, CLObject) else x for x in arguments]
 
         kernel = getattr(self._program, kernelName)
-        kernel(self._mainQueue, (N,), None, *arguments)
+        try:
+            kernel(self._mainQueue, (N,), None, *arguments)
+        except cl.MemoryError:
+            raise MemoryError(f"Cannot allocate {sizeOnDevice//10**6} MB of memory on the device; "
+                              f"the buffers are too large.")
         self._mainQueue.finish()
 
     def _build(self, objects: List[CLObject]):
