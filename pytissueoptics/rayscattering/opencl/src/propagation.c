@@ -53,6 +53,42 @@ void roulette(__global photonStruct *photons, __global uint * randomSeedBuffer, 
     }
 }
 
+
+bool getIntersection(float distance) {
+    return false;
+}
+
+// move to scatteringMaterial.c
+struct ScatteringAngles {
+    float phi, theta;
+};
+
+typedef struct ScatteringAngles ScatteringAngles;
+
+ScatteringAngles getScatteringAngles(uint gid,
+           __global photonStruct *photons, __constant materialStruct *materials,
+           __global float *randomNums, __global uint *seedBuffer)
+{
+    ScatteringAngles angles;
+    randomNums[gid] = getRandomFloatValue(seedBuffer, gid);
+    angles.phi = getScatteringAnglePhi(randomNums, gid);
+    randomNums[gid] = getRandomFloatValue(seedBuffer, gid);
+    float g = materials[photons[gid].material_id].g;
+    angles.theta = getScatteringAngleTheta(randomNums, g, gid);
+    return angles;
+}
+
+
+
+void scatter(uint gid, uint logIndex,
+           __global photonStruct *photons, __constant materialStruct *materials, __global loggerStruct *logger,
+           __global float *randomNums, __global uint *seedBuffer){
+    ScatteringAngles angles = getScatteringAngles(gid, photons, materials, randomNums, seedBuffer);
+
+    scatterBy(photons, angles.phi, angles.theta, gid);
+    interact(photons, materials, logger, gid, logIndex);
+}
+
 float propagateStep(float distance, uint gid, uint logIndex,
            __global photonStruct *photons, __constant materialStruct *materials, __global loggerStruct *logger,
            __global float *randomNums, __global uint *seedBuffer){
@@ -61,16 +97,19 @@ float propagateStep(float distance, uint gid, uint logIndex,
         float mu_t = materials[photons[gid].material_id].mu_t;
         distance = getScatteringDistance(randomNums, mu_t, gid);
     }
-    moveBy(photons, distance, gid);
-    randomNums[gid] = getRandomFloatValue(seedBuffer, gid);
-    float phi = getScatteringAnglePhi(randomNums, gid);
-    randomNums[gid] = getRandomFloatValue(seedBuffer, gid);
-    float g = materials[photons[gid].material_id].g;
-    float theta = getScatteringAngleTheta(randomNums, g, gid);
-    scatterBy(photons, phi, theta, gid);
-    interact(photons, materials, logger, gid, logIndex);
+
     float distanceLeft = 0;
-    
+
+    // requires intersection struct instead of bool
+    bool intersects = getIntersection(distance);
+
+    if (intersects){
+
+    } else {
+        moveBy(photons, distance, gid);
+        scatter(gid, logIndex, photons, materials, logger, randomNums, seedBuffer);
+    }
+
     return distanceLeft;
 }
 
