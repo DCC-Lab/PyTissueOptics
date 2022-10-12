@@ -3,6 +3,15 @@
 #include "scatteringMaterial.c"
 
 
+void moveBy(__global photonStruct *photons, float distance, uint gid){
+    photons[gid].position += (distance * photons[gid].direction);
+}
+
+void scatterBy(__global photonStruct *photons, float phi, float theta, uint gid){
+    rotateAroundAxisGlobal(&photons[gid].er, &photons[gid].direction, phi);
+    rotateAroundAxisGlobal(&photons[gid].direction, &photons[gid].er, theta);
+}
+
 void decreaseWeightBy(__global photonStruct *photons, float delta_weight, uint gid){
     photons[gid].weight -= delta_weight;
 }
@@ -16,13 +25,13 @@ void interact(__global photonStruct *photons, __constant materialStruct *materia
     logger[logIndex].delta_weight = delta_weight;
 }
 
-void moveBy(__global photonStruct *photons, float distance, uint gid){
-    photons[gid].position += (distance * photons[gid].direction);
-}
+void scatter(uint gid, uint logIndex,
+           __global photonStruct *photons, __constant materialStruct *materials, __global loggerStruct *logger,
+           __global float *randomNums, __global uint *seedBuffer){
+    ScatteringAngles angles = getScatteringAngles(gid, photons, materials, randomNums, seedBuffer);
 
-void scatterBy(__global photonStruct *photons, float phi, float theta, uint gid){
-    rotateAroundAxisGlobal(&photons[gid].er, &photons[gid].direction, phi);
-    rotateAroundAxisGlobal(&photons[gid].direction, &photons[gid].er, theta);
+    scatterBy(photons, angles.phi, angles.theta, gid);
+    interact(photons, materials, logger, gid, logIndex);
 }
 
 void roulette(__global photonStruct *photons, __global uint * randomSeedBuffer, uint gid){
@@ -37,15 +46,6 @@ void roulette(__global photonStruct *photons, __global uint * randomSeedBuffer, 
 
 bool getIntersection(float distance) {
     return false;
-}
-
-void scatter(uint gid, uint logIndex,
-           __global photonStruct *photons, __constant materialStruct *materials, __global loggerStruct *logger,
-           __global float *randomNums, __global uint *seedBuffer){
-    ScatteringAngles angles = getScatteringAngles(gid, photons, materials, randomNums, seedBuffer);
-
-    scatterBy(photons, angles.phi, angles.theta, gid);
-    interact(photons, materials, logger, gid, logIndex);
 }
 
 float propagateStep(float distance, uint gid, uint logIndex,
