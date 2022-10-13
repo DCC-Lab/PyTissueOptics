@@ -21,7 +21,6 @@ PROPAGATION_SOURCE_PATH = os.path.join(os.path.dirname(os.path.abspath(__file__)
 
 
 class CLPhotons:
-    # todo: might have to rename this class at some point (conflicts with PhotonCL)
     def __init__(self, positions: np.ndarray, directions: np.ndarray, N: int, weightThreshold: float = 0.0001):
         self._positions = positions
         self._directions = directions

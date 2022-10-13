@@ -1,5 +1,4 @@
 import os
-import sys
 from typing import List
 
 try:
@@ -46,3 +45,10 @@ class CLProgram:
     def getData(self, _object: CLObject):
         cl.enqueue_copy(self._mainQueue, dest=_object.hostBuffer, src=_object.deviceBuffer)
         return rfn.structured_to_unstructured(_object.hostBuffer)
+
+    def showDeviceInfo(self):
+        devices = self._context.devices  # type: List[cl.Device]
+        print("Available devices:")
+        for i, device in enumerate(devices):
+            print(f"... Device {i}: {device.name} ({device.global_mem_size // 10**6} MB "
+                  f"| {device.max_clock_frequency} MHz)")
