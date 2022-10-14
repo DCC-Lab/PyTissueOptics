@@ -1,12 +1,17 @@
 import os
 import unittest
+from typing import List
+
 import pyopencl as cl
 import numpy as np
 from numpy.lib import recfunctions as rfn
 import matplotlib.pyplot as plt
 
+from pytissueoptics import ScatteringMaterial
+from pytissueoptics.rayscattering.opencl.CLProgram import CLProgram
 from pytissueoptics.scene import Vector
-from pytissueoptics.rayscattering.opencl.types import makePhotonType, makeMaterialType, makeLoggerType
+from pytissueoptics.rayscattering.opencl.CLObjects import CLObject, PhotonCL, MaterialCL, LoggerCL, RandomFloatCL, \
+    RandomSeedCL
 
 execTest = False
 
@@ -14,22 +19,23 @@ execTest = False
 @unittest.skipIf(execTest is not True, 'Skipped by default, this is a validation/technology test.')
 class TestOpenCLKernels(unittest.TestCase):
     def setUp(self):
-        sourcePath = os.path.dirname(os.path.abspath(__file__)) + "{0}..{0}opencl{0}src{0}".format(os.path.sep)
-        randomKernel = open(sourcePath + "random.c").read() 
-        propagationKernel = open(os.path.dirname(os.path.abspath(__file__)) + "{0}..{0}opencl{0}src{0}propagation.c".format(os.sep)).read()
-        vectorKernel = open(os.path.dirname(os.path.abspath(__file__)) + "{0}..{0}opencl{0}src{0}vectorOperators.c".format(os.sep)).read()
-        self.ctx = cl.create_some_context()
-        self.queue = cl.CommandQueue(self.ctx)
-        self.device = self.ctx.devices[0]
-        self.mf = cl.mem_flags
-        c_decl = self._makeTypes()
-        self.program = cl.Program(self.ctx, c_decl + randomKernel + vectorKernel + propagationKernel).build()
+        sourcePath = os.path.dirname(os.path.abspath(__file__)) + "{0}..{0}opencl{0}src{0}propagation.c".format(os.path.sep)
+        self.program = CLProgram(sourcePath)
 
-    def _makeTypes(self):
-        photon_dtype, c_decl_photon = makePhotonType(self.device)
-        material_dtype, c_decl_mat = makeMaterialType(self.device)
-        logger_dtype, c_decl_logger = makeLoggerType(self.device)
-        return c_decl_photon + c_decl_mat + c_decl_logger
+        self.ctx = self.program._context
+        self.queue = self.program._mainQueue
+        self.device = self.program._device
+        self.objects = self._getCLObjects()
+        self.program._build(self.objects)
+
+    def _getCLObjects(self) -> List[CLObject]:
+        N = 10
+        photons = PhotonCL(np.zeros((N, 3)), np.ones((N, 3)))
+        material = MaterialCL([ScatteringMaterial()])
+        logger = LoggerCL(size=N*10)
+        randomFloat = RandomFloatCL(size=N)
+        randomSeed = RandomSeedCL(size=N)
+        return [photons, material, logger, randomFloat, randomSeed]
 
     def makeRandomVectorsAndBuffers(self, N):
         rng = np.random.default_rng()
@@ -39,7 +45,8 @@ class TestOpenCLKernels(unittest.TestCase):
         randomErValues = np.append(randomErValues, float4AddOn, axis=1)
         randomErValuesFloat4 = [cl.cltypes.make_float4(*randomErValues[i, :]) for i in range(N)]
         HOST_ErVectors = np.array(randomErValuesFloat4, dtype=cl.cltypes.float4)
-        DEVICE_ErVectors = cl.Buffer(self.ctx, self.mf.READ_WRITE | self.mf.COPY_HOST_PTR, hostbuf=HOST_ErVectors)
+        DEVICE_ErVectors = cl.Buffer(self.ctx, cl.mem_flags.READ_WRITE | cl.mem_flags.COPY_HOST_PTR,
+                                     hostbuf=HOST_ErVectors)
         return CPU_VectorEr, HOST_ErVectors, DEVICE_ErVectors
 
     def makeRandomScalarsAndBuffers(self, N):
@@ -47,7 +54,8 @@ class TestOpenCLKernels(unittest.TestCase):
         randomScalarValues = rng.uniform(low=0.0000, high=1.0, size=N)
         CPU_scalarValues = [np.float32(randomScalarValues[i]) for i in range(N)]
         HOST_ScalarValues = np.array(randomScalarValues, dtype=np.float32)
-        DEVICE_ScalarValues = cl.Buffer(self.ctx, self.mf.READ_WRITE | self.mf.COPY_HOST_PTR, hostbuf=HOST_ScalarValues)
+        DEVICE_ScalarValues = cl.Buffer(self.ctx, cl.mem_flags.READ_WRITE | cl.mem_flags.COPY_HOST_PTR,
+                                        hostbuf=HOST_ScalarValues)
         return CPU_scalarValues, HOST_ScalarValues, DEVICE_ScalarValues
 
     @staticmethod
@@ -73,11 +81,12 @@ class TestOpenCLKernels(unittest.TestCase):
         g = 0.8
         CPU_rndValues, HOST_rndValues, DEVICE_rndValues = self.makeRandomScalarsAndBuffers(N)
         HOST_angleResults = np.zeros(N, dtype=np.float32)
-        DEVICE_angleResults = cl.Buffer(self.ctx, self.mf.READ_WRITE | self.mf.COPY_HOST_PTR, hostbuf=HOST_angleResults)
+        DEVICE_angleResults = cl.Buffer(self.ctx, cl.mem_flags.READ_WRITE | cl.mem_flags.COPY_HOST_PTR,
+                                        hostbuf=HOST_angleResults)
 
         CPU_angleResults = np.array([self.getScatteringTheta(rndValue, g) for rndValue in CPU_rndValues])
 
-        self.program.getScatteringAngleThetaKernel(self.queue, HOST_rndValues.shape, None, DEVICE_angleResults, DEVICE_rndValues,  np.float32(g))
+        self.program._program.getScatteringAngleThetaKernel(self.queue, HOST_rndValues.shape, None, DEVICE_angleResults, DEVICE_rndValues,  np.float32(g))
         cl.enqueue_copy(self.queue, HOST_angleResults, DEVICE_angleResults)
 
         GPU_angleResults = HOST_angleResults
@@ -88,11 +97,12 @@ class TestOpenCLKernels(unittest.TestCase):
         N = 500
         CPU_rndValues, HOST_rndValues, DEVICE_rndValues = self.makeRandomScalarsAndBuffers(N)
         HOST_angleResults = np.zeros(N, dtype=np.float32)
-        DEVICE_angleResults = cl.Buffer(self.ctx, self.mf.READ_WRITE | self.mf.COPY_HOST_PTR, hostbuf=HOST_angleResults)
+        DEVICE_angleResults = cl.Buffer(self.ctx, cl.mem_flags.READ_WRITE | cl.mem_flags.COPY_HOST_PTR,
+                                        hostbuf=HOST_angleResults)
 
         CPU_angleResults = np.array([rndValue * 2 * np.pi for rndValue in CPU_rndValues])
 
-        self.program.getScatteringAnglePhiKernel(self.queue, HOST_rndValues.shape, None, DEVICE_angleResults, DEVICE_rndValues)
+        self.program._program.getScatteringAnglePhiKernel(self.queue, HOST_rndValues.shape, None, DEVICE_angleResults, DEVICE_rndValues)
         cl.enqueue_copy(self.queue, HOST_angleResults, DEVICE_angleResults)
 
         GPU_angleResults = HOST_angleResults
@@ -104,11 +114,12 @@ class TestOpenCLKernels(unittest.TestCase):
         mu_t = 30.1
         CPU_rndValues, HOST_rndValues, DEVICE_rndValues = self.makeRandomScalarsAndBuffers(N)
         HOST_distanceResults = np.zeros(N, dtype=np.float32)
-        DEVICE_distanceResults = cl.Buffer(self.ctx, self.mf.READ_WRITE | self.mf.COPY_HOST_PTR, hostbuf=HOST_distanceResults)
+        DEVICE_distanceResults = cl.Buffer(self.ctx, cl.mem_flags.READ_WRITE | cl.mem_flags.COPY_HOST_PTR,
+                                           hostbuf=HOST_distanceResults)
 
         CPU_distanceResults = np.array([self.getScatteringDistance(rndValue, mu_t) for rndValue in CPU_rndValues])
 
-        self.program.getScatteringDistanceKernel(self.queue, HOST_rndValues.shape, None, DEVICE_distanceResults, DEVICE_rndValues,  np.float32(mu_t))
+        self.program._program.getScatteringDistanceKernel(self.queue, HOST_rndValues.shape, None, DEVICE_distanceResults, DEVICE_rndValues,  np.float32(mu_t))
         cl.enqueue_copy(self.queue, HOST_distanceResults, DEVICE_distanceResults)
 
         GPU_distanceResults = HOST_distanceResults
@@ -127,7 +138,7 @@ class TestOpenCLKernels(unittest.TestCase):
             vector.rotateAround(CPU_AxisVectors[i], CPU_PhiValues[i])
         CPU_VectorErResults = np.array([[vector.x, vector.y, vector.z] for vector in CPU_ErVectors])
 
-        self.program.rotateAroundAxisGlobalKernel(self.queue, HOST_AxisVectors.shape, None, DEVICE_ErVectors, DEVICE_AxisVectors, DEVICE_PhiValues)
+        self.program._program.rotateAroundAxisGlobalKernel(self.queue, HOST_AxisVectors.shape, None, DEVICE_ErVectors, DEVICE_AxisVectors, DEVICE_PhiValues)
         cl.enqueue_copy(self.queue, HOST_ErVectors, DEVICE_ErVectors)
 
         GPU_VectorErResults = rfn.structured_to_unstructured(HOST_ErVectors)
@@ -139,7 +150,7 @@ class TestOpenCLKernels(unittest.TestCase):
         N = 300
         CPU_VectorEr, HOST_ErVectors, DEVICE_ErVectors = self.makeRandomVectorsAndBuffers(N)
 
-        self.program.normalizeVectorGlobalKernel(self.queue, HOST_ErVectors.shape, None, DEVICE_ErVectors)
+        self.program._program.normalizeVectorGlobalKernel(self.queue, HOST_ErVectors.shape, None, DEVICE_ErVectors)
         cl.enqueue_copy(self.queue, HOST_ErVectors, DEVICE_ErVectors)
 
         GPU_VectorErResults = rfn.structured_to_unstructured(HOST_ErVectors)
@@ -159,7 +170,7 @@ class TestOpenCLKernels(unittest.TestCase):
         HOST_randomFloat = np.empty(N, dtype=cl.cltypes.float)
         DEVICE_randomFloat = cl.Buffer(self.ctx, cl.mem_flags.READ_WRITE | cl.mem_flags.COPY_HOST_PTR,
                                        hostbuf=HOST_randomFloat)
-        self.program.fillRandomFloatBuffer(self.queue, (N,), None, DEVICE_randomSeed, DEVICE_randomFloat)
+        self.program._program.fillRandomFloatBuffer(self.queue, (N,), None, DEVICE_randomSeed, DEVICE_randomFloat)
         cl.enqueue_copy(self.queue, HOST_randomFloat, DEVICE_randomFloat)
 
         plt.imshow(HOST_randomFloat.reshape((1000, 1000)))
