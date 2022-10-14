@@ -27,7 +27,7 @@ class CLObject:
             self._dtype = cl.tools.get_or_register_dtype(self._name, cl_struct)
 
         self._HOST_buffer = self._getHostBuffer()
-        self._DEVICE_buffer = cl.Buffer(context, cl.mem_flags.READ_WRITE | cl.mem_flags.COPY_HOST_PTR,
+        self._DEVICE_buffer = cl.Buffer(context, cl.mem_flags.READ_WRITE | cl.mem_flags.USE_HOST_PTR,
                                         hostbuf=self._HOST_buffer)
 
     def _getHostBuffer(self) -> np.ndarray:
