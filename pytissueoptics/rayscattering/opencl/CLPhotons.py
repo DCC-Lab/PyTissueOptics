@@ -50,8 +50,9 @@ class CLPhotons:
         program = CLProgram(sourcePath=PROPAGATION_SOURCE_PATH)
 
         t0 = time.time_ns()
+        maxInteractions = np.uint32(self._requiredLoggerSize // self._N)
         program.launchKernel(kernelName='propagate', N=self._N,
-                             arguments=[self._N, self._weightThreshold,
+                             arguments=[self._N, maxInteractions, self._weightThreshold,
                                         photons, material, logger, randomFloat, randomSeed])
         log = program.getData(logger)
         t1 = time.time_ns()

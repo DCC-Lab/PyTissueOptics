@@ -72,7 +72,7 @@ float propagateStep(float distance, uint gid, uint logIndex,
     return distanceLeft;
 }
 
-__kernel void propagate(uint dataSize, float weightThreshold,
+__kernel void propagate(uint dataSize, uint maxInteractions, float weightThreshold,
                         __global photonStruct *photons, __constant materialStruct *materials, __global loggerStruct *logger,
                         __global float *randomNums, __global uint *seedBuffer){
     uint gid = get_global_id(0);
@@ -84,6 +84,11 @@ __kernel void propagate(uint dataSize, float weightThreshold,
     float distance = 0;
 
     while (photons[gid].weight >= weightThreshold){
+        if (stepIndex == maxInteractions){
+            printf("Warning: Out of logger memory for photon %d who could not propagate totally.\n", gid);
+            break;
+        }
+
         logIndex = gid + stepIndex * dataSize;
         distance = propagateStep(distance, gid, logIndex,
                                 photons, materials, logger, randomNums, seedBuffer);
