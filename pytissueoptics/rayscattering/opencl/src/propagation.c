@@ -34,13 +34,16 @@ void scatter(uint gid, uint logIndex,
     interact(photons, materials, logger, gid, logIndex);
 }
 
-void roulette(__global photonStruct *photons, __global uint * randomSeedBuffer, uint gid){
+void roulette(uint gid, float weightThreshold, __global photonStruct *photons, __global uint * randomSeedBuffer){
+    if (photons[gid].weight >= weightThreshold){
+        return;
+    }
     float randomFloat = getRandomFloatValue(randomSeedBuffer, gid);
-    if (randomFloat < 0.1f){
-        photons[gid].weight /= 0.1f;
+    if (randomFloat < 0.1){
+        photons[gid].weight /= 0.1;
     }
     else{
-        photons[gid].weight = 0.0f;
+        photons[gid].weight = 0;
     }
 }
 
@@ -83,7 +86,7 @@ __kernel void propagate(uint dataSize, uint maxInteractions, float weightThresho
 
     float distance = 0;
 
-    while (photons[gid].weight >= weightThreshold){
+    while (photons[gid].weight != 0){
         if (stepIndex == maxInteractions){
             printf("Warning: Out of logger memory for photon %d who could not propagate totally.\n", gid);
             break;
@@ -92,6 +95,7 @@ __kernel void propagate(uint dataSize, uint maxInteractions, float weightThresho
         logIndex = gid + stepIndex * dataSize;
         distance = propagateStep(distance, gid, logIndex,
                                 photons, materials, logger, randomNums, seedBuffer);
+        roulette(gid, weightThreshold, photons, seedBuffer);
         stepIndex++;
     }
 }

@@ -37,8 +37,11 @@ class CLPhotons:
 
         worldMaterial = environment.material
         self._materials = [worldMaterial]
-        self._requiredLoggerSize = int(-np.log(self._weightThreshold) / worldMaterial.getAlbedo()) * self._N
         self._sceneLogger = logger
+
+        safetyFactor = 1.8
+        avgInteractions = int(-np.log(self._weightThreshold) / worldMaterial.getAlbedo())
+        self._requiredLoggerSize = self._N * int(safetyFactor * avgInteractions)
 
     def propagate(self):
         photons = PhotonCL(self._positions, self._directions)
