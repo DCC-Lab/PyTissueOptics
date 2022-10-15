@@ -1,6 +1,7 @@
 #include "random.c"
 #include "vectorOperators.c"
 #include "scatteringMaterial.c"
+#include "intersection.c"
 
 
 void moveBy(__global Photon *photons, float distance, uint gid){
@@ -47,10 +48,6 @@ void roulette(uint gid, float weightThreshold, __global Photon *photons, __globa
     }
 }
 
-bool getIntersection(float distance) {
-    return false;
-}
-
 float propagateStep(float distance, uint gid, uint logIndex,
            __global Photon *photons, __constant Material *materials, __global DataPoint *logger,
            __global float *randomNumbers, __global uint *seeds){
@@ -62,10 +59,9 @@ float propagateStep(float distance, uint gid, uint logIndex,
 
     float distanceLeft = 0;
 
-    // requires intersection struct instead of bool
-    bool intersects = getIntersection(distance);
+    Intersection intersection = getIntersection(distance);
 
-    if (intersects){
+    if (intersection.status == 1){
 
     } else {
         moveBy(photons, distance, gid);
