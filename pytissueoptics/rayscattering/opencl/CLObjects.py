@@ -58,7 +58,7 @@ class CLObject:
 
 
 class PhotonCL(CLObject):
-    STRUCT_NAME = "photonStruct"
+    STRUCT_NAME = "Photon"
 
     def __init__(self, positions: np.ndarray, directions: np.ndarray, material_id: int = 0):
         self._positions = positions
@@ -86,7 +86,7 @@ class PhotonCL(CLObject):
 
 
 class MaterialCL(CLObject):
-    STRUCT_NAME = "materialStruct"
+    STRUCT_NAME = "Material"
 
     def __init__(self, materials: List[ScatteringMaterial]):
         self._materials = materials
@@ -115,24 +115,24 @@ class MaterialCL(CLObject):
         return buffer
 
 
-class LoggerCL(CLObject):
-    STRUCT_NAME = "loggerStruct"
+class DataPointCL(CLObject):
+    STRUCT_NAME = "DataPoint"
 
     def __init__(self, size: int):
         self._size = size
 
-        loggerStruct = np.dtype(
+        dataPointStruct = np.dtype(
             [("delta_weight", cl.cltypes.float),
              ("x", cl.cltypes.float),
              ("y", cl.cltypes.float),
              ("z", cl.cltypes.float)])
-        super().__init__(name=self.STRUCT_NAME, struct=loggerStruct)
+        super().__init__(name=self.STRUCT_NAME, struct=dataPointStruct)
 
     def _getHostBuffer(self) -> np.ndarray:
         return np.empty(self._size, dtype=self._dtype)
 
 
-class RandomSeedCL(CLObject):
+class SeedCL(CLObject):
     def __init__(self, size: int):
         self._size = size
         super().__init__()
@@ -141,7 +141,7 @@ class RandomSeedCL(CLObject):
         return np.random.randint(low=0, high=2 ** 32 - 1, size=self._size, dtype=cl.cltypes.uint)
 
 
-class RandomFloatCL(CLObject):
+class RandomNumberCL(CLObject):
     def __init__(self, size: int):
         self._size = size
         super().__init__()

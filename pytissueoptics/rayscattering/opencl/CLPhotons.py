@@ -10,7 +10,7 @@ except ImportError:
 import numpy as np
 
 from pytissueoptics.rayscattering.opencl.CLProgram import CLProgram
-from pytissueoptics.rayscattering.opencl.CLObjects import PhotonCL, MaterialCL, LoggerCL, RandomSeedCL, RandomFloatCL
+from pytissueoptics.rayscattering.opencl.CLObjects import PhotonCL, MaterialCL, DataPointCL, SeedCL, RandomNumberCL
 from pytissueoptics.rayscattering.tissues import InfiniteTissue
 from pytissueoptics.rayscattering.tissues.rayScatteringScene import RayScatteringScene
 from pytissueoptics.scene import Logger
@@ -45,10 +45,10 @@ class CLPhotons:
 
     def propagate(self):
         photons = PhotonCL(self._positions, self._directions)
-        material = MaterialCL(self._materials)
-        logger = LoggerCL(size=self._requiredLoggerSize)
-        randomFloat = RandomFloatCL(size=self._N)
-        randomSeed = RandomSeedCL(size=self._N)
+        materials = MaterialCL(self._materials)
+        logger = DataPointCL(size=self._requiredLoggerSize)
+        randomNumbers = RandomNumberCL(size=self._N)
+        seeds = SeedCL(size=self._N)
 
         program = CLProgram(sourcePath=PROPAGATION_SOURCE_PATH)
 
@@ -56,7 +56,7 @@ class CLPhotons:
         maxInteractions = np.uint32(self._requiredLoggerSize // self._N)
         program.launchKernel(kernelName='propagate', N=self._N,
                              arguments=[self._N, maxInteractions, self._weightThreshold,
-                                        photons, material, logger, randomFloat, randomSeed])
+                                        photons, materials, logger, randomNumbers, seeds])
         log = program.getData(logger)
         t1 = time.time_ns()
         print("CLPhotons.propagate: {} s".format((t1 - t0) / 1e9))

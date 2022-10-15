@@ -10,8 +10,8 @@ import matplotlib.pyplot as plt
 from pytissueoptics import ScatteringMaterial
 from pytissueoptics.rayscattering.opencl.CLProgram import CLProgram
 from pytissueoptics.scene import Vector
-from pytissueoptics.rayscattering.opencl.CLObjects import CLObject, PhotonCL, MaterialCL, LoggerCL, RandomFloatCL, \
-    RandomSeedCL
+from pytissueoptics.rayscattering.opencl.CLObjects import CLObject, PhotonCL, MaterialCL, DataPointCL, RandomNumberCL, \
+    SeedCL
 
 execTest = False
 
@@ -32,9 +32,9 @@ class TestOpenCLKernels(unittest.TestCase):
         N = 10
         photons = PhotonCL(np.zeros((N, 3)), np.ones((N, 3)))
         material = MaterialCL([ScatteringMaterial()])
-        logger = LoggerCL(size=N*10)
-        randomFloat = RandomFloatCL(size=N)
-        randomSeed = RandomSeedCL(size=N)
+        logger = DataPointCL(size=N*10)
+        randomFloat = RandomNumberCL(size=N)
+        randomSeed = SeedCL(size=N)
         return [photons, material, logger, randomFloat, randomSeed]
 
     def makeRandomVectorsAndBuffers(self, N):

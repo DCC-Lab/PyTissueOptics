@@ -3,20 +3,20 @@
 #include "scatteringMaterial.c"
 
 
-void moveBy(__global photonStruct *photons, float distance, uint gid){
+void moveBy(__global Photon *photons, float distance, uint gid){
     photons[gid].position += (distance * photons[gid].direction);
 }
 
-void scatterBy(__global photonStruct *photons, float phi, float theta, uint gid){
+void scatterBy(__global Photon *photons, float phi, float theta, uint gid){
     rotateAroundAxisGlobal(&photons[gid].er, &photons[gid].direction, phi);
     rotateAroundAxisGlobal(&photons[gid].direction, &photons[gid].er, theta);
 }
 
-void decreaseWeightBy(__global photonStruct *photons, float delta_weight, uint gid){
+void decreaseWeightBy(__global Photon *photons, float delta_weight, uint gid){
     photons[gid].weight -= delta_weight;
 }
 
-void interact(__global photonStruct *photons, __constant materialStruct *materials, __global loggerStruct *logger, uint gid, uint logIndex){
+void interact(__global Photon *photons, __constant Material *materials, __global DataPoint *logger, uint gid, uint logIndex){
     float delta_weight = photons[gid].weight * materials[photons[gid].material_id].albedo;
     decreaseWeightBy(photons, delta_weight, gid);
     logger[logIndex].x = photons[gid].position.x;
@@ -26,15 +26,15 @@ void interact(__global photonStruct *photons, __constant materialStruct *materia
 }
 
 void scatter(uint gid, uint logIndex,
-           __global photonStruct *photons, __constant materialStruct *materials, __global loggerStruct *logger,
-           __global float *randomNums, __global uint *seedBuffer){
-    ScatteringAngles angles = getScatteringAngles(gid, photons, materials, randomNums, seedBuffer);
+           __global Photon *photons, __constant Material *materials, __global DataPoint *logger,
+           __global float *randomNumbers, __global uint *seeds){
+    ScatteringAngles angles = getScatteringAngles(gid, photons, materials, randomNumbers, seeds);
 
     scatterBy(photons, angles.phi, angles.theta, gid);
     interact(photons, materials, logger, gid, logIndex);
 }
 
-void roulette(uint gid, float weightThreshold, __global photonStruct *photons, __global uint * randomSeedBuffer){
+void roulette(uint gid, float weightThreshold, __global Photon *photons, __global uint * randomSeedBuffer){
     if (photons[gid].weight >= weightThreshold){
         return;
     }
@@ -52,12 +52,12 @@ bool getIntersection(float distance) {
 }
 
 float propagateStep(float distance, uint gid, uint logIndex,
-           __global photonStruct *photons, __constant materialStruct *materials, __global loggerStruct *logger,
-           __global float *randomNums, __global uint *seedBuffer){
+           __global Photon *photons, __constant Material *materials, __global DataPoint *logger,
+           __global float *randomNumbers, __global uint *seeds){
     if (distance == 0) {
-        randomNums[gid] = getRandomFloatValue(seedBuffer, gid);
+        randomNumbers[gid] = getRandomFloatValue(seeds, gid);
         float mu_t = materials[photons[gid].material_id].mu_t;
-        distance = getScatteringDistance(randomNums, mu_t, gid);
+        distance = getScatteringDistance(randomNumbers, mu_t, gid);
     }
 
     float distanceLeft = 0;
@@ -69,15 +69,15 @@ float propagateStep(float distance, uint gid, uint logIndex,
 
     } else {
         moveBy(photons, distance, gid);
-        scatter(gid, logIndex, photons, materials, logger, randomNums, seedBuffer);
+        scatter(gid, logIndex, photons, materials, logger, randomNumbers, seeds);
     }
 
     return distanceLeft;
 }
 
 __kernel void propagate(uint dataSize, uint maxInteractions, float weightThreshold,
-                        __global photonStruct *photons, __constant materialStruct *materials, __global loggerStruct *logger,
-                        __global float *randomNums, __global uint *seedBuffer){
+                        __global Photon *photons, __constant Material *materials, __global DataPoint *logger,
+                        __global float *randomNumbers, __global uint *seeds){
     uint gid = get_global_id(0);
     uint stepIndex = 0;
     uint logIndex = 0;
@@ -94,8 +94,8 @@ __kernel void propagate(uint dataSize, uint maxInteractions, float weightThresho
 
         logIndex = gid + stepIndex * dataSize;
         distance = propagateStep(distance, gid, logIndex,
-                                photons, materials, logger, randomNums, seedBuffer);
-        roulette(gid, weightThreshold, photons, seedBuffer);
+                                photons, materials, logger, randomNumbers, seeds);
+        roulette(gid, weightThreshold, photons, seeds);
         stepIndex++;
     }
 }
