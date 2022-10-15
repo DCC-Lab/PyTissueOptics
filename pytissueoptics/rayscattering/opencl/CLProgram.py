@@ -37,10 +37,9 @@ class CLProgram:
             _object.build(self._device, self._context)
 
         typeDeclarations = ''.join([_object.declaration for _object in objects])
-        sourceCode = typeDeclarations + open(self._sourcePath).read()
+        sourceCode = typeDeclarations + self._makeSource(self._sourcePath)
 
-        includeDir = os.path.dirname(self._sourcePath).replace('\\', '/')
-        self._program = cl.Program(self._context, sourceCode).build(options=f"-I {includeDir}")
+        self._program = cl.Program(self._context, sourceCode).build()
 
     def getData(self, _object: CLObject):
         cl.enqueue_copy(self._mainQueue, dest=_object.hostBuffer, src=_object.deviceBuffer)
@@ -52,3 +51,24 @@ class CLProgram:
         for i, device in enumerate(devices):
             print(f"... Device {i}: {device.name} ({device.global_mem_size // 10**6} MB "
                   f"| {device.max_clock_frequency} MHz)")
+
+    @staticmethod
+    def _makeSource(sourcePath) -> str:
+        includeStatement = ''
+
+        libFiles = []
+        with open(sourcePath, 'r') as f:
+            line = f.readline()
+            while line.startswith("#include"):
+                includeStatement += line
+                libFiles.append(line.split()[-1].strip('"'))
+                line = f.readline()
+
+        includeDir = os.path.dirname(sourcePath)
+        sourceCode = ""
+        for libFile in libFiles:
+            sourceCode += open(os.path.join(includeDir, libFile)).read()
+
+        mainCode = open(sourcePath).read()[len(includeStatement):]
+        sourceCode += mainCode
+        return sourceCode
