@@ -50,7 +50,9 @@ void roulette(uint gid, float weightThreshold, __global Photon *photons, __globa
 
 float propagateStep(float distance, uint gid, uint logIndex,
            __global Photon *photons, __constant Material *materials, __global DataPoint *logger,
-           __global float *randomNumbers, __global uint *seeds){
+           __global float *randomNumbers, __global uint *seeds,
+           __global BBoxIntersection *bboxIntersections){
+
     if (distance == 0) {
         randomNumbers[gid] = getRandomFloatValue(seeds, gid);
         float mu_t = materials[photons[gid].material_id].mu_t;
@@ -59,7 +61,8 @@ float propagateStep(float distance, uint gid, uint logIndex,
 
     float distanceLeft = 0;
 
-    Intersection intersection = getIntersection(distance);
+    Ray stepRay = {photons[gid].position, photons[gid].direction, distance};
+    Intersection intersection = findIntersection(stepRay, bboxIntersections, gid);
 
     if (intersection.status == 1){
 
@@ -72,8 +75,9 @@ float propagateStep(float distance, uint gid, uint logIndex,
 }
 
 __kernel void propagate(uint dataSize, uint maxInteractions, float weightThreshold,
-                        __global Photon *photons, __constant Material *materials, __global DataPoint *logger,
-                        __global float *randomNumbers, __global uint *seeds){
+            __global Photon *photons, __constant Material *materials, __global DataPoint *logger,
+            __global float *randomNumbers, __global uint *seeds,
+            __global BBoxIntersection *bboxIntersections){
     uint gid = get_global_id(0);
     uint stepIndex = 0;
     uint logIndex = 0;
@@ -90,7 +94,7 @@ __kernel void propagate(uint dataSize, uint maxInteractions, float weightThresho
 
         logIndex = gid + stepIndex * dataSize;
         distance = propagateStep(distance, gid, logIndex,
-                                photons, materials, logger, randomNumbers, seeds);
+                                photons, materials, logger, randomNumbers, seeds, bboxIntersections);
         roulette(gid, weightThreshold, photons, seeds);
         stepIndex++;
     }
