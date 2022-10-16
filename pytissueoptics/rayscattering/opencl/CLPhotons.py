@@ -33,9 +33,6 @@ class CLPhotons:
         self._sceneLogger = None
 
     def setContext(self, scene: RayScatteringScene, environment: Environment, logger: Logger = None):
-        if type(scene) is not InfiniteTissue:
-            raise TypeError("OpenCL propagation is only supported for InfiniteTissue for the moment.")
-
         worldMaterial = environment.material
         self._materials = [worldMaterial]
         self._sceneLogger = logger
