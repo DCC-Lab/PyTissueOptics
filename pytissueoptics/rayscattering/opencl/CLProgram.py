@@ -22,14 +22,16 @@ class CLProgram:
 
     def launchKernel(self, kernelName: str, N: int, arguments: list):
         t0 = time.time()
-        self._build(objects=[x for x in arguments if isinstance(x, CLObject)])
-        sizeOnDevice = sum([x.hostBuffer.nbytes for x in arguments if isinstance(x, CLObject)])
-        arguments = [x.deviceBuffer if isinstance(x, CLObject) else x for x in arguments]
+        CLObjects = [arg for arg in arguments if isinstance(arg, CLObject)]
+        self._build(CLObjects)
+        sizeOnDevice = sum([x.hostBuffer.nbytes for x in CLObjects])
+        buffers = self._extractBuffers(arguments)
         t1 = time.time()
         print(f" ... {t1 - t0:.3f} s. [Build]")
+
         kernel = getattr(self._program, kernelName)
         try:
-            kernel(self._mainQueue, (N,), None, *arguments)
+            kernel(self._mainQueue, (N,), None, *buffers)
         except cl.MemoryError:
             raise MemoryError(f"Cannot allocate {sizeOnDevice//10**6} MB of memory on the device; "
                               f"the buffers are too large.")
@@ -77,3 +79,13 @@ class CLProgram:
         mainCode = open(sourcePath).read()[len(includeStatement):]
         sourceCode += mainCode
         return sourceCode
+
+    @staticmethod
+    def _extractBuffers(arguments):
+        buffers = []
+        for arg in arguments:
+            if isinstance(arg, CLObject):
+                buffers.append(arg.deviceBuffer)
+            else:
+                buffers.append(arg)
+        return buffers
