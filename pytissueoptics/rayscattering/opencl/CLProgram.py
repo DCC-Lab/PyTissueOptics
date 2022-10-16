@@ -1,4 +1,5 @@
 import os
+import time
 from typing import List
 
 try:
@@ -20,10 +21,12 @@ class CLProgram:
         self._program = None
 
     def launchKernel(self, kernelName: str, N: int, arguments: list):
+        t0 = time.time()
         self._build(objects=[x for x in arguments if isinstance(x, CLObject)])
         sizeOnDevice = sum([x.hostBuffer.nbytes for x in arguments if isinstance(x, CLObject)])
         arguments = [x.deviceBuffer if isinstance(x, CLObject) else x for x in arguments]
-
+        t1 = time.time()
+        print(f" ... {t1 - t0:.3f} s. [Build]")
         kernel = getattr(self._program, kernelName)
         try:
             kernel(self._mainQueue, (N,), None, *arguments)
@@ -31,6 +34,8 @@ class CLProgram:
             raise MemoryError(f"Cannot allocate {sizeOnDevice//10**6} MB of memory on the device; "
                               f"the buffers are too large.")
         self._mainQueue.finish()
+        t2 = time.time()
+        print(f" ... {t2 - t1:.3f} s. [Kernel execution]")
 
     def _build(self, objects: List[CLObject]):
         for _object in objects:

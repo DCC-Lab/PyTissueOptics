@@ -45,6 +45,7 @@ class CLPhotons:
         self._requiredLoggerSize = self._N * int(safetyFactor * avgInteractions)
 
     def propagate(self):
+        t0 = time.time()
         photons = PhotonCL(self._positions, self._directions)
         materials = MaterialCL(self._materials)
         logger = DataPointCL(size=self._requiredLoggerSize)
@@ -54,15 +55,19 @@ class CLPhotons:
 
         program = CLProgram(sourcePath=PROPAGATION_SOURCE_PATH)
 
-        t0 = time.time_ns()
+        t1 = time.time()
+        print(f"OpenCL Propagation Timer: \n ... {t1 - t0:.3f} s. [CLObjects initialization]")
         maxInteractions = np.uint32(self._requiredLoggerSize // self._N)
         program.launchKernel(kernelName='propagate', N=self._N,
                              arguments=[self._N, maxInteractions, self._weightThreshold,
                                         photons, materials, logger, randomNumbers, seeds,
                                         bboxIntersections])
+        t2 = time.time()
         log = program.getData(logger)
-        t1 = time.time_ns()
-        print("CLPhotons.propagate: {} s".format((t1 - t0) / 1e9))
-
+        t3 = time.time()
+        print(f" ... {t3 - t2:.3f} s. [CL logger copy]")
         if self._sceneLogger:
             self._sceneLogger.logDataPointArray(log, InteractionKey("universe", None))
+        t4 = time.time()
+        print(f" ... {t4 - t3:.3f} s. [Transfer to scene logger]")
+        print(f">>> ({t4 - t0:.3f} s.)")
