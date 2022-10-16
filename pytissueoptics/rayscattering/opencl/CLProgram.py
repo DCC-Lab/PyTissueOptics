@@ -61,23 +61,15 @@ class CLProgram:
 
     @staticmethod
     def _makeSource(sourcePath) -> str:
-        includeStatement = ''
-
-        libFiles = []
+        includeDir = os.path.dirname(sourcePath)
+        sourceCode = ''
         with open(sourcePath, 'r') as f:
             line = f.readline()
             while line.startswith("#include"):
-                includeStatement += line
-                libFiles.append(line.split()[-1].strip('"'))
+                libFileName = line.split('"')[1]
+                sourceCode += open(os.path.join(includeDir, libFileName)).read()
                 line = f.readline()
-
-        includeDir = os.path.dirname(sourcePath)
-        sourceCode = ""
-        for libFile in libFiles:
-            sourceCode += open(os.path.join(includeDir, libFile)).read()
-
-        mainCode = open(sourcePath).read()[len(includeStatement):]
-        sourceCode += mainCode
+            sourceCode += f.read()
         return sourceCode
 
     @staticmethod
