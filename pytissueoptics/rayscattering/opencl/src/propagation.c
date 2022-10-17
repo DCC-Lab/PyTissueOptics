@@ -3,42 +3,44 @@
 #include "scatteringMaterial.c"
 
 
-void moveBy(__global Photon *photons, float distance, uint gid){
+void moveBy(float distance, __global Photon *photons, uint gid){
     photons[gid].position += (distance * photons[gid].direction);
 }
 
-void scatterBy(__global Photon *photons, float phi, float theta, uint gid){
+void scatterBy(float phi, float theta, __global Photon *photons, uint gid){
     rotateAroundAxisGlobal(&photons[gid].er, &photons[gid].direction, phi);
     rotateAroundAxisGlobal(&photons[gid].direction, &photons[gid].er, theta);
 }
 
-void decreaseWeightBy(__global Photon *photons, float delta_weight, uint gid){
+void decreaseWeightBy(float delta_weight, __global Photon *photons,  uint gid){
     photons[gid].weight -= delta_weight;
 }
 
-void interact(__global Photon *photons, __constant Material *materials, __global DataPoint *logger, uint gid, uint logIndex){
+void interact(__global Photon *photons, __constant Material *materials, __global DataPoint *logger,
+              uint logIndex, uint gid){
     float delta_weight = photons[gid].weight * materials[photons[gid].material_id].albedo;
-    decreaseWeightBy(photons, delta_weight, gid);
+    decreaseWeightBy(delta_weight, photons, gid);
     logger[logIndex].x = photons[gid].position.x;
     logger[logIndex].y = photons[gid].position.y;
     logger[logIndex].z = photons[gid].position.z;
     logger[logIndex].delta_weight = delta_weight;
 }
 
-void scatter(uint gid, uint logIndex,
-           __global Photon *photons, __constant Material *materials, __global DataPoint *logger,
-           __global float *randomNumbers, __global uint *seeds){
-    ScatteringAngles angles = getScatteringAngles(gid, photons, materials, randomNumbers, seeds);
+void scatter(__global Photon *photons, __constant Material *materials, __global uint *seeds, __global DataPoint *logger,
+             uint logIndex, uint gid){
 
-    scatterBy(photons, angles.phi, angles.theta, gid);
-    interact(photons, materials, logger, gid, logIndex);
+    float rndPhi = getRandomFloatValue(seeds, gid);
+    float rndTheta = getRandomFloatValue(seeds, gid);
+    ScatteringAngles angles = getScatteringAngles(rndPhi, rndTheta, photons, materials, gid);
+    scatterBy(angles.phi, angles.theta, photons, gid);
+    interact(photons, materials, logger, logIndex, gid);
 }
 
-void roulette(uint gid, float weightThreshold, __global Photon *photons, __global uint * randomSeedBuffer){
+void roulette(float weightThreshold, __global Photon *photons, __global uint *seeds, uint gid){
     if (photons[gid].weight >= weightThreshold){
         return;
     }
-    float randomFloat = getRandomFloatValue(randomSeedBuffer, gid);
+    float randomFloat = getRandomFloatValue(seeds, gid);
     if (randomFloat < 0.1){
         photons[gid].weight /= 0.1;
     }
@@ -51,13 +53,13 @@ bool getIntersection(float distance) {
     return false;
 }
 
-float propagateStep(float distance, uint gid, uint logIndex,
-           __global Photon *photons, __constant Material *materials, __global DataPoint *logger,
-           __global float *randomNumbers, __global uint *seeds){
+float propagateStep(float distance, __global Photon *photons, __constant Material *materials, __global uint *seeds,
+                    __global DataPoint *logger, uint logIndex, uint gid){
+
     if (distance == 0) {
-        randomNumbers[gid] = getRandomFloatValue(seeds, gid);
         float mu_t = materials[photons[gid].material_id].mu_t;
-        distance = getScatteringDistance(randomNumbers, mu_t, gid);
+        float randomNumber = getRandomFloatValue(seeds, gid);
+        distance = getScatteringDistance(mu_t, randomNumber);
     }
 
     float distanceLeft = 0;
@@ -68,16 +70,15 @@ float propagateStep(float distance, uint gid, uint logIndex,
     if (intersects){
 
     } else {
-        moveBy(photons, distance, gid);
-        scatter(gid, logIndex, photons, materials, logger, randomNumbers, seeds);
+        moveBy(distance, photons, gid);
+        scatter(photons, materials, seeds, logger, logIndex, gid);
     }
 
     return distanceLeft;
 }
 
-__kernel void propagate(uint dataSize, uint maxInteractions, float weightThreshold,
-                        __global Photon *photons, __constant Material *materials, __global DataPoint *logger,
-                        __global float *randomNumbers, __global uint *seeds){
+__kernel void propagate(uint dataSize, uint maxInteractions, float weightThreshold, __global Photon *photons,
+                        __constant Material *materials, __global uint *seeds, __global DataPoint *logger){
     uint gid = get_global_id(0);
     uint stepIndex = 0;
     uint logIndex = 0;
@@ -93,9 +94,8 @@ __kernel void propagate(uint dataSize, uint maxInteractions, float weightThresho
         }
 
         logIndex = gid + stepIndex * dataSize;
-        distance = propagateStep(distance, gid, logIndex,
-                                photons, materials, logger, randomNumbers, seeds);
-        roulette(gid, weightThreshold, photons, seeds);
+        distance = propagateStep(distance, photons, materials, seeds, logger, logIndex, gid);
+        roulette(weightThreshold, photons, seeds, gid);
         stepIndex++;
     }
 }

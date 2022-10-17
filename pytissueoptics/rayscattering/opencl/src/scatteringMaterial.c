@@ -4,51 +4,49 @@ struct ScatteringAngles {
 
 typedef struct ScatteringAngles ScatteringAngles;
 
-float getScatteringDistance(__global float * randomNumbers, float mu_t, uint gid){
-    return -log(randomNumbers[gid]) / mu_t;
+float getScatteringDistance(float mu_t, float randomNumber){
+    return -log(randomNumber) / mu_t;
 }
 
-float getScatteringAnglePhi(__global float * randomNumbers, uint gid){
-    float phi = 2.0f * M_PI * randomNumbers[gid];
+float getScatteringAnglePhi(float randomNumber){
+    float phi = 2.0f * M_PI * randomNumber;
     return phi;
 }
 
-float getScatteringAngleTheta(__global float * randomNumbers, float g, uint gid){
+float getScatteringAngleTheta(float g, float randomNumber){
     if (g == 0){
-        return acos(2.0f * randomNumbers[gid] - 1.0f);
+        return acos(2.0f * randomNumber - 1.0f);
     }
     else{
-        float temp = (1.0f - g * g) / (1 - g + 2 * g * randomNumbers[gid]);
+        float temp = (1.0f - g * g) / (1 - g + 2 * g * randomNumber);
         return acos((1.0f + g * g - temp * temp) / (2 * g));
     }
 }
 
-ScatteringAngles getScatteringAngles(uint gid,
-           __global Photon *photons, __constant Material *materials,
-           __global float *randomNumbers, __global uint *seeds)
+ScatteringAngles getScatteringAngles(float rndPhi, float rndTheta,__global Photon *photons,
+                                     __constant Material *materials, uint gid)
 {
     ScatteringAngles angles;
-    randomNumbers[gid] = getRandomFloatValue(seeds, gid);
-    angles.phi = getScatteringAnglePhi(randomNumbers, gid);
-    randomNumbers[gid] = getRandomFloatValue(seeds, gid);
     float g = materials[photons[gid].material_id].g;
-    angles.theta = getScatteringAngleTheta(randomNumbers, g, gid);
+    angles.phi = getScatteringAnglePhi(rndPhi);
+    angles.theta = getScatteringAngleTheta(g, rndTheta);
+
     return angles;
 }
 
 // ----------- Test kernels -----------
 
-__kernel void getScatteringDistanceKernel(__global float * distanceBuffer, __global float * randomNumbers, float mu_t){
-    uint gid = get_global_id(0);
-    distanceBuffer[gid] = getScatteringDistance(randomNumbers, mu_t, gid);
-}
-
-__kernel void getScatteringAnglePhiKernel(__global float * angleBuffer,  __global float * randomNumbers){
-    uint gid = get_global_id(0);
-    angleBuffer[gid] = getScatteringAnglePhi(randomNumbers, gid);
-}
-
-__kernel void getScatteringAngleThetaKernel(__global float * angleBuffer,  __global float * randomNumbers, float g){
-    uint gid = get_global_id(0);
-    angleBuffer[gid] = getScatteringAngleTheta(randomNumbers, g, gid);
-}
+//__kernel void getScatteringDistanceKernel(__global float * distanceBuffer, __global float * randomNumbers, float mu_t){
+//    uint gid = get_global_id(0);
+//    distanceBuffer[gid] = getScatteringDistance(randomNumbers, mu_t, gid);
+//}
+//
+//__kernel void getScatteringAnglePhiKernel(__global float * angleBuffer,  __global float * randomNumbers){
+//    uint gid = get_global_id(0);
+//    angleBuffer[gid] = getScatteringAnglePhi(randomNumbers, gid);
+//}
+//
+//__kernel void getScatteringAngleThetaKernel(__global float * angleBuffer,  __global float * randomNumbers, float g){
+//    uint gid = get_global_id(0);
+//    angleBuffer[gid] = getScatteringAngleTheta(randomNumbers, g, gid);
+//}
