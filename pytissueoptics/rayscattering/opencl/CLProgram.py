@@ -52,6 +52,7 @@ class CLProgram:
             print(f"... Device {i}: {device.name} ({device.global_mem_size // 10**6} MB "
                   f"| {device.max_clock_frequency} MHz)")
 
+
     @staticmethod
     def _makeSource(sourcePath) -> str:
         includeStatement = ''
@@ -72,3 +73,15 @@ class CLProgram:
         mainCode = open(sourcePath).read()[len(includeStatement):]
         sourceCode += mainCode
         return sourceCode
+
+    @property
+    def max_compute_units(self):
+        return self._device.max_compute_units
+
+    @property
+    def max_memory_allocation(self):
+        return self._device.max_mem_alloc_size
+
+    @property
+    def global_memory_size(self):
+        return self._device.global_mem_size

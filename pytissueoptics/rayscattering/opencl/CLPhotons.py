@@ -46,11 +46,37 @@ class CLPhotons:
     def propagate(self):
         photons = PhotonCL(self._positions, self._directions)
         materials = MaterialCL(self._materials)
+
+        program = CLProgram(sourcePath=PROPAGATION_SOURCE_PATH)
+        workUnits = program.max_compute_units
+        totalMemory = program.global_memory_size
+
+        photonsPerUnit = int(self._N / workUnits)
+        photonsPerBatch = 10
+
+        maxLoggerSize = 1500 * 10**6
+        maxInteractions = maxLoggerSize / 16
+        maxInteractionsPerWorkUnit = maxInteractions / workUnits
+        logger = DataPointCL(size=maxInteractions)
+
+        propagatedPhoton = 0
+        tempPhotons = photons.hostBuffer[0:workUnits*photonsPerBatch]
+        print(tempPhotons)
+
+        # while propagatedPhoton < self._N:
+        #     pass
+
+
+
+
+
+
+    def propagateBatch(self):
+
         logger = DataPointCL(size=self._requiredLoggerSize)
         randomNumbers = RandomNumberCL(size=self._N)
         seeds = SeedCL(size=self._N)
 
-        program = CLProgram(sourcePath=PROPAGATION_SOURCE_PATH)
 
         t0 = time.time_ns()
         maxInteractions = np.uint32(self._requiredLoggerSize // self._N)
@@ -63,3 +89,4 @@ class CLPhotons:
 
         if self._sceneLogger:
             self._sceneLogger.logDataPointArray(log, InteractionKey("universe", None))
+
