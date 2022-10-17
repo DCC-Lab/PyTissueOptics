@@ -12,11 +12,12 @@ from numpy.lib import recfunctions as rfn
 
 
 class CLObject:
-    def __init__(self, name: str = None, struct: np.dtype = None):
+    def __init__(self, name: str = None, struct: np.dtype = None, skipDeclaration: bool = False):
         self._name = name
         self._struct = struct
         self._declaration = None
         self._dtype = None
+        self._skipDeclaration = skipDeclaration
 
         self._HOST_buffer = None
         self._DEVICE_buffer = None
@@ -39,7 +40,7 @@ class CLObject:
 
     @property
     def declaration(self) -> str:
-        if not self._declaration:
+        if not self._declaration or self._skipDeclaration:
             return ''
         return self._declaration
 

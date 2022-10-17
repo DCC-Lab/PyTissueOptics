@@ -41,5 +41,14 @@ Intersection findIntersection(Ray ray,
 
     Intersection intersection;
     intersection.status = 0;
+    intersection.distance = 1.5;
     return intersection;
+}
+
+// ----------------- TEST KERNELS -----------------
+
+__kernel void findIntersections(__global Ray *rays, __global BBoxIntersection *bboxIntersections,
+                                uint n_work_units, __global Intersection *intersections) {
+    uint gid = get_global_id(0);
+    intersections[gid] = findIntersection(rays[gid], bboxIntersections, gid);
 }
