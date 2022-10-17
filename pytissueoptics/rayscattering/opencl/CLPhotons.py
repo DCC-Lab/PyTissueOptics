@@ -44,6 +44,31 @@ class CLPhotons:
         self._requiredLoggerSize = self._N * int(safetyFactor * avgInteractions)
 
     def propagate(self):
+        """
+        The propagation code on the CPU must manage dynamic batching of the photons, because the data generated
+        by the photon weight deposition is too large to be handled at once on most of the parallel computing
+        devices. Thus, we calculate the maximum size of the logger from the device total memory and subtract
+        the photon and temporary variable size.
+
+        It is estimated that the maximum speed increase for this purpose will be obtained by using 1 work-group
+        with as many work-item as possible, since all the work-item launch the same kernel. The important metrics here:
+        - photonsPerUnit =  N / workUnits
+        - photonsPerBatch = 10 (A number that needs to be  played with (probably by sending a first batch
+                                and trying to estimate the average interaction per photon)
+        - maxLoggerSize = globalMemorySize - photonSize - geometryObjects - materialsObjects
+        - maxLoggableInteractionsPerUnit = maxLoggerSize / workUnits
+
+        Having the whole body of photons generated on the CPU is fast enough for know, thus
+        (mutable) kernelPhotons = PhotonCL(positions[:kernelSize], directions[:kernelSize])
+        to save space, lets exclude the initial kernel photons from the pool of (remaining) photons
+        (immutable) poolOfPhotons = PhotonCL(positions[kernelSize:], directions[kernelSize:])
+
+        Once a GPU batch as ended, when all the photons had X interactions, the weight of each photon is checked.
+        The photons with a weight of 0 are replaced by photons from the photon pool. The other photons are sent
+        on the gpu again to continue their propagation. A counter keeps count of which photon will be sent next.
+        """
+
+
         photons = PhotonCL(self._positions, self._directions)
         materials = MaterialCL(self._materials)
 
@@ -65,9 +90,6 @@ class CLPhotons:
 
         # while propagatedPhoton < self._N:
         #     pass
-
-
-
 
 
 
