@@ -30,7 +30,9 @@ class TestCLIntersection(unittest.TestCase):
         print("Solid bbox: ", _scene.solids[0].bbox)
         clScene = CLScene(_scene, N)
 
-        rays = RayCL(np.zeros((N, 3)), np.ones((N, 3)), np.full(N, 2.5))
+        rays = RayCL(origins=np.full((N, 3), [0, 0, -2]),
+                     directions=np.full((N, 3), [0, 0, 1]),
+                     lengths=np.full(N, 2.5))
         intersections = IntersectionCL(N)
         workUnits = np.uint32(N)
 
@@ -60,15 +62,15 @@ class TestCLIntersection(unittest.TestCase):
 class RayCL(CLObject):
     STRUCT_NAME = "Ray"
 
-    def __init__(self, origins: np.ndarray, directions: np.ndarray, distances: np.ndarray):
+    def __init__(self, origins: np.ndarray, directions: np.ndarray, lengths: np.ndarray):
         self._origins = origins
         self._directions = directions
-        self._distances = distances
+        self._lengths = lengths
         self._N = origins.shape[0]
 
         struct = np.dtype([("origin", cl.cltypes.float4),
                            ("direction", cl.cltypes.float4),
-                           ("distance", cl.cltypes.float)])
+                           ("length", cl.cltypes.float)])
         super().__init__(name=self.STRUCT_NAME, struct=struct, skipDeclaration=True)
 
     def _getHostBuffer(self) -> np.ndarray:
@@ -76,7 +78,7 @@ class RayCL(CLObject):
         buffer = rfn.structured_to_unstructured(buffer)
         buffer[:, 0:3] = self._origins
         buffer[:, 4:7] = self._directions
-        buffer[:, 8] = self._distances
+        buffer[:, 8] = self._lengths
         buffer = rfn.unstructured_to_structured(buffer, self._dtype)
         return buffer
 
