@@ -26,15 +26,17 @@ class TestCLIntersection(unittest.TestCase):
 
     def testLaunchKernel(self):
         N = 10
-        clScene = CLScene(self._getTestScene(), N)
+        _scene = self._getTestScene()
+        print("Solid bbox: ", _scene.solids[0].bbox)
+        clScene = CLScene(_scene, N)
 
         rays = RayCL(np.zeros((N, 3)), np.ones((N, 3)), np.full(N, 2.5))
         intersections = IntersectionCL(N)
         workUnits = np.uint32(N)
 
         try:
-            self.program.launchKernel("findIntersections", N=N, arguments=[rays, clScene.bboxIntersections, workUnits,
-                                                                           intersections])
+            self.program.launchKernel("findIntersections", N=N, arguments=[workUnits, rays, clScene.solids,
+                                                                           clScene.bboxIntersections, intersections])
         except Exception as e:
             traceback.print_exc(0)
 

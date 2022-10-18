@@ -14,7 +14,6 @@ import numpy as np
 from pytissueoptics.rayscattering.opencl.CLProgram import CLProgram
 from pytissueoptics.rayscattering.opencl.CLObjects import PhotonCL, MaterialCL, DataPointCL, SeedCL, RandomNumberCL, \
     BBoxIntersectionCL
-from pytissueoptics.rayscattering.tissues import InfiniteTissue
 from pytissueoptics.rayscattering.tissues.rayScatteringScene import RayScatteringScene
 from pytissueoptics.scene import Logger
 from pytissueoptics.scene.logger import InteractionKey

@@ -1,5 +1,5 @@
 from pytissueoptics.rayscattering.tissues import RayScatteringScene
-from pytissueoptics.rayscattering.opencl.CLObjects import MaterialCL, BBoxIntersectionCL
+from pytissueoptics.rayscattering.opencl.CLObjects import MaterialCL, BBoxIntersectionCL, SolidCL
 
 
 class CLScene:
@@ -11,8 +11,10 @@ class CLScene:
 
         self.materials = MaterialCL(self._sceneMaterials)
         self.bboxIntersections = BBoxIntersectionCL(nWorkUnits, len(scene.solids))
+        self.solids = SolidCL(scene.solids)
 
         print(f"{len(self._sceneMaterials)} materials and {len(scene.solids)} solids.")
 
     def getMaterialID(self, material):
         return self._sceneMaterials.index(material)
+

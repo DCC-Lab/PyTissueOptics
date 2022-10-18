@@ -1,6 +1,7 @@
 from typing import List, Dict
 
 from pytissueoptics.rayscattering.materials.scatteringMaterial import ScatteringMaterial
+from pytissueoptics.scene.solids import Solid
 
 try:
     import pyopencl as cl
@@ -111,6 +112,29 @@ class MaterialCL(CLObject):
             buffer[i]["g"] = np.float32(material.g)
             buffer[i]["n"] = np.float32(material.n)
             buffer[i]["albedo"] = np.float32(material.getAlbedo())
+        return buffer
+
+
+class SolidCL(CLObject):
+    STRUCT_NAME = "Solid"
+
+    def __init__(self, solids: List[Solid]):
+        self._solids = solids
+
+        struct = np.dtype(
+            [("bbox_min", cl.cltypes.float3),
+             ("bbox_max", cl.cltypes.float3)])
+        super().__init__(name=self.STRUCT_NAME, struct=struct)
+
+    def _getHostBuffer(self) -> np.ndarray:
+        buffer = np.empty(len(self._solids), dtype=self._dtype)
+        for i, solid in enumerate(self._solids):
+            buffer[i]["bbox_min"][0] = np.float32(solid.bbox.xMin)
+            buffer[i]["bbox_min"][1] = np.float32(solid.bbox.yMin)
+            buffer[i]["bbox_min"][2] = np.float32(solid.bbox.zMin)
+            buffer[i]["bbox_max"][0] = np.float32(solid.bbox.xMax)
+            buffer[i]["bbox_max"][1] = np.float32(solid.bbox.yMax)
+            buffer[i]["bbox_max"][2] = np.float32(solid.bbox.zMax)
         return buffer
 
 
