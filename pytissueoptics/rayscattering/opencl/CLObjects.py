@@ -22,13 +22,15 @@ class CLObject:
         self._DEVICE_buffer = None
 
     def build(self, device: 'cl.Device', context):
+        self.make(device)
+        self._DEVICE_buffer = cl.Buffer(context, cl.mem_flags.READ_WRITE | cl.mem_flags.USE_HOST_PTR,
+                                        hostbuf=self._HOST_buffer)
+
+    def make(self, device):
         if self._struct:
             cl_struct, self._declaration = cl.tools.match_dtype_to_c_struct(device, self._name, self._struct)
             self._dtype = cl.tools.get_or_register_dtype(self._name, cl_struct)
-
         self._HOST_buffer = self._getHostBuffer()
-        self._DEVICE_buffer = cl.Buffer(context, cl.mem_flags.READ_WRITE | cl.mem_flags.USE_HOST_PTR,
-                                        hostbuf=self._HOST_buffer)
 
     def _getHostBuffer(self) -> np.ndarray:
         raise NotImplementedError()
@@ -82,6 +84,7 @@ class PhotonCL(CLObject):
         buffer = rfn.unstructured_to_structured(buffer, self._dtype)
         buffer["weight"] = 1.0
         buffer["material_id"] = self._material_id
+        print(type(self._struct), type(self._dtype))
         return buffer
 
 

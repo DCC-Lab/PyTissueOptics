@@ -75,6 +75,10 @@ class CLProgram:
         return sourceCode
 
     @property
+    def device(self):
+        return self._device
+
+    @property
     def max_compute_units(self):
         return self._device.max_compute_units
 

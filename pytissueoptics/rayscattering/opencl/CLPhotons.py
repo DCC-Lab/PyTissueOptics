@@ -71,39 +71,45 @@ class CLPhotons:
         program = CLProgram(sourcePath=PROPAGATION_SOURCE_PATH)
         workUnits = program.max_compute_units
         # totalMemory = program.global_memory_size
-        photonsPerUnit = 10  # to be changed with a scout batch
+        photonsPerUnit = 1000  # to be changed with a scout batch
         kernelSize = photonsPerUnit * workUnits
         maxLoggerSize = 150 * 10 ** 6  # first should be calculated then, to be optimized after the scout batch
-        maxInteractions = maxLoggerSize / 16
+        maxInteractions = np.int32(maxLoggerSize / 16)
         # maxInteractionsPerWorkUnit = maxInteractions / workUnits
 
         kernelPhotons = PhotonCL(self._positions[0:kernelSize], self._directions[0:kernelSize])
         poolOfPhotons = PhotonCL(self._positions[kernelSize:], self._directions[kernelSize:])
-        materials = MaterialCL(self._materials)
+        poolOfPhotons.make(program.device)
 
+        materials = MaterialCL(self._materials)
         seeds = SeedCL(size=kernelSize)
 
         photonCount = 0
         t0 = time.time_ns()
-        while photonCount != self._N:
-            logger = DataPointCL(size=maxLoggerSize)
+        while photonCount <= self._N:
+            logger = DataPointCL(size=100000000)
             t2 = time.time_ns()
             program.launchKernel(kernelName="propagate",
                                  N=np.int32(kernelSize), arguments=[np.int32(kernelSize), np.int32(maxInteractions), self._weightThreshold,
                                                           kernelPhotons, materials, seeds, logger])
             t1 = time.time_ns()
             print(f"CLPhotons.propagate: {kernelSize} in {((t1 - t2) / 1e9)} s")
-            print(f"Total Propagation: {photonCount*100}/{self._N}% in {((t1 - t0) / 1e9)}  s")
+
 
             log = program.getData(logger)
+            print(len(log))
+            # print(sizeof(log))
             if self._sceneLogger:
                 self._sceneLogger.logDataPointArray(log, InteractionKey("universe", None))
-            print(program.getData(kernelPhotons))
+            #print(program.getData(kernelPhotons))
+            #print(np.array(kernelPhotons.hostBuffer)[0]["weight"])
             for i in range(kernelSize):
-                if kernelPhotons.hostBuffer[i].weight == 0:
+                if kernelPhotons.hostBuffer[i]["weight"] == 0:
                     newPhotonsRemaining = photonCount + kernelSize < self._N
                     if newPhotonsRemaining:
                         kernelPhotons.hostBuffer[i] = poolOfPhotons.hostBuffer[photonCount]
+                        # print(kernelPhotons.hostBuffer[i])
                     photonCount += 1
-
+            t3 = time.time_ns()
+            print(f"Total Propagation: {photonCount * 100 / self._N}% in {((t3 - t0) / 1e9)}  s")
 
