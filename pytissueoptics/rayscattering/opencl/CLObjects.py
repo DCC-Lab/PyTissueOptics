@@ -98,8 +98,7 @@ class MaterialCL(CLObject):
              ("mu_t", cl.cltypes.float),
              ("g", cl.cltypes.float),
              ("n", cl.cltypes.float),
-             ("albedo", cl.cltypes.float),
-             ("material_id", cl.cltypes.uint)])
+             ("albedo", cl.cltypes.float)])
         super().__init__(name=self.STRUCT_NAME, struct=materialStruct)
 
     def _getHostBuffer(self) -> np.ndarray:
@@ -112,7 +111,6 @@ class MaterialCL(CLObject):
             buffer[i]["g"] = np.float32(material.g)
             buffer[i]["n"] = np.float32(material.n)
             buffer[i]["albedo"] = np.float32(material.getAlbedo())
-            buffer[i]["material_id"] = np.uint32(i)
         return buffer
 
 
