@@ -111,19 +111,42 @@ void _findBBoxIntersectingSolids(Ray ray, uint nSolids,
     }
 }
 
+void _sortSolidCandidates(__global SolidCandidate *solidCandidates, uint gid, uint nSolids) {
+    for (uint i = 0; i < nSolids; i++) {
+        uint boxGID = gid * nSolids + i;
+        for (uint j = i + 1; j < nSolids; j++) {
+            uint boxGID2 = gid * nSolids + j;
+            if (solidCandidates[boxGID].distance > solidCandidates[boxGID2].distance) {
+                SolidCandidate tmp = solidCandidates[boxGID];
+                solidCandidates[boxGID] = solidCandidates[boxGID2];
+                solidCandidates[boxGID2] = tmp;
+            }
+        }
+    }
+}
+
 Intersection findIntersection(Ray ray, uint nSolids,
         __global Solid *solids, __global SolidCandidate *solidCandidates, uint gid) {
     _findBBoxIntersectingSolids(ray,
                                 nSolids, solids, solidCandidates, gid);
-    // >>> locally sort bboxIntersectionResultBuffer (using kernel gid)
-    // this will require custom sort algo to sort the correct buffer IDs ...
 
-//    for (i=0; i++; i<n_solids){
-//        Intersection intersection = _findClosestPolygonIntersection(ray, solid_id, scene);
-//        if (intersection.status == 1){
-//            return _composeIntersection(ray, intersection);
+    _sortSolidCandidates(solidCandidates, gid, nSolids);
+    for (uint i = 0; i < nSolids; i++) {
+        uint boxGID = gid * nSolids + i;
+        if (solidCandidates[boxGID].distance == -1) {
+            printf("Skipping Solid %d\n", solidCandidates[boxGID].solidID);
+            continue;
+        }
+        uint solidID = solidCandidates[boxGID].solidID;
+        printf("Testing polygons of Solid %d\n", solidID);
+//        Intersection intersection = _findClosestPolygonIntersection(ray, solidID, scene);
+//        if (intersection.status == 1) {
+//            _composeIntersection(ray, intersection);
+//            return intersection;
 //        }
-//    }
+        // todo: handle case with rayInsideSolid (distance == 0), where if no intersection is found, return no intersection.
+        //  unless others already have distance == -1 (not the case)
+    }
 
     Intersection intersection;
     intersection.status = 0;
