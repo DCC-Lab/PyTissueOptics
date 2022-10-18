@@ -20,7 +20,7 @@ material2 = ScatteringMaterial(2, 0.8, 0.8, 1.2)
 layer1 = Cuboid(a=10, b=10, c=2, position=Vector(0, 0, 0), material=material1, label="Layer 1")
 layer2 = Cuboid(a=10, b=10, c=2, position=Vector(0, 0, 0), material=material2, label="Layer 2")
 tissue = layer1.stack(layer2, "back")
-scene = RayScatteringScene([tissue])
+scene = RayScatteringScene([tissue], worldMaterial=ScatteringMaterial())
 
 # scene = InfiniteTissue(material=material1)
 source = PencilPointSource(position=Vector(0, 0, 0), direction=Vector(0, 0, 1), N=10000, useHardwareAcceleration=True)

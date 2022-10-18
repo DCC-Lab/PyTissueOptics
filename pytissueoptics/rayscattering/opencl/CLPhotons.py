@@ -1,6 +1,8 @@
 import os
 import time
 
+from pytissueoptics.rayscattering.opencl.CLScene import CLScene
+
 try:
     import pyopencl as cl
 
@@ -27,28 +29,30 @@ class CLPhotons:
         self._directions = directions
         self._N = np.uint32(N)
         self._weightThreshold = np.float32(weightThreshold)
+        self._initialMaterial = None
 
-        self._materials = None
+        self._scene = None
         self._requiredLoggerSize = None
         self._sceneLogger = None
 
     def setContext(self, scene: RayScatteringScene, environment: Environment, logger: Logger = None):
-        worldMaterial = environment.material
-        self._materials = [worldMaterial]
+        self._scene = scene
         self._sceneLogger = logger
+        self._initialMaterial = environment.material
 
         safetyFactor = 1.8
-        avgInteractions = int(-np.log(self._weightThreshold) / worldMaterial.getAlbedo())
+        avgInteractions = int(-np.log(self._weightThreshold) / self._initialMaterial.getAlbedo())
         self._requiredLoggerSize = self._N * int(safetyFactor * avgInteractions)
 
     def propagate(self):
         t0 = time.time()
-        photons = PhotonCL(self._positions, self._directions)
-        materials = MaterialCL(self._materials)
+
+        scene = CLScene(self._scene, self._N)
+
+        photons = PhotonCL(self._positions, self._directions, material_id=scene.getMaterialID(self._initialMaterial))
         logger = DataPointCL(size=self._requiredLoggerSize)
         randomNumbers = RandomNumberCL(size=self._N)
         seeds = SeedCL(size=self._N)
-        bboxIntersections = BBoxIntersectionCL(1000, 8)
 
         program = CLProgram(sourcePath=PROPAGATION_SOURCE_PATH)
 
@@ -57,8 +61,8 @@ class CLPhotons:
         maxInteractions = np.uint32(self._requiredLoggerSize // self._N)
         program.launchKernel(kernelName='propagate', N=self._N,
                              arguments=[self._N, maxInteractions, self._weightThreshold,
-                                        photons, materials, logger, randomNumbers, seeds,
-                                        bboxIntersections])
+                                        photons, scene.materials, logger, randomNumbers, seeds,
+                                        scene.bboxIntersections])
         t2 = time.time()
         log = program.getData(logger)
         t3 = time.time()
