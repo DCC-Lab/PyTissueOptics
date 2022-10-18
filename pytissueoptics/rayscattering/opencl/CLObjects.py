@@ -185,4 +185,7 @@ class BBoxIntersectionCL(CLObject):
         super().__init__(name=self.STRUCT_NAME, struct=bboxIntersectionStruct)
 
     def _getHostBuffer(self) -> np.ndarray:
-        return np.empty(self._size, dtype=self._dtype)
+        buffer = np.empty(self._size, dtype=self._dtype)
+        buffer["distance"] = -1
+        buffer["solidID"] = 0
+        return buffer

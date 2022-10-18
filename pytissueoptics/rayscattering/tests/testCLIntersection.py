@@ -27,35 +27,35 @@ class TestCLIntersection(unittest.TestCase):
     def testLaunchKernel(self):
         N = 10
         _scene = self._getTestScene()
-        print("Solid bbox: ", _scene.solids[0].bbox)
         clScene = CLScene(_scene, N)
 
         rays = RayCL(origins=np.full((N, 3), [0, 0, -2]),
                      directions=np.full((N, 3), [0, 0, 1]),
                      lengths=np.full(N, 2.5))
         intersections = IntersectionCL(N)
-        workUnits = np.uint32(N)
 
         try:
-            self.program.launchKernel("findIntersections", N=N, arguments=[workUnits, rays, clScene.solids,
+            self.program.launchKernel("findIntersections", N=N, arguments=[clScene.nSolids, rays, clScene.solids,
                                                                            clScene.bboxIntersections, intersections])
         except Exception as e:
             traceback.print_exc(0)
 
-        self.program.getData(intersections)
         self.program.getData(clScene.bboxIntersections)
+        self.program.getData(intersections)
 
-        print(intersections.hostBuffer)
-        print(clScene.bboxIntersections.hostBuffer)
+        print("BBox Intersections: ", clScene.bboxIntersections.hostBuffer)
+        print("Intersections: ", intersections.hostBuffer)
 
     def _getTestScene(self):
         material1 = ScatteringMaterial(0.1, 0.8, 0.8, 1.4)
         material2 = ScatteringMaterial(2, 0.8, 0.8, 1.2)
+        material3 = ScatteringMaterial(0.5, 0.8, 0.8, 1.3)
 
         layer1 = Cuboid(a=10, b=10, c=2, position=Vector(0, 0, 0), material=material1, label="Layer 1")
         layer2 = Cuboid(a=10, b=10, c=2, position=Vector(0, 0, 0), material=material2, label="Layer 2")
         tissue = layer1.stack(layer2, "back")
-        scene = RayScatteringScene([tissue], worldMaterial=ScatteringMaterial())
+        solid2 = Cuboid(2, 2, 2, position=Vector(10, 0, 0), material=material3)
+        scene = RayScatteringScene([tissue, solid2], worldMaterial=ScatteringMaterial())
         return scene
 
 

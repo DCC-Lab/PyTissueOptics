@@ -1,3 +1,5 @@
+import numpy as np
+
 from pytissueoptics.rayscattering.tissues import RayScatteringScene
 from pytissueoptics.rayscattering.opencl.CLObjects import MaterialCL, BBoxIntersectionCL, SolidCL
 
@@ -9,6 +11,7 @@ class CLScene:
     def __init__(self, scene: RayScatteringScene, nWorkUnits: int):
         self._sceneMaterials = scene.getMaterials()
 
+        self.nSolids = np.uint32(len(scene.solids))
         self.materials = MaterialCL(self._sceneMaterials)
         self.bboxIntersections = BBoxIntersectionCL(nWorkUnits, len(scene.solids))
         self.solids = SolidCL(scene.solids)

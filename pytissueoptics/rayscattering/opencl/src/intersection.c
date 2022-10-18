@@ -85,15 +85,29 @@ GemsBoxIntersection _getBBoxIntersection(Ray ray, float3 minCorner, float3 maxCo
     return intersection;
 }
 
-void _findBBoxIntersectingSolids(Ray ray,
+void _findBBoxIntersectingSolids(Ray ray, uint nSolids,
         __global Solid *solids, __global BBoxIntersection *bboxIntersections, uint gid){
 
-    const uint nSolids = sizeof(solids) / 8;
-
+    bool alreadyFound = false;
     for (uint i = 0; i < nSolids; i++) {
-        GemsBoxIntersection bboxIntersection = _getBBoxIntersection(ray, solids[i].bbox_min, solids[i].bbox_max);
+        uint boxGID = gid * nSolids + i;
+        bboxIntersections[boxGID].solidID = i;
+        if (alreadyFound) {
+            bboxIntersections[boxGID].distance = -1;
+            continue;
+        }
+
+        GemsBoxIntersection gemsIntersection = _getBBoxIntersection(ray, solids[i].bbox_min, solids[i].bbox_max);
         printf("Intersection with Solid ID %d : (isInside=%d, exists=%d, position=(%f, %f, %f))\n",
-                i, bboxIntersection.rayIsInside, bboxIntersection.exists, bboxIntersection.position.x, bboxIntersection.position.y, bboxIntersection.position.z);
+                i, gemsIntersection.rayIsInside, gemsIntersection.exists, gemsIntersection.position.x, gemsIntersection.position.y, gemsIntersection.position.z);
+        if (gemsIntersection.rayIsInside) {
+            bboxIntersections[boxGID].distance = 0;
+            alreadyFound = true;
+        } else if (!gemsIntersection.exists) {
+            bboxIntersections[boxGID].distance = -1;
+        } else {
+            bboxIntersections[boxGID].distance = length(gemsIntersection.position - ray.origin.xyz);
+        }
     }
 
     // uint id = gid + solidID * nSolids;
@@ -107,11 +121,11 @@ void _findBBoxIntersectingSolids(Ray ray,
     // for each solid, if no bbox, make sure to reset the result to default 'none'.
 }
 
-Intersection findIntersection(Ray ray,
+Intersection findIntersection(Ray ray, uint nSolids,
         __global Solid *solids, __global BBoxIntersection *bboxIntersections, uint gid) {
     // need BBoxIntersectionResultBuffer of size (n_work_units * n_solids)
     _findBBoxIntersectingSolids(ray,
-                                solids, bboxIntersections, gid);
+                                nSolids, solids, bboxIntersections, gid);
     // >>> locally sort bboxIntersectionResultBuffer (using kernel gid)
     // this will require custom sort algo to sort the correct buffer IDs ...
 
@@ -130,8 +144,8 @@ Intersection findIntersection(Ray ray,
 
 // ----------------- TEST KERNELS -----------------
 
-__kernel void findIntersections(uint n_work_units, __global Ray *rays, __global Solid *solids,
+__kernel void findIntersections(uint nSolids, __global Ray *rays, __global Solid *solids,
         __global BBoxIntersection *bboxIntersections, __global Intersection *intersections) {
     uint gid = get_global_id(0);
-    intersections[gid] = findIntersection(rays[gid], solids, bboxIntersections, gid);
+    intersections[gid] = findIntersection(rays[gid], nSolids, solids, bboxIntersections, gid);
 }
