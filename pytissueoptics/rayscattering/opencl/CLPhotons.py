@@ -12,8 +12,7 @@ except ImportError:
 import numpy as np
 
 from pytissueoptics.rayscattering.opencl.CLProgram import CLProgram
-from pytissueoptics.rayscattering.opencl.CLObjects import PhotonCL, MaterialCL, DataPointCL, SeedCL, RandomNumberCL, \
-    BBoxIntersectionCL
+from pytissueoptics.rayscattering.opencl.CLObjects import PhotonCL, DataPointCL, SeedCL, RandomNumberCL
 from pytissueoptics.rayscattering.tissues.rayScatteringScene import RayScatteringScene
 from pytissueoptics.scene import Logger
 from pytissueoptics.scene.logger import InteractionKey
@@ -61,7 +60,7 @@ class CLPhotons:
         program.launchKernel(kernelName='propagate', N=self._N,
                              arguments=[self._N, maxInteractions, self._weightThreshold,
                                         photons, scene.materials, logger, randomNumbers, seeds,
-                                        scene.bboxIntersections])
+                                        scene.solidCandidates])
         t2 = time.time()
         log = program.getData(logger)
         t3 = time.time()

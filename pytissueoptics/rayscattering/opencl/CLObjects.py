@@ -173,16 +173,16 @@ class RandomNumberCL(CLObject):
         return np.empty(self._size, dtype=cl.cltypes.float)
 
 
-class BBoxIntersectionCL(CLObject):
-    STRUCT_NAME = "BBoxIntersection"
+class SolidCandidateCL(CLObject):
+    STRUCT_NAME = "SolidCandidate"
 
     def __init__(self, nWorkUnits: int, nSolids: int):
         self._size = nWorkUnits * nSolids
 
-        bboxIntersectionStruct = np.dtype(
+        struct = np.dtype(
             [("distance", cl.cltypes.float),
              ("solidID", cl.cltypes.uint)])
-        super().__init__(name=self.STRUCT_NAME, struct=bboxIntersectionStruct)
+        super().__init__(name=self.STRUCT_NAME, struct=struct)
 
     def _getHostBuffer(self) -> np.ndarray:
         buffer = np.empty(self._size, dtype=self._dtype)

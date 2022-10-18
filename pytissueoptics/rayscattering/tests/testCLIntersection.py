@@ -36,14 +36,14 @@ class TestCLIntersection(unittest.TestCase):
 
         try:
             self.program.launchKernel("findIntersections", N=N, arguments=[clScene.nSolids, rays, clScene.solids,
-                                                                           clScene.bboxIntersections, intersections])
+                                                                           clScene.solidCandidates, intersections])
         except Exception as e:
             traceback.print_exc(0)
 
-        self.program.getData(clScene.bboxIntersections)
+        self.program.getData(clScene.solidCandidates)
         self.program.getData(intersections)
 
-        print("BBox Intersections: ", clScene.bboxIntersections.hostBuffer)
+        print("BBox Intersections: ", clScene.solidCandidates.hostBuffer)
         print("Intersections: ", intersections.hostBuffer)
 
     def _getTestScene(self):
