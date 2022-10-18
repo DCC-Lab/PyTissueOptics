@@ -14,15 +14,40 @@ struct Ray {
 
 typedef struct Ray Ray;
 
+struct GemsBoxIntersection {
+    bool rayIsInside;
+    float3 position;
+};
+
+typedef struct GemsBoxIntersection GemsBoxIntersection;
+
+
+GemsBoxIntersection _getBBoxIntersection(Ray ray, float3 minCorner, float3 maxCorner) {
+    GemsBoxIntersection result;
+    result.rayIsInside = false;
+//    result.position = (float3)(0.0f, 0.0f, 0.0f);
+
+    return result;
+}
 
 void _findBBoxIntersectingSolids(Ray ray,
         __global Solid *solids, __global BBoxIntersection *bboxIntersections, uint gid){
+
+    const uint nSolids = sizeof(solids) / 8;
+
+    for (uint i = 0; i < nSolids; i++) {
+        printf("Checking intersection with Solid ID: %d\n", i);
+        GemsBoxIntersection bboxIntersection = _getBBoxIntersection(ray, solids[i].bbox_min, solids[i].bbox_max);
+    }
+
     // uint id = gid + solidID * nSolids;
     uint id = gid;
     bboxIntersections[id].distance = 1.5;
     bboxIntersections[id].solidID = 7;
     printf("nSolids = %d\n", sizeof(solids) / 8);
-    printf("solid bbox = (%.2f, %.2f, %.2f), (%.2f, %.2f, %.2f)\n", solids[0].bbox_min[0], solids[0].bbox_min[1], solids[0].bbox_min[2], solids[0].bbox_max[0], solids[0].bbox_max[1], solids[0].bbox_max[2]);
+    printf("solid bbox = (%.2f, %.2f, %.2f), (%.2f, %.2f, %.2f)\n",
+            solids[0].bbox_min[0], solids[0].bbox_min[1], solids[0].bbox_min[2],
+            solids[0].bbox_max[0], solids[0].bbox_max[1], solids[0].bbox_max[2]);
     // for each solid, if no bbox, make sure to reset the result to default 'none'.
 }
 
