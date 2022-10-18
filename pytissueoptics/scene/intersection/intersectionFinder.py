@@ -71,17 +71,17 @@ class SimpleIntersectionFinder(IntersectionFinder):
 
         # Sorting is not enough since distance can be set multiple times to 0 if the ray is inside multiple BBoxes.
         # We cannot return the first intersection found until all contained solids were equally considered.
-        lastContainedIndex = len([c for c in bboxIntersections if c[0] == 0]) - 1
 
         closestDistance = sys.maxsize
         closestIntersection = None
         for i, (distance, solid) in enumerate(bboxIntersections):
+            contained = distance == 0
+            if not contained and closestIntersection:
+                break
             intersection = self._findClosestPolygonIntersection(ray, solid.getPolygons())
             if intersection and intersection.distance < closestDistance:
                 closestDistance = intersection.distance
                 closestIntersection = intersection
-            if i >= lastContainedIndex and closestIntersection:
-                break
 
         return self._composeIntersection(ray, closestIntersection)
 
