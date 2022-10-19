@@ -54,9 +54,18 @@ class CLObject:
     def hostBuffer(self):
         return self._HOST_buffer
 
+    @hostBuffer.setter
+    def hostBuffer(self, value):
+        if isinstance(value, np.ndarray):
+            self._HOST_buffer = value
+
     @property
     def deviceBuffer(self):
         return self._DEVICE_buffer
+
+    @property
+    def size(self) -> int:
+        return len(self._HOST_buffer)
 
 
 class PhotonCL(CLObject):
@@ -84,7 +93,6 @@ class PhotonCL(CLObject):
         buffer = rfn.unstructured_to_structured(buffer, self._dtype)
         buffer["weight"] = 1.0
         buffer["material_id"] = self._material_id
-        print(type(self._struct), type(self._dtype))
         return buffer
 
 
