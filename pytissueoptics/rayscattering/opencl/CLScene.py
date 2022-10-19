@@ -25,10 +25,13 @@ class CLScene:
                 vertexToID = {id(v): i for i, v in enumerate(solidVertices)}
                 for triangle in surfacePolygons:
                     vertexIDs = [vertexToID[id(v)] for v in triangle.vertices]
-                    trianglesInfo.append(TriangleCLInfo(vertexIDs))
+                    trianglesInfo.append(TriangleCLInfo(vertexIDs, triangle.normal))
 
                 lastPolygonID = len(trianglesInfo) - 1
-                surfacesInfo.append(SurfaceCLInfo(firstPolygonID, lastPolygonID))
+                insideMaterialID = self.getMaterialID(surfacePolygons[0].insideMaterial)
+                outsideMaterialID = self.getMaterialID(surfacePolygons[0].outsideMaterial)
+                surfacesInfo.append(SurfaceCLInfo(firstPolygonID, lastPolygonID,
+                                                  insideMaterialID, outsideMaterialID))
             lastSurfaceID = len(surfacesInfo) - 1
             solidsInfo.append(SolidCLInfo(solid.bbox, firstSurfaceID, lastSurfaceID))
 

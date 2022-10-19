@@ -3,7 +3,8 @@ struct Intersection {
     uint exists;
     float distance;
     float3 position;
-    int polygonID;
+    float3 normal;
+    uint surfaceID;
     float distanceLeft;
 };
 
@@ -182,12 +183,12 @@ Intersection _findClosestPolygonIntersection(Ray ray, uint solidID,
         intersection.distance = INFINITY;
 //        printf("This solid (%d) has %d surfaces (ID %d to %d)\n", solidID, solids[solidID].lastSurfaceID + 1 - solids[solidID].firstSurfaceID,
 //                solids[solidID].firstSurfaceID, solids[solidID].lastSurfaceID);
-        for (uint i = solids[solidID].firstSurfaceID; i <= solids[solidID].lastSurfaceID; i++) {
-//            printf("    Surface %d has %d polygons (ID %d to %d)\n", i, surfaces[i].lastPolygonID + 1 - surfaces[i].firstPolygonID,
-//                    surfaces[i].firstPolygonID, surfaces[i].lastPolygonID);
-            for (uint j = surfaces[i].firstPolygonID; j <= surfaces[i].lastPolygonID; j++) {
-//                printf("        Triangle %d has 3 vertices (ID: %d, %d, %d)\n", j, triangles[j].vertexIDs[0], triangles[j].vertexIDs[1], triangles[j].vertexIDs[2]);
-                uint vertexIDs[3] = {triangles[j].vertexIDs[0], triangles[j].vertexIDs[1], triangles[j].vertexIDs[2]};
+        for (uint s = solids[solidID].firstSurfaceID; s <= solids[solidID].lastSurfaceID; s++) {
+//            printf("    Surface %d has %d polygons (ID %d to %d)\n", s, surfaces[s].lastPolygonID + 1 - surfaces[s].firstPolygonID,
+//                    surfaces[s].firstPolygonID, surfaces[s].lastPolygonID);
+            for (uint p = surfaces[s].firstPolygonID; p <= surfaces[s].lastPolygonID; p++) {
+//                printf("        Triangle %d has 3 vertices (ID: %d, %d, %d)\n", p, triangles[p].vertexIDs[0], triangles[p].vertexIDs[1], triangles[p].vertexIDs[2]);
+                uint vertexIDs[3] = {triangles[p].vertexIDs[0], triangles[p].vertexIDs[1], triangles[p].vertexIDs[2]};
                 HitPoint hitPoint = _getTriangleIntersection(ray, vertices[vertexIDs[0]].position, vertices[vertexIDs[1]].position, vertices[vertexIDs[2]].position);
                 if (!hitPoint.exists) {
                     continue;
@@ -197,7 +198,8 @@ Intersection _findClosestPolygonIntersection(Ray ray, uint solidID,
                     intersection.exists = true;
                     intersection.distance = distance;
                     intersection.position = hitPoint.position;
-                    intersection.polygonID = j;
+                    intersection.normal = triangles[p].normal;
+                    intersection.surfaceID = s;
                 }
             }
         }

@@ -1,8 +1,7 @@
-from typing import List, Dict, NamedTuple, Tuple
+from typing import List, NamedTuple
 
 from pytissueoptics.rayscattering.materials.scatteringMaterial import ScatteringMaterial
-from pytissueoptics.scene.geometry import BoundingBox, Vertex
-from pytissueoptics.scene.solids import Solid
+from pytissueoptics.scene.geometry import BoundingBox, Vertex, Vector
 
 try:
     import pyopencl as cl
@@ -147,7 +146,8 @@ class SolidCL(CLObject):
         return buffer
 
 
-SurfaceCLInfo = NamedTuple("SurfaceInfo", [("firstPolygonID", int), ("lastPolygonID", int)])
+SurfaceCLInfo = NamedTuple("SurfaceInfo", [("firstPolygonID", int), ("lastPolygonID", int),
+                                           ("insideMaterialID", int), ("outsideMaterialID", int)])
 
 
 class SurfaceCL(CLObject):
@@ -158,7 +158,9 @@ class SurfaceCL(CLObject):
 
         struct = np.dtype(
             [("firstPolygonID", cl.cltypes.uint),
-             ("lastPolygonID", cl.cltypes.uint)])
+             ("lastPolygonID", cl.cltypes.uint),
+             ("insideMaterialID", cl.cltypes.uint),
+             ("outsideMaterialID", cl.cltypes.uint)])
         super().__init__(name=self.STRUCT_NAME, struct=struct)
 
     def _getHostBuffer(self) -> np.ndarray:
@@ -166,10 +168,12 @@ class SurfaceCL(CLObject):
         for i, surfaceInfo in enumerate(self._surfacesInfo):
             buffer[i]["firstPolygonID"] = np.uint32(surfaceInfo.firstPolygonID)
             buffer[i]["lastPolygonID"] = np.uint32(surfaceInfo.lastPolygonID)
+            buffer[i]["insideMaterialID"] = np.uint32(surfaceInfo.insideMaterialID)
+            buffer[i]["outsideMaterialID"] = np.uint32(surfaceInfo.outsideMaterialID)
         return buffer
 
 
-TriangleCLInfo = NamedTuple("TriangleInfo", [("vertexIDs", list)])
+TriangleCLInfo = NamedTuple("TriangleInfo", [("vertexIDs", list), ("normal", Vector)])
 
 
 class TriangleCL(CLObject):
@@ -179,7 +183,8 @@ class TriangleCL(CLObject):
         self._trianglesInfo = trianglesInfo
 
         struct = np.dtype(
-            [("vertexIDs", cl.cltypes.uint3)])
+            [("vertexIDs", cl.cltypes.uint3),
+             ("normal", cl.cltypes.float3)])  # todo: if too heavy, remove and compute on the fly with vertices
         super().__init__(name=self.STRUCT_NAME, struct=struct)
 
     def _getHostBuffer(self) -> np.ndarray:
@@ -188,6 +193,9 @@ class TriangleCL(CLObject):
             buffer[i]["vertexIDs"][0] = np.uint32(triangleInfo.vertexIDs[0])
             buffer[i]["vertexIDs"][1] = np.uint32(triangleInfo.vertexIDs[1])
             buffer[i]["vertexIDs"][2] = np.uint32(triangleInfo.vertexIDs[2])
+            buffer[i]["normal"][0] = np.float32(triangleInfo.normal.x)
+            buffer[i]["normal"][1] = np.float32(triangleInfo.normal.y)
+            buffer[i]["normal"][2] = np.float32(triangleInfo.normal.z)
         return buffer
 
 

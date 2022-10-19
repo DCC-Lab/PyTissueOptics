@@ -2,6 +2,7 @@
 #include "vectorOperators.c"
 #include "scatteringMaterial.c"
 #include "intersection.c"
+#include "fresnel.c"
 
 
 void moveBy(__global Photon *photons, float distance, uint gid){
@@ -48,6 +49,23 @@ void roulette(uint gid, float weightThreshold, __global Photon *photons, __globa
     }
 }
 
+float reflectOrRefract(__global Photon *photons, __constant Material *materials,
+        __global Surface *surfaces, Intersection *intersection, uint gid){
+    FresnelIntersection fresnelIntersection = computeFresnelIntersection(photons[gid].direction.xyz, intersection,
+                                                                         materials, surfaces);
+
+    bool isReflected = true;
+
+    if (isReflected) {
+//        reflect(photons, materials, intersection, gid);
+    }
+    else {
+
+    }
+
+    return intersection->distanceLeft;
+}
+
 float propagateStep(float distance, uint gid, uint logIndex,
            __global Photon *photons, __constant Material *materials, __global DataPoint *logger,
            __global float *randomNumbers, __global uint *seeds,
@@ -64,13 +82,15 @@ float propagateStep(float distance, uint gid, uint logIndex,
     Intersection intersection = findIntersection(stepRay, nSolids, solids, surfaces, triangles, vertices,
                                         solidCandidates, gid);
 
-    intersection.exists = false;  // TODO: remove this line (skipping while not implemented)
-
     float distanceLeft = 0;
 
     if (intersection.exists){
-
-
+        printf("Photon %d intersects on surface %d\n", gid, intersection.surfaceID);
+        moveBy(photons, intersection.distance, gid);
+        // todo: add environment info inside surfaceCL
+        // scatter(gid, logIndex, photons, materials, logger, randomNumbers, seeds);
+        // photons[gid].weight = 0;
+        distanceLeft = reflectOrRefract(photons, materials, surfaces, &intersection, gid);
     } else {
         moveBy(photons, distance, gid);
         scatter(gid, logIndex, photons, materials, logger, randomNumbers, seeds);
