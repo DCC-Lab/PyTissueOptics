@@ -49,15 +49,17 @@ void roulette(uint gid, float weightThreshold, __global Photon *photons, __globa
     }
 }
 
+void reflect(__global Photon *photons, FresnelIntersection *fresnelIntersection, uint gid){
+    rotateAround(&photons[gid].direction, &fresnelIntersection->incidencePlane, fresnelIntersection->angleDeflection);
+}
+
 float reflectOrRefract(__global Photon *photons, __constant Material *materials,
         __global Surface *surfaces, Intersection *intersection, uint gid){
     FresnelIntersection fresnelIntersection = computeFresnelIntersection(photons[gid].direction.xyz, intersection,
                                                                          materials, surfaces);
 
-    bool isReflected = true;
-
-    if (isReflected) {
-//        reflect(photons, materials, intersection, gid);
+    if (fresnelIntersection.isReflected) {
+        reflect(photons, &fresnelIntersection, gid);
     }
     else {
 
@@ -85,7 +87,7 @@ float propagateStep(float distance, uint gid, uint logIndex,
     float distanceLeft = 0;
 
     if (intersection.exists){
-        printf("Photon %d intersects on surface %d\n", gid, intersection.surfaceID);
+//        printf("Photon %d intersects on surface %d\n", gid, intersection.surfaceID);
         moveBy(photons, intersection.distance, gid);
         // todo: add environment info inside surfaceCL
         // scatter(gid, logIndex, photons, materials, logger, randomNumbers, seeds);
