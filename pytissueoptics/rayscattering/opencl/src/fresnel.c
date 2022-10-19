@@ -44,15 +44,26 @@ bool _getIsReflected(float nIn, float nOut, float thetaIn) {
     return false;
 }
 
-void _createFresnelIntersection(FresnelIntersection* fresnelIntersection,
-                                float nIn, float nOut, float thetaIn) {
-    bool isReflected = _getIsReflected(nIn, nOut, thetaIn);
-
-    // todo: implement refraction
-    fresnelIntersection->isReflected = true;
-    fresnelIntersection->angleDeflection = 2 * thetaIn - M_PI_F;
+float _getReflectionDeflection(float thetaIn) {
+    return 2 * thetaIn - M_PI_F;
 }
 
+float _getRefractionDeflection(float nIn, float nOut, float thetaIn) {
+    float sinThetaOut = nIn / nOut * sin(thetaIn);
+    float thetaOut = asin(sinThetaOut);
+    return thetaIn - thetaOut;
+}
+
+void _createFresnelIntersection(FresnelIntersection* fresnelIntersection,
+                                float nIn, float nOut, float thetaIn) {
+    fresnelIntersection->isReflected = _getIsReflected(nIn, nOut, thetaIn);
+
+    if (fresnelIntersection->isReflected) {
+        fresnelIntersection->angleDeflection = _getReflectionDeflection(thetaIn);
+    } else {
+        fresnelIntersection->angleDeflection = _getRefractionDeflection(nIn, nOut, thetaIn);
+    }
+}
 
 FresnelIntersection computeFresnelIntersection(float3 rayDirection, Intersection *intersection,
         __constant Material *materials, __global Surface *surfaces) {

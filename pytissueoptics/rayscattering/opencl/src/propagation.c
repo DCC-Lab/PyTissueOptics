@@ -53,6 +53,10 @@ void reflect(__global Photon *photons, FresnelIntersection *fresnelIntersection,
     rotateAround(&photons[gid].direction, &fresnelIntersection->incidencePlane, fresnelIntersection->angleDeflection);
 }
 
+void refract(__global Photon *photons, FresnelIntersection *fresnelIntersection, uint gid){
+    rotateAround(&photons[gid].direction, &fresnelIntersection->incidencePlane, fresnelIntersection->angleDeflection);
+}
+
 float reflectOrRefract(__global Photon *photons, __constant Material *materials,
         __global Surface *surfaces, Intersection *intersection, uint gid){
     FresnelIntersection fresnelIntersection = computeFresnelIntersection(photons[gid].direction.xyz, intersection,
@@ -62,7 +66,19 @@ float reflectOrRefract(__global Photon *photons, __constant Material *materials,
         reflect(photons, &fresnelIntersection, gid);
     }
     else {
+        // todo: logIntersection()
+        refract(photons, &fresnelIntersection, gid);
 
+        float mut1 = materials[photons[gid].material_id].mu_t;
+        float mut2 = materials[fresnelIntersection.nextMaterialID].mu_t;
+        if (mut1 == 0) {
+            intersection->distanceLeft = 0;
+        } else if (mut2 != 0) {
+            intersection->distanceLeft += mut1 / mut2;
+        } else {
+            intersection->distanceLeft = INFINITY;
+        }
+        photons[gid].material_id = fresnelIntersection.nextMaterialID;
     }
 
     return intersection->distanceLeft;
