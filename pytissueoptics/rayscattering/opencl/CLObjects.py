@@ -1,6 +1,7 @@
-from typing import List, Dict
+from typing import List, Dict, NamedTuple
 
 from pytissueoptics.rayscattering.materials.scatteringMaterial import ScatteringMaterial
+from pytissueoptics.scene.geometry import BoundingBox
 from pytissueoptics.scene.solids import Solid
 
 try:
@@ -115,26 +116,56 @@ class MaterialCL(CLObject):
         return buffer
 
 
+SolidCLInfo = NamedTuple("SolidInfo", [("bbox", BoundingBox),
+                                       ("firstSurfaceID", int), ("lastSurfaceID", int)])
+
+
 class SolidCL(CLObject):
     STRUCT_NAME = "Solid"
 
-    def __init__(self, solids: List[Solid]):
-        self._solids = solids
+    def __init__(self, solidsInfo: List[SolidCLInfo]):
+        self._solidsInfo = solidsInfo
 
         struct = np.dtype(
             [("bbox_min", cl.cltypes.float3),
-             ("bbox_max", cl.cltypes.float3)])
+             ("bbox_max", cl.cltypes.float3),
+             ("firstSurfaceID", cl.cltypes.uint),
+             ("lastSurfaceID", cl.cltypes.uint)])
         super().__init__(name=self.STRUCT_NAME, struct=struct)
 
     def _getHostBuffer(self) -> np.ndarray:
-        buffer = np.empty(len(self._solids), dtype=self._dtype)
-        for i, solid in enumerate(self._solids):
-            buffer[i]["bbox_min"][0] = np.float32(solid.bbox.xMin)
-            buffer[i]["bbox_min"][1] = np.float32(solid.bbox.yMin)
-            buffer[i]["bbox_min"][2] = np.float32(solid.bbox.zMin)
-            buffer[i]["bbox_max"][0] = np.float32(solid.bbox.xMax)
-            buffer[i]["bbox_max"][1] = np.float32(solid.bbox.yMax)
-            buffer[i]["bbox_max"][2] = np.float32(solid.bbox.zMax)
+        buffer = np.empty(len(self._solidsInfo), dtype=self._dtype)
+        for i, solidInfo in enumerate(self._solidsInfo):
+            buffer[i]["bbox_min"][0] = np.float32(solidInfo.bbox.xMin)
+            buffer[i]["bbox_min"][1] = np.float32(solidInfo.bbox.yMin)
+            buffer[i]["bbox_min"][2] = np.float32(solidInfo.bbox.zMin)
+            buffer[i]["bbox_max"][0] = np.float32(solidInfo.bbox.xMax)
+            buffer[i]["bbox_max"][1] = np.float32(solidInfo.bbox.yMax)
+            buffer[i]["bbox_max"][2] = np.float32(solidInfo.bbox.zMax)
+            buffer[i]["firstSurfaceID"] = np.uint32(solidInfo.firstSurfaceID)
+            buffer[i]["lastSurfaceID"] = np.uint32(solidInfo.lastSurfaceID)
+        return buffer
+
+
+SurfaceCLInfo = NamedTuple("SurfaceInfo", [("firstPolygonID", int), ("lastPolygonID", int)])
+
+
+class SurfaceCL(CLObject):
+    STRUCT_NAME = "Surface"
+
+    def __init__(self, surfacesInfo: List[SurfaceCLInfo]):
+        self._surfacesInfo = surfacesInfo
+
+        struct = np.dtype(
+            [("firstPolygonID", cl.cltypes.uint),
+             ("lastPolygonID", cl.cltypes.uint)])
+        super().__init__(name=self.STRUCT_NAME, struct=struct)
+
+    def _getHostBuffer(self) -> np.ndarray:
+        buffer = np.empty(len(self._surfacesInfo), dtype=self._dtype)
+        for i, surfaceInfo in enumerate(self._surfacesInfo):
+            buffer[i]["firstPolygonID"] = np.uint32(surfaceInfo.firstPolygonID)
+            buffer[i]["lastPolygonID"] = np.uint32(surfaceInfo.lastPolygonID)
         return buffer
 
 

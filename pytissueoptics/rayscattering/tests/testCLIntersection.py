@@ -29,13 +29,14 @@ class TestCLIntersection(unittest.TestCase):
         _scene = self._getTestScene()
         clScene = CLScene(_scene, N)
 
-        rays = RayCL(origins=np.full((N, 3), [0, 0, -2]),
+        rays = RayCL(origins=np.full((N, 3), [0, 0, -1-6]),
                      directions=np.full((N, 3), [0, 0, 1]),
-                     lengths=np.full(N, 2.5))
+                     lengths=np.full(N, 10))
         intersections = IntersectionCL(N)
 
         try:
             self.program.launchKernel("findIntersections", N=N, arguments=[clScene.nSolids, rays, clScene.solids,
+                                                                           clScene.surfaces,
                                                                            clScene.solidCandidates, intersections])
         except Exception as e:
             traceback.print_exc(0)
