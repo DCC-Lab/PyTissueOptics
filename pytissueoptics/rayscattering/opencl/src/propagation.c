@@ -77,25 +77,28 @@ float propagateStep(float distance, __global Photon *photons, __constant Materia
     return distanceLeft;
 }
 
-__kernel void propagate(uint dataSize, uint maxInteractions, float weightThreshold, __global Photon *photons,
+__kernel void propagate(uint maxPhotons, uint maxInteractions, float weightThreshold, uint workUnitsAmount, __global Photon *photons,
                         __constant Material *materials, __global uint *seeds, __global DataPoint *logger){
     uint gid = get_global_id(0);
-    uint stepIndex = 0;
-    uint logIndex = 0;
+    uint photonCount = 0;
+    uint interactionCount = 0;
     float4 er = getAnyOrthogonalGlobal(&photons[gid].direction);
     photons[gid].er = er;
 
-    float distance = 0;
 
-    while (photons[gid].weight != 0){
-        if (stepIndex == maxInteractions){
-            printf("Warning: Out of logger memory for photon %d who could not propagate totally.\n", gid);
-            break;
-        }
+    while ((interactionCount < maxInteractions) && (photonCount < maxPhotons)){
+        Photon currentPhoton = photons[gid + (photonCount * workUnitsAmount)];
+        float distance = 0;
+        while (currentPhoton.weight != 0){
+            if (interactionCount == maxInteractions){
+                return;}
 
-        logIndex = gid + stepIndex * dataSize;
-        distance = propagateStep(distance, photons, materials, seeds, logger, logIndex, gid);
-        roulette(weightThreshold, photons, seeds, gid);
-        stepIndex++;
+            uint logIndex = gid + (interactionCount * workUnitsAmount);
+            distance = propagateStep(distance, photons, materials, seeds, logger, logIndex, gid);
+            roulette(weightThreshold, photons, seeds, gid);
+            interactionCount++;
+            }
+        photonCount++;
+
     }
 }
