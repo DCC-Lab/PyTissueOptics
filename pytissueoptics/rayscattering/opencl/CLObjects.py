@@ -1,4 +1,4 @@
-from typing import List, Dict, NamedTuple
+from typing import List, Dict, NamedTuple, Tuple
 
 from pytissueoptics.rayscattering.materials.scatteringMaterial import ScatteringMaterial
 from pytissueoptics.scene.geometry import BoundingBox
@@ -166,6 +166,28 @@ class SurfaceCL(CLObject):
         for i, surfaceInfo in enumerate(self._surfacesInfo):
             buffer[i]["firstPolygonID"] = np.uint32(surfaceInfo.firstPolygonID)
             buffer[i]["lastPolygonID"] = np.uint32(surfaceInfo.lastPolygonID)
+        return buffer
+
+
+TriangleCLInfo = NamedTuple("TriangleInfo", [("vertexIDs", list)])
+
+
+class TriangleCL(CLObject):
+    STRUCT_NAME = "Triangle"
+
+    def __init__(self, trianglesInfo: List[TriangleCLInfo]):
+        self._trianglesInfo = trianglesInfo
+
+        struct = np.dtype(
+            [("vertexIDs", cl.cltypes.uint3)])
+        super().__init__(name=self.STRUCT_NAME, struct=struct)
+
+    def _getHostBuffer(self) -> np.ndarray:
+        buffer = np.empty(len(self._trianglesInfo), dtype=self._dtype)
+        for i, triangleInfo in enumerate(self._trianglesInfo):
+            buffer[i]["vertexIDs"][0] = np.uint32(triangleInfo.vertexIDs[0])
+            buffer[i]["vertexIDs"][1] = np.uint32(triangleInfo.vertexIDs[1])
+            buffer[i]["vertexIDs"][2] = np.uint32(triangleInfo.vertexIDs[2])
         return buffer
 
 

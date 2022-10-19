@@ -2,7 +2,7 @@ import numpy as np
 
 from pytissueoptics.rayscattering.tissues import RayScatteringScene
 from pytissueoptics.rayscattering.opencl.CLObjects import MaterialCL, SolidCandidateCL, SolidCL, SolidCLInfo, \
-    SurfaceCLInfo, SurfaceCL
+    SurfaceCLInfo, SurfaceCL, TriangleCLInfo, TriangleCL
 
 
 class CLScene:
@@ -11,15 +11,23 @@ class CLScene:
 
         solidsInfo = []
         surfacesInfo = []
-        polygons = []
+        trianglesInfo = []
+        vertices = []
         for solid in scene.solids:
             firstSurfaceID = len(surfacesInfo)
             for surfaceLabel in solid.surfaceLabels:
-                firstPolygonID = len(polygons)
+                firstPolygonID = len(trianglesInfo)
                 surfacePolygons = solid.getPolygons(surfaceLabel)
-                for polygon in surfacePolygons:
-                    polygons.append(polygon)
-                lastPolygonID = len(polygons) - 1
+
+                solidVertices = solid.getVertices()  # no duplicates in solid.vertices
+                vertices.extend(solidVertices)
+
+                vertexToID = {id(v): i for i, v in enumerate(solidVertices)}
+                for triangle in surfacePolygons:
+                    vertexIDs = [vertexToID[id(v)] for v in triangle.vertices]
+                    trianglesInfo.append(TriangleCLInfo(vertexIDs))
+
+                lastPolygonID = len(trianglesInfo) - 1
                 surfacesInfo.append(SurfaceCLInfo(firstPolygonID, lastPolygonID))
             lastSurfaceID = len(surfacesInfo) - 1
             solidsInfo.append(SolidCLInfo(solid.bbox, firstSurfaceID, lastSurfaceID))
@@ -28,7 +36,8 @@ class CLScene:
         self.materials = MaterialCL(self._sceneMaterials)
         self.solidCandidates = SolidCandidateCL(nWorkUnits, len(scene.solids))
         self.solids = SolidCL(solidsInfo)
-        self.surfaces = SurfaceCL(surfacesInfo)  # todo: send to CL code and check
+        self.surfaces = SurfaceCL(surfacesInfo)
+        self.triangles = TriangleCL(trianglesInfo)
 
         print(f"{len(self._sceneMaterials)} materials and {len(scene.solids)} solids.")
 

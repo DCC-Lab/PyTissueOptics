@@ -36,7 +36,7 @@ class TestCLIntersection(unittest.TestCase):
 
         try:
             self.program.launchKernel("findIntersections", N=N, arguments=[clScene.nSolids, rays, clScene.solids,
-                                                                           clScene.surfaces,
+                                                                           clScene.surfaces, clScene.triangles,
                                                                            clScene.solidCandidates, intersections])
         except Exception as e:
             traceback.print_exc(0)
