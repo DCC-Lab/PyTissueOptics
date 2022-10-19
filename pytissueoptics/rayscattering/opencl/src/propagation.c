@@ -51,7 +51,8 @@ void roulette(uint gid, float weightThreshold, __global Photon *photons, __globa
 float propagateStep(float distance, uint gid, uint logIndex,
            __global Photon *photons, __constant Material *materials, __global DataPoint *logger,
            __global float *randomNumbers, __global uint *seeds,
-           __global BBoxIntersection *bboxIntersections){
+           uint nSolids, __global Solid *solids, __global Surface *surfaces, __global Triangle *triangles,
+            __global Vertex *vertices, __global SolidCandidate *solidCandidates){
 
     if (distance == 0) {
         randomNumbers[gid] = getRandomFloatValue(seeds, gid);
@@ -62,8 +63,10 @@ float propagateStep(float distance, uint gid, uint logIndex,
     float distanceLeft = 0;
 
     Ray stepRay = {photons[gid].position, photons[gid].direction, distance};
-    Intersection intersection = findIntersection(stepRay, bboxIntersections, gid);
+    Intersection intersection = findIntersection(stepRay, nSolids, solids, surfaces, triangles, vertices,
+                                        solidCandidates, gid);
 
+    intersection.status = 0;  // TODO: remove this line (skipping while not implemented)
     if (intersection.status == 1){
 
     } else {
@@ -77,7 +80,9 @@ float propagateStep(float distance, uint gid, uint logIndex,
 __kernel void propagate(uint dataSize, uint maxInteractions, float weightThreshold,
             __global Photon *photons, __constant Material *materials, __global DataPoint *logger,
             __global float *randomNumbers, __global uint *seeds,
-            __global BBoxIntersection *bboxIntersections){
+            uint nSolids, __global Solid *solids, __global Surface *surfaces, __global Triangle *triangles,
+            __global Vertex *vertices, __global SolidCandidate *solidCandidates){
+    // todo: maybe simplify args with SceneStruct with ptrs to ptrs?
     uint gid = get_global_id(0);
     uint stepIndex = 0;
     uint logIndex = 0;
@@ -94,7 +99,8 @@ __kernel void propagate(uint dataSize, uint maxInteractions, float weightThresho
 
         logIndex = gid + stepIndex * dataSize;
         distance = propagateStep(distance, gid, logIndex,
-                                photons, materials, logger, randomNumbers, seeds, bboxIntersections);
+                                photons, materials, logger, randomNumbers, seeds,
+                                nSolids, solids, surfaces, triangles, vertices, solidCandidates);
         roulette(gid, weightThreshold, photons, seeds);
         stepIndex++;
     }

@@ -214,8 +214,8 @@ void _composeIntersection(Intersection *intersection, Ray *ray) {
     intersection->distanceLeft = ray->length - intersection->distance;
 }
 
-Intersection findIntersection(Ray ray, uint nSolids,
-        __global Solid *solids, __global Surface *surfaces, __global Triangle *triangles, __global Vertex *vertices,
+Intersection findIntersection(Ray ray, uint nSolids, __global Solid *solids,
+        __global Surface *surfaces, __global Triangle *triangles, __global Vertex *vertices,
         __global SolidCandidate *solidCandidates, uint gid) {
     _findBBoxIntersectingSolids(ray,
                                 nSolids, solids, solidCandidates, gid);

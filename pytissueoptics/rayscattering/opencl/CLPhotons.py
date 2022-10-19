@@ -60,6 +60,7 @@ class CLPhotons:
         program.launchKernel(kernelName='propagate', N=self._N,
                              arguments=[self._N, maxInteractions, self._weightThreshold,
                                         photons, scene.materials, logger, randomNumbers, seeds,
+                                        scene.nSolids, scene.solids, scene.surfaces, scene.triangles, scene.vertices,
                                         scene.solidCandidates])
         t2 = time.time()
         log = program.getData(logger)
