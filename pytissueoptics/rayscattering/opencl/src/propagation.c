@@ -87,12 +87,9 @@ float propagateStep(float distance, uint gid, uint logIndex,
     float distanceLeft = 0;
 
     if (intersection.exists){
-//        printf("Photon %d intersects on surface %d\n", gid, intersection.surfaceID);
         moveBy(photons, intersection.distance, gid);
-        // todo: add environment info inside surfaceCL
-        // scatter(gid, logIndex, photons, materials, logger, randomNumbers, seeds);
-        // photons[gid].weight = 0;
         distanceLeft = reflectOrRefract(photons, materials, surfaces, &intersection, gid);
+        moveBy(photons, 0.00001f, gid);  // move a little bit to help avoid bad intersection check
     } else {
         moveBy(photons, distance, gid);
         scatter(gid, logIndex, photons, materials, logger, randomNumbers, seeds);

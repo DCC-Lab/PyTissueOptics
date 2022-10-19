@@ -6,7 +6,7 @@ void normalizeVectorLocal(float4 *vector){
         vector->y /= length;
         vector->z /= length;
     }
-    }
+}
 
 void normalizeVectorGlobal(__global float4 *vector){
     float length = sqrt(vector->x * vector->x + vector->y * vector->y + vector->z * vector->z);
