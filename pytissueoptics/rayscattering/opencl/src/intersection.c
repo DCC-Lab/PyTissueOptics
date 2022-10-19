@@ -126,11 +126,48 @@ struct HitPoint {
 
 typedef struct HitPoint HitPoint;
 
-HitPoint _getTriangleIntersection(Ray ray, float3 v0, float3 v1, float3 v2) {
-    printf("Triangle intersection test with v0=(%f, %f, %f), v1=(%f, %f, %f), v2=(%f, %f, %f)\n",
-            v0.x, v0.y, v0.z, v1.x, v1.y, v1.z, v2.x, v2.y, v2.z);
+HitPoint _getTriangleIntersection(Ray ray, float3 v1, float3 v2, float3 v3) {
+    float3 rayDirection = ray.direction.xyz;
+    float3 rayOrigin = ray.origin.xyz;
+    float EPSILON = 0.000001f;
+
     HitPoint hitPoint;
     hitPoint.exists = false;
+
+    float3 edgeA = v2 - v1;
+    float3 edgeB = v3 - v1;
+    float3 pVector = cross(rayDirection, edgeB);
+    float det = dot(edgeA, pVector);
+
+    bool rayIsParallel = fabs(det) < EPSILON;
+    if (rayIsParallel) {
+        return hitPoint;
+    }
+
+    float invDet = 1.0f / det;
+    float3 tVector = rayOrigin - v1;
+    float u = dot(tVector, pVector) * invDet;
+    if (u < 0.0f || u > 1.0f) {
+        return hitPoint;
+    }
+
+    float3 qVector = cross(tVector, edgeA);
+    float v = dot(rayDirection, qVector) * invDet;
+    if (v < 0.0f || u + v > 1.0f) {
+        return hitPoint;
+    }
+
+    float t = dot(edgeB, qVector) * invDet;
+    if (t < EPSILON) {
+        return hitPoint;
+    }
+
+    if (t > ray.length) {
+        return hitPoint;
+    }
+
+    hitPoint.exists = true;
+    hitPoint.position = rayOrigin + t * rayDirection;
     return hitPoint;
 }
 
@@ -140,17 +177,28 @@ Intersection _findClosestPolygonIntersection(Ray ray, uint solidID,
         Intersection intersection;
         intersection.status = 0;
         intersection.distance = INFINITY;
-        printf("This solid (%d) has %d surfaces (ID %d to %d)\n", solidID, solids[solidID].lastSurfaceID + 1 - solids[solidID].firstSurfaceID,
-                solids[solidID].firstSurfaceID, solids[solidID].lastSurfaceID);
+//        printf("This solid (%d) has %d surfaces (ID %d to %d)\n", solidID, solids[solidID].lastSurfaceID + 1 - solids[solidID].firstSurfaceID,
+//                solids[solidID].firstSurfaceID, solids[solidID].lastSurfaceID);
         for (uint i = solids[solidID].firstSurfaceID; i <= solids[solidID].lastSurfaceID; i++) {
-            printf("    Surface %d has %d polygons (ID %d to %d)\n", i, surfaces[i].lastPolygonID + 1 - surfaces[i].firstPolygonID,
-                    surfaces[i].firstPolygonID, surfaces[i].lastPolygonID);
+//            printf("    Surface %d has %d polygons (ID %d to %d)\n", i, surfaces[i].lastPolygonID + 1 - surfaces[i].firstPolygonID,
+//                    surfaces[i].firstPolygonID, surfaces[i].lastPolygonID);
             for (uint j = surfaces[i].firstPolygonID; j <= surfaces[i].lastPolygonID; j++) {
-                printf("        Triangle %d has 3 vertices (ID: %d, %d, %d)\n", j, triangles[j].vertexIDs[0], triangles[j].vertexIDs[1], triangles[j].vertexIDs[2]);
+//                printf("        Triangle %d has 3 vertices (ID: %d, %d, %d)\n", j, triangles[j].vertexIDs[0], triangles[j].vertexIDs[1], triangles[j].vertexIDs[2]);
                 uint vertexIDs[3] = {triangles[j].vertexIDs[0], triangles[j].vertexIDs[1], triangles[j].vertexIDs[2]};
                 HitPoint hitPoint = _getTriangleIntersection(ray, vertices[vertexIDs[0]].position, vertices[vertexIDs[1]].position, vertices[vertexIDs[2]].position);
+                if (!hitPoint.exists) {
+                    continue;
+                }
+                float distance = length(hitPoint.position - ray.origin.xyz);
+                if (distance < intersection.distance) {
+                    intersection.status = 1;
+                    intersection.distance = distance;
+//                    intersection.position = hitPoint.position;
+                }
             }
         }
+
+        printf("Intersection status: %d, distance: %f\n", intersection.status, intersection.distance);
         return intersection;
 }
 
