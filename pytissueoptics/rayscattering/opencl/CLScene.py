@@ -2,7 +2,7 @@ import numpy as np
 
 from pytissueoptics.rayscattering.tissues import RayScatteringScene
 from pytissueoptics.rayscattering.opencl.CLObjects import MaterialCL, SolidCandidateCL, SolidCL, SolidCLInfo, \
-    SurfaceCLInfo, SurfaceCL, TriangleCLInfo, TriangleCL
+    SurfaceCLInfo, SurfaceCL, TriangleCLInfo, TriangleCL, VertexCL
 
 
 class CLScene:
@@ -38,6 +38,7 @@ class CLScene:
         self.solids = SolidCL(solidsInfo)
         self.surfaces = SurfaceCL(surfacesInfo)
         self.triangles = TriangleCL(trianglesInfo)
+        self.vertices = VertexCL(vertices)
 
         print(f"{len(self._sceneMaterials)} materials and {len(scene.solids)} solids.")
 

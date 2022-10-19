@@ -119,8 +119,24 @@ void _sortSolidCandidates(__global SolidCandidate *solidCandidates, uint gid, ui
     }
 }
 
+struct HitPoint {
+    bool exists;
+    float3 position;
+};
+
+typedef struct HitPoint HitPoint;
+
+HitPoint _getTriangleIntersection(Ray ray, float3 v0, float3 v1, float3 v2) {
+    printf("Triangle intersection test with v0=(%f, %f, %f), v1=(%f, %f, %f), v2=(%f, %f, %f)\n",
+            v0.x, v0.y, v0.z, v1.x, v1.y, v1.z, v2.x, v2.y, v2.z);
+    HitPoint hitPoint;
+    hitPoint.exists = false;
+    return hitPoint;
+}
+
 Intersection _findClosestPolygonIntersection(Ray ray, uint solidID,
-                                            __global Solid *solids, __global Surface *surfaces, __global Triangle *triangles) {
+                                            __global Solid *solids, __global Surface *surfaces,
+                                            __global Triangle *triangles, __global Vertex *vertices) {
         Intersection intersection;
         intersection.status = 0;
         intersection.distance = INFINITY;
@@ -131,14 +147,15 @@ Intersection _findClosestPolygonIntersection(Ray ray, uint solidID,
                     surfaces[i].firstPolygonID, surfaces[i].lastPolygonID);
             for (uint j = surfaces[i].firstPolygonID; j <= surfaces[i].lastPolygonID; j++) {
                 printf("        Triangle %d has 3 vertices (ID: %d, %d, %d)\n", j, triangles[j].vertexIDs[0], triangles[j].vertexIDs[1], triangles[j].vertexIDs[2]);
-                // todo: Triangle intersection test (Moeller-Trumbore)
+                uint vertexIDs[3] = {triangles[j].vertexIDs[0], triangles[j].vertexIDs[1], triangles[j].vertexIDs[2]};
+                HitPoint hitPoint = _getTriangleIntersection(ray, vertices[vertexIDs[0]].position, vertices[vertexIDs[1]].position, vertices[vertexIDs[2]].position);
             }
         }
         return intersection;
 }
 
 Intersection findIntersection(Ray ray, uint nSolids,
-        __global Solid *solids, __global Surface *surfaces, __global Triangle *triangles,
+        __global Solid *solids, __global Surface *surfaces, __global Triangle *triangles, __global Vertex *vertices,
         __global SolidCandidate *solidCandidates, uint gid) {
     _findBBoxIntersectingSolids(ray,
                                 nSolids, solids, solidCandidates, gid);
@@ -160,7 +177,7 @@ Intersection findIntersection(Ray ray, uint nSolids,
 
         uint solidID = solidCandidates[boxGID].solidID;
         printf("Testing polygons of Solid %d\n", solidID);
-        Intersection intersection = _findClosestPolygonIntersection(ray, solidID, solids, surfaces, triangles);
+        Intersection intersection = _findClosestPolygonIntersection(ray, solidID, solids, surfaces, triangles, vertices);
         if (intersection.status == 1  && intersection.distance < closestIntersection.distance) {
             closestIntersection = intersection;
         }
@@ -172,7 +189,7 @@ Intersection findIntersection(Ray ray, uint nSolids,
 // ----------------- TEST KERNELS -----------------
 
 __kernel void findIntersections(uint nSolids, __global Ray *rays, __global Solid *solids, __global Surface *surfaces,
-        __global Triangle *triangles, __global SolidCandidate *solidCandidates, __global Intersection *intersections) {
+        __global Triangle *triangles, __global Vertex *vertices, __global SolidCandidate *solidCandidates, __global Intersection *intersections) {
     uint gid = get_global_id(0);
-    intersections[gid] = findIntersection(rays[gid], nSolids, solids, surfaces, triangles, solidCandidates, gid);
+    intersections[gid] = findIntersection(rays[gid], nSolids, solids, surfaces, triangles, vertices, solidCandidates, gid);
 }

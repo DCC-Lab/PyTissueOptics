@@ -1,7 +1,7 @@
 from typing import List, Dict, NamedTuple, Tuple
 
 from pytissueoptics.rayscattering.materials.scatteringMaterial import ScatteringMaterial
-from pytissueoptics.scene.geometry import BoundingBox
+from pytissueoptics.scene.geometry import BoundingBox, Vertex
 from pytissueoptics.scene.solids import Solid
 
 try:
@@ -188,6 +188,25 @@ class TriangleCL(CLObject):
             buffer[i]["vertexIDs"][0] = np.uint32(triangleInfo.vertexIDs[0])
             buffer[i]["vertexIDs"][1] = np.uint32(triangleInfo.vertexIDs[1])
             buffer[i]["vertexIDs"][2] = np.uint32(triangleInfo.vertexIDs[2])
+        return buffer
+
+
+class VertexCL(CLObject):
+    STRUCT_NAME = "Vertex"
+
+    def __init__(self, vertices: List[Vertex]):
+        self._vertices = vertices
+
+        struct = np.dtype(
+            [("position", cl.cltypes.float3)])
+        super().__init__(name=self.STRUCT_NAME, struct=struct)
+
+    def _getHostBuffer(self) -> np.ndarray:
+        buffer = np.empty(len(self._vertices), dtype=self._dtype)
+        for i, vertex in enumerate(self._vertices):
+            buffer[i]["position"][0] = np.float32(vertex.x)
+            buffer[i]["position"][1] = np.float32(vertex.y)
+            buffer[i]["position"][2] = np.float32(vertex.z)
         return buffer
 
 
