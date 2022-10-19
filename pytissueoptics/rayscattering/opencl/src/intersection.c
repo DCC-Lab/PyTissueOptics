@@ -133,7 +133,7 @@ typedef struct HitPoint HitPoint;
 HitPoint _getTriangleIntersection(Ray ray, float3 v1, float3 v2, float3 v3) {
     float3 rayDirection = ray.direction.xyz;
     float3 rayOrigin = ray.origin.xyz;
-    float EPSILON = 0.000001f;
+    float EPSILON = 0.00001f;
 
     HitPoint hitPoint;
     hitPoint.exists = false;
