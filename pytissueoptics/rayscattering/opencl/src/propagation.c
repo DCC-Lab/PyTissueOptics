@@ -60,14 +60,16 @@ float propagateStep(float distance, uint gid, uint logIndex,
         distance = getScatteringDistance(randomNumbers, mu_t, gid);
     }
 
-    float distanceLeft = 0;
-
     Ray stepRay = {photons[gid].position, photons[gid].direction, distance};
     Intersection intersection = findIntersection(stepRay, nSolids, solids, surfaces, triangles, vertices,
                                         solidCandidates, gid);
 
-    intersection.status = 0;  // TODO: remove this line (skipping while not implemented)
-    if (intersection.status == 1){
+    intersection.exists = false;  // TODO: remove this line (skipping while not implemented)
+
+    float distanceLeft = 0;
+
+    if (intersection.exists){
+
 
     } else {
         moveBy(photons, distance, gid);

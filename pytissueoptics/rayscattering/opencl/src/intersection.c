@@ -1,6 +1,6 @@
 
 struct Intersection {
-    int status;
+    uint exists;
     float distance;
     float3 position;
     int polygonID;
@@ -178,7 +178,7 @@ Intersection _findClosestPolygonIntersection(Ray ray, uint solidID,
                                             __global Solid *solids, __global Surface *surfaces,
                                             __global Triangle *triangles, __global Vertex *vertices) {
         Intersection intersection;
-        intersection.status = 0;
+        intersection.exists = false;
         intersection.distance = INFINITY;
 //        printf("This solid (%d) has %d surfaces (ID %d to %d)\n", solidID, solids[solidID].lastSurfaceID + 1 - solids[solidID].firstSurfaceID,
 //                solids[solidID].firstSurfaceID, solids[solidID].lastSurfaceID);
@@ -194,20 +194,20 @@ Intersection _findClosestPolygonIntersection(Ray ray, uint solidID,
                 }
                 float distance = length(hitPoint.position - ray.origin.xyz);
                 if (distance < intersection.distance) {
-                    intersection.status = 1;
+                    intersection.exists = true;
                     intersection.distance = distance;
                     intersection.position = hitPoint.position;
                     intersection.polygonID = j;
                 }
             }
         }
-//        printf("Intersection with Solid ID %d : (status=%d, distance=%f, position=(%f, %f, %f), polygonID=%d)\n",
-//                solidID, intersection.status, intersection.distance, intersection.position.x, intersection.position.y, intersection.position.z, intersection.polygonID);
+//        printf("Intersection with Solid ID %d : (exists=%d, distance=%f, position=(%f, %f, %f), polygonID=%d)\n",
+//                solidID, intersection.exists, intersection.distance, intersection.position.x, intersection.position.y, intersection.position.z, intersection.polygonID);
         return intersection;
 }
 
 void _composeIntersection(Intersection *intersection, Ray *ray) {
-    if (intersection->status == 0) {
+    if (!intersection->exists) {
         return;
     }
     // todo: smoothing & environments
@@ -222,7 +222,7 @@ Intersection findIntersection(Ray ray, uint nSolids, __global Solid *solids,
     _sortSolidCandidates(solidCandidates, gid, nSolids);
 
     Intersection closestIntersection;
-    closestIntersection.status = 0;
+    closestIntersection.exists = false;
     closestIntersection.distance = INFINITY;
     for (uint i = 0; i < nSolids; i++) {
         uint boxGID = gid * nSolids + i;
@@ -231,14 +231,14 @@ Intersection findIntersection(Ray ray, uint nSolids, __global Solid *solids,
             continue;
         }
         bool contained = solidCandidates[boxGID].distance == 0;
-        if (!contained && closestIntersection.status == 1) {
+        if (!contained && closestIntersection.exists) {
             break;
         }
 
         uint solidID = solidCandidates[boxGID].solidID;
 //        printf("Testing polygons of Solid %d\n", solidID);
         Intersection intersection = _findClosestPolygonIntersection(ray, solidID, solids, surfaces, triangles, vertices);
-        if (intersection.status == 1  && intersection.distance < closestIntersection.distance) {
+        if (intersection.exists  && intersection.distance < closestIntersection.distance) {
             closestIntersection = intersection;
         }
     }

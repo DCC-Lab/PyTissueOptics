@@ -57,7 +57,7 @@ class TestCLIntersection(unittest.TestCase):
         self.assertEqual(solidCandidates[1]["solidID"], 0)
 
         rayIntersection = intersections.hostBuffer[0]
-        self.assertEqual(rayIntersection["status"], 1)
+        self.assertEqual(rayIntersection["exists"], 1)
         hitPointZ = -1  # taken from scene
         self.assertEqual(rayIntersection["distance"], abs(rayOrigin[2] - hitPointZ))
         self.assertEqual(rayIntersection["position"]["x"], 0)
@@ -107,7 +107,7 @@ class IntersectionCL(CLObject):
 
     def __init__(self, N: int):
         self._N = N
-        struct = np.dtype([("status", cl.cltypes.uint),
+        struct = np.dtype([("exists", cl.cltypes.uint),
                            ("distance", cl.cltypes.float),
                            ("position", cl.cltypes.float3),
                            ("polygonID", cl.cltypes.uint),
