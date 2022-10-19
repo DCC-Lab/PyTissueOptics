@@ -24,14 +24,16 @@ class TestCLIntersection(unittest.TestCase):
         sourcePath = os.path.join(OPENCL_SOURCE_DIR, "intersection.c")
         self.program = CLProgram(sourcePath)
 
-    def testLaunchKernel(self):
-        N = 10
+    def testRayIntersection(self):
+        N = 1
         _scene = self._getTestScene()
         clScene = CLScene(_scene, N)
 
-        rays = RayCL(origins=np.full((N, 3), [0, 0, -1-6]),
+        rayLength = 10
+        rayOrigin = [0, 0, -7]
+        rays = RayCL(origins=np.full((N, 3), rayOrigin),
                      directions=np.full((N, 3), [0, 0, 1]),
-                     lengths=np.full(N, 10))
+                     lengths=np.full(N, rayLength))
         intersections = IntersectionCL(N)
 
         try:
@@ -47,6 +49,21 @@ class TestCLIntersection(unittest.TestCase):
 
         print("BBox Intersections: ", clScene.solidCandidates.hostBuffer)
         print("Intersections: ", intersections.hostBuffer)
+
+        solidCandidates = clScene.solidCandidates.hostBuffer
+        self.assertEqual(solidCandidates[0]["distance"], -1)
+        self.assertEqual(solidCandidates[0]["solidID"], 1)
+        self.assertEqual(solidCandidates[1]["distance"], 6)
+        self.assertEqual(solidCandidates[1]["solidID"], 0)
+
+        rayIntersection = intersections.hostBuffer[0]
+        self.assertEqual(rayIntersection["status"], 1)
+        hitPointZ = -1  # taken from scene
+        self.assertEqual(rayIntersection["distance"], abs(rayOrigin[2] - hitPointZ))
+        self.assertEqual(rayIntersection["position"]["x"], 0)
+        self.assertEqual(rayIntersection["position"]["y"], 0)
+        self.assertEqual(rayIntersection["position"]["z"], hitPointZ)
+        self.assertEqual(rayIntersection["distanceLeft"], rayLength - abs(rayOrigin[2] - hitPointZ))
 
     def _getTestScene(self):
         material1 = ScatteringMaterial(0.1, 0.8, 0.8, 1.4)
@@ -91,7 +108,10 @@ class IntersectionCL(CLObject):
     def __init__(self, N: int):
         self._N = N
         struct = np.dtype([("status", cl.cltypes.uint),
-                           ("distance", cl.cltypes.float)])
+                           ("distance", cl.cltypes.float),
+                           ("position", cl.cltypes.float3),
+                           ("polygonID", cl.cltypes.uint),
+                           ("distanceLeft", cl.cltypes.float)])
         super().__init__(name=self.STRUCT_NAME, struct=struct, skipDeclaration=True)
 
     def _getHostBuffer(self) -> np.ndarray:
