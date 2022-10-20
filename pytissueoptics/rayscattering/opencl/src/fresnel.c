@@ -14,7 +14,7 @@ float _getReflectionCoefficient(float n1, float n2, float thetaIn) {
         return 0;
     }
     if (thetaIn == 0) {
-        float R = (n2 - n1) / (n2 - n1);
+        float R = (n2 - n1) / (n2 + n1);
         return R * R;
     }
 
