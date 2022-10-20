@@ -87,6 +87,10 @@ __kernel void propagate(uint maxPhotons, uint maxInteractions, float weightThres
         //printf("photonCount: %d, interactionCount: %d\n", photonCount, interactionCount);
 
         uint currentPhotonIndex = gid + (photonCount * workUnitsAmount);
+        if (currentPhotonIndex >= maxPhotons){
+            break;
+        }
+
         float distance = 0;
         float4 er = getAnyOrthogonalGlobal(&photons[currentPhotonIndex].direction);
         photons[currentPhotonIndex].er = er;

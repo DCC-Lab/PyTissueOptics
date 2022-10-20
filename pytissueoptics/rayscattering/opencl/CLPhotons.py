@@ -70,13 +70,10 @@ class CLPhotons:
 
         program = CLProgram(sourcePath=PROPAGATION_SOURCE_PATH)
         workUnits = 100
-        # workUnits = program.max_compute_units
-        # totalMemory = program.global_memory_size
-        photonsPerUnit = 200  # to be changed with a scout batch
+        photonsPerUnit = 200
         kernelSize = photonsPerUnit * workUnits
-        maxLoggerSize = 1.5 * 10 ** 6  # first should be calculated then, to be optimized after the scout batch
         maxLoggerLength = 150000000
-        maxInteractions = np.int32(maxLoggerSize / 16)
+
         if kernelSize >= self._N:
             currentKernelSize = self._N
         else:
@@ -96,8 +93,9 @@ class CLPhotons:
             logger = DataPointCL(size=maxLoggerLength)
             t2 = time.time_ns()
             program.launchKernel(kernelName="propagate", N=np.int32(workUnits),
-                                 arguments=[np.int32(currentKernelSize), np.int32(maxLoggerLength), self._weightThreshold,
-                                 np.int32(workUnits), kernelPhotons, materials, seeds, logger])
+                                 arguments=[np.int32(currentKernelSize), np.int32(maxLoggerLength),
+                                            self._weightThreshold, np.int32(workUnits), kernelPhotons,
+                                            materials, seeds, logger])
             t1 = time.time_ns()
 
             log = program.getData(logger)
