@@ -52,7 +52,6 @@ class CLProgram:
             print(f"... Device {i}: {device.name} ({device.global_mem_size // 10**6} MB "
                   f"| {device.max_clock_frequency} MHz)")
 
-
     @staticmethod
     def _makeSource(sourcePath) -> str:
         includeStatement = ''

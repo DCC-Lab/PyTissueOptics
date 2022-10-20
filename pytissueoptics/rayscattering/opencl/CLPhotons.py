@@ -69,19 +69,20 @@ class CLPhotons:
         """
 
         program = CLProgram(sourcePath=PROPAGATION_SOURCE_PATH)
-        workUnits = 100
+        workUnits = 8
         photonsPerUnit = 200
-        kernelSize = photonsPerUnit * workUnits
+        kernelLength = photonsPerUnit * workUnits
         maxLoggerLength = 150000000
 
-        if kernelSize >= self._N:
-            currentKernelSize = self._N
+        if kernelLength >= self._N:
+            currentKernelLength = self._N
         else:
-            currentKernelSize = kernelSize
+            currentKernelLength = kernelLength
 
-        kernelPhotons = PhotonCL(self._positions[0:currentKernelSize], self._directions[0:currentKernelSize])
-        poolOfPhotons = PhotonCL(self._positions[currentKernelSize:], self._directions[currentKernelSize:])
-        poolOfPhotons.make(program.device)
+        maxUnitLoggerLength = maxLoggerLength / workUnits
+        kernelPhotons = PhotonCL(self._positions[0:currentKernelLength], self._directions[0:currentKernelLength])
+        photonPool = PhotonCL(self._positions[currentKernelLength:], self._directions[currentKernelLength:])
+        photonPool.make(program.device)
         materials = MaterialCL(self._materials)
 
         photonCount = 0
@@ -89,11 +90,13 @@ class CLPhotons:
         t0 = time.time_ns()
 
         while photonCount < self._N:
-            seeds = SeedCL(size=currentKernelSize)
+
+            maxUnitPhotons = currentKernelLength / workUnits
+            seeds = SeedCL(size=currentKernelLength)
             logger = DataPointCL(size=maxLoggerLength)
             t2 = time.time_ns()
             program.launchKernel(kernelName="propagate", N=np.int32(workUnits),
-                                 arguments=[np.int32(currentKernelSize), np.int32(maxLoggerLength),
+                                 arguments=[np.int32(maxUnitPhotons), np.int32(maxUnitLoggerLength),
                                             self._weightThreshold, np.int32(workUnits), kernelPhotons,
                                             materials, seeds, logger])
             t1 = time.time_ns()
@@ -101,23 +104,26 @@ class CLPhotons:
             log = program.getData(logger)
             if self._sceneLogger:
                 self._sceneLogger.logDataPointArray(log, InteractionKey("universe", None))
+            t4 = time.time_ns()
 
             program.getData(kernelPhotons)
             photonsToRemove = []
-            for i in range(currentKernelSize):
+            for i in range(currentKernelLength):
                 if kernelPhotons.hostBuffer[i]["weight"] == 0:
-                    newPhotonsRemaining = photonCount + currentKernelSize < self._N
+                    newPhotonsRemaining = photonCount + currentKernelLength < self._N
                     if newPhotonsRemaining:
-                        kernelPhotons.hostBuffer[i] = poolOfPhotons.hostBuffer[photonCount]
+                        kernelPhotons.hostBuffer[i] = photonPool.hostBuffer[photonCount]
                     else:
                         photonsToRemove.append(i)
                     photonCount += 1
+            kernelPhotons.hostBuffer = np.delete(kernelPhotons.hostBuffer, photonsToRemove)
 
             t3 = time.time_ns()
             print(f"{photonCount}/{self._N}\t{((t3 - t0) / 1e9)} s\t ::"
-                  f" Batch #{batchCount}\t :: {currentKernelSize} \t{((t1 - t2) / 1e9):.2f} s\t ::"
+                  f"LogTime: "
+                  f" Batch #{batchCount}\t :: {currentKernelLength} \t{((t1 - t2) / 1e9):.2f} s\t ::"
                   f" ETA: {((t3 - t0) / 1e9) * (self._N / photonCount - 1):.2f} s\t ::"
                   f"({(photonCount * 100 / self._N):.2f}%)")
-            kernelPhotons.hostBuffer = np.delete(kernelPhotons.hostBuffer, photonsToRemove)
-            currentKernelSize = kernelPhotons.size
+
+            currentKernelLength = kernelPhotons.size
             batchCount += 1
