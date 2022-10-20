@@ -69,30 +69,34 @@ class CLPhotons:
         """
 
         program = CLProgram(sourcePath=PROPAGATION_SOURCE_PATH)
-        workUnits = 10
+        workUnits = 100
         # workUnits = program.max_compute_units
         # totalMemory = program.global_memory_size
-        photonsPerUnit = 10  # to be changed with a scout batch
+        photonsPerUnit = 200  # to be changed with a scout batch
         kernelSize = photonsPerUnit * workUnits
         maxLoggerSize = 1.5 * 10 ** 6  # first should be calculated then, to be optimized after the scout batch
+        maxLoggerLength = 150000000
         maxInteractions = np.int32(maxLoggerSize / 16)
+        if kernelSize >= self._N:
+            currentKernelSize = self._N
+        else:
+            currentKernelSize = kernelSize
 
-        kernelPhotons = PhotonCL(self._positions[0:kernelSize], self._directions[0:kernelSize])
-        poolOfPhotons = PhotonCL(self._positions[kernelSize:], self._directions[kernelSize:])
+        kernelPhotons = PhotonCL(self._positions[0:currentKernelSize], self._directions[0:currentKernelSize])
+        poolOfPhotons = PhotonCL(self._positions[currentKernelSize:], self._directions[currentKernelSize:])
         poolOfPhotons.make(program.device)
         materials = MaterialCL(self._materials)
 
-        currentKernelSize = kernelSize
         photonCount = 0
         batchCount = 0
         t0 = time.time_ns()
 
         while photonCount < self._N:
             seeds = SeedCL(size=currentKernelSize)
-            logger = DataPointCL(size=10000000)
+            logger = DataPointCL(size=maxLoggerLength)
             t2 = time.time_ns()
-            program.launchKernel(kernelName="propagate", N=np.int32(currentKernelSize),
-                                 arguments=[np.int32(currentKernelSize), np.int32(maxInteractions), self._weightThreshold,
+            program.launchKernel(kernelName="propagate", N=np.int32(workUnits),
+                                 arguments=[np.int32(currentKernelSize), np.int32(maxLoggerLength), self._weightThreshold,
                                  np.int32(workUnits), kernelPhotons, materials, seeds, logger])
             t1 = time.time_ns()
 
