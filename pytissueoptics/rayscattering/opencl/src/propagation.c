@@ -74,7 +74,7 @@ float reflectOrRefract(__global Photon *photons, __constant Material *materials,
         if (mut1 == 0) {
             intersection->distanceLeft = 0;
         } else if (mut2 != 0) {
-            intersection->distanceLeft += mut1 / mut2;
+            intersection->distanceLeft *= mut1 / mut2;
         } else {
             intersection->distanceLeft = INFINITY;
         }
