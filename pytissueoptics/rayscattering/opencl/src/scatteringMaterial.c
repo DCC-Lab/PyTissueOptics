@@ -24,10 +24,10 @@ float getScatteringAngleTheta(float g, float randomNumber){
 }
 
 ScatteringAngles getScatteringAngles(float rndPhi, float rndTheta,__global Photon *photons,
-                                     __constant Material *materials, uint gid)
+                                     __constant Material *materials, uint photonId)
 {
     ScatteringAngles angles;
-    float g = materials[photons[gid].material_id].g;
+    float g = materials[photons[photonId].material_id].g;
     angles.phi = getScatteringAnglePhi(rndPhi);
     angles.theta = getScatteringAngleTheta(g, rndTheta);
 
