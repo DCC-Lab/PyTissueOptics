@@ -69,10 +69,10 @@ class CLPhotons:
         """
 
         program = CLProgram(sourcePath=PROPAGATION_SOURCE_PATH)
-        workUnits = 8
+        workUnits = 100
         photonsPerUnit = 200
         kernelLength = photonsPerUnit * workUnits
-        maxLoggerLength = 150000000
+        maxLoggerLength = 50000000
 
         if kernelLength >= self._N:
             currentKernelLength = self._N
@@ -88,6 +88,7 @@ class CLPhotons:
         photonCount = 0
         batchCount = 0
         t0 = time.time_ns()
+        logArrays = []
 
         while photonCount < self._N:
 
@@ -101,13 +102,11 @@ class CLPhotons:
                                             materials, seeds, logger])
             t1 = time.time_ns()
 
-            log = program.getData(logger)
-            if self._sceneLogger:
-                self._sceneLogger.logDataPointArray(log, InteractionKey("universe", None))
-            t4 = time.time_ns()
+            logArrays.append(program.getData(logger))
 
             program.getData(kernelPhotons)
             photonsToRemove = []
+            localPhotonCount = 0
             for i in range(currentKernelLength):
                 if kernelPhotons.hostBuffer[i]["weight"] == 0:
                     newPhotonsRemaining = photonCount + currentKernelLength < self._N
@@ -116,14 +115,25 @@ class CLPhotons:
                     else:
                         photonsToRemove.append(i)
                     photonCount += 1
+                    localPhotonCount += 1
             kernelPhotons.hostBuffer = np.delete(kernelPhotons.hostBuffer, photonsToRemove)
 
             t3 = time.time_ns()
             print(f"{photonCount}/{self._N}\t{((t3 - t0) / 1e9)} s\t ::"
-                  f"LogTime: "
                   f" Batch #{batchCount}\t :: {currentKernelLength} \t{((t1 - t2) / 1e9):.2f} s\t ::"
                   f" ETA: {((t3 - t0) / 1e9) * (self._N / photonCount - 1):.2f} s\t ::"
-                  f"({(photonCount * 100 / self._N):.2f}%)")
+                  f"({(photonCount * 100 / self._N):.2f}%) \t ::"
+                  f"Eff: {((t1 - t2) / 1e3)/localPhotonCount:.2f} us/photon\t ::"
+                  f"Finished propagation: {localPhotonCount}")
 
             currentKernelLength = kernelPhotons.size
             batchCount += 1
+
+        t4 = time.time_ns()
+        log = np.concatenate(logArrays)
+        print(f"create time: {(time.time_ns() - t4) / 1e9}s")
+        if self._sceneLogger:
+            t5 = time.time_ns()
+            self._sceneLogger.logDataPointArray(log, InteractionKey("universe", None))
+            print(f"log time: {(time.time_ns()-t5)/1e9}s")
+
