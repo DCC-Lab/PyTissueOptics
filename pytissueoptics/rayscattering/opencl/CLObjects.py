@@ -232,7 +232,7 @@ class DataPointCL(CLObject):
         super().__init__(name=self.STRUCT_NAME, struct=dataPointStruct)
 
     def _getHostBuffer(self) -> np.ndarray:
-        return np.empty(self._size, dtype=self._dtype)
+        return np.zeros(self._size, dtype=self._dtype)
 
 
 class SeedCL(CLObject):
