@@ -58,9 +58,9 @@ void refract(__global Photon *photons, FresnelIntersection *fresnelIntersection,
 }
 
 float reflectOrRefract(__global Photon *photons, __constant Material *materials,
-        __global Surface *surfaces, Intersection *intersection, uint gid){
+        __global Surface *surfaces, Intersection *intersection, __global uint *seeds, uint gid){
     FresnelIntersection fresnelIntersection = computeFresnelIntersection(photons[gid].direction.xyz, intersection,
-                                                                         materials, surfaces);
+                                                                         materials, surfaces, seeds, gid);
 
     if (fresnelIntersection.isReflected) {
         reflect(photons, &fresnelIntersection, gid);
@@ -104,7 +104,7 @@ float propagateStep(float distance, uint gid, uint logIndex,
 
     if (intersection.exists){
         moveBy(photons, intersection.distance, gid);
-        distanceLeft = reflectOrRefract(photons, materials, surfaces, &intersection, gid);
+        distanceLeft = reflectOrRefract(photons, materials, surfaces, &intersection, seeds, gid);
         moveBy(photons, 0.00001f, gid);  // move a little bit to help avoid bad intersection check
     } else {
         if (distance == INFINITY){

@@ -36,9 +36,10 @@ float _getReflectionCoefficient(float n1, float n2, float thetaIn) {
     return 0.5 * sam * sam * (cap * cap + cam * cam) / (sap * sap * cam * cam);
 }
 
-bool _getIsReflected(float nIn, float nOut, float thetaIn) {
+bool _getIsReflected(float nIn, float nOut, float thetaIn, __global uint *seeds, uint gid) {
     float R = _getReflectionCoefficient(nIn, nOut, thetaIn);
-    if (R > 0.5) {  // fixme: we need to get a random number over here
+    float randomFloat = getRandomFloatValue(seeds, gid);
+    if (R > randomFloat) {
         return true;
     }
     return false;
@@ -55,8 +56,8 @@ float _getRefractionDeflection(float nIn, float nOut, float thetaIn) {
 }
 
 void _createFresnelIntersection(FresnelIntersection* fresnelIntersection,
-                                float nIn, float nOut, float thetaIn) {
-    fresnelIntersection->isReflected = _getIsReflected(nIn, nOut, thetaIn);
+                                float nIn, float nOut, float thetaIn, __global uint *seeds, uint gid) {
+    fresnelIntersection->isReflected = _getIsReflected(nIn, nOut, thetaIn, seeds, gid);
 
     if (fresnelIntersection->isReflected) {
         fresnelIntersection->angleDeflection = _getReflectionDeflection(thetaIn);
@@ -66,7 +67,7 @@ void _createFresnelIntersection(FresnelIntersection* fresnelIntersection,
 }
 
 FresnelIntersection computeFresnelIntersection(float3 rayDirection, Intersection *intersection,
-        __constant Material *materials, __global Surface *surfaces) {
+        __constant Material *materials, __global Surface *surfaces, __global uint *seeds, uint gid) {
     FresnelIntersection fresnelIntersection;
     float3 normal = intersection->normal;
 
@@ -93,7 +94,7 @@ FresnelIntersection computeFresnelIntersection(float3 rayDirection, Intersection
 
     float thetaIn = acos(dot(normal, rayDirection));
 
-    _createFresnelIntersection(&fresnelIntersection, nIn, nOut, thetaIn);
+    _createFresnelIntersection(&fresnelIntersection, nIn, nOut, thetaIn, seeds, gid);
 
     return fresnelIntersection;
 }
