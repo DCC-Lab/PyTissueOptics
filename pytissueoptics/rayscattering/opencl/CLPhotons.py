@@ -39,7 +39,10 @@ class CLPhotons:
         self._initialMaterial = environment.material
 
         safetyFactor = 1.8
-        avgInteractions = int(-np.log(self._weightThreshold) / self._initialMaterial.getAlbedo())
+        materials = scene.getMaterials()
+        avgAlbedo = np.mean([m.getAlbedo() for m in materials])
+        avgInteractions = int(-np.log(self._weightThreshold) / avgAlbedo)
+        print(f"Approximate avgInteractions = {avgInteractions}")
         self._requiredLoggerSize = self._N * int(safetyFactor * avgInteractions)
 
     def propagate(self):
