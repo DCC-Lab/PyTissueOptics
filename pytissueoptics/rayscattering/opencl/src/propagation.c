@@ -37,7 +37,7 @@ void scatter(uint gid, uint logIndex,
 }
 
 void roulette(uint gid, float weightThreshold, __global Photon *photons, __global uint * randomSeedBuffer){
-    if (photons[gid].weight >= weightThreshold){
+    if (photons[gid].weight >= weightThreshold  || photons[gid].weight == 0){
         return;
     }
     float randomFloat = getRandomFloatValue(randomSeedBuffer, gid);
@@ -107,6 +107,10 @@ float propagateStep(float distance, uint gid, uint logIndex,
         distanceLeft = reflectOrRefract(photons, materials, surfaces, &intersection, gid);
         moveBy(photons, 0.00001f, gid);  // move a little bit to help avoid bad intersection check
     } else {
+        if (distance == INFINITY){
+            photons[gid].weight = 0;
+            return 0;
+        }
         moveBy(photons, distance, gid);
         scatter(gid, logIndex, photons, materials, logger, randomNumbers, seeds);
     }
