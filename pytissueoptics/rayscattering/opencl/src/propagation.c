@@ -4,6 +4,8 @@
 #include "intersection.c"
 #include "fresnel.c"
 
+const int NO_SOLID_ID = -1;
+const int NO_SURFACE_ID = -1;
 
 void moveBy(__global Photon *photons, float distance, uint gid){
     photons[gid].position += (distance * photons[gid].direction);
@@ -26,16 +28,17 @@ void interact(__global Photon *photons, __constant Material *materials, __global
     logger[logIndex].z = photons[gid].position.z;
     logger[logIndex].delta_weight = delta_weight;
     logger[logIndex].solidID = photons[gid].solidID;
-    logger[logIndex].surfaceID = -1;
+    logger[logIndex].surfaceID = NO_SURFACE_ID;
 }
 
-void scatter(uint gid, uint logIndex,
+void scatter(uint gid, uint *logIndex,
            __global Photon *photons, __constant Material *materials, __global DataPoint *logger,
            __global float *randomNumbers, __global uint *seeds){
     ScatteringAngles angles = getScatteringAngles(gid, photons, materials, randomNumbers, seeds);
 
     scatterBy(photons, angles.phi, angles.theta, gid);
-    interact(photons, materials, logger, gid, logIndex);
+    interact(photons, materials, logger, gid, *logIndex);
+    (*logIndex)++;
 }
 
 void roulette(uint gid, float weightThreshold, __global Photon *photons, __global uint * randomSeedBuffer){
@@ -59,8 +62,37 @@ void refract(__global Photon *photons, FresnelIntersection *fresnelIntersection,
     rotateAround(&photons[gid].direction, &fresnelIntersection->incidencePlane, fresnelIntersection->angleDeflection);
 }
 
+void logIntersection(Intersection *intersection, __global Photon *photons, __global Surface *surfaces,
+                    __global DataPoint *logger, uint *logIndex, uint gid){
+    uint logID = *logIndex;
+    logger[logID].x = photons[gid].position.x;
+    logger[logID].y = photons[gid].position.y;
+    logger[logID].z = photons[gid].position.z;
+    logger[logID].surfaceID = intersection->surfaceID;
+    logger[logID].solidID = surfaces[intersection->surfaceID].insideSolidID;
+
+    bool isLeavingSurface = dot(photons[gid].direction.xyz, intersection->normal) > 0;
+    int sign = isLeavingSurface ? 1 : -1;
+    logger[logID].delta_weight = sign * photons[gid].weight;
+    (*logIndex)++;
+
+    int outsideSolidID = surfaces[intersection->surfaceID].outsideSolidID;
+    if (outsideSolidID == NO_SOLID_ID){
+        return;
+    }
+    logID++;
+    logger[logID].x = photons[gid].position.x;
+    logger[logID].y = photons[gid].position.y;
+    logger[logID].z = photons[gid].position.z;
+    logger[logID].surfaceID = intersection->surfaceID;
+    logger[logID].solidID = outsideSolidID;
+    logger[logID].delta_weight = -sign * photons[gid].weight;
+    (*logIndex)++;
+}
+
 float reflectOrRefract(__global Photon *photons, __constant Material *materials,
-        __global Surface *surfaces, Intersection *intersection, __global uint *seeds, uint gid){
+        __global Surface *surfaces, Intersection *intersection, __global DataPoint *logger,
+        uint *logIndex, __global uint *seeds, uint gid){
     FresnelIntersection fresnelIntersection = computeFresnelIntersection(photons[gid].direction.xyz, intersection,
                                                                          materials, surfaces, seeds, gid);
 
@@ -68,7 +100,7 @@ float reflectOrRefract(__global Photon *photons, __constant Material *materials,
         reflect(photons, &fresnelIntersection, gid);
     }
     else {
-        // todo: logIntersection()
+        logIntersection(intersection, photons, surfaces, logger, logIndex, gid);
         refract(photons, &fresnelIntersection, gid);
 
         float mut1 = materials[photons[gid].materialID].mu_t;
@@ -87,7 +119,7 @@ float reflectOrRefract(__global Photon *photons, __constant Material *materials,
     return intersection->distanceLeft;
 }
 
-float propagateStep(float distance, uint gid, uint logIndex,
+float propagateStep(float distance, uint gid, uint *logIndex,
            __global Photon *photons, __constant Material *materials, __global DataPoint *logger,
            __global float *randomNumbers, __global uint *seeds,
            uint nSolids, __global Solid *solids, __global Surface *surfaces, __global Triangle *triangles,
@@ -107,7 +139,7 @@ float propagateStep(float distance, uint gid, uint logIndex,
 
     if (intersection.exists){
         moveBy(photons, intersection.distance, gid);
-        distanceLeft = reflectOrRefract(photons, materials, surfaces, &intersection, seeds, gid);
+        distanceLeft = reflectOrRefract(photons, materials, surfaces, &intersection, logger, logIndex, seeds, gid);
         moveBy(photons, 0.00001f, gid);  // move a little bit to help avoid bad intersection check
     } else {
         if (distance == INFINITY){
@@ -128,24 +160,22 @@ __kernel void propagate(uint dataSize, uint maxInteractions, float weightThresho
             __global Vertex *vertices, __global SolidCandidate *solidCandidates){
     // todo: maybe simplify args with SceneStruct with ptrs to ptrs?
     uint gid = get_global_id(0);
-    uint stepIndex = 0;
-    uint logIndex = 0;
+    uint logIndex = gid * maxInteractions;
+    uint maxLogIndex = logIndex + maxInteractions;
     float4 er = getAnyOrthogonalGlobal(&photons[gid].direction);
     photons[gid].er = er;
 
     float distance = 0;
 
     while (photons[gid].weight != 0){
-        if (stepIndex == maxInteractions){
+        if (logIndex == maxLogIndex){
             printf("Warning: Out of logger memory for photon %d who could not propagate totally.\n", gid);
             break;
         }
 
-        logIndex = gid + stepIndex * dataSize;
-        distance = propagateStep(distance, gid, logIndex,
+        distance = propagateStep(distance, gid, &logIndex,
                                 photons, materials, logger, randomNumbers, seeds,
                                 nSolids, solids, surfaces, triangles, vertices, solidCandidates);
         roulette(gid, weightThreshold, photons, seeds);
-        stepIndex++;
     }
 }
