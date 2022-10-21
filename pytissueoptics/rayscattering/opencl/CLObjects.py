@@ -62,18 +62,21 @@ class CLObject:
 class PhotonCL(CLObject):
     STRUCT_NAME = "Photon"
 
-    def __init__(self, positions: np.ndarray, directions: np.ndarray, materialID: int = 0):
+    def __init__(self, positions: np.ndarray, directions: np.ndarray,
+                 materialID: int, solidID: int):
         self._positions = positions
         self._directions = directions
         self._N = positions.shape[0]
         self._materialID = materialID
+        self._solidID = solidID
 
         photonStruct = np.dtype(
             [("position", cl.cltypes.float4),
              ("direction", cl.cltypes.float4),
              ("er", cl.cltypes.float4),
              ("weight", cl.cltypes.float),
-             ("materialID", cl.cltypes.uint)])
+             ("materialID", cl.cltypes.uint),
+             ("solidID", cl.cltypes.uint)])
         super().__init__(name=self.STRUCT_NAME, struct=photonStruct)
 
     def _getHostBuffer(self) -> np.ndarray:
@@ -84,6 +87,7 @@ class PhotonCL(CLObject):
         buffer = rfn.unstructured_to_structured(buffer, self._dtype)
         buffer["weight"] = 1.0
         buffer["materialID"] = self._materialID
+        buffer["solidID"] = self._solidID
         return buffer
 
 
@@ -147,7 +151,8 @@ class SolidCL(CLObject):
 
 
 SurfaceCLInfo = NamedTuple("SurfaceInfo", [("firstPolygonID", int), ("lastPolygonID", int),
-                                           ("insideMaterialID", int), ("outsideMaterialID", int)])
+                                           ("insideMaterialID", int), ("outsideMaterialID", int),
+                                           ("insideSolidID", int), ("outsideSolidID", int)])
 
 
 class SurfaceCL(CLObject):
@@ -160,7 +165,9 @@ class SurfaceCL(CLObject):
             [("firstPolygonID", cl.cltypes.uint),
              ("lastPolygonID", cl.cltypes.uint),
              ("insideMaterialID", cl.cltypes.uint),
-             ("outsideMaterialID", cl.cltypes.uint)])
+             ("outsideMaterialID", cl.cltypes.uint),
+             ("insideSolidID", cl.cltypes.int),
+             ("outsideSolidID", cl.cltypes.int)])
         super().__init__(name=self.STRUCT_NAME, struct=struct)
 
     def _getHostBuffer(self) -> np.ndarray:
@@ -170,6 +177,8 @@ class SurfaceCL(CLObject):
             buffer[i]["lastPolygonID"] = np.uint32(surfaceInfo.lastPolygonID)
             buffer[i]["insideMaterialID"] = np.uint32(surfaceInfo.insideMaterialID)
             buffer[i]["outsideMaterialID"] = np.uint32(surfaceInfo.outsideMaterialID)
+            buffer[i]["insideSolidID"] = np.int32(surfaceInfo.insideSolidID)
+            buffer[i]["outsideSolidID"] = np.int32(surfaceInfo.outsideSolidID)
         return buffer
 
 
@@ -228,7 +237,9 @@ class DataPointCL(CLObject):
             [("delta_weight", cl.cltypes.float),
              ("x", cl.cltypes.float),
              ("y", cl.cltypes.float),
-             ("z", cl.cltypes.float)])
+             ("z", cl.cltypes.float),
+             ("solidID", cl.cltypes.uint),
+             ("surfaceID", cl.cltypes.int)])
         super().__init__(name=self.STRUCT_NAME, struct=dataPointStruct)
 
     def _getHostBuffer(self) -> np.ndarray:

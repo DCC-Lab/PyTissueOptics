@@ -28,6 +28,7 @@ class CLPhotons:
         self._N = np.uint32(N)
         self._weightThreshold = np.float32(weightThreshold)
         self._initialMaterial = None
+        self._initialSolid = None
 
         self._scene = None
         self._requiredLoggerSize = None
@@ -37,6 +38,7 @@ class CLPhotons:
         self._scene = scene
         self._sceneLogger = logger
         self._initialMaterial = environment.material
+        self._initialSolid = environment.solid
 
         safetyFactor = 1.8
         materials = scene.getMaterials()
@@ -50,7 +52,9 @@ class CLPhotons:
 
         scene = CLScene(self._scene, self._N)
 
-        photons = PhotonCL(self._positions, self._directions, materialID=scene.getMaterialID(self._initialMaterial))
+        photons = PhotonCL(self._positions, self._directions,
+                           materialID=scene.getMaterialID(self._initialMaterial),
+                           solidID=scene.getSolidID(self._initialSolid))
         logger = DataPointCL(size=self._requiredLoggerSize)
         randomNumbers = RandomNumberCL(size=self._N)
         seeds = SeedCL(size=self._N)
@@ -69,8 +73,15 @@ class CLPhotons:
         log = program.getData(logger)
         t3 = time.time()
         print(f" ... {t3 - t2:.3f} s. [CL logger copy]")
+        solidIDs = scene.getSolidIDs()
+        keys = [(solidID, -1) for solidID in solidIDs]
+
         if self._sceneLogger:
-            self._sceneLogger.logDataPointArray(log, InteractionKey("universe", None))
+            for (solidID, surfaceID) in keys:
+                key = InteractionKey(scene.getSolidLabel(solidID), None)  # todo: translate with map
+                pts = log[log[:, 4] == solidID]
+                pts = pts[pts[:, 5] == surfaceID]
+                self._sceneLogger.logDataPointArray(pts[:, :4], key)
         t4 = time.time()
         print(f" ... {t4 - t3:.3f} s. [Transfer to scene logger]")
         print(f">>> ({t4 - t0:.3f} s.)")

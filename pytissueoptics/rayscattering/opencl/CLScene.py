@@ -1,3 +1,5 @@
+from typing import List
+
 import numpy as np
 
 from pytissueoptics.rayscattering.tissues import RayScatteringScene
@@ -8,6 +10,7 @@ from pytissueoptics.rayscattering.opencl.CLObjects import MaterialCL, SolidCandi
 class CLScene:
     def __init__(self, scene: RayScatteringScene, nWorkUnits: int):
         self._sceneMaterials = scene.getMaterials()
+        self._solidLabels = [solid.getLabel() for solid in scene.getSolids()]
 
         solidsInfo = []
         surfacesInfo = []
@@ -30,8 +33,12 @@ class CLScene:
                 lastPolygonID = len(trianglesInfo) - 1
                 insideMaterialID = self.getMaterialID(surfacePolygons[0].insideMaterial)
                 outsideMaterialID = self.getMaterialID(surfacePolygons[0].outsideMaterial)
+                insideSolidID = self.getSolidID(surfacePolygons[0].insideEnvironment.solid)
+                outsideSolidID = self.getSolidID(surfacePolygons[0].outsideEnvironment.solid)
+
                 surfacesInfo.append(SurfaceCLInfo(firstPolygonID, lastPolygonID,
-                                                  insideMaterialID, outsideMaterialID))
+                                                  insideMaterialID, outsideMaterialID,
+                                                  insideSolidID, outsideSolidID))
             lastSurfaceID = len(surfacesInfo) - 1
             solidsInfo.append(SolidCLInfo(solid.bbox, firstSurfaceID, lastSurfaceID))
 
@@ -47,3 +54,23 @@ class CLScene:
 
     def getMaterialID(self, material):
         return self._sceneMaterials.index(material)
+
+    def getSolidID(self, solid):
+        if solid is None:
+            return NO_SOLID_ID
+        solidLabel = solid.getLabel()
+        if solidLabel not in self._solidLabels:
+            self._solidLabels.append(solidLabel)
+            return len(self._solidLabels) - 1
+        return self._solidLabels.index(solidLabel)
+
+    def getSolidLabel(self, solidID):
+        return self._solidLabels[solidID]
+
+    def getSolidIDs(self) -> List[int]:
+        solidIDs = list(range(len(self._solidLabels)))
+        solidIDs.insert(0, NO_SOLID_ID)
+        return solidIDs
+
+    def getSurfaceIDs(self, solidID):
+        pass

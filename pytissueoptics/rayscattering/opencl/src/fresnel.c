@@ -4,6 +4,7 @@ struct FresnelIntersection {
     uint isReflected;
     float angleDeflection;
     uint nextMaterialID;
+    int nextSolidID;
 };
 
 typedef struct FresnelIntersection FresnelIntersection;
@@ -80,10 +81,12 @@ FresnelIntersection computeFresnelIntersection(float3 rayDirection, Intersection
         nIn = materials[surfaces[intersection->surfaceID].outsideMaterialID].n;
         nOut = materials[surfaces[intersection->surfaceID].insideMaterialID].n;
         fresnelIntersection.nextMaterialID = surfaces[intersection->surfaceID].insideMaterialID;
+        fresnelIntersection.nextSolidID = surfaces[intersection->surfaceID].insideSolidID;
     } else {
         nIn = materials[surfaces[intersection->surfaceID].insideMaterialID].n;
         nOut = materials[surfaces[intersection->surfaceID].outsideMaterialID].n;
         fresnelIntersection.nextMaterialID = surfaces[intersection->surfaceID].outsideMaterialID;
+        fresnelIntersection.nextSolidID = surfaces[intersection->surfaceID].outsideSolidID;
     }
 
     fresnelIntersection.incidencePlane = cross(rayDirection, normal);

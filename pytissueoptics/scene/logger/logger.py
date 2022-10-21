@@ -14,7 +14,7 @@ from pytissueoptics.scene.geometry import Vector
 @dataclass(frozen=True)
 class InteractionKey:
     solidLabel: str
-    surfaceLabel: str = None
+    surfaceLabel: Optional[str] = None
 
 
 @dataclass
