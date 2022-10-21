@@ -31,7 +31,7 @@ ScatteringAngles getScatteringAngles(uint gid,
     randomNumbers[gid] = getRandomFloatValue(seeds, gid);
     angles.phi = getScatteringAnglePhi(randomNumbers, gid);
     randomNumbers[gid] = getRandomFloatValue(seeds, gid);
-    float g = materials[photons[gid].material_id].g;
+    float g = materials[photons[gid].materialID].g;
     angles.theta = getScatteringAngleTheta(randomNumbers, g, gid);
     return angles;
 }

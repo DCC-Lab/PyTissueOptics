@@ -50,7 +50,7 @@ class CLPhotons:
 
         scene = CLScene(self._scene, self._N)
 
-        photons = PhotonCL(self._positions, self._directions, material_id=scene.getMaterialID(self._initialMaterial))
+        photons = PhotonCL(self._positions, self._directions, materialID=scene.getMaterialID(self._initialMaterial))
         logger = DataPointCL(size=self._requiredLoggerSize)
         randomNumbers = RandomNumberCL(size=self._N)
         seeds = SeedCL(size=self._N)

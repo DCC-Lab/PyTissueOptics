@@ -62,18 +62,18 @@ class CLObject:
 class PhotonCL(CLObject):
     STRUCT_NAME = "Photon"
 
-    def __init__(self, positions: np.ndarray, directions: np.ndarray, material_id: int = 0):
+    def __init__(self, positions: np.ndarray, directions: np.ndarray, materialID: int = 0):
         self._positions = positions
         self._directions = directions
         self._N = positions.shape[0]
-        self._material_id = material_id
+        self._materialID = materialID
 
         photonStruct = np.dtype(
             [("position", cl.cltypes.float4),
              ("direction", cl.cltypes.float4),
              ("er", cl.cltypes.float4),
              ("weight", cl.cltypes.float),
-             ("material_id", cl.cltypes.uint)])
+             ("materialID", cl.cltypes.uint)])
         super().__init__(name=self.STRUCT_NAME, struct=photonStruct)
 
     def _getHostBuffer(self) -> np.ndarray:
@@ -83,7 +83,7 @@ class PhotonCL(CLObject):
         buffer[:, 4:7] = self._directions
         buffer = rfn.unstructured_to_structured(buffer, self._dtype)
         buffer["weight"] = 1.0
-        buffer["material_id"] = self._material_id
+        buffer["materialID"] = self._materialID
         return buffer
 
 

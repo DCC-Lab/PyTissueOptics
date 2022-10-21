@@ -19,7 +19,7 @@ void decreaseWeightBy(__global Photon *photons, float delta_weight, uint gid){
 }
 
 void interact(__global Photon *photons, __constant Material *materials, __global DataPoint *logger, uint gid, uint logIndex){
-    float delta_weight = photons[gid].weight * materials[photons[gid].material_id].albedo;
+    float delta_weight = photons[gid].weight * materials[photons[gid].materialID].albedo;
     decreaseWeightBy(photons, delta_weight, gid);
     logger[logIndex].x = photons[gid].position.x;
     logger[logIndex].y = photons[gid].position.y;
@@ -69,7 +69,7 @@ float reflectOrRefract(__global Photon *photons, __constant Material *materials,
         // todo: logIntersection()
         refract(photons, &fresnelIntersection, gid);
 
-        float mut1 = materials[photons[gid].material_id].mu_t;
+        float mut1 = materials[photons[gid].materialID].mu_t;
         float mut2 = materials[fresnelIntersection.nextMaterialID].mu_t;
         if (mut1 == 0) {
             intersection->distanceLeft = 0;
@@ -78,7 +78,7 @@ float reflectOrRefract(__global Photon *photons, __constant Material *materials,
         } else {
             intersection->distanceLeft = INFINITY;
         }
-        photons[gid].material_id = fresnelIntersection.nextMaterialID;
+        photons[gid].materialID = fresnelIntersection.nextMaterialID;
     }
 
     return intersection->distanceLeft;
@@ -92,7 +92,7 @@ float propagateStep(float distance, uint gid, uint logIndex,
 
     if (distance == 0) {
         randomNumbers[gid] = getRandomFloatValue(seeds, gid);
-        float mu_t = materials[photons[gid].material_id].mu_t;
+        float mu_t = materials[photons[gid].materialID].mu_t;
         distance = getScatteringDistance(randomNumbers, mu_t, gid);
     }
 
