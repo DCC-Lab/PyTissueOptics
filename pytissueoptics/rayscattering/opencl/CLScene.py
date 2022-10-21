@@ -21,15 +21,14 @@ class CLScene:
         trianglesInfo = []
         vertices = []
         for solid in scene.solids:
+            solidVertices = solid.getVertices()
+            vertexToID = {id(v): i + len(vertices) for i, v in enumerate(solidVertices)}
+
             firstSurfaceID = len(surfacesInfo)
             for surfaceLabel in solid.surfaceLabels:
                 firstPolygonID = len(trianglesInfo)
                 surfacePolygons = solid.getPolygons(surfaceLabel)
 
-                solidVertices = solid.getVertices()  # no duplicates in solid.vertices
-                vertices.extend(solidVertices)
-
-                vertexToID = {id(v): i for i, v in enumerate(solidVertices)}
                 for triangle in surfacePolygons:
                     vertexIDs = [vertexToID[id(v)] for v in triangle.vertices]
                     trianglesInfo.append(TriangleCLInfo(vertexIDs, triangle.normal))
@@ -45,6 +44,7 @@ class CLScene:
                                                   insideMaterialID, outsideMaterialID,
                                                   insideSolidID, outsideSolidID))
             lastSurfaceID = len(surfacesInfo) - 1
+            vertices.extend(solidVertices)
             solidsInfo.append(SolidCLInfo(solid.bbox, firstSurfaceID, lastSurfaceID))
 
         self.nSolids = np.uint32(len(scene.solids))
