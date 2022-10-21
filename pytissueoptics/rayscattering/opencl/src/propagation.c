@@ -83,6 +83,7 @@ __kernel void propagate(uint maxPhotons, uint maxInteractions, float weightThres
     uint photonCount = 0;
     uint interactionCount = 0;
 
+
     while ((interactionCount < maxInteractions) && (photonCount < maxPhotons)){
         uint currentPhotonIndex = gid + (photonCount * workUnitsAmount);
         //printf("gid: %d, pid: %d, photonCount: %d / %d \n", gid, currentPhotonIndex, photonCount, maxPhotons);
@@ -97,7 +98,7 @@ __kernel void propagate(uint maxPhotons, uint maxInteractions, float weightThres
             //printf("Max interactions reached");
                 return;}
 
-            uint logIndex = gid + (interactionCount * workUnitsAmount);
+            uint logIndex = (gid * workUnitsAmount) + interactionCount;
             distance = propagateStep(distance, photons, materials, seeds, logger, logIndex, gid, currentPhotonIndex);
             roulette(weightThreshold, photons, seeds, gid, currentPhotonIndex);
             interactionCount++;

@@ -72,14 +72,14 @@ class CLPhotons:
         workUnits = 100
         photonsPerUnit = 200
         kernelLength = photonsPerUnit * workUnits
-        maxLoggerLength = 50000000
+        maxLoggerLength = 15000000
 
         if kernelLength >= self._N:
             currentKernelLength = self._N
         else:
             currentKernelLength = kernelLength
 
-        maxUnitLoggerLength = maxLoggerLength / workUnits
+        maxUnitLoggerLength = np.int(maxLoggerLength / workUnits)
         kernelPhotons = PhotonCL(self._positions[0:currentKernelLength], self._directions[0:currentKernelLength])
         photonPool = PhotonCL(self._positions[currentKernelLength:], self._directions[currentKernelLength:])
         photonPool.make(program.device)
@@ -92,9 +92,13 @@ class CLPhotons:
 
         while photonCount < self._N:
 
-            maxUnitPhotons = currentKernelLength / workUnits
+            maxUnitPhotons = np.int32(np.ceil(currentKernelLength / workUnits))
+            if maxUnitPhotons == 1:
+                workUnits = currentKernelLength
+            #print(f"maxUnitPhotons:{maxUnitPhotons}, TotalPhotonsOnKernel:{currentKernelLength}")
             seeds = SeedCL(size=currentKernelLength)
             logger = DataPointCL(size=maxLoggerLength)
+            #print(kernelPhotons.hostBuffer)
             t2 = time.time_ns()
             program.launchKernel(kernelName="propagate", N=np.int32(workUnits),
                                  arguments=[np.int32(maxUnitPhotons), np.int32(maxUnitLoggerLength),
@@ -121,9 +125,9 @@ class CLPhotons:
             t3 = time.time_ns()
             print(f"{photonCount}/{self._N}\t{((t3 - t0) / 1e9)} s\t ::"
                   f" Batch #{batchCount}\t :: {currentKernelLength} \t{((t1 - t2) / 1e9):.2f} s\t ::"
-                  f" ETA: {((t3 - t0) / 1e9) * (self._N / photonCount - 1):.2f} s\t ::"
+                  f" ETA: {((t3 - t0) / 1e9) * (np.float64(self._N) / np.float64(photonCount)):.2f} s\t ::"
                   f"({(photonCount * 100 / self._N):.2f}%) \t ::"
-                  f"Eff: {((t1 - t2) / 1e3)/localPhotonCount:.2f} us/photon\t ::"
+                  f"Eff: {np.float64((t1 - t2) / 1e3)/localPhotonCount:.2f} us/photon\t ::"
                   f"Finished propagation: {localPhotonCount}")
 
             currentKernelLength = kernelPhotons.size
