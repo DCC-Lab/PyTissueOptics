@@ -25,6 +25,8 @@ void interact(__global Photon *photons, __constant Material *materials, __global
     logger[logIndex].y = photons[gid].position.y;
     logger[logIndex].z = photons[gid].position.z;
     logger[logIndex].delta_weight = delta_weight;
+    logger[logIndex].solidID = photons[gid].solidID;
+    logger[logIndex].surfaceID = -1;
 }
 
 void scatter(uint gid, uint logIndex,
@@ -79,6 +81,7 @@ float reflectOrRefract(__global Photon *photons, __constant Material *materials,
             intersection->distanceLeft = INFINITY;
         }
         photons[gid].materialID = fresnelIntersection.nextMaterialID;
+        photons[gid].solidID = fresnelIntersection.nextSolidID;
     }
 
     return intersection->distanceLeft;
