@@ -38,8 +38,8 @@ class CLScene:
 
                 insideMaterialID = self.getMaterialID(surfacePolygons[0].insideMaterial)
                 outsideMaterialID = self.getMaterialID(surfacePolygons[0].outsideMaterial)
-                insideSolidID = self.getSolidID(surfacePolygons[0].insideEnvironment.solid, trueSolid=solid)
-                outsideSolidID = self.getSolidID(surfacePolygons[0].outsideEnvironment.solid, trueSolid=solid)
+                insideSolidID = self.getSolidID(surfacePolygons[0].insideEnvironment.solid)
+                outsideSolidID = self.getSolidID(surfacePolygons[0].outsideEnvironment.solid)
                 surfacesInfo.append(SurfaceCLInfo(firstPolygonID, lastPolygonID,
                                                   insideMaterialID, outsideMaterialID,
                                                   insideSolidID, outsideSolidID))
@@ -55,18 +55,13 @@ class CLScene:
         self.triangles = TriangleCL(trianglesInfo)
         self.vertices = VertexCL(vertices)
 
-        print(f"{len(self._sceneMaterials)} materials and {len(scene.solids)} solids.")
-
-        print("Surface Dict:", self._surfaceLabels)
-
     def getMaterialID(self, material):
         return self._sceneMaterials.index(material)
 
-    def getSolidID(self, solid, trueSolid=None):
+    def getSolidID(self, solid):
         if solid is None:
             return NO_SOLID_ID
-        solidLabel = solid.getLabel()
-        return self._solidLabels.index(solidLabel)
+        return self._solidLabels.index(solid.getLabel())
 
     def getSolidLabel(self, solidID):
         if solidID == NO_SOLID_ID:
@@ -109,5 +104,3 @@ class CLScene:
             self._surfaceLabels[solidID][surfaceID] = surfaceLabel
         if outsideSolid is not None:
             self._surfaceLabels[self.getSolidID(outsideSolid)][surfaceID] = surfaceLabel
-
-    # todo: refactor

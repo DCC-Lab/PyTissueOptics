@@ -97,8 +97,6 @@ void _findBBoxIntersectingSolids(Ray ray, uint nSolids,
         solidCandidates[boxGID].solidID = i;
 
         GemsBoxIntersection gemsIntersection = _getSolidCandidate(ray, solids[i].bbox_min, solids[i].bbox_max);
-//        printf("Intersection with Solid ID %d : (isInside=%d, exists=%d, position=(%f, %f, %f))\n",
-//                i, gemsIntersection.rayIsInside, gemsIntersection.exists, gemsIntersection.position.x, gemsIntersection.position.y, gemsIntersection.position.z);
         if (gemsIntersection.rayIsInside) {
             solidCandidates[boxGID].distance = 0;
         } else if (!gemsIntersection.exists) {
@@ -181,13 +179,8 @@ Intersection _findClosestPolygonIntersection(Ray ray, uint solidID,
         Intersection intersection;
         intersection.exists = false;
         intersection.distance = INFINITY;
-//        printf("This solid (%d) has %d surfaces (ID %d to %d)\n", solidID, solids[solidID].lastSurfaceID + 1 - solids[solidID].firstSurfaceID,
-//                solids[solidID].firstSurfaceID, solids[solidID].lastSurfaceID);
         for (uint s = solids[solidID].firstSurfaceID; s <= solids[solidID].lastSurfaceID; s++) {
-//            printf("    Surface %d has %d polygons (ID %d to %d)\n", s, surfaces[s].lastPolygonID + 1 - surfaces[s].firstPolygonID,
-//                    surfaces[s].firstPolygonID, surfaces[s].lastPolygonID);
             for (uint p = surfaces[s].firstPolygonID; p <= surfaces[s].lastPolygonID; p++) {
-//                printf("        Triangle %d has 3 vertices (ID: %d, %d, %d)\n", p, triangles[p].vertexIDs[0], triangles[p].vertexIDs[1], triangles[p].vertexIDs[2]);
                 uint vertexIDs[3] = {triangles[p].vertexIDs[0], triangles[p].vertexIDs[1], triangles[p].vertexIDs[2]};
                 HitPoint hitPoint = _getTriangleIntersection(ray, vertices[vertexIDs[0]].position, vertices[vertexIDs[1]].position, vertices[vertexIDs[2]].position);
                 if (!hitPoint.exists) {
@@ -203,8 +196,6 @@ Intersection _findClosestPolygonIntersection(Ray ray, uint solidID,
                 }
             }
         }
-//        printf("Intersection with Solid ID %d : (exists=%d, distance=%f, position=(%f, %f, %f), polygonID=%d)\n",
-//                solidID, intersection.exists, intersection.distance, intersection.position.x, intersection.position.y, intersection.position.z, intersection.polygonID);
         return intersection;
 }
 
@@ -212,7 +203,13 @@ void _composeIntersection(Intersection *intersection, Ray *ray) {
     if (!intersection->exists) {
         return;
     }
-    // todo: smoothing & environments
+    // todo: smoothing
+    // 1. Py: Add uint bool toSmooth in SurfaceCl (extract from first polygon.toSmooth)
+    // 2. Py: Add vertex normal in VertexCl and load it easily from same List[Vertex] input.
+    // 3. C: Smooth if intersection surface.toSmooth (requires ref to surfaces here)
+    // 4. C: Smoothing Algo
+    // 4.1 : requires vertices here => add polygonID field in Intersection, inject triangles ref here)
+    // 4.2 : translate smoothing algo
     intersection->distanceLeft = ray->length - intersection->distance;
 }
 
@@ -229,7 +226,6 @@ Intersection findIntersection(Ray ray, uint nSolids, __global Solid *solids,
     for (uint i = 0; i < nSolids; i++) {
         uint boxGID = gid * nSolids + i;
         if (solidCandidates[boxGID].distance == -1) {
-//            printf("Skipping Solid %d\n", solidCandidates[boxGID].solidID);
             continue;
         }
         bool contained = solidCandidates[boxGID].distance == 0;
@@ -238,7 +234,6 @@ Intersection findIntersection(Ray ray, uint nSolids, __global Solid *solids,
         }
 
         uint solidID = solidCandidates[boxGID].solidID;
-//        printf("Testing polygons of Solid %d\n", solidID);
         Intersection intersection = _findClosestPolygonIntersection(ray, solidID, solids, surfaces, triangles, vertices);
         if (intersection.exists  && intersection.distance < closestIntersection.distance) {
             closestIntersection = intersection;

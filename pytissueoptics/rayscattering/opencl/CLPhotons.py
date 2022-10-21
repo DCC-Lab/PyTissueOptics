@@ -77,19 +77,15 @@ class CLPhotons:
         if not self._sceneLogger:
             return
 
-        print("Writing to logger with interaction keys:")
         solidIDs = scene.getSolidIDs()
-        print("Solid IDs:", solidIDs)
         for solidID in solidIDs:
             surfaceIDs = scene.getSurfaceIDs(solidID)
-            print(f"Surface IDs for solid {solidID}:", surfaceIDs)
             for surfaceID in surfaceIDs:
                 key = InteractionKey(scene.getSolidLabel(solidID), scene.getSurfaceLabel(solidID, surfaceID))
                 pts = log[log[:, 4] == solidID]
                 pts = pts[pts[:, 5] == surfaceID]
                 if pts.shape[0] == 0:
                     continue
-                print(f" ... {pts.shape[0]} pts on {key}")
                 self._sceneLogger.logDataPointArray(pts[:, :4], key)
         t4 = time.time()
         print(f" ... {t4 - t3:.3f} s. [Transfer to scene logger]")
