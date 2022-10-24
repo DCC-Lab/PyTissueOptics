@@ -16,44 +16,20 @@ class CLScene:
         self._solidLabels = [solid.getLabel() for solid in scene.getSolids()]
         self._surfaceLabels = {}
 
-        solidsInfo = []
-        surfacesInfo = []
-        trianglesInfo = []
-        vertices = []
+        self._solidsInfo = []
+        self._surfacesInfo = []
+        self._trianglesInfo = []
+        self._vertices = []
         for solid in scene.solids:
-            solidVertices = solid.getVertices()
-            vertexToID = {id(v): i + len(vertices) for i, v in enumerate(solidVertices)}
-
-            firstSurfaceID = len(surfacesInfo)
-            for surfaceLabel in solid.surfaceLabels:
-                firstPolygonID = len(trianglesInfo)
-                surfacePolygons = solid.getPolygons(surfaceLabel)
-
-                for triangle in surfacePolygons:
-                    vertexIDs = [vertexToID[id(v)] for v in triangle.vertices]
-                    trianglesInfo.append(TriangleCLInfo(vertexIDs, triangle.normal))
-                    self._processPolygon(triangle, surfaceLabel, surfaceID=len(surfacesInfo))
-
-                lastPolygonID = len(trianglesInfo) - 1
-
-                insideMaterialID = self.getMaterialID(surfacePolygons[0].insideMaterial)
-                outsideMaterialID = self.getMaterialID(surfacePolygons[0].outsideMaterial)
-                insideSolidID = self.getSolidID(surfacePolygons[0].insideEnvironment.solid)
-                outsideSolidID = self.getSolidID(surfacePolygons[0].outsideEnvironment.solid)
-                surfacesInfo.append(SurfaceCLInfo(firstPolygonID, lastPolygonID,
-                                                  insideMaterialID, outsideMaterialID,
-                                                  insideSolidID, outsideSolidID))
-            lastSurfaceID = len(surfacesInfo) - 1
-            vertices.extend(solidVertices)
-            solidsInfo.append(SolidCLInfo(solid.bbox, firstSurfaceID, lastSurfaceID))
+            self._processSolid(solid)
 
         self.nSolids = np.uint32(len(scene.solids))
         self.materials = MaterialCL(self._sceneMaterials)
         self.solidCandidates = SolidCandidateCL(nWorkUnits, len(scene.solids))
-        self.solids = SolidCL(solidsInfo)
-        self.surfaces = SurfaceCL(surfacesInfo)
-        self.triangles = TriangleCL(trianglesInfo)
-        self.vertices = VertexCL(vertices)
+        self.solids = SolidCL(self._solidsInfo)
+        self.surfaces = SurfaceCL(self._surfacesInfo)
+        self.triangles = TriangleCL(self._trianglesInfo)
+        self.vertices = VertexCL(self._vertices)
 
     def getMaterialID(self, material):
         return self._sceneMaterials.index(material)
@@ -104,3 +80,46 @@ class CLScene:
             self._surfaceLabels[solidID][surfaceID] = surfaceLabel
         if outsideSolid is not None:
             self._surfaceLabels[self.getSolidID(outsideSolid)][surfaceID] = surfaceLabel
+
+    def _compileSurface(self, polygonRef, firstPolygonID, lastPolygonID):
+        insideMaterialID = self.getMaterialID(polygonRef.insideMaterial)
+        outsideMaterialID = self.getMaterialID(polygonRef.outsideMaterial)
+        insideSolidID = self.getSolidID(polygonRef.insideEnvironment.solid)
+        outsideSolidID = self.getSolidID(polygonRef.outsideEnvironment.solid)
+
+        self._surfacesInfo.append(SurfaceCLInfo(firstPolygonID, lastPolygonID,
+                                                insideMaterialID, outsideMaterialID,
+                                                insideSolidID, outsideSolidID))
+
+    def _processSolid(self, solid):
+        solidVertices = solid.getVertices()
+        vertexToID = {id(v): i + len(self._vertices) for i, v in enumerate(solidVertices)}
+
+        firstSurfaceID = len(self._surfacesInfo)
+        for surfaceLabel in solid.surfaceLabels:
+            surfacePolygons = solid.getPolygons(surfaceLabel)
+            self._processSurface(surfaceLabel, surfacePolygons, vertexToID)
+
+        lastSurfaceID = len(self._surfacesInfo) - 1
+        self._vertices.extend(solidVertices)
+        self._solidsInfo.append(SolidCLInfo(solid.bbox, firstSurfaceID, lastSurfaceID))
+
+    def _processSurface(self, surfaceLabel, polygons, vertexToID):
+        firstPolygonID = len(self._trianglesInfo)
+
+        lastSolid = None
+        for i, triangle in enumerate(polygons):
+            # todo: do this polygon processing only if it's a stack ?
+            currentSolid = triangle.insideEnvironment.solid
+            if lastSolid and lastSolid != currentSolid:
+                self._compileSurface(polygonRef=polygons[i - 1],
+                                     firstPolygonID=firstPolygonID, lastPolygonID=len(self._trianglesInfo) - 1)
+                firstPolygonID = len(self._trianglesInfo)
+
+            vertexIDs = [vertexToID[id(v)] for v in triangle.vertices]
+            self._trianglesInfo.append(TriangleCLInfo(vertexIDs, triangle.normal))
+            self._processPolygon(triangle, surfaceLabel, surfaceID=len(self._surfacesInfo))
+            lastSolid = currentSolid
+
+        self._compileSurface(polygonRef=polygons[-1],
+                             firstPolygonID=firstPolygonID, lastPolygonID=len(self._trianglesInfo) - 1)
