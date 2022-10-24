@@ -23,4 +23,4 @@ logger = Logger()
 source.propagate(tissue, logger=logger)
 
 stats = Stats(logger, source, tissue)
-stats.showEnergy2D(bins=101, logScale=True, limits=[[-10, 10], [-10, 10]])
+stats.showEnergy2D(bins=1001, logScale=True, limits=[[-10, 10], [-10, 10]])

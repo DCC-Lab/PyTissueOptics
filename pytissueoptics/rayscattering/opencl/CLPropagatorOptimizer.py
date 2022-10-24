@@ -1,3 +1,4 @@
+import dataclasses
 import os
 import time
 
@@ -10,38 +11,48 @@ except ImportError:
 import numpy as np
 
 from pytissueoptics.rayscattering.opencl.CLProgram import CLProgram
-from pytissueoptics.rayscattering.opencl.CLObjects import PhotonCL, MaterialCL, DataPointCL, SeedCL, RandomNumberCL
-from pytissueoptics.rayscattering.tissues import InfiniteTissue
-from pytissueoptics.rayscattering.tissues.rayScatteringScene import RayScatteringScene
-from pytissueoptics.scene import Logger
+from pytissueoptics.rayscattering.opencl.CLObjects import PhotonCL, MaterialCL, DataPointCL, SeedCL
 from pytissueoptics.scene.logger import InteractionKey
-from pytissueoptics.scene.geometry import Environment
 
 PROPAGATION_SOURCE_PATH = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'src', 'propagation.c')
 
 
-class CLPhotons:
-    def __init__(self, positions: np.ndarray, directions: np.ndarray, N: int, weightThreshold: float = 0.0001):
-        self._positions = positions
-        self._directions = directions
-        self._N = np.uint32(N)
-        self._weightThreshold = np.float32(weightThreshold)
+@dataclasses.dataclass
+class CLPropagationParameters:
+    DataPointSize = 16
+    PhotonSize = 64
+    SeedSize = 16
 
+    maxWorkGroupSize: int
+    maxWorkItemDimensions: int
+    maxMemoryAllocationSize: int
+    maxLoggableInteractions: int
+    maxLoggableInteractionsPerWorkItem: int
+    maxPhotonsPerWorkItem: int
+
+    currentLoggableInteractions: int
+    currentLoggableInteractionsPerWorkItem: int
+    currentPhotonsPerWorkItem: int
+
+
+class CLPropagatorOptimizer:
+    def __init__(self, photons: PhotonCL):
+        self._photons = photons
         self._materials = None
-        self._requiredLoggerSize = None
-        self._sceneLogger = None
+        self._optimizedParameters = None
+        self._currentParameters = CLPropagationParameters(0, 0, 0, 0, 0)
 
-    def setContext(self, scene: RayScatteringScene, environment: Environment, logger: Logger = None):
-        if type(scene) is not InfiniteTissue:
-            raise TypeError("OpenCL propagation is only supported for InfiniteTissue for the moment.")
+    def _evaluateOptimalParameters(self):
+        pass
 
-        worldMaterial = environment.material
-        self._materials = [worldMaterial]
-        self._sceneLogger = logger
+    def _searchMemoryAllocLimit(self):
+        pass
 
-        safetyFactor = 1.8
-        avgInteractions = int(-np.log(self._weightThreshold) / worldMaterial.getAlbedo())
-        self._requiredLoggerSize = self._N * int(safetyFactor * avgInteractions)
+    def _searchWorkUnitLimit(self):
+        pass
+
+    def _searchOptimalLoggerSize(self):
+        pass
 
     def propagate(self):
         """
