@@ -77,6 +77,78 @@ class CLPhotons:
         if not self._sceneLogger:
             return
 
+        localSort = True
+
+        if localSort:
+            self._logWithLocalSort(log, scene)
+        else:
+            self._log(log, scene)
+
+        t4 = time.time()
+        print(f">>> ({t4 - t0:.3f} s.)")
+
+        # pts = self._sceneLogger.getDataPoints()
+        # interactionCount = sum([p[0] != 0 for p in pts])
+        # print(f"True avgInteractions: {interactionCount / self._N}")
+
+    def _logWithLocalSort(self, log, scene):
+        """
+        Temporary CPU workUnit-wise sort. Todo: move to OpenCL
+        """
+        t3 = time.time()
+        keyIndices = []
+        batchSize = log.shape[0] // 1000
+        for i in range(0, log.shape[0], batchSize):
+            ba, bb = i, i + batchSize
+            batchLog = log[ba:bb]
+            batchKeyIndices = {}
+
+            batchLog = batchLog[batchLog[:, 4].argsort()]
+            solidChanges = np.unique(batchLog[:, 4], return_index=True)[1]
+            solidChanges = np.append(solidChanges, len(batchLog))
+            for i in range(len(solidChanges) - 1):
+                solidID = batchLog[solidChanges[i], 4]
+                if solidID == 0:
+                    continue
+                a, b = solidChanges[i], solidChanges[i + 1]
+                batchLog[a:b] = batchLog[a:b][batchLog[a:b, 5].argsort()]
+                surfaceChanges = np.unique(batchLog[a:b, 5], return_index=True)[1]
+                surfaceChanges = np.append(surfaceChanges, b - a)
+                for j in range(len(surfaceChanges) - 1):
+                    surfaceID = batchLog[a + surfaceChanges[j], 5]
+                    c, d = surfaceChanges[j], surfaceChanges[j + 1]
+                    batchKeyIndices[(int(solidID), int(surfaceID))] = (a + c, a + d)
+            keyIndices.append(batchKeyIndices)
+            log[ba:bb] = batchLog
+
+        tParse = time.time()
+        print(f" ... {tParse - t3:.3f} s. [Logger parsing]")
+
+        keyData = {}
+        for i, batchKeyIndices in enumerate(keyIndices):
+            bn = i * batchSize
+            for keyIDs, indices in batchKeyIndices.items():
+                if len(indices) == 0:
+                    continue
+                key = InteractionKey(scene.getSolidLabel(keyIDs[0]), scene.getSurfaceLabel(keyIDs[0], keyIDs[1]))
+                points = log[indices[0] + bn: indices[1] + bn, :4]
+                if key not in keyData:
+                    keyData[key] = [points]
+                else:
+                    keyData[key].append(points)
+
+        for key, points in keyData.items():
+            points = np.concatenate(points)
+            self._sceneLogger.logDataPointArray(points, key)
+
+        t4 = time.time()
+        print(f" ... {t4 - tParse:.3f} s. [Transfer to scene logger]")
+
+    def _log(self, log, scene):
+        t3 = time.time()
+        log = log[log[:, 4] != 0]
+
+        keyToIndices = {}
         solidIDs = scene.getSolidIDs()
         for solidID in solidIDs:
             surfaceIDs = scene.getSurfaceIDs(solidID)
@@ -85,11 +157,29 @@ class CLPhotons:
                 surfaceIndices = np.asarray(log[:, 5] == surfaceID).nonzero()[0]
                 surfacePoints = log[surfaceIndices]
                 solidSurfaceIndices = np.asarray(surfacePoints[:, 4] == solidID).nonzero()[0]
-                if len(solidSurfaceIndices) == 0:
-                    continue
+                keyToIndices[key] = surfaceIndices[solidSurfaceIndices]
 
-                points = surfacePoints[solidSurfaceIndices]
-                self._sceneLogger.logDataPointArray(points[:, :4], key)
+        tParse = time.time()
+        print(f" ... {tParse - t3:.3f} s. [Logger parsing]")
+
+        for key, indices in keyToIndices.items():
+            if len(indices) == 0:
+                continue
+            points = log[indices, :4]
+
+            self._sceneLogger.logDataPointArray(points, key)
+
         t4 = time.time()
-        print(f" ... {t4 - t3:.3f} s. [Transfer to scene logger]")
-        print(f">>> ({t4 - t0:.3f} s.)")
+        print(f" ... {t4 - tParse:.3f} s. [Transfer to scene logger]")
+
+"""
+30k photons
+transfer to logger time:
+    No sort:
+        3.1s
+    Global sort:
+        0.16s
+    Local sort:
+        0.49s with 30k units
+        0.24s with 1k units
+"""
