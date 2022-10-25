@@ -82,11 +82,14 @@ class CLPhotons:
             surfaceIDs = scene.getSurfaceIDs(solidID)
             for surfaceID in surfaceIDs:
                 key = InteractionKey(scene.getSolidLabel(solidID), scene.getSurfaceLabel(solidID, surfaceID))
-                pts = log[log[:, 4] == solidID]
-                pts = pts[pts[:, 5] == surfaceID]
-                if pts.shape[0] == 0:
+                surfaceIndices = np.asarray(log[:, 5] == surfaceID).nonzero()[0]
+                surfacePoints = log[surfaceIndices]
+                solidSurfaceIndices = np.asarray(surfacePoints[:, 4] == solidID).nonzero()[0]
+                if len(solidSurfaceIndices) == 0:
                     continue
-                self._sceneLogger.logDataPointArray(pts[:, :4], key)
+
+                points = surfacePoints[solidSurfaceIndices]
+                self._sceneLogger.logDataPointArray(points[:, :4], key)
         t4 = time.time()
         print(f" ... {t4 - t3:.3f} s. [Transfer to scene logger]")
         print(f">>> ({t4 - t0:.3f} s.)")
