@@ -86,10 +86,11 @@ class CLScene:
         outsideMaterialID = self.getMaterialID(polygonRef.outsideMaterial)
         insideSolidID = self.getSolidID(polygonRef.insideEnvironment.solid)
         outsideSolidID = self.getSolidID(polygonRef.outsideEnvironment.solid)
+        toSmooth = polygonRef.toSmooth
 
         self._surfacesInfo.append(SurfaceCLInfo(firstPolygonID, lastPolygonID,
                                                 insideMaterialID, outsideMaterialID,
-                                                insideSolidID, outsideSolidID))
+                                                insideSolidID, outsideSolidID, toSmooth))
 
     def _processSolid(self, solid):
         solidVertices = solid.getVertices()

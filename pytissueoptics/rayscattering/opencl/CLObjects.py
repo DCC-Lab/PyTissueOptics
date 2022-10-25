@@ -152,7 +152,8 @@ class SolidCL(CLObject):
 
 SurfaceCLInfo = NamedTuple("SurfaceInfo", [("firstPolygonID", int), ("lastPolygonID", int),
                                            ("insideMaterialID", int), ("outsideMaterialID", int),
-                                           ("insideSolidID", int), ("outsideSolidID", int)])
+                                           ("insideSolidID", int), ("outsideSolidID", int),
+                                           ("toSmooth", bool)])
 
 
 class SurfaceCL(CLObject):
@@ -167,7 +168,8 @@ class SurfaceCL(CLObject):
              ("insideMaterialID", cl.cltypes.uint),
              ("outsideMaterialID", cl.cltypes.uint),
              ("insideSolidID", cl.cltypes.int),
-             ("outsideSolidID", cl.cltypes.int)])
+             ("outsideSolidID", cl.cltypes.int),
+             ("toSmooth", cl.cltypes.uint)])
         super().__init__(name=self.STRUCT_NAME, struct=struct)
 
     def _getHostBuffer(self) -> np.ndarray:
@@ -179,6 +181,7 @@ class SurfaceCL(CLObject):
             buffer[i]["outsideMaterialID"] = np.uint32(surfaceInfo.outsideMaterialID)
             buffer[i]["insideSolidID"] = np.int32(surfaceInfo.insideSolidID)
             buffer[i]["outsideSolidID"] = np.int32(surfaceInfo.outsideSolidID)
+            buffer[i]["toSmooth"] = np.uint32(surfaceInfo.toSmooth)
         return buffer
 
 
