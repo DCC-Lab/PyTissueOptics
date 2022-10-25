@@ -218,7 +218,8 @@ class VertexCL(CLObject):
         self._vertices = vertices
 
         struct = np.dtype(
-            [("position", cl.cltypes.float3)])
+            [("position", cl.cltypes.float3),
+             ("normal", cl.cltypes.float3)])
         super().__init__(name=self.STRUCT_NAME, struct=struct)
 
     def _getHostBuffer(self) -> np.ndarray:
@@ -227,6 +228,10 @@ class VertexCL(CLObject):
             buffer[i]["position"][0] = np.float32(vertex.x)
             buffer[i]["position"][1] = np.float32(vertex.y)
             buffer[i]["position"][2] = np.float32(vertex.z)
+            if vertex.normal is not None:
+                buffer[i]["normal"][0] = np.float32(vertex.normal.x)
+                buffer[i]["normal"][1] = np.float32(vertex.normal.y)
+                buffer[i]["normal"][2] = np.float32(vertex.normal.z)
         return buffer
 
 
