@@ -50,7 +50,7 @@ class CLProgram:
         print("Available devices:")
         for i, device in enumerate(devices):
             print(f"... Device {i}: {device.name} ({device.global_mem_size // 10**6} MB "
-                  f"| {device.max_clock_frequency} MHz)")
+                  f"| {device.max_clock_frequency} MHz), {device.info}")
 
     @staticmethod
     def _makeSource(sourcePath) -> str:
@@ -88,3 +88,11 @@ class CLProgram:
     @property
     def global_memory_size(self):
         return self._device.global_mem_size
+
+    @property
+    def max_work_item_dimensions(self):
+        return self._device.max_work_item_dimensions
+
+    @property
+    def device_type(self):
+        return self._device.type
