@@ -5,6 +5,7 @@ struct Intersection {
     float3 position;
     float3 normal;
     uint surfaceID;
+    uint polygonID;
     float distanceLeft;
 };
 
@@ -193,23 +194,48 @@ Intersection _findClosestPolygonIntersection(Ray ray, uint solidID,
                     intersection.position = hitPoint.position;
                     intersection.normal = triangles[p].normal;
                     intersection.surfaceID = s;
+                    intersection.polygonID = p;
                 }
             }
         }
         return intersection;
 }
 
-void _composeIntersection(Intersection *intersection, Ray *ray) {
+float _cotangent(float3 v0, float3 v1, float3 v2) {
+    float3 edge0 = v0 - v1;
+    float3 edge1 = v2 - v1;
+    return dot(edge1, edge0) / length(cross(edge1, edge0));
+}
+
+void setSmoothNormal(Intersection *intersection, __global Triangle *triangles, __global Vertex *vertices) {
+    float3 weights;
+    for (uint i = 0; i < 3; i++) {
+        float3 vertex = vertices[triangles[intersection->polygonID].vertexIDs[i]].position;
+        float3 prevVertex = vertices[triangles[intersection->polygonID].vertexIDs[(i + 2) % 3]].position;
+        float3 nextVertex = vertices[triangles[intersection->polygonID].vertexIDs[(i + 1) % 3]].position;
+        float cotPrev = _cotangent(intersection->position, vertex, prevVertex);
+        float cotNext = _cotangent(intersection->position, vertex, nextVertex);
+        float d = length(vertex - intersection->position);
+        weights[i] = (cotPrev + cotNext) / (d * d);
+    }
+    float sum = weights[0] + weights[1] + weights[2];
+    weights /= sum;
+
+    intersection->normal = weights[0] * vertices[triangles[intersection->polygonID].vertexIDs[0]].normal +
+                           weights[1] * vertices[triangles[intersection->polygonID].vertexIDs[1]].normal +
+                           weights[2] * vertices[triangles[intersection->polygonID].vertexIDs[2]].normal;
+    intersection->normal = normalize(intersection->normal);
+}
+
+void _composeIntersection(Intersection *intersection, Ray *ray, __global Surface *surfaces,
+                            __global Triangle *triangles, __global Vertex *vertices) {
     if (!intersection->exists) {
         return;
     }
-    // todo: smoothing
-    // 1. Py: Add uint bool toSmooth in SurfaceCl (extract from first polygon.toSmooth)
-    // 2. Py: Add vertex normal in VertexCl and load it easily from same List[Vertex] input.
-    // 3. C: Smooth if intersection surface.toSmooth (requires ref to surfaces here)
-    // 4. C: Smoothing Algo
-    // 4.1 : requires vertices here => add polygonID field in Intersection, inject triangles ref here)
-    // 4.2 : translate smoothing algo
+
+    if (surfaces[intersection->surfaceID].toSmooth) {
+        setSmoothNormal(intersection, triangles, vertices);
+    }
     intersection->distanceLeft = ray->length - intersection->distance;
 }
 
@@ -240,7 +266,7 @@ Intersection findIntersection(Ray ray, uint nSolids, __global Solid *solids,
         }
     }
 
-    _composeIntersection(&closestIntersection, &ray);
+    _composeIntersection(&closestIntersection, &ray, surfaces, triangles, vertices);
     return closestIntersection;
 }
 
