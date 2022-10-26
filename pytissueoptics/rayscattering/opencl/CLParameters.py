@@ -8,7 +8,7 @@ class CLParameters:
     seedSize = 4
     materialSize = 32
 
-    def __init__(self, maxLoggerMemory: int = 1e9, workItemAmount: int = 100,
+    def __init__(self, maxLoggerMemory: int = 1e8, workItemAmount: int = 100,
                  photonAmount: int = 1000, loggerGlobalFactor: float = 0.75):
         self._maxLoggerMemory = maxLoggerMemory
         self._workItemAmount = workItemAmount
@@ -37,6 +37,8 @@ class CLParameters:
 
     @photonAmount.setter
     def photonAmount(self, value: int):
+        if value < self._workItemAmount:
+            self._workItemAmount = value
         self._photonAmount = value
 
     @property
@@ -57,10 +59,7 @@ class CLParameters:
 
     @property
     def photonsPerWorkItem(self):
-        value = np.int32(np.ceil(self._photonAmount / self._workItemAmount))
-        if value == 1:
-            self._workItemAmount = self._photonAmount
-        return np.int32(value)
+        return np.int32(np.ceil(self._photonAmount / self._workItemAmount))
     
     @photonsPerWorkItem.setter
     def photonsPerWorkItem(self, value: int):

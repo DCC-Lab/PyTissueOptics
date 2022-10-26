@@ -2,7 +2,6 @@ import os
 import time
 
 from pytissueoptics.rayscattering.opencl.CLParameters import CLParameters
-from pytissueoptics.rayscattering.opencl.CLPhotonBatch import CLPhotonBatch
 
 try:
     import pyopencl as cl
@@ -13,7 +12,7 @@ except ImportError:
 import numpy as np
 
 from pytissueoptics.rayscattering.opencl.CLProgram import CLProgram
-from pytissueoptics.rayscattering.opencl.CLObjects import PhotonCL, MaterialCL, DataPointCL, SeedCL, RandomNumberCL
+from pytissueoptics.rayscattering.opencl.CLObjects import PhotonCL, MaterialCL, DataPointCL, SeedCL
 from pytissueoptics.rayscattering.tissues import InfiniteTissue
 from pytissueoptics.rayscattering.tissues.rayScatteringScene import RayScatteringScene
 from pytissueoptics.scene import Logger
@@ -42,30 +41,6 @@ class CLPhotons:
         self._sceneLogger = logger
 
     def propagate(self):
-        """
-        The propagation code on the CPU must manage dynamic batching of the photons, because the data generated
-        by the photon weight deposition is too large to be handled at once on most of the parallel computing
-        devices. Thus, we calculate the maximum size of the logger from the device total memory and subtract
-        the photon and temporary variable size.
-
-        It is estimated that the maximum speed increase for this purpose will be obtained by using 1 work-group
-        with as many work-item as possible, since all the work-item launch the same kernel. The important metrics here:
-        - photonsPerUnit =  N / workUnits
-        - photonsPerBatch = 10 (A number that needs to be  played with (probably by sending a first batch
-                                and trying to estimate the average interaction per photon)
-        - maxLoggerSize = globalMemorySize - photonSize - geometryObjects - materialsObjects
-        - maxLoggableInteractionsPerUnit = maxLoggerSize / workUnits
-
-        Having the whole body of photons generated on the CPU is fast enough for know, thus
-        (mutable) kernelPhotons = PhotonCL(positions[:kernelSize], directions[:kernelSize])
-        to save space, lets exclude the initial kernel photons from the pool of (remaining) photons
-        (immutable) poolOfPhotons = PhotonCL(positions[kernelSize:], directions[kernelSize:])
-
-        Once a GPU batch as ended, when all the photons had X interactions, the weight of each photon is checked.
-        The photons with a weight of 0 are replaced by photons from the photon pool. The other photons are sent
-        on the gpu again to continue their propagation. A counter keeps count of which photon will be sent next.
-        """
-
         program = CLProgram(sourcePath=PROPAGATION_SOURCE_PATH)
         params = CLParameters()
 
@@ -92,11 +67,10 @@ class CLPhotons:
                                             self._weightThreshold, np.int32(params.workItemAmount), kernelPhotons,
                                             materials, seeds, logger])
             t2 = time.time_ns()
-
             logArrays.append(program.getData(logger))
             program.getData(kernelPhotons)
             batchPhotonCount, photonCount = self._replaceFullyPropagatedPhotons(kernelPhotons, photonPool,
-                                                                   photonCount, params.photonAmount)
+                                                                                photonCount, params.photonAmount)
 
             self._showProgress(photonCount, batchPhotonCount, batchCount, t0, t1, t2, params.photonAmount)
             params.photonAmount = kernelPhotons.size
