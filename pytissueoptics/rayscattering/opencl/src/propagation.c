@@ -168,7 +168,7 @@ __kernel void propagate(uint dataSize, uint maxInteractions, float weightThresho
     float distance = 0;
 
     while (photons[gid].weight != 0){
-        if (logIndex == maxLogIndex){
+        if (logIndex >= (maxLogIndex -1)){  // Added -1 to avoid potential overflow when intersection logs twice
             printf("Warning: Out of logger memory for photon %d who could not propagate totally.\n", gid);
             break;
         }
