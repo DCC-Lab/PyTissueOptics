@@ -97,23 +97,27 @@ class CLPhotons:
         """
         t3 = time.time()
         keyIndices = []
-        batchSize = log.shape[0] // 1000
-        for i in range(0, log.shape[0], batchSize):
-            ba, bb = i, i + batchSize
+        batchSize = log.shape[0] // min(1000, self._N)
+        # todo: try multi-threaded sort
+        for bStart in range(0, log.shape[0], batchSize):
+            ba, bb = bStart, bStart + batchSize
             batchLog = log[ba:bb]
             batchKeyIndices = {}
-
             batchLog = batchLog[batchLog[:, 4].argsort()]
-            solidChanges = np.unique(batchLog[:, 4], return_index=True)[1]
-            solidChanges = np.append(solidChanges, len(batchLog))
+
+            solidChanges = np.where(batchLog[:-1, 4] != batchLog[1:, 4])[0] + 1
+            solidChanges = np.concatenate(([0], solidChanges, [batchLog.shape[0]]))
+
             for i in range(len(solidChanges) - 1):
                 solidID = batchLog[solidChanges[i], 4]
                 if solidID == 0:
                     continue
                 a, b = solidChanges[i], solidChanges[i + 1]
                 batchLog[a:b] = batchLog[a:b][batchLog[a:b, 5].argsort()]
-                surfaceChanges = np.unique(batchLog[a:b, 5], return_index=True)[1]
-                surfaceChanges = np.append(surfaceChanges, b - a)
+
+                surfaceChanges = np.where(batchLog[a:b-1, 5] != batchLog[a+1:b, 5])[0] + 1
+                surfaceChanges = np.concatenate(([0], surfaceChanges, [b - a]))
+
                 for j in range(len(surfaceChanges) - 1):
                     surfaceID = batchLog[a + surfaceChanges[j], 5]
                     c, d = surfaceChanges[j], surfaceChanges[j + 1]
