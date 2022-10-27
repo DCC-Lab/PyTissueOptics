@@ -9,6 +9,8 @@ from pytissueoptics.rayscattering.opencl.CLObjects import MaterialCL, SolidCandi
 NO_SOLID_ID = -1
 NO_SURFACE_ID = -1
 
+SOLID_ID_0 = 1
+
 
 class CLScene:
     def __init__(self, scene: RayScatteringScene, nWorkUnits: int):
@@ -37,12 +39,12 @@ class CLScene:
     def getSolidID(self, solid):
         if solid is None:
             return NO_SOLID_ID
-        return self._solidLabels.index(solid.getLabel())
+        return self._solidLabels.index(solid.getLabel()) + SOLID_ID_0
 
     def getSolidLabel(self, solidID):
         if solidID == NO_SOLID_ID:
             return None
-        return self._solidLabels[solidID]
+        return self._solidLabels[solidID - SOLID_ID_0]
 
     def getSolidIDs(self) -> List[int]:
         solidIDs = list(self._surfaceLabels.keys())

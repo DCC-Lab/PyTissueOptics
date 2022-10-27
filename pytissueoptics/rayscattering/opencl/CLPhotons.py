@@ -85,5 +85,4 @@ class CLPhotons:
         print(f">>> ({t4 - t0:.3f} s.)")
 
         # pts = self._sceneLogger.getDataPoints()
-        # interactionCount = sum([p[0] != 0 for p in pts])
-        # print(f"True avgInteractions: {interactionCount / self._N}")
+        # print(f"True avgInteractions: {len(pts) / self._N}")
