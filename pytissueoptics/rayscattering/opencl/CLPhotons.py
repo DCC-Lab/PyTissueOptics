@@ -1,6 +1,7 @@
 import os
 import time
 
+from pytissueoptics.rayscattering.opencl.CLKeyLog import CLKeyLog
 from pytissueoptics.rayscattering.opencl.CLScene import CLScene
 
 try:
@@ -14,8 +15,7 @@ import numpy as np
 from pytissueoptics.rayscattering.opencl.CLProgram import CLProgram
 from pytissueoptics.rayscattering.opencl.CLObjects import PhotonCL, DataPointCL, SeedCL, RandomNumberCL
 from pytissueoptics.rayscattering.tissues.rayScatteringScene import RayScatteringScene
-from pytissueoptics.scene import Logger
-from pytissueoptics.scene.logger import InteractionKey
+from pytissueoptics.scene.logger.logger import Logger
 from pytissueoptics.scene.geometry import Environment
 
 PROPAGATION_SOURCE_PATH = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'src', 'propagation.c')
@@ -77,113 +77,13 @@ class CLPhotons:
         if not self._sceneLogger:
             return
 
-        localSort = True
-
-        if localSort:
-            self._logWithLocalSort(log, scene)
-        else:
-            self._log(log, scene)
+        keyLog = CLKeyLog(log, sceneCL=scene)
+        keyLog.toSceneLogger(self._sceneLogger)
 
         t4 = time.time()
+        print(f" ... {t4 - t3:.3f} s. [Transfer to scene logger]")
         print(f">>> ({t4 - t0:.3f} s.)")
 
         # pts = self._sceneLogger.getDataPoints()
         # interactionCount = sum([p[0] != 0 for p in pts])
         # print(f"True avgInteractions: {interactionCount / self._N}")
-
-    def _logWithLocalSort(self, log, scene):
-        """
-        Temporary CPU workUnit-wise sort. Todo: move to OpenCL
-        """
-        t3 = time.time()
-        keyIndices = []
-        batchSize = log.shape[0] // min(1000, self._N)
-        # todo: try multi-threaded sort
-        for bStart in range(0, log.shape[0], batchSize):
-            ba, bb = bStart, bStart + batchSize
-            batchLog = log[ba:bb]
-            batchKeyIndices = {}
-            batchLog = batchLog[batchLog[:, 4].argsort()]
-
-            solidChanges = np.where(batchLog[:-1, 4] != batchLog[1:, 4])[0] + 1
-            solidChanges = np.concatenate(([0], solidChanges, [batchLog.shape[0]]))
-
-            for i in range(len(solidChanges) - 1):
-                solidID = batchLog[solidChanges[i], 4]
-                if solidID == 0:
-                    continue
-                a, b = solidChanges[i], solidChanges[i + 1]
-                batchLog[a:b] = batchLog[a:b][batchLog[a:b, 5].argsort()]
-
-                surfaceChanges = np.where(batchLog[a:b-1, 5] != batchLog[a+1:b, 5])[0] + 1
-                surfaceChanges = np.concatenate(([0], surfaceChanges, [b - a]))
-
-                for j in range(len(surfaceChanges) - 1):
-                    surfaceID = batchLog[a + surfaceChanges[j], 5]
-                    c, d = surfaceChanges[j], surfaceChanges[j + 1]
-                    batchKeyIndices[(int(solidID), int(surfaceID))] = (a + c, a + d)
-            keyIndices.append(batchKeyIndices)
-            log[ba:bb] = batchLog
-
-        tParse = time.time()
-        print(f" ... {tParse - t3:.3f} s. [Logger parsing]")
-
-        keyData = {}
-        for i, batchKeyIndices in enumerate(keyIndices):
-            bn = i * batchSize
-            for keyIDs, indices in batchKeyIndices.items():
-                if len(indices) == 0:
-                    continue
-                key = InteractionKey(scene.getSolidLabel(keyIDs[0]), scene.getSurfaceLabel(keyIDs[0], keyIDs[1]))
-                points = log[indices[0] + bn: indices[1] + bn, :4]
-                if key not in keyData:
-                    keyData[key] = [points]
-                else:
-                    keyData[key].append(points)
-
-        for key, points in keyData.items():
-            points = np.concatenate(points)
-            self._sceneLogger.logDataPointArray(points, key)
-
-        t4 = time.time()
-        print(f" ... {t4 - tParse:.3f} s. [Transfer to scene logger]")
-
-    def _log(self, log, scene):
-        t3 = time.time()
-        log = log[log[:, 4] != 0]
-
-        keyToIndices = {}
-        solidIDs = scene.getSolidIDs()
-        for solidID in solidIDs:
-            surfaceIDs = scene.getSurfaceIDs(solidID)
-            for surfaceID in surfaceIDs:
-                key = InteractionKey(scene.getSolidLabel(solidID), scene.getSurfaceLabel(solidID, surfaceID))
-                surfaceIndices = np.asarray(log[:, 5] == surfaceID).nonzero()[0]
-                surfacePoints = log[surfaceIndices]
-                solidSurfaceIndices = np.asarray(surfacePoints[:, 4] == solidID).nonzero()[0]
-                keyToIndices[key] = surfaceIndices[solidSurfaceIndices]
-
-        tParse = time.time()
-        print(f" ... {tParse - t3:.3f} s. [Logger parsing]")
-
-        for key, indices in keyToIndices.items():
-            if len(indices) == 0:
-                continue
-            points = log[indices, :4]
-
-            self._sceneLogger.logDataPointArray(points, key)
-
-        t4 = time.time()
-        print(f" ... {t4 - tParse:.3f} s. [Transfer to scene logger]")
-
-"""
-30k photons
-transfer to logger time:
-    No sort:
-        3.1s
-    Global sort:
-        0.16s
-    Local sort:
-        0.49s with 30k units
-        0.24s with 1k units
-"""
