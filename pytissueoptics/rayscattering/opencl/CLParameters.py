@@ -59,7 +59,7 @@ class CLParameters:
 
     @property
     def photonsPerWorkItem(self):
-        return np.int32(np.ceil(self._photonAmount / self._workItemAmount))
+        return np.int32(np.floor(self._photonAmount / self._workItemAmount))
     
     @photonsPerWorkItem.setter
     def photonsPerWorkItem(self, value: int):
