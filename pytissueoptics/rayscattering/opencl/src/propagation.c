@@ -86,8 +86,6 @@ __kernel void propagate(uint maxPhotons, uint maxInteractions, float weightThres
 
     while ((interactionCount < maxInteractions) && (photonCount < maxPhotons)){
         uint currentPhotonIndex = gid + (photonCount * workUnitsAmount);
-        //printf("gid: %d, pid: %d, photonCount: %d / %d \n", gid, currentPhotonIndex, photonCount, maxPhotons);
-        //printf("gid: %d, pid: %d, interactionCount: %d / %d\n\n", gid, currentPhotonIndex, photonCount, maxInteractions);
 
         float distance = 0;
         float4 er = getAnyOrthogonalGlobal(&photons[currentPhotonIndex].direction);
@@ -95,17 +93,14 @@ __kernel void propagate(uint maxPhotons, uint maxInteractions, float weightThres
 
         while (photons[currentPhotonIndex].weight != 0){
             if (interactionCount == maxInteractions){
-            //printf("Max interactions reached");
                 return;}
 
             uint logIndex = (gid * workUnitsAmount) + interactionCount;
             distance = propagateStep(distance, photons, materials, seeds, logger, logIndex, gid, currentPhotonIndex);
             roulette(weightThreshold, photons, seeds, gid, currentPhotonIndex);
             interactionCount++;
-            //printf("photon %d: %f\n",currentPhotonIndex, photons[currentPhotonIndex].weight);
             }
         photonCount++;
 
     }
-    //printf("End of loop. Filled interactions or propagated enough photons");
 }
