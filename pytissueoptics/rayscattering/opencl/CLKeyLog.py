@@ -1,3 +1,5 @@
+from multiprocessing.pool import ThreadPool
+
 import numpy as np
 
 from pytissueoptics.scene.logger.logger import Logger
@@ -32,31 +34,40 @@ class CLKeyLog:
         """ Sorts the log locally by solidID and surfaceID,
         and for each local batch, it also extracts start and end indices for each key. """
 
-        # todo: try multi-threaded sort
-        for bStart in range(0, self._log.shape[0], self._batchSize):
-            ba, bb = bStart, bStart + self._batchSize
-            batchLog = self._log[ba:bb]
+        pool = ThreadPool(8)
+        results = []
+        for batchStartIdx in range(0, self._log.shape[0], self._batchSize):
+            res = pool.apply_async(self._sortBatch, args=(batchStartIdx,))
+            results.append(res)
+        pool.close()
+        pool.join()
+        self._keyIndices = [res.get() for res in results]
 
-            batchLog = batchLog[batchLog[:, 4].argsort()]
+    def _sortBatch(self, startIdx: int):
+        ba, bb = startIdx, startIdx + self._batchSize
+        batchLog = self._log[ba:bb]
+        batchLog = self._sort(batchLog, column=SOLID_ID_COL)
 
-            solidChanges = self._getValueChangeIndices(batchLog, column=SOLID_ID_COL)
+        solidChanges = self._getValueChangeIndices(batchLog, column=SOLID_ID_COL)
 
-            batchKeyIndices = {}
-            for i in range(len(solidChanges) - 1):
-                solidID = batchLog[solidChanges[i], 4]
-                if solidID == 0:
-                    continue
-                a, b = solidChanges[i], solidChanges[i + 1]
-                batchLog[a:b] = batchLog[a:b][batchLog[a:b, 5].argsort()]
+        batchKeyIndices = {}
+        for i in range(len(solidChanges) - 1):
+            solidID = batchLog[solidChanges[i], SOLID_ID_COL]
+            if solidID == 0:
+                continue
+            a, b = solidChanges[i], solidChanges[i + 1]
+            batchSolidLog = batchLog[a:b]
+            batchSolidLog = self._sort(batchSolidLog, column=SURFACE_ID_COL)
 
-                surfaceChanges = self._getValueChangeIndices(batchLog[a:b], column=SURFACE_ID_COL)
+            surfaceChanges = self._getValueChangeIndices(batchSolidLog, column=SURFACE_ID_COL)
+            for j in range(len(surfaceChanges) - 1):
+                surfaceID = batchSolidLog[surfaceChanges[j], SURFACE_ID_COL]
+                c, d = surfaceChanges[j], surfaceChanges[j + 1]
+                batchKeyIndices[(int(solidID), int(surfaceID))] = (a + c, a + d)
 
-                for j in range(len(surfaceChanges) - 1):
-                    surfaceID = batchLog[a + surfaceChanges[j], 5]
-                    c, d = surfaceChanges[j], surfaceChanges[j + 1]
-                    batchKeyIndices[(int(solidID), int(surfaceID))] = (a + c, a + d)
-            self._keyIndices.append(batchKeyIndices)
-            self._log[ba:bb] = batchLog
+            batchLog[a:b] = batchSolidLog
+        self._log[ba:bb] = batchLog
+        return batchKeyIndices
 
     @staticmethod
     def _getValueChangeIndices(log: np.ndarray, column: int):
@@ -64,18 +75,22 @@ class CLKeyLog:
         indices = np.where(log[:-1, column] != log[1:, column])[0] + 1
         return np.concatenate(([0], indices, [log.shape[0]]))
 
+    @staticmethod
+    def _sort(log: np.ndarray, column: int):
+        return log[log[:, column].argsort()]
+
     def _merge(self):
         """ Merges the local batches into a single key log with unique interaction keys. """
         self._log = self._log[:, :4]
 
         for i, batchKeyIndices in enumerate(self._keyIndices):
-            bn = i * self._batchSize
+            batchStartIndex = i * self._batchSize
             for keyIDs, indices in batchKeyIndices.items():
                 if len(indices) == 0:
                     continue
+                a, b = batchStartIndex + indices[0], batchStartIndex + indices[1]
+                points = self._log[a: b]
                 key = self._getInteractionKey(*keyIDs)
-
-                points = self._log[indices[0] + bn: indices[1] + bn]
                 if key not in self._keyLog:
                     self._keyLog[key] = [points]
                 else:
@@ -90,21 +105,3 @@ class CLKeyLog:
     @property
     def _batchSize(self):
         return self._log.shape[0] // self._nBatch
-
-
-"""
-30k photons
-transfer to logger time:
-    No sort:
-        3.1s
-    Global sort:
-        0.16s
-    Local sort:
-        0.49s with 30k units
-        0.24s with 1k units
-
-        3.7s + 1.8s = 5.5s with local sort
-        [currently closer to 4.7s]
-
-        10.8s + 1.7s = 12.5s without local sort
-"""
