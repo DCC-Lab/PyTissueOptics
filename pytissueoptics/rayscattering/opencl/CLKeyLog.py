@@ -2,7 +2,7 @@ from multiprocessing.pool import ThreadPool
 
 import numpy as np
 
-from pytissueoptics.rayscattering.opencl.CLScene import CLScene, SOLID_ID_0, NO_SOLID_ID
+from pytissueoptics.rayscattering.opencl.CLScene import CLScene, NO_LOG_ID
 from pytissueoptics.scene.logger import InteractionKey, Logger
 
 
@@ -52,7 +52,7 @@ class CLKeyLog:
         batchKeyIndices = {}
         for i in range(len(solidChanges) - 1):
             solidID = batchLog[solidChanges[i], SOLID_ID_COL]
-            if NO_SOLID_ID < solidID < SOLID_ID_0:
+            if solidID == NO_LOG_ID:
                 continue
             a, b = solidChanges[i], solidChanges[i + 1]
             batchSolidLog = batchLog[a:b]
