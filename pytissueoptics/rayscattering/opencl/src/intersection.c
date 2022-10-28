@@ -249,6 +249,10 @@ Intersection findIntersection(Ray ray, uint nSolids, __global Solid *solids,
     Intersection closestIntersection;
     closestIntersection.exists = false;
     closestIntersection.distance = INFINITY;
+    if (nSolids == 0) {
+        return closestIntersection;
+    }
+
     for (uint i = 0; i < nSolids; i++) {
         uint boxGID = gid * nSolids + i;
         if (solidCandidates[boxGID].distance == -1) {

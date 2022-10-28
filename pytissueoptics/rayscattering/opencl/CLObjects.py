@@ -137,7 +137,8 @@ class SolidCL(CLObject):
         super().__init__(name=self.STRUCT_NAME, struct=struct)
 
     def _getHostBuffer(self) -> np.ndarray:
-        buffer = np.empty(len(self._solidsInfo), dtype=self._dtype)
+        bufferSize = max(len(self._solidsInfo), 1)
+        buffer = np.empty(bufferSize, dtype=self._dtype)
         for i, solidInfo in enumerate(self._solidsInfo):
             buffer[i]["bbox_min"][0] = np.float32(solidInfo.bbox.xMin)
             buffer[i]["bbox_min"][1] = np.float32(solidInfo.bbox.yMin)
@@ -173,7 +174,8 @@ class SurfaceCL(CLObject):
         super().__init__(name=self.STRUCT_NAME, struct=struct)
 
     def _getHostBuffer(self) -> np.ndarray:
-        buffer = np.empty(len(self._surfacesInfo), dtype=self._dtype)
+        bufferSize = max(len(self._surfacesInfo), 1)
+        buffer = np.empty(bufferSize, dtype=self._dtype)
         for i, surfaceInfo in enumerate(self._surfacesInfo):
             buffer[i]["firstPolygonID"] = np.uint32(surfaceInfo.firstPolygonID)
             buffer[i]["lastPolygonID"] = np.uint32(surfaceInfo.lastPolygonID)
@@ -200,7 +202,8 @@ class TriangleCL(CLObject):
         super().__init__(name=self.STRUCT_NAME, struct=struct)
 
     def _getHostBuffer(self) -> np.ndarray:
-        buffer = np.empty(len(self._trianglesInfo), dtype=self._dtype)
+        bufferSize = max(len(self._trianglesInfo), 1)
+        buffer = np.empty(bufferSize, dtype=self._dtype)
         for i, triangleInfo in enumerate(self._trianglesInfo):
             buffer[i]["vertexIDs"][0] = np.uint32(triangleInfo.vertexIDs[0])
             buffer[i]["vertexIDs"][1] = np.uint32(triangleInfo.vertexIDs[1])
@@ -223,7 +226,8 @@ class VertexCL(CLObject):
         super().__init__(name=self.STRUCT_NAME, struct=struct)
 
     def _getHostBuffer(self) -> np.ndarray:
-        buffer = np.empty(len(self._vertices), dtype=self._dtype)
+        bufferSize = max(len(self._vertices), 1)
+        buffer = np.empty(bufferSize, dtype=self._dtype)
         for i, vertex in enumerate(self._vertices):
             buffer[i]["position"][0] = np.float32(vertex.x)
             buffer[i]["position"][1] = np.float32(vertex.y)
@@ -284,7 +288,8 @@ class SolidCandidateCL(CLObject):
         super().__init__(name=self.STRUCT_NAME, struct=struct)
 
     def _getHostBuffer(self) -> np.ndarray:
-        buffer = np.empty(self._size, dtype=self._dtype)
+        bufferSize = max(self._size, 1)
+        buffer = np.empty(bufferSize, dtype=self._dtype)
         buffer["distance"] = -1
         buffer["solidID"] = 0
         return buffer

@@ -2,7 +2,7 @@ from multiprocessing.pool import ThreadPool
 
 import numpy as np
 
-from pytissueoptics.rayscattering.opencl.CLScene import CLScene, NO_LOG_ID
+from pytissueoptics.rayscattering.opencl.CLScene import CLScene, NO_LOG_ID, NO_SOLID_LABEL
 from pytissueoptics.scene.logger import InteractionKey, Logger
 
 
@@ -26,8 +26,13 @@ class CLKeyLog:
             sceneLogger.logDataPointArray(points, key)
 
     def _extractKeyLog(self):
+        if self._sceneCL.nSolids == 0:
+            return self._extractNoKeyLog()
         self._sortLocal()
         self._merge()
+
+    def _extractNoKeyLog(self):
+        self._keyLog[InteractionKey(NO_SOLID_LABEL, None)] = self._log[:, :4]
 
     def _sortLocal(self):
         """ Sorts the log locally by solidID and surfaceID,

@@ -11,6 +11,7 @@ NO_LOG_ID = 0
 NO_SOLID_ID = -1
 NO_SURFACE_ID = -1
 FIRST_SOLID_ID = 1
+NO_SOLID_LABEL = "world"
 
 
 class CLScene:
@@ -44,7 +45,7 @@ class CLScene:
 
     def getSolidLabel(self, solidID):
         if solidID == NO_SOLID_ID:
-            return None
+            return NO_SOLID_LABEL
         return self._solidLabels[solidID - FIRST_SOLID_ID]
 
     def getSolidIDs(self) -> List[int]:
