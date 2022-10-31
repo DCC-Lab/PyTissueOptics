@@ -25,5 +25,7 @@ source.propagate(layerTissueScene, logger)
 
 stats = Stats(logger, source, layerTissueScene)
 stats.report()
-stats.showEnergy3D(config=DisplayConfig(showPointsAsSpheres=False))
 
+stats.showEnergy3D(config=DisplayConfig(showPointsAsSpheres=False))
+stats.showEnergy2D(bins=101, logScale=True, limits=[[-1.5, 1.5], [0, 3]])
+stats.showEnergy2D(bins=101, solidLabel="Sphere", logScale=True, limits=[[-1.5, 1.5], [0, 3]])
