@@ -28,19 +28,24 @@ struct GemsBoxIntersection {
 typedef struct GemsBoxIntersection GemsBoxIntersection;
 
 
-GemsBoxIntersection _getSolidCandidate(Ray ray, float3 minCorner, float3 maxCorner) {
+GemsBoxIntersection _getSolidCandidate(Ray ray, float3 minCornerVector, float3 maxCornerVector) {
     GemsBoxIntersection intersection;
     intersection.rayIsInside = true;
     intersection.exists = false;
 
+    float rayOrigin[3] = {ray.origin.x, ray.origin.y, ray.origin.z};
+    float rayDirection[3] = {ray.direction.x, ray.direction.y, ray.direction.z};
+    float minCorner[3] = {minCornerVector.x, minCornerVector.y, minCornerVector.z};
+    float maxCorner[3] = {maxCornerVector.x, maxCornerVector.y, maxCornerVector.z};
     int quadrant[3];
-    float3 candidatePlanes;
+    float candidatePlanes[3];
+
     for (uint i = 0; i < 3; i++) {
-        if (ray.origin[i] < minCorner[i]) {
+        if (rayOrigin[i] < minCorner[i]) {
             quadrant[i] = 0;
             candidatePlanes[i] = minCorner[i];
             intersection.rayIsInside = false;
-        } else if (ray.origin[i] > maxCorner[i]) {
+        } else if (rayOrigin[i] > maxCorner[i]) {
             quadrant[i] = 1;
             candidatePlanes[i] = maxCorner[i];
             intersection.rayIsInside = false;
@@ -53,10 +58,10 @@ GemsBoxIntersection _getSolidCandidate(Ray ray, float3 minCorner, float3 maxCorn
         return intersection;
     }
 
-    float3 maxT;
+    float maxT[3];
     for (uint i = 0; i < 3; i++) {
-        if (quadrant[i] != 2 && ray.direction[i] != 0.0f) {
-            maxT[i] = (candidatePlanes[i] - ray.origin[i]) / ray.direction[i];
+        if (quadrant[i] != 2 && rayDirection[i] != 0.0f) {
+            maxT[i] = (candidatePlanes[i] - rayOrigin[i]) / rayDirection[i];
         } else {
             maxT[i] = -1.0f;
         }
@@ -75,18 +80,21 @@ GemsBoxIntersection _getSolidCandidate(Ray ray, float3 minCorner, float3 maxCorn
     if (maxT[plane] > ray.length) {
         return intersection;
     }
+
+    float intersectionPoint[3];
     for (uint i = 0; i < 3; i++) {
         if (plane != i) {
-            intersection.position[i] = ray.origin[i] + maxT[plane] * ray.direction[i];
-            if (intersection.position[i] < minCorner[i] || intersection.position[i] > maxCorner[i]) {
+            intersectionPoint[i] = rayOrigin[i] + maxT[plane] * rayDirection[i];
+            if (intersectionPoint[i] < minCorner[i] || intersectionPoint[i] > maxCorner[i]) {
                 return intersection;
             }
         } else {
-            intersection.position[i] = candidatePlanes[i];
+            intersectionPoint[i] = candidatePlanes[i];
         }
     }
 
     intersection.exists = true;
+    intersection.position = (float3)(intersectionPoint[0], intersectionPoint[1], intersectionPoint[2]);
     return intersection;
 }
 
@@ -208,7 +216,7 @@ float _cotangent(float3 v0, float3 v1, float3 v2) {
 }
 
 void setSmoothNormal(Intersection *intersection, __global Triangle *triangles, __global Vertex *vertices) {
-    float3 weights;
+    float weights[3];
     for (uint i = 0; i < 3; i++) {
         float3 vertex = vertices[triangles[intersection->polygonID].vertexIDs[i]].position;
         float3 prevVertex = vertices[triangles[intersection->polygonID].vertexIDs[(i + 2) % 3]].position;
@@ -219,7 +227,9 @@ void setSmoothNormal(Intersection *intersection, __global Triangle *triangles, _
         weights[i] = (cotPrev + cotNext) / (d * d);
     }
     float sum = weights[0] + weights[1] + weights[2];
-    weights /= sum;
+    for (uint i = 0; i < 3; i++) {
+        weights[i] /= sum;
+    }
 
     intersection->normal = weights[0] * vertices[triangles[intersection->polygonID].vertexIDs[0]].normal +
                            weights[1] * vertices[triangles[intersection->polygonID].vertexIDs[1]].normal +
