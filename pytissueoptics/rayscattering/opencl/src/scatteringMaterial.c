@@ -27,7 +27,7 @@ ScatteringAngles getScatteringAngles(float rndPhi, float rndTheta,__global Photo
                                      __constant Material *materials, uint photonId)
 {
     ScatteringAngles angles;
-    float g = materials[photons[photonId].material_id].g;
+    float g = materials[photons[photonId].materialID].g;
     angles.phi = getScatteringAnglePhi(rndPhi);
     angles.theta = getScatteringAngleTheta(g, rndTheta);
     return angles;

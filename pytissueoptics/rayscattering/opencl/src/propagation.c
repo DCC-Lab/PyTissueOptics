@@ -22,13 +22,13 @@ void decreaseWeightBy(float delta_weight, __global Photon *photons, uint photonI
 
 void interact(__global Photon *photons, __constant Material *materials, __global DataPoint *logger,
               uint logIndex, uint photonId){
-    float delta_weight = photons[photonId].weight * materials[photons[photonId].material_id].albedo;
+    float delta_weight = photons[photonId].weight * materials[photons[photonId].materialID].albedo;
     decreaseWeightBy(delta_weight, photons, photonId);
     logger[logIndex].x = photons[photonId].position.x;
     logger[logIndex].y = photons[photonId].position.y;
     logger[logIndex].z = photons[photonId].position.z;
     logger[logIndex].delta_weight = delta_weight;
-    logger[logIndex].solidID = photons[gid].solidID;
+    logger[logIndex].solidID = photons[photonId].solidID;
     logger[logIndex].surfaceID = NO_SURFACE_ID;
 }
 
@@ -128,7 +128,7 @@ float propagateStep(float distance, __global Photon *photons, __constant Materia
                     __global uint *seeds, __global DataPoint *logger, uint *logIndex, uint gid, uint photonId){
 
     if (distance == 0) {
-        float mu_t = materials[photons[photonId].material_id].mu_t;
+        float mu_t = materials[photons[photonId].materialID].mu_t;
         float randomNumber = getRandomFloatValue(seeds, gid);
         distance = getScatteringDistance(mu_t, randomNumber);
     }
@@ -156,12 +156,11 @@ float propagateStep(float distance, __global Photon *photons, __constant Materia
 }
 
 
-__kernel void propagate(uint dataSize, uint maxInteractions, float weightThreshold,
-            __global Photon *photons, __constant Material *materials, __global DataPoint *logger,
-            __global float *randomNumbers, __global uint *seeds,
-            uint nSolids, __global Solid *solids, __global Surface *surfaces, __global Triangle *triangles,
-            __global Vertex *vertices, __global SolidCandidate *solidCandidates){
+__kernel void propagate(uint maxPhotons, uint maxInteractions, float weightThreshold, uint workUnitsAmount, __global Photon *photons,
+            __constant Material *materials, uint nSolids, __global Solid *solids, __global Surface *surfaces, __global Triangle *triangles,
+            __global Vertex *vertices, __global SolidCandidate *solidCandidates, __global uint *seeds, __global DataPoint *logger){
     // todo: maybe simplify args with SceneStruct with ptrs to ptrs?
+    // todo: rename photonId to photonID, gid to globalID
     uint gid = get_global_id(0);
     uint logIndex = gid * maxInteractions;
     uint maxLogIndex = logIndex + maxInteractions;
