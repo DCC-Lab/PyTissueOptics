@@ -47,9 +47,6 @@ class CLPhotons:
         program = CLProgram(sourcePath=PROPAGATION_SOURCE_PATH)
         params = CLParameters()
 
-        t1 = time.time()
-        print(f"OpenCL Propagation Timer: \n ... {t1 - t0:.3f} s. [CLScene initialization]")
-
         if params.photonAmount >= self._N:
             params.photonAmount = self._N
 
@@ -59,6 +56,9 @@ class CLPhotons:
                               materialID=scene.getMaterialID(self._initialMaterial), solidID=scene.getSolidID(self._initialSolid))
         photonPool.make(program.device)
         seeds = SeedCL(params.photonAmount)
+
+        t1 = time.time()
+        print(f"OpenCL Propagation Timer: \n ... {t1 - t0:.3f} s. [CLObjects initialization]")
 
         photonCount = 0
         batchCount = 0
@@ -106,6 +106,7 @@ class CLPhotons:
         t4 = time.time_ns()
         log = np.concatenate(logArrays)
         print(f"Concatenate multiple logger arrays: {(time.time_ns() - t4) / 1e9}s")
+
         if not self._sceneLogger:
             return
 
