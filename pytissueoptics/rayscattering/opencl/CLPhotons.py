@@ -73,7 +73,7 @@ class CLPhotons:
                                                                                 photonCount, params.photonAmount)
 
             self._showProgress(photonCount, batchPhotonCount, batchCount, t0, t1, t2, params.photonAmount)
-            params.photonAmount = kernelPhotons.size
+            params.photonAmount = kernelPhotons.length
             batchCount += 1
 
         self._logDataFromLogArrays(logArrays)

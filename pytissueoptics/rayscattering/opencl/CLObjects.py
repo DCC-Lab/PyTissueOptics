@@ -74,7 +74,7 @@ class CLObject:
         return self._DEVICE_buffer
 
     @property
-    def size(self) -> int:
+    def length(self) -> int:
         return len(self._HOST_buffer)
 
 
