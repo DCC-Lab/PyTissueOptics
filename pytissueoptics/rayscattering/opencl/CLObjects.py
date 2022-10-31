@@ -12,25 +12,37 @@ from numpy.lib import recfunctions as rfn
 
 
 class CLObject:
-    def __init__(self, name: str = None, struct: np.dtype = None):
+    def __init__(self, name: str = None, struct: np.dtype = None, autoReset: bool = False):
         self._name = name
         self._struct = struct
         self._declaration = None
         self._dtype = None
+        self._autoReset = autoReset
 
         self._HOST_buffer = None
         self._DEVICE_buffer = None
 
     def build(self, device: 'cl.Device', context):
-        if self._struct:
-            cl_struct, self._declaration = cl.tools.match_dtype_to_c_struct(device, self._name, self._struct)
-            self._dtype = cl.tools.get_or_register_dtype(self._name, cl_struct)
-
-        self._HOST_buffer = self._getHostBuffer()
+        self.make(device)
         self._DEVICE_buffer = cl.Buffer(context, cl.mem_flags.READ_WRITE | cl.mem_flags.USE_HOST_PTR,
                                         hostbuf=self._HOST_buffer)
 
+    def make(self, device):
+        if self._struct:
+            cl_struct, self._declaration = cl.tools.match_dtype_to_c_struct(device, self._name, self._struct)
+            self._dtype = cl.tools.get_or_register_dtype(self._name, cl_struct)
+        self._HOST_buffer = self._getHostBuffer()
+
     def _getHostBuffer(self) -> np.ndarray:
+        if self._HOST_buffer is not None:
+            if self._autoReset:
+                self._initializeHostBuffer()
+            else:
+                return self._HOST_buffer
+        else:
+            return self._initializeHostBuffer()
+
+    def _initializeHostBuffer(self):
         raise NotImplementedError()
 
     @property
@@ -52,9 +64,18 @@ class CLObject:
     def hostBuffer(self):
         return self._HOST_buffer
 
+    @hostBuffer.setter
+    def hostBuffer(self, value):
+        if isinstance(value, np.ndarray):
+            self._HOST_buffer = value
+
     @property
     def deviceBuffer(self):
         return self._DEVICE_buffer
+
+    @property
+    def length(self) -> int:
+        return len(self._HOST_buffer)
 
 
 class PhotonCL(CLObject):
@@ -74,7 +95,7 @@ class PhotonCL(CLObject):
              ("material_id", cl.cltypes.uint)])
         super().__init__(name=self.STRUCT_NAME, struct=photonStruct)
 
-    def _getHostBuffer(self) -> np.ndarray:
+    def _initializeHostBuffer(self) -> np.ndarray:
         buffer = np.zeros(self._N, dtype=self._dtype)
         buffer = rfn.structured_to_unstructured(buffer)
         buffer[:, 0:3] = self._positions
@@ -101,7 +122,7 @@ class MaterialCL(CLObject):
              ("material_id", cl.cltypes.uint)])
         super().__init__(name=self.STRUCT_NAME, struct=materialStruct)
 
-    def _getHostBuffer(self) -> np.ndarray:
+    def _initializeHostBuffer(self) -> np.ndarray:
         # todo: there might be a way to abstract both struct and buffer under a single def (DRY, PO)
         buffer = np.empty(len(self._materials), dtype=self._dtype)
         for i, material in enumerate(self._materials):
@@ -126,10 +147,10 @@ class DataPointCL(CLObject):
              ("x", cl.cltypes.float),
              ("y", cl.cltypes.float),
              ("z", cl.cltypes.float)])
-        super().__init__(name=self.STRUCT_NAME, struct=dataPointStruct)
+        super().__init__(name=self.STRUCT_NAME, struct=dataPointStruct, autoReset=True)
 
-    def _getHostBuffer(self) -> np.ndarray:
-        return np.empty(self._size, dtype=self._dtype)
+    def _initializeHostBuffer(self) -> np.ndarray:
+        return np.zeros(self._size, dtype=self._dtype)
 
 
 class SeedCL(CLObject):
@@ -137,7 +158,7 @@ class SeedCL(CLObject):
         self._size = size
         super().__init__()
 
-    def _getHostBuffer(self) -> np.ndarray:
+    def _initializeHostBuffer(self) -> np.ndarray:
         return np.random.randint(low=0, high=2 ** 32 - 1, size=self._size, dtype=cl.cltypes.uint)
 
 
@@ -146,5 +167,5 @@ class RandomNumberCL(CLObject):
         self._size = size
         super().__init__()
 
-    def _getHostBuffer(self) -> np.ndarray:
+    def _initializeHostBuffer(self) -> np.ndarray:
         return np.empty(self._size, dtype=cl.cltypes.float)

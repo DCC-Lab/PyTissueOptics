@@ -1,6 +1,8 @@
 import os
 import time
 
+from pytissueoptics.rayscattering.opencl.CLParameters import CLParameters
+
 try:
     import pyopencl as cl
 
@@ -10,7 +12,7 @@ except ImportError:
 import numpy as np
 
 from pytissueoptics.rayscattering.opencl.CLProgram import CLProgram
-from pytissueoptics.rayscattering.opencl.CLObjects import PhotonCL, MaterialCL, DataPointCL, SeedCL, RandomNumberCL
+from pytissueoptics.rayscattering.opencl.CLObjects import PhotonCL, MaterialCL, DataPointCL, SeedCL
 from pytissueoptics.rayscattering.tissues import InfiniteTissue
 from pytissueoptics.rayscattering.tissues.rayScatteringScene import RayScatteringScene
 from pytissueoptics.scene import Logger
@@ -28,7 +30,6 @@ class CLPhotons:
         self._weightThreshold = np.float32(weightThreshold)
 
         self._materials = None
-        self._requiredLoggerSize = None
         self._sceneLogger = None
 
     def setContext(self, scene: RayScatteringScene, environment: Environment, logger: Logger = None):
@@ -39,27 +40,74 @@ class CLPhotons:
         self._materials = [worldMaterial]
         self._sceneLogger = logger
 
-        safetyFactor = 1.8
-        avgInteractions = int(-np.log(self._weightThreshold) / worldMaterial.getAlbedo())
-        self._requiredLoggerSize = self._N * int(safetyFactor * avgInteractions)
-
     def propagate(self):
-        photons = PhotonCL(self._positions, self._directions)
-        materials = MaterialCL(self._materials)
-        logger = DataPointCL(size=self._requiredLoggerSize)
-        randomNumbers = RandomNumberCL(size=self._N)
-        seeds = SeedCL(size=self._N)
-
         program = CLProgram(sourcePath=PROPAGATION_SOURCE_PATH)
+        params = CLParameters()
 
+        if params.photonAmount >= self._N:
+            params.photonAmount = self._N
+
+        kernelPhotons = PhotonCL(self._positions[0:params.photonAmount], self._directions[0:params.photonAmount])
+        photonPool = PhotonCL(self._positions[params.photonAmount:], self._directions[params.photonAmount:])
+        photonPool.make(program.device)
+        materials = MaterialCL(self._materials)
+        seeds = SeedCL(params.photonAmount)
+
+        photonCount = 0
+        batchCount = 0
+        logArrays = []
         t0 = time.time_ns()
-        maxInteractions = np.uint32(self._requiredLoggerSize // self._N)
-        program.launchKernel(kernelName='propagate', N=self._N,
-                             arguments=[self._N, maxInteractions, self._weightThreshold,
-                                        photons, materials, logger, randomNumbers, seeds])
-        log = program.getData(logger)
-        t1 = time.time_ns()
-        print("CLPhotons.propagate: {} s".format((t1 - t0) / 1e9))
 
+        while photonCount < self._N:
+            logger = DataPointCL(size=params.maxLoggableInteractions)
+            t1 = time.time_ns()
+            program.launchKernel(kernelName="propagate", N=np.int32(params.workItemAmount),
+                                 arguments=[np.int32(params.photonsPerWorkItem),
+                                            np.int32(params.maxLoggableInteractionsPerWorkItem),
+                                            self._weightThreshold, np.int32(params.workItemAmount), kernelPhotons,
+                                            materials, seeds, logger])
+            t2 = time.time_ns()
+            logArrays.append(program.getData(logger))
+            program.getData(kernelPhotons)
+            batchPhotonCount, photonCount = self._replaceFullyPropagatedPhotons(kernelPhotons, photonPool,
+                                                                                photonCount, params.photonAmount)
+
+            self._showProgress(photonCount, batchPhotonCount, batchCount, t0, t1, t2, params.photonAmount)
+            params.photonAmount = kernelPhotons.length
+            batchCount += 1
+
+        self._logDataFromLogArrays(logArrays)
+
+    def _replaceFullyPropagatedPhotons(self, kernelPhotons: PhotonCL, photonPool: PhotonCL,
+                                       photonCount: int, currentKernelLength: int) -> (int, int):
+        photonsToRemove = []
+        batchPhotonCount = 0
+        for i in range(currentKernelLength):
+            if kernelPhotons.hostBuffer[i]["weight"] == 0:
+                newPhotonsRemaining = photonCount + currentKernelLength < self._N
+                if newPhotonsRemaining:
+                    kernelPhotons.hostBuffer[i] = photonPool.hostBuffer[photonCount]
+                else:
+                    photonsToRemove.append(i)
+                photonCount += 1
+                batchPhotonCount += 1
+        kernelPhotons.hostBuffer = np.delete(kernelPhotons.hostBuffer, photonsToRemove)
+        return batchPhotonCount, photonCount
+
+    def _logDataFromLogArrays(self, logArrays):
+        t4 = time.time_ns()
+        log = np.concatenate(logArrays)
+        print(f"Concatenate multiple logger arrays: {(time.time_ns() - t4) / 1e9}s")
         if self._sceneLogger:
+            t5 = time.time_ns()
             self._sceneLogger.logDataPointArray(log, InteractionKey("universe", None))
+            print(f"Transfer logging data to Logger object.: {(time.time_ns() - t5) / 1e9}s")
+
+    def _showProgress(self, photonCount: int, localPhotonCount: int, batchCount: int, t0: float, t1: float,
+                      t2: float, currentKernelLength: int):
+        print(f"{photonCount}/{self._N}\t{((time.time_ns() - t0) / 1e9)} s\t ::"
+              f" Batch #{batchCount}\t :: {currentKernelLength} \t{((t2 - t1) / 1e9):.2f} s\t ::"
+              f" ETA: {((time.time_ns() - t0) / 1e9) * (np.float64(self._N) / np.float64(photonCount)):.2f} s\t ::"
+              f"({(photonCount * 100 / self._N):.2f}%) \t ::"
+              f"Eff: {np.float64((t2 - t1) / 1e3) / localPhotonCount:.2f} us/photon\t ::"
+              f"Finished propagation: {localPhotonCount}")
