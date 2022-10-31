@@ -219,7 +219,7 @@ class TriangleCL(CLObject):
         self._trianglesInfo = trianglesInfo
 
         struct = np.dtype(
-            [("vertexIDs", cl.cltypes.uint3),
+            [("vertexIDs", cl.cltypes.uint, 3),
              ("normal", cl.cltypes.float3)])  # todo: if too heavy, remove and compute on the fly with vertices
         super().__init__(name=self.STRUCT_NAME, struct=struct)
 

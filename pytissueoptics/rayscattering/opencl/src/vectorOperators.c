@@ -67,7 +67,7 @@ void rotateAroundAxisLocal(float4 *mainVector, float4 *axisVector, float theta){
     mainVector->z = z;
 }
 
-void rotateAround(float3 *mainVector, float3 *axisVector, float theta){
+void rotateAround(float4 *mainVector, float3 *axisVector, float theta){
 //    normalizeVectorLocal(axisVector);
     float sint = sin(theta);
     float cost = cos(theta);
