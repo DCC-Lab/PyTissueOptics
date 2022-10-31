@@ -7,73 +7,76 @@
 const int NO_SOLID_ID = -1;
 const int NO_SURFACE_ID = -1;
 
-void moveBy(__global Photon *photons, float distance, uint gid){
-    photons[gid].position += (distance * photons[gid].direction);
+void moveBy(float distance, __global Photon *photons, uint photonId){
+    photons[photonId].position += (distance * photons[photonId].direction);
 }
 
-void scatterBy(__global Photon *photons, float phi, float theta, uint gid){
-    rotateAroundAxisGlobal(&photons[gid].er, &photons[gid].direction, phi);
-    rotateAroundAxisGlobal(&photons[gid].direction, &photons[gid].er, theta);
+void scatterBy(float phi, float theta, __global Photon *photons, uint photonId){
+    rotateAroundAxisGlobal(&photons[photonId].er, &photons[photonId].direction, phi);
+    rotateAroundAxisGlobal(&photons[photonId].direction, &photons[photonId].er, theta);
 }
 
-void decreaseWeightBy(__global Photon *photons, float delta_weight, uint gid){
-    photons[gid].weight -= delta_weight;
+void decreaseWeightBy(float delta_weight, __global Photon *photons, uint photonId){
+    photons[photonId].weight -= delta_weight;
 }
 
-void interact(__global Photon *photons, __constant Material *materials, __global DataPoint *logger, uint gid, uint logIndex){
-    float delta_weight = photons[gid].weight * materials[photons[gid].materialID].albedo;
-    decreaseWeightBy(photons, delta_weight, gid);
-    logger[logIndex].x = photons[gid].position.x;
-    logger[logIndex].y = photons[gid].position.y;
-    logger[logIndex].z = photons[gid].position.z;
+void interact(__global Photon *photons, __constant Material *materials, __global DataPoint *logger,
+              uint logIndex, uint photonId){
+    float delta_weight = photons[photonId].weight * materials[photons[photonId].material_id].albedo;
+    decreaseWeightBy(delta_weight, photons, photonId);
+    logger[logIndex].x = photons[photonId].position.x;
+    logger[logIndex].y = photons[photonId].position.y;
+    logger[logIndex].z = photons[photonId].position.z;
     logger[logIndex].delta_weight = delta_weight;
     logger[logIndex].solidID = photons[gid].solidID;
     logger[logIndex].surfaceID = NO_SURFACE_ID;
 }
 
-void scatter(uint gid, uint *logIndex,
-           __global Photon *photons, __constant Material *materials, __global DataPoint *logger,
-           __global float *randomNumbers, __global uint *seeds){
-    ScatteringAngles angles = getScatteringAngles(gid, photons, materials, randomNumbers, seeds);
+void scatter(__global Photon *photons, __constant Material *materials, __global uint *seeds, __global DataPoint *logger,
+             uint *logIndex, uint gid, uint photonId){
 
-    scatterBy(photons, angles.phi, angles.theta, gid);
-    interact(photons, materials, logger, gid, *logIndex);
+    float rndPhi = getRandomFloatValue(seeds, gid);
+    float rndTheta = getRandomFloatValue(seeds, gid);
+    ScatteringAngles angles = getScatteringAngles(rndPhi, rndTheta, photons, materials, photonId);
+
+    scatterBy(angles.phi, angles.theta, photons, photonId);
+    interact(photons, materials, logger, *logIndex, photonId);
     (*logIndex)++;
 }
 
-void roulette(uint gid, float weightThreshold, __global Photon *photons, __global uint * randomSeedBuffer){
-    if (photons[gid].weight >= weightThreshold  || photons[gid].weight == 0){
+void roulette(float weightThreshold, __global Photon *photons, __global uint *seeds, uint gid, uint photonId){
+    if (photons[photonId].weight >= weightThreshold || photons[photonId].weight == 0){
         return;
     }
-    float randomFloat = getRandomFloatValue(randomSeedBuffer, gid);
+    float randomFloat = getRandomFloatValue(seeds, gid);
     if (randomFloat < 0.1){
-        photons[gid].weight /= 0.1;
+        photons[photonId].weight /= 0.1;
     }
     else{
-        photons[gid].weight = 0;
+        photons[photonId].weight = 0;
     }
 }
 
-void reflect(__global Photon *photons, FresnelIntersection *fresnelIntersection, uint gid){
-    rotateAround(&photons[gid].direction, &fresnelIntersection->incidencePlane, fresnelIntersection->angleDeflection);
+void reflect(__global Photon *photons, FresnelIntersection *fresnelIntersection, uint photonId){
+    rotateAround(&photons[photonId].direction, &fresnelIntersection->incidencePlane, fresnelIntersection->angleDeflection);
 }
 
-void refract(__global Photon *photons, FresnelIntersection *fresnelIntersection, uint gid){
-    rotateAround(&photons[gid].direction, &fresnelIntersection->incidencePlane, fresnelIntersection->angleDeflection);
+void refract(__global Photon *photons, FresnelIntersection *fresnelIntersection, uint photonId){
+    rotateAround(&photons[photonId].direction, &fresnelIntersection->incidencePlane, fresnelIntersection->angleDeflection);
 }
 
 void logIntersection(Intersection *intersection, __global Photon *photons, __global Surface *surfaces,
-                    __global DataPoint *logger, uint *logIndex, uint gid){
+                    __global DataPoint *logger, uint *logIndex, uint photonId){
     uint logID = *logIndex;
-    logger[logID].x = photons[gid].position.x;
-    logger[logID].y = photons[gid].position.y;
-    logger[logID].z = photons[gid].position.z;
+    logger[logID].x = photons[photonId].position.x;
+    logger[logID].y = photons[photonId].position.y;
+    logger[logID].z = photons[photonId].position.z;
     logger[logID].surfaceID = intersection->surfaceID;
     logger[logID].solidID = surfaces[intersection->surfaceID].insideSolidID;
 
-    bool isLeavingSurface = dot(photons[gid].direction.xyz, intersection->normal) > 0;
+    bool isLeavingSurface = dot(photons[photonId].direction.xyz, intersection->normal) > 0;
     int sign = isLeavingSurface ? 1 : -1;
-    logger[logID].delta_weight = sign * photons[gid].weight;
+    logger[logID].delta_weight = sign * photons[photonId].weight;
     (*logIndex)++;
 
     int outsideSolidID = surfaces[intersection->surfaceID].outsideSolidID;
@@ -81,29 +84,29 @@ void logIntersection(Intersection *intersection, __global Photon *photons, __glo
         return;
     }
     logID++;
-    logger[logID].x = photons[gid].position.x;
-    logger[logID].y = photons[gid].position.y;
-    logger[logID].z = photons[gid].position.z;
+    logger[logID].x = photons[photonId].position.x;
+    logger[logID].y = photons[photonId].position.y;
+    logger[logID].z = photons[photonId].position.z;
     logger[logID].surfaceID = intersection->surfaceID;
     logger[logID].solidID = outsideSolidID;
-    logger[logID].delta_weight = -sign * photons[gid].weight;
+    logger[logID].delta_weight = -sign * photons[photonId].weight;
     (*logIndex)++;
 }
 
 float reflectOrRefract(__global Photon *photons, __constant Material *materials,
         __global Surface *surfaces, Intersection *intersection, __global DataPoint *logger,
-        uint *logIndex, __global uint *seeds, uint gid){
-    FresnelIntersection fresnelIntersection = computeFresnelIntersection(photons[gid].direction.xyz, intersection,
+        uint *logIndex, __global uint *seeds, uint gid, uint photonId){
+    FresnelIntersection fresnelIntersection = computeFresnelIntersection(photons[photonId].direction.xyz, intersection,
                                                                          materials, surfaces, seeds, gid);
 
     if (fresnelIntersection.isReflected) {
-        reflect(photons, &fresnelIntersection, gid);
+        reflect(photons, &fresnelIntersection, photonId);
     }
     else {
-        logIntersection(intersection, photons, surfaces, logger, logIndex, gid);
-        refract(photons, &fresnelIntersection, gid);
+        logIntersection(intersection, photons, surfaces, logger, logIndex, photonId);
+        refract(photons, &fresnelIntersection, photonId);
 
-        float mut1 = materials[photons[gid].materialID].mu_t;
+        float mut1 = materials[photons[photonId].materialID].mu_t;
         float mut2 = materials[fresnelIntersection.nextMaterialID].mu_t;
         if (mut1 == 0) {
             intersection->distanceLeft = 0;
@@ -112,46 +115,46 @@ float reflectOrRefract(__global Photon *photons, __constant Material *materials,
         } else {
             intersection->distanceLeft = INFINITY;
         }
-        photons[gid].materialID = fresnelIntersection.nextMaterialID;
-        photons[gid].solidID = fresnelIntersection.nextSolidID;
+        photons[photonId].materialID = fresnelIntersection.nextMaterialID;
+        photons[photonId].solidID = fresnelIntersection.nextSolidID;
     }
 
     return intersection->distanceLeft;
 }
 
-float propagateStep(float distance, uint gid, uint *logIndex,
-           __global Photon *photons, __constant Material *materials, __global DataPoint *logger,
-           __global float *randomNumbers, __global uint *seeds,
-           uint nSolids, __global Solid *solids, __global Surface *surfaces, __global Triangle *triangles,
-            __global Vertex *vertices, __global SolidCandidate *solidCandidates){
+float propagateStep(float distance, __global Photon *photons, __constant Material *materials,
+                    uint nSolids, __global Solid *solids, __global Surface *surfaces, __global Triangle *triangles,
+                    __global Vertex *vertices, __global SolidCandidate *solidCandidates,
+                    __global uint *seeds, __global DataPoint *logger, uint *logIndex, uint gid, uint photonId){
 
     if (distance == 0) {
-        randomNumbers[gid] = getRandomFloatValue(seeds, gid);
-        float mu_t = materials[photons[gid].materialID].mu_t;
-        distance = getScatteringDistance(randomNumbers, mu_t, gid);
+        float mu_t = materials[photons[photonId].material_id].mu_t;
+        float randomNumber = getRandomFloatValue(seeds, gid);
+        distance = getScatteringDistance(mu_t, randomNumber);
     }
 
-    Ray stepRay = {photons[gid].position, photons[gid].direction, distance};
+    Ray stepRay = {photons[photonId].position, photons[photonId].direction, distance};
     Intersection intersection = findIntersection(stepRay, nSolids, solids, surfaces, triangles, vertices,
-                                        solidCandidates, gid);
+                                        solidCandidates, gid);  // todo: make sure gid (not photonID) is used correctly by solid candidates
 
     float distanceLeft = 0;
 
     if (intersection.exists){
-        moveBy(photons, intersection.distance, gid);
-        distanceLeft = reflectOrRefract(photons, materials, surfaces, &intersection, logger, logIndex, seeds, gid);
-        moveBy(photons, 0.00001f, gid);  // move a little bit to help avoid bad intersection check
+        moveBy(intersection.distance, photons, photonId);
+        distanceLeft = reflectOrRefract(photons, materials, surfaces, &intersection, logger, logIndex, seeds, gid, photonId);
+        moveBy(0.00001f, photons, photonId);  // move a little bit to help avoid bad intersection check
     } else {
         if (distance == INFINITY){
-            photons[gid].weight = 0;
+            photons[photonId].weight = 0;
             return 0;
         }
-        moveBy(photons, distance, gid);
-        scatter(gid, logIndex, photons, materials, logger, randomNumbers, seeds);
+        moveBy(distance, photons, photonId);
+        scatter(photons, materials, seeds, logger, logIndex, gid, photonId);
     }
 
     return distanceLeft;
 }
+
 
 __kernel void propagate(uint dataSize, uint maxInteractions, float weightThreshold,
             __global Photon *photons, __constant Material *materials, __global DataPoint *logger,
@@ -162,20 +165,25 @@ __kernel void propagate(uint dataSize, uint maxInteractions, float weightThresho
     uint gid = get_global_id(0);
     uint logIndex = gid * maxInteractions;
     uint maxLogIndex = logIndex + maxInteractions;
-    float4 er = getAnyOrthogonalGlobal(&photons[gid].direction);
-    photons[gid].er = er;
 
-    float distance = 0;
+    uint photonCount = 0;
 
-    while (photons[gid].weight != 0){
-        if (logIndex >= (maxLogIndex -1)){  // Added -1 to avoid potential overflow when intersection logs twice
-            printf("Warning: Out of logger memory for photon %d who could not propagate totally.\n", gid);
-            break;
-        }
+    while ((logIndex < maxLogIndex -1) && (photonCount < maxPhotons)){  // todo: not sure the first condition is needed (duplicate)
+        uint currentPhotonIndex = gid + (photonCount * workUnitsAmount);  // todo: I would prefer to use subsequent IDs (convention)
 
-        distance = propagateStep(distance, gid, &logIndex,
-                                photons, materials, logger, randomNumbers, seeds,
-                                nSolids, solids, surfaces, triangles, vertices, solidCandidates);
-        roulette(gid, weightThreshold, photons, seeds);
+        float distance = 0;
+        float4 er = getAnyOrthogonalGlobal(&photons[currentPhotonIndex].direction);  // todo: refactor everything to float3
+        photons[currentPhotonIndex].er = er;
+
+        while (photons[currentPhotonIndex].weight != 0){
+            if (logIndex >= (maxLogIndex -1)){  // Added -1 to avoid potential overflow when intersection logs twice
+                return;
+            }
+            distance = propagateStep(distance, photons, materials,
+                                     nSolids, solids, surfaces, triangles, vertices, solidCandidates,
+                                     seeds, logger, &logIndex, gid, currentPhotonIndex);
+            roulette(weightThreshold, photons, seeds, gid, currentPhotonIndex);
+            }
+        photonCount++;
     }
 }
