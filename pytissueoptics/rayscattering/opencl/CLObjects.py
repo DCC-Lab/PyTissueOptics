@@ -36,13 +36,13 @@ class CLObject:
     def _getHostBuffer(self) -> np.ndarray:
         if self._HOST_buffer is not None:
             if self._autoReset:
-                self._initializeHostBuffer()
+                return self._getInitialHostBuffer()
             else:
                 return self._HOST_buffer
         else:
-            return self._initializeHostBuffer()
+            return self._getInitialHostBuffer()
 
-    def _initializeHostBuffer(self):
+    def _getInitialHostBuffer(self) -> np.ndarray:
         raise NotImplementedError()
 
     @property
@@ -95,7 +95,7 @@ class PhotonCL(CLObject):
              ("material_id", cl.cltypes.uint)])
         super().__init__(name=self.STRUCT_NAME, struct=photonStruct)
 
-    def _initializeHostBuffer(self) -> np.ndarray:
+    def _getInitialHostBuffer(self) -> np.ndarray:
         buffer = np.zeros(self._N, dtype=self._dtype)
         buffer = rfn.structured_to_unstructured(buffer)
         buffer[:, 0:3] = self._positions
@@ -122,7 +122,7 @@ class MaterialCL(CLObject):
              ("material_id", cl.cltypes.uint)])
         super().__init__(name=self.STRUCT_NAME, struct=materialStruct)
 
-    def _initializeHostBuffer(self) -> np.ndarray:
+    def _getInitialHostBuffer(self) -> np.ndarray:
         # todo: there might be a way to abstract both struct and buffer under a single def (DRY, PO)
         buffer = np.empty(len(self._materials), dtype=self._dtype)
         for i, material in enumerate(self._materials):
@@ -149,7 +149,7 @@ class DataPointCL(CLObject):
              ("z", cl.cltypes.float)])
         super().__init__(name=self.STRUCT_NAME, struct=dataPointStruct, autoReset=True)
 
-    def _initializeHostBuffer(self) -> np.ndarray:
+    def _getInitialHostBuffer(self) -> np.ndarray:
         return np.zeros(self._size, dtype=self._dtype)
 
 
@@ -158,7 +158,7 @@ class SeedCL(CLObject):
         self._size = size
         super().__init__()
 
-    def _initializeHostBuffer(self) -> np.ndarray:
+    def _getInitialHostBuffer(self) -> np.ndarray:
         return np.random.randint(low=0, high=2 ** 32 - 1, size=self._size, dtype=cl.cltypes.uint)
 
 
@@ -167,5 +167,5 @@ class RandomNumberCL(CLObject):
         self._size = size
         super().__init__()
 
-    def _initializeHostBuffer(self) -> np.ndarray:
+    def _getInitialHostBuffer(self) -> np.ndarray:
         return np.empty(self._size, dtype=cl.cltypes.float)
