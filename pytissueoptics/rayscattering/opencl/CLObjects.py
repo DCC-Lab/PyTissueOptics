@@ -12,35 +12,28 @@ from numpy.lib import recfunctions as rfn
 
 
 class CLObject:
-    def __init__(self, name: str = None, struct: np.dtype = None, autoReset: bool = False):
+    def __init__(self, name: str = None, struct: np.dtype = None, buildOnce: bool = False):
         self._name = name
         self._struct = struct
         self._declaration = None
         self._dtype = None
-        self._autoReset = autoReset
+        self._buildOnce = buildOnce
 
         self._HOST_buffer = None
         self._DEVICE_buffer = None
 
     def build(self, device: 'cl.Device', context):
+        if self.deviceBuffer is not None:
+            if self._buildOnce:
+                return
         self.make(device)
         self._DEVICE_buffer = cl.Buffer(context, cl.mem_flags.READ_WRITE | cl.mem_flags.USE_HOST_PTR,
-                                        hostbuf=self._HOST_buffer)
+                                        hostbuf=self.hostBuffer)
 
     def make(self, device):
         if self._struct:
             cl_struct, self._declaration = cl.tools.match_dtype_to_c_struct(device, self._name, self._struct)
             self._dtype = cl.tools.get_or_register_dtype(self._name, cl_struct)
-        self._HOST_buffer = self._getHostBuffer()
-
-    def _getHostBuffer(self) -> np.ndarray:
-        if self._HOST_buffer is not None:
-            if self._autoReset:
-                return self._getInitialHostBuffer()
-            else:
-                return self._HOST_buffer
-        else:
-            return self._getInitialHostBuffer()
 
     def _getInitialHostBuffer(self) -> np.ndarray:
         raise NotImplementedError()
@@ -62,12 +55,16 @@ class CLObject:
 
     @property
     def hostBuffer(self):
+        if self._HOST_buffer is None:
+            self._HOST_buffer = self._getInitialHostBuffer()
         return self._HOST_buffer
 
     @hostBuffer.setter
     def hostBuffer(self, value):
         if isinstance(value, np.ndarray):
             self._HOST_buffer = value
+        else:
+            raise TypeError("hostBuffer must be a numpy.ndarray")
 
     @property
     def deviceBuffer(self):
@@ -120,7 +117,7 @@ class MaterialCL(CLObject):
              ("n", cl.cltypes.float),
              ("albedo", cl.cltypes.float),
              ("material_id", cl.cltypes.uint)])
-        super().__init__(name=self.STRUCT_NAME, struct=materialStruct)
+        super().__init__(name=self.STRUCT_NAME, struct=materialStruct, buildOnce=True)
 
     def _getInitialHostBuffer(self) -> np.ndarray:
         # todo: there might be a way to abstract both struct and buffer under a single def (DRY, PO)
@@ -147,16 +144,19 @@ class DataPointCL(CLObject):
              ("x", cl.cltypes.float),
              ("y", cl.cltypes.float),
              ("z", cl.cltypes.float)])
-        super().__init__(name=self.STRUCT_NAME, struct=dataPointStruct, autoReset=True)
+        super().__init__(name=self.STRUCT_NAME, struct=dataPointStruct)
 
     def _getInitialHostBuffer(self) -> np.ndarray:
         return np.zeros(self._size, dtype=self._dtype)
+
+    def reset(self):
+        self.hostBuffer = self._getInitialHostBuffer()
 
 
 class SeedCL(CLObject):
     def __init__(self, size: int):
         self._size = size
-        super().__init__()
+        super().__init__(buildOnce=True)
 
     def _getInitialHostBuffer(self) -> np.ndarray:
         return np.random.randint(low=0, high=2 ** 32 - 1, size=self._size, dtype=cl.cltypes.uint)

@@ -42,7 +42,7 @@ class CLPhotons:
 
     def propagate(self):
         program = CLProgram(sourcePath=PROPAGATION_SOURCE_PATH)
-        params = CLParameters()
+        params = CLParameters(1e8, 10, 10000)
 
         if params.photonAmount >= self._N:
             params.photonAmount = self._N
@@ -52,6 +52,7 @@ class CLPhotons:
         photonPool.make(program.device)
         materials = MaterialCL(self._materials)
         seeds = SeedCL(params.photonAmount)
+        logger = DataPointCL(size=params.maxLoggableInteractions)
 
         photonCount = 0
         batchCount = 0
@@ -59,7 +60,6 @@ class CLPhotons:
         t0 = time.time_ns()
 
         while photonCount < self._N:
-            logger = DataPointCL(size=params.maxLoggableInteractions)
             t1 = time.time_ns()
             program.launchKernel(kernelName="propagate", N=np.int32(params.workItemAmount),
                                  arguments=[np.int32(params.photonsPerWorkItem),
@@ -68,6 +68,7 @@ class CLPhotons:
                                             materials, seeds, logger])
             t2 = time.time_ns()
             logArrays.append(program.getData(logger))
+            logger.reset()
             program.getData(kernelPhotons)
             batchPhotonCount, photonCount = self._replaceFullyPropagatedPhotons(kernelPhotons, photonPool,
                                                                                 photonCount, params.photonAmount)
