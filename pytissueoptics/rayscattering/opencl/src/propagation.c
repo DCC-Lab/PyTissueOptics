@@ -164,11 +164,9 @@ __kernel void propagate(uint maxPhotons, uint maxInteractions, float weightThres
 
     while (photonCount < maxPhotons){
         uint currentPhotonIndex = gid + (photonCount * workUnitsAmount);
+        photons[currentPhotonIndex].er = getAnyOrthogonalGlobal(&photons[currentPhotonIndex].direction);
 
         float distance = 0;
-        photons[currentPhotonIndex].er = getAnyOrthogonalGlobal(&photons[currentPhotonIndex].direction);
-        // todo: update vector functions to use built-in float3 ops like normalize, length, etc...
-
         while (photons[currentPhotonIndex].weight != 0){
             if (logIndex >= (maxLogIndex -1)){  // Added -1 to avoid potential overflow when intersection logs twice
                 return;
