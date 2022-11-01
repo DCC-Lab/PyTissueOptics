@@ -291,7 +291,7 @@ Intersection findIntersection(Ray ray, Scene *scene, uint gid) {
 
 // ----------------- TEST KERNELS -----------------
 
-__kernel void findIntersections(uint nSolids, __global Ray *rays, __global Solid *solids, __global Surface *surfaces,
+__kernel void findIntersections(__global Ray *rays, uint nSolids, __global Solid *solids, __global Surface *surfaces,
         __global Triangle *triangles, __global Vertex *vertices, __global SolidCandidate *solidCandidates, __global Intersection *intersections) {
     uint gid = get_global_id(0);
     Scene scene = {nSolids, solids, surfaces, triangles, vertices, solidCandidates};

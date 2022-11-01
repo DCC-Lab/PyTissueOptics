@@ -57,11 +57,11 @@ void roulette(float weightThreshold, __global Photon *photons, __global uint *se
     }
 }
 
-void reflect(__global Photon *photons, FresnelIntersection *fresnelIntersection, uint photonID){
+void reflect(FresnelIntersection *fresnelIntersection, __global Photon *photons, uint photonID){
     rotateAround(&photons[photonID].direction, &fresnelIntersection->incidencePlane, fresnelIntersection->angleDeflection);
 }
 
-void refract(__global Photon *photons, FresnelIntersection *fresnelIntersection, uint photonID){
+void refract(FresnelIntersection *fresnelIntersection, __global Photon *photons, uint photonID){
     rotateAround(&photons[photonID].direction, &fresnelIntersection->incidencePlane, fresnelIntersection->angleDeflection);
 }
 
@@ -93,18 +93,17 @@ void logIntersection(Intersection *intersection, __global Photon *photons, __glo
     (*logIndex)++;
 }
 
-float reflectOrRefract(__global Photon *photons, __constant Material *materials,
-        __global Surface *surfaces, Intersection *intersection, __global DataPoint *logger,
-        uint *logIndex, __global uint *seeds, uint gid, uint photonID){
+float reflectOrRefract(Intersection *intersection, __global Photon *photons, __constant Material *materials,
+        __global Surface *surfaces, __global DataPoint *logger, uint *logIndex, __global uint *seeds, uint gid, uint photonID){
     FresnelIntersection fresnelIntersection = computeFresnelIntersection(photons[photonID].direction.xyz, intersection,
                                                                          materials, surfaces, seeds, gid);
 
     if (fresnelIntersection.isReflected) {
-        reflect(photons, &fresnelIntersection, photonID);
+        reflect(&fresnelIntersection, photons, photonID);
     }
     else {
         logIntersection(intersection, photons, surfaces, logger, logIndex, photonID);
-        refract(photons, &fresnelIntersection, photonID);
+        refract(&fresnelIntersection, photons, photonID);
 
         float mut1 = materials[photons[photonID].materialID].mu_t;
         float mut2 = materials[fresnelIntersection.nextMaterialID].mu_t;
@@ -132,13 +131,13 @@ float propagateStep(float distance, __global Photon *photons, __constant Materia
     }
 
     Ray stepRay = {photons[photonID].position, photons[photonID].direction, distance};
-    Intersection intersection = findIntersection(stepRay, scene, gid);  // todo: make sure gid (not photonID) is used correctly by solid candidates
+    Intersection intersection = findIntersection(stepRay, scene, gid);
 
     float distanceLeft = 0;
 
     if (intersection.exists){
         moveBy(intersection.distance, photons, photonID);
-        distanceLeft = reflectOrRefract(photons, materials, scene->surfaces, &intersection, logger, logIndex, seeds, gid, photonID);
+        distanceLeft = reflectOrRefract(&intersection, photons, materials, scene->surfaces, logger, logIndex, seeds, gid, photonID);
         moveBy(0.00001f, photons, photonID);  // move a little bit to help avoid bad intersection check
     } else {
         if (distance == INFINITY){
