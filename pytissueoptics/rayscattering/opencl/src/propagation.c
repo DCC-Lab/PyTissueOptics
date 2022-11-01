@@ -162,7 +162,7 @@ __kernel void propagate(uint maxPhotons, uint maxInteractions, float weightThres
 
     uint photonCount = 0;
 
-    while ((logIndex < maxLogIndex -1) && (photonCount < maxPhotons)){  // todo: not sure the first condition is needed (duplicate)
+    while (photonCount < maxPhotons){
         uint currentPhotonIndex = gid + (photonCount * workUnitsAmount);  // todo: I would prefer to use subsequent IDs (convention)
 
         float distance = 0;
