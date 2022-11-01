@@ -74,7 +74,7 @@ void logIntersection(Intersection *intersection, __global Photon *photons, __glo
     logger[logID].surfaceID = intersection->surfaceID;
     logger[logID].solidID = surfaces[intersection->surfaceID].insideSolidID;
 
-    bool isLeavingSurface = dot(photons[photonID].direction.xyz, intersection->normal) > 0;
+    bool isLeavingSurface = dot(photons[photonID].direction, intersection->normal) > 0;
     int sign = isLeavingSurface ? 1 : -1;
     logger[logID].delta_weight = sign * photons[photonID].weight;
     (*logIndex)++;
@@ -95,7 +95,7 @@ void logIntersection(Intersection *intersection, __global Photon *photons, __glo
 
 float reflectOrRefract(Intersection *intersection, __global Photon *photons, __constant Material *materials,
         __global Surface *surfaces, __global DataPoint *logger, uint *logIndex, __global uint *seeds, uint gid, uint photonID){
-    FresnelIntersection fresnelIntersection = computeFresnelIntersection(photons[photonID].direction.xyz, intersection,
+    FresnelIntersection fresnelIntersection = computeFresnelIntersection(photons[photonID].direction, intersection,
                                                                          materials, surfaces, seeds, gid);
 
     if (fresnelIntersection.isReflected) {
@@ -166,8 +166,8 @@ __kernel void propagate(uint maxPhotons, uint maxInteractions, float weightThres
         uint currentPhotonIndex = gid + (photonCount * workUnitsAmount);
 
         float distance = 0;
-        float4 er = getAnyOrthogonalGlobal(&photons[currentPhotonIndex].direction);  // todo: refactor everything to float3
-        photons[currentPhotonIndex].er = er;
+        photons[currentPhotonIndex].er = getAnyOrthogonalGlobal(&photons[currentPhotonIndex].direction);
+        // todo: update vector functions to use built-in float3 ops like normalize, length, etc...
 
         while (photons[currentPhotonIndex].weight != 0){
             if (logIndex >= (maxLogIndex -1)){  // Added -1 to avoid potential overflow when intersection logs twice

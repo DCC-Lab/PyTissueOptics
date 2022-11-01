@@ -18,9 +18,9 @@ class PhotonCL(CLObject):
         self._solidID = solidID
 
         photonStruct = np.dtype(
-            [("position", cl.cltypes.float4),
-             ("direction", cl.cltypes.float4),
-             ("er", cl.cltypes.float4),
+            [("position", cl.cltypes.float3),
+             ("direction", cl.cltypes.float3),
+             ("er", cl.cltypes.float3),
              ("weight", cl.cltypes.float),
              ("materialID", cl.cltypes.uint),
              ("solidID", cl.cltypes.uint)])

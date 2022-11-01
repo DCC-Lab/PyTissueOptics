@@ -12,8 +12,8 @@ struct Intersection {
 typedef struct Intersection Intersection;
 
 struct Ray {
-    float4 origin;
-    float4 direction;
+    float3 origin;
+    float3 direction;
     float length;
 };
 
@@ -120,7 +120,7 @@ void _findBBoxIntersectingSolids(Ray ray, Scene *scene, uint gid){
         } else if (!gemsIntersection.exists) {
             scene->solidCandidates[boxGID].distance = -1;
         } else {
-            scene->solidCandidates[boxGID].distance = length(gemsIntersection.position - ray.origin.xyz);
+            scene->solidCandidates[boxGID].distance = length(gemsIntersection.position - ray.origin);
         }
     }
 }
@@ -147,8 +147,6 @@ struct HitPoint {
 typedef struct HitPoint HitPoint;
 
 HitPoint _getTriangleIntersection(Ray ray, float3 v1, float3 v2, float3 v3) {
-    float3 rayDirection = ray.direction.xyz;
-    float3 rayOrigin = ray.origin.xyz;
     float EPSILON = 0.00001f;
 
     HitPoint hitPoint;
@@ -156,7 +154,7 @@ HitPoint _getTriangleIntersection(Ray ray, float3 v1, float3 v2, float3 v3) {
 
     float3 edgeA = v2 - v1;
     float3 edgeB = v3 - v1;
-    float3 pVector = cross(rayDirection, edgeB);
+    float3 pVector = cross(ray.direction, edgeB);
     float det = dot(edgeA, pVector);
 
     bool rayIsParallel = fabs(det) < EPSILON;
@@ -165,14 +163,14 @@ HitPoint _getTriangleIntersection(Ray ray, float3 v1, float3 v2, float3 v3) {
     }
 
     float invDet = 1.0f / det;
-    float3 tVector = rayOrigin - v1;
+    float3 tVector = ray.origin - v1;
     float u = dot(tVector, pVector) * invDet;
     if (u < 0.0f || u > 1.0f) {
         return hitPoint;
     }
 
     float3 qVector = cross(tVector, edgeA);
-    float v = dot(rayDirection, qVector) * invDet;
+    float v = dot(ray.direction, qVector) * invDet;
     if (v < 0.0f || u + v > 1.0f) {
         return hitPoint;
     }
@@ -187,7 +185,7 @@ HitPoint _getTriangleIntersection(Ray ray, float3 v1, float3 v2, float3 v3) {
     }
 
     hitPoint.exists = true;
-    hitPoint.position = rayOrigin + t * rayDirection;
+    hitPoint.position = ray.origin + t * ray.direction;
     return hitPoint;
 }
 
@@ -204,7 +202,7 @@ Intersection _findClosestPolygonIntersection(Ray ray, uint solidID,
                 if (!hitPoint.exists) {
                     continue;
                 }
-                float distance = length(hitPoint.position - ray.origin.xyz);
+                float distance = length(hitPoint.position - ray.origin);
                 if (distance < intersection.distance) {
                     intersection.exists = true;
                     intersection.distance = distance;
