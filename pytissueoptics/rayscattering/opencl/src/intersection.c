@@ -27,6 +27,16 @@ struct GemsBoxIntersection {
 
 typedef struct GemsBoxIntersection GemsBoxIntersection;
 
+struct Scene{
+    uint nSolids;
+    __global Solid *solids;
+    __global Surface *surfaces;
+    __global Triangle *triangles;
+    __global Vertex *vertices;
+    __global SolidCandidate *solidCandidates;
+};
+
+typedef struct Scene Scene;
 
 GemsBoxIntersection _getSolidCandidate(Ray ray, float3 minCornerVector, float3 maxCornerVector) {
     GemsBoxIntersection intersection;
@@ -98,33 +108,32 @@ GemsBoxIntersection _getSolidCandidate(Ray ray, float3 minCornerVector, float3 m
     return intersection;
 }
 
-void _findBBoxIntersectingSolids(Ray ray, uint nSolids,
-        __global Solid *solids, __global SolidCandidate *solidCandidates, uint gid){
+void _findBBoxIntersectingSolids(Ray ray, Scene *scene, uint gid){
 
-    for (uint i = 0; i < nSolids; i++) {
-        uint boxGID = gid * nSolids + i;
-        solidCandidates[boxGID].solidID = i;
+    for (uint i = 0; i < scene->nSolids; i++) {
+        uint boxGID = gid * scene->nSolids + i;
+        scene->solidCandidates[boxGID].solidID = i;
 
-        GemsBoxIntersection gemsIntersection = _getSolidCandidate(ray, solids[i].bbox_min, solids[i].bbox_max);
+        GemsBoxIntersection gemsIntersection = _getSolidCandidate(ray, scene->solids[i].bbox_min, scene->solids[i].bbox_max);
         if (gemsIntersection.rayIsInside) {
-            solidCandidates[boxGID].distance = 0;
+            scene->solidCandidates[boxGID].distance = 0;
         } else if (!gemsIntersection.exists) {
-            solidCandidates[boxGID].distance = -1;
+            scene->solidCandidates[boxGID].distance = -1;
         } else {
-            solidCandidates[boxGID].distance = length(gemsIntersection.position - ray.origin.xyz);
+            scene->solidCandidates[boxGID].distance = length(gemsIntersection.position - ray.origin.xyz);
         }
     }
 }
 
-void _sortSolidCandidates(__global SolidCandidate *solidCandidates, uint gid, uint nSolids) {
-    for (uint i = 0; i < nSolids; i++) {
-        uint boxGID = gid * nSolids + i;
-        for (uint j = i + 1; j < nSolids; j++) {
-            uint boxGID2 = gid * nSolids + j;
-            if (solidCandidates[boxGID].distance > solidCandidates[boxGID2].distance) {
-                SolidCandidate tmp = solidCandidates[boxGID];
-                solidCandidates[boxGID] = solidCandidates[boxGID2];
-                solidCandidates[boxGID2] = tmp;
+void _sortSolidCandidates(Scene *scene, uint gid) {
+    for (uint i = 0; i < scene->nSolids; i++) {
+        uint boxGID = gid * scene->nSolids + i;
+        for (uint j = i + 1; j < scene->nSolids; j++) {
+            uint boxGID2 = gid * scene->nSolids + j;
+            if (scene->solidCandidates[boxGID].distance > scene->solidCandidates[boxGID2].distance) {
+                SolidCandidate tmp = scene->solidCandidates[boxGID];
+                scene->solidCandidates[boxGID] = scene->solidCandidates[boxGID2];
+                scene->solidCandidates[boxGID2] = tmp;
             }
         }
     }
@@ -237,50 +246,46 @@ void setSmoothNormal(Intersection *intersection, __global Triangle *triangles, _
     intersection->normal = normalize(intersection->normal);
 }
 
-void _composeIntersection(Intersection *intersection, Ray *ray, __global Surface *surfaces,
-                            __global Triangle *triangles, __global Vertex *vertices) {
+void _composeIntersection(Intersection *intersection, Ray *ray, Scene *scene) {
     if (!intersection->exists) {
         return;
     }
 
-    if (surfaces[intersection->surfaceID].toSmooth) {
-        setSmoothNormal(intersection, triangles, vertices);
+    if (scene->surfaces[intersection->surfaceID].toSmooth) {
+        setSmoothNormal(intersection, scene->triangles, scene->vertices);
     }
     intersection->distanceLeft = ray->length - intersection->distance;
 }
 
-Intersection findIntersection(Ray ray, uint nSolids, __global Solid *solids,
-        __global Surface *surfaces, __global Triangle *triangles, __global Vertex *vertices,
-        __global SolidCandidate *solidCandidates, uint gid) {
-    _findBBoxIntersectingSolids(ray,
-                                nSolids, solids, solidCandidates, gid);
-    _sortSolidCandidates(solidCandidates, gid, nSolids);
+Intersection findIntersection(Ray ray, Scene *scene, uint gid) {
+    _findBBoxIntersectingSolids(ray, scene, gid);
+    _sortSolidCandidates(scene, gid);
 
     Intersection closestIntersection;
     closestIntersection.exists = false;
     closestIntersection.distance = INFINITY;
-    if (nSolids == 0) {
+    if (scene->nSolids == 0) {
         return closestIntersection;
     }
 
-    for (uint i = 0; i < nSolids; i++) {
-        uint boxGID = gid * nSolids + i;
-        if (solidCandidates[boxGID].distance == -1) {
+    for (uint i = 0; i < scene->nSolids; i++) {
+        uint boxGID = gid * scene->nSolids + i;
+        if (scene->solidCandidates[boxGID].distance == -1) {
             continue;
         }
-        bool contained = solidCandidates[boxGID].distance == 0;
+        bool contained = scene->solidCandidates[boxGID].distance == 0;
         if (!contained && closestIntersection.exists) {
             break;
         }
 
-        uint solidID = solidCandidates[boxGID].solidID;
-        Intersection intersection = _findClosestPolygonIntersection(ray, solidID, solids, surfaces, triangles, vertices);
+        uint solidID = scene->solidCandidates[boxGID].solidID;
+        Intersection intersection = _findClosestPolygonIntersection(ray, solidID, scene->solids, scene->surfaces, scene->triangles, scene->vertices);
         if (intersection.exists  && intersection.distance < closestIntersection.distance) {
             closestIntersection = intersection;
         }
     }
 
-    _composeIntersection(&closestIntersection, &ray, surfaces, triangles, vertices);
+    _composeIntersection(&closestIntersection, &ray, scene);
     return closestIntersection;
 }
 
@@ -289,5 +294,6 @@ Intersection findIntersection(Ray ray, uint nSolids, __global Solid *solids,
 __kernel void findIntersections(uint nSolids, __global Ray *rays, __global Solid *solids, __global Surface *surfaces,
         __global Triangle *triangles, __global Vertex *vertices, __global SolidCandidate *solidCandidates, __global Intersection *intersections) {
     uint gid = get_global_id(0);
-    intersections[gid] = findIntersection(rays[gid], nSolids, solids, surfaces, triangles, vertices, solidCandidates, gid);
+    Scene scene = {nSolids, solids, surfaces, triangles, vertices, solidCandidates};
+    intersections[gid] = findIntersection(rays[gid], &scene, gid);
 }

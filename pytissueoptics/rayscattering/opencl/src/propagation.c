@@ -122,9 +122,7 @@ float reflectOrRefract(__global Photon *photons, __constant Material *materials,
     return intersection->distanceLeft;
 }
 
-float propagateStep(float distance, __global Photon *photons, __constant Material *materials,
-                    uint nSolids, __global Solid *solids, __global Surface *surfaces, __global Triangle *triangles,
-                    __global Vertex *vertices, __global SolidCandidate *solidCandidates,
+float propagateStep(float distance, __global Photon *photons, __constant Material *materials, Scene *scene,
                     __global uint *seeds, __global DataPoint *logger, uint *logIndex, uint gid, uint photonId){
 
     if (distance == 0) {
@@ -134,14 +132,13 @@ float propagateStep(float distance, __global Photon *photons, __constant Materia
     }
 
     Ray stepRay = {photons[photonId].position, photons[photonId].direction, distance};
-    Intersection intersection = findIntersection(stepRay, nSolids, solids, surfaces, triangles, vertices,
-                                        solidCandidates, gid);  // todo: make sure gid (not photonID) is used correctly by solid candidates
+    Intersection intersection = findIntersection(stepRay, scene, gid);  // todo: make sure gid (not photonID) is used correctly by solid candidates
 
     float distanceLeft = 0;
 
     if (intersection.exists){
         moveBy(intersection.distance, photons, photonId);
-        distanceLeft = reflectOrRefract(photons, materials, surfaces, &intersection, logger, logIndex, seeds, gid, photonId);
+        distanceLeft = reflectOrRefract(photons, materials, scene->surfaces, &intersection, logger, logIndex, seeds, gid, photonId);
         moveBy(0.00001f, photons, photonId);  // move a little bit to help avoid bad intersection check
     } else {
         if (distance == INFINITY){
@@ -155,12 +152,12 @@ float propagateStep(float distance, __global Photon *photons, __constant Materia
     return distanceLeft;
 }
 
-
 __kernel void propagate(uint maxPhotons, uint maxInteractions, float weightThreshold, uint workUnitsAmount, __global Photon *photons,
             __constant Material *materials, uint nSolids, __global Solid *solids, __global Surface *surfaces, __global Triangle *triangles,
             __global Vertex *vertices, __global SolidCandidate *solidCandidates, __global uint *seeds, __global DataPoint *logger){
-    // todo: maybe simplify args with SceneStruct with ptrs to ptrs?
     // todo: rename photonId to photonID, gid to globalID
+    Scene scene = {nSolids, solids, surfaces, triangles, vertices, solidCandidates};
+
     uint gid = get_global_id(0);
     uint logIndex = gid * maxInteractions;
     uint maxLogIndex = logIndex + maxInteractions;
@@ -178,8 +175,7 @@ __kernel void propagate(uint maxPhotons, uint maxInteractions, float weightThres
             if (logIndex >= (maxLogIndex -1)){  // Added -1 to avoid potential overflow when intersection logs twice
                 return;
             }
-            distance = propagateStep(distance, photons, materials,
-                                     nSolids, solids, surfaces, triangles, vertices, solidCandidates,
+            distance = propagateStep(distance, photons, materials, &scene,
                                      seeds, logger, &logIndex, gid, currentPhotonIndex);
             roulette(weightThreshold, photons, seeds, gid, currentPhotonIndex);
             }

@@ -158,7 +158,7 @@ class SolidCL(CLObject):
              ("lastSurfaceID", cl.cltypes.uint)])
         super().__init__(name=self.STRUCT_NAME, struct=struct, buildOnce=True)
 
-    def _initializeHostBuffer(self) -> np.ndarray:
+    def _getInitialHostBuffer(self) -> np.ndarray:
         bufferSize = max(len(self._solidsInfo), 1)
         buffer = np.empty(bufferSize, dtype=self._dtype)
         for i, solidInfo in enumerate(self._solidsInfo):
@@ -195,7 +195,7 @@ class SurfaceCL(CLObject):
              ("toSmooth", cl.cltypes.uint)])
         super().__init__(name=self.STRUCT_NAME, struct=struct, buildOnce=True)
 
-    def _initializeHostBuffer(self) -> np.ndarray:
+    def _getInitialHostBuffer(self) -> np.ndarray:
         bufferSize = max(len(self._surfacesInfo), 1)
         buffer = np.empty(bufferSize, dtype=self._dtype)
         for i, surfaceInfo in enumerate(self._surfacesInfo):
@@ -223,7 +223,7 @@ class TriangleCL(CLObject):
              ("normal", cl.cltypes.float3)])  # todo: if too heavy, remove and compute on the fly with vertices
         super().__init__(name=self.STRUCT_NAME, struct=struct, buildOnce=True)
 
-    def _initializeHostBuffer(self) -> np.ndarray:
+    def _getInitialHostBuffer(self) -> np.ndarray:
         bufferSize = max(len(self._trianglesInfo), 1)
         buffer = np.empty(bufferSize, dtype=self._dtype)
         for i, triangleInfo in enumerate(self._trianglesInfo):
@@ -247,7 +247,7 @@ class VertexCL(CLObject):
              ("normal", cl.cltypes.float3)])
         super().__init__(name=self.STRUCT_NAME, struct=struct, buildOnce=True)
 
-    def _initializeHostBuffer(self) -> np.ndarray:
+    def _getInitialHostBuffer(self) -> np.ndarray:
         bufferSize = max(len(self._vertices), 1)
         buffer = np.empty(bufferSize, dtype=self._dtype)
         for i, vertex in enumerate(self._vertices):
