@@ -14,38 +14,34 @@ from pytissueoptics.scene.geometry import BoundingBox, Vertex, Vector
 
 
 class CLObject:
-    def __init__(self, name: str = None, struct: np.dtype = None, skipDeclaration: bool = False, autoReset: bool = False):
+    def __init__(self, name: str = None, struct: np.dtype = None, skipDeclaration: bool = False, buildOnce: bool = False):
         self._name = name
         self._struct = struct
         self._declaration = None
         self._dtype = None
         self._skipDeclaration = skipDeclaration
-        self._autoReset = autoReset
+        self._buildOnce = buildOnce
 
         self._HOST_buffer = None
         self._DEVICE_buffer = None
 
     def build(self, device: 'cl.Device', context):
+        if self.deviceBuffer is not None:
+            if self._buildOnce:
+                return
         self.make(device)
         self._DEVICE_buffer = cl.Buffer(context, cl.mem_flags.READ_WRITE | cl.mem_flags.USE_HOST_PTR,
-                                        hostbuf=self._HOST_buffer)
+                                        hostbuf=self.hostBuffer)
 
     def make(self, device):
         if self._struct:
             cl_struct, self._declaration = cl.tools.match_dtype_to_c_struct(device, self._name, self._struct)
             self._dtype = cl.tools.get_or_register_dtype(self._name, cl_struct)
-        self._HOST_buffer = self._getHostBuffer()
 
-    def _getHostBuffer(self) -> np.ndarray:
-        if self._HOST_buffer is not None:
-            if self._autoReset:
-                self._initializeHostBuffer()
-            else:
-                return self._HOST_buffer
-        else:
-            return self._initializeHostBuffer()
+    def reset(self):
+        self.hostBuffer = self._getInitialHostBuffer()
 
-    def _initializeHostBuffer(self) -> np.ndarray:
+    def _getInitialHostBuffer(self) -> np.ndarray:
         raise NotImplementedError()
 
     @property
@@ -65,12 +61,16 @@ class CLObject:
 
     @property
     def hostBuffer(self):
+        if self._HOST_buffer is None:
+            self._HOST_buffer = self._getInitialHostBuffer()
         return self._HOST_buffer
 
     @hostBuffer.setter
     def hostBuffer(self, value):
         if isinstance(value, np.ndarray):
             self._HOST_buffer = value
+        else:
+            raise TypeError("hostBuffer must be a numpy.ndarray")
 
     @property
     def deviceBuffer(self):
@@ -101,7 +101,7 @@ class PhotonCL(CLObject):
              ("solidID", cl.cltypes.uint)])
         super().__init__(name=self.STRUCT_NAME, struct=photonStruct)
 
-    def _initializeHostBuffer(self) -> np.ndarray:
+    def _getInitialHostBuffer(self) -> np.ndarray:
         buffer = np.zeros(self._N, dtype=self._dtype)
         buffer = rfn.structured_to_unstructured(buffer)
         buffer[:, 0:3] = self._positions
@@ -126,9 +126,9 @@ class MaterialCL(CLObject):
              ("g", cl.cltypes.float),
              ("n", cl.cltypes.float),
              ("albedo", cl.cltypes.float)])
-        super().__init__(name=self.STRUCT_NAME, struct=materialStruct)
+        super().__init__(name=self.STRUCT_NAME, struct=materialStruct, buildOnce=True)
 
-    def _initializeHostBuffer(self) -> np.ndarray:
+    def _getInitialHostBuffer(self) -> np.ndarray:
         # todo: there might be a way to abstract both struct and buffer under a single def (DRY, PO)
         buffer = np.empty(len(self._materials), dtype=self._dtype)
         for i, material in enumerate(self._materials):
@@ -156,7 +156,7 @@ class SolidCL(CLObject):
              ("bbox_max", cl.cltypes.float3),
              ("firstSurfaceID", cl.cltypes.uint),
              ("lastSurfaceID", cl.cltypes.uint)])
-        super().__init__(name=self.STRUCT_NAME, struct=struct)
+        super().__init__(name=self.STRUCT_NAME, struct=struct, buildOnce=True)
 
     def _initializeHostBuffer(self) -> np.ndarray:
         bufferSize = max(len(self._solidsInfo), 1)
@@ -193,7 +193,7 @@ class SurfaceCL(CLObject):
              ("insideSolidID", cl.cltypes.int),
              ("outsideSolidID", cl.cltypes.int),
              ("toSmooth", cl.cltypes.uint)])
-        super().__init__(name=self.STRUCT_NAME, struct=struct)
+        super().__init__(name=self.STRUCT_NAME, struct=struct, buildOnce=True)
 
     def _initializeHostBuffer(self) -> np.ndarray:
         bufferSize = max(len(self._surfacesInfo), 1)
@@ -221,7 +221,7 @@ class TriangleCL(CLObject):
         struct = np.dtype(
             [("vertexIDs", cl.cltypes.uint, 3),
              ("normal", cl.cltypes.float3)])  # todo: if too heavy, remove and compute on the fly with vertices
-        super().__init__(name=self.STRUCT_NAME, struct=struct)
+        super().__init__(name=self.STRUCT_NAME, struct=struct, buildOnce=True)
 
     def _initializeHostBuffer(self) -> np.ndarray:
         bufferSize = max(len(self._trianglesInfo), 1)
@@ -245,7 +245,7 @@ class VertexCL(CLObject):
         struct = np.dtype(
             [("position", cl.cltypes.float3),
              ("normal", cl.cltypes.float3)])
-        super().__init__(name=self.STRUCT_NAME, struct=struct)
+        super().__init__(name=self.STRUCT_NAME, struct=struct, buildOnce=True)
 
     def _initializeHostBuffer(self) -> np.ndarray:
         bufferSize = max(len(self._vertices), 1)
@@ -274,18 +274,18 @@ class DataPointCL(CLObject):
              ("z", cl.cltypes.float),
              ("solidID", cl.cltypes.uint),
              ("surfaceID", cl.cltypes.int)])
-        super().__init__(name=self.STRUCT_NAME, struct=dataPointStruct, autoReset=True)
+        super().__init__(name=self.STRUCT_NAME, struct=dataPointStruct)
 
-    def _initializeHostBuffer(self) -> np.ndarray:
+    def _getInitialHostBuffer(self) -> np.ndarray:
         return np.zeros(self._size, dtype=self._dtype)
 
 
 class SeedCL(CLObject):
     def __init__(self, size: int):
         self._size = size
-        super().__init__()
+        super().__init__(buildOnce=True)
 
-    def _initializeHostBuffer(self) -> np.ndarray:
+    def _getInitialHostBuffer(self) -> np.ndarray:
         return np.random.randint(low=0, high=2 ** 32 - 1, size=self._size, dtype=cl.cltypes.uint)
 
 
@@ -298,9 +298,9 @@ class SolidCandidateCL(CLObject):
         struct = np.dtype(
             [("distance", cl.cltypes.float),
              ("solidID", cl.cltypes.uint)])
-        super().__init__(name=self.STRUCT_NAME, struct=struct)
+        super().__init__(name=self.STRUCT_NAME, struct=struct, buildOnce=True)
 
-    def _initializeHostBuffer(self) -> np.ndarray:
+    def _getInitialHostBuffer(self) -> np.ndarray:
         bufferSize = max(self._size, 1)
         buffer = np.empty(bufferSize, dtype=self._dtype)
         buffer["distance"] = -1
