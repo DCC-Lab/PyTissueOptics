@@ -163,7 +163,7 @@ __kernel void propagate(uint maxPhotons, uint maxInteractions, float weightThres
     uint photonCount = 0;
 
     while (photonCount < maxPhotons){
-        uint currentPhotonIndex = gid + (photonCount * workUnitsAmount);  // todo: I would prefer to use subsequent IDs (convention)
+        uint currentPhotonIndex = gid + (photonCount * workUnitsAmount);
 
         float distance = 0;
         float4 er = getAnyOrthogonalGlobal(&photons[currentPhotonIndex].direction);  // todo: refactor everything to float3

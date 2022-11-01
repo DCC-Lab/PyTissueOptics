@@ -1,0 +1,79 @@
+import numpy as np
+
+try:
+    import pyopencl as cl
+    import pyopencl.tools
+except ImportError:
+    pass
+
+
+class CLObject:
+    def __init__(self, name: str = None, struct: np.dtype = None, skipDeclaration: bool = False, buildOnce: bool = False):
+        self._name = name
+        self._struct = struct
+        self._declaration = None
+        self._dtype = None
+        self._skipDeclaration = skipDeclaration
+        self._buildOnce = buildOnce
+
+        self._HOST_buffer = None
+        self._DEVICE_buffer = None
+
+    def build(self, device: 'cl.Device', context):
+        if self.deviceBuffer is not None:
+            if self._buildOnce:
+                return
+        self.make(device)
+        self._DEVICE_buffer = cl.Buffer(context, cl.mem_flags.READ_WRITE | cl.mem_flags.USE_HOST_PTR,
+                                        hostbuf=self.hostBuffer)
+
+    def make(self, device):
+        if self._struct:
+            cl_struct, self._declaration = cl.tools.match_dtype_to_c_struct(device, self._name, self._struct)
+            self._dtype = cl.tools.get_or_register_dtype(self._name, cl_struct)
+
+    def reset(self):
+        self.hostBuffer = self._getInitialHostBuffer()
+
+    def _getInitialHostBuffer(self) -> np.ndarray:
+        raise NotImplementedError()
+
+    @property
+    def name(self) -> str:
+        return self._name
+
+    @property
+    def declaration(self) -> str:
+        if not self._declaration or self._skipDeclaration:
+            return ''
+        return self._declaration
+
+    @property
+    def dtype(self) -> ...:
+        assert self._dtype is not None
+        return self._dtype
+
+    @property
+    def hostBuffer(self):
+        if self._HOST_buffer is None:
+            self._HOST_buffer = self._getInitialHostBuffer()
+        return self._HOST_buffer
+
+    @hostBuffer.setter
+    def hostBuffer(self, value):
+        if isinstance(value, np.ndarray):
+            self._HOST_buffer = value
+        else:
+            raise TypeError("hostBuffer must be a numpy.ndarray")
+
+    @property
+    def deviceBuffer(self):
+        return self._DEVICE_buffer
+
+    @property
+    def length(self) -> int:
+        return len(self._HOST_buffer)
+
+    @property
+    def size(self) -> int:
+        return self._HOST_buffer.nbytes
