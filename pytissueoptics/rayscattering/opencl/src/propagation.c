@@ -6,6 +6,7 @@
 
 const int NO_SOLID_ID = -1;
 const int NO_SURFACE_ID = -1;
+const float EPSILON = 0.00001f;
 
 void moveBy(float distance, __global Photon *photons, uint photonID){
     photons[photonID].position += (distance * photons[photonID].direction);
@@ -99,11 +100,19 @@ float reflectOrRefract(Intersection *intersection, __global Photon *photons, __c
                                                                          materials, surfaces, seeds, gid);
 
     if (fresnelIntersection.isReflected) {
+        moveBy(-EPSILON, photons, photonID);  // move back before reflecting
         reflect(&fresnelIntersection, photons, photonID);
     }
     else {
         logIntersection(intersection, photons, surfaces, logger, logIndex, photonID);
         refract(&fresnelIntersection, photons, photonID);
+
+        // The next code block moves the photon forward after refracting, aligned with the intersection's normal
+        // LIMITATION: this is not enough if the photon refracts on the corner of an edge < 90°
+        //  Could be fixed with an additional move to avoid intersection on the edge of a triangle...
+        //  Or by stepping towards a direction inbetween the normal and the inverse of the refracted direction (?)
+        int sign = dot(photons[photonID].direction, intersection->normal) > 0 ? 1 : -1;
+        photons[photonID].position += sign * intersection->normal * EPSILON;
 
         float mut1 = materials[photons[photonID].materialID].mu_t;
         float mut2 = materials[fresnelIntersection.nextMaterialID].mu_t;
@@ -138,7 +147,6 @@ float propagateStep(float distance, __global Photon *photons, __constant Materia
     if (intersection.exists){
         moveBy(intersection.distance, photons, photonID);
         distanceLeft = reflectOrRefract(&intersection, photons, materials, scene->surfaces, logger, logIndex, seeds, gid, photonID);
-        moveBy(0.00001f, photons, photonID);  // move a little bit to help avoid bad intersection check
     } else {
         if (distance == INFINITY){
             photons[photonID].weight = 0;
