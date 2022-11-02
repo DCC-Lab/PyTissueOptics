@@ -112,7 +112,7 @@ void _findBBoxIntersectingSolids(Ray ray, Scene *scene, uint gid){
 
     for (uint i = 0; i < scene->nSolids; i++) {
         uint boxGID = gid * scene->nSolids + i;
-        scene->solidCandidates[boxGID].solidID = i;
+        scene->solidCandidates[boxGID].solidID = i + 1;
 
         GemsBoxIntersection gemsIntersection = _getSolidCandidate(ray, scene->solids[i].bbox_min, scene->solids[i].bbox_max);
         if (gemsIntersection.rayIsInside) {
