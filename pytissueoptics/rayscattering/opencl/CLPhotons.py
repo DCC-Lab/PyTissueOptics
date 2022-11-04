@@ -42,13 +42,13 @@ class CLPhotons:
     def propagate(self):
         t0 = time.time()
 
-        scene = CLScene(self._scene, self._N)
-
         program = CLProgram(sourcePath=PROPAGATION_SOURCE_PATH)
         params = CLParameters()
 
         if params.photonAmount >= self._N:
             params.photonAmount = self._N
+
+        scene = CLScene(self._scene, params.workItemAmount)
 
         kernelPhotons = PhotonCL(self._positions[0:params.photonAmount], self._directions[0:params.photonAmount],
                                  materialID=scene.getMaterialID(self._initialMaterial), solidID=scene.getSolidID(self._initialSolid))
