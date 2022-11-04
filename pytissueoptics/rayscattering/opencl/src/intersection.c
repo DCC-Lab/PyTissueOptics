@@ -176,7 +176,8 @@ HitPoint _getTriangleIntersection(Ray ray, float3 v1, float3 v2, float3 v3) {
     }
 
     float t = dot(edgeB, qVector) * invDet;
-    if (t < EPSILON) {
+
+    if (t < 0.0f) {
         return hitPoint;
     }
 
@@ -192,28 +193,28 @@ HitPoint _getTriangleIntersection(Ray ray, float3 v1, float3 v2, float3 v3) {
 Intersection _findClosestPolygonIntersection(Ray ray, uint solidID,
                                             __global Solid *solids, __global Surface *surfaces,
                                             __global Triangle *triangles, __global Vertex *vertices) {
-        Intersection intersection;
-        intersection.exists = false;
-        intersection.distance = INFINITY;
-        for (uint s = solids[solidID].firstSurfaceID; s <= solids[solidID].lastSurfaceID; s++) {
-            for (uint p = surfaces[s].firstPolygonID; p <= surfaces[s].lastPolygonID; p++) {
-                uint vertexIDs[3] = {triangles[p].vertexIDs[0], triangles[p].vertexIDs[1], triangles[p].vertexIDs[2]};
-                HitPoint hitPoint = _getTriangleIntersection(ray, vertices[vertexIDs[0]].position, vertices[vertexIDs[1]].position, vertices[vertexIDs[2]].position);
-                if (!hitPoint.exists) {
-                    continue;
-                }
-                float distance = length(hitPoint.position - ray.origin);
-                if (distance < intersection.distance) {
-                    intersection.exists = true;
-                    intersection.distance = distance;
-                    intersection.position = hitPoint.position;
-                    intersection.normal = triangles[p].normal;
-                    intersection.surfaceID = s;
-                    intersection.polygonID = p;
-                }
+    Intersection intersection;
+    intersection.exists = false;
+    intersection.distance = INFINITY;
+    for (uint s = solids[solidID-1].firstSurfaceID; s <= solids[solidID-1].lastSurfaceID; s++) {
+        for (uint p = surfaces[s].firstPolygonID; p <= surfaces[s].lastPolygonID; p++) {
+            uint vertexIDs[3] = {triangles[p].vertexIDs[0], triangles[p].vertexIDs[1], triangles[p].vertexIDs[2]};
+            HitPoint hitPoint = _getTriangleIntersection(ray, vertices[vertexIDs[0]].position, vertices[vertexIDs[1]].position, vertices[vertexIDs[2]].position);
+            if (!hitPoint.exists) {
+                continue;
+            }
+            float distance = length(hitPoint.position - ray.origin);
+            if (distance < intersection.distance) {
+                intersection.exists = true;
+                intersection.distance = distance;
+                intersection.position = hitPoint.position;
+                intersection.normal = triangles[p].normal;
+                intersection.surfaceID = s;
+                intersection.polygonID = p;
             }
         }
-        return intersection;
+    }
+    return intersection;
 }
 
 float _cotangent(float3 v0, float3 v1, float3 v2) {
