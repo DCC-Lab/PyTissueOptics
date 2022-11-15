@@ -6,7 +6,6 @@
 
 const int NO_SOLID_ID = -1;
 const int NO_SURFACE_ID = -1;
-const float EPSILON = 0.00001f;
 
 void moveBy(float distance, __global Photon *photons, uint photonID){
     photons[photonID].position += (distance * photons[photonID].direction);
@@ -144,7 +143,7 @@ float propagateStep(float distance, __global Photon *photons, __constant Materia
 
     float distanceLeft = 0;
 
-    if (intersection.exists){
+    if (intersection.exists && !intersection.isTooClose){
         moveBy(intersection.distance, photons, photonID);
         distanceLeft = reflectOrRefract(&intersection, photons, materials, scene->surfaces, logger, logIndex, seeds, gid, photonID);
     } else {
@@ -152,7 +151,14 @@ float propagateStep(float distance, __global Photon *photons, __constant Materia
             photons[photonID].weight = 0;
             return 0;
         }
+
         moveBy(distance, photons, photonID);
+
+        if (intersection.isTooClose){
+            float3 stepCorrection = stepSign * intersection.normal * 10 * EPSILON;
+            photons[photonID].position += stepCorrection;
+        }
+
         scatter(photons, materials, seeds, logger, logIndex, gid, photonID);
     }
 

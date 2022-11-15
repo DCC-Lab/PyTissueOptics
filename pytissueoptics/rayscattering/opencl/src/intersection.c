@@ -1,6 +1,8 @@
+const float EPSILON = 0.00001f;
 
 struct Intersection {
     uint exists;
+    uint isTooClose;
     float distance;
     float3 position;
     float3 normal;
@@ -141,16 +143,16 @@ void _sortSolidCandidates(Scene *scene, uint gid) {
 
 struct HitPoint {
     bool exists;
+    bool isTooClose;
     float3 position;
 };
 
 typedef struct HitPoint HitPoint;
 
 HitPoint _getTriangleIntersection(Ray ray, float3 v1, float3 v2, float3 v3) {
-    float EPSILON = 0.00001f;
-
     HitPoint hitPoint;
     hitPoint.exists = false;
+    hitPoint.isTooClose = false;
 
     float3 edgeA = v2 - v1;
     float3 edgeB = v3 - v1;
@@ -181,8 +183,13 @@ HitPoint _getTriangleIntersection(Ray ray, float3 v1, float3 v2, float3 v3) {
         return hitPoint;
     }
 
-    if (t > ray.length) {
+    if (t > (ray.length + 10 * EPSILON)) {
+        // No Intersection, it's too far away
         return hitPoint;
+    } else if (t > ray.length) {
+        // Just a bit too far away. There is no intersection, but we cannot accept photon to land here.
+        // hitPoint will also be returned with exists = true in order to consider this event and possibly process it if it was the closest "hit".
+        hitPoint.isTooClose = true;
     }
 
     hitPoint.exists = true;
@@ -206,6 +213,7 @@ Intersection _findClosestPolygonIntersection(Ray ray, uint solidID,
             float distance = length(hitPoint.position - ray.origin);
             if (distance < intersection.distance) {
                 intersection.exists = true;
+                intersection.isTooClose = hitPoint.isTooClose;
                 intersection.distance = distance;
                 intersection.position = hitPoint.position;
                 intersection.normal = triangles[p].normal;
