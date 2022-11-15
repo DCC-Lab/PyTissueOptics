@@ -97,21 +97,21 @@ float reflectOrRefract(Intersection *intersection, __global Photon *photons, __c
         __global Surface *surfaces, __global DataPoint *logger, uint *logIndex, __global uint *seeds, uint gid, uint photonID){
     FresnelIntersection fresnelIntersection = computeFresnelIntersection(photons[photonID].direction, intersection,
                                                                          materials, surfaces, seeds, gid);
+    int stepSign = 1;
+    int solidIDTowardsNormal = surfaces[intersection->surfaceID].outsideSolidID;
+    if (solidIDTowardsNormal != photons[photonID].solidID) {
+        stepSign = -1;
+    }
+    if (!fresnelIntersection.isReflected) {
+        stepSign *= -1;
+    }
 
     if (fresnelIntersection.isReflected) {
-        moveBy(-EPSILON, photons, photonID);  // move back before reflecting
         reflect(&fresnelIntersection, photons, photonID);
     }
     else {
         logIntersection(intersection, photons, surfaces, logger, logIndex, photonID);
         refract(&fresnelIntersection, photons, photonID);
-
-        // The next code block moves the photon forward after refracting, aligned with the intersection's normal
-        // LIMITATION: this is not enough if the photon refracts on the corner of an edge < 90°
-        //  Could be fixed with an additional move to avoid intersection on the edge of a triangle...
-        //  Or by stepping towards a direction inbetween the normal and the inverse of the refracted direction (?)
-        int sign = dot(photons[photonID].direction, intersection->normal) > 0 ? 1 : -1;
-        photons[photonID].position += sign * intersection->normal * EPSILON;
 
         float mut1 = materials[photons[photonID].materialID].mu_t;
         float mut2 = materials[fresnelIntersection.nextMaterialID].mu_t;
@@ -125,6 +125,13 @@ float reflectOrRefract(Intersection *intersection, __global Photon *photons, __c
         photons[photonID].materialID = fresnelIntersection.nextMaterialID;
         photons[photonID].solidID = fresnelIntersection.nextSolidID;
     }
+
+    float3 stepCorrection = stepSign * intersection->normal * 10 * EPSILON;
+    photons[photonID].position += stepCorrection;
+
+    // Todo: these step distances are still relatively significant, so we should consider subtracting it from the distanceLeft
+    //  same comment for block intersection.isTooClose
+    // Todo: single float precision 10^-7 is probably enough (test that and possibly decrease it...)
 
     return intersection->distanceLeft;
 }
@@ -155,6 +162,11 @@ float propagateStep(float distance, __global Photon *photons, __constant Materia
         moveBy(distance, photons, photonID);
 
         if (intersection.isTooClose){
+            int stepSign = 1;
+            int solidIDTowardsNormal = scene->surfaces[intersection.surfaceID].outsideSolidID;
+            if (solidIDTowardsNormal != photons[photonID].solidID) {
+                stepSign = -1;
+            }
             float3 stepCorrection = stepSign * intersection.normal * 10 * EPSILON;
             photons[photonID].position += stepCorrection;
         }
