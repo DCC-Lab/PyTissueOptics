@@ -259,7 +259,15 @@ void _composeIntersection(Intersection *intersection, Ray *ray, Scene *scene) {
     }
 
     if (scene->surfaces[intersection->surfaceID].toSmooth) {
-        setSmoothNormal(intersection, scene->triangles, scene->vertices);
+        bool rayAlmostParallel = fabs(dot(ray->direction, intersection->normal)) < 0.02;
+        // Todo: improve this. It's not perfect.
+        //  The smoothed normal represents a different geometry (volume) than the meshed geometry.
+        //  The space difference between the two should be an illegal position for photons, but we do not counter that yet.
+        //  This hack is a temporary solution to avoid the problem where the photon starts in the (small) illegal space with a shallow angle,
+        //   creating a possible (and wrong) negative dot product.
+        if (!rayAlmostParallel) {
+            setSmoothNormal(intersection, scene->triangles, scene->vertices);
+        }
     }
     intersection->distanceLeft = ray->length - intersection->distance;
 }
