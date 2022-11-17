@@ -126,8 +126,13 @@ float reflectOrRefract(Intersection *intersection, __global Photon *photons, __c
         photons[photonID].solidID = fresnelIntersection.nextSolidID;
     }
 
-    float3 stepCorrection = stepSign * intersection->normal * 10 * EPSILON;
+    float3 stepCorrection = stepSign * intersection->normal * EPS_CORRECTION;
     photons[photonID].position += stepCorrection;
+
+    intersection->distanceLeft -= EPS_CORRECTION;
+    if (intersection->distanceLeft < 0) {
+        intersection->distanceLeft = 0;
+    }
 
     // Todo: these step distances are still relatively significant, so we should consider subtracting it from the distanceLeft
     //  same comment for block intersection.isTooClose
@@ -167,7 +172,7 @@ float propagateStep(float distance, __global Photon *photons, __constant Materia
             if (solidIDTowardsNormal != photons[photonID].solidID) {
                 stepSign = -1;
             }
-            float3 stepCorrection = stepSign * intersection.normal * 10 * EPSILON;
+            float3 stepCorrection = stepSign * intersection.normal * EPS_CORRECTION;
             photons[photonID].position += stepCorrection;
         }
 

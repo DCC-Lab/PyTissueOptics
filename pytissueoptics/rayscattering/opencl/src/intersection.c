@@ -1,4 +1,6 @@
-const float EPSILON = 0.00001f;
+const float EPS = 0.00001f;
+const float EPS_CORRECTION = 0.0005f;
+const float EPS_PARALLEL = 0.00001f;
 
 struct Intersection {
     uint exists;
@@ -159,7 +161,7 @@ HitPoint _getTriangleIntersection(Ray ray, float3 v1, float3 v2, float3 v3) {
     float3 pVector = cross(ray.direction, edgeB);
     float det = dot(edgeA, pVector);
 
-    bool rayIsParallel = fabs(det) < EPSILON;
+    bool rayIsParallel = fabs(det) < EPS_PARALLEL;
     if (rayIsParallel) {
         return hitPoint;
     }
@@ -183,7 +185,7 @@ HitPoint _getTriangleIntersection(Ray ray, float3 v1, float3 v2, float3 v3) {
         return hitPoint;
     }
 
-    if (t > (ray.length + 10 * EPSILON)) {
+    if (t > (ray.length + EPS)) {
         // No Intersection, it's too far away
         return hitPoint;
     } else if (t > ray.length) {
