@@ -204,6 +204,7 @@ Intersection _findClosestPolygonIntersection(Ray ray, uint solidID,
                                             __global Triangle *triangles, __global Vertex *vertices) {
     Intersection intersection;
     intersection.exists = false;
+    intersection.isTooClose = false;
     intersection.distance = INFINITY;
     for (uint s = solids[solidID-1].firstSurfaceID; s <= solids[solidID-1].lastSurfaceID; s++) {
         for (uint p = surfaces[s].firstPolygonID; p <= surfaces[s].lastPolygonID; p++) {
@@ -272,6 +273,7 @@ Intersection findIntersection(Ray ray, Scene *scene, uint gid) {
 
     Intersection closestIntersection;
     closestIntersection.exists = false;
+    closestIntersection.isTooClose = false;
     closestIntersection.distance = INFINITY;
     if (scene->nSolids == 0) {
         return closestIntersection;

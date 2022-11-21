@@ -134,10 +134,6 @@ float reflectOrRefract(Intersection *intersection, __global Photon *photons, __c
         intersection->distanceLeft = 0;
     }
 
-    // Todo: these step distances are still relatively significant, so we should consider subtracting it from the distanceLeft
-    //  same comment for block intersection.isTooClose
-    // Todo: single float precision 10^-7 is probably enough (test that and possibly decrease it...)
-
     return intersection->distanceLeft;
 }
 
