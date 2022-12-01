@@ -41,9 +41,9 @@ class CLProgram:
                               f"the buffers are too large.")
         self._mainQueue.finish()
         t2 = time.time()
-        self._lastKernelTime = t2 - t1
+
         if verbose:
-            print(f" ... {self._lastKernelTime:.3f} s. [Kernel execution]")
+            print(f" ... {t2 - t1:.3f} s. [Kernel execution]")
 
     def _build(self, objects: List[CLObject]):
         for _object in objects:
