@@ -1,18 +1,22 @@
 import numpy as np
 
 from pytissueoptics import *
+from pytissueoptics.rayscattering.opencl import CLParameters as clp
+
 
 N = 500000
 
-scene = tissues.PhantomTissue()
+# update this value to match the experiment if it changes, with stats.getAverageInteractionsPerPhoton()
+clp.AVG_IT_PER_PHOTON = 17.9
 
+scene = tissues.PhantomTissue()
 source = DivergentSource(position=Vector(0, 0, -0.1), direction=Vector(0, 0, 1), N=N,
                          useHardwareAcceleration=True, diameter=0.2, divergence=np.pi / 4)
 logger = Logger()
+
 source.propagate(scene, logger=logger)
 
 stats = Stats(logger, source, scene)
-
 stats.report()
 
 displayConfig = DisplayConfig(showPointsAsSpheres=False)

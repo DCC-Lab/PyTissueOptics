@@ -293,3 +293,6 @@ class Stats:
         with open(filepath, "wb") as file:
             file.write(report.encode("utf-8"))
             file.close()
+
+    def getAverageInteractionsPerPhoton(self):
+        return len(self._logger.getDataPoints()) / self.getPhotonCount()
