@@ -11,7 +11,7 @@ import numpy as np
 
 from pytissueoptics.rayscattering.opencl.CLKeyLog import CLKeyLog
 from pytissueoptics.rayscattering.opencl.CLScene import CLScene
-from pytissueoptics.rayscattering.opencl.CLParameters import CLParameters
+from pytissueoptics.rayscattering.opencl.CLParameters import CLParameters, WEIGHT_THRESHOLD
 from pytissueoptics.rayscattering.opencl.CLProgram import CLProgram
 from pytissueoptics.rayscattering.opencl.CLObjects import PhotonCL, DataPointCL, SeedCL
 from pytissueoptics.rayscattering.tissues.rayScatteringScene import RayScatteringScene
@@ -22,11 +22,11 @@ PROPAGATION_SOURCE_PATH = os.path.join(os.path.dirname(os.path.abspath(__file__)
 
 
 class CLPhotons:
-    def __init__(self, positions: np.ndarray, directions: np.ndarray, N: int, weightThreshold: float = 0.0001):
+    def __init__(self, positions: np.ndarray, directions: np.ndarray, N: int):
         self._positions = positions
         self._directions = directions
         self._N = np.uint32(N)
-        self._weightThreshold = np.float32(weightThreshold)
+        self._weightThreshold = np.float32(WEIGHT_THRESHOLD)
         self._initialMaterial = None
         self._initialSolid = None
 
@@ -39,14 +39,9 @@ class CLPhotons:
         self._initialMaterial = environment.material
         self._initialSolid = environment.solid
 
-    def propagate(self):
-        t0 = time.time()
-
+    def propagate(self, verbose: bool = False):
         program = CLProgram(sourcePath=PROPAGATION_SOURCE_PATH)
-        params = CLParameters()
-
-        if params.photonAmount >= self._N:
-            params.photonAmount = self._N
+        params = CLParameters(self._N)
 
         scene = CLScene(self._scene, params.workItemAmount)
 
@@ -57,9 +52,6 @@ class CLPhotons:
         photonPool.make(program.device)
         seeds = SeedCL(params.photonAmount)
         logger = DataPointCL(size=params.maxLoggableInteractions)
-
-        t1 = time.time()
-        print(f"OpenCL Propagation Timer: \n ... {t1 - t0:.3f} s. [CLObjects initialization]")
 
         photonCount = 0
         batchCount = 0
@@ -81,11 +73,11 @@ class CLPhotons:
             batchPhotonCount, photonCount = self._replaceFullyPropagatedPhotons(kernelPhotons, photonPool,
                                                                                 photonCount, params.photonAmount)
 
-            self._showProgress(photonCount, batchPhotonCount, batchCount, t0, t1, t2, params.photonAmount)
+            self._showProgress(photonCount, batchPhotonCount, batchCount, t0, t1, t2, params.photonAmount, verbose)
             params.photonAmount = kernelPhotons.length
             batchCount += 1
 
-        self._logDataFromLogArrays(logArrays, scene)
+        self._logDataFromLogArrays(logArrays, scene, verbose)
 
     def _replaceFullyPropagatedPhotons(self, kernelPhotons: PhotonCL, photonPool: PhotonCL,
                                        photonCount: int, currentKernelLength: int) -> (int, int):
@@ -103,10 +95,11 @@ class CLPhotons:
         kernelPhotons.hostBuffer = np.delete(kernelPhotons.hostBuffer, photonsToRemove)
         return batchPhotonCount, photonCount
 
-    def _logDataFromLogArrays(self, logArrays, sceneCL):
+    def _logDataFromLogArrays(self, logArrays, sceneCL, verbose):
         t4 = time.time_ns()
         log = np.concatenate(logArrays)
-        print(f"Concatenate multiple logger arrays: {(time.time_ns() - t4) / 1e9}s")
+        if verbose:
+            print(f"Concatenate multiple logger arrays: {(time.time_ns() - t4) / 1e9}s")
 
         if not self._sceneLogger:
             return
@@ -114,13 +107,22 @@ class CLPhotons:
         t5 = time.time_ns()
         keyLog = CLKeyLog(log, sceneCL=sceneCL)
         keyLog.toSceneLogger(self._sceneLogger)
-        print(f"Transfer logging data to Logger object.: {(time.time_ns() - t5) / 1e9}s")
+        if verbose:
+            print(f"Transfer logging data to Logger object.: {(time.time_ns() - t5) / 1e9}s")
 
     def _showProgress(self, photonCount: int, localPhotonCount: int, batchCount: int, t0: float, t1: float,
-                      t2: float, currentKernelLength: int):
-        print(f"{photonCount}/{self._N}\t{((time.time_ns() - t0) / 1e9)} s\t ::"
-              f" Batch #{batchCount}\t :: {currentKernelLength} \t{((t2 - t1) / 1e9):.2f} s\t ::"
-              f" ETA: {((time.time_ns() - t0) / 1e9) * (np.float64(self._N) / np.float64(photonCount)):.2f} s\t ::"
-              f"({(photonCount * 100 / self._N):.2f}%) \t ::"
-              f"Eff: {np.float64((t2 - t1) / 1e3) / localPhotonCount:.2f} us/photon\t ::"
-              f"Finished propagation: {localPhotonCount}")
+                      t2: float, currentKernelLength: int, verbose: bool = True):
+        if not verbose:
+            return
+        if localPhotonCount == 0:
+            print(f"{photonCount}/{self._N}\t{((time.time_ns() - t0) / 1e9):.4f} s\t ::"
+                  f" Batch #{batchCount}\t :: {currentKernelLength} \t{((t2 - t1) / 1e9):.2f} s\t ::"
+                  f"({(photonCount * 100 / self._N):.2f}%) \t ::"
+                  f"Finished propagation: {localPhotonCount}")
+        else:
+            print(f"{photonCount}/{self._N}\t{((time.time_ns() - t0) / 1e9):.4f} s\t ::"
+                  f" Batch #{batchCount}\t :: {currentKernelLength} \t{((t2 - t1) / 1e9):.2f} s\t ::"
+                  f" ETA: {((time.time_ns() - t0) / 1e9) * (np.float64(self._N) / np.float64(photonCount)):.2f} s\t ::"
+                  f"({(photonCount * 100 / self._N):.2f}%) \t ::"
+                  f"Eff: {np.float64((t2 - t1) / 1e3) / localPhotonCount:.2f} us/photon\t ::"
+                  f"Finished propagation: {localPhotonCount}")

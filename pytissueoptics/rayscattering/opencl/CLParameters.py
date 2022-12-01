@@ -1,20 +1,36 @@
+import json
+import os
+
 import numpy as np
 
-from pytissueoptics.rayscattering.opencl.CLProgram import CLProgram
+from pytissueoptics.rayscattering.opencl import CLObjects as clObjects
+
+OPENCL_PATH = os.path.dirname(os.path.abspath(__file__))
+
+
+# Experiment-specific constants
+AVG_IT_PER_PHOTON = None
+
+# Hardware-specific constants
+# todo: run an hardware test to determine the best work item amount if not specified in config
+config = json.load(open(os.path.join(OPENCL_PATH, 'config.json')))
+N_WORK_UNITS = config['N_WORK_UNITS']
+MAX_MEMORY = config['MAX_MEMORY_MB'] * 1024 ** 2
+
+# Constants
+N_BATCHES = 5
+WEIGHT_THRESHOLD = 0.0001
+DATAPOINT_SIZE = clObjects.DataPointCL.getItemSize()
 
 
 class CLParameters:
-    dataPointSize = 16
-    photonSize = 64
-    seedSize = 4
-    materialSize = 32
+    def __init__(self, N):
+        self._photonAmount = int(N / min(N_BATCHES, N_WORK_UNITS))
+        self._maxLoggerMemory = self._photonAmount * AVG_IT_PER_PHOTON * DATAPOINT_SIZE
+        self._maxLoggerMemory = min(self._maxLoggerMemory, MAX_MEMORY)
+        self._photonAmount = min(2 * self._photonAmount, N)
 
-    def __init__(self, maxLoggerMemory: int = 1e8, workItemAmount: int = 100,
-                 photonAmount: int = 1000, loggerGlobalFactor: float = 0.75):
-        self._maxLoggerMemory = maxLoggerMemory
-        self._workItemAmount = workItemAmount
-        self._photonAmount = photonAmount
-        self._loggerGlobalFactor = loggerGlobalFactor
+        self._workItemAmount = N_WORK_UNITS
 
     @property
     def workItemAmount(self):
@@ -44,19 +60,19 @@ class CLParameters:
 
     @property
     def maxLoggableInteractions(self):
-        return np.int32(self._maxLoggerMemory / self.dataPointSize)
+        return np.int32(self._maxLoggerMemory / DATAPOINT_SIZE)
 
     @maxLoggableInteractions.setter
     def maxLoggableInteractions(self, value):
-        self._maxLoggerMemory = np.int32(value * self.dataPointSize)
+        self._maxLoggerMemory = np.int32(value * DATAPOINT_SIZE)
 
     @property
     def maxLoggableInteractionsPerWorkItem(self):
-        return np.int32((self.maxLoggerMemory / self.dataPointSize) / self._workItemAmount)
+        return np.int32((self.maxLoggerMemory / DATAPOINT_SIZE) / self._workItemAmount)
 
     @maxLoggableInteractionsPerWorkItem.setter
     def maxLoggableInteractionsPerWorkItem(self, value):
-        self._maxLoggerMemory = np.int32((value * self.dataPointSize) * self._workItemAmount)
+        self._maxLoggerMemory = np.int32((value * DATAPOINT_SIZE) * self._workItemAmount)
 
     @property
     def photonsPerWorkItem(self):
@@ -65,9 +81,3 @@ class CLParameters:
     @photonsPerWorkItem.setter
     def photonsPerWorkItem(self, value: int):
         self._photonAmount = np.int32(value * self._workItemAmount)
-
-    def autoSetParameters(self, program: CLProgram):
-        # FIXME: Algorithm here should send a few batches to check the average interaction per photon
-        # then decide the logger size and the photon amount that fills the logger
-        # then try a few workItemAmount parameters for speed.
-        self._maxLoggerMemory = np.int32(self._loggerGlobalFactor * program.global_memory_size)

@@ -29,7 +29,7 @@ class Source:
 
     def propagate(self, scene: RayScatteringScene, logger: Logger = None, showProgress: bool = True):
         if self._useHardwareAcceleration:
-            self._propagateOpenCL(scene, logger)
+            self._propagateOpenCL(scene, logger, showProgress)
         else:
             self._propagateCPU(scene, logger, showProgress)
 
@@ -42,11 +42,12 @@ class Source:
             self._photons[i].setContext(self._environment, intersectionFinder=intersectionFinder, logger=logger)
             self._photons[i].propagate()
 
-    def _propagateOpenCL(self, scene: RayScatteringScene, logger: Logger = None):
+    def _propagateOpenCL(self, scene: RayScatteringScene, logger: Logger = None, showProgress: bool = True):
         self._environment = scene.getEnvironmentAt(self._position)
 
         self._photons.setContext(scene, self._environment, logger=logger)
-        self._photons.propagate()
+        self._photons.computeAverageInteractions()
+        self._photons.propagate(verbose=showProgress)
 
     def getInitialPositionsAndDirections(self) -> Tuple[np.ndarray, np.ndarray]:
         """ To be implemented by subclasses. Needs to return a tuple containing the
