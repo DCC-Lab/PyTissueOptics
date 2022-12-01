@@ -10,16 +10,15 @@ SolidCLInfo = NamedTuple("SolidInfo", [("bbox", BoundingBox),
 
 class SolidCL(CLObject):
     STRUCT_NAME = "Solid"
-
-    def __init__(self, solidsInfo: List[SolidCLInfo]):
-        self._solidsInfo = solidsInfo
-
-        struct = np.dtype(
+    STRUCT_DTYPE = np.dtype(
             [("bbox_min", cl.cltypes.float3),
              ("bbox_max", cl.cltypes.float3),
              ("firstSurfaceID", cl.cltypes.uint),
              ("lastSurfaceID", cl.cltypes.uint)])
-        super().__init__(name=self.STRUCT_NAME, struct=struct, buildOnce=True)
+
+    def __init__(self, solidsInfo: List[SolidCLInfo]):
+        self._solidsInfo = solidsInfo
+        super().__init__(buildOnce=True)
 
     def _getInitialHostBuffer(self) -> np.ndarray:
         bufferSize = max(len(self._solidsInfo), 1)
@@ -44,11 +43,7 @@ SurfaceCLInfo = NamedTuple("SurfaceInfo", [("firstPolygonID", int), ("lastPolygo
 
 class SurfaceCL(CLObject):
     STRUCT_NAME = "Surface"
-
-    def __init__(self, surfacesInfo: List[SurfaceCLInfo]):
-        self._surfacesInfo = surfacesInfo
-
-        struct = np.dtype(
+    STRUCT_DTYPE = np.dtype(
             [("firstPolygonID", cl.cltypes.uint),
              ("lastPolygonID", cl.cltypes.uint),
              ("insideMaterialID", cl.cltypes.uint),
@@ -56,7 +51,10 @@ class SurfaceCL(CLObject):
              ("insideSolidID", cl.cltypes.int),
              ("outsideSolidID", cl.cltypes.int),
              ("toSmooth", cl.cltypes.uint)])
-        super().__init__(name=self.STRUCT_NAME, struct=struct, buildOnce=True)
+
+    def __init__(self, surfacesInfo: List[SurfaceCLInfo]):
+        self._surfacesInfo = surfacesInfo
+        super().__init__(buildOnce=True)
 
     def _getInitialHostBuffer(self) -> np.ndarray:
         bufferSize = max(len(self._surfacesInfo), 1)
@@ -77,14 +75,13 @@ TriangleCLInfo = NamedTuple("TriangleInfo", [("vertexIDs", list), ("normal", Vec
 
 class TriangleCL(CLObject):
     STRUCT_NAME = "Triangle"
+    STRUCT_DTYPE = np.dtype(
+            [("vertexIDs", cl.cltypes.uint, 3),
+             ("normal", cl.cltypes.float3)])  # todo: if too heavy, remove and compute on the fly with vertice
 
     def __init__(self, trianglesInfo: List[TriangleCLInfo]):
         self._trianglesInfo = trianglesInfo
-
-        struct = np.dtype(
-            [("vertexIDs", cl.cltypes.uint, 3),
-             ("normal", cl.cltypes.float3)])  # todo: if too heavy, remove and compute on the fly with vertices
-        super().__init__(name=self.STRUCT_NAME, struct=struct, buildOnce=True)
+        super().__init__(buildOnce=True)
 
     def _getInitialHostBuffer(self) -> np.ndarray:
         bufferSize = max(len(self._trianglesInfo), 1)
@@ -101,14 +98,13 @@ class TriangleCL(CLObject):
 
 class VertexCL(CLObject):
     STRUCT_NAME = "Vertex"
+    STRUCT_DTYPE = np.dtype(
+            [("position", cl.cltypes.float3),
+             ("normal", cl.cltypes.float3)])
 
     def __init__(self, vertices: List[Vertex]):
         self._vertices = vertices
-
-        struct = np.dtype(
-            [("position", cl.cltypes.float3),
-             ("normal", cl.cltypes.float3)])
-        super().__init__(name=self.STRUCT_NAME, struct=struct, buildOnce=True)
+        super().__init__(buildOnce=True)
 
     def _getInitialHostBuffer(self) -> np.ndarray:
         bufferSize = max(len(self._vertices), 1)
@@ -126,14 +122,13 @@ class VertexCL(CLObject):
 
 class SolidCandidateCL(CLObject):
     STRUCT_NAME = "SolidCandidate"
+    STRUCT_DTYPE = np.dtype(
+            [("distance", cl.cltypes.float),
+             ("solidID", cl.cltypes.uint)])
 
     def __init__(self, nWorkUnits: int, nSolids: int):
         self._size = nWorkUnits * nSolids
-
-        struct = np.dtype(
-            [("distance", cl.cltypes.float),
-             ("solidID", cl.cltypes.uint)])
-        super().__init__(name=self.STRUCT_NAME, struct=struct, buildOnce=True)
+        super().__init__(buildOnce=True)
 
     def _getInitialHostBuffer(self) -> np.ndarray:
         bufferSize = max(self._size, 1)

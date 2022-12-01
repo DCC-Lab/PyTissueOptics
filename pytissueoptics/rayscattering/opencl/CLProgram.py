@@ -20,24 +20,30 @@ class CLProgram:
         self._device = self._context.devices[0]
         self._program = None
 
-    def launchKernel(self, kernelName: str, N: int, arguments: list):
+    def launchKernel(self, kernelName: str, N: int, arguments: list, verbose: bool = False):
         t0 = time.time()
         CLObjects = [arg for arg in arguments if isinstance(arg, CLObject)]
         self._build(CLObjects)
-        sizeOnDevice = sum([x.hostBuffer.nbytes for x in CLObjects])
+        if verbose:
+            for _object in CLObjects:
+                print(f"... {_object.name} ({_object.nBytes / 1024**2:.3f} MB)")
+        sizeOnDevice = sum([x.nBytes for x in CLObjects])
         buffers = self._extractBuffers(arguments)
         t1 = time.time()
-        print(f" ... {t1 - t0:.3f} s. [Build]")
+        if verbose:
+            print(f" ... {t1 - t0:.3f} s. [Build]")
 
         kernel = getattr(self._program, kernelName)
         try:
             kernel(self._mainQueue, (N,), None, *buffers)
         except cl.MemoryError:
-            raise MemoryError(f"Cannot allocate {sizeOnDevice//10**6} MB of memory on the device; "
+            raise MemoryError(f"Cannot allocate {sizeOnDevice//1024**2} MB on the device;"
                               f"the buffers are too large.")
         self._mainQueue.finish()
         t2 = time.time()
-        print(f" ... {t2 - t1:.3f} s. [Kernel execution]")
+        self._lastKernelTime = t2 - t1
+        if verbose:
+            print(f" ... {self._lastKernelTime:.3f} s. [Kernel execution]")
 
     def _build(self, objects: List[CLObject]):
         for _object in objects:
