@@ -46,7 +46,6 @@ class Source:
         self._environment = scene.getEnvironmentAt(self._position)
 
         self._photons.setContext(scene, self._environment, logger=logger)
-        self._photons.computeAverageInteractions()
         self._photons.propagate(verbose=showProgress)
 
     def getInitialPositionsAndDirections(self) -> Tuple[np.ndarray, np.ndarray]:
