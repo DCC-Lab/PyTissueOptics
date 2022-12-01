@@ -111,4 +111,4 @@ class CLKeyLog:
 
     @property
     def _batchSize(self):
-        return self._log.shape[0] // self._nBatch
+        return max(1, self._log.shape[0] // self._nBatch)
