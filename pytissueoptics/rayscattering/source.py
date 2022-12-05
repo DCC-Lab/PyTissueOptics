@@ -55,7 +55,8 @@ class Source:
         albedo). The measured IPP is stored in the hash table for future use and updated (cumulative average) after
         each propagation.
         """
-        # todo: hash algo and hash table
+        experimentHash = hash((scene, self))
+        # todo: hash table of seen experiments and IPPs
 
         averageAlbedo = sum([mat.getAlbedo() for mat in scene.getMaterials()]) / len(scene.getMaterials())
         estimatedIPP = -np.log(CLParameters.WEIGHT_THRESHOLD) / averageAlbedo

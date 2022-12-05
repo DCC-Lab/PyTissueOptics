@@ -154,3 +154,7 @@ class Scene:
                 isInside = distanceFromPlane < 0
                 environment = planePolygon.insideEnvironment if isInside else planePolygon.outsideEnvironment
         return environment
+
+    def __hash__(self):
+        solidHash = hash(tuple(sorted([hash(s) for s in self._solids])))
+        return hash((solidHash, self._worldMaterial))
