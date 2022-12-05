@@ -7,10 +7,6 @@ from pytissueoptics.rayscattering.opencl import CLObjects as clObjects
 
 OPENCL_PATH = os.path.dirname(os.path.abspath(__file__))
 
-
-# Experiment-specific constants
-AVG_IT_PER_PHOTON = None
-
 # Hardware-specific constants
 # todo: run an hardware test to determine the best work item amount if not specified in config
 config = json.load(open(os.path.join(OPENCL_PATH, 'config.json')))
@@ -24,7 +20,7 @@ DATAPOINT_SIZE = clObjects.DataPointCL.getItemSize()
 
 
 class CLParameters:
-    def __init__(self, N):
+    def __init__(self, N, AVG_IT_PER_PHOTON):
         self._photonAmount = int(N / min(N_BATCHES, N_WORK_UNITS))
         self._maxLoggerMemory = self._photonAmount * AVG_IT_PER_PHOTON * DATAPOINT_SIZE
         self._maxLoggerMemory = min(self._maxLoggerMemory, MAX_MEMORY)

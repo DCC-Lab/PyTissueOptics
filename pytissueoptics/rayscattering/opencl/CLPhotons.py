@@ -41,7 +41,7 @@ class CLPhotons:
 
     def propagate(self, IPP: float, verbose: bool = False):
         program = CLProgram(sourcePath=PROPAGATION_SOURCE_PATH)
-        params = CLParameters(self._N)
+        params = CLParameters(self._N, AVG_IT_PER_PHOTON=IPP)
 
         scene = CLScene(self._scene, params.workItemAmount)
 
