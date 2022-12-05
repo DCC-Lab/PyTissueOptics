@@ -1,3 +1,4 @@
+import hashlib
 import time
 import warnings
 from typing import List, Union, Optional, Tuple
@@ -65,11 +66,7 @@ class Source:
         self._N = 1000
         self._loadPhotons()
         tempLogger = Logger()
-
-        # Fixme: This IPP test corrupts OpenCL device buffers (they are not reset properly) for the next propagation
-        #  Either fix this or force reset by exiting this Python program and starting a new one.
         self._propagateOpenCL(estimatedIPP, scene, tempLogger, showProgress=False)
-
         IPP = len(tempLogger.getDataPoints()) / self._N
         print(f"MEASURED IPP from 1000 photons: {IPP}")
         print(f"... [IPP Test took {time.time() - t0:.2f}s]")
@@ -132,6 +129,17 @@ class Source:
         sphere = Sphere(radius=size/2, position=self._position)
         viewer.add(sphere, representation="surface", colormap="Wistia", opacity=0.8)
 
+    @property
+    def _nameHash(self) -> int:
+        return int(hashlib.sha256(type(self).__name__.encode('utf-8')).hexdigest(), 16)
+
+    @property
+    def _hashComponents(self) -> tuple:
+        raise NotImplementedError
+
+    def __hash__(self):
+        return hash((self._nameHash, *self._hashComponents))
+
 
 class DirectionalSource(Source):
     def __init__(self, position: Vector, direction: Vector, diameter: float, N: int,
@@ -173,6 +181,10 @@ class DirectionalSource(Source):
     def _getInitialDirections(self):
         return np.full((self._N, 3), self._direction.array)
 
+    @property
+    def _hashComponents(self) -> tuple:
+        return self._position, self._direction, self._diameter
+
 
 class PencilPointSource(DirectionalSource):
     def __init__(self, position: Vector, direction: Vector, N: int, useHardwareAcceleration: bool = False):
@@ -186,6 +198,10 @@ class IsotropicPointSource(Source):
         directions = np.random.randn(self._N, 3)
         directions /= np.linalg.norm(directions, axis=1, keepdims=True)
         return positions, directions
+
+    @property
+    def _hashComponents(self) -> tuple:
+        return self._position,
 
 
 class DivergentSource(DirectionalSource):
@@ -202,3 +218,7 @@ class DivergentSource(DirectionalSource):
         directions += self._direction.array
         directions /= np.linalg.norm(directions, axis=1, keepdims=True)
         return directions
+
+    @property
+    def _hashComponents(self) -> tuple:
+        return self._position, self._direction, self._diameter, self._divergence
