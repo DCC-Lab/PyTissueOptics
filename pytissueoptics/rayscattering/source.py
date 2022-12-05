@@ -1,10 +1,11 @@
+import time
 import warnings
 from typing import List, Union, Optional, Tuple
 import numpy as np
 
 from pytissueoptics.rayscattering.tissues.rayScatteringScene import RayScatteringScene
 from pytissueoptics.rayscattering.photon import Photon
-from pytissueoptics.rayscattering.opencl import CLPhotons, OPENCL_AVAILABLE
+from pytissueoptics.rayscattering.opencl import CLPhotons, OPENCL_AVAILABLE, CLParameters
 from pytissueoptics.scene.solids import Sphere
 from pytissueoptics.scene.geometry import Vector, Environment
 from pytissueoptics.scene.intersection import FastIntersectionFinder
@@ -29,7 +30,8 @@ class Source:
 
     def propagate(self, scene: RayScatteringScene, logger: Logger = None, showProgress: bool = True):
         if self._useHardwareAcceleration:
-            self._propagateOpenCL(scene, logger, showProgress)
+            IPP = self._getAverageInteractionsPerPhoton(scene)
+            self._propagateOpenCL(IPP, scene, logger, showProgress)
         else:
             self._propagateCPU(scene, logger, showProgress)
 
@@ -42,11 +44,47 @@ class Source:
             self._photons[i].setContext(self._environment, intersectionFinder=intersectionFinder, logger=logger)
             self._photons[i].propagate()
 
-    def _propagateOpenCL(self, scene: RayScatteringScene, logger: Logger = None, showProgress: bool = True):
+    def _getAverageInteractionsPerPhoton(self, scene: RayScatteringScene) -> float:
+        """
+        Returns the average number of interactions per photon (IPP) for a given experiment (scene and source
+        combination). This is used to optimize the hardware accelerated kernel (OpenCL).
+
+        If the experiment was already seen, the IPP is loaded from the hash table. Otherwise, the IPP is estimated by
+        propagating 1000 photons (using a gross estimate of the IPP by assuming an infinite medium of mean scene
+        albedo). The measured IPP is stored in the hash table for future use and updated (cumulative average) after
+        each propagation.
+        """
+        # todo: hash algo and hash table
+
+        averageAlbedo = sum([mat.getAlbedo() for mat in scene.getMaterials()]) / len(scene.getMaterials())
+        estimatedIPP = -np.log(CLParameters.WEIGHT_THRESHOLD) / averageAlbedo
+        print(f"ESTIMATED IPP: {estimatedIPP}")
+
+        t0 = time.time()
+        tempN = self._N
+        self._N = 1000
+        self._loadPhotons()
+        tempLogger = Logger()
+
+        # Fixme: This IPP test corrupts OpenCL device buffers (they are not reset properly) for the next propagation
+        #  Either fix this or force reset by exiting this Python program and starting a new one.
+        self._propagateOpenCL(estimatedIPP, scene, tempLogger, showProgress=False)
+
+        IPP = len(tempLogger.getDataPoints()) / self._N
+        print(f"MEASURED IPP from 1000 photons: {IPP}")
+        print(f"... [IPP Test took {time.time() - t0:.2f}s]")
+
+        self._N = tempN
+        self._loadPhotons()
+        return IPP
+
+    def _propagateOpenCL(self, IPP: float, scene: RayScatteringScene, logger: Logger = None,
+                         showProgress: bool = True):
         self._environment = scene.getEnvironmentAt(self._position)
+        # todo: self._prepareLogger(logger)
 
         self._photons.setContext(scene, self._environment, logger=logger)
-        self._photons.propagate(verbose=showProgress)
+        self._photons.propagate(IPP=IPP, verbose=showProgress)
 
     def getInitialPositionsAndDirections(self) -> Tuple[np.ndarray, np.ndarray]:
         """ To be implemented by subclasses. Needs to return a tuple containing the

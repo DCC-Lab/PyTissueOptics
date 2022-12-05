@@ -39,7 +39,7 @@ class CLPhotons:
         self._initialMaterial = environment.material
         self._initialSolid = environment.solid
 
-    def propagate(self, verbose: bool = False):
+    def propagate(self, IPP: float, verbose: bool = False):
         program = CLProgram(sourcePath=PROPAGATION_SOURCE_PATH)
         params = CLParameters(self._N)
 
