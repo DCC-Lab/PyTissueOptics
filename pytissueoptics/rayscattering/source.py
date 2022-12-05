@@ -6,7 +6,7 @@ import numpy as np
 
 from pytissueoptics.rayscattering.tissues.rayScatteringScene import RayScatteringScene
 from pytissueoptics.rayscattering.photon import Photon
-from pytissueoptics.rayscattering.opencl import CLPhotons, OPENCL_AVAILABLE, CLParameters
+from pytissueoptics.rayscattering.opencl import CLPhotons, OPENCL_AVAILABLE, CLParameters, IPPTable
 from pytissueoptics.scene.solids import Sphere
 from pytissueoptics.scene.geometry import Vector, Environment
 from pytissueoptics.scene.intersection import FastIntersectionFinder
@@ -33,6 +33,10 @@ class Source:
         if self._useHardwareAcceleration:
             IPP = self._getAverageInteractionsPerPhoton(scene)
             self._propagateOpenCL(IPP, scene, logger, showProgress)
+
+            newIPP = len(logger.getDataPoints()) / self._N
+            table = IPPTable()
+            table.updateIPP(self._getExperimentHash(scene), self._N, newIPP)
         else:
             self._propagateCPU(scene, logger, showProgress)
 
@@ -55,12 +59,15 @@ class Source:
         albedo). The measured IPP is stored in the hash table for future use and updated (cumulative average) after
         each propagation.
         """
-        experimentHash = hash((scene, self))
-        # todo: hash table of seen experiments and IPPs
+        experimentHash = self._getExperimentHash(scene)
 
+        table = IPPTable()
+        if experimentHash in table:
+            return table.getIPP(experimentHash)
+
+        print("WARNING: Could not find average interactions per photon (IPP) for this experiment. Estimating...")
         averageAlbedo = sum([mat.getAlbedo() for mat in scene.getMaterials()]) / len(scene.getMaterials())
         estimatedIPP = -np.log(CLParameters.WEIGHT_THRESHOLD) / averageAlbedo
-        print(f"ESTIMATED IPP: {estimatedIPP}")
 
         t0 = time.time()
         tempN = self._N
@@ -69,12 +76,16 @@ class Source:
         tempLogger = Logger()
         self._propagateOpenCL(estimatedIPP, scene, tempLogger, showProgress=False)
         IPP = len(tempLogger.getDataPoints()) / self._N
-        print(f"MEASURED IPP from 1000 photons: {IPP}")
-        print(f"... [IPP Test took {time.time() - t0:.2f}s]")
+        print(f"... [IPP test took {time.time() - t0:.2f}s]")
+
+        table.updateIPP(experimentHash, self._N, IPP)
 
         self._N = tempN
         self._loadPhotons()
         return IPP
+
+    def _getExperimentHash(self, scene: RayScatteringScene) -> int:
+        return hash((scene, self))
 
     def _propagateOpenCL(self, IPP: float, scene: RayScatteringScene, logger: Logger = None,
                          showProgress: bool = True):
