@@ -14,12 +14,9 @@ Find the optimal amount of work units for the OpenCL kernel (hardware-specific).
 #  It is hard to conclude an optimal amount of work units for my hardware at least...
 #  from experimentation it should be around 10-20k, but it varies between 8k and 65k
 
-USE_CONSTANT_N = False  # uses N_WORK_UNITS * 2 if false, else N below
+USE_CONSTANT_N = False  # uses N_WORK_UNITS * 5 if false, else N below
 N = 50000
 AVERAGING = 3
-
-clp.AVG_IT_PER_PHOTON = 42
-clp.N_BATCHES = 5
 
 material1 = ScatteringMaterial(mu_s=5, mu_a=0.8, g=0.9, n=1.4)
 material2 = ScatteringMaterial(mu_s=10, mu_a=0.8, g=0.9, n=1.7)
@@ -33,9 +30,10 @@ for i in range(14, 31+1):
     clp.N_WORK_UNITS = int(np.sqrt(2) ** i)
 
     if not USE_CONSTANT_N:
-        N = clp.N_WORK_UNITS * 2
+        N = clp.N_WORK_UNITS * 5
 
     timePerPhoton = 0
+    totalTime = 0
     for _ in range(AVERAGING):
         source = DirectionalSource(position=Vector(0, 0, -2), direction=Vector(0, 0, 1), N=N,
                                    useHardwareAcceleration=True, diameter=0.5)
@@ -44,20 +42,21 @@ for i in range(14, 31+1):
         t0 = time.time()
         source.propagate(scene, logger=logger, showProgress=False)
         elapsedTime = time.time() - t0
+        totalTime += elapsedTime
 
         timePerPhoton += elapsedTime / N
     timePerPhoton /= AVERAGING
-
-    print(f"{clp.N_WORK_UNITS} \t work units : {timePerPhoton:.6f} s/p ({elapsedTime:.2f}s total)")
+    totalTime /= AVERAGING
+    print(f"{clp.N_WORK_UNITS} \t work units : {timePerPhoton:.6f} s/p [{AVERAGING}x {totalTime:.2f}s]")
 
     arr_workUnits.append(clp.N_WORK_UNITS)
     arr_speed.append(timePerPhoton * 10**6)
 
 plt.plot(arr_workUnits, arr_speed, 'o')
-plt.xlabel("Work Item Amount")
+plt.xlabel("N_WORK_UNITS")
 plt.ylabel("Time per photon (us)")
 plt.semilogy()
 
-print(f"Optimal work item amount: {arr_workUnits[np.argmin(arr_speed)]}")
+print(f"Optimal N_WORK_UNITS tested: {arr_workUnits[np.argmin(arr_speed)]}")
 
 plt.show()
