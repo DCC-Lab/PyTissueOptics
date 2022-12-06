@@ -1,17 +1,12 @@
 import os
 import time
 
-try:
-    import pyopencl as cl
-
-    OPENCL_AVAILABLE = True
-except ImportError:
-    OPENCL_AVAILABLE = False
 import numpy as np
 
+from pytissueoptics.rayscattering.opencl import WEIGHT_THRESHOLD
 from pytissueoptics.rayscattering.opencl.CLKeyLog import CLKeyLog
 from pytissueoptics.rayscattering.opencl.CLScene import CLScene
-from pytissueoptics.rayscattering.opencl.CLParameters import CLParameters, WEIGHT_THRESHOLD
+from pytissueoptics.rayscattering.opencl.CLParameters import CLParameters
 from pytissueoptics.rayscattering.opencl.CLProgram import CLProgram
 from pytissueoptics.rayscattering.opencl.CLObjects import PhotonCL, DataPointCL, SeedCL
 from pytissueoptics.rayscattering.tissues.rayScatteringScene import RayScatteringScene

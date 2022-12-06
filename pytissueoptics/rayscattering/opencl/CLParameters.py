@@ -1,22 +1,8 @@
-import json
-import os
-
 import numpy as np
 
-from pytissueoptics.rayscattering.opencl import CLObjects as clObjects
+from pytissueoptics.rayscattering.opencl import CLObjects as clObjects, BATCH_LOAD_FACTOR, N_WORK_UNITS, MAX_MEMORY
 
-OPENCL_PATH = os.path.dirname(os.path.abspath(__file__))
 
-# Hardware-specific constants
-# todo: run an hardware test to determine the best work item amount if not specified in config
-config = json.load(open(os.path.join(OPENCL_PATH, 'config.json')))
-N_WORK_UNITS = config['N_WORK_UNITS']
-MAX_MEMORY = config['MAX_MEMORY_MB'] * 1024 ** 2
-BATCH_LOAD_FACTOR = config['BATCH_LOAD_FACTOR']
-
-# Constants
-IPP_TEST_N_PHOTONS = config['IPP_TEST_N_PHOTONS']
-WEIGHT_THRESHOLD = 0.0001
 DATAPOINT_SIZE = clObjects.DataPointCL.getItemSize()
 
 

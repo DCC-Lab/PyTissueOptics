@@ -4,10 +4,11 @@ import warnings
 from typing import List, Union, Optional, Tuple
 import numpy as np
 
+from pytissueoptics.rayscattering.opencl.CLPhotons import CLPhotons
 from pytissueoptics.rayscattering.tissues.rayScatteringScene import RayScatteringScene
 from pytissueoptics.rayscattering.photon import Photon
-from pytissueoptics.rayscattering.opencl import CLPhotons, OPENCL_AVAILABLE, IPPTable, IPP_TEST_N_PHOTONS, \
-    WEIGHT_THRESHOLD
+from pytissueoptics.rayscattering.opencl import IPPTable, IPP_TEST_N_PHOTONS, \
+    WEIGHT_THRESHOLD, validateOpenCL
 from pytissueoptics.scene.solids import Sphere
 from pytissueoptics.scene.geometry import Vector, Environment
 from pytissueoptics.scene.intersection import FastIntersectionFinder
@@ -25,9 +26,8 @@ class Source:
         self._photons: Union[List[Photon], CLPhotons] = []
         self._environment = None
 
-        if useHardwareAcceleration and not OPENCL_AVAILABLE:
-            warnings.warn("Hardware acceleration not available. Falling back to CPU. Please install pyopencl.")
-            useHardwareAcceleration = False
+        if useHardwareAcceleration:
+            useHardwareAcceleration = validateOpenCL()
         self._useHardwareAcceleration = useHardwareAcceleration
 
         self._loadPhotons()

@@ -4,9 +4,9 @@ from typing import List
 
 try:
     import pyopencl as cl
-    OPENCL_AVAILABLE = True
 except ImportError:
-    OPENCL_AVAILABLE = False
+    pass
+
 from numpy.lib import recfunctions as rfn
 
 from pytissueoptics.rayscattering.opencl.CLObjects import CLObject
