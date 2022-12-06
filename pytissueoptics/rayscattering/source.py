@@ -6,13 +6,16 @@ import numpy as np
 
 from pytissueoptics.rayscattering.tissues.rayScatteringScene import RayScatteringScene
 from pytissueoptics.rayscattering.photon import Photon
-from pytissueoptics.rayscattering.opencl import CLPhotons, OPENCL_AVAILABLE, CLParameters, IPPTable, IPP_TEST_N_PHOTONS
+from pytissueoptics.rayscattering.opencl import CLPhotons, OPENCL_AVAILABLE, IPPTable, IPP_TEST_N_PHOTONS, \
+    WEIGHT_THRESHOLD
 from pytissueoptics.scene.solids import Sphere
 from pytissueoptics.scene.geometry import Vector, Environment
 from pytissueoptics.scene.intersection import FastIntersectionFinder
 from pytissueoptics.scene.logger import Logger
 from pytissueoptics.scene.utils import progressBar
 from pytissueoptics.scene.viewer import MayaviViewer
+
+warnings.formatwarning = lambda msg, *args, **kwargs: f'{msg}\n'
 
 
 class Source:
@@ -33,10 +36,7 @@ class Source:
         if self._useHardwareAcceleration:
             IPP = self._getAverageInteractionsPerPhoton(scene)
             self._propagateOpenCL(IPP, scene, logger, showProgress)
-
-            newIPP = len(logger.getDataPoints()) / self._N
-            table = IPPTable()
-            table.updateIPP(self._getExperimentHash(scene), self._N, newIPP)
+            self._updateIPP(scene, logger)
         else:
             self._propagateCPU(scene, logger, showProgress)
 
@@ -61,31 +61,36 @@ class Source:
         """
         experimentHash = self._getExperimentHash(scene)
 
-        table = IPPTable()
-        if experimentHash in table:
-            return table.getIPP(experimentHash)
+        if experimentHash not in IPPTable():
+            self._measureIPP(scene)
 
-        print("WARNING: Could not find average interactions per photon (IPP) for this experiment. Estimating...")
-        averageAlbedo = sum([mat.getAlbedo() for mat in scene.getMaterials()]) / len(scene.getMaterials())
-        estimatedIPP = -np.log(CLParameters.WEIGHT_THRESHOLD) / averageAlbedo
+        return IPPTable().getIPP(experimentHash)
+
+    def _getExperimentHash(self, scene: RayScatteringScene) -> int:
+        return hash((scene, self))
+
+    def _measureIPP(self, scene: RayScatteringScene):
+        warnings.warn("WARNING: Could not find the average interactions per photon (IPP) for this experiment. \n... "
+                      "[Estimating IPP]")
 
         t0 = time.time()
         tempN = self._N
         self._N = IPP_TEST_N_PHOTONS
         self._loadPhotons()
         tempLogger = Logger()
+        estimatedIPP = scene.getEstimatedIPP(WEIGHT_THRESHOLD)
         self._propagateOpenCL(estimatedIPP, scene, tempLogger, showProgress=False)
-        IPP = len(tempLogger.getDataPoints()) / self._N
-        print(f"... [IPP test took {time.time() - t0:.2f}s]")
-
-        table.updateIPP(experimentHash, self._N, IPP)
+        self._updateIPP(scene, tempLogger)
 
         self._N = tempN
         self._loadPhotons()
-        return IPP
 
-    def _getExperimentHash(self, scene: RayScatteringScene) -> int:
-        return hash((scene, self))
+        warnings.warn(f"... [IPP test took {time.time() - t0:.2f}s]")
+
+    def _updateIPP(self, scene: RayScatteringScene, logger: Logger):
+        measuredIPP = logger.nDataPoints / self._N
+        table = IPPTable()
+        table.updateIPP(self._getExperimentHash(scene), self._N, measuredIPP)
 
     def _propagateOpenCL(self, IPP: float, scene: RayScatteringScene, logger: Logger = None,
                          showProgress: bool = True):

@@ -1,5 +1,4 @@
 from pytissueoptics import *
-from pytissueoptics.rayscattering.opencl import CLParameters as clp
 
 HIGH_SCATTERING = True
 
