@@ -6,7 +6,7 @@ import numpy as np
 
 from pytissueoptics.rayscattering.tissues.rayScatteringScene import RayScatteringScene
 from pytissueoptics.rayscattering.photon import Photon
-from pytissueoptics.rayscattering.opencl import CLPhotons, OPENCL_AVAILABLE, CLParameters, IPPTable
+from pytissueoptics.rayscattering.opencl import CLPhotons, OPENCL_AVAILABLE, CLParameters, IPPTable, IPP_TEST_N_PHOTONS
 from pytissueoptics.scene.solids import Sphere
 from pytissueoptics.scene.geometry import Vector, Environment
 from pytissueoptics.scene.intersection import FastIntersectionFinder
@@ -71,7 +71,7 @@ class Source:
 
         t0 = time.time()
         tempN = self._N
-        self._N = 1000
+        self._N = IPP_TEST_N_PHOTONS
         self._loadPhotons()
         tempLogger = Logger()
         self._propagateOpenCL(estimatedIPP, scene, tempLogger, showProgress=False)

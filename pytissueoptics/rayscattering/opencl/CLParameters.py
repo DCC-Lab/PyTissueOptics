@@ -12,19 +12,21 @@ OPENCL_PATH = os.path.dirname(os.path.abspath(__file__))
 config = json.load(open(os.path.join(OPENCL_PATH, 'config.json')))
 N_WORK_UNITS = config['N_WORK_UNITS']
 MAX_MEMORY = config['MAX_MEMORY_MB'] * 1024 ** 2
+BATCH_LOAD_FACTOR = config['BATCH_LOAD_FACTOR']
 
 # Constants
-N_BATCHES = 5
+IPP_TEST_N_PHOTONS = config['IPP_TEST_N_PHOTONS']
 WEIGHT_THRESHOLD = 0.0001
 DATAPOINT_SIZE = clObjects.DataPointCL.getItemSize()
 
 
 class CLParameters:
     def __init__(self, N, AVG_IT_PER_PHOTON):
-        self._photonAmount = int(N / min(N_BATCHES, N_WORK_UNITS))
-        self._maxLoggerMemory = self._photonAmount * AVG_IT_PER_PHOTON * DATAPOINT_SIZE
+        nBatch = 1/BATCH_LOAD_FACTOR
+        avgPhotonsPerBatch = int(N / min(nBatch, N_WORK_UNITS))
+        self._maxLoggerMemory = avgPhotonsPerBatch * AVG_IT_PER_PHOTON * DATAPOINT_SIZE
         self._maxLoggerMemory = min(self._maxLoggerMemory, MAX_MEMORY)
-        self._photonAmount = min(2 * self._photonAmount, N)
+        self._maxPhotonsPerBatch = min(2 * avgPhotonsPerBatch, N)
 
         self._workItemAmount = N_WORK_UNITS
 
@@ -45,14 +47,14 @@ class CLParameters:
         self._maxLoggerMemory = value
 
     @property
-    def photonAmount(self):
-        return np.int32(self._photonAmount)
+    def maxPhotonsPerBatch(self):
+        return np.int32(self._maxPhotonsPerBatch)
 
-    @photonAmount.setter
-    def photonAmount(self, value: int):
+    @maxPhotonsPerBatch.setter
+    def maxPhotonsPerBatch(self, value: int):
         if value < self._workItemAmount:
             self._workItemAmount = value
-        self._photonAmount = value
+        self._maxPhotonsPerBatch = value
 
     @property
     def maxLoggableInteractions(self):
@@ -72,8 +74,8 @@ class CLParameters:
 
     @property
     def photonsPerWorkItem(self):
-        return np.int32(np.floor(self._photonAmount / self._workItemAmount))
+        return np.int32(np.floor(self._maxPhotonsPerBatch / self._workItemAmount))
     
     @photonsPerWorkItem.setter
     def photonsPerWorkItem(self, value: int):
-        self._photonAmount = np.int32(value * self._workItemAmount)
+        self._maxPhotonsPerBatch = np.int32(value * self._workItemAmount)

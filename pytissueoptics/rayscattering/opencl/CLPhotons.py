@@ -45,12 +45,12 @@ class CLPhotons:
 
         scene = CLScene(self._scene, params.workItemAmount)
 
-        kernelPhotons = PhotonCL(self._positions[0:params.photonAmount], self._directions[0:params.photonAmount],
+        kernelPhotons = PhotonCL(self._positions[0:params.maxPhotonsPerBatch], self._directions[0:params.maxPhotonsPerBatch],
                                  materialID=scene.getMaterialID(self._initialMaterial), solidID=scene.getSolidID(self._initialSolid))
-        photonPool = PhotonCL(self._positions[params.photonAmount:], self._directions[params.photonAmount:],
+        photonPool = PhotonCL(self._positions[params.maxPhotonsPerBatch:], self._directions[params.maxPhotonsPerBatch:],
                               materialID=scene.getMaterialID(self._initialMaterial), solidID=scene.getSolidID(self._initialSolid))
         photonPool.make(program.device)
-        seeds = SeedCL(params.photonAmount)
+        seeds = SeedCL(params.maxPhotonsPerBatch)
         logger = DataPointCL(size=params.maxLoggableInteractions)
 
         photonCount = 0
@@ -71,10 +71,10 @@ class CLPhotons:
             logger.reset()
             program.getData(kernelPhotons)
             batchPhotonCount, photonCount = self._replaceFullyPropagatedPhotons(kernelPhotons, photonPool,
-                                                                                photonCount, params.photonAmount)
+                                                                                photonCount, params.maxPhotonsPerBatch)
 
-            self._showProgress(photonCount, batchPhotonCount, batchCount, t0, t1, t2, params.photonAmount, verbose)
-            params.photonAmount = kernelPhotons.length
+            self._showProgress(photonCount, batchPhotonCount, batchCount, t0, t1, t2, params.maxPhotonsPerBatch, verbose)
+            params.maxPhotonsPerBatch = kernelPhotons.length
             batchCount += 1
 
         self._logDataFromLogArrays(logArrays, scene, verbose)
