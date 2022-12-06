@@ -33,6 +33,8 @@ class Source:
         self._loadPhotons()
 
     def propagate(self, scene: RayScatteringScene, logger: Logger = None, showProgress: bool = True):
+        self._prepareLogger(logger)
+
         if self._useHardwareAcceleration:
             IPP = self._getAverageInteractionsPerPhoton(scene)
             self._propagateOpenCL(IPP, scene, logger, showProgress)
@@ -43,7 +45,6 @@ class Source:
     def _propagateCPU(self, scene: RayScatteringScene, logger: Logger = None, showProgress: bool = True):
         intersectionFinder = FastIntersectionFinder(scene)
         self._environment = scene.getEnvironmentAt(self._position)
-        self._prepareLogger(logger)
 
         for i in progressBar(range(self._N), desc="Propagating photons", disable=not showProgress):
             self._photons[i].setContext(self._environment, intersectionFinder=intersectionFinder, logger=logger)
@@ -87,7 +88,9 @@ class Source:
 
         warnings.warn(f"... [IPP test took {time.time() - t0:.2f}s]")
 
-    def _updateIPP(self, scene: RayScatteringScene, logger: Logger):
+    def _updateIPP(self, scene: RayScatteringScene, logger: Logger = None):
+        if logger is None:
+            return
         measuredIPP = logger.nDataPoints / self._N
         table = IPPTable()
         table.updateIPP(self._getExperimentHash(scene), self._N, measuredIPP)
@@ -95,7 +98,6 @@ class Source:
     def _propagateOpenCL(self, IPP: float, scene: RayScatteringScene, logger: Logger = None,
                          showProgress: bool = True):
         self._environment = scene.getEnvironmentAt(self._position)
-        # todo: self._prepareLogger(logger)
 
         self._photons.setContext(scene, self._environment, logger=logger)
         self._photons.propagate(IPP=IPP, verbose=showProgress)
