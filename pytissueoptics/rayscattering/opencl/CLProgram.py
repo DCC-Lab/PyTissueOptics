@@ -9,15 +9,17 @@ except ImportError:
 
 from numpy.lib import recfunctions as rfn
 
+from pytissueoptics.rayscattering.opencl import CONFIG
 from pytissueoptics.rayscattering.opencl.CLObjects import CLObject
 
 
 class CLProgram:
     def __init__(self, sourcePath: str):
         self._sourcePath = sourcePath
-        self._context = cl.create_some_context()
+        self._context = CONFIG.clContext
+        self._device = CONFIG.device
+
         self._mainQueue = cl.CommandQueue(self._context)
-        self._device = self._context.devices[0]
         self._program = None
 
     def launchKernel(self, kernelName: str, N: int, arguments: list, verbose: bool = False):
@@ -58,13 +60,6 @@ class CLProgram:
         cl.enqueue_copy(self._mainQueue, dest=_object.hostBuffer, src=_object.deviceBuffer)
         return rfn.structured_to_unstructured(_object.hostBuffer)
 
-    def showDeviceInfo(self):
-        devices = self._context.devices  # type: List[cl.Device]
-        print("Available devices:")
-        for i, device in enumerate(devices):
-            print(f"... Device {i}: {device.name} ({device.global_mem_size // 10**6} MB "
-                  f"| {device.max_clock_frequency} MHz), {device.info}")
-
     @staticmethod
     def _makeSource(sourcePath) -> str:
         includeDir = os.path.dirname(sourcePath)
@@ -91,23 +86,3 @@ class CLProgram:
     @property
     def device(self):
         return self._device
-
-    @property
-    def max_compute_units(self):
-        return self._device.max_compute_units
-
-    @property
-    def max_memory_allocation(self):
-        return self._device.max_mem_alloc_size
-
-    @property
-    def global_memory_size(self):
-        return self._device.global_mem_size
-
-    @property
-    def max_work_item_dimensions(self):
-        return self._device.max_work_item_dimensions
-
-    @property
-    def device_type(self):
-        return self._device.type

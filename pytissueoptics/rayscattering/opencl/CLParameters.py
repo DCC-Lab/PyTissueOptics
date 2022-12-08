@@ -1,6 +1,6 @@
 import numpy as np
 
-from pytissueoptics.rayscattering.opencl import CLObjects as clObjects, BATCH_LOAD_FACTOR, N_WORK_UNITS, MAX_MEMORY
+from pytissueoptics.rayscattering.opencl import CLObjects as clObjects, CONFIG
 
 
 DATAPOINT_SIZE = clObjects.DataPointCL.getItemSize()
@@ -8,13 +8,13 @@ DATAPOINT_SIZE = clObjects.DataPointCL.getItemSize()
 
 class CLParameters:
     def __init__(self, N, AVG_IT_PER_PHOTON):
-        nBatch = 1/BATCH_LOAD_FACTOR
-        avgPhotonsPerBatch = int(N / min(nBatch, N_WORK_UNITS))
+        nBatch = 1/CONFIG.BATCH_LOAD_FACTOR
+        avgPhotonsPerBatch = int(N / min(nBatch, CONFIG.N_WORK_UNITS))
         self._maxLoggerMemory = avgPhotonsPerBatch * AVG_IT_PER_PHOTON * DATAPOINT_SIZE
-        self._maxLoggerMemory = min(self._maxLoggerMemory, MAX_MEMORY)
+        self._maxLoggerMemory = min(self._maxLoggerMemory, CONFIG.MAX_MEMORY)
         self._maxPhotonsPerBatch = min(2 * avgPhotonsPerBatch, N)
 
-        self._workItemAmount = N_WORK_UNITS
+        self._workItemAmount = CONFIG.N_WORK_UNITS
 
     @property
     def workItemAmount(self):

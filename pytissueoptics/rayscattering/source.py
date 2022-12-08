@@ -1,22 +1,18 @@
 import hashlib
 import time
-import warnings
 from typing import List, Union, Optional, Tuple
 import numpy as np
 
 from pytissueoptics.rayscattering.opencl.CLPhotons import CLPhotons
 from pytissueoptics.rayscattering.tissues.rayScatteringScene import RayScatteringScene
 from pytissueoptics.rayscattering.photon import Photon
-from pytissueoptics.rayscattering.opencl import IPPTable, IPP_TEST_N_PHOTONS, \
-    WEIGHT_THRESHOLD, validateOpenCL
+from pytissueoptics.rayscattering.opencl import IPPTable, CONFIG, validateOpenCL, warnings
 from pytissueoptics.scene.solids import Sphere
 from pytissueoptics.scene.geometry import Vector, Environment
 from pytissueoptics.scene.intersection import FastIntersectionFinder
 from pytissueoptics.scene.logger import Logger
 from pytissueoptics.scene.utils import progressBar
 from pytissueoptics.scene.viewer import MayaviViewer
-
-warnings.formatwarning = lambda msg, *args, **kwargs: f'{msg}\n'
 
 
 class Source:
@@ -76,10 +72,10 @@ class Source:
 
         t0 = time.time()
         tempN = self._N
-        self._N = IPP_TEST_N_PHOTONS
+        self._N = CONFIG.IPP_TEST_N_PHOTONS
         self._loadPhotons()
         tempLogger = Logger()
-        estimatedIPP = scene.getEstimatedIPP(WEIGHT_THRESHOLD)
+        estimatedIPP = scene.getEstimatedIPP(CONFIG.WEIGHT_THRESHOLD)
         self._propagateOpenCL(estimatedIPP, scene, tempLogger, showProgress=False)
         self._updateIPP(scene, tempLogger)
 
