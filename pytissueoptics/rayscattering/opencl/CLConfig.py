@@ -116,28 +116,31 @@ class CLConfig:
     def _autoSetNWorkUnits(self):
         warnings.warn("The parameter N_WORK_UNITS is not set. \n... Running a test to find optimal N_WORK_UNITS "
                       "between 128 and 32768. This may take a few minutes. ")
+        self.AUTO_SAVE = False
         try:
             from pytissueoptics.rayscattering.opencl.testWorkUnits import computeOptimalNWorkUnits
             optimalNWorkUnits = computeOptimalNWorkUnits()
+            self.AUTO_SAVE = True
         except Exception as e:
+            self.AUTO_SAVE = True
             self._config["N_WORK_UNITS"] = None
             self.save()
             raise ValueError(f"The automatic test for optimal N_WORK_UNITS failed. Please manually run the test "
                              f"script 'testWorkUnits.py' and set N_WORK_UNITS in the config file at "
                              f"'{OPENCL_CONFIG_RELPATH}'. \n... Error message: {e}")
-
         self._processOptimalNWorkUnits(optimalNWorkUnits)
         self.save()
 
     def _processOptimalNWorkUnits(self, optimalNWorkUnits):
-        answer = input(f"Do you want to use {optimalNWorkUnits} work units? [y/n]: ")
-        if answer.lower() == "n":
-            self._config["N_WORK_UNITS"] = int(input("Please enter the desired number of work units: "))
-        elif answer.lower() == "y":
+        answer = input(f"Press enter to accept this value ({optimalNWorkUnits}), or enter your own:")
+        if answer == "":
             self._config["N_WORK_UNITS"] = optimalNWorkUnits
+        elif answer.isnumeric():
+            self._config["N_WORK_UNITS"] = int(answer)
         else:
-            print(f"Invalid answer '{answer}'.")
+            print(f"Invalid input: '{answer}'. Please enter a positive integer.")
             return self._processOptimalNWorkUnits(optimalNWorkUnits)
+        print(f"Setting N_WORK_UNITS to {self._config['N_WORK_UNITS']}.")
 
     def _load(self):
         self._assertExists()
