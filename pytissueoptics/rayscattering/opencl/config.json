@@ -1,6 +1,7 @@
 {
-  "N_WORK_UNITS": null,
-  "MAX_MEMORY_MB": 1024,
-  "IPP_TEST_N_PHOTONS": 1000,
-  "BATCH_LOAD_FACTOR": 0.20
+    "DEVICE_INDEX": null,
+    "MAX_MEMORY_MB": null,
+    "N_WORK_UNITS": null,
+    "BATCH_LOAD_FACTOR": 0.2,
+    "IPP_TEST_N_PHOTONS": 1000
 }
