@@ -31,8 +31,12 @@ DEFAULT_MAX_MEMORY_MB = 1024
 
 WEIGHT_THRESHOLD = 0.0001
 
+AUTOSET_N_WORK_UNITS = True
+
 
 class CLConfig:
+    AUTO_SAVE = True
+
     def __init__(self):
         self._config = None
         self._load()
@@ -50,10 +54,13 @@ class CLConfig:
         self._validateMaxMemory()
 
         if self.N_WORK_UNITS is None:
-            raise ValueError(
-                errorMessage + "The parameter 'N_WORK_UNITS' is not set. Please set it to the optimal amount "
-                               "for your OpenCL device. The script 'rayscattering/opencl/testWorkUnits.py' "
-                               "can help you find this value. ")
+            if AUTOSET_N_WORK_UNITS:
+                self._autoSetNWorkUnits()
+            else:
+                raise ValueError(
+                    errorMessage + "The parameter 'N_WORK_UNITS' is not set. Please set it to the optimal amount "
+                                   "for your OpenCL device. The script 'rayscattering/opencl/testWorkUnits.py' "
+                                   "can help you find this value. ")
 
         parameterKeys.pop(0)
         for key in parameterKeys:
@@ -73,8 +80,8 @@ class CLConfig:
         elif numberOfDevices == 1:
             self._showAvailableDevices()
             warnings.warn(
-                f"Using the only available OpenCL device 0. If your desired device doesn't show, it may be "
-                f"because its OpenCL drivers are not installed. To reset device selection, "
+                f"Using the only available OpenCL device 0. \n\tIf your desired device doesn't show, it may be "
+                f"because its OpenCL drivers are not installed. \n\tTo reset device selection, "
                 f"reset DEVICE_INDEX parameter to 'null' in '{OPENCL_CONFIG_RELPATH}'.")
             self._config["DEVICE_INDEX"] = 0
         else:
@@ -84,7 +91,7 @@ class CLConfig:
             assert deviceIndex in range(numberOfDevices), f"Invalid device index '{deviceIndex}'. Not in " \
                                                           f"range [0-{numberOfDevices - 1}]. "
             self._config["DEVICE_INDEX"] = deviceIndex
-        self._save()
+        self.save()
 
     def _validateMaxMemory(self):
         """
@@ -100,11 +107,37 @@ class CLConfig:
                               f"of your device's memory.")
             else:
                 self._config["MAX_MEMORY_MB"] = DEFAULT_MAX_MEMORY_MB
-                warnings.warn(f"Setting MAX_MEMORY_MB to {self._config['MAX_MEMORY_MB']} MB to limit OutOfMemory "
-                              f"errors even though your device has a capacity of {maxDeviceMemoryMB} MB. If you want "
-                              f"to allow for more memory, you can manually change this value inside the config file "
-                              f"at '{OPENCL_CONFIG_RELPATH}'.")
-            self._save()
+                warnings.warn(f"Setting MAX_MEMORY_MB to {self._config['MAX_MEMORY_MB']} MB to limit out-of-memory "
+                              f"errors even though your device has a capacity of {maxDeviceMemoryMB} MB. \n\tIf you "
+                              f"want to allow for more memory, you can manually change this value inside the config "
+                              f"file at '{OPENCL_CONFIG_RELPATH}'.")
+            self.save()
+
+    def _autoSetNWorkUnits(self):
+        warnings.warn("The parameter N_WORK_UNITS is not set. \n... Running a test to find optimal N_WORK_UNITS "
+                      "between 128 and 32768. This may take a few minutes. ")
+        try:
+            from pytissueoptics.rayscattering.opencl.testWorkUnits import computeOptimalNWorkUnits
+            optimalNWorkUnits = computeOptimalNWorkUnits()
+        except Exception as e:
+            self._config["N_WORK_UNITS"] = None
+            self.save()
+            raise ValueError(f"The automatic test for optimal N_WORK_UNITS failed. Please manually run the test "
+                             f"script 'testWorkUnits.py' and set N_WORK_UNITS in the config file at "
+                             f"'{OPENCL_CONFIG_RELPATH}'. \n... Error message: {e}")
+
+        self._processOptimalNWorkUnits(optimalNWorkUnits)
+        self.save()
+
+    def _processOptimalNWorkUnits(self, optimalNWorkUnits):
+        answer = input(f"Do you want to use {optimalNWorkUnits} work units? [y/n]: ")
+        if answer.lower() == "n":
+            self._config["N_WORK_UNITS"] = int(input("Please enter the desired number of work units: "))
+        elif answer.lower() == "y":
+            self._config["N_WORK_UNITS"] = optimalNWorkUnits
+        else:
+            print(f"Invalid answer '{answer}'.")
+            return self._processOptimalNWorkUnits(optimalNWorkUnits)
 
     def _load(self):
         self._assertExists()
@@ -116,9 +149,11 @@ class CLConfig:
         if not os.path.exists(OPENCL_CONFIG_PATH):
             warnings.warn("No OpenCL config file found. Creating a new one.")
             self._config = DEFAULT_CONFIG
-            self._save()
+            self.save()
 
-    def _save(self):
+    def save(self):
+        if not self.AUTO_SAVE:
+            return
         with open(OPENCL_CONFIG_PATH, "w") as f:
             json.dump(self._config, f, indent=4)
 
@@ -137,6 +172,10 @@ class CLConfig:
     @property
     def N_WORK_UNITS(self):
         return self._config["N_WORK_UNITS"]
+
+    @N_WORK_UNITS.setter
+    def N_WORK_UNITS(self, value: int):
+        self._config["N_WORK_UNITS"] = value
 
     @property
     def MAX_MEMORY(self):
