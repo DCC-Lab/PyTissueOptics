@@ -33,9 +33,9 @@ class CLKeyLog:
 
     def _extractNoKeyLog(self):
         noInteractionIndices = np.where(self._log[:, SOLID_ID_COL] == NO_LOG_ID)[0]
-        datapoints = self._log[:, :4]
-        datapoints = np.delete(datapoints, noInteractionIndices, axis=0)
-        self._keyLog[InteractionKey(NO_SOLID_LABEL, None)] = datapoints
+        self._log = self._log[:, :4]
+        self._log = np.delete(self._log, noInteractionIndices, axis=0)
+        self._keyLog[InteractionKey(NO_SOLID_LABEL, None)] = self._log
 
     def _sortLocal(self):
         """ Sorts the log locally by solidID and surfaceID,
