@@ -1,3 +1,4 @@
+import gc
 import os
 import time
 
@@ -72,7 +73,12 @@ class CLPhotons:
             params.maxPhotonsPerBatch = kernelPhotons.length
             batchCount += 1
 
-        self._logDataFromLogArrays(logArrays, scene, verbose)
+        del logger, kernelPhotons, photonPool, seeds, program, params
+        gc.collect()
+
+        log = self._concatenateArrays(logArrays, verbose)
+
+        self._translateToSceneLogger(log, scene, verbose)
 
     def _replaceFullyPropagatedPhotons(self, kernelPhotons: PhotonCL, photonPool: PhotonCL,
                                        photonCount: int, currentKernelLength: int) -> (int, int):
@@ -90,12 +96,19 @@ class CLPhotons:
         kernelPhotons.hostBuffer = np.delete(kernelPhotons.hostBuffer, photonsToRemove)
         return batchPhotonCount, photonCount
 
-    def _logDataFromLogArrays(self, logArrays, sceneCL, verbose):
+    def _concatenateArrays(self, arrays, verbose):
+        """ Memory efficient concatenation of arrays. """
         t4 = time.time_ns()
-        log = np.concatenate(logArrays)
-        if verbose:
-            print(f"Concatenate multiple logger arrays: {(time.time_ns() - t4) / 1e9}s")
+        log = np.empty(shape=(0, 6), dtype=np.float32)
+        for i in range(len(arrays)):
+            arr = arrays.pop(0)
+            log = np.concatenate((log, arr))
 
+        if verbose:
+            print(f"... [Concatenate logger arrays: {(time.time_ns() - t4) / 1e9}s]")
+        return log
+
+    def _translateToSceneLogger(self, log, sceneCL, verbose):
         if not self._sceneLogger:
             return
 
@@ -103,7 +116,7 @@ class CLPhotons:
         keyLog = CLKeyLog(log, sceneCL=sceneCL)
         keyLog.toSceneLogger(self._sceneLogger)
         if verbose:
-            print(f"Transfer logging data to Logger object.: {(time.time_ns() - t5) / 1e9}s")
+            print(f"... [Translate OpenCL Logger to Scene Logger: {(time.time_ns() - t5) / 1e9}s]")
 
     def _showProgress(self, photonCount: int, localPhotonCount: int, batchCount: int, t0: float, t1: float,
                       t2: float, currentKernelLength: int, verbose: bool = True):

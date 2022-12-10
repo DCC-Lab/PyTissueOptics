@@ -65,3 +65,10 @@ class CLParameters:
     @photonsPerWorkItem.setter
     def photonsPerWorkItem(self, value: int):
         self._maxPhotonsPerBatch = np.int32(value * self._workItemAmount)
+
+    @property
+    def requiredRAMBytes(self) -> float:
+        concatenationFactor = 2
+        averageNBatches = int(1.3 * (1 / CONFIG.BATCH_LOAD_FACTOR))
+        overHead = 1.15
+        return overHead * concatenationFactor * averageNBatches * self._maxLoggerMemory
