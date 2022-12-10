@@ -2,6 +2,8 @@ import os
 import time
 from typing import List
 
+import numpy as np
+
 try:
     import pyopencl as cl
 except ImportError:
@@ -56,9 +58,9 @@ class CLProgram:
 
         self._program = cl.Program(self._context, sourceCode).build()
 
-    def getData(self, _object: CLObject):
+    def getData(self, _object: CLObject, dtype: np.dtype = np.float32):
         cl.enqueue_copy(self._mainQueue, dest=_object.hostBuffer, src=_object.deviceBuffer)
-        return rfn.structured_to_unstructured(_object.hostBuffer)
+        return rfn.structured_to_unstructured(_object.hostBuffer, dtype=dtype)
 
     @staticmethod
     def _makeSource(sourcePath) -> str:
