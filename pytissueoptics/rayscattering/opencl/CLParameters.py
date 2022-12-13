@@ -1,3 +1,5 @@
+import os
+
 import numpy as np
 
 from pytissueoptics.rayscattering.opencl import CLObjects as clObjects, CONFIG
@@ -13,8 +15,9 @@ class CLParameters:
         self._maxLoggerMemory = avgPhotonsPerBatch * AVG_IT_PER_PHOTON * DATAPOINT_SIZE
         self._maxLoggerMemory = min(self._maxLoggerMemory, CONFIG.MAX_MEMORY)
         self._maxPhotonsPerBatch = min(2 * avgPhotonsPerBatch, N)
-
         self._workItemAmount = CONFIG.N_WORK_UNITS
+
+        self._assertEnoughRAM()
 
     @property
     def workItemAmount(self):
@@ -65,3 +68,17 @@ class CLParameters:
     @photonsPerWorkItem.setter
     def photonsPerWorkItem(self, value: int):
         self._maxPhotonsPerBatch = np.int32(value * self._workItemAmount)
+
+    @property
+    def requiredRAMBytes(self) -> float:
+        averageNBatches = int(1.3 * (1 / CONFIG.BATCH_LOAD_FACTOR))
+        concatenationFactor = 2
+        overHead = 1.15
+        return overHead * concatenationFactor * averageNBatches * self._maxLoggerMemory
+
+    def _assertEnoughRAM(self):
+        freeSystemRAM = int(os.popen('free -t -b').readlines()[-1].split()[3])
+        if self.requiredRAMBytes > 0.9 * freeSystemRAM:
+            warnings.warn(f"WARNING: Available system RAM might not be enough for the simulation. "
+                          f"Estimated requirement: {self.requiredRAMBytes // 1024**2} MB, "
+                          f"Available: {freeSystemRAM // 1024**2} MB.")
