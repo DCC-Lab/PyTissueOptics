@@ -2,7 +2,7 @@ import os
 
 import numpy as np
 
-from pytissueoptics.rayscattering.opencl import CLObjects as clObjects, CONFIG
+from pytissueoptics.rayscattering.opencl import CLObjects as clObjects, CONFIG, warnings
 
 
 DATAPOINT_SIZE = clObjects.DataPointCL.getItemSize()
