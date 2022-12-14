@@ -2,4 +2,3 @@ numpy
 matplotlib
 tqdm
 mockito
-timeout_decorator
