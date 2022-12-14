@@ -80,8 +80,8 @@ class CLConfig:
         elif numberOfDevices == 1:
             self._showAvailableDevices()
             warnings.warn(
-                f"Using the only available OpenCL device 0. \n\tIf your desired device doesn't show, it may be "
-                f"because its OpenCL drivers are not installed. \n\tTo reset device selection, "
+                f"Using the only available OpenCL device 0 ({self._devices[0].name}). \n\tIf your desired device "
+                f"doesn't show, it may be because its OpenCL drivers are not installed. \n\tTo reset device selection, "
                 f"reset DEVICE_INDEX parameter to 'null' in '{OPENCL_CONFIG_RELPATH}'.")
             self._config["DEVICE_INDEX"] = 0
         else:
