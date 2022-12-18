@@ -1,4 +1,5 @@
 import os
+import psutil
 
 import numpy as np
 
@@ -77,7 +78,7 @@ class CLParameters:
         return overHead * concatenationFactor * averageNBatches * self._maxLoggerMemory
 
     def _assertEnoughRAM(self):
-        freeSystemRAM = int(os.popen('free -t -b').readlines()[-1].split()[3])
+        freeSystemRAM = psutil.virtual_memory().available
         if self.requiredRAMBytes > 0.9 * freeSystemRAM:
             warnings.warn(f"WARNING: Available system RAM might not be enough for the simulation. "
                           f"Estimated requirement: {self.requiredRAMBytes // 1024**2} MB, "
