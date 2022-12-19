@@ -4,8 +4,13 @@ from pytissueoptics.scene.geometry import Vector, Triangle, Quad, Polygon
 from pytissueoptics.scene.intersection import Ray
 
 
+EPS_CORRECTION = 0.0005
+
+
 class MollerTrumboreIntersect:
-    EPSILON = 0.0000001
+    EPS = 0.00001
+    EPS_PARALLEL = 0.00001
+    EPS_SIDE = 0.000001
 
     def getIntersection(self, ray: Ray, polygon: Union[Triangle, Quad, Polygon]) -> Optional[Vector]:
         if isinstance(polygon, Triangle):
@@ -16,35 +21,49 @@ class MollerTrumboreIntersect:
             return self._getPolygonIntersection(ray, polygon)
 
     def _getTriangleIntersection(self, ray: Ray, triangle: Triangle) -> Optional[Vector]:
-        """ Möller–Trumbore ray-triangle 3D intersection algorithm. """
+        """ Möller–Trumbore ray-triangle 3D intersection algorithm.
+        Added epsilon zones to avoid numerical errors in the OpenCL implementation.
+        Modified to support rays with finite length:
+            A. If the intersection is too far away, return None.
+            B. If the intersection is just a bit too far away, there is no intersection, but we cannot accept
+                the ray to land there (it would be too close to the surface and might yield intersection errors
+                later on). Therefore, we tag the intersection as 'tooClose' and use that later to move the ray's
+                landing position a bit away from this surface.
+        """
         v1, v2, v3 = triangle.vertices
         edgeA = v2 - v1
         edgeB = v3 - v1
         pVector = ray.direction.cross(edgeB)
         determinant = edgeA.dot(pVector)
 
-        rayIsParallel = abs(determinant) < self.EPSILON
+        rayIsParallel = abs(determinant) < self.EPS_PARALLEL
         if rayIsParallel:
             return None
 
         inverseDeterminant = 1. / determinant
         tVector = ray.origin - v1
         u = tVector.dot(pVector) * inverseDeterminant
-        if u < 0. or u > 1.:
+        if u < -self.EPS_SIDE or u > 1.:
             return None
 
         qVector = tVector.cross(edgeA)
         v = ray.direction.dot(qVector) * inverseDeterminant
-        if v < 0. or u + v > 1.:
+        if v < -self.EPS_SIDE or u + v > 1.:
             return None
 
         t = edgeB.dot(qVector) * inverseDeterminant
-        lineIntersection = t < self.EPSILON
-        if lineIntersection:
+        if t < 0.:
             return None
 
-        if ray.length and t > ray.length:
+        if ray.length is None:
+            return ray.origin + ray.direction * t
+
+        if t > (ray.length + self.EPS):
+            # No intersection, it's too far away
             return None
+        elif t > ray.length:
+            # Just a bit too far away. There is no intersection, but we cannot accept ray to land here.
+            ray.isTooClose = True
 
         return ray.origin + ray.direction * t
 

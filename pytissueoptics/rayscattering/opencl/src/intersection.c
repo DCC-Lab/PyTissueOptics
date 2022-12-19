@@ -43,7 +43,7 @@ struct Scene{
 
 typedef struct Scene Scene;
 
-GemsBoxIntersection _getSolidCandidate(Ray ray, float3 minCornerVector, float3 maxCornerVector) {
+GemsBoxIntersection _getBBoxIntersection(Ray ray, float3 minCornerVector, float3 maxCornerVector) {
     GemsBoxIntersection intersection;
     intersection.rayIsInside = true;
     intersection.exists = false;
@@ -119,7 +119,7 @@ void _findBBoxIntersectingSolids(Ray ray, Scene *scene, uint gid){
         uint boxGID = gid * scene->nSolids + i;
         scene->solidCandidates[boxGID].solidID = i + 1;
 
-        GemsBoxIntersection gemsIntersection = _getSolidCandidate(ray, scene->solids[i].bbox_min, scene->solids[i].bbox_max);
+        GemsBoxIntersection gemsIntersection = _getBBoxIntersection(ray, scene->solids[i].bbox_min, scene->solids[i].bbox_max);
         if (gemsIntersection.rayIsInside) {
             scene->solidCandidates[boxGID].distance = 0;
         } else if (!gemsIntersection.exists) {
@@ -131,6 +131,9 @@ void _findBBoxIntersectingSolids(Ray ray, Scene *scene, uint gid){
 }
 
 void _sortSolidCandidates(Scene *scene, uint gid) {
+    /*
+    Simple bubble sort algorithm (kernel-friendly) to sort the solid candidates by distance.
+    */
     for (uint i = 0; i < scene->nSolids; i++) {
         uint boxGID = gid * scene->nSolids + i;
         for (uint j = i + 1; j < scene->nSolids; j++) {
@@ -269,6 +272,10 @@ void _composeIntersection(Intersection *intersection, Ray *ray, Scene *scene) {
 }
 
 Intersection findIntersection(Ray ray, Scene *scene, uint gid) {
+    /*
+    OpenCL implementation of the Python module SimpleIntersectionFinder
+    See the Python module documentation for more details.
+    */
     _findBBoxIntersectingSolids(ray, scene, gid);
     _sortSolidCandidates(scene, gid);
 
@@ -283,6 +290,7 @@ Intersection findIntersection(Ray ray, Scene *scene, uint gid) {
     for (uint i = 0; i < scene->nSolids; i++) {
         uint boxGID = gid * scene->nSolids + i;
         if (scene->solidCandidates[boxGID].distance == -1) {
+            // Default buffer value -1 means that there is no intersection with this solid
             continue;
         }
         bool contained = scene->solidCandidates[boxGID].distance == 0;
