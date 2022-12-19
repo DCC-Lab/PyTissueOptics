@@ -98,25 +98,25 @@ class CLPhotons:
 
     def _concatenateArrays(self, arrays, verbose):
         """ Memory efficient concatenation of arrays. """
-        t4 = time.time_ns()
+        t4 = time.time()
         log = np.empty(shape=(0, 6), dtype=np.float32)
         for i in range(len(arrays)):
             arr = arrays.pop(0)
             log = np.concatenate((log, arr))
 
         if verbose:
-            print(f"... [Concatenate logger arrays: {(time.time_ns() - t4) / 1e9}s]")
+            print(f" ... {time.time() - t4:.3f} s. [Concatenate logger arrays]")
         return log
 
     def _translateToSceneLogger(self, log, sceneCL, verbose):
         if not self._sceneLogger:
             return
 
-        t5 = time.time_ns()
+        t5 = time.time()
         keyLog = CLKeyLog(log, sceneCL=sceneCL)
         keyLog.toSceneLogger(self._sceneLogger)
         if verbose:
-            print(f"... [Translate OpenCL Logger to Scene Logger: {(time.time_ns() - t5) / 1e9}s]")
+            print(f" ... {time.time() - t5:.3f} s. [Translate OpenCL Logger to Scene Logger]")
 
     def _showProgress(self, photonCount: int, localPhotonCount: int, batchCount: int, t0: float, t1: float,
                       t2: float, currentKernelLength: int, verbose: bool = True):

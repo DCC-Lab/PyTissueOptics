@@ -30,7 +30,7 @@ class CLProgram:
         self._build(CLObjects)
         if verbose:
             for _object in CLObjects:
-                print(f"... {_object.name} ({_object.nBytes / 1024**2:.3f} MB)")
+                print(f" ... {_object.name} ({_object.nBytes / 1024**2:.3f} MB)")
         sizeOnDevice = sum([x.nBytes for x in CLObjects])
         buffers = self._extractBuffers(arguments)
         t1 = time.time()
