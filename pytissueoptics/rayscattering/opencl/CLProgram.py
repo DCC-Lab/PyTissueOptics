@@ -72,7 +72,9 @@ class CLProgram:
                 libFileName = line.split('"')[1]
                 sourceCode += open(os.path.join(includeDir, libFileName)).read()
                 line = f.readline()
+            sourceCode += line
             sourceCode += f.read()
+
         return sourceCode
 
     @staticmethod
