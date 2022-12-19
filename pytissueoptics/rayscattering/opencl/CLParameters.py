@@ -1,12 +1,11 @@
-import os
-
 import psutil
 import numpy as np
 
-from pytissueoptics.rayscattering.opencl import CLObjects as clObjects, CONFIG, warnings
+from pytissueoptics.rayscattering.opencl.CLObjects import DataPointCL
+from pytissueoptics.rayscattering.opencl import CONFIG, warnings
 
 
-DATAPOINT_SIZE = clObjects.DataPointCL.getItemSize()
+DATAPOINT_SIZE = DataPointCL.getItemSize()
 
 
 class CLParameters:
