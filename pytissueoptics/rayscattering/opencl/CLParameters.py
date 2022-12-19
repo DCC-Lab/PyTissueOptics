@@ -1,6 +1,6 @@
 import os
-import psutil
 
+import psutil
 import numpy as np
 
 from pytissueoptics.rayscattering.opencl import CLObjects as clObjects, CONFIG, warnings

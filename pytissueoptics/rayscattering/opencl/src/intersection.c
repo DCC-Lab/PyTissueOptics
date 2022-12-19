@@ -1,6 +1,7 @@
 const float EPS = 0.00001f;
 const float EPS_CORRECTION = 0.0005f;
 const float EPS_PARALLEL = 0.00001f;
+const float EPS_SIDE = 0.000001f;
 
 struct Intersection {
     uint exists;
@@ -169,13 +170,13 @@ HitPoint _getTriangleIntersection(Ray ray, float3 v1, float3 v2, float3 v3) {
     float invDet = 1.0f / det;
     float3 tVector = ray.origin - v1;
     float u = dot(tVector, pVector) * invDet;
-    if (u < 0.0f || u > 1.0f) {
+    if (u < -EPS_SIDE || u > 1.0f) {
         return hitPoint;
     }
 
     float3 qVector = cross(tVector, edgeA);
     float v = dot(ray.direction, qVector) * invDet;
-    if (v < 0.0f || u + v > 1.0f) {
+    if (v < -EPS_SIDE || u + v > 1.0f) {
         return hitPoint;
     }
 
