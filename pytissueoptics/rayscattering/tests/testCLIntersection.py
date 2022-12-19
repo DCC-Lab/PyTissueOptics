@@ -6,7 +6,8 @@ import numpy as np
 from numpy.lib import recfunctions as rfn
 
 from pytissueoptics import *
-from pytissueoptics.rayscattering.opencl import OPENCL_AVAILABLE, OPENCL_SOURCE_DIR
+from pytissueoptics.rayscattering.opencl import OPENCL_AVAILABLE
+from pytissueoptics.rayscattering.opencl.CLConfig import OPENCL_SOURCE_DIR
 from pytissueoptics.rayscattering.opencl.CLPhotons import CLScene
 
 if OPENCL_AVAILABLE:
@@ -37,7 +38,7 @@ class TestCLIntersection(unittest.TestCase):
         intersections = IntersectionCL(N)
 
         try:
-            self.program.launchKernel("findIntersections", N=N, arguments=[clScene.nSolids, rays,
+            self.program.launchKernel("findIntersections", N=N, arguments=[rays, clScene.nSolids,
                                                                            clScene.solids, clScene.surfaces,
                                                                            clScene.triangles, clScene.vertices,
                                                                            clScene.solidCandidates, intersections])
@@ -47,14 +48,11 @@ class TestCLIntersection(unittest.TestCase):
         self.program.getData(clScene.solidCandidates)
         self.program.getData(intersections)
 
-        print("BBox Intersections: ", clScene.solidCandidates.hostBuffer)
-        print("Intersections: ", intersections.hostBuffer)
-
         solidCandidates = clScene.solidCandidates.hostBuffer
         self.assertEqual(solidCandidates[0]["distance"], -1)
-        self.assertEqual(solidCandidates[0]["solidID"], 1)
+        self.assertEqual(solidCandidates[0]["solidID"], 2)
         self.assertEqual(solidCandidates[1]["distance"], 6)
-        self.assertEqual(solidCandidates[1]["solidID"], 0)
+        self.assertEqual(solidCandidates[1]["solidID"], 1)
 
         rayIntersection = intersections.hostBuffer[0]
         self.assertEqual(rayIntersection["exists"], 1)
@@ -83,6 +81,9 @@ class TestCLIntersection(unittest.TestCase):
 
 class RayCL(CLObject):
     STRUCT_NAME = "Ray"
+    STRUCT_DTYPE = np.dtype([("origin", cl.cltypes.float4),
+                             ("direction", cl.cltypes.float4),
+                             ("length", cl.cltypes.float)])
 
     def __init__(self, origins: np.ndarray, directions: np.ndarray, lengths: np.ndarray):
         self._origins = origins
@@ -90,12 +91,9 @@ class RayCL(CLObject):
         self._lengths = lengths
         self._N = origins.shape[0]
 
-        struct = np.dtype([("origin", cl.cltypes.float4),
-                           ("direction", cl.cltypes.float4),
-                           ("length", cl.cltypes.float)])
-        super().__init__(name=self.STRUCT_NAME, struct=struct, skipDeclaration=True)
+        super().__init__(skipDeclaration=True)
 
-    def _getHostBuffer(self) -> np.ndarray:
+    def _getInitialHostBuffer(self) -> np.ndarray:
         buffer = np.zeros(self._N, dtype=self._dtype)
         buffer = rfn.structured_to_unstructured(buffer)
         buffer[:, 0:3] = self._origins
@@ -107,18 +105,20 @@ class RayCL(CLObject):
 
 class IntersectionCL(CLObject):
     STRUCT_NAME = "Intersection"
+    STRUCT_DTYPE = np.dtype([("exists", cl.cltypes.uint),
+                             ("isTooClose", cl.cltypes.uint),
+                             ("distance", cl.cltypes.float),
+                             ("position", cl.cltypes.float3),
+                             ("normal", cl.cltypes.float3),
+                             ("surfaceID", cl.cltypes.uint),
+                             ("polygonID", cl.cltypes.uint),
+                             ("distanceLeft", cl.cltypes.float)])
 
     def __init__(self, N: int):
         self._N = N
-        struct = np.dtype([("exists", cl.cltypes.uint),
-                           ("distance", cl.cltypes.float),
-                           ("position", cl.cltypes.float3),
-                           ("normal", cl.cltypes.float3),
-                           ("surfaceID", cl.cltypes.uint),
-                           ("distanceLeft", cl.cltypes.float)])
-        super().__init__(name=self.STRUCT_NAME, struct=struct, skipDeclaration=True)
+        super().__init__(skipDeclaration=True)
 
-    def _getHostBuffer(self) -> np.ndarray:
+    def _getInitialHostBuffer(self) -> np.ndarray:
         return np.empty(self._N, dtype=self._dtype)
 
 
