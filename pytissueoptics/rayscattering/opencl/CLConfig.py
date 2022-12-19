@@ -65,7 +65,10 @@ class CLConfig:
         parameterKeys.pop(0)
         for key in parameterKeys:
             if not self._config[key] > 0:
-                raise ValueError(errorMessage + "The parameter '{}' must be greater than 0.".format(key))
+                self._config[key] = DEFAULT_CONFIG[key]
+                self.save()
+                raise ValueError(errorMessage + "The parameter '{}' must be greater than 0. Resetting to default "
+                                                "value...".format(key))
 
     def _validateDeviceIndex(self):
         numberOfDevices = len(self._devices)
@@ -114,8 +117,11 @@ class CLConfig:
             self.save()
 
     def _autoSetNWorkUnits(self):
-        warnings.warn("The parameter N_WORK_UNITS is not set. \n... Running a test to find optimal N_WORK_UNITS "
-                      "between 128 and 32768. This may take a few minutes. ")
+        if not self._needToRunTest():
+            return
+
+        warnings.warn("... Running a test to find optimal N_WORK_UNITS between 128 and 32768. This may take a few "
+                      "minutes. ")
         self.AUTO_SAVE = False
         try:
             from pytissueoptics.rayscattering.opencl.testWorkUnits import computeOptimalNWorkUnits
@@ -130,6 +136,21 @@ class CLConfig:
                              f"'{OPENCL_CONFIG_RELPATH}'. \n... Error message: {e}")
         self._processOptimalNWorkUnits(optimalNWorkUnits)
         self.save()
+
+    def _needToRunTest(self) -> bool:
+        print("WARNING: The parameter N_WORK_UNITS is not set.")
+        answer = input("Press enter to run the test to find the optimal value for N_WORK_UNITS, or enter it manually "
+                       "if you already know it: ")
+        if answer == "":
+            return True
+        elif answer.isnumeric():
+            self._config["N_WORK_UNITS"] = int(answer)
+            print(f"Setting N_WORK_UNITS to {self._config['N_WORK_UNITS']}.")
+            self.save()
+            return False
+        else:
+            print(f"Invalid input '{answer}'. Please enter a positive integer.")
+            return self._needToRunTest()
 
     def _processOptimalNWorkUnits(self, optimalNWorkUnits):
         answer = input(f"Press enter to accept this value ({optimalNWorkUnits}), or enter your own:")
