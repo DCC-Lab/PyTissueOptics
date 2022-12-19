@@ -3,7 +3,6 @@ import time
 
 import matplotlib.pyplot as plt
 import numpy as np
-import timeout_decorator
 
 from pytissueoptics import *
 from pytissueoptics.rayscattering.opencl import CONFIG
@@ -11,19 +10,11 @@ from pytissueoptics.rayscattering.opencl import CONFIG
 MAX_SECONDS_PER_TEST = 5
 
 
-@timeout_decorator.timeout(MAX_SECONDS_PER_TEST)
-def _launchPropagation(source, scene, logger):
-    source.propagate(scene, logger=logger, showProgress=False)
-
-
 def computeOptimalNWorkUnits() -> int:
     """
     Find the optimal amount of work units for the OpenCL kernel (hardware-specific).
     """
 
-    USE_CONSTANT_N = False  # uses N_WORK_UNITS * 5 if false, else N below
-
-    N = 50000
     AVERAGING = 3
     MIN_N = 128
     MAX_N = 32768
@@ -41,8 +32,7 @@ def computeOptimalNWorkUnits() -> int:
     for i in range(MIN_bits, MAX_bits + 1):
         CONFIG.N_WORK_UNITS = int(np.sqrt(2) ** i)
 
-        if not USE_CONSTANT_N:
-            N = CONFIG.N_WORK_UNITS * 5
+        N = CONFIG.N_WORK_UNITS * 5
 
         timePerPhoton = 0
         totalTime = 0
@@ -50,22 +40,23 @@ def computeOptimalNWorkUnits() -> int:
         for _ in range(AVERAGING):
             source = DirectionalSource(position=Vector(0, 0, -2), direction=Vector(0, 0, 1), N=N,
                                        useHardwareAcceleration=True, diameter=0.5)
-
             logger = Logger()
+
             t0 = time.time()
-            try:
-                _launchPropagation(source, scene, logger)
-            except timeout_decorator.timeout_decorator.TimeoutError:
+            source.propagate(scene, logger=logger, showProgress=False)
+            elapsedTime = time.time() - t0
+
+            if elapsedTime > MAX_SECONDS_PER_TEST:
                 print(f"... [{i + 1 - MIN_bits}/{MAX_bits + 1 - MIN_bits}] {CONFIG.N_WORK_UNITS} \t units : "
-                      f"TIMEOUT ERROR after {MAX_SECONDS_PER_TEST} seconds.")
+                      f"Test is getting too slow on this hardware. Aborting.")
                 timedOut = True
                 break
-            elapsedTime = time.time() - t0
-            totalTime += elapsedTime
 
+            totalTime += elapsedTime
             timePerPhoton += elapsedTime / N
+
         if timedOut:
-            continue
+            break
         timePerPhoton /= AVERAGING
         totalTime /= AVERAGING
         print(f"... [{i+1-MIN_bits}/{MAX_bits+1-MIN_bits}] {CONFIG.N_WORK_UNITS} \t units : {timePerPhoton:.6f} s/p [{AVERAGING}x {totalTime:.2f}s]")
