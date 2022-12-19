@@ -8,9 +8,10 @@ except ImportError:
 
 
 class CLObject:
-    def __init__(self, name: str = None, struct: np.dtype = None, skipDeclaration: bool = False, buildOnce: bool = False):
-        self._name = name
-        self._struct = struct
+    STRUCT_NAME = None
+    STRUCT_DTYPE = None
+
+    def __init__(self, skipDeclaration: bool = False, buildOnce: bool = False):
         self._declaration = None
         self._dtype = None
         self._skipDeclaration = skipDeclaration
@@ -28,9 +29,9 @@ class CLObject:
                                         hostbuf=self.hostBuffer)
 
     def make(self, device):
-        if self._struct:
-            cl_struct, self._declaration = cl.tools.match_dtype_to_c_struct(device, self._name, self._struct)
-            self._dtype = cl.tools.get_or_register_dtype(self._name, cl_struct)
+        if self.STRUCT_DTYPE:
+            cl_struct, self._declaration = cl.tools.match_dtype_to_c_struct(device, self.STRUCT_NAME, self.STRUCT_DTYPE)
+            self._dtype = cl.tools.get_or_register_dtype(self.STRUCT_NAME, cl_struct)
 
     def reset(self):
         self.hostBuffer = self._getInitialHostBuffer()
@@ -40,7 +41,7 @@ class CLObject:
 
     @property
     def name(self) -> str:
-        return self._name
+        return self.STRUCT_NAME
 
     @property
     def declaration(self) -> str:
@@ -75,5 +76,17 @@ class CLObject:
         return len(self._HOST_buffer)
 
     @property
-    def size(self) -> int:
-        return self._HOST_buffer.nbytes
+    def nBytes(self) -> int:
+        if self.STRUCT_DTYPE is None:
+            return self._HOST_buffer.nbytes
+        return self.getItemSize() * self.length
+
+    @classmethod
+    def getItemSize(cls) -> int:
+        """ Returns the size of a single item in bytes aligned with the next power of 2. """
+        if cls.STRUCT_DTYPE is None:
+            raise NotImplementedError()
+
+        itemSize = cls.STRUCT_DTYPE.itemsize
+        alignedItemSize = 2 ** (itemSize - 1).bit_length()
+        return alignedItemSize

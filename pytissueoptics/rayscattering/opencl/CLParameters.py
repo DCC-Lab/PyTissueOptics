@@ -1,20 +1,24 @@
+import os
+import psutil
+
 import numpy as np
 
-from pytissueoptics.rayscattering.opencl.CLProgram import CLProgram
+from pytissueoptics.rayscattering.opencl import CLObjects as clObjects, CONFIG, warnings
+
+
+DATAPOINT_SIZE = clObjects.DataPointCL.getItemSize()
 
 
 class CLParameters:
-    dataPointSize = 16
-    photonSize = 64
-    seedSize = 4
-    materialSize = 32
+    def __init__(self, N, AVG_IT_PER_PHOTON):
+        nBatch = 1/CONFIG.BATCH_LOAD_FACTOR
+        avgPhotonsPerBatch = int(N / min(nBatch, CONFIG.N_WORK_UNITS))
+        self._maxLoggerMemory = avgPhotonsPerBatch * AVG_IT_PER_PHOTON * DATAPOINT_SIZE
+        self._maxLoggerMemory = min(self._maxLoggerMemory, CONFIG.MAX_MEMORY)
+        self._maxPhotonsPerBatch = min(2 * avgPhotonsPerBatch, N)
+        self._workItemAmount = CONFIG.N_WORK_UNITS
 
-    def __init__(self, maxLoggerMemory: int = 1e8, workItemAmount: int = 100,
-                 photonAmount: int = 1000, loggerGlobalFactor: float = 0.75):
-        self._maxLoggerMemory = maxLoggerMemory
-        self._workItemAmount = workItemAmount
-        self._photonAmount = photonAmount
-        self._loggerGlobalFactor = loggerGlobalFactor
+        self._assertEnoughRAM()
 
     @property
     def workItemAmount(self):
@@ -33,41 +37,49 @@ class CLParameters:
         self._maxLoggerMemory = value
 
     @property
-    def photonAmount(self):
-        return np.int32(self._photonAmount)
+    def maxPhotonsPerBatch(self):
+        return np.int32(self._maxPhotonsPerBatch)
 
-    @photonAmount.setter
-    def photonAmount(self, value: int):
+    @maxPhotonsPerBatch.setter
+    def maxPhotonsPerBatch(self, value: int):
         if value < self._workItemAmount:
             self._workItemAmount = value
-        self._photonAmount = value
+        self._maxPhotonsPerBatch = value
 
     @property
     def maxLoggableInteractions(self):
-        return np.int32(self._maxLoggerMemory / self.dataPointSize)
+        return np.int32(self._maxLoggerMemory / DATAPOINT_SIZE)
 
     @maxLoggableInteractions.setter
     def maxLoggableInteractions(self, value):
-        self._maxLoggerMemory = np.int32(value * self.dataPointSize)
+        self._maxLoggerMemory = np.int32(value * DATAPOINT_SIZE)
 
     @property
     def maxLoggableInteractionsPerWorkItem(self):
-        return np.int32((self.maxLoggerMemory / self.dataPointSize) / self._workItemAmount)
+        return np.int32((self.maxLoggerMemory / DATAPOINT_SIZE) / self._workItemAmount)
 
     @maxLoggableInteractionsPerWorkItem.setter
     def maxLoggableInteractionsPerWorkItem(self, value):
-        self._maxLoggerMemory = np.int32((value * self.dataPointSize) * self._workItemAmount)
+        self._maxLoggerMemory = np.int32((value * DATAPOINT_SIZE) * self._workItemAmount)
 
     @property
     def photonsPerWorkItem(self):
-        return np.int32(np.floor(self._photonAmount / self._workItemAmount))
+        return np.int32(np.floor(self._maxPhotonsPerBatch / self._workItemAmount))
     
     @photonsPerWorkItem.setter
     def photonsPerWorkItem(self, value: int):
-        self._photonAmount = np.int32(value * self._workItemAmount)
+        self._maxPhotonsPerBatch = np.int32(value * self._workItemAmount)
 
-    def autoSetParameters(self, program: CLProgram):
-        # FIXME: Algorithm here should send a few batches to check the average interaction per photon
-        # then decide the logger size and the photon amount that fills the logger
-        # then try a few workItemAmount parameters for speed.
-        self._maxLoggerMemory = np.int32(self._loggerGlobalFactor * program.global_memory_size)
+    @property
+    def requiredRAMBytes(self) -> float:
+        averageNBatches = int(1.3 * (1 / CONFIG.BATCH_LOAD_FACTOR))
+        concatenationFactor = 2
+        overHead = 1.15
+        return overHead * concatenationFactor * averageNBatches * self._maxLoggerMemory
+
+    def _assertEnoughRAM(self):
+        freeSystemRAM = psutil.virtual_memory().available
+        if self.requiredRAMBytes > 0.9 * freeSystemRAM:
+            warnings.warn(f"WARNING: Available system RAM might not be enough for the simulation. "
+                          f"Estimated requirement: {self.requiredRAMBytes // 1024**2} MB, "
+                          f"Available: {freeSystemRAM // 1024**2} MB.")

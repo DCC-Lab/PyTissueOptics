@@ -1,0 +1,7 @@
+{
+    "DEVICE_INDEX": null,
+    "MAX_MEMORY_MB": null,
+    "N_WORK_UNITS": null,
+    "BATCH_LOAD_FACTOR": 0.2,
+    "IPP_TEST_N_PHOTONS": 1000
+}

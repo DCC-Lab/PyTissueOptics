@@ -1,5 +1,6 @@
 from pytissueoptics import *
 
+
 """
 This example shows how to use the OpenCL Source.
 For now, it is not possible to propagate photons in a complex scene, but only in a single material infinite scene.
@@ -13,9 +14,10 @@ The average anisotropy coefficient is around 0.8 - 0.9
 These parameters will be used to mimic the parameters a typical user would utilize in a simulation.
 """
 
+N = 10000
 
 tissue = tissues.InfiniteTissue(material=ScatteringMaterial(30, 0.1, 0.8, 1.4))
-source = PencilPointSource(position=Vector(0, 0, 0), direction=Vector(0, 0, 1), N=100000, useHardwareAcceleration=True)
+source = PencilPointSource(position=Vector(0, 0, 0), direction=Vector(0, 0, 1), N=N, useHardwareAcceleration=True)
 
 logger = Logger()
 

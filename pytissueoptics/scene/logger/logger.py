@@ -144,3 +144,7 @@ class Logger:
 
         with open(filepath, "rb") as file:
             self._data, self.info = pickle.load(file)
+
+    @property
+    def nDataPoints(self) -> int:
+        return sum(len(data.dataPoints) for data in self._data.values())

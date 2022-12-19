@@ -210,3 +210,7 @@ class Solid:
         for vertex in self.vertices:
             if vertex.normal:
                 vertex.normal.normalize()
+
+    def __hash__(self):
+
+        return hash((hash(tuple(self._vertices)), self._material))

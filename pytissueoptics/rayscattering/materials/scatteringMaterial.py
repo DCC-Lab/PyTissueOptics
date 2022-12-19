@@ -38,3 +38,6 @@ class ScatteringMaterial:
             temp = (1 - g * g) / (1 - g + 2 * g * np.random.random())
             cost = (1 + g * g - temp * temp) / (2 * g)
         return np.arccos(cost), phi
+
+    def __hash__(self):
+        return hash((self.mu_s, self.mu_a, self.g, self.n))

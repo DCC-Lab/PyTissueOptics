@@ -8,6 +8,13 @@ from pytissueoptics.rayscattering.materials.scatteringMaterial import Scattering
 
 class PhotonCL(CLObject):
     STRUCT_NAME = "Photon"
+    STRUCT_DTYPE = np.dtype(
+            [("position", cl.cltypes.float3),
+             ("direction", cl.cltypes.float3),
+             ("er", cl.cltypes.float3),
+             ("weight", cl.cltypes.float),
+             ("materialID", cl.cltypes.uint),
+             ("solidID", cl.cltypes.uint)])
 
     def __init__(self, positions: np.ndarray, directions: np.ndarray,
                  materialID: int, solidID: int):
@@ -17,14 +24,7 @@ class PhotonCL(CLObject):
         self._materialID = materialID
         self._solidID = solidID
 
-        photonStruct = np.dtype(
-            [("position", cl.cltypes.float3),
-             ("direction", cl.cltypes.float3),
-             ("er", cl.cltypes.float3),
-             ("weight", cl.cltypes.float),
-             ("materialID", cl.cltypes.uint),
-             ("solidID", cl.cltypes.uint)])
-        super().__init__(name=self.STRUCT_NAME, struct=photonStruct)
+        super().__init__()
 
     def _getInitialHostBuffer(self) -> np.ndarray:
         buffer = np.zeros(self._N, dtype=self._dtype)
@@ -40,21 +40,22 @@ class PhotonCL(CLObject):
 
 class MaterialCL(CLObject):
     STRUCT_NAME = "Material"
-
-    def __init__(self, materials: List[ScatteringMaterial]):
-        self._materials = materials
-
-        materialStruct = np.dtype(
+    STRUCT_DTYPE = np.dtype(
             [("mu_s", cl.cltypes.float),
              ("mu_a", cl.cltypes.float),
              ("mu_t", cl.cltypes.float),
              ("g", cl.cltypes.float),
              ("n", cl.cltypes.float),
              ("albedo", cl.cltypes.float)])
-        super().__init__(name=self.STRUCT_NAME, struct=materialStruct, buildOnce=True)
+
+    def __init__(self, materials: List[ScatteringMaterial]):
+        self._materials = materials
+        super().__init__(buildOnce=True)
 
     def _getInitialHostBuffer(self) -> np.ndarray:
         # todo: there might be a way to abstract both struct and buffer under a single def (DRY, PO)
+        #  the cl.types above are actually np types. so we could extract clTypeX and do clTypeX(mat.propertyX) ...
+        #  except the float3 thing maybe...
         buffer = np.empty(len(self._materials), dtype=self._dtype)
         for i, material in enumerate(self._materials):
             buffer[i]["mu_s"] = np.float32(material.mu_s)
@@ -69,17 +70,17 @@ class MaterialCL(CLObject):
 class DataPointCL(CLObject):
     STRUCT_NAME = "DataPoint"
 
-    def __init__(self, size: int):
-        self._size = size
-
-        dataPointStruct = np.dtype(
+    STRUCT_DTYPE = np.dtype(
             [("delta_weight", cl.cltypes.float),
              ("x", cl.cltypes.float),
              ("y", cl.cltypes.float),
              ("z", cl.cltypes.float),
              ("solidID", cl.cltypes.uint),
              ("surfaceID", cl.cltypes.int)])
-        super().__init__(name=self.STRUCT_NAME, struct=dataPointStruct)
+
+    def __init__(self, size: int):
+        self._size = size
+        super().__init__()
 
     def _getInitialHostBuffer(self) -> np.ndarray:
         return np.zeros(self._size, dtype=self._dtype)
