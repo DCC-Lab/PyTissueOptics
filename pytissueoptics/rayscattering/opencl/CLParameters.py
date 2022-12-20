@@ -71,14 +71,13 @@ class CLParameters:
 
     @property
     def requiredRAMBytes(self) -> float:
-        averageNBatches = int(1.3 * (1 / CONFIG.BATCH_LOAD_FACTOR))
-        concatenationFactor = 2
+        averageNBatches = 1.4 * (1 / CONFIG.BATCH_LOAD_FACTOR)
         overHead = 1.15
-        return overHead * concatenationFactor * averageNBatches * self._maxLoggerMemory
+        return overHead * averageNBatches * self._maxLoggerMemory
 
     def _assertEnoughRAM(self):
         freeSystemRAM = psutil.virtual_memory().available
-        if self.requiredRAMBytes > 0.9 * freeSystemRAM:
+        if self.requiredRAMBytes > 0.8 * freeSystemRAM:
             warnings.warn(f"WARNING: Available system RAM might not be enough for the simulation. "
                           f"Estimated requirement: {self.requiredRAMBytes // 1024**2} MB, "
                           f"Available: {freeSystemRAM // 1024**2} MB.")
