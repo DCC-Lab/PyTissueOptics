@@ -53,7 +53,6 @@ class CLPhotons:
 
         photonCount = 0
         batchCount = 0
-        logArrays = []
         t0 = time.time_ns()
 
         while photonCount < self._N:
@@ -65,7 +64,10 @@ class CLPhotons:
                                             scene.materials, scene.nSolids, scene.solids, scene.surfaces, scene.triangles,
                                             scene.vertices, scene.solidCandidates, seeds, logger])
             t2 = time.time_ns()
-            logArrays.append(program.getData(logger))
+
+            log = program.getData(logger)
+            self._translateToSceneLogger(log, scene)
+
             logger.reset()
             program.getData(kernelPhotons)
             batchPhotonCount, photonCount = self._replaceFullyPropagatedPhotons(kernelPhotons, photonPool,
@@ -74,13 +76,6 @@ class CLPhotons:
             self._showProgress(photonCount, batchPhotonCount, batchCount, t0, t1, t2, params.maxPhotonsPerBatch, verbose)
             params.maxPhotonsPerBatch = kernelPhotons.length
             batchCount += 1
-
-        del logger, kernelPhotons, photonPool, seeds, program, params
-        gc.collect()
-
-        log = self._concatenateArrays(logArrays, verbose)
-
-        self._translateToSceneLogger(log, scene, verbose)
 
     def _replaceFullyPropagatedPhotons(self, kernelPhotons: PhotonCL, photonPool: PhotonCL,
                                        photonCount: int, currentKernelLength: int) -> (int, int):
@@ -98,19 +93,7 @@ class CLPhotons:
         kernelPhotons.hostBuffer = np.delete(kernelPhotons.hostBuffer, photonsToRemove)
         return batchPhotonCount, photonCount
 
-    def _concatenateArrays(self, arrays, verbose):
-        """ Memory efficient concatenation of arrays. """
-        t4 = time.time()
-        log = np.empty(shape=(0, 6), dtype=np.float32)
-        for i in range(len(arrays)):
-            arr = arrays.pop(0)
-            log = np.concatenate((log, arr))
-
-        if verbose:
-            print(f" ... {time.time() - t4:.3f} s. [Concatenate logger arrays]")
-        return log
-
-    def _translateToSceneLogger(self, log, sceneCL, verbose):
+    def _translateToSceneLogger(self, log, sceneCL, verbose: bool = False):
         if not self._sceneLogger:
             return
 
