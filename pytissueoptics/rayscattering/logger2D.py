@@ -1,6 +1,9 @@
+import copy
 from typing import Union, Tuple
 
+import matplotlib
 import numpy as np
+import matplotlib.pyplot as plt
 
 from pytissueoptics.scene.logger.logger import Logger, InteractionKey
 
@@ -25,11 +28,29 @@ class View2D:
 
     def extractData(self, dataPoints: np.ndarray):
         """ Data points are (n, 4) arrays with (value, x, y, z). """
-        self._data += np.histogramdd(dataPoints[:, 1:], bins=self._bins, weights=dataPoints[:, 0], range=self._limits)[0]
+        u, v, w = dataPoints[:, 1 + self.axisU], dataPoints[:, 1 + self.axisV], dataPoints[:, 0]
+        self._data += np.histogram2d(u, v, weights=w, bins=self._bins, range=self._limits, normed=True)[0]
 
     @property
     def axis(self) -> int:
         return self._axis
+
+    @property
+    def axisU(self) -> int:
+        return (self._axis + 1) % 3
+
+    @property
+    def axisV(self) -> int:
+        return (self._axis + 2) % 3
+
+    def show(self, logScale: bool = True, colormap: str = 'viridis'):
+        norm = matplotlib.colors.LogNorm() if logScale else None
+        cmap = copy.copy(matplotlib.cm.get_cmap(colormap))
+        cmap.set_bad(cmap.colors[0])
+        plt.imshow(self._data, norm=norm, cmap=cmap, extent=self._limits[0] + self._limits[1])
+        plt.xlabel('xyz'[self.axisU])
+        plt.ylabel('xyz'[self.axisV])
+        plt.show()
 
 
 class Logger2D(Logger):
@@ -59,13 +80,15 @@ class Logger2D(Logger):
         self._compile()
 
     def _compile(self):
-        # dataPoints = self.getDataPoints()  # (n, (value, x, y, z))
-        # OR the following (maybe faster):
-        for container in self._data.values():
-            dataPoints = container.dataPoints
-            if dataPoints is not None:
-                for view in self._views:
-                    view.extractData(dataPoints)
+        for key, data in self._data.items():
+            if key.surfaceLabel is not None:
+                # skipping surface data for now
+                continue
+            datapoints = data.dataPoints
+            if datapoints is None or len(datapoints) == 0:
+                continue
+            for view in self._views:
+                view.extractData(datapoints.array)
         self._data.clear()
 
     @property
