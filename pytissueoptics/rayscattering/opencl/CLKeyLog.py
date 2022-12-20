@@ -17,7 +17,8 @@ class CLKeyLog:
 
         self._keyIndices = []
         self._keyLog = {}
-        self._nBatch = 1000
+
+        self._batchSize = min(50000, len(self._log))
 
         self._extractKeyLog()
 
@@ -108,7 +109,3 @@ class CLKeyLog:
 
     def _getInteractionKey(self, solidID: int, surfaceID: int):
         return InteractionKey(self._sceneCL.getSolidLabel(solidID), self._sceneCL.getSurfaceLabel(solidID, surfaceID))
-
-    @property
-    def _batchSize(self):
-        return max(1, self._log.shape[0] // self._nBatch)
