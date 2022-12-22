@@ -2,3 +2,5 @@ numpy
 matplotlib
 tqdm
 mockito
+pytest
+mayavi
