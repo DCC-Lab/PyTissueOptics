@@ -1,9 +1,8 @@
-from pytissueoptics.scene.geometry import Polygon, Vector
-from pytissueoptics.scene.materials import Material
+from pytissueoptics.scene.geometry import Polygon, Vector, Environment, Vertex
 
 
 class Triangle(Polygon):
-    def __init__(self, v1: Vector, v2: Vector, v3: Vector,
-                 insideMaterial: Material = None, outsideMaterial: Material = None):
+    def __init__(self, v1: Vertex, v2: Vertex, v3: Vertex,
+                 insideEnvironment: Environment = None, outsideEnvironment: Environment = None, normal: Vector = None):
         super().__init__(vertices=[v1, v2, v3],
-                         insideMaterial=insideMaterial, outsideMaterial=outsideMaterial)
+                         insideEnvironment=insideEnvironment, outsideEnvironment=outsideEnvironment, normal=normal)

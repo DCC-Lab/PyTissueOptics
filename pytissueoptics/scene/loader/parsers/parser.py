@@ -24,25 +24,33 @@ class Parser:
     NO_OBJECT = "noObject"
     NO_SURFACE = "noSurface"
 
-    def __init__(self, filepath: str):
+    def __init__(self, filepath: str, showProgress: bool = True):
         self._filepath = filepath
         self._objects: Dict[str, ParsedObject] = {}
         self._vertices: List[List[float]] = []
         self._normals: List[List[float]] = []
         self._texCoords: List[List[float]] = []
         self._currentObjectName: str = self.NO_OBJECT
-        self._currentSurfaceName: str = self.NO_SURFACE
+        self._currentSurfaceLabel: str = self.NO_SURFACE
         self._checkFileExtension()
-        self._parse()
+        self._parse(showProgress)
 
     def _checkFileExtension(self):
         raise NotImplementedError
 
-    def _parse(self):
+    def _parse(self, showProgress: bool = True):
         raise NotImplementedError
 
-    def _resetSurfaceName(self):
-        self._currentSurfaceName = self.NO_SURFACE
+    def _resetSurfaceLabel(self):
+        self._currentSurfaceLabel = self.NO_SURFACE
+
+    def _validateSurfaceLabel(self):
+        if self._currentSurfaceLabel not in self._objects[self._currentObjectName].surfaces:
+            return
+        idx = 0
+        while f"{self._currentSurfaceLabel}_{idx}" in self._objects[self._currentObjectName].surfaces:
+            idx += 1
+        self._currentSurfaceLabel = f"{self._currentSurfaceLabel}_{idx}"
 
     @property
     def vertices(self):

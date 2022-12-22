@@ -2,33 +2,40 @@ from typing import List
 
 import numpy as np
 
-from pytissueoptics.scene.geometry import Vector, utils, Polygon
-from pytissueoptics.scene.geometry import primitives
-from pytissueoptics.scene.materials import Material
-from pytissueoptics.scene.geometry import SurfaceCollection
+from pytissueoptics.scene.geometry import Vector, utils, Polygon, Rotation, BoundingBox, Vertex, Triangle
+from pytissueoptics.scene.geometry import primitives, Environment, SurfaceCollection
 
 
 class Solid:
-    def __init__(self, vertices: List[Vector], position: Vector = Vector(0, 0, 0),
-                 surfaces: SurfaceCollection = None, material: Material = None, primitive: str = primitives.DEFAULT):
+    def __init__(self, vertices: List[Vertex], position: Vector = Vector(0, 0, 0),
+                 surfaces: SurfaceCollection = None, material=None,
+                 label: str = "solid", primitive: str = primitives.DEFAULT, smooth: bool = False):
         self._vertices = vertices
         self._surfaces = surfaces
         self._material = material
         self._primitive = primitive
         self._position = Vector(0, 0, 0)
+        self._orientation: Rotation = Rotation()
+        self._bbox = None
+        self._label = label
 
         if not self._surfaces:
             self._computeMesh()
 
         self.translateTo(position)
-        self._setInsideMaterial()
+        self._setInsideEnvironment()
+        self._resetBoundingBoxes()
+        self._resetPolygonsCentroids()
+
+        if smooth:
+            self.smooth()
 
     @property
     def position(self) -> Vector:
         return self._position
 
     @property
-    def vertices(self) -> List[Vector]:
+    def vertices(self) -> List[Vertex]:
         return self._vertices
 
     @property
@@ -38,6 +45,29 @@ class Solid:
     @property
     def primitive(self) -> str:
         return self._primitive
+
+    @property
+    def bbox(self) -> BoundingBox:
+        return self._bbox
+
+    def getBoundingBox(self) -> BoundingBox:
+        return self.bbox
+
+    def getVertices(self) -> List[Vertex]:
+        return self.vertices
+
+    def getLabel(self) -> str:
+        return self._label
+
+    def setLabel(self, label: str):
+        self._label = label
+
+    def _resetBoundingBoxes(self):
+        self._bbox = BoundingBox.fromVertices(self._vertices)
+        self._surfaces.resetBoundingBoxes()
+
+    def _resetPolygonsCentroids(self):
+        self._surfaces.resetCentroids()
 
     def translateTo(self, position):
         if position == self._position:
@@ -49,8 +79,19 @@ class Solid:
         self._position.add(translationVector)
         for v in self._vertices:
             v.add(translationVector)
+        self._resetBoundingBoxes()
+        self._resetPolygonsCentroids()
 
-    def rotate(self, xTheta=0, yTheta=0, zTheta=0):
+    def scale(self, factor: float):
+        for v in self._vertices:
+            v.multiply(factor)
+
+        previousPosition = self._position.copy()
+        self._position = self._position * factor
+        positionDifference = previousPosition - self._position
+        self.translateBy(positionDifference)
+
+    def rotate(self, xTheta=0, yTheta=0, zTheta=0, rotationCenter: Vector = None):
         """
         Requires the angle in degrees for each axis around which the solid will be rotated.
 
@@ -59,39 +100,48 @@ class Solid:
         Finally we update the solid vertices' components with the values of this rotated array reference and ask each
         solid surface to compute its new normal.
         """
-        verticesArrayAtOrigin = self._verticesArray - self.position.array
-        rotatedVerticesArrayAtOrigin = utils.rotateVerticesArray(verticesArrayAtOrigin, xTheta, yTheta, zTheta)
-        rotatedVerticesArray = rotatedVerticesArrayAtOrigin + self.position.array
+        rotation = Rotation(xTheta, yTheta, zTheta)
+        if rotationCenter is None:
+            rotationCenter = self.position
+        verticesArrayAtOrigin = np.concatenate((self._verticesArray, np.array([self._position.array]))) - rotationCenter.array
+        rotatedVerticesArrayAtOrigin = utils.rotateVerticesArray(verticesArrayAtOrigin, rotation)
+        rotatedVerticesArray = rotatedVerticesArrayAtOrigin + rotationCenter.array
 
         for (vertex, rotatedVertexArray) in zip(self._vertices, rotatedVerticesArray):
             vertex.update(*rotatedVertexArray)
 
+        self._position = Vector(*rotatedVerticesArray[-1])
+
+        self._orientation.add(rotation)
         self._surfaces.resetNormals()
+        self._resetBoundingBoxes()
+        self._resetPolygonsCentroids()
 
-    def getMaterial(self, surfaceName: str = None) -> Material:
-        if surfaceName:
-            return self.surfaces.getInsideMaterial(surfaceName)
+    def getEnvironment(self, surfaceLabel: str = None) -> Environment:
+        if surfaceLabel:
+            return self.surfaces.getInsideEnvironment(surfaceLabel)
         else:
-            return self._material
+            return Environment(self._material, self)
 
-    def setOutsideMaterial(self, material: Material, surfaceName: str = None):
-        self._surfaces.setOutsideMaterial(material, surfaceName)
+    def setOutsideEnvironment(self, environment: Environment, surfaceLabel: str = None):
+        self._surfaces.setOutsideEnvironment(environment, surfaceLabel)
 
     @property
-    def surfaceNames(self) -> List[str]:
-        return self._surfaces.surfaceNames
+    def surfaceLabels(self) -> List[str]:
+        return self._surfaces.surfaceLabels
 
-    def getPolygons(self, surfaceName: str = None) -> List[Polygon]:
-        return self._surfaces.getPolygons(surfaceName)
+    def getPolygons(self, surfaceLabel: str = None) -> List[Polygon]:
+        return self._surfaces.getPolygons(surfaceLabel)
 
-    def setPolygons(self, surfaceName: str, polygons: List[Polygon]):
-        self._surfaces.setPolygons(surfaceName, polygons)
+    def setPolygons(self, surfaceLabel: str, polygons: List[Polygon]):
+        self._surfaces.setPolygons(surfaceLabel, polygons)
 
+        currentVerticesIDs = {id(vertex) for vertex in self._vertices}
         newVertices = []
         for polygon in polygons:
             newVertices.extend(polygon.vertices)
         for vertex in newVertices:
-            if vertex not in self._vertices:
+            if id(vertex) not in currentVerticesIDs:
                 self._vertices.append(vertex)
 
     @property
@@ -116,8 +166,47 @@ class Solid:
     def _computeQuadMesh(self):
         raise NotImplementedError(f"Quad mesh not implemented for Solids of type {type(self).__name__}")
 
-    def _setInsideMaterial(self):
-        if self._material is None:
+    def _setInsideEnvironment(self):
+        polygons = self._surfaces.getPolygons()
+        if not self._material and polygons[0].insideEnvironment is not None:
             return
-        for polygon in self._surfaces.getPolygons():
-            polygon.setInsideMaterial(self._material)
+        for polygon in polygons:
+            polygon.setInsideEnvironment(Environment(self._material, self))
+
+    def setMaterial(self, material):
+        self._material = material
+        self._setInsideEnvironment()
+
+    def contains(self, *vertices: Vertex) -> bool:
+        return False
+
+    def isStack(self) -> bool:
+        for surfaceLabel in self.surfaceLabels:
+            if "interface" in surfaceLabel:
+                return True
+        return False
+
+    def smooth(self, surfaceLabel: str = None):
+        """ Prepare smoothing by calculating vertex normals. This is not done
+        by default. The vertex normals are used during ray-polygon intersection
+        to return an interpolated (smooth) normal. A vertex normal is defined
+        by taking the average normal of all adjacent polygons.
+
+        This base implementation will smooth all surfaces by default. This can
+        be changed by overwriting the signature with a specific surfaceLabel in
+        another solid implementation and calling super().smooth(surfaceLabel).
+        """
+
+        polygons = self.getPolygons(surfaceLabel)
+
+        for polygon in polygons:
+            polygon.toSmooth = True
+            for vertex in polygon.vertices:
+                if vertex.normal:
+                    vertex.normal += polygon.normal
+                else:
+                    vertex.normal = polygon.normal.copy()
+
+        for vertex in self.vertices:
+            if vertex.normal:
+                vertex.normal.normalize()

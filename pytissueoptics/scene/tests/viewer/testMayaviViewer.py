@@ -19,12 +19,12 @@ class TestMayaviViewer(unittest.TestCase):
         self.assertEqual(1, fakeMayaviTriangularMesh.call_count)
 
     @patch('mayavi.mlab.triangular_mesh')
-    def testWhenAddSolidWithoutTrianglePrimitive_shouldNotAddTheSolid(self, fakeMayaviTriangularMesh):
+    def testWhenAddSolidWithQuadPrimitive_shouldAddTheSolid(self, fakeMayaviTriangularMesh):
         solid = Cube(3, primitive=primitives.QUAD)
 
-        with self.assertRaises(Exception):
-            self.viewer.add(solid)
-        self.assertEqual(0, fakeMayaviTriangularMesh.call_count)
+        self.viewer.add(solid)
+
+        self.assertEqual(1, fakeMayaviTriangularMesh.call_count)
 
     @patch('mayavi.mlab.show')
     def testWhenShow_shouldDisplayTheMayaviViewer(self, fakeShow):

@@ -1,7 +1,7 @@
 import unittest
 import math
 
-from pytissueoptics.scene.geometry import Vector
+from pytissueoptics.scene.geometry import Vector, Vertex
 from pytissueoptics.scene.solids import Ellipsoid
 
 
@@ -15,15 +15,10 @@ class TestEllipsoid(unittest.TestCase):
         ellipsoid = Ellipsoid(position=position)
         self.assertEqual(Vector(2, 2, 1), ellipsoid.position)
 
-    def testGivenANewDefault_shouldHaveARadiusOfNone(self):
-        ellipsoid = Ellipsoid()
-        self.assertIsNone(ellipsoid.radius)
-
     def testGivenALowOrderSphericalEllipsoid_shouldApproachCorrectSphereAreaTo5Percent(self):
         ellipsoid = Ellipsoid(a=1, b=1, c=1, order=3)
         perfectSphereArea = 4 * math.pi
         tolerance = 0.05
-
         ellipsoidArea = self._getTotalTrianglesArea(ellipsoid.getPolygons())
 
         self.assertAlmostEqual(perfectSphereArea, ellipsoidArea, delta=tolerance * perfectSphereArea)
@@ -32,7 +27,6 @@ class TestEllipsoid(unittest.TestCase):
         ellipsoid = Ellipsoid(a=2, b=3, c=5, order=2)
         perfectEllipsoidArea = self._getPerfectEllipsoidArea(ellipsoid)
         tolerance = 0.05
-
         ellipsoidArea = self._getTotalTrianglesArea(ellipsoid.getPolygons())
 
         self.assertAlmostEqual(perfectEllipsoidArea, ellipsoidArea, delta=perfectEllipsoidArea * tolerance)
@@ -42,7 +36,6 @@ class TestEllipsoid(unittest.TestCase):
         ellipsoid = Ellipsoid(a=2, b=3, c=5, order=3)
         perfectEllipsoidArea = self._getPerfectEllipsoidArea(ellipsoid)
         tolerance = 0.01
-
         ellipsoidArea = self._getTotalTrianglesArea(ellipsoid.getPolygons())
 
         self.assertAlmostEqual(perfectEllipsoidArea, ellipsoidArea, delta=tolerance * perfectEllipsoidArea)
@@ -63,3 +56,16 @@ class TestEllipsoid(unittest.TestCase):
         b = ellipsoid._b
         c = ellipsoid._c
         return 4 * math.pi * ((a ** p * b ** p + a ** p * c ** p + b ** p * c ** p) / 3) ** (1 / p)
+
+    def testWhenContainsWithVerticesThatAreAllInsideTheEllipsoid_shouldReturnTrue(self):
+        ellipsoid = Ellipsoid(3, 1, 1, position=Vector(2, 2, 0))
+        ellipsoid.rotate(0, 0, 30)
+        vertices = [Vertex(3.3, 3, 0), Vertex(2, 2, 0)]
+
+        self.assertTrue(ellipsoid.contains(*vertices))
+
+    def testWhenContainsWithVerticesThatAreNotAllInsideTheEllipsoid_shouldReturnFalse(self):
+        ellipsoid = Ellipsoid(3, 1, 1, position=Vector(2, 2, 0))
+        vertices = [Vertex(3.4, 2.9, 0), Vertex(2, 2, 0)]
+
+        self.assertFalse(ellipsoid.contains(*vertices))

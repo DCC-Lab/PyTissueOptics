@@ -4,29 +4,23 @@ import setuptools
 To distribute:
 =============
 rm dist/*; python setup.py sdist bdist_wheel; python -m twine upload dist/* 
-
 """
-
 
 setuptools.setup(
     name="pytissueoptics",
-    version="1.0.4",
+    version="2.0.0",
     url="https://github.com/DCC-Lab/PyTissueOptics",
-    author="Daniel Cote",
-    author_email="dccote@cervo.ulaval.ca",
-    description="Tissue optics Monte Carlo",
+    authors=["Marc-Andre Vigneault", "Ludovick Begin", "Daniel Cote"],
+    authors_emails=["marc-andre.vigneault.2@ulaval.ca", "ludovick.begin.1@ulaval.ca", "dccote@cervo.ulaval.ca"],
+    description="Monte Carlo Light Propagation in Python for tissues",
     long_description=open('README.md').read(),
     long_description_content_type='text/markdown',
     license='MIT',
-    keywords='tissue optics monte carlo',
+    keywords='tissue optics monte carlo light propagation simulation',
     packages=setuptools.find_packages(),
-    install_requires=['matplotlib>=3', 'numpy'],
+    install_requires=['matplotlib', 'numpy'],
     python_requires='>=3.6',
-    package_data = {
-        # If any package contains *.txt or *.rst files, include them:
-        '': ['*.png'],
-        "doc": ['*.html']
-    },
+    package_data={'': ['*.png'], "doc": ['*.html']},
     classifiers=[
         'Development Status :: 5 - Production/Stable',
         'Intended Audience :: Science/Research',
