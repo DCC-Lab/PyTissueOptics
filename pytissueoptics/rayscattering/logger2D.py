@@ -20,8 +20,21 @@ class Direction(Enum):
     def sameAxis(self, other) -> bool:
         return self.value % 3 == other.value % 3
 
+    @property
     def axis(self) -> int:
         return self.value % 3
+
+    @property
+    def isNegative(self) -> bool:
+        return self.value >= 3
+
+    @property
+    def isPositive(self) -> bool:
+        return not self.isNegative
+
+    @property
+    def sign(self) -> int:
+        return 1 if self.isPositive else -1
 
 
 class View2D:
@@ -29,6 +42,7 @@ class View2D:
                  limits3D: Tuple[Tuple[float, float], Tuple[float, float], Tuple[float, float]],
                  bins3D: Union[int, Tuple[int, int, int]], position: float = None, thickness: float = None):
         """
+        # fixme: deprecated docstring
         If position is None, the view is a projection (average) of the 3D datapoints on the plane defined by the axis.
         If position is not None, the view is a slice with thickness of the 3D datapoints at the given position.
         The limits and the number of bins are given for the two axes orthogonal to the view axis.
@@ -53,11 +67,11 @@ class View2D:
 
     @property
     def axis(self) -> int:
-        return self._projectionDirection.axis()
+        return self._projectionDirection.axis
 
     @property
     def axisU(self) -> int:
-        return self._horizontalDirection.axis()
+        return self._horizontalDirection.axis
 
     @property
     def axisV(self) -> int:
@@ -68,13 +82,34 @@ class View2D:
         Data points are (n, 4) arrays with (value, x, y, z).
         """
         u, v, w = dataPoints[:, 1 + self.axisU], dataPoints[:, 1 + self.axisV], dataPoints[:, 0]
-        self._dataVU += np.histogram2d(v, u, weights=w, normed=True,
-                                       bins=(self._binsV, self._binsU), range=(self._limitsV, self._limitsU))[0]
+        tempData = np.histogram2d(v, u, weights=w, normed=True,
+                                  bins=(self._binsV, self._binsU), range=(self._limitsV, self._limitsU))[0]
+        self._dataVU += np.flip(tempData, axis=0)
+
+    @property
+    def _verticalIsNegative(self):
+        requiredAxisForFlip = (self._projectionDirection.axis + self._projectionDirection.sign) % 3
+        positiveRequiresFlip = self._horizontalDirection.axis == requiredAxisForFlip
+        if self._horizontalDirection.isPositive and positiveRequiresFlip:
+            return True
+        elif self._horizontalDirection.isNegative and not positiveRequiresFlip:
+            return True
+        else:
+            return False
 
     def show(self, logScale: bool = True, colormap: str = 'viridis'):
         norm = matplotlib.colors.LogNorm() if logScale else None
         cmap = copy.copy(matplotlib.cm.get_cmap(colormap))
         cmap.set_bad(cmap.colors[0])
+
+        if self._verticalIsNegative:
+            self._dataVU = np.flip(self._dataVU, axis=0)
+            self._limitsV = self._limitsV[::-1]
+
+        if self._horizontalDirection.isNegative:
+            self._dataVU = np.flip(self._dataVU, axis=1)
+            self._limitsU = self._limitsU[::-1]
+
         plt.imshow(self._dataVU, norm=norm, cmap=cmap, extent=self._limitsU + self._limitsV)
         plt.xlabel('xyz'[self.axisU])
         plt.ylabel('xyz'[self.axisV])
@@ -86,6 +121,7 @@ class Logger2D(Logger):
     Lightweight logger alternative. When datapoints are logged, they are automatically binned to
     predefined 2D views and the 3D data is discarded.
     """
+
     # todo: overwrite load() and save() to track the 2D views instead of the 3D data points
     # fixme: Only supports DataPoints (n, 4) => Implicit violation of Logger contract (LSP)
     def __init__(self, limits: Tuple[Tuple[float, float], Tuple[float, float], Tuple[float, float]],
@@ -100,6 +136,8 @@ class Logger2D(Logger):
     def _initViews(self):
         self._views = []
         self._views.append(View2D(Direction.X_POS, Direction.Z_POS, self._limits, self._bins))
+        self._views.append(View2D(Direction.Y_NEG, Direction.Z_POS, self._limits, self._bins))
+        self._views.append(View2D(Direction.Z_POS, Direction.X_NEG, self._limits, self._bins))
 
     def logDataPointArray(self, array: np.ndarray, key: InteractionKey):
         super().logDataPointArray(array, key)
