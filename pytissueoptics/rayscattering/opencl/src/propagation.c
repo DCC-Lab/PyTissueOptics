@@ -4,8 +4,8 @@
 #include "intersection.c"
 #include "fresnel.c"
 
-__constant int NO_SOLID_ID = -1;
-__constant int NO_SURFACE_ID = -1;
+const int NO_SOLID_ID = -1;
+const int NO_SURFACE_ID = -1;
 
 void moveBy(float distance, __global Photon *photons, uint photonID){
     photons[photonID].position += (distance * photons[photonID].direction);

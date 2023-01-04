@@ -1,10 +1,5 @@
-import sys
-from os.path import dirname
-newPath = dirname(__file__)+"/../../.."
-print(newPath)
-sys.path.append(newPath)
-
 import numpy as np
+
 from pytissueoptics import *
 
 
