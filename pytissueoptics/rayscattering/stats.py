@@ -9,6 +9,7 @@ import numpy as np
 from matplotlib import pyplot as plt
 
 from pytissueoptics.rayscattering.source import Source
+from pytissueoptics.rayscattering.logger2D import Logger2D
 from pytissueoptics.rayscattering.tissues.rayScatteringScene import RayScatteringScene
 from pytissueoptics.scene import Logger, Vector
 from pytissueoptics.scene.logger import InteractionKey
@@ -78,6 +79,31 @@ class Stats:
     def showEnergy3DOfSurfaces(self, solidLabel: str = None, config=DisplayConfig()):
         pointCloud = self._getPointCloudOfSurfaces(solidLabel)
         return self._show3DPointCloud(pointCloud, config=config)
+
+    def showLogger2DIn3D(self, showSource: bool = True):
+        # fixme: this whole Logger2D vs Logger inside Stats object is really bad flow (OCP, LSP)
+        assert isinstance(self._logger, Logger2D), "Logger must be a Logger2D instance."
+
+        from pytissueoptics.scene import MayaviViewer, MAYAVI_AVAILABLE
+        if not MAYAVI_AVAILABLE:
+            warnings.warn("Package 'mayavi' is not available. Please install it to use 3D visualizations.")
+            return
+
+        viewer = MayaviViewer()
+
+        if self._scene:
+            self._scene.addToViewer(viewer)
+
+        if showSource:
+            self._source.addToViewer(viewer, size=0.1)
+
+        for view in self._logger.views:
+            positionMin, positionMax = sorted(self._logger._limits[view.axis])
+            position = positionMin if view._projectionDirection.isPositive else positionMax
+            position *= 1.1
+            viewer.addImage(view.getImageData(), view.size, view.minCorner, view.axis, position)
+
+        viewer.show()
 
     def getPhotonCount(self) -> int:
         if "photonCount" not in self._logger.info:

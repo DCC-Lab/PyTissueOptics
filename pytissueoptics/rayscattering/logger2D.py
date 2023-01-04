@@ -65,21 +65,27 @@ class View2D:
         self._limitsV = None
         self._binsU = None
         self._binsV = None
-        
+
         self._dataUV = None
 
     def setContext(self, limits3D: Tuple[Tuple[float, float], Tuple[float, float], Tuple[float, float]],
                    bins3D: Union[int, Tuple[int, int, int]]):
         """
-        Used internally by the Logger2D when initializing the views. The limits and the number of bins are given for
+        Used internally by Logger2D when initializing the views. The limits and the number of bins are given for
         the three dimensions. The view will automatically take the required UV bins and limits from the list. The
         limits are (lower, upper) bounds in the same physical units than the logged data points.
         """
         bins3D = bins3D if isinstance(bins3D, tuple) else (bins3D, bins3D, bins3D)
         self._binsU = bins3D[self.axisU]
         self._binsV = bins3D[self.axisV]
-        self._limitsU = limits3D[self.axisU]
-        self._limitsV = limits3D[self.axisV]
+        self._limitsU = sorted(limits3D[self.axisU])
+        self._limitsV = sorted(limits3D[self.axisV])
+
+        if self._verticalIsNegative:
+            self._limitsV = self._limitsV[::-1]
+
+        if self._horizontalDirection.isNegative:
+            self._limitsU = self._limitsU[::-1]
 
         self._dataUV = np.zeros((self._binsU, self._binsV), dtype=np.float32)
 
@@ -100,11 +106,12 @@ class View2D:
 
     def extractData(self, dataPoints: np.ndarray):
         """
+        Used internally by Logger2D to store 3D datapoints into this 2D view.
         Data points are (n, 4) arrays with (value, x, y, z).
         """
         u, v, w = dataPoints[:, 1 + self.axisU], dataPoints[:, 1 + self.axisV], dataPoints[:, 0]
-        meanUVProjection = np.histogram2d(u, v, weights=w, normed=True,
-                                          bins=(self._binsU, self._binsV), range=(self._limitsU, self._limitsV))[0]
+        meanUVProjection = np.histogram2d(u, v, weights=w, normed=True, bins=(self._binsU, self._binsV),
+                                          range=(sorted(self._limitsU), sorted(self._limitsV)))[0]
         self._dataUV += np.flip(meanUVProjection, axis=1)
 
     @property
@@ -118,21 +125,44 @@ class View2D:
             return verticalIsNegativeWithPositiveHorizontal
         return not verticalIsNegativeWithPositiveHorizontal
 
+    def getImageData(self, logNorm: bool = True) -> np.ndarray:
+        image = self._dataUV
+        if self._verticalIsNegative:
+            image = np.flip(image, axis=1)
+        if self._horizontalDirection.isNegative:
+            image = np.flip(image, axis=0)
+
+        if logNorm:
+            eps = 10 ** (-6)
+            image /= np.max(image)
+            image = np.log(image + eps)
+            image -= np.min(image)
+            image /= np.max(image)
+        return image
+
+    @property
+    def extent(self) -> Tuple[float, float, float, float]:
+        """ Image extent [left, right, bottom, top]. """
+        return self._limitsU + self._limitsV
+
+    @property
+    def size(self) -> Tuple[float, float]:
+        uSize = max(self._limitsU) - min(self._limitsU)
+        vSize = max(self._limitsV) - min(self._limitsV)
+        return uSize, vSize
+
+    @property
+    def minCorner(self) -> Tuple[float, float]:
+        return min(self._limitsU), min(self._limitsV)
+
     def show(self, logScale: bool = True, colormap: str = 'viridis'):
-        norm = matplotlib.colors.LogNorm() if logScale else None
         cmap = copy.copy(matplotlib.cm.get_cmap(colormap))
         cmap.set_bad(cmap.colors[0])
 
-        if self._verticalIsNegative:
-            self._dataUV = np.flip(self._dataUV, axis=1)
-            self._limitsV = self._limitsV[::-1]
-
-        if self._horizontalDirection.isNegative:
-            self._dataUV = np.flip(self._dataUV, axis=0)
-            self._limitsU = self._limitsU[::-1]
+        image = self.getImageData(logNorm=logScale)
 
         # N.B.: imshow() expects the data array to be (y, x), so we need to transpose the data array.
-        plt.imshow(self._dataUV.T, norm=norm, cmap=cmap, extent=self._limitsU + self._limitsV)
+        plt.imshow(image.T, cmap=cmap, extent=self.extent)
         plt.xlabel('xyz'[self.axisU])
         plt.ylabel('xyz'[self.axisV])
         plt.show()

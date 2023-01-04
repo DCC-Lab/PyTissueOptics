@@ -18,7 +18,7 @@ class MayaviViewer:
         self._scenes = {
             "DefaultScene": {"figureParameters": {"bgColor": (0.11, 0.11, 0.11), "fgColor": (0.9, 0.9, 0.9)},
                              "Solids": [], }}
-        self._view = {"azimuth": 0, "zenith": 0, "distance": None, "pointingTowards": None, "roll": None}
+        self._view = {"azimuth": -30, "zenith": 215, "distance": None, "pointingTowards": None, "roll": -0}
         self.clear()
 
     def addScene(self, scene: Scene, representation="wireframe", lineWidth=0.25, showNormals=False, normalLength=0.3,
@@ -81,6 +81,32 @@ class MayaviViewer:
             z = [segment[2], segment[5]]
             s = mlab.plot3d(x, y, z, tube_radius=None, line_width=1, colormap=colormap)
             s.module_manager.scalar_lut_manager.reverse_lut = reverseColormap
+
+    @staticmethod
+    def addImage(image: np.ndarray, sizeInCM: tuple = None, minCorner: tuple = (0, 0),
+                 axis: int = 2, position: float = 0):
+        if sizeInCM is None:
+            sizeInCM = image.shape
+        overSampling = 5  # 10% lost on edge pixel (0.5/oversampling)
+        image = np.repeat(np.repeat(image, overSampling, axis=0), overSampling, axis=1)
+
+        image = np.flip(image, axis=0)
+        image = np.flip(image, axis=1)
+
+        p = mlab.imshow(image, colormap='viridis', interpolate=False,
+                        extent=[0, sizeInCM[0], 0, sizeInCM[1], position, position], )
+        p.actor.force_opaque = True
+
+        tempPosition = [minCorner[0] + sizeInCM[0] / 2, minCorner[1] + sizeInCM[1] / 2]
+        tempPosition.insert(axis, position)
+        p.actor.position = tempPosition
+
+        if axis == 0:
+            p.actor.rotate_y(90)
+        elif axis == 1:
+            p.actor.rotate_x(90)
+            p.actor.rotate_z(-90)
+        return p
 
     def _assignViewPoint(self):
         azimuth, elevation, distance, towards, roll = (self._view[key] for key in self._view)
