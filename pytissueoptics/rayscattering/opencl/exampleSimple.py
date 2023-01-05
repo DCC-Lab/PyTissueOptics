@@ -1,10 +1,11 @@
+import os
 import sys
-from os.path import dirname
-newPath = dirname(__file__)+"/../../.."
-print(newPath)
-sys.path.append(newPath)
 
 import numpy as np
+
+modulePath = os.path.abspath(__file__ + 4 * '/..')
+sys.path.append(modulePath)
+
 from pytissueoptics import *
 
 
