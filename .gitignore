@@ -125,7 +125,6 @@ dmypy.json
 .pyre/
 output.json
 test.py
-test.py
 
 .idea/workspace.xml
 
@@ -134,6 +133,4 @@ test.py
 pytissueoptics/scene/examples/brain-simple-2.obj
 
 pytissueoptics/scene/tests/tree/treeConstructor/profilerTreeConstructor.py
-pytissueoptics/rayscattering/opencl/ipp.json
-pytissueoptics/rayscattering/opencl/config.json
 pytissueoptics/rayscattering/tests/_trial_temp/_trial_marker
