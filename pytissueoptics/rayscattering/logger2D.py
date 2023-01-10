@@ -1,6 +1,6 @@
 import copy
-from enum import Enum
-from typing import Union, Tuple
+from enum import Enum, Flag
+from typing import Union, Tuple, List
 
 import matplotlib
 import numpy as np
@@ -167,6 +167,43 @@ class View2D:
         plt.ylabel('xyz'[self.axisV])
         plt.show()
 
+
+class ViewGroup(Flag):
+    """
+    A ViewGroup is a bit Flag representing a group of 2D views. They can be combined with the `|` operator (bitwise OR).
+
+    It has two different usages:
+        1. Specify which default views to create when initializing an EnergyLogger, particularly when `keep3D` is False.
+        2. Specify which views to show during visualization.
+
+    In the first use case, the default views created are three 2D projections of the whole scene (`SCENE`) or of each solid (`SOLIDS`) in every XYZ direction.
+     Except for surface groups, where the default views created include a single 2D projection in the direction of the surface normal.
+     `SURFACES_ENTERING` specifies the energy that entered the surface (energy direction opposite to the surface normal).
+
+    """
+    SCENE = 1
+    SOLIDS = 2
+    SURFACES_ENTERING = 4
+    SURFACES_LEAVING = 8
+    SURFACES = SURFACES_ENTERING | SURFACES_LEAVING
+    ALL = SCENE | SOLIDS | SURFACES
+
+
+class Visibility(Flag):
+    """
+    A Visibility is a bit Flag representing what to show inside a 3D visualization. They can be combined with the `|` operator (bitwise OR).
+    """
+
+    SCENE = 1
+    SOURCE = 2
+    VIEWS = 4
+    POINT_CLOUD = 8
+    POINTS_SURFACES_ENTERING = 16
+    POINTS_SURFACES_LEAVING = 32
+    POINTS_SURFACES = POINTS_SURFACES_ENTERING | POINTS_SURFACES_LEAVING
+
+    DEFAULT_3D = SCENE | SOURCE | POINT_CLOUD | POINTS_SURFACES_ENTERING
+    DEFAULT_2D = SCENE | SOURCE | VIEWS
 
 class Logger2D(Logger):
     """
