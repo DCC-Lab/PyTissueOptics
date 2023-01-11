@@ -106,6 +106,10 @@ class View2D:
         self._dataUV = np.zeros((self._binsU, self._binsV), dtype=np.float32)
 
     @property
+    def description(self) -> str:
+        return f"View2D projection towards {self._projectionDirection.name} with {self._horizontalDirection.name} horizontal."
+
+    @property
     def axis(self) -> int:
         """ The axis that represents the plane of the 2D view. """
         return self._projectionDirection.axis
@@ -119,6 +123,10 @@ class View2D:
     def axisV(self) -> int:
         """ The vertical axis of the 2D view. Could also be referred to as the 'y' axis. """
         return 3 - self.axis - self.axisU
+
+    @property
+    def projectionDirection(self) -> Direction:
+        return self._projectionDirection
 
     def extractData(self, dataPoints: np.ndarray):
         """

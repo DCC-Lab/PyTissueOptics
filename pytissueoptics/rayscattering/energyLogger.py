@@ -102,6 +102,11 @@ class EnergyLogger(Logger):
         else:
             return self._nDataPointsRemoved
 
+    def listViews(self):
+        print("Available views:")
+        for i, view in enumerate(self._views):
+            print(f"\t{i}: {view.description}")
+
     def showView(self, viewIndex: int = None, view: View2D = None):
         assert viewIndex is not None or view is not None, "Either `viewIndex` or `view` must be specified."
 

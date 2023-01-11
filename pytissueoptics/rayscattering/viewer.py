@@ -53,7 +53,6 @@ class PointCloudStyle:
                  showPointsAsSpheres: bool = False, pointSize: float = 0.15, scaleWithValue: bool = True,
                  colormap: str = "rainbow", reverseColormap: bool = False, surfacePointSize: float = 0.01,
                  surfaceScaleWithValue: bool = False, surfaceColormap: str = None, surfaceReverseColormap: bool = None):
-        # todo: reverse a few bools so that the default is `unactivated` (False).
         self.solidLabel = solidLabel
         self.surfaceLabel = surfaceLabel
         self.showSolidPoints = showSolidPoints
@@ -102,6 +101,9 @@ class Viewer:
         if Visibility.POINT_CLOUD in visibility:
             self._addPointCloud(pointCloudStyle)
 
+        if Visibility.VIEWS in visibility:
+            self._addViews(viewsVisibility)
+
         self._viewer3D.show()
 
     def show3DVolumeSlicer(self):
@@ -109,6 +111,13 @@ class Viewer:
 
     def show2D(self, viewIndex: int = None, view: View2D = None):
         self._logger.showView(viewIndex=viewIndex, view=view)
+
+    def showAllViews(self):
+        for i in range(len(self._logger.views)):
+            self.show2D(viewIndex=i)
+
+    def listViews(self):
+        return self._logger.listViews()
 
     def reportStats(self, solidLabel: str = None, saveToFile: str = None, verbose=True):
         if not self._logger.has3D:
@@ -153,5 +162,23 @@ class Viewer:
                                      reverseColormap=style.surfaceReverseColormap,
                                      asSpheres=style.showPointsAsSpheres)
 
-    def _addViews(self):
-        pass
+    def _addViews(self, viewsVisibility: ViewGroup):
+        if viewsVisibility != ViewGroup.SCENE:
+            raise NotImplementedError("Only 'ViewGroup.SCENE' can be displayed for now.")
+
+        for view in self._logger.views:
+            # todo: assert correct view group
+            self._addView(view)
+
+    def _addView(self, view: View2D):
+        sceneLimits = self._scene.getBoundingBox().xyzLimits
+        viewAxisLimits = sorted(sceneLimits[view.axis])
+        positionMin, positionMax = viewAxisLimits
+        viewSpacing = 0.1
+
+        if view.projectionDirection.isPositive:
+            position = positionMin - viewSpacing
+        else:
+            position = positionMax + viewSpacing
+
+        self._viewer3D.addImage(view.getImageData(), view.size, view.minCorner, view.axis, position)
