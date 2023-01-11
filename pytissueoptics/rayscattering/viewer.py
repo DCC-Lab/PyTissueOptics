@@ -1,5 +1,7 @@
 from enum import Flag
 
+import numpy as np
+
 from pytissueoptics.rayscattering.energyLogger import EnergyLogger
 from pytissueoptics.rayscattering.opencl import warnings
 from pytissueoptics.rayscattering.pointCloud import PointCloudFactory, PointCloud
@@ -35,10 +37,8 @@ class PointCloudStyle:
         solidLabel (Optional[str]): Only show the point cloud specific to a single solid.
         surfaceLabel (Optional[str]): Only show the point cloud specific to a single surface of the solid.
         showSolidPoints (bool): Show the point clouds of the solids.
-        showSurfacePoints (bool): Show the point clouds of the surfaces.
-        useLeavingSurfacePoints (bool): If True, the surface points shown only represent the energy that left the
-            surface (i.e. direction towards surface normal). If False, the surface points represent the energy that
-            entered the surface.
+        showSurfacePointsLeaving (bool): Show energy that left the surface (direction with surface normal).
+        showSurfacePointsEntering (bool): Show energy that entered the surface (direction opposite to surface normal).
 
     Other attributes:
         showPointsAsSpheres (bool): Show the points as spheres or as dots. Dots require less memory.
@@ -53,7 +53,7 @@ class PointCloudStyle:
     """
 
     def __init__(self, solidLabel: str = None, surfaceLabel: str = None, showSolidPoints: bool = True,
-                 showSurfacePoints: bool = True, useLeavingSurfacePoints: bool = True,
+                 showSurfacePointsLeaving: bool = True, showSurfacePointsEntering: bool = False,
                  showPointsAsSpheres: bool = False, pointSize: float = 0.15, scaleWithValue: bool = True,
                  colormap: str = "rainbow", reverseColormap: bool = False, surfacePointSize: float = 0.01,
                  surfaceScaleWithValue: bool = False, surfaceColormap: str = None, surfaceReverseColormap: bool = None):
@@ -61,8 +61,8 @@ class PointCloudStyle:
         self.solidLabel = solidLabel
         self.surfaceLabel = surfaceLabel
         self.showSolidPoints = showSolidPoints
-        self.showSurfacePoints = showSurfacePoints
-        self.useLeavingSurfacePoints = useLeavingSurfacePoints
+        self.showSurfacePointsLeaving = showSurfacePointsLeaving
+        self.showSurfacePointsEntering = showSurfacePointsEntering
         self.showPointsAsSpheres = showPointsAsSpheres
 
         self.pointSize = pointSize
@@ -142,13 +142,15 @@ class Viewer:
     def _drawPointCloudOfSurfaces(self, pointCloud: PointCloud, style: PointCloudStyle):
         if pointCloud.surfacePoints is None:
             return
-        if not style.showSurfacePoints:
-            return
 
-        if style.useLeavingSurfacePoints:
-            surfacePoints = pointCloud.leavingSurfacePoints
-        else:
-            surfacePoints = pointCloud.enteringSurfacePoints
+        surfacePoints = np.empty((0, 4))
+
+        if style.showSurfacePointsLeaving:
+            surfacePoints = np.vstack((surfacePoints, pointCloud.leavingSurfacePoints))
+        if style.showSurfacePointsEntering:
+            surfacePoints = np.vstack((surfacePoints, pointCloud.enteringSurfacePointsPositive))
+        if len(surfacePoints) == 0:
+            return
 
         self._viewer3D.addDataPoints(surfacePoints, scale=style.surfacePointSize,
                                      scaleWithValue=style.surfaceScaleWithValue, colormap=style.surfaceColormap,

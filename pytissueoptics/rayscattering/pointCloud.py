@@ -25,6 +25,14 @@ class PointCloud:
             return None
         return self.surfacePoints[np.where(self.surfacePoints[:, 0] < 0)[0]]
 
+    @property
+    def enteringSurfacePointsPositive(self) -> Optional[np.ndarray]:
+        if self.surfacePoints is None:
+            return None
+        points = self.enteringSurfacePoints
+        points[:, 0] = np.negative(points[:, 0])
+        return points
+
 
 class PointCloudFactory:
     def __init__(self, logger: Logger):
