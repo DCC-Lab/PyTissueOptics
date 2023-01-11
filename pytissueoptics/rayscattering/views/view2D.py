@@ -60,6 +60,7 @@ class ViewGroup(Flag):
 
 class View2D:
     def __init__(self, projectionDirection: Direction, horizontalDirection: Direction,
+                 solidLabel: str = None, surfaceLabel: str = None, surfaceEnergyLeaving: bool = True,
                  position: float = None, thickness: float = None,
                  limits: Tuple[Tuple[float, float], Tuple[float, float]] = None,
                  binSize: Union[float, Tuple[int, int]] = None):
@@ -83,8 +84,18 @@ class View2D:
         assert not self._projectionDirection.isSameAxisAs(self._horizontalDirection), "Projection and horizontal " \
                                                                                       "directions must be orthogonal."
 
+        self._solidLabel = solidLabel
+        self._surfaceLabel = surfaceLabel
+        self._surfaceEnergyLeaving = surfaceEnergyLeaving
+        if self._surfaceLabel is not None and self._solidLabel is None:
+            self._surfaceLabel = None
+            utils.warn("WARNING [View2D]: A surface label was specified without its corresponding solid label. "
+                       "Surface label will be ignored.")
+
         if position is not None or thickness is not None:
             raise NotImplementedError("Slices are not implemented yet.")
+        self._position = position
+        self._thickness = thickness
 
         limits = [sorted(l) for l in limits] if limits else [None, None]
         self._limitsU, self._limitsV = limits
@@ -93,6 +104,28 @@ class View2D:
 
         self._dataUV = None
         self._hasData = False
+
+    @property
+    def solidLabel(self) -> str:
+        return self._solidLabel
+
+    @property
+    def surfaceLabel(self) -> str:
+        return self._surfaceLabel
+
+    @property
+    def isProjection(self) -> bool:
+        return self._position is None and not self.isSurface
+
+    @property
+    def isSlice(self) -> bool:
+        return self._position is not None
+
+    @property
+    def isSurface(self) -> bool:
+        return self._surfaceLabel is not None
+
+    # todo: maybe turn into abstract class (only allow endpoints View2DProjection, Slice, Surface)
 
     def setContext(self, limits: Tuple[Tuple[float, float], Tuple[float, float]],
                    binSize: Tuple[float, float]):
@@ -147,6 +180,13 @@ class View2D:
         Used internally by Logger2D to store 3D datapoints into this 2D view.
         Data points are (n, 4) arrays with (value, x, y, z).
         """
+        # todo: implement slices
+        if self.isSurface:
+            if self._surfaceEnergyLeaving:
+                dataPoints = dataPoints[dataPoints[:, 0] >= 0]
+            else:
+                dataPoints = dataPoints[dataPoints[:, 0] < 0]
+
         u, v, w = dataPoints[:, 1 + self.axisU], dataPoints[:, 1 + self.axisV], dataPoints[:, 0]
         sumUVProjection = np.histogram2d(u, v, weights=w, normed=False, bins=(self._binsU, self._binsV),
                                           range=(sorted(self._limitsU), sorted(self._limitsV)))[0]

@@ -68,22 +68,21 @@ class EnergyLogger(Logger):
         super().logDataPointArray(array, key)
 
         if not self._keep3D:
-            self._compileViews()
+            self._compileViews(self._views)
             self._delete3DData()
 
-    def _compileViews(self):
-        self._extractAllSolidData(self._views)
-
-    def _extractAllSolidData(self, views: List[View2D]):
+    def _compileViews(self, views: List[View2D]):
         for key, data in self._data.items():
-            # todo: implement logging of solid-specific views
-            if key.surfaceLabel is not None:
-                # todo: implement logging of surface views
-                continue
             datapoints = data.dataPoints
             if datapoints is None or len(datapoints) == 0:
                 continue
             for view in views:
+                if view.solidLabel and view.solidLabel != key.solidLabel:
+                    continue
+                if view.surfaceLabel and view.surfaceLabel != key.surfaceLabel:
+                    continue
+                if view.surfaceLabel is None and key.surfaceLabel is not None:
+                    continue
                 view.extractData(datapoints.array)
 
     def _delete3DData(self):
@@ -123,8 +122,5 @@ class EnergyLogger(Logger):
         if view.hasData:
             view.show(logScale=logScale, colormap=colormap)
         else:
-            self._compile(view)
+            self._compileViews([view])
             view.show(logScale=logScale, colormap=colormap)
-
-    def _compile(self, view: View2D):
-        self._extractAllSolidData([view])
