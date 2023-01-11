@@ -65,7 +65,8 @@ class EnergyLogger(Logger):
         #       >>> source = ...
         #       >>> logger = EnergyLogger(source, scene)
         #       >>> source.propagate(scene)
-        super().__init__(fromFilepath=filepath)  # todo: rewrite save/load
+        self._nDataPointsRemoved = 0
+        super().__init__(fromFilepath=filepath)  # todo: rewrite save/load to store views and _nDataPointsRemoved
 
     def addView(self, view: Union[View2D, ViewGroup]):
         self._views += self._viewFactory.build(view)
@@ -95,6 +96,8 @@ class EnergyLogger(Logger):
                 continue
             for view in self._views:
                 view.extractData(datapoints.array)
+
+        self._nDataPointsRemoved += super().nDataPoints
         self._data.clear()
 
     def save(self, filepath: str = None):
@@ -102,3 +105,13 @@ class EnergyLogger(Logger):
 
     def load(self, filepath: str):
         raise NotImplementedError()
+
+    @property
+    def nDataPoints(self) -> int:
+        """
+        Overwrites the `Logger` method to return the total number of data points logged, including the ones discarded.
+        """
+        if self._keep3D:
+            return super().nDataPoints
+        else:
+            return self._nDataPointsRemoved
