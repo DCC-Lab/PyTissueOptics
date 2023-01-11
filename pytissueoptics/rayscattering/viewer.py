@@ -4,7 +4,7 @@ from pytissueoptics.rayscattering.energyLogger import EnergyLogger
 from pytissueoptics.rayscattering.opencl import warnings
 from pytissueoptics.rayscattering.pointCloud import PointCloudFactory, PointCloud
 from pytissueoptics.rayscattering.source import Source
-from pytissueoptics.rayscattering.stats import Stats
+from pytissueoptics.rayscattering.statistics import Stats
 from pytissueoptics.rayscattering.tissues import RayScatteringScene
 from pytissueoptics.rayscattering.views import ViewGroup, View2D
 
@@ -108,6 +108,21 @@ class Viewer:
 
         self._viewer3D.show()
 
+    def show3DVolumeSlicer(self):
+        pass
+
+    def show2D(self, viewIndex: int = None, view: View2D = None):
+        self._logger.showView(viewIndex=viewIndex, view=view)
+
+    def reportStats(self, solidLabel: str = None, saveToFile: str = None, verbose=True):
+        if not self._logger.has3D:
+            # todo: obtain stats from 2D views
+            warnings.warn("WARNING: Stats without 3D data is not yet implemented.")
+            return
+
+        stats = Stats(self._logger)
+        stats.report(solidLabel=solidLabel, saveToFile=saveToFile, verbose=verbose)
+
     def _addPointCloud(self, style: PointCloudStyle):
         pointCloud = self._pointCloudFactory.getPointCloud(solidLabel=style.solidLabel, surfaceLabel=style.surfaceLabel)
 
@@ -139,21 +154,6 @@ class Viewer:
                                      scaleWithValue=style.surfaceScaleWithValue, colormap=style.surfaceColormap,
                                      reverseColormap=style.surfaceReverseColormap,
                                      asSpheres=style.showPointsAsSpheres)
-
-    def show3DVolumeSlicer(self):
-        pass
-
-    def show2D(self, viewIndex: int = None, view: View2D = None):
-        self._logger.showView(viewIndex=viewIndex, view=view)
-
-    def showStats(self):
-        if not self._logger.has3D:
-            # todo: obtain stats from 2D views
-            warnings.warn("WARNING: Cannot show stats if 3D data is not kept.")
-            return
-
-        # todo: refactor Stats to only need the logger
-        return Stats(self._logger, self._source, self._scene).report()
 
     def _addViews(self):
         pass

@@ -125,6 +125,9 @@ class Source:
             logger.info["photonCount"] = 0
         logger.info["photonCount"] += self.getPhotonCount()
 
+        sourceSolid = self.getEnvironment().solid
+        logger.info["sourceSolidLabel"] = sourceSolid.getLabel() if sourceSolid else None
+
     @property
     def photons(self):
         return self._photons

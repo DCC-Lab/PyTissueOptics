@@ -32,14 +32,14 @@ class PointCloudFactory:
 
     def getPointCloud(self, solidLabel: str = None, surfaceLabel: str = None) -> PointCloud:
         if not solidLabel and not surfaceLabel:
-            return PointCloud(self._getPointCloudOfSolids().solidPoints,
-                              self._getPointCloudOfSurfaces().surfacePoints)
+            return PointCloud(self.getPointCloudOfSolids().solidPoints,
+                              self.getPointCloudOfSurfaces().surfacePoints)
         points = self._logger.getDataPoints(InteractionKey(solidLabel, surfaceLabel))
         if surfaceLabel:
             return PointCloud(None, points)
         return PointCloud(points, None)
 
-    def _getPointCloudOfSolids(self) -> PointCloud:
+    def getPointCloudOfSolids(self) -> PointCloud:
         points = []
         for solidLabel in self._logger.getSolidLabels():
             solidPoints = self.getPointCloud(solidLabel).solidPoints
@@ -49,7 +49,7 @@ class PointCloudFactory:
             return PointCloud(None, None)
         return PointCloud(np.concatenate(points, axis=0), None)
 
-    def _getPointCloudOfSurfaces(self, solidLabel: str = None) -> PointCloud:
+    def getPointCloudOfSurfaces(self, solidLabel: str = None) -> PointCloud:
         points = []
         solidLabels = [solidLabel] if solidLabel else [_solidLabel for _solidLabel in self._logger.getSolidLabels()]
         for _solidLabel in solidLabels:

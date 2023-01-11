@@ -57,7 +57,7 @@ class DisplayConfig:
         self.surfaceReverseColormap = reverseColormap if surfaceReverseColormap is None else surfaceReverseColormap
 
 
-class Stats:
+class _Stats:
     AXES = ["x", "y", "z"]
 
     def __init__(self, logger: Logger, source: Source, scene: RayScatteringScene = None):
