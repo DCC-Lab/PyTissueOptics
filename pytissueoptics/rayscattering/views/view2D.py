@@ -125,9 +125,9 @@ class View2D:
         Data points are (n, 4) arrays with (value, x, y, z).
         """
         u, v, w = dataPoints[:, 1 + self.axisU], dataPoints[:, 1 + self.axisV], dataPoints[:, 0]
-        meanUVProjection = np.histogram2d(u, v, weights=w, normed=True, bins=(self._binsU, self._binsV),
+        sumUVProjection = np.histogram2d(u, v, weights=w, normed=False, bins=(self._binsU, self._binsV),
                                           range=(sorted(self._limitsU), sorted(self._limitsV)))[0]
-        self._dataUV += np.flip(meanUVProjection, axis=1)
+        self._dataUV += np.flip(sumUVProjection, axis=1)
 
     @property
     def _verticalIsNegative(self) -> bool:
