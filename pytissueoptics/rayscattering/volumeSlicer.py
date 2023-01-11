@@ -43,9 +43,12 @@ class VolumeSlicer(HasTraits):
 
     _axis_names = dict(x=0, y=1, z=2)
 
+    _view = {"azimuth": -30, "zenith": 215, "distance": None, "pointingTowards": None, "roll": -0}
+    _camPitch = -3
 
     #---------------------------------------------------------------------------
-    def __init__(self, **traits):
+    def __init__(self, colormap:str = 'viridis', **traits):
+        self.colormap = colormap
         super(VolumeSlicer, self).__init__(**traits)
         # Force the creation of the image_plane_widgets:
         self.ipw_3d_x
@@ -63,7 +66,7 @@ class VolumeSlicer(HasTraits):
     def make_ipw_3d(self, axis_name):
         ipw = mlab.pipeline.image_plane_widget(self.data_src3d,
                         figure=self.scene3d.mayavi_scene,
-                        plane_orientation='%s_axes' % axis_name)
+                        plane_orientation='%s_axes' % axis_name, colormap=self.colormap)
         return ipw
 
     def _ipw_3d_x_default(self):
@@ -83,8 +86,12 @@ class VolumeSlicer(HasTraits):
     def display_scene3d(self):
         outline = mlab.pipeline.outline(self.data_src3d,
                         figure=self.scene3d.mayavi_scene,
-                        )
-        self.scene3d.mlab.view(40, 50)
+                                        colormap=self.colormap)
+
+        # self.scene3d.mlab.view(40, 50)
+        self.scene3d.mlab.view(*self._view.values())
+        # self.scene3d.mlab.pitch(self._camPitch)
+
         # Interaction properties can only be changed after the scene
         # has been created, and thus the interactor exists
         for ipw in (self.ipw_3d_x, self.ipw_3d_y, self.ipw_3d_z):
@@ -106,11 +113,10 @@ class VolumeSlicer(HasTraits):
         # added on the figure we are interested in.
         outline = mlab.pipeline.outline(
                             self.data_src3d.mlab_source.dataset,
-                            figure=scene.mayavi_scene,
-                            )
+                            figure=scene.mayavi_scene)
         ipw = mlab.pipeline.image_plane_widget(
                             outline,
-                            plane_orientation='%s_axes' % axis_name)
+                            plane_orientation='%s_axes' % axis_name, colormap=self.colormap)
         setattr(self, 'ipw_%s' % axis_name, ipw)
 
         # Synchronize positions between the corresponding image plane
@@ -142,7 +148,11 @@ class VolumeSlicer(HasTraits):
                      y=(90, 90),
                      z=( 0,  0),
                      )
-        scene.mlab.view(*views[axis_name])
+        # scene.mlab.view(*views[axis_name])
+
+        scene.mlab.view(*self._view.values())
+        scene.mlab.pitch(self._camPitch)
+
         # 2D interaction: only pan and zoom
         scene.scene.interactor.interactor_style = \
                                  tvtk.InteractorStyleImage()
@@ -189,6 +199,6 @@ class VolumeSlicer(HasTraits):
                 title='Volume Slicer',
                 )
 
-
-m = VolumeSlicer(data=data)
-m.configure_traits()
+if __name__ == '__main__':
+    m = VolumeSlicer(data=data)
+    m.configure_traits()
