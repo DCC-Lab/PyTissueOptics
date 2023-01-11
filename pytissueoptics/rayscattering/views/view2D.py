@@ -85,6 +85,7 @@ class View2D:
         self._binsV = None
 
         self._dataUV = None
+        self._hasData = False
 
     def setContext(self, limits: Tuple[Tuple[float, float], Tuple[float, float]], bins: Tuple[int, int]):
         """
@@ -128,6 +129,7 @@ class View2D:
         sumUVProjection = np.histogram2d(u, v, weights=w, normed=False, bins=(self._binsU, self._binsV),
                                           range=(sorted(self._limitsU), sorted(self._limitsV)))[0]
         self._dataUV += np.flip(sumUVProjection, axis=1)
+        self._hasData = True
 
     @property
     def _verticalIsNegative(self) -> bool:
@@ -169,6 +171,10 @@ class View2D:
     @property
     def minCorner(self) -> Tuple[float, float]:
         return min(self._limitsU), min(self._limitsV)
+
+    @property
+    def hasData(self) -> bool:
+        return self._hasData
 
     def show(self, logScale: bool = True, colormap: str = 'viridis'):
         cmap = copy.copy(matplotlib.cm.get_cmap(colormap))

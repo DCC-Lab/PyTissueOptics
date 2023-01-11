@@ -1,4 +1,3 @@
-from enum import Flag
 from typing import Union, List
 
 import numpy as np
@@ -6,28 +5,6 @@ import numpy as np
 from pytissueoptics.rayscattering.tissues import RayScatteringScene
 from pytissueoptics.rayscattering.views import ViewGroup, View2D, ViewFactory
 from pytissueoptics.scene.logger.logger import Logger, InteractionKey
-
-
-class Visibility(Flag):
-    """
-    A Visibility is a bit Flag representing what to show inside a 3D visualization. They can be combined with the `|`
-    operator (bitwise OR). `DEFAULT` will automatically switch to DEFAULT_3D if 3D data is present, else DEFAULT_2D.
-    """
-    SCENE = 1
-    SOURCE = 2
-    VIEWS = 4
-    POINT_CLOUD = 8
-    POINTS_SURFACES_ENTERING = 16
-    POINTS_SURFACES_LEAVING = 32
-    POINTS_SURFACES = POINTS_SURFACES_ENTERING | POINTS_SURFACES_LEAVING
-
-    DEFAULT_3D = SCENE | SOURCE | POINT_CLOUD | POINTS_SURFACES_ENTERING
-    DEFAULT_2D = SCENE | SOURCE | VIEWS
-    DEFAULT = 0
-
-
-# todo: in the viewer, set default args: visibility = Visibility.DEFAULT, viewsVisibility: ViewGroup = ViewGroup.SCENE
-#  set visibility to DEFAULT_3D if 3D data present, else DEFAULT_2D.
 
 
 class EnergyLogger(Logger):
@@ -75,6 +52,10 @@ class EnergyLogger(Logger):
     def views(self):
         return self._views
 
+    @property
+    def has3D(self) -> bool:
+        return self._keep3D
+
     def logDataPointArray(self, array: np.ndarray, key: InteractionKey):
         """
         Used internally by `Source` when propagating photons. Overwrites the `Logger` method to automatically bin the
@@ -83,9 +64,13 @@ class EnergyLogger(Logger):
         super().logDataPointArray(array, key)
 
         if not self._keep3D:
-            self._compile()
+            self._compileViews()
+            self._delete3DData()
 
-    def _compile(self):
+    def _compileViews(self):
+        self._extractAllSolidData(self._views)
+
+    def _extractAllSolidData(self, views: List[View2D]):
         for key, data in self._data.items():
             # todo: implement logging of solid-specific views
             if key.surfaceLabel is not None:
@@ -94,9 +79,10 @@ class EnergyLogger(Logger):
             datapoints = data.dataPoints
             if datapoints is None or len(datapoints) == 0:
                 continue
-            for view in self._views:
+            for view in views:
                 view.extractData(datapoints.array)
 
+    def _delete3DData(self):
         self._nDataPointsRemoved += super().nDataPoints
         self._data.clear()
 
@@ -115,3 +101,20 @@ class EnergyLogger(Logger):
             return super().nDataPoints
         else:
             return self._nDataPointsRemoved
+
+    def showView(self, viewIndex: int = None, view: View2D = None):
+        assert viewIndex is not None or view is not None, "Either `viewIndex` or `view` must be specified."
+
+        if viewIndex is None:
+            # todo: if view2D exists, display, else try to flip existing view, else create from scratch with 3D data
+            raise NotImplementedError("Displaying a view from scratch is not yet implemented.")
+
+        view = self._views[viewIndex]
+        if view.hasData:
+            view.show()
+        else:
+            self._compile(view)
+            view.show()
+
+    def _compile(self, view: View2D):
+        self._extractAllSolidData([view])

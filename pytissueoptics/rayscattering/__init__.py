@@ -4,3 +4,4 @@ from .source import PencilPointSource, IsotropicPointSource, DirectionalSource, 
 from .stats import Stats, DisplayConfig
 from .energyLogger import EnergyLogger
 from .views import ViewGroup, View2D, Direction
+from .viewer import Viewer
