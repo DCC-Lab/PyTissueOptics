@@ -9,7 +9,7 @@ import numpy as np
 from matplotlib import pyplot as plt
 
 from pytissueoptics.rayscattering.source import Source
-from pytissueoptics.rayscattering.logger2D import Logger2D
+from pytissueoptics.rayscattering.views import View2D
 from pytissueoptics.rayscattering.tissues.rayScatteringScene import RayScatteringScene
 from pytissueoptics.scene import Logger, Vector
 from pytissueoptics.scene.logger import InteractionKey

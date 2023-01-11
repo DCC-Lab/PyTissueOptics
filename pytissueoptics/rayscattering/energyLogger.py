@@ -1,10 +1,10 @@
 from enum import Flag
-from typing import Union, Tuple, List
+from typing import Union, List
 
 import numpy as np
 
-from pytissueoptics import RayScatteringScene
-from pytissueoptics.rayscattering.views import ViewGroup, View2D, ViewFactory, Direction
+from pytissueoptics.rayscattering.tissues import RayScatteringScene
+from pytissueoptics.rayscattering.views import ViewGroup, View2D, ViewFactory
 from pytissueoptics.scene.logger.logger import Logger, InteractionKey
 
 
@@ -57,9 +57,14 @@ class EnergyLogger(Logger):
         self._keep3D = keep3D
         self._defaultBinSize = defaultBinSize
 
-        # todo: could extract struct of scene and solid limits to avoid having to pass the scene to the ViewFactory
         self._viewFactory = ViewFactory(scene, defaultBinSize)
         self._views = self._viewFactory.build(views)
+        # todo: could extract struct of scene and solid limits to avoid having to pass the scene to the ViewFactory
+        # todo: could reverse Source->Logger dependence. Source could be passed to Logger with Observer pattern.
+        #  Then >>> scene = ...
+        #       >>> source = ...
+        #       >>> logger = EnergyLogger(source, scene)
+        #       >>> source.propagate(scene)
         super().__init__(fromFilepath=filepath)  # todo: rewrite save/load
 
     def addView(self, view: Union[View2D, ViewGroup]):

@@ -1,6 +1,6 @@
 from typing import Union, List, Tuple
 
-from pytissueoptics import RayScatteringScene
+from pytissueoptics.rayscattering.tissues import RayScatteringScene
 from pytissueoptics.rayscattering.views import ViewGroup, View2D, Direction
 from pytissueoptics.scene.solids import Solid
 
