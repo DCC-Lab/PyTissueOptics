@@ -1,6 +1,6 @@
 import copy
 from enum import Enum, Flag
-from typing import Tuple
+from typing import Tuple, Union
 
 import matplotlib
 import numpy as np
@@ -60,7 +60,9 @@ class ViewGroup(Flag):
 
 class View2D:
     def __init__(self, projectionDirection: Direction, horizontalDirection: Direction,
-                 position: float = None, thickness: float = None):
+                 position: float = None, thickness: float = None,
+                 limits: Tuple[Tuple[float, float], Tuple[float, float]] = None,
+                 binSize: Union[float, Tuple[int, int]] = None):
         """
         The 2D view plane is obtained by looking towards the 'projectionDirection'. The 'horizontalDirection'
         represents which axis to use as the horizontal axis in the resulting 2D view. If the 'horizontalDirection' is
@@ -72,6 +74,9 @@ class View2D:
         If position is None, the view is a projection (average) of the 3D datapoints on the plane defined by
         projectionDirection (`thickness` is ignored). If position is not None, the view is a slice of the given
         'thickness' of the 3D datapoints at the given position.
+
+        If binSizes is None, it uses the default binSizes from the EnergyLogger.
+        If limits is None, it uses the scene limits or the solid limits if a solidLabel is specified.
         """
         self._projectionDirection = projectionDirection
         self._horizontalDirection = horizontalDirection
@@ -81,23 +86,30 @@ class View2D:
         if position is not None or thickness is not None:
             raise NotImplementedError("Slices are not implemented yet.")
 
-        self._limitsU = None
-        self._limitsV = None
-        self._binsU = None
-        self._binsV = None
+        limits = [sorted(l) for l in limits] if limits else [None, None]
+        self._limitsU, self._limitsV = limits
+        self._binSize = (binSize, binSize) if isinstance(binSize, (int, float)) else binSize
+        self._binsU, self._binsV = None, None
 
         self._dataUV = None
         self._hasData = False
 
-    def setContext(self, limits: Tuple[Tuple[float, float], Tuple[float, float]], bins: Tuple[int, int]):
+    def setContext(self, limits: Tuple[Tuple[float, float], Tuple[float, float]],
+                   binSize: Tuple[float, float]):
         """
-        Used internally by ViewFactory when initializing the views. The limits and the number of bins are given for
-        the 2 dimensions in the correct order using the U and V axis of the view. The limits are (lower, upper) bounds
-        in the same physical units than the logged data points.
+        Used internally by ViewFactory when initializing the views. The limits and the bin sizes are given for
+        the 2 dimensions in the axis order (U, V) and in the same physical units than the logged data points.
+        They are only used if no custom limits or bin sizes are specified in the constructor.
         """
-        limits = [sorted(d) for d in limits]  # Make sure limits are initially sorted. Then flip depending on the view.
-        self._binsU, self._binsV = bins
-        self._limitsU, self._limitsV = limits
+        if self._limitsU is None:
+            self._limitsU, self._limitsV = limits
+        self._limitsU, self._limitsV = sorted(self._limitsU), sorted(self._limitsV)
+
+        if self._binSize is None:
+            self._binSize = binSize
+
+        limits = [self._limitsU, self._limitsV]
+        self._binsU, self._binsV = [int((l[1] - l[0]) / b) for l, b in zip(limits, self._binSize)]
 
         if self._verticalIsNegative:
             self._limitsV = self._limitsV[::-1]
@@ -193,3 +205,4 @@ class View2D:
         plt.xlabel('xyz'[self.axisU])
         plt.ylabel('xyz'[self.axisV])
         plt.show()
+        super().__init__(projectionDirection, horizontalDirection, position=None, thickness=None)

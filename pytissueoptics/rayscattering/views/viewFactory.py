@@ -6,10 +6,13 @@ from pytissueoptics.scene.solids import Solid
 
 
 class ViewFactory:
-    def __init__(self, scene: RayScatteringScene, defaultBinSize: float):
+    def __init__(self, scene: RayScatteringScene, defaultBinSize: Union[float, Tuple[float, float, float]]):
         self._scene = scene
         self._sceneLimits = scene.getBoundingBox().xyzLimits
-        self._defaultBinSize = defaultBinSize
+
+        self._defaultBinSize3D = defaultBinSize
+        if isinstance(self._defaultBinSize3D, float):
+            self._defaultBinSize3D = [defaultBinSize] * 3
 
     def build(self, views: Union[ViewGroup, List[View2D]]) -> List[View2D]:
         if views is None:
@@ -46,14 +49,11 @@ class ViewFactory:
 
     def _setContext(self, view: View2D):
         limits3D = [(d[0], d[1]) for d in self._sceneLimits]
-        bins3D = self._getDefaultBins(limits3D)
 
         limits = (limits3D[view.axisU], limits3D[view.axisV])
-        bins = (bins3D[view.axisU], bins3D[view.axisV])
-        view.setContext(limits=limits, bins=bins)
+        binSize = (self._defaultBinSize3D[view.axisU], self._defaultBinSize3D[view.axisV])
+        view.setContext(limits=limits, binSize=binSize)
 
-    def _getDefaultBins(self, limits: List[Tuple[float, float]]) -> List[int]:
-        return [int((max(d) - min(d)) / self._defaultBinSize) for d in limits]
 
 
 # todo: this scene dependence is not ideal ...
