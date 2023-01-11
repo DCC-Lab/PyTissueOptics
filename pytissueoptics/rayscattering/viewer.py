@@ -2,6 +2,7 @@ from enum import Flag
 
 import numpy as np
 
+from pytissueoptics.rayscattering import utils
 from pytissueoptics.rayscattering.energyLogger import EnergyLogger
 from pytissueoptics.rayscattering.opencl import warnings
 from pytissueoptics.rayscattering.pointCloud import PointCloudFactory, PointCloud
@@ -9,6 +10,7 @@ from pytissueoptics.rayscattering.source import Source
 from pytissueoptics.rayscattering.statistics import Stats
 from pytissueoptics.rayscattering.tissues import RayScatteringScene
 from pytissueoptics.rayscattering.views import ViewGroup, View2D
+from pytissueoptics.scene import MAYAVI_AVAILABLE, MayaviViewer
 
 
 class Visibility(Flag):
@@ -82,7 +84,6 @@ class Viewer:
 
     def show3D(self, visibility=Visibility.AUTO, viewsVisibility: ViewGroup = ViewGroup.SCENE,
                pointCloudStyle=PointCloudStyle(), sourceSize: float = 0.1):
-        from pytissueoptics.scene import MayaviViewer, MAYAVI_AVAILABLE
         if not MAYAVI_AVAILABLE:
             warnings.warn("Package 'mayavi' is not available. Please install it to use 3D visualizations.")
             return
@@ -106,11 +107,33 @@ class Viewer:
 
         self._viewer3D.show()
 
-    def show3DVolumeSlicer(self):
-        pass
+    def show3DVolumeSlicer(self, binSize: float = None, logScale: bool = True):
+        if not MAYAVI_AVAILABLE:
+            warnings.warn("ERROR: Package 'mayavi' is not available. Please install it to use 3D visualizations.")
+            return
 
-    def show2D(self, viewIndex: int = None, view: View2D = None):
-        self._logger.showView(viewIndex=viewIndex, view=view)
+        if not self._logger.has3D:
+            warnings.warn("ERROR: Cannot show 3D volume slicer without 3D data.")
+            return
+
+        if binSize is None:
+            binSize = self._logger.defaultBinSize
+
+        limits = self._scene.getBoundingBox().xyzLimits
+        bins = [int((d[1] - d[0]) / binSize) for d in limits]
+
+        points = self._pointCloudFactory.getPointCloudOfSolids().solidPoints
+        hist, _ = np.histogramdd(points[:, 1:], bins=bins, normed=False, weights=points[:, 0], range=limits)
+
+        if logScale:
+            hist = utils.logNorm(hist)
+
+        from pytissueoptics.rayscattering.volumeSlicer import VolumeSlicer
+        slicer = VolumeSlicer(data=hist)
+        slicer.show()
+
+    def show2D(self, viewIndex: int = None, view: View2D = None, logScale: bool = True, colormap: str = "viridis"):
+        self._logger.showView(viewIndex=viewIndex, view=view, logScale=logScale, colormap=colormap)
 
     def showAllViews(self):
         for i in range(len(self._logger.views)):
@@ -122,7 +145,7 @@ class Viewer:
     def reportStats(self, solidLabel: str = None, saveToFile: str = None, verbose=True):
         if not self._logger.has3D:
             # todo: obtain stats from 2D views
-            warnings.warn("WARNING: Stats without 3D data is not yet implemented.")
+            warnings.warn("ERROR: Stats without 3D data is not yet implemented.")
             return
 
         stats = Stats(self._logger)
@@ -164,7 +187,8 @@ class Viewer:
 
     def _addViews(self, viewsVisibility: ViewGroup):
         if viewsVisibility != ViewGroup.SCENE:
-            raise NotImplementedError("Only 'ViewGroup.SCENE' can be displayed for now.")
+            warnings.warn("ERROR: Cannot show views. Only ViewGroup.SCENE is supported for now.")
+            return
 
         for view in self._logger.views:
             # todo: assert correct view group

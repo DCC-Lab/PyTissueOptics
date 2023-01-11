@@ -1,10 +1,12 @@
 import copy
 from enum import Enum, Flag
-from typing import Tuple, Union
+from typing import Tuple
 
 import matplotlib
 import numpy as np
 from matplotlib import pyplot as plt
+
+from pytissueoptics.rayscattering import utils
 
 
 class Direction(Enum):
@@ -158,11 +160,7 @@ class View2D:
             image = np.flip(image, axis=0)
 
         if logNorm:
-            eps = 10 ** (-6)
-            image /= np.max(image)
-            image = np.log(image + eps)
-            image -= np.min(image)
-            image /= np.max(image)
+            image = utils.logNorm(image)
         return image
 
     @property

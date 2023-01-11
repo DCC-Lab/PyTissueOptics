@@ -56,6 +56,10 @@ class EnergyLogger(Logger):
     def has3D(self) -> bool:
         return self._keep3D
 
+    @property
+    def defaultBinSize(self) -> float:
+        return self._defaultBinSize
+
     def logDataPointArray(self, array: np.ndarray, key: InteractionKey):
         """
         Used internally by `Source` when propagating photons. Overwrites the `Logger` method to automatically bin the
@@ -107,7 +111,8 @@ class EnergyLogger(Logger):
         for i, view in enumerate(self._views):
             print(f"\t{i}: {view.description}")
 
-    def showView(self, viewIndex: int = None, view: View2D = None):
+    def showView(self, viewIndex: int = None, view: View2D = None,
+                 logScale: bool = True, colormap: str = 'viridis'):
         assert viewIndex is not None or view is not None, "Either `viewIndex` or `view` must be specified."
 
         if viewIndex is None:
@@ -116,10 +121,10 @@ class EnergyLogger(Logger):
 
         view = self._views[viewIndex]
         if view.hasData:
-            view.show()
+            view.show(logScale=logScale, colormap=colormap)
         else:
             self._compile(view)
-            view.show()
+            view.show(logScale=logScale, colormap=colormap)
 
     def _compile(self, view: View2D):
         self._extractAllSolidData([view])

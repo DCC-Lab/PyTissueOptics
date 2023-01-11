@@ -16,13 +16,7 @@ from mayavi.core.api import PipelineBase, Source
 from mayavi.core.ui.api import SceneEditor, MayaviScene, \
                                 MlabSceneModel
 
-################################################################################
-# Create some data
-x, y, z = np.ogrid[-5:5:64j, -5:5:64j, -5:5:64j]
-data = np.sin(3*x)/x + 0.05*z**2 + np.cos(3*y)
 
-################################################################################
-# The object implementing the dialog
 class VolumeSlicer(HasTraits):
     # The data to plot
     data = Array()
@@ -43,18 +37,20 @@ class VolumeSlicer(HasTraits):
 
     _axis_names = dict(x=0, y=1, z=2)
 
-    _view = {"azimuth": -30, "zenith": 215, "distance": None, "pointingTowards": None, "roll": -0}
-    _camPitch = -3
-
     #---------------------------------------------------------------------------
-    def __init__(self, colormap:str = 'viridis', **traits):
-        self.colormap = colormap
+    def __init__(self, colormap: str = 'viridis', **traits):
+        self._colormap = colormap
+        self._cameraView = {"azimuth": -30, "zenith": 215, "distance": None, "pointingTowards": None, "roll": -0}
+        self._cameraPitch = -3
+
         super(VolumeSlicer, self).__init__(**traits)
         # Force the creation of the image_plane_widgets:
         self.ipw_3d_x
         self.ipw_3d_y
         self.ipw_3d_z
 
+    def show(self):
+        self.configure_traits()
 
     #---------------------------------------------------------------------------
     # Default values
@@ -66,7 +62,7 @@ class VolumeSlicer(HasTraits):
     def make_ipw_3d(self, axis_name):
         ipw = mlab.pipeline.image_plane_widget(self.data_src3d,
                         figure=self.scene3d.mayavi_scene,
-                        plane_orientation='%s_axes' % axis_name, colormap=self.colormap)
+                        plane_orientation='%s_axes' % axis_name, colormap=self._colormap)
         return ipw
 
     def _ipw_3d_x_default(self):
@@ -86,11 +82,11 @@ class VolumeSlicer(HasTraits):
     def display_scene3d(self):
         outline = mlab.pipeline.outline(self.data_src3d,
                         figure=self.scene3d.mayavi_scene,
-                                        colormap=self.colormap)
+                                        colormap=self._colormap)
 
         # self.scene3d.mlab.view(40, 50)
-        self.scene3d.mlab.view(*self._view.values())
-        # self.scene3d.mlab.pitch(self._camPitch)
+        self.scene3d.mlab.view(*self._cameraView.values())
+        # self.scene3d.mlab.pitch(self._cameraPitch)
 
         # Interaction properties can only be changed after the scene
         # has been created, and thus the interactor exists
@@ -116,7 +112,7 @@ class VolumeSlicer(HasTraits):
                             figure=scene.mayavi_scene)
         ipw = mlab.pipeline.image_plane_widget(
                             outline,
-                            plane_orientation='%s_axes' % axis_name, colormap=self.colormap)
+                            plane_orientation='%s_axes' % axis_name, colormap=self._colormap)
         setattr(self, 'ipw_%s' % axis_name, ipw)
 
         # Synchronize positions between the corresponding image plane
@@ -150,8 +146,8 @@ class VolumeSlicer(HasTraits):
                      )
         # scene.mlab.view(*views[axis_name])
 
-        scene.mlab.view(*self._view.values())
-        scene.mlab.pitch(self._camPitch)
+        scene.mlab.view(*self._cameraView.values())
+        scene.mlab.pitch(self._cameraPitch)
 
         # 2D interaction: only pan and zoom
         scene.scene.interactor.interactor_style = \
@@ -199,6 +195,11 @@ class VolumeSlicer(HasTraits):
                 title='Volume Slicer',
                 )
 
+
 if __name__ == '__main__':
+    # Volume Slicer example with some data
+    x, y, z = np.ogrid[-5:5:64j, -5:5:64j, -5:5:64j]
+    data = np.sin(3 * x) / x + 0.05 * z ** 2 + np.cos(3 * y)
+
     m = VolumeSlicer(data=data)
-    m.configure_traits()
+    m.show()
