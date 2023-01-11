@@ -4,7 +4,6 @@ import numpy as np
 
 from pytissueoptics.rayscattering import utils
 from pytissueoptics.rayscattering.energyLogger import EnergyLogger
-from pytissueoptics.rayscattering.opencl import warnings
 from pytissueoptics.rayscattering.pointCloud import PointCloudFactory, PointCloud
 from pytissueoptics.rayscattering.source import Source
 from pytissueoptics.rayscattering.statistics import Stats
@@ -85,7 +84,7 @@ class Viewer:
     def show3D(self, visibility=Visibility.AUTO, viewsVisibility: ViewGroup = ViewGroup.SCENE,
                pointCloudStyle=PointCloudStyle(), sourceSize: float = 0.1):
         if not MAYAVI_AVAILABLE:
-            warnings.warn("Package 'mayavi' is not available. Please install it to use 3D visualizations.")
+            utils.warn("Package 'mayavi' is not available. Please install it to use 3D visualizations.")
             return
 
         self._viewer3D = MayaviViewer()
@@ -109,11 +108,11 @@ class Viewer:
 
     def show3DVolumeSlicer(self, binSize: float = None, logScale: bool = True):
         if not MAYAVI_AVAILABLE:
-            warnings.warn("ERROR: Package 'mayavi' is not available. Please install it to use 3D visualizations.")
+            utils.warn("ERROR: Package 'mayavi' is not available. Please install it to use 3D visualizations.")
             return
 
         if not self._logger.has3D:
-            warnings.warn("ERROR: Cannot show 3D volume slicer without 3D data.")
+            utils.warn("ERROR: Cannot show 3D volume slicer without 3D data.")
             return
 
         if binSize is None:
@@ -145,7 +144,7 @@ class Viewer:
     def reportStats(self, solidLabel: str = None, saveToFile: str = None, verbose=True):
         if not self._logger.has3D:
             # todo: obtain stats from 2D views
-            warnings.warn("ERROR: Stats without 3D data is not yet implemented.")
+            utils.warn("ERROR: Stats without 3D data is not yet implemented.")
             return
 
         stats = Stats(self._logger)
@@ -186,13 +185,16 @@ class Viewer:
                                      asSpheres=style.showPointsAsSpheres)
 
     def _addViews(self, viewsVisibility: ViewGroup):
-        if viewsVisibility != ViewGroup.SCENE:
-            warnings.warn("ERROR: Cannot show views. Only ViewGroup.SCENE is supported for now.")
-            return
+
+        if ViewGroup.SURFACES_ENTERING in viewsVisibility:
+            raise NotImplementedError("Views of surfaces are not yet implemented.")
+
+        if ViewGroup.SURFACES_LEAVING in viewsVisibility:
+            raise NotImplementedError("Views of surfaces are not yet implemented.")
 
         for view in self._logger.views:
-            # todo: assert correct view group
-            self._addView(view)
+            if view.group in viewsVisibility:
+                self._addView(view)
 
     def _addView(self, view: View2D):
         sceneLimits = self._scene.getBoundingBox().xyzLimits

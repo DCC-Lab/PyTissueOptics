@@ -91,6 +91,11 @@ class Scene:
     def getSolids(self) -> List[Solid]:
         return self._solids
 
+    def getSolid(self, solidLabel: str) -> Solid:
+        for solid in self._solids:
+            if solid.getLabel() == solidLabel:
+                return solid
+
     def getPolygons(self) -> List[Polygon]:
         polygons = []
         for solid in self._solids:

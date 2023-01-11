@@ -154,7 +154,16 @@ class View2D:
 
     @property
     def description(self) -> str:
-        return f"View2D projection towards {self._projectionDirection.name} with {self._horizontalDirection.name} horizontal."
+        objectLabel = self.solidLabel if self.solidLabel else "Scene"
+        return f"View2D {objectLabel} projection towards {self._projectionDirection.name} " \
+               f"with {self._horizontalDirection.name} horizontal."
+
+    @property
+    def group(self) -> ViewGroup:
+        if self.isSurface:
+            return ViewGroup.SURFACES_LEAVING if self._surfaceEnergyLeaving else ViewGroup.SURFACES_ENTERING
+        else:
+            return ViewGroup.SOLIDS if self.solidLabel else ViewGroup.SCENE
 
     @property
     def axis(self) -> int:
