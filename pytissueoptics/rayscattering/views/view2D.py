@@ -86,18 +86,15 @@ class View2D:
 
         self._dataUV = None
 
-    def setContext(self, limits3D: Tuple[Tuple[float, float], Tuple[float, float], Tuple[float, float]],
-                   bins3D: Union[int, Tuple[int, int, int]]):
+    def setContext(self, limits: Tuple[Tuple[float, float], Tuple[float, float]], bins: Tuple[int, int]):
         """
-        Used internally by Logger2D when initializing the views. The limits and the number of bins are given for
-        the three dimensions. The view will automatically take the required UV bins and limits from the list. The
-        limits are (lower, upper) bounds in the same physical units than the logged data points.
+        Used internally by ViewFactory when initializing the views. The limits and the number of bins are given for
+        the 2 dimensions in the correct order using the U and V axis of the view. The limits are (lower, upper) bounds
+        in the same physical units than the logged data points.
         """
-        bins3D = bins3D if isinstance(bins3D, tuple) else (bins3D, bins3D, bins3D)
-        self._binsU = bins3D[self.axisU]
-        self._binsV = bins3D[self.axisV]
-        self._limitsU = sorted(limits3D[self.axisU])
-        self._limitsV = sorted(limits3D[self.axisV])
+        limits = [sorted(d) for d in limits]  # Make sure limits are initially sorted. Then flip depending on the view.
+        self._binsU, self._binsV = bins
+        self._limitsU, self._limitsV = limits
 
         if self._verticalIsNegative:
             self._limitsV = self._limitsV[::-1]

@@ -1,4 +1,4 @@
-from typing import Union, List
+from typing import Union, List, Tuple
 
 from pytissueoptics import RayScatteringScene
 from pytissueoptics.rayscattering.views import ViewGroup, View2D, Direction
@@ -6,37 +6,54 @@ from pytissueoptics.scene.solids import Solid
 
 
 class ViewFactory:
-    def __init__(self, scene: RayScatteringScene):
+    def __init__(self, scene: RayScatteringScene, defaultBinSize: float):
         self._scene = scene
+        self._sceneLimits = scene.getBoundingBox().xyzLimits
+        self._defaultBinSize = defaultBinSize
 
     def build(self, views: Union[ViewGroup, List[View2D]]) -> List[View2D]:
+        if views is None:
+            return []
         if isinstance(views, ViewGroup):
-            return self._buildGroup(views)
-        else:
-            return self._buildViews(views)
+            views = self._createFromGroup(views)
 
-    def _buildGroup(self, viewGroup: ViewGroup):
+        for view in views:
+            self._setContext(view)
+
+        return views
+
+    def _createFromGroup(self, viewGroup: ViewGroup):
+        # todo: correctly implement all ViewGroups with bitflag logic.
+        views = []
         if viewGroup == ViewGroup.SCENE:
-            return self._getDefaultViewsXYZ()
+            views += self._getDefaultViewsXYZ()
         elif viewGroup == ViewGroup.SOLIDS:
-            views = []
             for solid in self._scene.solids:
                 views += self._getDefaultSolidViewsXYZ(solid)
-            return views
         else:
             raise NotImplementedError("Default views for ViewGroup {} not implemented.".format(viewGroup))
+
+        return views
+
+    @staticmethod
+    def _getDefaultViewsXYZ() -> List[View2D]:
+        return [View2D(Direction.X_POS, Direction.Z_POS),
+                View2D(Direction.Y_NEG, Direction.Z_POS),
+                View2D(Direction.Z_POS, Direction.X_NEG)]
 
     def _getDefaultSolidViewsXYZ(self, solid: Solid) -> List[View2D]:
         raise NotImplementedError()
 
-    def _buildViews(self, views: List[View2D]):
-        raise NotImplementedError()
+    def _setContext(self, view: View2D):
+        limits3D = [(d[0], d[1]) for d in self._sceneLimits]
+        bins3D = self._getDefaultBins(limits3D)
 
-    @staticmethod
-    def _getDefaultViewsXYZ() -> list:
-        return [View2D(Direction.X_POS, Direction.Z_POS),
-                View2D(Direction.Y_NEG, Direction.Z_POS),
-                View2D(Direction.Z_POS, Direction.X_NEG)]
+        limits = (limits3D[view.axisU], limits3D[view.axisV])
+        bins = (bins3D[view.axisU], bins3D[view.axisV])
+        view.setContext(limits=limits, bins=bins)
+
+    def _getDefaultBins(self, limits: List[Tuple[float, float]]) -> List[int]:
+        return [int((max(d) - min(d)) / self._defaultBinSize) for d in limits]
 
 
 # todo: this scene dependence is not ideal ...
