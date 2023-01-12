@@ -74,6 +74,11 @@ class ViewFactory:
         surfacePolygons = self._scene.getSolid(solidLabel).surfaces.getPolygons(surfaceLabel)
         polygonNormals = np.asarray([p.normal.array for p in surfacePolygons])
         surfaceNormal = np.mean(polygonNormals, axis=0)
+
+        if np.linalg.norm(surfaceNormal) < 1e-6:
+            # Ill-defined surface normal. Probably some kind of ellipsoid surface. Use Z_NEG normal.
+            return [0, 0, -1]
+
         return surfaceNormal
 
     def _setContext(self, view: View2D):
