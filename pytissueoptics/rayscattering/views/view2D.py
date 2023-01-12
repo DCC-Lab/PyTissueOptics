@@ -106,6 +106,13 @@ class View2D:
         self._dataUV = None
         self._hasData = False
 
+    def flip(self):
+        """ Flips the view as if it was seen from behind. """
+        flipHorizontal = self._projectionDirection.axis != 1
+        self._projectionDirection = Direction((self._projectionDirection.value + 3) % 6)
+        if flipHorizontal:
+            self._horizontalDirection = Direction((self._horizontalDirection.value + 3) % 6)
+
     @property
     def solidLabel(self) -> str:
         return self._solidLabel
