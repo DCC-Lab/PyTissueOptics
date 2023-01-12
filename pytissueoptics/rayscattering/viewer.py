@@ -1,5 +1,5 @@
 from enum import Flag
-from typing import List
+from typing import List, Tuple
 
 import numpy as np
 
@@ -9,7 +9,8 @@ from pytissueoptics.rayscattering.pointCloud import PointCloudFactory, PointClou
 from pytissueoptics.rayscattering.source import Source
 from pytissueoptics.rayscattering.statistics import Stats
 from pytissueoptics.rayscattering.tissues import RayScatteringScene
-from pytissueoptics.rayscattering.views import ViewGroup, View2D
+from pytissueoptics.rayscattering.views import ViewGroup, View2D, Direction
+from pytissueoptics.rayscattering.views.profile1DFactory import Profile1DFactory
 from pytissueoptics.scene import MAYAVI_AVAILABLE, MayaviViewer
 
 
@@ -81,6 +82,7 @@ class Viewer:
 
         self._viewer3D = None
         self._pointCloudFactory = PointCloudFactory(logger)
+        self._profile1DFactory = Profile1DFactory(scene, logger)
 
     def show3D(self, visibility=Visibility.AUTO, viewsVisibility: ViewGroup = ViewGroup.SCENE,
                pointCloudStyle=PointCloudStyle(), sourceSize: float = 0.1,
@@ -144,6 +146,12 @@ class Viewer:
 
     def listViews(self):
         return self._logger.listViews()
+
+    def show1D(self, along: Direction, logScale: bool = True,
+               solidLabel: str = None, surfaceLabel: str = None, surfaceEnergyLeaving: bool = True,
+               limits: Tuple[float, float] = None, binSize: float = None):
+        profile = self._profile1DFactory.create(along, solidLabel, surfaceLabel, surfaceEnergyLeaving, limits, binSize)
+        profile.show(logScale=logScale)
 
     def reportStats(self, solidLabel: str = None, saveToFile: str = None, verbose=True):
         if not self._logger.has3D:
