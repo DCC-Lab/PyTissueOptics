@@ -2,6 +2,7 @@ from typing import Union, List
 
 import numpy as np
 
+from pytissueoptics.rayscattering import utils
 from pytissueoptics.rayscattering.tissues import RayScatteringScene
 from pytissueoptics.rayscattering.views import ViewGroup, View2D, ViewFactory
 from pytissueoptics.scene.logger.logger import Logger, InteractionKey
@@ -77,9 +78,9 @@ class EnergyLogger(Logger):
             if datapoints is None or len(datapoints) == 0:
                 continue
             for view in views:
-                if view.solidLabel and view.solidLabel != key.solidLabel:
+                if view.solidLabel and not utils.labelsEqual(view.solidLabel, key.solidLabel):
                     continue
-                if view.surfaceLabel and view.surfaceLabel != key.surfaceLabel:
+                if view.surfaceLabel and not utils.labelsEqual(view.surfaceLabel, key.surfaceLabel):
                     continue
                 if view.surfaceLabel is None and key.surfaceLabel is not None:
                     continue

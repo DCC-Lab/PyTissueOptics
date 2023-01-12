@@ -85,8 +85,8 @@ class View2D:
         assert not self._projectionDirection.isSameAxisAs(self._horizontalDirection), "Projection and horizontal " \
                                                                                       "directions must be orthogonal."
 
-        self._solidLabel = solidLabel
-        self._surfaceLabel = surfaceLabel
+        self._solidLabel = solidLabel.lower() if solidLabel is not None else None
+        self._surfaceLabel = surfaceLabel.lower() if surfaceLabel is not None else None
         self._surfaceEnergyLeaving = surfaceEnergyLeaving
         if self._surfaceLabel is not None and self._solidLabel is None:
             self._surfaceLabel = None

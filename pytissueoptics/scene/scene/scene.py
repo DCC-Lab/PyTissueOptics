@@ -93,7 +93,7 @@ class Scene:
 
     def getSolid(self, solidLabel: str) -> Solid:
         for solid in self._solids:
-            if solid.getLabel() == solidLabel:
+            if solid.getLabel().lower() == solidLabel.lower():
                 return solid
 
     def getPolygons(self) -> List[Polygon]:
