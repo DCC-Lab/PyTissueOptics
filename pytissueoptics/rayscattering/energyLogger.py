@@ -42,34 +42,35 @@ class EnergyLogger(Logger):
 
         super().__init__(fromFilepath=filepath)  # todo: rewrite save/load to store views and _nDataPointsRemoved
 
-    def addView(self, view: View2D):
-        view = self._viewFactory.build([view])[0]
+    def addView(self, view: View2D) -> bool:
+        self._viewFactory.build([view])
 
         if self._viewExists(view):
-            return
+            return True
 
         if self.isEmpty:
             self._views.append(view)
-            return
+            return True
 
         if self.has3D:
             self._compileViews([view])
             self._views.append(view)
-            return
+            return True
 
-        # no need to set outdated since we need to fill the data immediately
-        # No 3D data, but we can try to extract the required data from existing 2D views.
-        # todo:
-        #  - if view2D already exists (should not happen really...), create a new copy and fill with data
-        #  - if equivalent View2D already exists, copy and flip to the required orientation
-        #  - else warn Error: "ERROR: Cannot create view. The 3D data was discarded and the required data was not found in stored 2D data. "
+        for i, existingView in enumerate(self._views):
+            if view.isEquivalentTo(existingView):
+                view.initDataFrom(existingView)
+                if existingView in self._outdatedViews:
+                    self._outdatedViews.add(view)
+                self._views.append(view)
+                return True
 
-        utils.warn("ERROR (NotImplementedError): Cannot add a view to a logger that has discarded 3D data.")
-        return
-        # self._views.append(view)
+        utils.warn(f"ERROR: Cannot create view {view.name}. The 3D data was discarded and the required data was not "
+                   f"found in existing views.")
+        return False
 
     def _viewExists(self, view: View2D) -> bool:
-        return any([view.sameViewAs(v) for v in self._views])
+        return any([view.isEqualTo(v) for v in self._views])
 
     @property
     def views(self):
@@ -141,7 +142,10 @@ class EnergyLogger(Logger):
         assert viewIndex is not None or view is not None, "Either `viewIndex` or `view` must be specified."
 
         if viewIndex is None:
-            self.addView(view)
+            created = self.addView(view)
+            if not created:
+                utils.warn(f"ERROR: Cannot display view {view.name}. Failed to create the view.")
+                return
             viewIndex = self._getViewIndex(view)
 
         view = self._views[viewIndex]
@@ -155,6 +159,6 @@ class EnergyLogger(Logger):
 
     def _getViewIndex(self, view: View2D) -> int:
         for i, v in enumerate(self._views):
-            if v.sameViewAs(view):
+            if v.isEqualTo(view):
                 return i
         raise ValueError("View not found.")

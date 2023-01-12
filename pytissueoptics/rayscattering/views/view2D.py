@@ -310,22 +310,63 @@ class View2D:
         plt.ylabel('xyz'[self.axisV])
         plt.show()
 
-    def sameViewAs(self, other: 'View2D') -> bool:
+    def isEqualTo(self, other: 'View2D') -> bool:
+        if not self.isEquivalentTo(other):
+            return False
         if self._projectionDirection != other._projectionDirection:
             return False
         if self._horizontalDirection != other._horizontalDirection:
             return False
-        if self._solidLabel != other._solidLabel:
+        if (self._binsU, self._binsV) != (other._binsU, other._binsV):
             return False
-        if self._surfaceLabel != other._surfaceLabel:
+        limits = sorted(self._limitsU), sorted(self._limitsV)
+        otherLimits = sorted(other._limitsU), sorted(other._limitsV)
+        if limits != otherLimits:
+            return False
+        return True
+
+    def isEquivalentTo(self, other: 'View2D') -> bool:
+        if self._projectionDirection.axis != other._projectionDirection.axis:
+            return False
+        if not utils.labelsEqual(self._solidLabel, other._solidLabel):
+            return False
+        if not utils.labelsEqual(self._surfaceLabel, other._surfaceLabel):
             return False
         if self._surfaceEnergyLeaving != other._surfaceEnergyLeaving:
             return False
-        if self._binsU != other._binsU or self._binsV != other._binsV:
+        if self._position != other._position:
             return False
-        if self._limitsU != other._limitsU or self._limitsV != other._limitsV:
+        if self._thickness != other._thickness:
+            return False
+
+        # TODO: change/remove the following once the algorithm can extract a view contained inside a bigger view.
+        isTransposed = self.axisU != other.axisU
+        if isTransposed:
+            bins = self._binsV, self._binsU
+            limits = sorted(self._limitsV), sorted(self._limitsU)
+        else:
+            bins = self._binsU, self._binsV
+            limits = sorted(self._limitsU), sorted(self._limitsV)
+        otherBins = other._binsU, other._binsV
+        otherLimits = sorted(other._limitsU), sorted(other._limitsV)
+
+        if bins != otherBins:
+            return False
+        if limits != otherLimits:
             return False
         return True
+
+    def initDataFrom(self, source: 'View2D'):
+        """ Extract data from one view to another when there is only a difference in orientation. """
+        assert self.isEquivalentTo(source), "Cannot extract data from views that are not equivalent."
+
+        dataUV = source._dataUV.copy()
+        if source.axisU == self.axisU:
+            self._dataUV = dataUV
+        else:
+            self._dataUV = dataUV.T
+        self._hasData = source._hasData
+
 
 DEFAULT_X_VIEW_DIRECTIONS = (Direction.X_POS, Direction.Z_POS)
 DEFAULT_Y_VIEW_DIRECTIONS = (Direction.Y_NEG, Direction.Z_POS)
