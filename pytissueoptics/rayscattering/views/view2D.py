@@ -210,6 +210,8 @@ class View2D:
             else:
                 dataPoints = dataPoints[dataPoints[:, 0] < 0]
                 dataPoints[:, 0] *= -1
+        if dataPoints.size == 0:
+            return
 
         u, v, w = dataPoints[:, 1 + self.axisU], dataPoints[:, 1 + self.axisV], dataPoints[:, 0]
         sumUVProjection = np.histogram2d(u, v, weights=w, normed=False, bins=(self._binsU, self._binsV),
@@ -234,8 +236,7 @@ class View2D:
             image = np.flip(image, axis=1)
         if self._horizontalDirection.isNegative:
             image = np.flip(image, axis=0)
-
-        if logNorm:
+        if logNorm and self._hasData:
             image = utils.logNorm(image)
         return image
 
