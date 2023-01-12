@@ -1,4 +1,5 @@
 from enum import Flag
+from typing import List
 
 import numpy as np
 
@@ -82,7 +83,8 @@ class Viewer:
         self._pointCloudFactory = PointCloudFactory(logger)
 
     def show3D(self, visibility=Visibility.AUTO, viewsVisibility: ViewGroup = ViewGroup.SCENE,
-               pointCloudStyle=PointCloudStyle(), sourceSize: float = 0.1):
+               pointCloudStyle=PointCloudStyle(), sourceSize: float = 0.1,
+               viewsSolidLabels: List[str] = None, viewsSurfaceLabels: List[str] = None):
         if not MAYAVI_AVAILABLE:
             utils.warn("Package 'mayavi' is not available. Please install it to use 3D visualizations.")
             return
@@ -102,7 +104,7 @@ class Viewer:
             self._addPointCloud(pointCloudStyle)
 
         if Visibility.VIEWS in visibility:
-            self._addViews(viewsVisibility)
+            self._addViews(viewsVisibility, viewsSolidLabels, viewsSurfaceLabels)
 
         self._viewer3D.show()
 
@@ -186,9 +188,13 @@ class Viewer:
                                      reverseColormap=style.surfaceReverseColormap,
                                      asSpheres=style.showPointsAsSpheres)
 
-    def _addViews(self, viewsVisibility: ViewGroup):
+    def _addViews(self, viewsVisibility: ViewGroup, solidLabels: List[str] = None, surfaceLabels: List[str] = None):
         for view in self._logger.views:
-            if view.group in viewsVisibility:
+            correctGroup = view.group in viewsVisibility
+            correctSolidLabel = solidLabels is None or utils.labelContained(view.solidLabel, solidLabels)
+            correctSurfaceLabel = surfaceLabels is None or not view.isSurface or \
+                                  utils.labelContained(view.surfaceLabel, surfaceLabels)
+            if correctGroup and correctSolidLabel and correctSurfaceLabel:
                 self._addView(view)
 
     def _addView(self, view: View2D):
