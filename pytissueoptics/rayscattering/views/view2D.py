@@ -1,4 +1,5 @@
 import copy
+from dataclasses import dataclass
 from enum import Enum, Flag
 from typing import Tuple, Union
 
@@ -125,8 +126,6 @@ class View2D:
     def isSurface(self) -> bool:
         return self._surfaceLabel is not None
 
-    # todo: maybe turn into abstract class (only allow endpoints View2DProjection, Slice, Surface)
-
     def setContext(self, limits: Tuple[Tuple[float, float], Tuple[float, float]],
                    binSize: Tuple[float, float]):
         """
@@ -153,9 +152,17 @@ class View2D:
         self._dataUV = np.zeros((self._binsU, self._binsV), dtype=np.float32)
 
     @property
-    def description(self) -> str:
+    def name(self) -> str:
         objectLabel = self.solidLabel if self.solidLabel else "Scene"
-        return f"View2D {objectLabel} projection towards {self._projectionDirection.name} " \
+        if self._surfaceLabel:
+            objectLabel += f" surface {self._surfaceLabel}"
+            objectLabel += " (leaving)" if self._surfaceEnergyLeaving else " (entering)"
+
+        return f"{self.__class__.__name__} of {objectLabel}"
+
+    @property
+    def description(self) -> str:
+        return f"{self.name} towards {self._projectionDirection.name} " \
                f"with {self._horizontalDirection.name} horizontal."
 
     @property
@@ -195,6 +202,7 @@ class View2D:
                 dataPoints = dataPoints[dataPoints[:, 0] >= 0]
             else:
                 dataPoints = dataPoints[dataPoints[:, 0] < 0]
+                dataPoints[:, 0] *= -1
 
         u, v, w = dataPoints[:, 1 + self.axisU], dataPoints[:, 1 + self.axisV], dataPoints[:, 0]
         sumUVProjection = np.histogram2d(u, v, weights=w, normed=False, bins=(self._binsU, self._binsV),
@@ -251,7 +259,63 @@ class View2D:
 
         # N.B.: imshow() expects the data array to be (y, x), so we need to transpose the data array.
         plt.imshow(image.T, cmap=cmap, extent=self.extent)
+        plt.title(self.name)
         plt.xlabel('xyz'[self.axisU])
         plt.ylabel('xyz'[self.axisV])
         plt.show()
-        super().__init__(projectionDirection, horizontalDirection, position=None, thickness=None)
+
+
+DEFAULT_X_VIEW_DIRECTIONS = (Direction.X_POS, Direction.Z_POS)
+DEFAULT_Y_VIEW_DIRECTIONS = (Direction.Y_NEG, Direction.Z_POS)
+DEFAULT_Z_VIEW_DIRECTIONS = (Direction.Z_POS, Direction.X_NEG)
+
+
+class View2DProjection(View2D):
+    def __init__(self, projectionDirection: Direction, horizontalDirection: Direction, solidLabel: str = None,
+                 limits: Tuple[Tuple[float, float], Tuple[float, float]] = None,
+                 binSize: Union[float, Tuple[int, int]] = None):
+        super().__init__(projectionDirection, horizontalDirection,
+                         solidLabel=solidLabel, limits=limits, binSize=binSize)
+
+class View2DProjectionX(View2DProjection):
+    def __init__(self, solidLabel: str = None, limits: Tuple[Tuple[float, float], Tuple[float, float]] = None,
+                 binSize: Union[float, Tuple[int, int]] = None):
+        super().__init__(*DEFAULT_X_VIEW_DIRECTIONS, solidLabel=solidLabel, limits=limits, binSize=binSize)
+
+class View2DProjectionY(View2DProjection):
+    def __init__(self, solidLabel: str = None, limits: Tuple[Tuple[float, float], Tuple[float, float]] = None,
+                 binSize: Union[float, Tuple[int, int]] = None):
+        super().__init__(*DEFAULT_Y_VIEW_DIRECTIONS, solidLabel=solidLabel, limits=limits, binSize=binSize)
+
+class View2DProjectionZ(View2DProjection):
+    def __init__(self, solidLabel: str = None, limits: Tuple[Tuple[float, float], Tuple[float, float]] = None,
+                 binSize: Union[float, Tuple[int, int]] = None):
+        super().__init__(*DEFAULT_Z_VIEW_DIRECTIONS, solidLabel=solidLabel, limits=limits, binSize=binSize)
+
+class View2DSurface(View2D):
+    def __init__(self, projectionDirection: Direction, horizontalDirection: Direction, solidLabel: str, surfaceLabel: str,
+                 surfaceEnergyLeaving: bool = True, limits: Tuple[Tuple[float, float], Tuple[float, float]] = None,
+                 binSize: Union[float, Tuple[int, int]] = None):
+        super().__init__(projectionDirection, horizontalDirection, solidLabel=solidLabel, surfaceLabel=surfaceLabel,
+                         surfaceEnergyLeaving=surfaceEnergyLeaving, limits=limits, binSize=binSize)
+
+class View2DSurfaceX(View2DSurface):
+    def __init__(self, solidLabel: str, surfaceLabel: str, surfaceEnergyLeaving: bool = True,
+                 limits: Tuple[Tuple[float, float], Tuple[float, float]] = None,
+                 binSize: Union[float, Tuple[int, int]] = None):
+        super().__init__(*DEFAULT_X_VIEW_DIRECTIONS, solidLabel=solidLabel, surfaceLabel=surfaceLabel,
+                         surfaceEnergyLeaving=surfaceEnergyLeaving, limits=limits, binSize=binSize)
+
+class View2DSurfaceY(View2DSurface):
+    def __init__(self, solidLabel: str, surfaceLabel: str, surfaceEnergyLeaving: bool = True,
+                 limits: Tuple[Tuple[float, float], Tuple[float, float]] = None,
+                 binSize: Union[float, Tuple[int, int]] = None):
+        super().__init__(*DEFAULT_Y_VIEW_DIRECTIONS, solidLabel=solidLabel, surfaceLabel=surfaceLabel,
+                         surfaceEnergyLeaving=surfaceEnergyLeaving, limits=limits, binSize=binSize)
+
+class View2DSurfaceZ(View2DSurface):
+    def __init__(self, solidLabel: str, surfaceLabel: str, surfaceEnergyLeaving: bool = True,
+                    limits: Tuple[Tuple[float, float], Tuple[float, float]] = None,
+                    binSize: Union[float, Tuple[int, int]] = None):
+            super().__init__(*DEFAULT_Z_VIEW_DIRECTIONS, solidLabel=solidLabel, surfaceLabel=surfaceLabel,
+                            surfaceEnergyLeaving=surfaceEnergyLeaving, limits=limits, binSize=binSize)
