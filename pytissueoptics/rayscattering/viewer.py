@@ -134,7 +134,7 @@ class Viewer:
     def show2D(self, viewIndex: int = None, view: View2D = None, logScale: bool = True, colormap: str = "viridis"):
         self._logger.showView(viewIndex=viewIndex, view=view, logScale=logScale, colormap=colormap)
 
-    def showAllViews(self, viewGroup: ViewGroup.ALL):
+    def showAllViews(self, viewGroup = ViewGroup.ALL):
         for i in range(len(self._logger.views)):
             if self._logger.views[i].group not in viewGroup:
                 continue

@@ -55,7 +55,9 @@ class ViewFactory:
     def _getDefaultSurfaceViews(self, solidLabel: str, surfaceLabel: str,
                                includeLeaving: bool, includeEntering: bool) -> List[View2D]:
         surfaceNormal = self._getSurfaceNormal(solidLabel, surfaceLabel)
+
         axis = int(np.argmax(np.abs(surfaceNormal)))
+        surfaceNormalSign = np.sign(surfaceNormal[axis])
 
         views = []
         _ViewType = [View2DSurfaceX, View2DSurfaceY, View2DSurfaceZ][axis]
@@ -63,6 +65,9 @@ class ViewFactory:
             views.append(_ViewType(solidLabel=solidLabel, surfaceLabel=surfaceLabel, surfaceEnergyLeaving=True))
         if includeEntering:
             views.append(_ViewType(solidLabel=solidLabel, surfaceLabel=surfaceLabel, surfaceEnergyLeaving=False))
+        for view in views:
+            if surfaceNormalSign == view.projectionDirection.sign:
+                view.flip()
         return views
 
     def _getSurfaceNormal(self, solidLabel: str, surfaceLabel: str):

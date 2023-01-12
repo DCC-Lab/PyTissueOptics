@@ -46,7 +46,7 @@ class EnergyLogger(Logger):
         super().__init__(fromFilepath=filepath)  # todo: rewrite save/load to store views and _nDataPointsRemoved
 
     def addView(self, view: Union[View2D, ViewGroup]):
-        self._views += self._viewFactory.build(view)
+        self._views += self._viewFactory.build([view])
 
     @property
     def views(self):
