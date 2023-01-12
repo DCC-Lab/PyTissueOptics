@@ -37,17 +37,39 @@ class EnergyLogger(Logger):
 
         self._viewFactory = ViewFactory(scene, defaultBinSize)
         self._views = self._viewFactory.build(views)
-        # todo: could extract struct of scene and solid limits to avoid having to pass the scene to the ViewFactory
-        # todo: could reverse Source->Logger dependence. Source could be passed to Logger with Observer pattern.
-        #  Then >>> scene = ...
-        #       >>> source = ...
-        #       >>> logger = EnergyLogger(source, scene)
-        #       >>> source.propagate(scene)
+        self._outdatedViews = set()
         self._nDataPointsRemoved = 0
+
         super().__init__(fromFilepath=filepath)  # todo: rewrite save/load to store views and _nDataPointsRemoved
 
-    def addView(self, view: Union[View2D, ViewGroup]):
-        self._views += self._viewFactory.build([view])
+    def addView(self, view: View2D):
+        view = self._viewFactory.build([view])[0]
+
+        if self._viewExists(view):
+            return
+
+        if self.isEmpty:
+            self._views.append(view)
+            return
+
+        if self.has3D:
+            self._compileViews([view])
+            self._views.append(view)
+            return
+
+        # no need to set outdated since we need to fill the data immediately
+        # No 3D data, but we can try to extract the required data from existing 2D views.
+        # todo:
+        #  - if view2D already exists (should not happen really...), create a new copy and fill with data
+        #  - if equivalent View2D already exists, copy and flip to the required orientation
+        #  - else warn Error: "ERROR: Cannot create view. The 3D data was discarded and the required data was not found in stored 2D data. "
+
+        utils.warn("ERROR (NotImplementedError): Cannot add a view to a logger that has discarded 3D data.")
+        return
+        # self._views.append(view)
+
+    def _viewExists(self, view: View2D) -> bool:
+        return any([view.sameViewAs(v) for v in self._views])
 
     @property
     def views(self):
@@ -67,6 +89,7 @@ class EnergyLogger(Logger):
         data to 2D views if 3D data is being discarded.
         """
         super().logDataPointArray(array, key)
+        self._outdatedViews = set(self._views)
 
         if not self._keep3D:
             self._compileViews(self._views)
@@ -85,6 +108,8 @@ class EnergyLogger(Logger):
                 if view.surfaceLabel is None and key.surfaceLabel is not None:
                     continue
                 view.extractData(datapoints.array)
+        for view in views:
+            self._outdatedViews.discard(view)
 
     def _delete3DData(self):
         self._nDataPointsRemoved += super().nDataPoints
@@ -111,17 +136,25 @@ class EnergyLogger(Logger):
         for i, view in enumerate(self._views):
             print(f"\t{i}: {view.description}")
 
-    def showView(self, viewIndex: int = None, view: View2D = None,
+    def showView(self, view: View2D = None, viewIndex: int = None,
                  logScale: bool = True, colormap: str = 'viridis'):
         assert viewIndex is not None or view is not None, "Either `viewIndex` or `view` must be specified."
 
         if viewIndex is None:
-            # todo: if view2D exists, display, else try to flip existing view, else create from scratch with 3D data
-            raise NotImplementedError("Displaying a view from scratch is not yet implemented.")
+            self.addView(view)
+            viewIndex = self._getViewIndex(view)
 
         view = self._views[viewIndex]
-        if view.hasData:
-            view.show(logScale=logScale, colormap=colormap)
-        else:
+        self.updateView(view)
+
+        view.show(logScale=logScale, colormap=colormap)
+
+    def updateView(self, view: View2D):
+        if view in self._outdatedViews:
             self._compileViews([view])
-            view.show(logScale=logScale, colormap=colormap)
+
+    def _getViewIndex(self, view: View2D) -> int:
+        for i, v in enumerate(self._views):
+            if v.sameViewAs(view):
+                return i
+        raise ValueError("View not found.")

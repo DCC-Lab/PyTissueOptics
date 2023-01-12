@@ -133,8 +133,8 @@ class Viewer:
         slicer = VolumeSlicer(data=hist)
         slicer.show()
 
-    def show2D(self, viewIndex: int = None, view: View2D = None, logScale: bool = True, colormap: str = "viridis"):
-        self._logger.showView(viewIndex=viewIndex, view=view, logScale=logScale, colormap=colormap)
+    def show2D(self, view: View2D = None, viewIndex: int = None, logScale: bool = True, colormap: str = "viridis"):
+        self._logger.showView(view=view, viewIndex=viewIndex, logScale=logScale, colormap=colormap)
 
     def showAllViews(self, viewGroup = ViewGroup.ALL):
         for i in range(len(self._logger.views)):
@@ -198,6 +198,8 @@ class Viewer:
                 self._addView(view)
 
     def _addView(self, view: View2D):
+        self._logger.updateView(view)
+
         limits = self._scene.getBoundingBox().xyzLimits
         if view.solidLabel:
             limits = self._scene.getSolid(view.solidLabel).getBoundingBox().xyzLimits

@@ -206,7 +206,7 @@ class View2D:
         # todo: implement slices
         if self.isSurface:
             if self._surfaceEnergyLeaving:
-                dataPoints = dataPoints[dataPoints[:, 0] >= 0]
+                dataPoints = dataPoints[dataPoints[:, 0] > 0]
             else:
                 dataPoints = dataPoints[dataPoints[:, 0] < 0]
                 dataPoints[:, 0] *= -1
@@ -297,10 +297,6 @@ class View2D:
     def minCorner(self) -> Tuple[float, float]:
         return min(self._limitsU), min(self._limitsV)
 
-    @property
-    def hasData(self) -> bool:
-        return self._hasData
-
     def show(self, logScale: bool = True, colormap: str = 'viridis'):
         cmap = copy.copy(matplotlib.cm.get_cmap(colormap))
         cmap.set_bad(cmap.colors[0])
@@ -314,6 +310,22 @@ class View2D:
         plt.ylabel('xyz'[self.axisV])
         plt.show()
 
+    def sameViewAs(self, other: 'View2D') -> bool:
+        if self._projectionDirection != other._projectionDirection:
+            return False
+        if self._horizontalDirection != other._horizontalDirection:
+            return False
+        if self._solidLabel != other._solidLabel:
+            return False
+        if self._surfaceLabel != other._surfaceLabel:
+            return False
+        if self._surfaceEnergyLeaving != other._surfaceEnergyLeaving:
+            return False
+        if self._binsU != other._binsU or self._binsV != other._binsV:
+            return False
+        if self._limitsU != other._limitsU or self._limitsV != other._limitsV:
+            return False
+        return True
 
 DEFAULT_X_VIEW_DIRECTIONS = (Direction.X_POS, Direction.Z_POS)
 DEFAULT_Y_VIEW_DIRECTIONS = (Direction.Y_NEG, Direction.Z_POS)

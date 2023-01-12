@@ -148,3 +148,7 @@ class Logger:
     @property
     def nDataPoints(self) -> int:
         return sum(len(data.dataPoints) for data in self._data.values())
+
+    @property
+    def isEmpty(self) -> bool:
+        return self.nDataPoints == 0
