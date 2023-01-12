@@ -58,7 +58,7 @@ class EnergyLogger(Logger):
             return True
 
         for i, existingView in enumerate(self._views):
-            if view.isEquivalentTo(existingView):
+            if view.isContainedBy(existingView):
                 view.initDataFrom(existingView)
                 if existingView in self._outdatedViews:
                     self._outdatedViews.add(view)

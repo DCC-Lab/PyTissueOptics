@@ -1,6 +1,5 @@
 import copy
-from dataclasses import dataclass
-from enum import Enum, Flag
+from enum import Flag
 from typing import Tuple, Union
 
 import matplotlib
@@ -8,35 +7,7 @@ import numpy as np
 from matplotlib import pyplot as plt
 
 from pytissueoptics.rayscattering import utils
-
-
-class Direction(Enum):
-    X_POS = 0
-    Y_POS = 1
-    Z_POS = 2
-    X_NEG = 3
-    Y_NEG = 4
-    Z_NEG = 5
-
-    def isSameAxisAs(self, other) -> bool:
-        return self.value % 3 == other.value % 3
-
-    @property
-    def axis(self) -> int:
-        """ Returns an integer between 0 and 2 representing the x, y, or z axis, ignoring direction sign. """
-        return self.value % 3
-
-    @property
-    def isNegative(self) -> bool:
-        return self.value >= 3
-
-    @property
-    def isPositive(self) -> bool:
-        return not self.isNegative
-
-    @property
-    def sign(self) -> int:
-        return 1 if self.isPositive else -1
+from pytissueoptics.rayscattering.views.direction import *
 
 
 class ViewGroup(Flag):
@@ -85,8 +56,8 @@ class View2D:
         assert not self._projectionDirection.isSameAxisAs(self._horizontalDirection), "Projection and horizontal " \
                                                                                       "directions must be orthogonal."
 
-        self._solidLabel = solidLabel.lower() if solidLabel is not None else None
-        self._surfaceLabel = surfaceLabel.lower() if surfaceLabel is not None else None
+        self._solidLabel = solidLabel
+        self._surfaceLabel = surfaceLabel
         self._surfaceEnergyLeaving = surfaceEnergyLeaving
         if self._surfaceLabel is not None and self._solidLabel is None:
             self._surfaceLabel = None
@@ -311,7 +282,7 @@ class View2D:
         plt.show()
 
     def isEqualTo(self, other: 'View2D') -> bool:
-        if not self.isEquivalentTo(other):
+        if not self.isContainedBy(other):
             return False
         if self._projectionDirection != other._projectionDirection:
             return False
@@ -325,7 +296,7 @@ class View2D:
             return False
         return True
 
-    def isEquivalentTo(self, other: 'View2D') -> bool:
+    def isContainedBy(self, other: 'View2D') -> bool:
         if self._projectionDirection.axis != other._projectionDirection.axis:
             return False
         if not utils.labelsEqual(self._solidLabel, other._solidLabel):
@@ -358,7 +329,7 @@ class View2D:
 
     def initDataFrom(self, source: 'View2D'):
         """ Extract data from one view to another when there is only a difference in orientation. """
-        assert self.isEquivalentTo(source), "Cannot extract data from views that are not equivalent."
+        assert self.isContainedBy(source), "Cannot extract data from views that are not equivalent."
 
         dataUV = source._dataUV.copy()
         if source.axisU == self.axisU:
@@ -366,59 +337,3 @@ class View2D:
         else:
             self._dataUV = dataUV.T
         self._hasData = source._hasData
-
-
-DEFAULT_X_VIEW_DIRECTIONS = (Direction.X_POS, Direction.Z_POS)
-DEFAULT_Y_VIEW_DIRECTIONS = (Direction.Y_NEG, Direction.Z_POS)
-DEFAULT_Z_VIEW_DIRECTIONS = (Direction.Z_POS, Direction.X_NEG)
-
-
-class View2DProjection(View2D):
-    def __init__(self, projectionDirection: Direction, horizontalDirection: Direction, solidLabel: str = None,
-                 limits: Tuple[Tuple[float, float], Tuple[float, float]] = None,
-                 binSize: Union[float, Tuple[int, int]] = None):
-        super().__init__(projectionDirection, horizontalDirection,
-                         solidLabel=solidLabel, limits=limits, binSize=binSize)
-
-class View2DProjectionX(View2DProjection):
-    def __init__(self, solidLabel: str = None, limits: Tuple[Tuple[float, float], Tuple[float, float]] = None,
-                 binSize: Union[float, Tuple[int, int]] = None):
-        super().__init__(*DEFAULT_X_VIEW_DIRECTIONS, solidLabel=solidLabel, limits=limits, binSize=binSize)
-
-class View2DProjectionY(View2DProjection):
-    def __init__(self, solidLabel: str = None, limits: Tuple[Tuple[float, float], Tuple[float, float]] = None,
-                 binSize: Union[float, Tuple[int, int]] = None):
-        super().__init__(*DEFAULT_Y_VIEW_DIRECTIONS, solidLabel=solidLabel, limits=limits, binSize=binSize)
-
-class View2DProjectionZ(View2DProjection):
-    def __init__(self, solidLabel: str = None, limits: Tuple[Tuple[float, float], Tuple[float, float]] = None,
-                 binSize: Union[float, Tuple[int, int]] = None):
-        super().__init__(*DEFAULT_Z_VIEW_DIRECTIONS, solidLabel=solidLabel, limits=limits, binSize=binSize)
-
-class View2DSurface(View2D):
-    def __init__(self, projectionDirection: Direction, horizontalDirection: Direction, solidLabel: str, surfaceLabel: str,
-                 surfaceEnergyLeaving: bool = True, limits: Tuple[Tuple[float, float], Tuple[float, float]] = None,
-                 binSize: Union[float, Tuple[int, int]] = None):
-        super().__init__(projectionDirection, horizontalDirection, solidLabel=solidLabel, surfaceLabel=surfaceLabel,
-                         surfaceEnergyLeaving=surfaceEnergyLeaving, limits=limits, binSize=binSize)
-
-class View2DSurfaceX(View2DSurface):
-    def __init__(self, solidLabel: str, surfaceLabel: str, surfaceEnergyLeaving: bool = True,
-                 limits: Tuple[Tuple[float, float], Tuple[float, float]] = None,
-                 binSize: Union[float, Tuple[int, int]] = None):
-        super().__init__(*DEFAULT_X_VIEW_DIRECTIONS, solidLabel=solidLabel, surfaceLabel=surfaceLabel,
-                         surfaceEnergyLeaving=surfaceEnergyLeaving, limits=limits, binSize=binSize)
-
-class View2DSurfaceY(View2DSurface):
-    def __init__(self, solidLabel: str, surfaceLabel: str, surfaceEnergyLeaving: bool = True,
-                 limits: Tuple[Tuple[float, float], Tuple[float, float]] = None,
-                 binSize: Union[float, Tuple[int, int]] = None):
-        super().__init__(*DEFAULT_Y_VIEW_DIRECTIONS, solidLabel=solidLabel, surfaceLabel=surfaceLabel,
-                         surfaceEnergyLeaving=surfaceEnergyLeaving, limits=limits, binSize=binSize)
-
-class View2DSurfaceZ(View2DSurface):
-    def __init__(self, solidLabel: str, surfaceLabel: str, surfaceEnergyLeaving: bool = True,
-                    limits: Tuple[Tuple[float, float], Tuple[float, float]] = None,
-                    binSize: Union[float, Tuple[int, int]] = None):
-            super().__init__(*DEFAULT_Z_VIEW_DIRECTIONS, solidLabel=solidLabel, surfaceLabel=surfaceLabel,
-                            surfaceEnergyLeaving=surfaceEnergyLeaving, limits=limits, binSize=binSize)

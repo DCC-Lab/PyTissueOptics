@@ -4,4 +4,4 @@ from .source import PencilPointSource, IsotropicPointSource, DirectionalSource, 
 from .statistics import Stats
 from .energyLogger import EnergyLogger
 from .viewer import Viewer, PointCloudStyle, Visibility
-from .views import ViewGroup, Direction
+from .views import ViewGroup, Direction, defaultViews as views
