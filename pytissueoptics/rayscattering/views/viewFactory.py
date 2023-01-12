@@ -4,7 +4,7 @@ import numpy as np
 
 from pytissueoptics.rayscattering.tissues import RayScatteringScene
 from pytissueoptics.rayscattering.views import ViewGroup, View2D
-from pytissueoptics.rayscattering.views.view2D import View2DProjectionX, View2DProjectionY, View2DProjectionZ, \
+from pytissueoptics.rayscattering.views.defaultViews import View2DProjectionX, View2DProjectionY, View2DProjectionZ, \
     View2DSurfaceX, View2DSurfaceY, View2DSurfaceZ
 
 
@@ -55,7 +55,6 @@ class ViewFactory:
     def _getDefaultSurfaceViews(self, solidLabel: str, surfaceLabel: str,
                                includeLeaving: bool, includeEntering: bool) -> List[View2D]:
         surfaceNormal = self._getSurfaceNormal(solidLabel, surfaceLabel)
-
         axis = int(np.argmax(np.abs(surfaceNormal)))
         surfaceNormalSign = np.sign(surfaceNormal[axis])
 
