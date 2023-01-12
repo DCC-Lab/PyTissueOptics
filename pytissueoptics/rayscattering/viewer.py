@@ -187,20 +187,16 @@ class Viewer:
                                      asSpheres=style.showPointsAsSpheres)
 
     def _addViews(self, viewsVisibility: ViewGroup):
-
-        if ViewGroup.SURFACES_ENTERING in viewsVisibility:
-            raise NotImplementedError("Views of surfaces are not yet implemented.")
-
-        if ViewGroup.SURFACES_LEAVING in viewsVisibility:
-            raise NotImplementedError("Views of surfaces are not yet implemented.")
-
         for view in self._logger.views:
             if view.group in viewsVisibility:
                 self._addView(view)
 
     def _addView(self, view: View2D):
-        sceneLimits = self._scene.getBoundingBox().xyzLimits
-        viewAxisLimits = sorted(sceneLimits[view.axis])
+        limits = self._scene.getBoundingBox().xyzLimits
+        if view.solidLabel:
+            limits = self._scene.getSolid(view.solidLabel).getBoundingBox().xyzLimits
+
+        viewAxisLimits = sorted(limits[view.axis])
         positionMin, positionMax = viewAxisLimits
         viewSpacing = 0.1
 
