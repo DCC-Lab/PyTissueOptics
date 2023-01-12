@@ -205,4 +205,5 @@ class Viewer:
         else:
             position = positionMax + viewSpacing
 
-        self._viewer3D.addImage(view.getImageData(), view.size, view.minCorner, view.axis, position)
+        alignedImage = view.getImageDataWithDefaultAlignment()
+        self._viewer3D.addImage(alignedImage, view.size, view.minCorner, view.axis, position)

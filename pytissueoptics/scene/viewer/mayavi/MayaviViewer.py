@@ -83,10 +83,10 @@ class MayaviViewer:
             s.module_manager.scalar_lut_manager.reverse_lut = reverseColormap
 
     @staticmethod
-    def addImage(image: np.ndarray, sizeInCM: tuple = None, minCorner: tuple = (0, 0),
+    def addImage(image: np.ndarray, size: tuple = None, minCorner: tuple = (0, 0),
                  axis: int = 2, position: float = 0):
-        if sizeInCM is None:
-            sizeInCM = image.shape
+        if size is None:
+            size = image.shape
         overSampling = 5  # 10% lost on edge pixel (0.5/oversampling)
         image = np.repeat(np.repeat(image, overSampling, axis=0), overSampling, axis=1)
 
@@ -94,10 +94,10 @@ class MayaviViewer:
         image = np.flip(image, axis=1)
 
         p = mlab.imshow(image, colormap='viridis', interpolate=False,
-                        extent=[0, sizeInCM[0], 0, sizeInCM[1], position, position], )
+                        extent=[0, size[0], 0, size[1], position, position], )
         p.actor.force_opaque = True
 
-        tempPosition = [minCorner[0] + sizeInCM[0] / 2, minCorner[1] + sizeInCM[1] / 2]
+        tempPosition = [minCorner[0] + size[0] / 2, minCorner[1] + size[1] / 2]
         tempPosition.insert(axis, position)
         p.actor.position = tempPosition
 

@@ -232,6 +232,48 @@ class View2D:
             image = utils.logNorm(image)
         return image
 
+    def getImageDataWithDefaultAlignment(self):
+        """
+        Returns the image data aligned with the default 2D alignment for its projection axis. This is used to
+        simplify the 3D display of any 2D image. If current view is already aligned with one of the default 2D
+        alignments, it will simply return getImageData(). The projection axis (absolute) remains the same.
+
+        The default 2D alignments (projectionDirection, horizontalDirection) are:
+            X: (Direction.X_POS, Direction.Z_POS)
+            Y: (Direction.Y_NEG, Direction.Z_POS)
+            Z: (Direction.Z_POS, Direction.X_NEG)
+
+        Horizontal axis clockwise order for each projection axis starting with the required value:
+            X_POS projection: (Z_POS, Y_POS, Z_NEG, Y_NEG) which equals Direction values (2, 1, 5, 4)
+            Y_NEG projection: (Z_POS, X_POS, Z_NEG, X_NEG) which equals Direction values (2, 0, 5, 3)
+            Z_POS projection: (X_NEG, Y_POS, X_POS, Y_NEG) which equals Direction values (3, 1, 0, 4)
+        Using this, the index of the current horizontal equals the number of counter-clockwise 90 degree rotations.
+
+        Correction algorithm:
+            If projection is X_NEG, flip horizontally. This will flip horizontalDirection.
+            If projection is Y_POS, flip vertically. This will not flip horizontalDirection.
+            If projection is Z_NEG, flip horizontally. This will flip horizontalDirection.
+            Rotate 90 degrees counter-clockwise until horizontalDirection equals the first value in the list above.
+        """
+        alignedDirections = [DEFAULT_X_VIEW_DIRECTIONS, DEFAULT_Y_VIEW_DIRECTIONS, DEFAULT_Z_VIEW_DIRECTIONS][self.axis]
+        requiredProjection, requiredHorizontal = alignedDirections
+        currentProjection, currentHorizontal = self._projectionDirection, self._horizontalDirection
+
+        image = self.getImageData()
+
+        if currentProjection != requiredProjection:
+            if self.axis == 1:
+                image = np.flip(image, axis=1)
+            else:
+                image = np.flip(image, axis=0)
+                currentHorizontal = Direction((currentHorizontal.value + 3) % 6)
+
+        horizontalOrder = {0: [2, 1, 5, 4], 1: [2, 0, 5, 3], 2: [3, 1, 0, 4]}
+        horizontalIndex = horizontalOrder[self.axis].index(currentHorizontal.value)
+        image = np.rot90(image, horizontalIndex)
+
+        return image
+
     @property
     def extent(self) -> Tuple[float, float, float, float]:
         """ Image extent [left, right, bottom, top]. """
@@ -257,7 +299,7 @@ class View2D:
 
         image = self.getImageData(logNorm=logScale)
 
-        # N.B.: imshow() expects the data array to be (y, x), so we need to transpose the data array.
+        # N.B.: imshow() expects the data to be (y, x), so we need to transpose the array.
         plt.imshow(image.T, cmap=cmap, extent=self.extent)
         plt.title(self.name)
         plt.xlabel('xyz'[self.axisU])
