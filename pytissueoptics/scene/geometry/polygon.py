@@ -43,19 +43,19 @@ class Polygon:
         return True
 
     @property
-    def normal(self):
+    def normal(self) -> Vector:
         return self._normal
 
     @property
-    def vertices(self):
+    def vertices(self) -> List[Vertex]:
         return self._vertices
 
     @property
-    def insideEnvironment(self):
+    def insideEnvironment(self) -> Environment:
         return self._insideEnvironment
 
     @property
-    def outsideEnvironment(self):
+    def outsideEnvironment(self) -> Environment:
         return self._outsideEnvironment
 
     @property

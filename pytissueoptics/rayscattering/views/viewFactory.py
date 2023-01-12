@@ -1,7 +1,11 @@
 from typing import Union, List, Tuple
 
+import numpy as np
+
 from pytissueoptics.rayscattering.tissues import RayScatteringScene
-from pytissueoptics.rayscattering.views import ViewGroup, View2D, Direction
+from pytissueoptics.rayscattering.views import ViewGroup, View2D
+from pytissueoptics.rayscattering.views.view2D import View2DProjectionX, View2DProjectionY, View2DProjectionZ, \
+    View2DSurfaceX, View2DSurfaceY, View2DSurfaceZ
 
 
 class ViewFactory:
@@ -24,7 +28,6 @@ class ViewFactory:
         return views
 
     def _createFromGroup(self, viewGroup: ViewGroup):
-        # todo: correctly implement all ViewGroups with bitflag logic.
         views = []
         if ViewGroup.SCENE in viewGroup:
             views += self._getDefaultViewsXYZ()
@@ -33,19 +36,40 @@ class ViewFactory:
             for solid in self._scene.solids:
                 views += self._getDefaultViewsXYZ(solidLabel=solid.getLabel())
 
-        if ViewGroup.SURFACES_ENTERING in viewGroup:
-            raise NotImplementedError("Default views for ViewGroup.SURFACES not implemented.".format(viewGroup))
-
-        if ViewGroup.SURFACES_LEAVING in viewGroup:
-            raise NotImplementedError("Default views for ViewGroup.SURFACES not implemented.".format(viewGroup))
+        includeLeaving = ViewGroup.SURFACES_LEAVING in viewGroup
+        includeEntering = ViewGroup.SURFACES_ENTERING in viewGroup
+        if includeLeaving or includeEntering:
+            for solid in self._scene.solids:
+                for surfaceLabel in solid.surfaceLabels:
+                    views += self._getDefaultSurfaceViews(solid.getLabel(), surfaceLabel,
+                                                          includeLeaving, includeEntering)
 
         return views
 
     @staticmethod
     def _getDefaultViewsXYZ(solidLabel: str = None) -> List[View2D]:
-        return [View2D(Direction.X_POS, Direction.Z_POS, solidLabel=solidLabel),
-                View2D(Direction.Y_NEG, Direction.Z_POS, solidLabel=solidLabel),
-                View2D(Direction.Z_POS, Direction.X_NEG, solidLabel=solidLabel)]
+        return [View2DProjectionX(solidLabel=solidLabel),
+                View2DProjectionY(solidLabel=solidLabel),
+                View2DProjectionZ(solidLabel=solidLabel)]
+
+    def _getDefaultSurfaceViews(self, solidLabel: str, surfaceLabel: str,
+                               includeLeaving: bool, includeEntering: bool) -> List[View2D]:
+        surfaceNormal = self._getSurfaceNormal(solidLabel, surfaceLabel)
+        axis = int(np.argmax(np.abs(surfaceNormal)))
+
+        views = []
+        _ViewType = [View2DSurfaceX, View2DSurfaceY, View2DSurfaceZ][axis]
+        if includeLeaving:
+            views.append(_ViewType(solidLabel=solidLabel, surfaceLabel=surfaceLabel, surfaceEnergyLeaving=True))
+        if includeEntering:
+            views.append(_ViewType(solidLabel=solidLabel, surfaceLabel=surfaceLabel, surfaceEnergyLeaving=False))
+        return views
+
+    def _getSurfaceNormal(self, solidLabel: str, surfaceLabel: str):
+        surfacePolygons = self._scene.getSolid(solidLabel).surfaces.getPolygons(surfaceLabel)
+        polygonNormals = np.asarray([p.normal.array for p in surfacePolygons])
+        surfaceNormal = np.mean(polygonNormals, axis=0)
+        return surfaceNormal
 
     def _setContext(self, view: View2D):
         if view.solidLabel:
@@ -58,15 +82,3 @@ class ViewFactory:
         limits = (limits3D[view.axisU], limits3D[view.axisV])
         binSize = (self._defaultBinSize3D[view.axisU], self._defaultBinSize3D[view.axisV])
         view.setContext(limits=limits, binSize=binSize)
-
-
-
-# todo: this scene dependence is not ideal ...
-# init:
-    # need bbox of scene
-    # bbox of each solid
-    # surface labels of each solid
-    # todo: 1 or 3 views per surface?
-# _buildGroup (or build):
-    # todo: set View name with view group name and other related info?
-    #  Better, only set view group. Then create getName inside View2D which is dynamic and include current projection direction, view type, viewGroup, interaction keys
