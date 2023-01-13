@@ -33,16 +33,15 @@ class ViewFactory:
             views += self._getDefaultViewsXYZ()
 
         if ViewGroup.SOLIDS in viewGroup:
-            for solid in self._scene.solids:
-                views += self._getDefaultViewsXYZ(solidLabel=solid.getLabel())
+            for solidLabel in self._scene.getSolidLabels():
+                views += self._getDefaultViewsXYZ(solidLabel)
 
         includeLeaving = ViewGroup.SURFACES_LEAVING in viewGroup
         includeEntering = ViewGroup.SURFACES_ENTERING in viewGroup
         if includeLeaving or includeEntering:
-            for solid in self._scene.solids:
-                for surfaceLabel in solid.surfaceLabels:
-                    views += self._getDefaultSurfaceViews(solid.getLabel(), surfaceLabel,
-                                                          includeLeaving, includeEntering)
+            for solidLabel in self._scene.getSolidLabels():
+                for surfaceLabel in self._scene.getSurfaceLabels(solidLabel):
+                    views += self._getDefaultSurfaceViews(solidLabel, surfaceLabel, includeLeaving, includeEntering)
 
         return views
 
