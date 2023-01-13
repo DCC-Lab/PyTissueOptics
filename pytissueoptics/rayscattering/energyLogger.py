@@ -138,6 +138,9 @@ class EnergyLogger(Logger):
     def getSurfaceLabels(self, solidLabel: str) -> List[str]:
         return self._scene.getSolid(solidLabel).surfaceLabels
 
+    def getSolidLimits(self, solidLabel: str) -> List[List[float]]:
+        return self._scene.getSolid(solidLabel).getBoundingBox().xyzLimits
+
     def listViews(self):
         print("Available views:")
         for i, view in enumerate(self._views):

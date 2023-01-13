@@ -72,11 +72,22 @@ class Stats:
                 continue
             if view.surfaceLabel is not None:
                 continue
-            # todo: make sure the limits correspond to the solid limits
+            if not self._viewContainsSolid(view, solidLabel):
+                continue
             return view.getSum()
 
         raise Exception(f"Could not extract absorbance for solid '{solidLabel}'. The 3D data was discarded and "
                         f"no stored 2D view corresponds to this solid.")
+
+    def _viewContainsSolid(self, view, solidLabel: str) -> bool:
+        solidLimits = self._logger.getSolidLimits(solidLabel)
+        requiredLimitsU = solidLimits[view.axisU]
+        requiredLimitsV = solidLimits[view.axisV]
+        if min(view.limitsU) > min(requiredLimitsU) or max(view.limitsU) < max(requiredLimitsU):
+            return False
+        if min(view.limitsV) > min(requiredLimitsV) or max(view.limitsV) < max(requiredLimitsV):
+            return False
+        return True
 
     def getPhotonCount(self) -> int:
         return self._photonCount
@@ -115,6 +126,8 @@ class Stats:
             if not utils.labelsEqual(surfaceLabel, view.surfaceLabel):
                 continue
             if view.surfaceEnergyLeaving != leaving:
+                continue
+            if not self._viewContainsSolid(view, solidLabel):
                 continue
             return view.getSum()
         raise Exception(f"Could not extract energy {['entering', 'leaving'][leaving]} surface '{surfaceLabel}' "
