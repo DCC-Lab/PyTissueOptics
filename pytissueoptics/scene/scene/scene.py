@@ -95,6 +95,26 @@ class Scene:
         for solid in self._solids:
             if solid.getLabel().lower() == solidLabel.lower():
                 return solid
+            if not solid.isStack():
+                continue
+            for layerLabel in solid.getLayerLabels():
+                if layerLabel.lower() == solidLabel.lower():
+                    return solid
+
+    def getSolidLabels(self) -> List[str]:
+        labels = []
+        for solid in self._solids:
+            if solid.isStack():
+                labels.extend(solid.getLayerLabels())
+            else:
+                labels.append(solid.getLabel())
+        return labels
+
+    def getSurfaceLabels(self, solidLabel) -> List[str]:
+        solid = self.getSolid(solidLabel)
+        if solid.isStack():
+            return solid.getLayerSurfaceLabels(solidLabel)
+        return solid.surfaceLabels
 
     def getPolygons(self) -> List[Polygon]:
         polygons = []
