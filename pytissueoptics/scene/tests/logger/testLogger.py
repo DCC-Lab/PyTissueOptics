@@ -135,7 +135,7 @@ class TestLogger(unittest.TestCase):
         logger.logPoint(aPoint, interactionKey2)
         logger.logPoint(aPoint, interactionKey3)
 
-        solidLabels = logger.getSolidLabels()
+        solidLabels = logger.getLoggedSolidLabels()
 
         self.assertEqual(2, len(solidLabels))
         self.assertTrue(solidLabel1 in solidLabels)
@@ -159,7 +159,7 @@ class TestLogger(unittest.TestCase):
         logger.logPoint(aPoint, interactionKey3)
         logger.logPoint(aPoint, interactionKey4)
 
-        surfaceLabels = logger.getSurfaceLabels(solidLabel1)
+        surfaceLabels = logger.getLoggedSurfaceLabels(solidLabel1)
 
         self.assertEqual(2, len(surfaceLabels))
         self.assertTrue(surfaceA in surfaceLabels)

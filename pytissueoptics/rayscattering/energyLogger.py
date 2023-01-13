@@ -1,6 +1,6 @@
 import os
 import pickle
-from typing import Union, List
+from typing import Union, List, Optional
 
 import numpy as np
 
@@ -130,12 +130,6 @@ class EnergyLogger(Logger):
         else:
             return self._nDataPointsRemoved
 
-    def getSolidLabels(self) -> List[str]:
-        return [solid.getLabel() for solid in self._scene.solids]
-
-    def getSurfaceLabels(self, solidLabel: str) -> List[str]:
-        return self._scene.getSolid(solidLabel).surfaceLabels
-
     def getSolidLimits(self, solidLabel: str) -> List[List[float]]:
         return self._scene.getSolid(solidLabel).getBoundingBox().xyzLimits
 
@@ -178,8 +172,8 @@ class EnergyLogger(Logger):
             filepath = self._filepath
 
         with open(filepath, "wb") as file:
-            pickle.dump((self._data, self.info, self._views, self._defaultViews, self._outdatedViews, self._nDataPointsRemoved,
-                         self._sceneHash, self.has3D), file)
+            pickle.dump((self._data, self.info, self._labels, self._views, self._defaultViews, self._outdatedViews,
+                         self._nDataPointsRemoved, self._sceneHash, self.has3D), file)
 
     def load(self, filepath: str):
         self._filepath = filepath
@@ -190,8 +184,8 @@ class EnergyLogger(Logger):
             return
 
         with open(filepath, "rb") as file:
-            self._data, self.info, self._views, oldDefaultViews, self._outdatedViews, self._nDataPointsRemoved, \
-                oldSceneHash, oldHas3D = pickle.load(file)
+            self._data, self.info, self._labels, self._views, oldDefaultViews, self._outdatedViews, \
+                self._nDataPointsRemoved, oldSceneHash, oldHas3D = pickle.load(file)
 
         if oldSceneHash != self._sceneHash:
             utils.warn("WARNING: The scene used to create the logger at '{}' is different from the current "

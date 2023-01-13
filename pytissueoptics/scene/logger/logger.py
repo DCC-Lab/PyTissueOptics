@@ -35,16 +35,16 @@ class Logger:
         self._data: Dict[InteractionKey, InteractionData] = {}
         self.info: dict = {}
         self._filepath = None
+        self._labels = {}
 
         if fromFilepath:
             self.load(fromFilepath)
 
-    def getSolidLabels(self) -> List[str]:
-        return list(set(key.solidLabel for key in self._data.keys()))
+    def getLoggedSolidLabels(self) -> List[str]:
+        return list(self._labels.keys())
 
-    def getSurfaceLabels(self, solidLabel: str) -> List[str]:
-        return [key.surfaceLabel for key in self._data.keys() if key.solidLabel == solidLabel
-                and key.surfaceLabel is not None]
+    def getLoggedSurfaceLabels(self, solidLabel: str) -> List[str]:
+        return self._labels[solidLabel]
 
     def logPoint(self, point: Vector, key: InteractionKey):
         self._appendData([point.x, point.y, point.z], DataType.POINT, key)
@@ -83,6 +83,14 @@ class Logger:
     def _validateKey(self, key: InteractionKey):
         if key not in self._data:
             self._data[key] = InteractionData()
+        if key.solidLabel is None:
+            return
+        if key.solidLabel not in self._labels:
+            self._labels[key.solidLabel] = []
+        if key.surfaceLabel is None:
+            return
+        if key.surfaceLabel not in self._labels[key.solidLabel]:
+            self._labels[key.solidLabel].append(key.surfaceLabel)
 
     def getPoints(self, key: InteractionKey = None) -> np.ndarray:
         return self._getData(DataType.POINT, key)
@@ -113,11 +121,11 @@ class Logger:
             return tempData.mergedData
 
     def _keyExists(self, key: InteractionKey) -> bool:
-        if key.solidLabel not in self.getSolidLabels():
-            warnings.warn(f"No data stored for solid labeled '{key.solidLabel}'. Available: {self.getSolidLabels()}. ")
-        if key.surfaceLabel and key.surfaceLabel not in self.getSurfaceLabels(key.solidLabel):
+        if key.solidLabel not in self.getLoggedSolidLabels():
+            warnings.warn(f"No data stored for solid labeled '{key.solidLabel}'. Available: {self.getLoggedSolidLabels()}. ")
+        if key.surfaceLabel and key.surfaceLabel not in self.getLoggedSurfaceLabels(key.solidLabel):
             warnings.warn(f"No data stored for surface labeled '{key.surfaceLabel}' for solid '{key.solidLabel}'. "
-                          f"Available: {self.getSurfaceLabels(key.solidLabel)}. ")
+                          f"Available: {self.getLoggedSurfaceLabels(key.solidLabel)}. ")
         if key in self._data:
             return True
         if not key.surfaceLabel:
@@ -132,7 +140,7 @@ class Logger:
             filepath = self._filepath
 
         with open(filepath, "wb") as file:
-            pickle.dump((self._data, self.info), file)
+            pickle.dump((self._data, self.info, self._labels), file)
 
     def load(self, filepath: str):
         self._filepath = filepath
@@ -143,7 +151,7 @@ class Logger:
             return
 
         with open(filepath, "rb") as file:
-            self._data, self.info = pickle.load(file)
+            self._data, self.info, self._labels = pickle.load(file)
 
     @property
     def nDataPoints(self) -> int:
