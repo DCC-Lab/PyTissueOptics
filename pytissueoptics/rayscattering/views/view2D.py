@@ -104,6 +104,10 @@ class View2D:
     def isSurface(self) -> bool:
         return self._surfaceLabel is not None
 
+    @property
+    def surfaceEnergyLeaving(self) -> bool:
+        return self._surfaceEnergyLeaving
+
     def setContext(self, limits: Tuple[Tuple[float, float], Tuple[float, float]],
                    binSize: Tuple[float, float]):
         """
@@ -201,14 +205,16 @@ class View2D:
             return verticalIsNegativeWithPositiveHorizontal
         return not verticalIsNegativeWithPositiveHorizontal
 
-    def getImageData(self, logNorm: bool = True) -> np.ndarray:
+    def getImageData(self, logNorm: bool = True, autoFlip=True) -> np.ndarray:
         image = self._dataUV
+        if logNorm and self._hasData:
+            image = utils.logNorm(image)
+        if not autoFlip:
+            return image
         if self._verticalIsNegative:
             image = np.flip(image, axis=1)
         if self._horizontalDirection.isNegative:
             image = np.flip(image, axis=0)
-        if logNorm and self._hasData:
-            image = utils.logNorm(image)
         return image
 
     def getImageDataWithDefaultAlignment(self):
@@ -263,6 +269,22 @@ class View2D:
         uSize = max(self._limitsU) - min(self._limitsU)
         vSize = max(self._limitsV) - min(self._limitsV)
         return uSize, vSize
+
+    @property
+    def limitsU(self) -> Tuple[float, float]:
+        return self._limitsU
+
+    @property
+    def limitsV(self) -> Tuple[float, float]:
+        return self._limitsV
+
+    @property
+    def binsU(self) -> int:
+        return self._binsU
+
+    @property
+    def binsV(self) -> int:
+        return self._binsV
 
     @property
     def minCorner(self) -> Tuple[float, float]:

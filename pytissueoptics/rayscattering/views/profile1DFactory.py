@@ -2,6 +2,7 @@ from typing import Tuple
 
 import numpy as np
 
+from pytissueoptics.rayscattering import utils
 from pytissueoptics.rayscattering.energyLogger import EnergyLogger
 from pytissueoptics.rayscattering.pointCloud import PointCloudFactory
 from pytissueoptics.rayscattering.tissues import RayScatteringScene
@@ -27,12 +28,14 @@ class Profile1DFactory:
         if limits is None:
             limits = self._getDefaultLimits(horizontalDirection, solidLabel)
         limits = (min(limits), max(limits))
+        bins = int((limits[1] - limits[0]) / binSize)
 
         if self._logger.has3D:
             histogram = self._extractHistogramFrom3D(horizontalDirection, solidLabel, surfaceLabel,
-                                                     surfaceEnergyLeaving, limits, binSize)
+                                                     surfaceEnergyLeaving, limits, bins)
         else:
-            raise NotImplementedError('1D profile from 2D logger not implemented yet.')
+            histogram = self._extractHistogramFromViews(horizontalDirection, solidLabel, surfaceLabel,
+                                                        surfaceEnergyLeaving, limits, bins)
 
         name = self._createName(horizontalDirection, solidLabel, surfaceLabel, surfaceEnergyLeaving)
         return Profile1D(histogram, horizontalDirection, limits, name)
@@ -47,7 +50,7 @@ class Profile1DFactory:
         return limits3D[horizontalDirection.axis]
 
     def _extractHistogramFrom3D(self, horizontalDirection: Direction, solidLabel: str, surfaceLabel: str,
-                                surfaceEnergyLeaving: bool, limits: Tuple[float, float], binSize: float):
+                                surfaceEnergyLeaving: bool, limits: Tuple[float, float], bins: int):
         pointCloud = self._pointCloudFactory.getPointCloud(solidLabel, surfaceLabel)
 
         if surfaceLabel:
@@ -59,7 +62,6 @@ class Profile1DFactory:
             dataPoints = pointCloud.solidPoints
 
         x, w = dataPoints[:, horizontalDirection.axis + 1], dataPoints[:, 0]
-        bins = int((limits[1] - limits[0]) / binSize)
         histogram, _ = np.histogram(x, bins=bins, range=limits, weights=w)
         return histogram
 
@@ -94,3 +96,44 @@ class Profile1DFactory:
             labelIndex = lowerCaseSurfaceLabels.index(surfaceLabel.lower())
             surfaceLabel = originalSurfaceLabels[labelIndex]
         return solidLabel, surfaceLabel
+
+    def _extractHistogramFromViews(self, horizontalDirection: Direction, solidLabel: str, surfaceLabel: str,
+                                   surfaceEnergyLeaving: bool, limits: Tuple[float, float], bins: int):
+        for view in self._logger.views:
+            if view.axis == horizontalDirection.axis:
+                continue
+            if not utils.labelsEqual(view.solidLabel, solidLabel):
+                continue
+            if not utils.labelsEqual(view.surfaceLabel, surfaceLabel):
+                continue
+            if surfaceLabel:
+                if view.surfaceEnergyLeaving != surfaceEnergyLeaving:
+                    continue
+
+            if view.axisU == horizontalDirection.axis:
+                viewLimits = view.limitsU
+                viewBins = view.binsU
+            else:
+                viewLimits = view.limitsV
+                viewBins = view.binsV
+            if sorted(viewLimits) != sorted(limits):
+                # todo: allow contained limits
+                continue
+            if viewBins != bins:
+                continue
+
+            return self._extractHistogramFromView(view, horizontalDirection)
+
+        raise Exception("Cannot create 1D profile. The 3D data was discarded and no matching 2D view was found.")
+
+    def _extractHistogramFromView(self, view, horizontalDirection: Direction):
+        if view.axisU == horizontalDirection.axis:
+            axisToSum = 1
+        else:
+            axisToSum = 0
+
+        data = view.getImageData(logNorm=False, autoFlip=False)
+        data = np.sum(data, axis=axisToSum)
+        if axisToSum == 0:
+            data = np.flip(data, axis=0)
+        return data
