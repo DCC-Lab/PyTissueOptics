@@ -286,10 +286,6 @@ class View2D:
     def binsV(self) -> int:
         return self._binsV
 
-    @property
-    def minCorner(self) -> Tuple[float, float]:
-        return min(self._limitsU), min(self._limitsV)
-
     def show(self, logScale: bool = True, colormap: str = 'viridis'):
         cmap = copy.copy(matplotlib.cm.get_cmap(colormap))
         cmap.set_bad(cmap.colors[0])

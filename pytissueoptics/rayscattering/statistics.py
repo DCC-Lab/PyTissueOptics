@@ -28,7 +28,7 @@ class Stats:
         if solidLabel:
             reportString += self._reportSolid(solidLabel)
         else:
-            for solidLabel in self._logger.getSolidLabels():
+            for solidLabel in self._logger.getLoggedSolidLabels():
                 reportString = self._makeReport(solidLabel, reportString)
         return reportString
 
@@ -43,7 +43,7 @@ class Stats:
                                                                                      self.getTransmittance(
                                                                                          solidLabel))))
 
-            for surfaceLabel in self._logger.getSurfaceLabels(solidLabel):
+            for surfaceLabel in self._logger.getLoggedSurfaceLabels(solidLabel):
                 transmittance = "{0:.1f}".format(100 * self.getTransmittance(solidLabel, surfaceLabel))
                 reportString += f"    Transmittance at '{surfaceLabel}': {transmittance}%\n"
 
@@ -112,7 +112,7 @@ class Stats:
 
     def _getEnergyCrossingSolidFromViews(self, solidLabel: str, leaving: bool) -> float:
         energy = 0
-        for surfaceLabel in self._logger.getSurfaceLabels(solidLabel):
+        for surfaceLabel in self._logger.getLoggedSurfaceLabels(solidLabel):
             energy += self._getSurfaceEnergyFromViews(solidLabel, surfaceLabel, leaving=leaving)
 
         if utils.labelsEqual(self._sourceSolidLabel, solidLabel):

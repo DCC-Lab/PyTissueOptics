@@ -90,11 +90,16 @@ class MayaviViewer:
         overSampling = 5  # 10% lost on edge pixel (0.5/oversampling)
         image = np.repeat(np.repeat(image, overSampling, axis=0), overSampling, axis=1)
 
+        # In the 3D viewer, right is negative X and down is negative Y.
+        #  This is the opposite what is expected by mlab.imshow.
         image = np.flip(image, axis=0)
         image = np.flip(image, axis=1)
 
+        # The (X, Y) size has to be flipped to match rotations below for image axis 0 and 1.
+        displaySize = size if axis == 2 else size[::-1]
+
         p = mlab.imshow(image, colormap='viridis', interpolate=False,
-                        extent=[0, size[0], 0, size[1], position, position], )
+                        extent=[0, displaySize[0], 0, displaySize[1], position, position])
         p.actor.force_opaque = True
 
         tempPosition = [minCorner[0] + size[0] / 2, minCorner[1] + size[1] / 2]

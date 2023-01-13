@@ -81,7 +81,7 @@ class Profile1DFactory:
     def _correctCapitalization(self, solidLabel, surfaceLabel):
         if solidLabel is None:
             return None, None
-        originalSolidLabels = self._logger.getSolidLabels()
+        originalSolidLabels = self._logger.getLoggedSolidLabels()
         lowerCaseSolidLabels = [l.lower() for l in originalSolidLabels]
         if solidLabel.lower() in lowerCaseSolidLabels:
             labelIndex = lowerCaseSolidLabels.index(solidLabel.lower())
@@ -90,7 +90,7 @@ class Profile1DFactory:
         if surfaceLabel is None:
             return solidLabel, None
 
-        originalSurfaceLabels = self._logger.getSurfaceLabels(solidLabel)
+        originalSurfaceLabels = self._logger.getLoggedSurfaceLabels(solidLabel)
         lowerCaseSurfaceLabels = [l.lower() for l in originalSurfaceLabels]
         if surfaceLabel.lower() in lowerCaseSurfaceLabels:
             labelIndex = lowerCaseSurfaceLabels.index(surfaceLabel.lower())

@@ -76,6 +76,7 @@ class PointCloudStyle:
 
 class Viewer:
     def __init__(self, scene: RayScatteringScene, source: Source, logger: EnergyLogger):
+        assert isinstance(logger, EnergyLogger), "The viewer requires an EnergyLogger."
         self._scene = scene
         self._source = source
         self._logger = logger
@@ -205,6 +206,9 @@ class Viewer:
 
         limits = self._scene.getBoundingBox().xyzLimits
         if view.solidLabel:
+            # fixme (limitation): if the solidLabel represents an internal layer of a stack, the limits returned will be
+            #  the limits of the whole stack. Could be solved using the surfaceLabels of the layer to compute bbox from
+            #  surface polygons. The behaviour is still fine for now and might be what we ultimately want.
             limits = self._scene.getSolid(view.solidLabel).getBoundingBox().xyzLimits
 
         viewAxisLimits = sorted(limits[view.axis])
@@ -217,4 +221,11 @@ class Viewer:
             position = positionMax + viewSpacing
 
         alignedImage = view.getImageDataWithDefaultAlignment()
-        self._viewer3D.addImage(alignedImage, view.size, view.minCorner, view.axis, position)
+
+        alignedCorner = (min(view.limitsU), min(view.limitsV))
+        alignedSize = view.size
+        if view.axisU > view.axisV:
+            alignedCorner = alignedCorner[::-1]
+            alignedSize = alignedSize[::-1]
+
+        self._viewer3D.addImage(alignedImage, alignedSize, alignedCorner, view.axis, position)
