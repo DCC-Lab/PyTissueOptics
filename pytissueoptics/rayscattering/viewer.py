@@ -154,11 +154,6 @@ class Viewer:
         profile.show(logScale=logScale)
 
     def reportStats(self, solidLabel: str = None, saveToFile: str = None, verbose=True):
-        if not self._logger.has3D:
-            # todo: obtain stats from 2D views
-            utils.warn("ERROR: Stats without 3D data is not yet implemented.")
-            return
-
         stats = Stats(self._logger)
         stats.report(solidLabel=solidLabel, saveToFile=saveToFile, verbose=verbose)
 

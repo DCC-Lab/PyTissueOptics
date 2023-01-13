@@ -359,3 +359,6 @@ class View2D:
         else:
             self._dataUV = dataUV.T
         self._hasData = source._hasData
+
+    def getSum(self) -> float:
+        return float(np.sum(self._dataUV))

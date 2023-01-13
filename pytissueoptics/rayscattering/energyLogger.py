@@ -132,6 +132,12 @@ class EnergyLogger(Logger):
         else:
             return self._nDataPointsRemoved
 
+    def getSolidLabels(self) -> List[str]:
+        return [solid.getLabel() for solid in self._scene.solids]
+
+    def getSurfaceLabels(self, solidLabel: str) -> List[str]:
+        return self._scene.getSolid(solidLabel).surfaceLabels
+
     def listViews(self):
         print("Available views:")
         for i, view in enumerate(self._views):
