@@ -1,4 +1,4 @@
-from typing import List
+from typing import List, Dict
 
 import numpy as np
 
@@ -18,6 +18,7 @@ class Solid:
         self._orientation: Rotation = Rotation()
         self._bbox = None
         self._label = label
+        self._layerLabels = {}
 
         if not self._surfaces:
             self._computeMesh()
@@ -186,6 +187,15 @@ class Solid:
                 return True
         return False
 
+    def getLayerLabelMap(self) -> Dict[str, List[str]]:
+        return self._layerLabels
+
+    def getLayerLabels(self) -> List[str]:
+        return list(self._layerLabels.keys())
+
+    def getLayerSurfaceLabels(self, solidLabel) -> List[str]:
+        return list(self._layerLabels[solidLabel])
+
     def smooth(self, surfaceLabel: str = None):
         """ Prepare smoothing by calculating vertex normals. This is not done
         by default. The vertex normals are used during ray-polygon intersection
@@ -212,5 +222,4 @@ class Solid:
                 vertex.normal.normalize()
 
     def __hash__(self):
-
         return hash((hash(tuple(self._vertices)), self._material))

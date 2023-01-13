@@ -18,6 +18,7 @@ class Cuboid(Solid):
         The position refers to the vector from global origin to its centroid.
         The generated mesh will be divided into the following subgroups:
         Left (-x), Right (+x), Bottom (-y), Top (+y), Front (-z), Back (+z).
+        # todo: should flip left/right
     """
 
     def __init__(self, a: float, b: float, c: float,
@@ -56,7 +57,7 @@ class Cuboid(Solid):
         """
         Basic implementation for stacking cuboids along an axis.
 
-        For example, stacking on 'top' will move the other cuboid on top of the this cuboid. They will now share
+        For example, stacking on 'top' will move the other cuboid on top of this cuboid. They will now share
          the same mesh at the interface and inside/outside materials at the interface will be properly defined.
          This will return a new cuboid that represents the stack, with a new 'interface<i>' surface group.
 
@@ -77,8 +78,10 @@ class Cuboid(Solid):
         for vertex in stackResult.vertices:
             vertex.subtract(stackResult.position)
 
-        return Cuboid(*stackResult.shape, position=stackResult.position, vertices=stackResult.vertices,
-                      surfaces=stackResult.surfaces, label=label, primitive=stackResult.primitive)
+        cuboid = Cuboid(*stackResult.shape, position=stackResult.position, vertices=stackResult.vertices,
+                        surfaces=stackResult.surfaces, label=label, primitive=stackResult.primitive)
+        cuboid._layerLabels = stackResult.layerLabels
+        return cuboid
 
     def contains(self, *vertices: Vertex) -> bool:
         vertices = np.asarray([vertex.array for vertex in vertices])
