@@ -2,7 +2,7 @@ from typing import List, Dict
 
 import numpy as np
 
-from pytissueoptics.scene.geometry import Vector, utils, Polygon, Rotation, BoundingBox, Vertex, Triangle
+from pytissueoptics.scene.geometry import Vector, utils, Polygon, Rotation, BoundingBox, Vertex
 from pytissueoptics.scene.geometry import primitives, Environment, SurfaceCollection
 
 

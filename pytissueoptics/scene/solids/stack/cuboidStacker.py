@@ -1,4 +1,4 @@
-from typing import List, Dict, Set
+from typing import List, Dict
 
 from pytissueoptics.scene.geometry import Vector, SurfaceCollection
 from pytissueoptics.scene.solids.stack.stackResult import StackResult
@@ -124,30 +124,41 @@ class CuboidStacker:
         newInterfaceLabel = f"interface{self._newInterfaceIndex}"
         interfaces.add(newInterfaceLabel, self._onCuboid.getPolygons(self._onSurfaceLabel))
 
-        otherCuboidInterfaceKeys = [label for label in self._otherCuboid.surfaceLabels if "interface" in label]
-        for i, otherInterfaceKey in enumerate(otherCuboidInterfaceKeys):
+        otherCuboidInterfaceLabels = [label for label in self._otherCuboid.surfaceLabels if "interface" in label]
+        for i, otherInterfaceLabel in enumerate(otherCuboidInterfaceLabels):
             newOtherInterfaceLabel = f"interface{self._newInterfaceIndex + i + 1}"
-            interfaces.add(newOtherInterfaceLabel, self._otherCuboid.getPolygons(otherInterfaceKey))
+            interfaces.add(newOtherInterfaceLabel, self._otherCuboid.getPolygons(otherInterfaceLabel))
 
         return interfaces
 
     def _getLayerLabels(self) -> Dict[str, List[str]]:
+        self._correctInterfaceIndexesOfOtherCuboid()
+        onCuboidLayerLabels = self._getUpdatedLayerLabelsOf(self._onCuboid)
+        otherCuboidLayerLabels = self._getUpdatedLayerLabelsOf(self._otherCuboid)
+        return dict(onCuboidLayerLabels, **otherCuboidLayerLabels)
+
+    def _correctInterfaceIndexesOfOtherCuboid(self):
+        if not self._otherCuboid.isStack():
+            return
+
+        for layerLabel, surfaceLabels in self._otherCuboid.getLayerLabelMap().items():
+            for i, surfaceLabel in enumerate(surfaceLabels):
+                if "interface" in surfaceLabel:
+                    oldInterfaceIndex = int(surfaceLabel.split("interface")[1])
+                    surfaceLabels[i] = f"interface{oldInterfaceIndex + self._newInterfaceIndex + 1}"
+
+    def _getUpdatedLayerLabelsOf(self, cuboid: 'Cuboid') -> Dict[str, List[str]]:
         newInterfaceLabel = f"interface{self._newInterfaceIndex}"
 
-        onCuboidLayerLabels = self._onCuboid.getLayerLabelMap()
+        onCuboidLayerLabels = cuboid.getLayerLabelMap()
         if not onCuboidLayerLabels:
-            onCuboidLayerLabels = {self._onCuboid.getLabel(): self._onCuboid.surfaceLabels}
+            onCuboidLayerLabels = {cuboid.getLabel(): cuboid.surfaceLabels}
 
+        stackedSurfaceLabel = self._onSurfaceLabel if cuboid is self._onCuboid else self._otherSurfaceLabel
         for layerLabel, surfaceLabels in onCuboidLayerLabels.items():
-            if self._onSurfaceLabel not in surfaceLabels:
+            if stackedSurfaceLabel not in surfaceLabels:
                 continue
-            surfaceLabels.remove(self._onSurfaceLabel)
+            surfaceLabels.remove(stackedSurfaceLabel)
             surfaceLabels.append(newInterfaceLabel)
 
-        otherSurfaceLabels = self._otherCuboid.surfaceLabels
-        otherSurfaceLabels.remove(self._otherSurfaceLabel)
-        otherSurfaceLabels.append(newInterfaceLabel)
-        otherLayerLabels = {self._otherCuboid.getLabel(): otherSurfaceLabels}
-
-        stackLayerLabels = dict(onCuboidLayerLabels, **otherLayerLabels)
-        return stackLayerLabels
+        return onCuboidLayerLabels
