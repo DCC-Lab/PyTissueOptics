@@ -4,6 +4,7 @@ from typing import List, Union, Optional, Tuple
 import numpy as np
 
 from pytissueoptics.rayscattering import utils
+from pytissueoptics.rayscattering.energyLogger import EnergyLogger
 from pytissueoptics.rayscattering.opencl.CLPhotons import CLPhotons
 from pytissueoptics.rayscattering.tissues.rayScatteringScene import RayScatteringScene
 from pytissueoptics.rayscattering.photon import Photon
@@ -122,6 +123,10 @@ class Source:
     def _prepareLogger(self, logger: Optional[Logger]):
         if logger is None:
             return
+        if not isinstance(logger, EnergyLogger):
+            utils.warn("WARNING: Logging to the base class `Logger` will not allow for energy visualization. "
+                       "Please use `EnergyLogger` instead to unlock all features.")
+
         if "photonCount" not in logger.info:
             logger.info["photonCount"] = 0
         logger.info["photonCount"] += self.getPhotonCount()
