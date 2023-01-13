@@ -1,3 +1,5 @@
+import os
+import pickle
 from typing import Union, List
 
 import numpy as np
@@ -34,13 +36,15 @@ class EnergyLogger(Logger):
         self._scene = scene
         self._keep3D = keep3D
         self._defaultBinSize = defaultBinSize
-
         self._viewFactory = ViewFactory(scene, defaultBinSize)
+
+        self._sceneHash = hash(scene)
+        self._defaultViews = views
         self._views = self._viewFactory.build(views)
         self._outdatedViews = set()
         self._nDataPointsRemoved = 0
 
-        super().__init__(fromFilepath=filepath)  # todo: rewrite save/load to store views and _nDataPointsRemoved
+        super().__init__(fromFilepath=filepath)
 
     def addView(self, view: View2D) -> bool:
         self._viewFactory.build([view])
@@ -116,12 +120,6 @@ class EnergyLogger(Logger):
         self._nDataPointsRemoved += super().nDataPoints
         self._data.clear()
 
-    def save(self, filepath: str = None):
-        raise NotImplementedError()
-
-    def load(self, filepath: str):
-        raise NotImplementedError()
-
     @property
     def nDataPoints(self) -> int:
         """
@@ -171,3 +169,39 @@ class EnergyLogger(Logger):
             if v.isEqualTo(view):
                 return i
         raise ValueError("View not found.")
+
+    def save(self, filepath: str = None):
+        if filepath is None and self._filepath is None:
+            filepath = "simulation.log"
+            utils.warn(f"No filepath specified. Saving to {filepath}.")
+        elif filepath is None:
+            filepath = self._filepath
+
+        with open(filepath, "wb") as file:
+            pickle.dump((self._data, self.info, self._views, self._defaultViews, self._outdatedViews, self._nDataPointsRemoved,
+                         self._sceneHash, self.has3D), file)
+
+    def load(self, filepath: str):
+        self._filepath = filepath
+
+        if not os.path.exists(filepath):
+            utils.warn("No logger file found at '{}'. No data loaded, but it will create a new file "
+                       "at this location if the logger is saved later on.".format(filepath))
+            return
+
+        with open(filepath, "rb") as file:
+            self._data, self.info, self._views, oldDefaultViews, self._outdatedViews, self._nDataPointsRemoved, \
+                oldSceneHash, oldHas3D = pickle.load(file)
+
+        if oldSceneHash != self._sceneHash:
+            utils.warn("WARNING: The scene used to create the logger at '{}' is different from the current "
+                       "scene. This may corrupt statistics and visualization. Proceed at your own risk.".format(filepath))
+        if oldHas3D and not self._keep3D:
+            utils.warn("WARNING: The logger at '{}' use to store 3D data, but it was reloaded with keep3D=False. "
+                       "The 3D data will be compiled to 2D views and discarded.".format(filepath))
+        if not oldHas3D and self._keep3D:
+            utils.warn("WARNING: The logger at '{}' use to discard 3D data, but it was reloaded with keep3D=True. "
+                       "This may corrupt the statistics and the 3D visualization. Proceed at your own risk.".format(filepath))
+        if self._defaultViews != oldDefaultViews:
+            utils.warn("WARNING: Cannot provide new default views to a loaded logger. "
+                       "Using only the views from the file.".format(filepath))

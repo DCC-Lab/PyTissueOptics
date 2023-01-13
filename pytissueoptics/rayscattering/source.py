@@ -3,6 +3,7 @@ import time
 from typing import List, Union, Optional, Tuple
 import numpy as np
 
+from pytissueoptics.rayscattering import utils
 from pytissueoptics.rayscattering.opencl.CLPhotons import CLPhotons
 from pytissueoptics.rayscattering.tissues.rayScatteringScene import RayScatteringScene
 from pytissueoptics.rayscattering.photon import Photon
@@ -127,6 +128,13 @@ class Source:
 
         sourceSolid = self.getEnvironment().solid
         logger.info["sourceSolidLabel"] = sourceSolid.getLabel() if sourceSolid else None
+
+        if "sourceHash" not in logger.info:
+            logger.info["sourceHash"] = hash(self)
+        else:
+            if logger.info["sourceHash"] != hash(self):
+                utils.warn("WARNING: The logger was previously used with a different source. This may corrupt "
+                           "statistics and visualization. Proceed at your own risk.")
 
     @property
     def photons(self):
