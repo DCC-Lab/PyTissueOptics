@@ -8,18 +8,15 @@ N = 500000
 scene = tissues.PhantomTissue()
 source = DivergentSource(position=Vector(0, 0, -0.1), direction=Vector(0, 0, 1), N=N,
                          useHardwareAcceleration=True, diameter=0.2, divergence=np.pi / 4)
-logger = Logger()
+logger = EnergyLogger(scene)
 
 source.propagate(scene, logger=logger)
 
-stats = Stats(logger, source, scene)
-stats.report()
+viewer = Viewer(scene, source, logger)
+viewer.reportStats()
 
-displayConfig = DisplayConfig(showPointsAsSpheres=False)
-stats.showEnergy3D(config=displayConfig)
-
-limits = [[-1.5, 1.5], [0, 2]]
-stats.showEnergy2D(bins=101, logScale=True, limits=limits)
-stats.showEnergy2D(bins=101, solidLabel="middleLayer", logScale=True, limits=limits)
-stats.showEnergy2D(bins=101, solidLabel="middleLayer", surfaceLabel="interface0", logScale=True, limits=limits)
-stats.showEnergy1D(bins=101, limits=limits[1])
+viewer.show2D(views.View2DProjectionX())
+viewer.show2D(views.View2DProjectionX(solidLabel="middleLayer"))
+viewer.show2D(views.View2DSurfaceZ(solidLabel="middleLayer", surfaceLabel="interface0"))
+viewer.show1D(Direction.Z_POS)
+viewer.show3D()
