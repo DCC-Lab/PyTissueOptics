@@ -27,7 +27,7 @@ class Profile1D:
             bins = np.flip(bins, axis=0)
             limits = (limits[1], limits[0])
 
-        plt.plot(bins, self.data)
+        plt.bar(bins, self.data, width=np.diff(bins)[0], align='edge')
 
         if logScale:
             plt.yscale('log')

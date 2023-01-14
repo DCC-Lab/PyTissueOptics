@@ -18,7 +18,6 @@ class Cuboid(Solid):
         The position refers to the vector from global origin to its centroid.
         The generated mesh will be divided into the following subgroups:
         Left (-x), Right (+x), Bottom (-y), Top (+y), Front (-z), Back (+z).
-        # todo: should flip left/right
     """
 
     def __init__(self, a: float, b: float, c: float,
