@@ -93,18 +93,6 @@ class View2D:
         return self._surfaceLabel
 
     @property
-    def isProjection(self) -> bool:
-        return self._position is None and not self.isSurface
-
-    @property
-    def isSlice(self) -> bool:
-        return self._position is not None
-
-    @property
-    def isSurface(self) -> bool:
-        return self._surfaceLabel is not None
-
-    @property
     def surfaceEnergyLeaving(self) -> bool:
         return self._surfaceEnergyLeaving
 
@@ -149,10 +137,7 @@ class View2D:
 
     @property
     def group(self) -> ViewGroup:
-        if self.isSurface:
-            return ViewGroup.SURFACES_LEAVING if self._surfaceEnergyLeaving else ViewGroup.SURFACES_ENTERING
-        else:
-            return ViewGroup.SOLIDS if self.solidLabel else ViewGroup.SCENE
+        return ViewGroup.SOLIDS if self.solidLabel else ViewGroup.SCENE
 
     @property
     def axis(self) -> int:
@@ -178,13 +163,7 @@ class View2D:
         Used internally by Logger2D to store 3D datapoints into this 2D view.
         Data points are (n, 4) arrays with (value, x, y, z).
         """
-        # todo: implement slices
-        if self.isSurface:
-            if self._surfaceEnergyLeaving:
-                dataPoints = dataPoints[dataPoints[:, 0] > 0]
-            else:
-                dataPoints = dataPoints[dataPoints[:, 0] < 0]
-                dataPoints[:, 0] *= -1
+        dataPoints = self._filter(dataPoints)
         if dataPoints.size == 0:
             return
 
@@ -193,6 +172,13 @@ class View2D:
                                           range=(sorted(self._limitsU), sorted(self._limitsV)))[0]
         self._dataUV += np.flip(sumUVProjection, axis=1)
         self._hasData = True
+
+    def _filter(self, dataPoints: np.ndarray) -> np.ndarray:
+        """
+        Filters the data points to only keep the ones that are relevant to this view.
+        Must be implemented by subclasses.
+        """
+        raise NotImplementedError()
 
     @property
     def _verticalIsNegative(self) -> bool:

@@ -209,7 +209,7 @@ class Viewer:
         for view in self._logger.views:
             correctGroup = view.group in viewsVisibility
             correctSolidLabel = solidLabels is None or utils.labelContained(view.solidLabel, solidLabels)
-            correctSurfaceLabel = surfaceLabels is None or not view.isSurface or \
+            correctSurfaceLabel = surfaceLabels is None or view.surfaceLabel is None or \
                                   utils.labelContained(view.surfaceLabel, surfaceLabels)
             if correctGroup and correctSolidLabel and correctSurfaceLabel:
                 self._addView(view)
