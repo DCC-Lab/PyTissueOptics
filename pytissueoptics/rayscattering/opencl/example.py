@@ -19,9 +19,9 @@ N = 10000
 tissue = tissues.InfiniteTissue(material=ScatteringMaterial(30, 0.1, 0.8, 1.4))
 source = PencilPointSource(position=Vector(0, 0, 0), direction=Vector(0, 0, 1), N=N, useHardwareAcceleration=True)
 
-logger = Logger()
+logger = EnergyLogger(tissue)
 
 source.propagate(tissue, logger=logger)
 
-stats = Stats(logger, source, tissue)
-stats.showEnergy2D(bins=1001, logScale=True, limits=[[-10, 10], [-10, 10]])
+viewer = Viewer(tissue, source, logger)
+viewer.show2D(views.View2DProjectionZ())
