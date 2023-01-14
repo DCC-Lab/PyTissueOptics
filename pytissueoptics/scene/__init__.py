@@ -4,3 +4,6 @@ from .scene import Scene
 from .loader import Loader, loadSolid
 from .viewer import MayaviViewer, MAYAVI_AVAILABLE
 from .logger import Logger
+
+__all__ = ["Cuboid", "Cube", "Sphere", "Ellipsoid", "Cylinder", "Cone", "Vector", "Scene", "Loader", "loadSolid",
+              "MayaviViewer", "MAYAVI_AVAILABLE", "Logger"]
