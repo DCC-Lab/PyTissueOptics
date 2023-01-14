@@ -9,6 +9,7 @@ from pytissueoptics.rayscattering.tissues import RayScatteringScene
 from pytissueoptics.rayscattering.views.view2D import ViewGroup, View2D
 from pytissueoptics.rayscattering.views.viewFactory import ViewFactory
 from pytissueoptics.scene.logger.logger import Logger, InteractionKey
+from pytissueoptics.scene.geometry.vector import Vector
 
 
 class EnergyLogger(Logger):
@@ -113,6 +114,9 @@ class EnergyLogger(Logger):
         if not self._keep3D:
             self._compileViews(self._views)
             self._delete3DData()
+
+    def logDataPoint(self, value: float, position: Vector, key: InteractionKey):
+        self.logDataPointArray(np.array([[value, *position.array]]), key)
 
     def _compileViews(self, views: List[View2D]):
         for key, data in self._data.items():
