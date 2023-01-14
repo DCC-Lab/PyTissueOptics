@@ -123,7 +123,7 @@ class Viewer:
         if binSize is None:
             binSize = self._logger.defaultBinSize
 
-        limits = self._scene.getBoundingBox().xyzLimits
+        limits = self._sceneLimits
         bins = [int((d[1] - d[0]) / binSize) for d in limits]
 
         points = self._pointCloudFactory.getPointCloudOfSolids().solidPoints
@@ -204,7 +204,7 @@ class Viewer:
     def _addView(self, view: View2D):
         self._logger.updateView(view)
 
-        limits = self._scene.getBoundingBox().xyzLimits
+        limits = self._sceneLimits
         if view.solidLabel:
             # fixme (limitation): if the solidLabel represents an internal layer of a stack, the limits returned will be
             #  the limits of the whole stack. Could be solved using the surfaceLabels of the layer to compute bbox from
@@ -229,3 +229,11 @@ class Viewer:
             alignedSize = alignedSize[::-1]
 
         self._viewer3D.addImage(alignedImage, alignedSize, alignedCorner, view.axis, position)
+
+    @property
+    def _sceneLimits(self):
+        sceneBoundingBox = self._scene.getBoundingBox()
+        if sceneBoundingBox:
+            return sceneBoundingBox.xyzLimits
+        else:
+            return self._logger.infiniteLimits
