@@ -18,6 +18,7 @@ class Profile1DFactory:
         self._defaultBinSize3D = logger.defaultBinSize
         if isinstance(self._defaultBinSize3D, float):
             self._defaultBinSize3D = [logger.defaultBinSize] * 3
+        self._infiniteLimits = logger.infiniteLimits
 
     def create(self, horizontalDirection: Direction, solidLabel: str = None, surfaceLabel: str = None,
                surfaceEnergyLeaving: bool = False, limits: Tuple[float, float] = None,
@@ -45,7 +46,11 @@ class Profile1DFactory:
             solid = self._scene.getSolid(solidLabel)
             limits3D = solid.getBoundingBox().xyzLimits
         else:
-            limits3D = self._scene.getBoundingBox().xyzLimits
+            sceneBoundingBox = self._scene.getBoundingBox()
+            if sceneBoundingBox is None:
+                limits3D = self._infiniteLimits
+            else:
+                limits3D = sceneBoundingBox.xyzLimits
         limits3D = [(d[0], d[1]) for d in limits3D]
         return limits3D[horizontalDirection.axis]
 

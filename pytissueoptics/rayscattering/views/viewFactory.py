@@ -9,12 +9,14 @@ from pytissueoptics.rayscattering.views.defaultViews import View2DProjectionX, V
 
 
 class ViewFactory:
-    def __init__(self, scene: RayScatteringScene, defaultBinSize: Union[float, Tuple[float, float, float]]):
+    def __init__(self, scene: RayScatteringScene, defaultBinSize: Union[float, Tuple[float, float, float]],
+                 infiniteLimits: tuple):
         self._scene = scene
 
         self._defaultBinSize3D = defaultBinSize
         if isinstance(self._defaultBinSize3D, float):
             self._defaultBinSize3D = [defaultBinSize] * 3
+        self._infiniteLimits = infiniteLimits
 
     def build(self, views: Union[ViewGroup, List[View2D]]) -> List[View2D]:
         if views is None:
@@ -84,7 +86,11 @@ class ViewFactory:
             solid = self._scene.getSolid(view.solidLabel)
             limits3D = solid.getBoundingBox().xyzLimits
         else:
-            limits3D = self._scene.getBoundingBox().xyzLimits
+            sceneBoundingBox = self._scene.getBoundingBox()
+            if sceneBoundingBox is None:
+                limits3D = self._infiniteLimits
+            else:
+                limits3D = sceneBoundingBox.xyzLimits
         limits3D = [(d[0], d[1]) for d in limits3D]
 
         limits = (limits3D[view.axisU], limits3D[view.axisV])

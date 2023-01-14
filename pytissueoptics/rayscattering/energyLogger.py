@@ -1,6 +1,6 @@
 import os
 import pickle
-from typing import Union, List, Optional
+from typing import Union, List
 
 import numpy as np
 
@@ -12,7 +12,8 @@ from pytissueoptics.scene.logger.logger import Logger, InteractionKey
 
 class EnergyLogger(Logger):
     def __init__(self, scene: RayScatteringScene, filepath: str = None, keep3D: bool = True,
-                 defaultBinSize: float = 0.01, views: Union[ViewGroup, List[View2D]] = ViewGroup.ALL):
+                 views: Union[ViewGroup, List[View2D]] = ViewGroup.ALL, defaultBinSize: float = 0.01,
+                 infiniteLimits=((-5, 5), (-5, 5), (-5, 5))):
         """
         Log the energy deposited by scattering photons as well as the energy that crossed surfaces. Every interaction
         is linked to a specific solid and surface of the scene when applicable. This `EnergyLogger` has to be given to
@@ -24,19 +25,21 @@ class EnergyLogger(Logger):
         :param keep3D: (Default to True) If False, logged datapoints are automatically binned to predefined 2D `views`
                 and the 3D data is discarded. This allows for a lightweight logger alternative. If True, the 3D data is
                 kept and the 2D views are only computed later if displayed.
-        :param defaultBinSize: (Default to 0.01) The default bin size to use when binning the 3D data to 2D views.
-                In the same physical units as the scene. Custom bin sizes can be specified in each View2D.
         :param views: The 2D views to track, particularly used when `keep3D` is set to False. Can be a ViewGroup flag
                 or a list of View2D. Default to ViewGroup.ALL which includes the 3 default XYZ projections for the
                 whole scene as well as for each solid, and a projection of each surface in the direction of the surface
                 normal for both the energy entering and leaving the surface. When `keep3D` is False, ViewGroup.All is
                 required to allow calculation of the detailed report for absorbance and transmittance. When `keep3D` is
                 True, the 2D views data is only computed when displayed, so it is equivalent to setting `views` to None.
+        :param defaultBinSize: The default bin size to use when binning the 3D data to 2D views. In the same physical
+                units as the scene. Custom bin sizes can be specified in each View2D.
+        :param infiniteLimits: The default limits to use for the 2D views when the scene is infinite (has no solids).
         """
         self._scene = scene
         self._keep3D = keep3D
         self._defaultBinSize = defaultBinSize
-        self._viewFactory = ViewFactory(scene, defaultBinSize)
+        self._infiniteLimits = infiniteLimits
+        self._viewFactory = ViewFactory(scene, defaultBinSize, infiniteLimits)
 
         self._sceneHash = hash(scene)
         self._defaultViews = views
@@ -87,6 +90,10 @@ class EnergyLogger(Logger):
     @property
     def defaultBinSize(self) -> float:
         return self._defaultBinSize
+
+    @property
+    def infiniteLimits(self) -> tuple:
+        return self._infiniteLimits
 
     def logDataPointArray(self, array: np.ndarray, key: InteractionKey):
         """
