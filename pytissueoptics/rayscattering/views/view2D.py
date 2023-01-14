@@ -69,6 +69,7 @@ class View2D:
 
         self._dataUV = None
         self._hasData = False
+        self.displayPosition = position
 
     def flip(self):
         """ Flips the view as if it was seen from behind. """

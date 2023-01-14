@@ -224,17 +224,15 @@ class Viewer:
             #  surface polygons. The behaviour is still fine for now and might be what we ultimately want.
             limits = self._scene.getSolid(view.solidLabel).getBoundingBox().xyzLimits
 
-        if view.position is None:
+        if view.displayPosition is None:
             viewAxisLimits = sorted(limits[view.axis])
             positionMin, positionMax = viewAxisLimits
             viewSpacing = 0.1
 
             if view.projectionDirection.isPositive:
-                position = positionMin - viewSpacing
+                view.displayPosition = positionMin - viewSpacing
             else:
-                position = positionMax + viewSpacing
-        else:
-            position = view.position
+                view.displayPosition = positionMax + viewSpacing
 
         alignedImage = view.getImageDataWithDefaultAlignment()
 
@@ -244,7 +242,7 @@ class Viewer:
             alignedCorner = alignedCorner[::-1]
             alignedSize = alignedSize[::-1]
 
-        self._viewer3D.addImage(alignedImage, alignedSize, alignedCorner, view.axis, position)
+        self._viewer3D.addImage(alignedImage, alignedSize, alignedCorner, view.axis, view.displayPosition)
 
     @property
     def _sceneLimits(self):
