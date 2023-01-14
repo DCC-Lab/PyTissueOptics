@@ -9,7 +9,7 @@ class DataPointCL(CLObject):
              ("x", cl.cltypes.float),
              ("y", cl.cltypes.float),
              ("z", cl.cltypes.float),
-             ("solidID", cl.cltypes.uint),
+             ("solidID", cl.cltypes.int),
              ("surfaceID", cl.cltypes.int)])
 
     def __init__(self, size: int):

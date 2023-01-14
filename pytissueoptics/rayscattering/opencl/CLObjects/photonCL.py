@@ -11,7 +11,7 @@ class PhotonCL(CLObject):
              ("er", cl.cltypes.float3),
              ("weight", cl.cltypes.float),
              ("materialID", cl.cltypes.uint),
-             ("solidID", cl.cltypes.uint)])
+             ("solidID", cl.cltypes.int)])
 
     def __init__(self, positions: np.ndarray, directions: np.ndarray,
                  materialID: int, solidID: int):
