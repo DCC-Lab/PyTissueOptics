@@ -127,8 +127,15 @@ class Viewer:
         limits = limits or self._sceneLimits
         bins = [int((d[1] - d[0]) / binSize) for d in limits]
 
+        # np.histogramdd only works in float64 and requires around 3 times the final memory.
+        requiredMemoryInGB = 3 * 8 * bins[0] * bins[1] * bins[2] / 1024**3
+        if requiredMemoryInGB > 4:
+            utils.warn(f"WARNING: The volume slicer will require a lot of memory ({round(requiredMemoryInGB, 2)} GB). "
+                       f"Consider using a larger binSize or tighter limits.")
+
         points = self._pointCloudFactory.getPointCloudOfSolids().solidPoints
         hist, _ = np.histogramdd(points[:, 1:], bins=bins, normed=False, weights=points[:, 0], range=limits)
+        hist = hist.astype(np.float32)
 
         if logScale:
             hist = utils.logNorm(hist)
