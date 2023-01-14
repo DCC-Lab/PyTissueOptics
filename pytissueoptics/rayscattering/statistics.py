@@ -8,7 +8,6 @@ from pytissueoptics.rayscattering import utils
 from pytissueoptics.rayscattering.energyLogger import EnergyLogger
 from pytissueoptics.rayscattering.opencl.CLScene import NO_SOLID_LABEL
 from pytissueoptics.rayscattering.pointCloud import PointCloudFactory, PointCloud
-from pytissueoptics.rayscattering.opencl import warnings
 
 
 @dataclass
@@ -36,6 +35,10 @@ class Stats:
         self._solidStatsMap = {}
 
     def report(self, solidLabel: str = None, saveToFile: str = None, verbose=True):
+        if solidLabel and solidLabel not in self._logger.getLoggedSolidLabels():
+            utils.warn(f"WARNING: Cannot compute stats for solid '{solidLabel}' because it was not logged.")
+            return
+
         self._computeStats(solidLabel)
 
         reportString = self._makeReport(solidLabel=solidLabel)
@@ -55,7 +58,7 @@ class Stats:
             try:
                 absorbance = self.getAbsorbance(solidLabel)
             except ZeroDivisionError:
-                warnings.warn("No energy input for solid '{}'".format(solidLabel))
+                utils.warn("WARNING: No energy input for solid '{}'".format(solidLabel))
                 absorbance = None
             self._solidStatsMap[solidLabel] = SolidStats(absorbance,
                                                          self.getAbsorbance(solidLabel, useTotalEnergy=True),
@@ -220,7 +223,7 @@ class Stats:
     def saveReport(report: str, filepath: str = None):
         if filepath is None:
             filepath = "simulation_report"
-            warnings.warn(f"No filepath specified. Saving to {filepath}.")
+            utils.warn(f"WARNING: No filepath specified. Saving to {filepath}.")
         i = 0
         filename, extension = filepath.split(".")
         if extension == "":
