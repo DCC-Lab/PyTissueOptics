@@ -95,4 +95,4 @@ class ViewFactory:
 
         limits = (limits3D[view.axisU], limits3D[view.axisV])
         binSize = (self._defaultBinSize3D[view.axisU], self._defaultBinSize3D[view.axisV])
-        view.setContext(limits=limits, binSize=binSize)
+        view.setContext(limits=limits, binSize=binSize, thickness=self._defaultBinSize3D[view.axis])
