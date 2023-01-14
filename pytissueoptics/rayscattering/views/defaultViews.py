@@ -1,6 +1,8 @@
 from typing import Tuple, Union
 
-from pytissueoptics.rayscattering.views.view2D import View2D
+import numpy as np
+
+from pytissueoptics.rayscattering.views.view2D import View2D, ViewGroup
 from pytissueoptics.rayscattering.views.direction import *
 
 

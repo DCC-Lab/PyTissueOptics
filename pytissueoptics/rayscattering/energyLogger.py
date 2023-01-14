@@ -6,7 +6,8 @@ import numpy as np
 
 from pytissueoptics.rayscattering import utils
 from pytissueoptics.rayscattering.tissues import RayScatteringScene
-from pytissueoptics.rayscattering.views import ViewGroup, View2D, ViewFactory
+from pytissueoptics.rayscattering.views.view2D import ViewGroup, View2D
+from pytissueoptics.rayscattering.views.viewFactory import ViewFactory
 from pytissueoptics.scene.logger.logger import Logger, InteractionKey
 
 
@@ -83,6 +84,12 @@ class EnergyLogger(Logger):
     def views(self):
         return self._views
 
+    def getView(self, index: int) -> View2D:
+        if index < 0 or index >= len(self._views):
+            raise IndexError(f"View index {index} is out of range [0, {len(self._views)}]. Use `.listViews()` to see "
+                             f"available views.")
+        return self._views[index]
+
     @property
     def has3D(self) -> bool:
         return self._keep3D
@@ -156,7 +163,7 @@ class EnergyLogger(Logger):
                 return
             viewIndex = self._getViewIndex(view)
 
-        view = self._views[viewIndex]
+        view = self.getView(viewIndex)
         self.updateView(view)
 
         view.show(logScale=logScale, colormap=colormap)

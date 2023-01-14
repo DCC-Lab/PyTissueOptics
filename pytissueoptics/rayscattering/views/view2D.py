@@ -1,6 +1,6 @@
 import copy
 from enum import Flag
-from typing import Tuple, Union
+from typing import Tuple, Union, Optional
 
 import matplotlib
 import numpy as np
@@ -85,11 +85,11 @@ class View2D:
             self._horizontalDirection = Direction((self._horizontalDirection.value + 3) % 6)
 
     @property
-    def solidLabel(self) -> str:
+    def solidLabel(self) -> Optional[str]:
         return self._solidLabel
 
     @property
-    def surfaceLabel(self) -> str:
+    def surfaceLabel(self) -> Optional[str]:
         return self._surfaceLabel
 
     @property

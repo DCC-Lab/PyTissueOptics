@@ -1,5 +1,5 @@
 from enum import Flag
-from typing import List, Tuple
+from typing import List, Tuple, Union
 
 import numpy as np
 
@@ -85,7 +85,7 @@ class Viewer:
         self._pointCloudFactory = PointCloudFactory(logger)
         self._profile1DFactory = Profile1DFactory(scene, logger)
 
-    def show3D(self, visibility=Visibility.AUTO, viewsVisibility: ViewGroup = ViewGroup.SCENE,
+    def show3D(self, visibility=Visibility.AUTO, viewsVisibility: Union[ViewGroup, List[int]] = ViewGroup.SCENE,
                pointCloudStyle=PointCloudStyle(), sourceSize: float = 0.1,
                viewsSolidLabels: List[str] = None, viewsSurfaceLabels: List[str] = None):
         if not MAYAVI_AVAILABLE:
@@ -200,7 +200,12 @@ class Viewer:
                                      reverseColormap=style.surfaceReverseColormap,
                                      asSpheres=style.showPointsAsSpheres)
 
-    def _addViews(self, viewsVisibility: ViewGroup, solidLabels: List[str] = None, surfaceLabels: List[str] = None):
+    def _addViews(self, viewsVisibility: Union[ViewGroup, List[int]], solidLabels: List[str] = None, surfaceLabels: List[str] = None):
+        if isinstance(viewsVisibility, list):
+            for viewIndex in viewsVisibility:
+                self._addView(self._logger.getView(viewIndex))
+            return
+
         for view in self._logger.views:
             correctGroup = view.group in viewsVisibility
             correctSolidLabel = solidLabels is None or utils.labelContained(view.solidLabel, solidLabels)
