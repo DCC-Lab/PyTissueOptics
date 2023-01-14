@@ -5,6 +5,7 @@ from typing import Dict
 import numpy as np
 
 from pytissueoptics.rayscattering import utils
+from pytissueoptics.rayscattering.views.defaultViews import View2DProjection
 from pytissueoptics.rayscattering.energyLogger import EnergyLogger
 from pytissueoptics.rayscattering.opencl.CLScene import NO_SOLID_LABEL
 from pytissueoptics.rayscattering.pointCloud import PointCloudFactory, PointCloud
@@ -114,9 +115,9 @@ class Stats:
 
     def _getAbsorbedEnergyFromViews(self, solidLabel: str) -> float:
         for view in self._logger.views:
-            if not utils.labelsEqual(solidLabel, view.solidLabel):
+            if not isinstance(view, View2DProjection):
                 continue
-            if view.surfaceLabel is not None:
+            if not utils.labelsEqual(solidLabel, view.solidLabel):
                 continue
             if not self._viewContainsSolid(view, solidLabel):
                 continue
