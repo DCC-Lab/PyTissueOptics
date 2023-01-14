@@ -38,16 +38,19 @@ class VolumeSlicer(HasTraits):
     _axis_names = dict(x=0, y=1, z=2)
 
     #---------------------------------------------------------------------------
-    def __init__(self, colormap: str = 'viridis', **traits):
+    def __init__(self, hist3D: np.ndarray, colormap: str = 'viridis', interpolate=False, **traits):
         self._colormap = colormap
         self._cameraView = {"azimuth": -30, "zenith": 215, "distance": None, "pointingTowards": None, "roll": -0}
         self._cameraPitch = -3
+        self._interpolate = interpolate
 
-        super(VolumeSlicer, self).__init__(**traits)
+        super(VolumeSlicer, self).__init__(data=hist3D, **traits)
+
         # Force the creation of the image_plane_widgets:
-        self.ipw_3d_x
-        self.ipw_3d_y
-        self.ipw_3d_z
+        for ipw in (self.ipw_3d_x, self.ipw_3d_y, self.ipw_3d_z):
+            if not self._interpolate:
+                ipw.ipw.texture_interpolate = "off"
+                ipw.ipw.set_input_data(ipw.ipw._get_input())
 
     def show(self):
         self.configure_traits()
@@ -83,7 +86,6 @@ class VolumeSlicer(HasTraits):
         outline = mlab.pipeline.outline(self.data_src3d,
                         figure=self.scene3d.mayavi_scene,
                                         colormap=self._colormap)
-
         # self.scene3d.mlab.view(40, 50)
         self.scene3d.mlab.view(*self._cameraView.values())
         # self.scene3d.mlab.pitch(self._cameraPitch)
@@ -93,6 +95,7 @@ class VolumeSlicer(HasTraits):
         for ipw in (self.ipw_3d_x, self.ipw_3d_y, self.ipw_3d_z):
             # Turn the interaction off
             ipw.ipw.interaction = 0
+
         self.scene3d.scene.background = (0, 0, 0)
         # Keep the view always pointing up
         self.scene3d.scene.interactor.interactor_style = \
@@ -113,6 +116,9 @@ class VolumeSlicer(HasTraits):
         ipw = mlab.pipeline.image_plane_widget(
                             outline,
                             plane_orientation='%s_axes' % axis_name, colormap=self._colormap)
+        if not self._interpolate:
+            ipw.ipw.texture_interpolate = "off"
+            ipw.ipw.set_input_data(ipw.ipw._get_input())
         setattr(self, 'ipw_%s' % axis_name, ipw)
 
         # Synchronize positions between the corresponding image plane

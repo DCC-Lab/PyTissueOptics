@@ -111,7 +111,8 @@ class Viewer:
 
         self._viewer3D.show()
 
-    def show3DVolumeSlicer(self, binSize: float = None, logScale: bool = True):
+    def show3DVolumeSlicer(self, binSize: float = None, logScale: bool = True, interpolate: bool = False,
+                           limits: Tuple[tuple, tuple, tuple]=None):
         if not MAYAVI_AVAILABLE:
             utils.warn("ERROR: Package 'mayavi' is not available. Please install it to use 3D visualizations.")
             return
@@ -123,7 +124,7 @@ class Viewer:
         if binSize is None:
             binSize = self._logger.defaultBinSize
 
-        limits = self._sceneLimits
+        limits = limits or self._sceneLimits
         bins = [int((d[1] - d[0]) / binSize) for d in limits]
 
         points = self._pointCloudFactory.getPointCloudOfSolids().solidPoints
@@ -133,7 +134,7 @@ class Viewer:
             hist = utils.logNorm(hist)
 
         from pytissueoptics.rayscattering.volumeSlicer import VolumeSlicer
-        slicer = VolumeSlicer(data=hist)
+        slicer = VolumeSlicer(hist, interpolate=interpolate)
         slicer.show()
 
     def show2D(self, view: View2D = None, viewIndex: int = None, logScale: bool = True, colormap: str = "viridis"):
