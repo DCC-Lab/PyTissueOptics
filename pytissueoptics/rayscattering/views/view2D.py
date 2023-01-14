@@ -1,6 +1,6 @@
 import copy
 from enum import Flag
-from typing import Tuple, Union, Optional
+from typing import Tuple, Union, Optional, List
 
 import matplotlib
 import numpy as np
@@ -59,11 +59,6 @@ class View2D:
         self._solidLabel = solidLabel
         self._surfaceLabel = surfaceLabel
         self._surfaceEnergyLeaving = surfaceEnergyLeaving
-        if self._surfaceLabel is not None and self._solidLabel is None:
-            self._surfaceLabel = None
-            utils.warn("WARNING [View2D]: A surface label was specified without its corresponding solid label. "
-                       "Surface label will be ignored.")
-
         self._position = position
         self._thickness = thickness
 
@@ -94,25 +89,18 @@ class View2D:
     def surfaceEnergyLeaving(self) -> bool:
         return self._surfaceEnergyLeaving
 
-    @property
-    def position(self) -> Optional[float]:
-        return self._position
-
-    def setContext(self, limits: Tuple[Tuple[float, float], Tuple[float, float]],
-                   binSize: Tuple[float, float], thickness: float):
+    def setContext(self, limits3D: List[Tuple[float, float]], binSize3D: Tuple[float, float, float]):
         """
         Used internally by ViewFactory when initializing the views. The limits and the bin sizes are given for
-        the 2 dimensions in the axis order (U, V) and in the same physical units than the logged data points.
-        They are only used if no custom limits or bin sizes are specified in the constructor.
+        all 3 dimensions and in the same physical units than the logged data points. They are only used if no custom
+        limits or bin sizes are specified in the constructor.
         """
         if self._limitsU is None:
-            self._limitsU, self._limitsV = limits
+            self._limitsU, self._limitsV = limits3D[self.axisU], limits3D[self.axisV]
         self._limitsU, self._limitsV = sorted(self._limitsU), sorted(self._limitsV)
 
         if self._binSize is None:
-            self._binSize = binSize
-        if self._thickness is None:
-            self._thickness = thickness
+            self._binSize = (binSize3D[self.axisU], binSize3D[self.axisV])
 
         limits = [self._limitsU, self._limitsV]
         self._binsU, self._binsV = [int((l[1] - l[0]) / b) for l, b in zip(limits, self._binSize)]

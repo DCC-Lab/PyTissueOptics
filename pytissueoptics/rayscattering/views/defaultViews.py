@@ -1,4 +1,4 @@
-from typing import Tuple, Union
+from typing import Tuple, Union, List
 
 import numpy as np
 
@@ -86,6 +86,11 @@ class View2DSlice(View2D):
                  binSize: Union[float, Tuple[int, int]] = None):
         super().__init__(projectionDirection, horizontalDirection, solidLabel=solidLabel, position=position,
                          thickness=thickness, limits=limits, binSize=binSize)
+
+    def setContext(self, limits3D: List[Tuple[float, float]], binSize3D: Tuple[float, float, float]):
+        if self._thickness is None:
+            self._thickness = binSize3D[self.axis]
+        super().setContext(limits3D, binSize3D)
 
     def _filter(self, dataPoints: np.ndarray) -> np.ndarray:
         dataPositions = dataPoints[:, 1 + self.axis]

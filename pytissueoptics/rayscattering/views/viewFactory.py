@@ -15,7 +15,7 @@ class ViewFactory:
 
         self._defaultBinSize3D = defaultBinSize
         if isinstance(self._defaultBinSize3D, float):
-            self._defaultBinSize3D = [defaultBinSize] * 3
+            self._defaultBinSize3D = (defaultBinSize, defaultBinSize, defaultBinSize)
         self._infiniteLimits = infiniteLimits
 
     def build(self, views: Union[ViewGroup, List[View2D]]) -> List[View2D]:
@@ -92,7 +92,4 @@ class ViewFactory:
             else:
                 limits3D = sceneBoundingBox.xyzLimits
         limits3D = [(d[0], d[1]) for d in limits3D]
-
-        limits = (limits3D[view.axisU], limits3D[view.axisV])
-        binSize = (self._defaultBinSize3D[view.axisU], self._defaultBinSize3D[view.axisV])
-        view.setContext(limits=limits, binSize=binSize, thickness=self._defaultBinSize3D[view.axis])
+        view.setContext(limits3D=limits3D, binSize3D=self._defaultBinSize3D)
