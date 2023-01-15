@@ -47,12 +47,6 @@ class ViewFactory:
 
         return views
 
-    @staticmethod
-    def _getDefaultViewsXYZ(solidLabel: str = None) -> List[View2D]:
-        return [View2DProjectionX(solidLabel=solidLabel),
-                View2DProjectionY(solidLabel=solidLabel),
-                View2DProjectionZ(solidLabel=solidLabel)]
-
     def _getDefaultSurfaceViews(self, solidLabel: str, surfaceLabel: str,
                                includeLeaving: bool, includeEntering: bool) -> List[View2D]:
         surfaceNormal = self._getSurfaceNormal(solidLabel, surfaceLabel)
@@ -93,3 +87,9 @@ class ViewFactory:
                 limits3D = sceneBoundingBox.xyzLimits
         limits3D = [(d[0], d[1]) for d in limits3D]
         view.setContext(limits3D=limits3D, binSize3D=self._defaultBinSize3D)
+
+    @staticmethod
+    def _getDefaultViewsXYZ(solidLabel: str = None) -> List[View2D]:
+        return [View2DProjectionX(solidLabel=solidLabel),
+                View2DProjectionY(solidLabel=solidLabel),
+                View2DProjectionZ(solidLabel=solidLabel)]

@@ -78,8 +78,66 @@ class EnergyLogger(Logger):
                    f"found in existing views.")
         return False
 
-    def _viewExists(self, view: View2D) -> bool:
-        return any([view.isEqualTo(v) for v in self._views])
+    def updateView(self, view: View2D):
+        if view in self._outdatedViews:
+            self._compileViews([view])
+
+    def showView(self, view: View2D = None, viewIndex: int = None,
+                 logScale: bool = True, colormap: str = 'viridis'):
+        assert viewIndex is not None or view is not None, "Either `viewIndex` or `view` must be specified."
+
+        if viewIndex is None:
+            created = self.addView(view)
+            if not created:
+                utils.warn(f"ERROR: Cannot display view {view.name}. Failed to create the view.")
+                return
+            viewIndex = self._getViewIndex(view)
+
+        view = self.getView(viewIndex)
+        self.updateView(view)
+
+        view.show(logScale=logScale, colormap=colormap)
+
+    def listViews(self):
+        print("Available views:")
+        for i, view in enumerate(self._views):
+            print(f"\t{i}: {view.description}")
+
+    def save(self, filepath: str = None):
+        if filepath is None and self._filepath is None:
+            filepath = "simulation.log"
+            utils.warn(f"No filepath specified. Saving to {filepath}.")
+        elif filepath is None:
+            filepath = self._filepath
+
+        with open(filepath, "wb") as file:
+            pickle.dump((self._data, self.info, self._labels, self._views, self._defaultViews, self._outdatedViews,
+                         self._nDataPointsRemoved, self._sceneHash, self.has3D), file)
+
+    def load(self, filepath: str):
+        self._filepath = filepath
+
+        if not os.path.exists(filepath):
+            utils.warn("No logger file found at '{}'. No data loaded, but it will create a new file "
+                       "at this location if the logger is saved later on.".format(filepath))
+            return
+
+        with open(filepath, "rb") as file:
+            self._data, self.info, self._labels, self._views, oldDefaultViews, self._outdatedViews, \
+                self._nDataPointsRemoved, oldSceneHash, oldHas3D = pickle.load(file)
+
+        if oldSceneHash != self._sceneHash:
+            utils.warn("WARNING: The scene used to create the logger at '{}' is different from the current "
+                       "scene. This may corrupt statistics and visualization. Proceed at your own risk.".format(filepath))
+        if oldHas3D and not self._keep3D:
+            utils.warn("WARNING: The logger at '{}' use to store 3D data, but it was reloaded with keep3D=False. "
+                       "The 3D data will be compiled to 2D views and discarded.".format(filepath))
+        if not oldHas3D and self._keep3D:
+            utils.warn("WARNING: The logger at '{}' use to discard 3D data, but it was reloaded with keep3D=True. "
+                       "This may corrupt the statistics and the 3D visualization. Proceed at your own risk.".format(filepath))
+        if self._defaultViews != oldDefaultViews:
+            utils.warn("WARNING: Cannot provide new default views to a loaded logger. "
+                       "Using only the views from the file.".format(filepath))
 
     @property
     def views(self):
@@ -90,6 +148,15 @@ class EnergyLogger(Logger):
             raise IndexError(f"View index {index} is out of range [0, {len(self._views)}]. Use `.listViews()` to see "
                              f"available views.")
         return self._views[index]
+
+    def _getViewIndex(self, view: View2D) -> int:
+        for i, v in enumerate(self._views):
+            if v.isEqualTo(view):
+                return i
+        raise ValueError("View not found.")
+
+    def _viewExists(self, view: View2D) -> bool:
+        return any([view.isEqualTo(v) for v in self._views])
 
     @property
     def has3D(self) -> bool:
@@ -102,6 +169,9 @@ class EnergyLogger(Logger):
     @property
     def infiniteLimits(self) -> tuple:
         return self._infiniteLimits
+
+    def getSolidLimits(self, solidLabel: str) -> List[List[float]]:
+        return self._scene.getSolid(solidLabel).getBoundingBox().xyzLimits
 
     def logDataPointArray(self, array: np.ndarray, key: InteractionKey):
         """
@@ -147,73 +217,3 @@ class EnergyLogger(Logger):
             return super().nDataPoints
         else:
             return self._nDataPointsRemoved
-
-    def getSolidLimits(self, solidLabel: str) -> List[List[float]]:
-        return self._scene.getSolid(solidLabel).getBoundingBox().xyzLimits
-
-    def listViews(self):
-        print("Available views:")
-        for i, view in enumerate(self._views):
-            print(f"\t{i}: {view.description}")
-
-    def showView(self, view: View2D = None, viewIndex: int = None,
-                 logScale: bool = True, colormap: str = 'viridis'):
-        assert viewIndex is not None or view is not None, "Either `viewIndex` or `view` must be specified."
-
-        if viewIndex is None:
-            created = self.addView(view)
-            if not created:
-                utils.warn(f"ERROR: Cannot display view {view.name}. Failed to create the view.")
-                return
-            viewIndex = self._getViewIndex(view)
-
-        view = self.getView(viewIndex)
-        self.updateView(view)
-
-        view.show(logScale=logScale, colormap=colormap)
-
-    def updateView(self, view: View2D):
-        if view in self._outdatedViews:
-            self._compileViews([view])
-
-    def _getViewIndex(self, view: View2D) -> int:
-        for i, v in enumerate(self._views):
-            if v.isEqualTo(view):
-                return i
-        raise ValueError("View not found.")
-
-    def save(self, filepath: str = None):
-        if filepath is None and self._filepath is None:
-            filepath = "simulation.log"
-            utils.warn(f"No filepath specified. Saving to {filepath}.")
-        elif filepath is None:
-            filepath = self._filepath
-
-        with open(filepath, "wb") as file:
-            pickle.dump((self._data, self.info, self._labels, self._views, self._defaultViews, self._outdatedViews,
-                         self._nDataPointsRemoved, self._sceneHash, self.has3D), file)
-
-    def load(self, filepath: str):
-        self._filepath = filepath
-
-        if not os.path.exists(filepath):
-            utils.warn("No logger file found at '{}'. No data loaded, but it will create a new file "
-                       "at this location if the logger is saved later on.".format(filepath))
-            return
-
-        with open(filepath, "rb") as file:
-            self._data, self.info, self._labels, self._views, oldDefaultViews, self._outdatedViews, \
-                self._nDataPointsRemoved, oldSceneHash, oldHas3D = pickle.load(file)
-
-        if oldSceneHash != self._sceneHash:
-            utils.warn("WARNING: The scene used to create the logger at '{}' is different from the current "
-                       "scene. This may corrupt statistics and visualization. Proceed at your own risk.".format(filepath))
-        if oldHas3D and not self._keep3D:
-            utils.warn("WARNING: The logger at '{}' use to store 3D data, but it was reloaded with keep3D=False. "
-                       "The 3D data will be compiled to 2D views and discarded.".format(filepath))
-        if not oldHas3D and self._keep3D:
-            utils.warn("WARNING: The logger at '{}' use to discard 3D data, but it was reloaded with keep3D=True. "
-                       "This may corrupt the statistics and the 3D visualization. Proceed at your own risk.".format(filepath))
-        if self._defaultViews != oldDefaultViews:
-            utils.warn("WARNING: Cannot provide new default views to a loaded logger. "
-                       "Using only the views from the file.".format(filepath))

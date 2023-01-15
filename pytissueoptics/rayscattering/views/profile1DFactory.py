@@ -70,38 +70,6 @@ class Profile1DFactory:
         histogram, _ = np.histogram(x, bins=bins, range=limits, weights=w)
         return histogram
 
-    def _createName(self, horizontalDirection: Direction, solidLabel: str, surfaceLabel: str,
-                    surfaceEnergyLeaving: bool) -> str:
-        name = 'Energy profile along ' + 'xyz'[horizontalDirection.axis]
-        if solidLabel:
-            name += ' of ' + solidLabel
-        if surfaceLabel:
-            name += ' surface ' + surfaceLabel
-            if surfaceEnergyLeaving:
-                name += ' (leaving)'
-            else:
-                name += ' (entering)'
-        return name
-
-    def _correctCapitalization(self, solidLabel, surfaceLabel):
-        if solidLabel is None:
-            return None, None
-        originalSolidLabels = self._logger.getLoggedSolidLabels()
-        lowerCaseSolidLabels = [l.lower() for l in originalSolidLabels]
-        if solidLabel.lower() in lowerCaseSolidLabels:
-            labelIndex = lowerCaseSolidLabels.index(solidLabel.lower())
-            solidLabel = originalSolidLabels[labelIndex]
-
-        if surfaceLabel is None:
-            return solidLabel, None
-
-        originalSurfaceLabels = self._logger.getLoggedSurfaceLabels(solidLabel)
-        lowerCaseSurfaceLabels = [l.lower() for l in originalSurfaceLabels]
-        if surfaceLabel.lower() in lowerCaseSurfaceLabels:
-            labelIndex = lowerCaseSurfaceLabels.index(surfaceLabel.lower())
-            surfaceLabel = originalSurfaceLabels[labelIndex]
-        return solidLabel, surfaceLabel
-
     def _extractHistogramFromViews(self, horizontalDirection: Direction, solidLabel: str, surfaceLabel: str,
                                    surfaceEnergyLeaving: bool, limits: Tuple[float, float], bins: int):
         for view in self._logger.views:
@@ -142,3 +110,35 @@ class Profile1DFactory:
         if axisToSum == 0:
             data = np.flip(data, axis=0)
         return data
+
+    def _correctCapitalization(self, solidLabel, surfaceLabel):
+        if solidLabel is None:
+            return None, None
+        originalSolidLabels = self._logger.getLoggedSolidLabels()
+        lowerCaseSolidLabels = [l.lower() for l in originalSolidLabels]
+        if solidLabel.lower() in lowerCaseSolidLabels:
+            labelIndex = lowerCaseSolidLabels.index(solidLabel.lower())
+            solidLabel = originalSolidLabels[labelIndex]
+
+        if surfaceLabel is None:
+            return solidLabel, None
+
+        originalSurfaceLabels = self._logger.getLoggedSurfaceLabels(solidLabel)
+        lowerCaseSurfaceLabels = [l.lower() for l in originalSurfaceLabels]
+        if surfaceLabel.lower() in lowerCaseSurfaceLabels:
+            labelIndex = lowerCaseSurfaceLabels.index(surfaceLabel.lower())
+            surfaceLabel = originalSurfaceLabels[labelIndex]
+        return solidLabel, surfaceLabel
+
+    def _createName(self, horizontalDirection: Direction, solidLabel: str, surfaceLabel: str,
+                    surfaceEnergyLeaving: bool) -> str:
+        name = 'Energy profile along ' + 'xyz'[horizontalDirection.axis]
+        if solidLabel:
+            name += ' of ' + solidLabel
+        if surfaceLabel:
+            name += ' surface ' + surfaceLabel
+            if surfaceEnergyLeaving:
+                name += ' (leaving)'
+            else:
+                name += ' (entering)'
+        return name

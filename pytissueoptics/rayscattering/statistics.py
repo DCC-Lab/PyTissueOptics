@@ -44,7 +44,7 @@ class Stats:
 
         reportString = self._makeReport(solidLabel=solidLabel)
         if saveToFile:
-            self.saveReport(reportString, saveToFile)
+            self._saveReport(reportString, saveToFile)
         if verbose:
             print(reportString)
 
@@ -221,7 +221,7 @@ class Stats:
         return self._pointCloudFactory.getPointCloudOfSurfaces(solidLabel)
 
     @staticmethod
-    def saveReport(report: str, filepath: str = None):
+    def _saveReport(report: str, filepath: str = None):
         if filepath is None:
             filepath = "simulation_report"
             utils.warn(f"WARNING: No filepath specified. Saving to {filepath}.")

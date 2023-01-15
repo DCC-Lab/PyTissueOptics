@@ -85,6 +85,9 @@ class Viewer:
         self._pointCloudFactory = PointCloudFactory(logger)
         self._profile1DFactory = Profile1DFactory(scene, logger)
 
+    def listViews(self):
+        return self._logger.listViews()
+
     def show3D(self, visibility=Visibility.AUTO, viewsVisibility: Union[ViewGroup, List[int]] = ViewGroup.SCENE,
                pointCloudStyle=PointCloudStyle(), sourceSize: float = 0.1,
                viewsSolidLabels: List[str] = None, viewsSurfaceLabels: List[str] = None,
@@ -148,14 +151,11 @@ class Viewer:
     def show2D(self, view: View2D = None, viewIndex: int = None, logScale: bool = True, colormap: str = "viridis"):
         self._logger.showView(view=view, viewIndex=viewIndex, logScale=logScale, colormap=colormap)
 
-    def showAllViews(self, viewGroup = ViewGroup.ALL):
+    def show2DAllViews(self, viewGroup = ViewGroup.ALL):
         for i in range(len(self._logger.views)):
             if self._logger.views[i].group not in viewGroup:
                 continue
             self.show2D(viewIndex=i)
-
-    def listViews(self):
-        return self._logger.listViews()
 
     def show1D(self, along: Direction, logScale: bool = True,
                solidLabel: str = None, surfaceLabel: str = None, surfaceEnergyLeaving: bool = True,
