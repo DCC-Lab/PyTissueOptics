@@ -7,7 +7,7 @@ from numpy.lib import recfunctions as rfn
 
 from pytissueoptics import *
 from pytissueoptics.rayscattering.opencl import OPENCL_AVAILABLE
-from pytissueoptics.rayscattering.opencl.CLConfig import OPENCL_SOURCE_DIR
+from pytissueoptics.rayscattering.opencl.config.CLConfig import OPENCL_SOURCE_DIR
 from pytissueoptics.rayscattering.opencl.CLPhotons import CLScene
 
 if OPENCL_AVAILABLE:

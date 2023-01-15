@@ -1,13 +1,12 @@
-import gc
 import os
 import time
 
 import numpy as np
 
 from pytissueoptics.rayscattering.opencl import CONFIG
-from pytissueoptics.rayscattering.opencl.CLKeyLog import CLKeyLog
+from pytissueoptics.rayscattering.opencl.utils import CLKeyLog
 from pytissueoptics.rayscattering.opencl.CLScene import CLScene
-from pytissueoptics.rayscattering.opencl.CLParameters import CLParameters
+from pytissueoptics.rayscattering.opencl.config.CLParameters import CLParameters
 from pytissueoptics.rayscattering.opencl.CLProgram import CLProgram
 from pytissueoptics.rayscattering.opencl.CLObjects.seedCL import SeedCL
 from pytissueoptics.rayscattering.opencl.CLObjects.dataPointCL import DataPointCL

@@ -1,5 +1,5 @@
-from .CLConfig import warnings, CLConfig, OPENCL_AVAILABLE
-from .IPPTable import IPPTable
+from pytissueoptics.rayscattering.opencl.config.CLConfig import warnings, CLConfig, OPENCL_AVAILABLE
+from pytissueoptics.rayscattering.opencl.config.IPPTable import IPPTable
 
 if OPENCL_AVAILABLE:
     CONFIG = CLConfig()

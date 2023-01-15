@@ -12,7 +12,7 @@ except ImportError:
 
 warnings.formatwarning = lambda msg, *args, **kwargs: f'{msg}\n'
 
-OPENCL_PATH = os.path.dirname(os.path.abspath(__file__))
+OPENCL_PATH = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 MODULE_PATH = os.path.dirname(os.path.dirname(OPENCL_PATH))
 OPENCL_SOURCE_DIR = os.path.join(OPENCL_PATH, "src")
 
