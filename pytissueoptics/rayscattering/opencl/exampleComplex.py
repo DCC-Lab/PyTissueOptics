@@ -16,17 +16,17 @@ else:
 cube = Cuboid(a=3, b=3, c=3, position=Vector(0, 0, 0), material=material1, label="Cube")
 sphere = Sphere(radius=1, order=3, position=Vector(0, 0, 0), material=material2, label="Sphere",
                 smooth=True)
-layerTissueScene = RayScatteringScene([cube, sphere])
+scene = RayScatteringScene([cube, sphere])
 
-logger = Logger()
+logger = EnergyLogger(scene)
 source = DirectionalSource(position=Vector(0, 0, -2), direction=Vector(0, 0, 1), N=N,
                            useHardwareAcceleration=True, diameter=0.5)
 
-source.propagate(layerTissueScene, logger)
+source.propagate(scene, logger)
 
-stats = Stats(logger, source, layerTissueScene)
-stats.report()
+viewer = Viewer(scene, source, logger)
+viewer.reportStats()
 
-stats.showEnergy3D(config=DisplayConfig(showPointsAsSpheres=False))
-stats.showEnergy2D(bins=400, logScale=True, limits=[[-2, 2], [-2, 2]])
-stats.showEnergy2D(bins=400, solidLabel="Sphere", logScale=True, limits=[[-2, 2], [-2, 2]])
+viewer.show2D(View2DProjectionY())
+viewer.show2D(View2DProjectionY(solidLabel="Sphere", limits=((-2, 2), (-2, 2))))
+viewer.show3D()

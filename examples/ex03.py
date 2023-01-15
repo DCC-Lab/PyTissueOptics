@@ -28,16 +28,18 @@ def exampleCode():
 
     myCustomScene.display()
 
-    logger = Logger("ex03.log")
+    logger = EnergyLogger(myCustomScene, "ex03.log")
     source = DirectionalSource(position=Vector(-3, 0, 0), direction=Vector(1, 0, 0), diameter=1, N=10000)
     source.propagate(myCustomScene, logger)
     logger.save()
 
-    stats = Stats(logger, source, myCustomScene)
-    stats.showEnergy3D()
-    stats.showEnergy2D("Screen1", bins=100, projection="x", limits=[[-2, 2], [-2, 2]])
-    stats.showEnergy2D("Screen2", "left", enteringSurface=True, bins=100, projection="x", limits=[[-2, 2], [-2, 2]])
-    stats.showEnergy2D("Screen3", bins=100, projection="x", logScale=True, limits=[[-2, 2], [-2, 2]])
+    viewer = Viewer(myCustomScene, source, logger)
+    viewer.reportStats()
+
+    viewer.show3D()
+    viewer.show2D(View2DProjectionX("Screen1"), logScale=False)
+    viewer.show2D(View2DSurfaceX("Screen2", "left", surfaceEnergyLeaving=False), logScale=False)
+    viewer.show2D(View2DProjectionX("Screen3"))
 
 
 if __name__ == "__main__":

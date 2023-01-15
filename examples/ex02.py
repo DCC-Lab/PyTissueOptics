@@ -13,18 +13,19 @@ it is not possible to view the data in 3D without binning as this generates too 
 
 
 def exampleCode():
-    logger = Logger()
     myMaterial = ScatteringMaterial(mu_s=30.0, mu_a=0.1, g=0.9)
     tissue = tissues.InfiniteTissue(myMaterial)
+
+    logger = EnergyLogger(tissue)
     source = DivergentSource(position=Vector(0, 0, 0), direction=Vector(0, 0, 1), N=10000,
                              diameter=0.2, divergence=math.pi/4, useHardwareAcceleration=True)
 
     source.propagate(tissue, logger=logger)
 
-    stats = Stats(logger, source, tissue)
-    stats.report()
+    viewer = Viewer(tissue, source, logger)
+    viewer.reportStats()
 
-    stats.showEnergy2D(projection='y', bins=101, limits=[[-1, 1], [-0.1, 1]], logScale=True)
+    viewer.show2D(View2DProjectionX(limits=((0, 2), (-1, 1))))
 
 
 if __name__ == "__main__":

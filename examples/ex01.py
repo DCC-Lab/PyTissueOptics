@@ -9,22 +9,21 @@ Then we propagate the PencilSource photons in the tissue and then show the distr
 
 
 def exampleCode():
-    logger = Logger()
     tissue = tissues.PhantomTissue()
+    logger = EnergyLogger(tissue)
     source = PencilPointSource(position=Vector(0, 0, -1), direction=Vector(0, 0, 1), N=2000)
 
     source.propagate(tissue, logger=logger)
 
-    stats = Stats(logger, source, tissue)
-    stats.report()
+    viewer = Viewer(tissue, source, logger)
+    viewer.reportStats()
 
-    displayConfig = DisplayConfig(showPointsAsSpheres=False)
-    stats.showEnergy3D(config=displayConfig)
-    stats.showEnergy3DOfSurfaces()
-    stats.showEnergy2D()
-    stats.showEnergy2D("middleLayer", bins=51)
-    stats.showEnergy2D("middleLayer", "interface1", projection='z', bins=51, logScale=True, enteringSurface=True)
-    stats.showEnergy1D(bins=100)
+    viewer.show3D()
+    viewer.show3D(pointCloudStyle=PointCloudStyle(showSolidPoints=False))
+    viewer.show2D(View2DProjectionX())
+    viewer.show2D(View2DProjectionX(solidLabel="middleLayer"))
+    viewer.show2D(View2DSurfaceZ(solidLabel="middleLayer", surfaceLabel="interface1", surfaceEnergyLeaving=False))
+    viewer.show1D(Direction.Z_POS)
 
 
 if __name__ == "__main__":

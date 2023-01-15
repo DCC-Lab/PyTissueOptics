@@ -24,4 +24,4 @@ logger = EnergyLogger(tissue)
 source.propagate(tissue, logger=logger)
 
 viewer = Viewer(tissue, source, logger)
-viewer.show2D(views.View2DProjectionZ())
+viewer.show2D(View2DProjectionX())

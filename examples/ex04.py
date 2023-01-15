@@ -20,15 +20,15 @@ def exampleCode():
     stack1 = layer1.stack(layer2, "back")
     stackedTissue = stack1.stack(layer3, "back")
 
-    layerTissueScene = RayScatteringScene([stackedTissue])
+    tissue = RayScatteringScene([stackedTissue])
 
-    logger = Logger()
+    logger = EnergyLogger(tissue)
     source = PencilPointSource(position=Vector(0, 0, -5), direction=Vector(0, 0, 1), N=500)
-    source.propagate(layerTissueScene, logger)
+    source.propagate(tissue, logger)
 
-    stats = Stats(logger, source, layerTissueScene)
-    stats.report()
-    stats.showEnergy3D()
+    viewer = Viewer(tissue, source, logger)
+    viewer.reportStats()
+    viewer.show3D()
 
 
 if __name__ == "__main__":
