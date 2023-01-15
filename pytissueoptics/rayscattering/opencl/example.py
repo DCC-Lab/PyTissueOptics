@@ -1,3 +1,9 @@
+import os
+import sys
+
+modulePath = os.path.abspath(__file__ + 4 * '/..')
+sys.path.append(modulePath)
+
 from pytissueoptics import *
 
 

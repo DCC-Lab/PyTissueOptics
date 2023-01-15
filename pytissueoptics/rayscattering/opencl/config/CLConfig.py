@@ -1,5 +1,6 @@
 import os
 import json
+import time
 import warnings
 from typing import List
 
@@ -31,8 +32,6 @@ DEFAULT_MAX_MEMORY_MB = 1024
 
 WEIGHT_THRESHOLD = 0.0001
 
-AUTOSET_N_WORK_UNITS = True
-
 
 class CLConfig:
     AUTO_SAVE = True
@@ -54,13 +53,7 @@ class CLConfig:
         self._validateMaxMemory()
 
         if self.N_WORK_UNITS is None:
-            if AUTOSET_N_WORK_UNITS:
-                self._autoSetNWorkUnits()
-            else:
-                raise ValueError(
-                    errorMessage + "The parameter 'N_WORK_UNITS' is not set. Please set it to the optimal amount "
-                                   "for your OpenCL device. The script 'rayscattering/opencl/testWorkUnits.py' "
-                                   "can help you find this value. ")
+            self._autoSetNWorkUnits()
 
         parameterKeys.pop(0)
         for key in parameterKeys:
@@ -138,7 +131,8 @@ class CLConfig:
         self.save()
 
     def _needToRunTest(self) -> bool:
-        print("WARNING: The parameter N_WORK_UNITS is not set.")
+        warnings.warn("The parameter N_WORK_UNITS is not set.")
+        time.sleep(0.1)  # Used to make sure previous warnings are printed before the following input prompt
         answer = input("Press enter to run the test to find the optimal value for N_WORK_UNITS, or enter it manually "
                        "if you already know it: ")
         if answer == "":

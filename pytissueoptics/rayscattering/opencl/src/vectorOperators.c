@@ -8,7 +8,7 @@ void normalizeVectorLocal(float3 *vector){
     }
 }
 
-void normalizeVectorGlobal(__global float3 *vector){
+void normalizeVectorGlobal(float3 *vector){
     float length = sqrt(vector->x * vector->x + vector->y * vector->y + vector->z * vector->z);
     if (length != 0.0f) {
         vector->x /= length;
@@ -17,7 +17,7 @@ void normalizeVectorGlobal(__global float3 *vector){
     }
 }
 
-void rotateAroundAxisGlobal(__global float3 *mainVector, __global float3 *axisVector, float theta){
+void rotateAroundAxisGlobal( float3 *mainVector,  float3 *axisVector, float theta){
     normalizeVectorGlobal(axisVector);
     float sint = sin(theta);
     float cost = cos(theta);
@@ -67,7 +67,7 @@ void rotateAroundAxisLocal(float3 *mainVector, float3 *axisVector, float theta){
     mainVector->z = z;
 }
 
-void rotateAround(float3 *mainVector, float3 *axisVector, float theta){
+void rotateAround(float3 *mainVector,float3 *axisVector, float theta){
 //    normalizeVectorLocal(axisVector);
     float sint = sin(theta);
     float cost = cos(theta);
