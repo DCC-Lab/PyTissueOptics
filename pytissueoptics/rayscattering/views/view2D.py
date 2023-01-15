@@ -71,25 +71,6 @@ class View2D:
         self._hasData = False
         self.displayPosition = position
 
-    def flip(self):
-        """ Flips the view as if it was seen from behind. """
-        flipHorizontal = self._projectionDirection.axis != 1
-        self._projectionDirection = Direction((self._projectionDirection.value + 3) % 6)
-        if flipHorizontal:
-            self._horizontalDirection = Direction((self._horizontalDirection.value + 3) % 6)
-
-    @property
-    def solidLabel(self) -> Optional[str]:
-        return self._solidLabel
-
-    @property
-    def surfaceLabel(self) -> Optional[str]:
-        return self._surfaceLabel
-
-    @property
-    def surfaceEnergyLeaving(self) -> bool:
-        return self._surfaceEnergyLeaving
-
     def setContext(self, limits3D: List[Tuple[float, float]], binSize3D: Tuple[float, float, float]):
         """
         Used internally by ViewFactory when initializing the views. The limits and the bin sizes are given for
@@ -114,43 +95,6 @@ class View2D:
 
         self._dataUV = np.zeros((self._binsU, self._binsV), dtype=np.float32)
 
-    @property
-    def name(self) -> str:
-        objectLabel = self.solidLabel if self.solidLabel else "Scene"
-        if self._surfaceLabel:
-            objectLabel += f" surface {self._surfaceLabel}"
-            objectLabel += " (leaving)" if self._surfaceEnergyLeaving else " (entering)"
-
-        return f"{self.__class__.__name__} of {objectLabel}"
-
-    @property
-    def description(self) -> str:
-        return f"{self.name} towards {self._projectionDirection.name} " \
-               f"with {self._horizontalDirection.name} horizontal."
-
-    @property
-    def group(self) -> ViewGroup:
-        return ViewGroup.SOLIDS if self.solidLabel else ViewGroup.SCENE
-
-    @property
-    def axis(self) -> int:
-        """ The axis that represents the plane of the 2D view. """
-        return self._projectionDirection.axis
-
-    @property
-    def axisU(self) -> int:
-        """ The horizontal axis of the 2D view. Could also be referred to as the 'x' axis. """
-        return self._horizontalDirection.axis
-
-    @property
-    def axisV(self) -> int:
-        """ The vertical axis of the 2D view. Could also be referred to as the 'y' axis. """
-        return 3 - self.axis - self.axisU
-
-    @property
-    def projectionDirection(self) -> Direction:
-        return self._projectionDirection
-
     def extractData(self, dataPoints: np.ndarray):
         """
         Used internally by Logger2D to store 3D datapoints into this 2D view.
@@ -173,16 +117,12 @@ class View2D:
         """
         raise NotImplementedError()
 
-    @property
-    def _verticalIsNegative(self) -> bool:
-        """ Algorithm for cartesian axes to know if the resulting vertical axis is negative (the axis unit vector
-        goes down from the viewer's point of view).
-        """
-        horizontalAxisForNegativeVertical = (self._projectionDirection.axis + self._projectionDirection.sign) % 3
-        verticalIsNegativeWithPositiveHorizontal = self._horizontalDirection.axis == horizontalAxisForNegativeVertical
-        if self._horizontalDirection.isPositive:
-            return verticalIsNegativeWithPositiveHorizontal
-        return not verticalIsNegativeWithPositiveHorizontal
+    def flip(self):
+        """ Flips the view as if it was seen from behind. """
+        flipHorizontal = self._projectionDirection.axis != 1
+        self._projectionDirection = Direction((self._projectionDirection.value + 3) % 6)
+        if flipHorizontal:
+            self._horizontalDirection = Direction((self._horizontalDirection.value + 3) % 6)
 
     def getImageData(self, logScale: bool = True, autoFlip=True) -> np.ndarray:
         image = self._dataUV
@@ -238,45 +178,29 @@ class View2D:
 
         return image
 
-    @property
-    def extent(self) -> Tuple[float, float, float, float]:
-        """ Image extent [left, right, bottom, top]. """
-        return self._limitsU + self._limitsV
-
-    @property
-    def size(self) -> Tuple[float, float]:
-        uSize = max(self._limitsU) - min(self._limitsU)
-        vSize = max(self._limitsV) - min(self._limitsV)
-        return uSize, vSize
-
-    @property
-    def limitsU(self) -> Tuple[float, float]:
-        return self._limitsU
-
-    @property
-    def limitsV(self) -> Tuple[float, float]:
-        return self._limitsV
-
-    @property
-    def binsU(self) -> int:
-        return self._binsU
-
-    @property
-    def binsV(self) -> int:
-        return self._binsV
-
     def show(self, logScale: bool = True, colormap: str = 'viridis'):
         cmap = copy.copy(matplotlib.cm.get_cmap(colormap))
         cmap.set_bad(cmap.colors[0])
 
-        image = self.getImageData(logNorm=logScale)
+        image = self.getImageData(logScale=logScale)
 
         # N.B.: imshow() expects the data to be (y, x), so we need to transpose the array.
-        plt.imshow(image.T, cmap=cmap, extent=self.extent)
+        plt.imshow(image.T, cmap=cmap, extent=self._limitsU + self._limitsV)
         plt.title(self.name)
         plt.xlabel('xyz'[self.axisU])
         plt.ylabel('xyz'[self.axisV])
         plt.show()
+
+    def initDataFrom(self, source: 'View2D'):
+        """ Extract data from one view to another when there is only a difference in orientation. """
+        assert self.isContainedBy(source), "Cannot extract data from views that are not equivalent."
+
+        dataUV = source._dataUV.copy()
+        if source.axisU == self.axisU:
+            self._dataUV = dataUV
+        else:
+            self._dataUV = dataUV.T
+        self._hasData = source._hasData
 
     def isEqualTo(self, other: 'View2D') -> bool:
         if not self.isContainedBy(other):
@@ -324,16 +248,87 @@ class View2D:
             return False
         return True
 
-    def initDataFrom(self, source: 'View2D'):
-        """ Extract data from one view to another when there is only a difference in orientation. """
-        assert self.isContainedBy(source), "Cannot extract data from views that are not equivalent."
-
-        dataUV = source._dataUV.copy()
-        if source.axisU == self.axisU:
-            self._dataUV = dataUV
-        else:
-            self._dataUV = dataUV.T
-        self._hasData = source._hasData
-
     def getSum(self) -> float:
         return float(np.sum(self._dataUV))
+
+    @property
+    def projectionDirection(self) -> Direction:
+        return self._projectionDirection
+
+    @property
+    def solidLabel(self) -> Optional[str]:
+        return self._solidLabel
+
+    @property
+    def surfaceLabel(self) -> Optional[str]:
+        return self._surfaceLabel
+
+    @property
+    def surfaceEnergyLeaving(self) -> bool:
+        return self._surfaceEnergyLeaving
+
+    @property
+    def limitsU(self) -> Tuple[float, float]:
+        return self._limitsU
+
+    @property
+    def limitsV(self) -> Tuple[float, float]:
+        return self._limitsV
+
+    @property
+    def binsU(self) -> int:
+        return self._binsU
+
+    @property
+    def binsV(self) -> int:
+        return self._binsV
+
+    @property
+    def size(self) -> Tuple[float, float]:
+        uSize = max(self._limitsU) - min(self._limitsU)
+        vSize = max(self._limitsV) - min(self._limitsV)
+        return uSize, vSize
+
+    @property
+    def axis(self) -> int:
+        """ The axis that represents the plane of the 2D view. """
+        return self._projectionDirection.axis
+
+    @property
+    def axisU(self) -> int:
+        """ The horizontal axis of the 2D view. Could also be referred to as the 'x' axis. """
+        return self._horizontalDirection.axis
+
+    @property
+    def axisV(self) -> int:
+        """ The vertical axis of the 2D view. Could also be referred to as the 'y' axis. """
+        return 3 - self.axis - self.axisU
+
+    @property
+    def _verticalIsNegative(self) -> bool:
+        """ Algorithm for cartesian axes to know if the resulting vertical axis is negative (the axis unit vector
+        goes down from the viewer's point of view).
+        """
+        horizontalAxisForNegativeVertical = (self._projectionDirection.axis + self._projectionDirection.sign) % 3
+        verticalIsNegativeWithPositiveHorizontal = self._horizontalDirection.axis == horizontalAxisForNegativeVertical
+        if self._horizontalDirection.isPositive:
+            return verticalIsNegativeWithPositiveHorizontal
+        return not verticalIsNegativeWithPositiveHorizontal
+
+    @property
+    def name(self) -> str:
+        objectLabel = self.solidLabel if self.solidLabel else "Scene"
+        if self._surfaceLabel:
+            objectLabel += f" surface {self._surfaceLabel}"
+            objectLabel += " (leaving)" if self._surfaceEnergyLeaving else " (entering)"
+
+        return f"{self.__class__.__name__} of {objectLabel}"
+
+    @property
+    def description(self) -> str:
+        return f"{self.name} towards {self._projectionDirection.name} " \
+               f"with {self._horizontalDirection.name} horizontal."
+
+    @property
+    def group(self) -> ViewGroup:
+        return ViewGroup.SOLIDS if self.solidLabel else ViewGroup.SCENE
