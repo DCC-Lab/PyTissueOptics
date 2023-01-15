@@ -1,11 +1,9 @@
-from pytissueoptics.rayscattering import *
-from pytissueoptics.rayscattering.tissues import PhantomTissue
-from pytissueoptics.scene import Vector, Logger
+from pytissueoptics import *
 import numpy as np
 
 np.random.seed(15)
 
-tissue = PhantomTissue()
+tissue = tissues.PhantomTissue()
 source = PencilPointSource(position=Vector(0, 0, -1),
                            direction=Vector(0, 0, 1), N=2000)
 logger = EnergyLogger(tissue)
