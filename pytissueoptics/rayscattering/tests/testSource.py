@@ -1,3 +1,4 @@
+import traceback
 import unittest
 
 import numpy as np
@@ -18,6 +19,7 @@ class TestSource(unittest.TestCase):
     def setUp(self):
         self.photon = self._createPhoton()
         self.source = SinglePhotonSource(position=Vector(), photons=[self.photon])
+
 
     def testWhenPropagate_shouldSetInitialPhotonEnvironmentAsSourceEnvironment(self):
         self.source.propagate(self._createTissue(), showProgress=False)
@@ -60,6 +62,10 @@ class SinglePhotonSource(Source):
 
     def getInitialPositionsAndDirections(self):
         return np.array([[0, 0, 0]]), np.array([[0, 0, 1]])
+
+    @property
+    def _hashComponents(self) -> tuple:
+        return self._position,
 
 
 class TestPencilSource(unittest.TestCase):

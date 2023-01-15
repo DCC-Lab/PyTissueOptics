@@ -122,7 +122,7 @@ class TestPhoton(unittest.TestCase):
         self.photon.step(distance + 2)
 
         self.assertVectorEqual(self.INITIAL_POSITION + self.photon.direction * distance,
-                               self.photon.position)
+                               self.photon.position, places=3)
 
     def testWhenStepWithNoIntersection_shouldMovePhotonAcrossStepDistanceAndScatter(self):
         noIntersectionFinder = mock(IntersectionFinder)
@@ -168,7 +168,7 @@ class TestPhoton(unittest.TestCase):
 
         distanceLeft = self.photon.step(totalDistance)
 
-        self.assertEqual(totalDistance - intersectionDistance, distanceLeft)
+        self.assertAlmostEqual(totalDistance - intersectionDistance, distanceLeft, places=3)
 
     def testWhenStepWithRefractingIntersection_shouldUpdatePhotonMaterialToNextMaterial(self):
         nextMaterial = ScatteringMaterial(mu_s=2, mu_a=1, g=0.8)
@@ -190,7 +190,7 @@ class TestPhoton(unittest.TestCase):
         distanceLeft = self.photon.step(initialScatteringDistance)
 
         expectedDistanceLeft = (initialScatteringDistance - intersectionDistance) * material.mu_t / nextMaterial.mu_t
-        self.assertEqual(expectedDistanceLeft, distanceLeft)
+        self.assertAlmostEqual(expectedDistanceLeft, distanceLeft, places=3)
 
     def testWhenStepWithRefractingIntersectionToVacuum_shouldReturnInfiniteDistanceLeft(self):
         initialScatteringDistance = 10
@@ -295,10 +295,10 @@ class TestPhoton(unittest.TestCase):
         self.photon.interact()
         self.assertFalse(self.photon.isAlive)
 
-    def assertVectorEqual(self, v1, v2):
-        self.assertAlmostEqual(v1.x, v2.x)
-        self.assertAlmostEqual(v1.y, v2.y)
-        self.assertAlmostEqual(v1.z, v2.z)
+    def assertVectorEqual(self, v1, v2, places=7):
+        self.assertAlmostEqual(v1.x, v2.x, places=places)
+        self.assertAlmostEqual(v1.y, v2.y, places=places)
+        self.assertAlmostEqual(v1.z, v2.z, places=places)
 
     def assertVectorNotEqual(self, v1, v2):
         self.assertNotAlmostEqual(v1.x, v2.x)

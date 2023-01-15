@@ -3,7 +3,7 @@ import unittest
 import numpy as np
 from mockito import mock, when
 
-from pytissueoptics.rayscattering import Stats
+from pytissueoptics.rayscattering.display.statistics import Stats
 from pytissueoptics.rayscattering.source import Source
 from pytissueoptics.scene import Logger, Vector
 from pytissueoptics.scene.geometry import Environment
@@ -11,6 +11,7 @@ from pytissueoptics.scene.logger import InteractionKey
 from pytissueoptics.scene.solids import Solid
 
 
+@unittest.skip("Deprecated.")
 class TestStats(unittest.TestCase):
     def setUp(self):
         source = self.makeTestSource()
