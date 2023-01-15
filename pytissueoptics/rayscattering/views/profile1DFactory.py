@@ -137,7 +137,7 @@ class Profile1DFactory:
         else:
             axisToSum = 0
 
-        data = view.getImageData(logNorm=False, autoFlip=False)
+        data = view.getImageData(logScale=False, autoFlip=False)
         data = np.sum(data, axis=axisToSum)
         if axisToSum == 0:
             data = np.flip(data, axis=0)

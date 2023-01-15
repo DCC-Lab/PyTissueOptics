@@ -184,9 +184,9 @@ class View2D:
             return verticalIsNegativeWithPositiveHorizontal
         return not verticalIsNegativeWithPositiveHorizontal
 
-    def getImageData(self, logNorm: bool = True, autoFlip=True) -> np.ndarray:
+    def getImageData(self, logScale: bool = True, autoFlip=True) -> np.ndarray:
         image = self._dataUV
-        if logNorm and self._hasData:
+        if logScale and self._hasData:
             image = utils.logNorm(image)
         if not autoFlip:
             return image
@@ -196,7 +196,7 @@ class View2D:
             image = np.flip(image, axis=0)
         return image
 
-    def getImageDataWithDefaultAlignment(self):
+    def getImageDataWithDefaultAlignment(self, logScale: bool = True) -> np.ndarray:
         """
         Returns the image data aligned with the default 2D alignment for its projection axis. This is used to
         simplify the 3D display of any 2D image. If current view is already aligned with one of the default 2D
@@ -223,7 +223,7 @@ class View2D:
         requiredProjection, requiredHorizontal = alignedDirections
         currentProjection, currentHorizontal = self._projectionDirection, self._horizontalDirection
 
-        image = self.getImageData()
+        image = self.getImageData(logScale=logScale)
 
         if currentProjection != requiredProjection:
             if self.axis == 1:

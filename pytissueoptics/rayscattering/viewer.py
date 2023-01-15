@@ -87,7 +87,8 @@ class Viewer:
 
     def show3D(self, visibility=Visibility.AUTO, viewsVisibility: Union[ViewGroup, List[int]] = ViewGroup.SCENE,
                pointCloudStyle=PointCloudStyle(), sourceSize: float = 0.1,
-               viewsSolidLabels: List[str] = None, viewsSurfaceLabels: List[str] = None):
+               viewsSolidLabels: List[str] = None, viewsSurfaceLabels: List[str] = None,
+               viewsLogScale: bool = True, viewsColormap: str = "viridis"):
         if not MAYAVI_AVAILABLE:
             utils.warn("Package 'mayavi' is not available. Please install it to use 3D visualizations.")
             return
@@ -107,7 +108,7 @@ class Viewer:
             self._addPointCloud(pointCloudStyle)
 
         if Visibility.VIEWS in visibility:
-            self._addViews(viewsVisibility, viewsSolidLabels, viewsSurfaceLabels)
+            self._addViews(viewsVisibility, viewsSolidLabels, viewsSurfaceLabels, viewsLogScale, viewsColormap)
 
         self._viewer3D.show()
 
@@ -200,10 +201,11 @@ class Viewer:
                                      reverseColormap=style.surfaceReverseColormap,
                                      asSpheres=style.showPointsAsSpheres)
 
-    def _addViews(self, viewsVisibility: Union[ViewGroup, List[int]], solidLabels: List[str] = None, surfaceLabels: List[str] = None):
+    def _addViews(self, viewsVisibility: Union[ViewGroup, List[int]], solidLabels: List[str] = None,
+                  surfaceLabels: List[str] = None, logScale: bool = True, colormap: str = "viridis"):
         if isinstance(viewsVisibility, list):
             for viewIndex in viewsVisibility:
-                self._addView(self._logger.getView(viewIndex))
+                self._addView(self._logger.getView(viewIndex), logScale, colormap)
             return
 
         for view in self._logger.views:
@@ -212,9 +214,9 @@ class Viewer:
             correctSurfaceLabel = surfaceLabels is None or view.surfaceLabel is None or \
                                   utils.labelContained(view.surfaceLabel, surfaceLabels)
             if correctGroup and correctSolidLabel and correctSurfaceLabel:
-                self._addView(view)
+                self._addView(view, logScale, colormap)
 
-    def _addView(self, view: View2D):
+    def _addView(self, view: View2D, logScale: bool = True, colormap: str = "viridis"):
         self._logger.updateView(view)
 
         limits = self._sceneLimits
@@ -234,7 +236,7 @@ class Viewer:
             else:
                 view.displayPosition = positionMax + viewSpacing
 
-        alignedImage = view.getImageDataWithDefaultAlignment()
+        alignedImage = view.getImageDataWithDefaultAlignment(logScale=logScale)
 
         alignedCorner = (min(view.limitsU), min(view.limitsV))
         alignedSize = view.size
@@ -242,7 +244,7 @@ class Viewer:
             alignedCorner = alignedCorner[::-1]
             alignedSize = alignedSize[::-1]
 
-        self._viewer3D.addImage(alignedImage, alignedSize, alignedCorner, view.axis, view.displayPosition)
+        self._viewer3D.addImage(alignedImage, alignedSize, alignedCorner, view.axis, view.displayPosition, colormap)
 
     @property
     def _sceneLimits(self):

@@ -84,7 +84,7 @@ class MayaviViewer:
 
     @staticmethod
     def addImage(image: np.ndarray, size: tuple = None, minCorner: tuple = (0, 0),
-                 axis: int = 2, position: float = 0):
+                 axis: int = 2, position: float = 0, colormap: str = 'viridis'):
         if size is None:
             size = image.shape
         overSampling = 5  # 10% lost on edge pixel (0.5/oversampling)
@@ -98,7 +98,7 @@ class MayaviViewer:
         # The (X, Y) size has to be flipped to match rotations below for image axis 0 and 1.
         displaySize = size if axis == 2 else size[::-1]
 
-        p = mlab.imshow(image, colormap='viridis', interpolate=False,
+        p = mlab.imshow(image, colormap=colormap, interpolate=False,
                         extent=[0, displaySize[0], 0, displaySize[1], position, position])
         p.actor.force_opaque = True
 
