@@ -7,7 +7,7 @@ import numpy as np
 from matplotlib import pyplot as plt
 
 from pytissueoptics.rayscattering import utils
-from pytissueoptics.rayscattering.views.direction import *
+from pytissueoptics.rayscattering.display.utils.direction import *
 
 
 class ViewGroup(Flag):

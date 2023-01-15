@@ -2,8 +2,8 @@ from typing import Tuple, Union, List
 
 import numpy as np
 
-from pytissueoptics.rayscattering.views.view2D import View2D, ViewGroup
-from pytissueoptics.rayscattering.views.direction import *
+from pytissueoptics.rayscattering.display.views.view2D import View2D, ViewGroup
+from pytissueoptics.rayscattering.display.utils.direction import *
 
 
 class View2DProjection(View2D):

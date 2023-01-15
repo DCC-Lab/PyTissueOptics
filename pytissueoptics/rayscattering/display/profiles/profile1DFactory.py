@@ -3,10 +3,10 @@ from typing import Tuple
 import numpy as np
 
 from pytissueoptics.rayscattering import utils
-from pytissueoptics.rayscattering.energyLogger import EnergyLogger
-from pytissueoptics.rayscattering.pointCloud import PointCloudFactory
+from pytissueoptics.rayscattering.energyLogging import EnergyLogger, PointCloudFactory
 from pytissueoptics.rayscattering.tissues import RayScatteringScene
-from pytissueoptics.rayscattering.views.profile1D import Profile1D, Direction
+from pytissueoptics.rayscattering.display.profiles import Profile1D
+from pytissueoptics.rayscattering.display.utils import Direction
 
 
 class Profile1DFactory:

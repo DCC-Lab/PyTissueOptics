@@ -3,8 +3,8 @@ from typing import Union, List, Tuple
 import numpy as np
 
 from pytissueoptics.rayscattering.tissues import RayScatteringScene
-from pytissueoptics.rayscattering.views.view2D import ViewGroup, View2D
-from pytissueoptics.rayscattering.views.defaultViews import View2DProjectionX, View2DProjectionY, View2DProjectionZ, \
+from pytissueoptics.rayscattering.display.views.view2D import ViewGroup, View2D
+from pytissueoptics.rayscattering.display.views.defaultViews import View2DProjectionX, View2DProjectionY, View2DProjectionZ, \
     View2DSurfaceX, View2DSurfaceY, View2DSurfaceZ
 
 

@@ -3,7 +3,7 @@ from typing import Tuple
 import numpy as np
 from matplotlib import pyplot as plt
 
-from pytissueoptics.rayscattering.views import Direction
+from pytissueoptics.rayscattering.display.utils import Direction
 
 
 class Profile1D:

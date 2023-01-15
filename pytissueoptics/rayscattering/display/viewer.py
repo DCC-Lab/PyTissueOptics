@@ -4,13 +4,14 @@ from typing import List, Tuple, Union
 import numpy as np
 
 from pytissueoptics.rayscattering import utils
-from pytissueoptics.rayscattering.energyLogger import EnergyLogger
-from pytissueoptics.rayscattering.pointCloud import PointCloudFactory, PointCloud
+from pytissueoptics.rayscattering.energyLogging import EnergyLogger
+from pytissueoptics.rayscattering.energyLogging.pointCloud import PointCloudFactory, PointCloud
 from pytissueoptics.rayscattering.source import Source
-from pytissueoptics.rayscattering.statistics import Stats
 from pytissueoptics.rayscattering.tissues import RayScatteringScene
-from pytissueoptics.rayscattering.views import ViewGroup, View2D, Direction
-from pytissueoptics.rayscattering.views.profile1DFactory import Profile1DFactory
+from pytissueoptics.rayscattering.display.statistics import Stats
+from pytissueoptics.rayscattering.display.utils import Direction
+from pytissueoptics.rayscattering.display.views import ViewGroup, View2D
+from pytissueoptics.rayscattering.display.profiles import Profile1DFactory
 from pytissueoptics.scene import MAYAVI_AVAILABLE, MayaviViewer
 
 
@@ -144,7 +145,7 @@ class Viewer:
         if logScale:
             hist = utils.logNorm(hist)
 
-        from pytissueoptics.rayscattering.volumeSlicer import VolumeSlicer
+        from pytissueoptics.rayscattering.display.utils.volumeSlicer import VolumeSlicer
         slicer = VolumeSlicer(hist, interpolate=interpolate)
         slicer.show()
 

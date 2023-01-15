@@ -5,10 +5,10 @@ from typing import Dict
 import numpy as np
 
 from pytissueoptics.rayscattering import utils
-from pytissueoptics.rayscattering.views.defaultViews import View2DProjection
-from pytissueoptics.rayscattering.energyLogger import EnergyLogger
+from pytissueoptics.rayscattering.display.views.defaultViews import View2DProjection
+from pytissueoptics.rayscattering.energyLogging import EnergyLogger
 from pytissueoptics.rayscattering.opencl.CLScene import NO_SOLID_LABEL
-from pytissueoptics.rayscattering.pointCloud import PointCloudFactory, PointCloud
+from pytissueoptics.rayscattering.energyLogging.pointCloud import PointCloudFactory, PointCloud
 
 
 @dataclass
