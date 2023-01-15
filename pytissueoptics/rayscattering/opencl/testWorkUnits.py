@@ -40,7 +40,7 @@ def computeOptimalNWorkUnits() -> int:
         for _ in range(AVERAGING):
             source = DirectionalSource(position=Vector(0, 0, -2), direction=Vector(0, 0, 1), N=N,
                                        useHardwareAcceleration=True, diameter=0.5)
-            logger = Logger()
+            logger = EnergyLogger(scene)
 
             t0 = time.time()
             source.propagate(scene, logger=logger, showProgress=False)
