@@ -44,12 +44,15 @@ class ViewFactory:
             for solidLabel in self._scene.getSolidLabels():
                 for surfaceLabel in self._scene.getSurfaceLabels(solidLabel):
                     views += self._getDefaultSurfaceViews(solidLabel, surfaceLabel, includeLeaving, includeEntering)
+                views += self._getDefaultContainedSurfacesViews(solidLabel, includeLeaving, includeEntering)
 
         return views
 
     def _getDefaultSurfaceViews(self, solidLabel: str, surfaceLabel: str,
-                               includeLeaving: bool, includeEntering: bool) -> List[View2D]:
-        surfaceNormal = self._getSurfaceNormal(solidLabel, surfaceLabel)
+                               includeLeaving: bool, includeEntering: bool, takenFromSolid: str = None) -> List[View2D]:
+        if takenFromSolid is None:
+            takenFromSolid = solidLabel
+        surfaceNormal = self._getSurfaceNormal(takenFromSolid, surfaceLabel)
         axis = int(np.argmax(np.abs(surfaceNormal)))
         surfaceNormalSign = np.sign(surfaceNormal[axis])
 
@@ -74,6 +77,14 @@ class ViewFactory:
             return [0, 0, -1]
 
         return surfaceNormal
+
+    def _getDefaultContainedSurfacesViews(self, solidLabel: str, includeLeaving: bool, includeEntering: bool) -> List[View2D]:
+        views = []
+        for containedSolidLabel in self._scene.getContainedSolidLabels(solidLabel):
+            for surfaceLabel in self._scene.getSurfaceLabels(containedSolidLabel):
+                views += self._getDefaultSurfaceViews(solidLabel, surfaceLabel, includeLeaving, includeEntering,
+                                                      takenFromSolid=containedSolidLabel)
+        return views
 
     def _setContext(self, view: View2D):
         if view.solidLabel:

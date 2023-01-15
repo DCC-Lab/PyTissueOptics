@@ -12,7 +12,7 @@ class Scene:
                  worldMaterial=None):
         self._solids = []
         self._ignoreIntersections = ignoreIntersections
-        self._labelsOfHiddenSolids = []
+        self._solidsContainedIn = {}
         self._worldMaterial = worldMaterial
         
         if solids:
@@ -48,22 +48,24 @@ class Scene:
 
         intersectingSuspects.sort(key=lambda s: s.getBoundingBox().xMax - s.getBoundingBox().xMin, reverse=True)
 
-        solidUpdates: Dict[Solid, Environment] = {}
         for otherSolid in intersectingSuspects:
             if newSolid.contains(*otherSolid.getVertices()):
                 self._assertIsNotAStack(newSolid)
-                solidUpdates[otherSolid] = newSolid.getEnvironment()
-                self._labelsOfHiddenSolids.append(otherSolid.getLabel())
+                self._processContainedSolid(otherSolid, container=newSolid)
                 break
             elif otherSolid.contains(*newSolid.getVertices()):
                 self._assertIsNotAStack(otherSolid)
-                solidUpdates[newSolid] = otherSolid.getEnvironment()
-                self._labelsOfHiddenSolids.append(newSolid.getLabel())
+                self._processContainedSolid(newSolid, container=otherSolid)
             else:
                 raise NotImplementedError("Cannot place a solid that partially intersects with an existing solid. ")
 
-        for (solid, environment) in solidUpdates.items():
-            solid.setOutsideEnvironment(environment)
+    def _processContainedSolid(self, solid: Solid, container: Solid):
+        solid.setOutsideEnvironment(container.getEnvironment())
+
+        if container.getLabel() not in self._solidsContainedIn:
+            self._solidsContainedIn[container.getLabel()] = [solid.getLabel()]
+        else:
+            self._solidsContainedIn[container.getLabel()].append(solid.getLabel())
 
     def _validateLabel(self, solid):
         labelSet = set(s.getLabel() for s in self.solids)
@@ -116,6 +118,9 @@ class Scene:
             return solid.getLayerSurfaceLabels(solidLabel)
         return solid.surfaceLabels
 
+    def getContainedSolidLabels(self, solidLabel: str) -> List[str]:
+        return self._solidsContainedIn.get(solidLabel, [])
+
     def getPolygons(self) -> List[Polygon]:
         polygons = []
         for solid in self._solids:
@@ -144,9 +149,15 @@ class Scene:
     def resetOutsideMaterial(self):
         outsideEnvironment = self.getWorldEnvironment()
         for solid in self._solids:
-            if solid.getLabel() in self._labelsOfHiddenSolids:
+            if self._isHidden(solid.getLabel()):
                 continue
             solid.setOutsideEnvironment(outsideEnvironment)
+
+    def _isHidden(self, solidLabel: str) -> bool:
+        for hiddenLabels in self._solidsContainedIn.values():
+            if solidLabel in hiddenLabels:
+                return True
+        return False
 
     def getEnvironmentAt(self, position: Vector) -> Environment:
         for solid in self._solids:

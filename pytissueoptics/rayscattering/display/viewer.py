@@ -102,6 +102,10 @@ class Viewer:
         if visibility == Visibility.AUTO:
             visibility = Visibility.DEFAULT_3D if self._logger.has3D else Visibility.DEFAULT_2D
 
+        if Visibility.DEFAULT_3D in visibility and not self._logger.has3D:
+            utils.warn("WARNING: Cannot show3D with Visibility.DEFAULT_3D when no 3D data is available.")
+            visibility = Visibility.DEFAULT_2D
+
         if Visibility.SCENE in visibility:
             self._scene.addToViewer(self._viewer3D)
 

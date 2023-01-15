@@ -28,5 +28,5 @@ viewer = Viewer(scene, source, logger)
 viewer.reportStats()
 
 viewer.show2D(View2DProjectionY())
-viewer.show2D(View2DProjectionY(solidLabel="Sphere", limits=((-2, 2), (-2, 2))))
+viewer.show2D(View2DProjectionY(solidLabel="Sphere"))
 viewer.show3D()
