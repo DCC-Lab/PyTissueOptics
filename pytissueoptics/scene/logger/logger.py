@@ -40,11 +40,24 @@ class Logger:
         if fromFilepath:
             self.load(fromFilepath)
 
-    def getLoggedSolidLabels(self) -> List[str]:
+    def getSeenSolidLabels(self) -> List[str]:
+        """ Returns a list of all solid labels that have been logged in the past
+        even if the data was discarded. """
         return list(self._labels.keys())
 
-    def getLoggedSurfaceLabels(self, solidLabel: str) -> List[str]:
+    def getSeenSurfaceLabels(self, solidLabel: str) -> List[str]:
+        """ Returns a list of all surface labels that have been logged in the past
+        for the given solid even if the data was discarded. """
         return self._labels[solidLabel]
+
+    def getStoredSolidLabels(self) -> List[str]:
+        """ Returns a list of all solid labels that are currently stored in the logger. """
+        return list(set(key.solidLabel for key in self._data.keys()))
+
+    def getStoredSurfaceLabels(self, solidLabel: str) -> List[str]:
+        """ Returns a list of all surface labels that are currently stored in the logger. """
+        return [key.surfaceLabel for key in self._data.keys() if key.solidLabel == solidLabel
+                and key.surfaceLabel is not None]
 
     def logPoint(self, point: Vector, key: InteractionKey):
         self._appendData([point.x, point.y, point.z], DataType.POINT, key)
@@ -121,11 +134,11 @@ class Logger:
             return tempData.mergedData
 
     def _keyExists(self, key: InteractionKey) -> bool:
-        if key.solidLabel not in self.getLoggedSolidLabels():
-            warnings.warn(f"No data stored for solid labeled '{key.solidLabel}'. Available: {self.getLoggedSolidLabels()}. ")
-        if key.surfaceLabel and key.surfaceLabel not in self.getLoggedSurfaceLabels(key.solidLabel):
+        if key.solidLabel not in self.getStoredSolidLabels():
+            warnings.warn(f"No data stored for solid labeled '{key.solidLabel}'. Available: {self.getStoredSolidLabels()}. ")
+        if key.surfaceLabel and key.surfaceLabel not in self.getStoredSurfaceLabels(key.solidLabel):
             warnings.warn(f"No data stored for surface labeled '{key.surfaceLabel}' for solid '{key.solidLabel}'. "
-                          f"Available: {self.getLoggedSurfaceLabels(key.solidLabel)}. ")
+                          f"Available: {self.getStoredSurfaceLabels(key.solidLabel)}. ")
         if key in self._data:
             return True
         if not key.surfaceLabel:

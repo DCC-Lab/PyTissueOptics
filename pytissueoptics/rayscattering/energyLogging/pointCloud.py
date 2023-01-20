@@ -49,7 +49,7 @@ class PointCloudFactory:
 
     def getPointCloudOfSolids(self) -> PointCloud:
         points = []
-        for solidLabel in self._logger.getLoggedSolidLabels():
+        for solidLabel in self._logger.getStoredSolidLabels():
             solidPoints = self.getPointCloud(solidLabel).solidPoints
             if solidPoints is not None:
                 points.append(solidPoints)
@@ -59,9 +59,9 @@ class PointCloudFactory:
 
     def getPointCloudOfSurfaces(self, solidLabel: str = None) -> PointCloud:
         points = []
-        solidLabels = [solidLabel] if solidLabel else [_solidLabel for _solidLabel in self._logger.getLoggedSolidLabels()]
+        solidLabels = [solidLabel] if solidLabel else [_solidLabel for _solidLabel in self._logger.getStoredSolidLabels()]
         for _solidLabel in solidLabels:
-            for surfaceLabel in self._logger.getLoggedSurfaceLabels(_solidLabel):
+            for surfaceLabel in self._logger.getStoredSurfaceLabels(_solidLabel):
                 points.append(self.getPointCloud(_solidLabel, surfaceLabel).surfacePoints)
 
         if len(points) == 0:

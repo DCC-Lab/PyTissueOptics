@@ -36,7 +36,7 @@ class Stats:
         self._solidStatsMap = {}
 
     def report(self, solidLabel: str = None, saveToFile: str = None, verbose=True):
-        if solidLabel and solidLabel not in self._logger.getLoggedSolidLabels():
+        if solidLabel and solidLabel not in self._logger.getSeenSolidLabels():
             utils.warn(f"WARNING: Cannot compute stats for solid '{solidLabel}' because it was not logged.")
             return
 
@@ -51,7 +51,7 @@ class Stats:
     def _computeStats(self, solidLabel: str = None):
         solidLabels = [solidLabel]
         if solidLabel is None or utils.labelsEqual(solidLabel, NO_SOLID_LABEL):
-            solidLabels = self._logger.getLoggedSolidLabels()
+            solidLabels = self._logger.getSeenSolidLabels()
 
         for solidLabel in solidLabels:
             if solidLabel == NO_SOLID_LABEL:
@@ -73,7 +73,7 @@ class Stats:
             else:
                 reportString += self._reportSolid(solidLabel)
         else:
-            for solidLabel in self._logger.getLoggedSolidLabels():
+            for solidLabel in self._logger.getSeenSolidLabels():
                 reportString = self._makeReport(solidLabel, reportString)
         return reportString
 
@@ -159,7 +159,7 @@ class Stats:
 
     def _getEnergyCrossingSolidFromViews(self, solidLabel: str, leaving: bool) -> float:
         energy = 0
-        for surfaceLabel in self._logger.getLoggedSurfaceLabels(solidLabel):
+        for surfaceLabel in self._logger.getSeenSurfaceLabels(solidLabel):
             energy += self._getSurfaceEnergyFromViews(solidLabel, surfaceLabel, leaving=leaving)
 
         if utils.labelsEqual(self._sourceSolidLabel, solidLabel):
@@ -183,7 +183,7 @@ class Stats:
 
     def _getSurfaceStats(self, solidLabel: str) -> Dict[str, SurfaceStats]:
         stats = {}
-        for surfaceLabel in self._logger.getLoggedSurfaceLabels(solidLabel):
+        for surfaceLabel in self._logger.getSeenSurfaceLabels(solidLabel):
             stats[surfaceLabel] = SurfaceStats(self.getTransmittance(solidLabel, surfaceLabel))
         return stats
 
