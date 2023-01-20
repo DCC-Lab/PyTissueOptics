@@ -60,12 +60,13 @@ class TestScene(unittest.TestCase):
         verify(INSIDE_SOLID).setOutsideEnvironment(SOLID_ENV)
 
     def testWhenAddingASolidInsideMultipleOtherSolids_shouldUpdateOutsideMaterialOfThisSolid(self):
-        OUTSIDE_SOLID = self.makeSolidWith(BoundingBox([1, 4], [1, 4], [1, 4]))
-        OUTSIDE_SOLID_ENV = Environment("A material")
+        OUTSIDE_SOLID = self.makeSolidWith(BoundingBox([1, 4], [1, 4], [1, 4]), name="Outside-solid")
+        OUTSIDE_SOLID_ENV = Environment("Outside solid material")
         when(OUTSIDE_SOLID).getEnvironment().thenReturn(OUTSIDE_SOLID_ENV)
         self.scene.add(OUTSIDE_SOLID)
 
-        TOPMOST_OUTSIDE_SOLID = self.makeSolidWith(BoundingBox([0, 5], [0, 5], [0, 5]), contains=True)
+        TOPMOST_OUTSIDE_SOLID = self.makeSolidWith(BoundingBox([0, 5], [0, 5], [0, 5]),
+                                                   contains=True, name="Topmost-outside-solid")
         self.scene.add(TOPMOST_OUTSIDE_SOLID)
 
         SOLID = self.makeSolidWith(BoundingBox([2, 3], [2, 3], [2, 3]))
