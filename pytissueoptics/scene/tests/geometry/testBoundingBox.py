@@ -144,15 +144,15 @@ class TestBoundingBox(unittest.TestCase):
         with self.subTest("update"):
             newBbox = bbox.copy()
             newBbox.update("x", "min", -10)
-            self.assertEqual(newBbox.xLim, newBbox._xyzLimits[0])
+            self.assertEqual(newBbox.xLim, newBbox.xyzLimits[0])
         with self.subTest("extendTo"):
             newBbox = bbox.copy()
             newBbox.extendTo(BoundingBox([-1, 6], [-1, 6], [-1, 6]))
-            self.assertEqual(newBbox.xLim, newBbox._xyzLimits[0])
+            self.assertEqual(newBbox.xLim, newBbox.xyzLimits[0])
         with self.subTest("shrinkTo"):
             newBbox = bbox.copy()
             newBbox.shrinkTo(BoundingBox([1, 4], [1, 4], [1, 4]))
-            self.assertEqual(newBbox.xLim, newBbox._xyzLimits[0])
+            self.assertEqual(newBbox.xLim, newBbox.xyzLimits[0])
 
     def testWithCopiedBbox_whenUpdatingAndFetchingAxisLimits_newBboxShouldNotReturnOldParameters(self):
         bbox = BoundingBox([0, 5], [0, 5], [0, 5])
