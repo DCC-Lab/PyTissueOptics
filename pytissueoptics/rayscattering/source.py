@@ -31,6 +31,7 @@ class Source:
         self._loadPhotons()
 
     def propagate(self, scene: RayScatteringScene, logger: Logger = None, showProgress: bool = True):
+        self._environment = scene.getEnvironmentAt(self._position)
         self._prepareLogger(logger)
 
         if self._useHardwareAcceleration:
@@ -42,7 +43,6 @@ class Source:
 
     def _propagateCPU(self, scene: RayScatteringScene, logger: Logger = None, showProgress: bool = True):
         intersectionFinder = FastIntersectionFinder(scene)
-        self._environment = scene.getEnvironmentAt(self._position)
 
         for i in progressBar(range(self._N), desc="Propagating photons", disable=not showProgress):
             self._photons[i].setContext(self._environment, intersectionFinder=intersectionFinder, logger=logger)
@@ -95,8 +95,6 @@ class Source:
 
     def _propagateOpenCL(self, IPP: float, scene: RayScatteringScene, logger: Logger = None,
                          showProgress: bool = True):
-        self._environment = scene.getEnvironmentAt(self._position)
-
         self._photons.setContext(scene, self._environment, logger=logger)
         self._photons.propagate(IPP=IPP, verbose=showProgress)
 
