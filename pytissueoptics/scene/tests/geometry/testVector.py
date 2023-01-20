@@ -139,3 +139,22 @@ class TestVector(unittest.TestCase):
         zeroVector = Vector(0, 0, 0)
         orthogonalVector = zeroVector.getAnyOrthogonal()
         self.assertEqual(0, orthogonalVector.getNorm())
+
+    def testGivenTwoDifferentVectors_shouldHaveDifferentHashes(self):
+        vector1 = Vector(0, 0, 0)
+        vector2 = Vector(1, 0, 0)
+        self.assertNotEqual(hash(vector1), hash(vector2))
+
+    def testGivenTwoVectorsWithTheSameCoordinates_shouldHaveTheSameHash(self):
+        vector1 = Vector(0, 0, 1)
+        vector2 = Vector(0, 0, 1)
+        self.assertEqual(hash(vector1), hash(vector2))
+
+    def testGivenVectorTowardsXAxis_whenRotateAroundZAxisBy90Degrees_shouldPointTowardsYAxis(self):
+        vector = Vector(1, 0, 0)
+        vector.rotateAround(Vector(0, 0, 1), np.pi / 2)
+        self.assertEqual(Vector(0, 1, 0), vector)
+
+    def testWhenPrintVector_shouldPrintComponents(self):
+        vector = Vector(1, 2, 3)
+        self.assertEqual("<Vector>:(1, 2, 3)", str(vector))

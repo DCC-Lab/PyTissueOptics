@@ -184,3 +184,7 @@ class TestBoundingBox(unittest.TestCase):
             self.assertEqual(splitBbox.getAxisWidth("x"), newBbox.getAxisWidth("x"))
             self.assertEqual(splitBbox.getAxisLimits("x"), newBbox.getAxisLimits("x"))
             self.assertEqual(splitBbox.getAxisLimit("x", "min"), newBbox.getAxisLimit("x", "min"))
+
+    def testWhenPrintBBox_shouldShowLimits(self):
+        bbox = BoundingBox([0, 5], [0, 5], [0, 5])
+        self.assertEqual(str(bbox), "<BoundingBox>:(xLim=[0, 5], yLim=[0, 5], zLim=[0, 5])")

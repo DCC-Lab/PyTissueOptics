@@ -15,7 +15,7 @@ class BoundingBox:
             self._checkIfCoherent()
 
     def __repr__(self) -> str:
-        return str([self._xLim, self._yLim, self._zLim])
+        return f"<BoundingBox>:(xLim={self._xLim}, yLim={self._yLim}, zLim={self._zLim})"
 
     def __eq__(self, other: 'BoundingBox') -> bool:
         if self._xLim == other._xLim and self._yLim == other._yLim and self._zLim == other._zLim:
@@ -25,15 +25,6 @@ class BoundingBox:
 
     def copy(self):
         return BoundingBox([self._xLim[0], self._xLim[1]], [self._yLim[0], self._yLim[1]], [self._zLim[0], self._zLim[1]])
-
-    def __format__(self, formatSpec):
-        f_xMin = float(format(self.xMin, formatSpec))
-        f_xMax = float(format(self.xMax, formatSpec))
-        f_yMin = float(format(self.yMin, formatSpec))
-        f_yMax = float(format(self.yMax, formatSpec))
-        f_zMin = float(format(self.zMin, formatSpec))
-        f_zMax = float(format(self.zMax, formatSpec))
-        return str([[f_xMin, f_xMax], [f_yMin, f_yMax], [f_zMin, f_zMax]])
 
     def _checkIfCoherent(self):
         if not (self.xMax >= self.xMin and self.yMax >= self.yMin and self.zMax >= self.zMin):
