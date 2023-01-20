@@ -3,7 +3,7 @@ import unittest
 from mockito import mock, verify, when
 
 from pytissueoptics.scene.geometry import Polygon, Environment
-from pytissueoptics.scene.geometry import SurfaceCollection
+from pytissueoptics.scene.geometry import SurfaceCollection, INTERFACE_KEY
 
 
 class TestSurfaceCollection(unittest.TestCase):
@@ -26,11 +26,6 @@ class TestSurfaceCollection(unittest.TestCase):
     def testWhenAddSurface_shouldAddItsPolygonsToTheCollection(self):
         self.surfaceCollection.add(self.SURFACE_LABEL, self.SURFACE_POLYGONS)
         self.assertEqual(self.SURFACE_POLYGONS, self.surfaceCollection.getPolygons())
-
-    def testWhenAddSurfaceWithExistingLabel_shouldNotIncrementLabel(self):
-        self.surfaceCollection.add(self.SURFACE_LABEL, self.SURFACE_POLYGONS)
-        self.surfaceCollection.add(self.SURFACE_LABEL, self.SURFACE_POLYGONS)
-        self.assertEqual("{}_0".format(self.SURFACE_LABEL), self.surfaceCollection.surfaceLabels[1])
 
     def testWhenGetPolygonsOfNonexistentSurface_shouldNotReturn(self):
         with self.assertRaises(Exception):
@@ -57,6 +52,34 @@ class TestSurfaceCollection(unittest.TestCase):
     def testWhenSetPolygonsOfNonexistentSurface_shouldNotSetPolygons(self):
         with self.assertRaises(Exception):
             self.surfaceCollection.setPolygons("Nonexistent surface label", self.SURFACE_POLYGONS)
+
+    def testWhenSetOutsideEnvironment_shouldSetItForAllSurfacePolygons(self):
+        polygonInSurfaceA = mock(Polygon)
+        polygonInSurfaceB = mock(Polygon)
+        when(polygonInSurfaceA).setOutsideEnvironment(...).thenReturn()
+        when(polygonInSurfaceB).setOutsideEnvironment(...).thenReturn()
+        self.surfaceCollection.add("Surface A", [polygonInSurfaceA])
+        self.surfaceCollection.add("Surface B", [polygonInSurfaceB])
+        newEnvironment = Environment("New material")
+
+        self.surfaceCollection.setOutsideEnvironment(newEnvironment)
+
+        verify(polygonInSurfaceA).setOutsideEnvironment(newEnvironment)
+        verify(polygonInSurfaceB).setOutsideEnvironment(newEnvironment)
+
+    def testGivenInterfaces_whenSetOutsideEnvironment_shouldNotSetOutsideEnvironmentOfInterfaces(self):
+        polygonInInterface = mock(Polygon)
+        polygonInSurface = mock(Polygon)
+        when(polygonInInterface).setOutsideEnvironment(...).thenReturn()
+        when(polygonInSurface).setOutsideEnvironment(...).thenReturn()
+        self.surfaceCollection.add(f"A {INTERFACE_KEY}", [polygonInInterface])
+        self.surfaceCollection.add("Surface", [polygonInSurface])
+        newEnvironment = Environment("New material")
+
+        self.surfaceCollection.setOutsideEnvironment(newEnvironment)
+
+        verify(polygonInInterface, times=0).setOutsideEnvironment(...)
+        verify(polygonInSurface).setOutsideEnvironment(newEnvironment)
 
     def testWhenSetOutsideEnvironmentOfASurface_shouldSetItForAllItsPolygons(self):
         self.surfaceCollection.add(self.SURFACE_LABEL, self.SURFACE_POLYGONS)
@@ -136,3 +159,11 @@ class TestSurfaceCollection(unittest.TestCase):
 
         with self.assertRaises(Exception):
             self.surfaceCollection.extend(otherSurfaceCollection)
+
+    def testWhenAddingASurfaceWithAnExistingLabel_shouldIncrementTheLabel(self):
+        self.surfaceCollection.add(self.SURFACE_LABEL, self.SURFACE_POLYGONS)
+        self.surfaceCollection.add(self.SURFACE_LABEL, self.SURFACE_POLYGONS)
+        self.surfaceCollection.add(self.SURFACE_LABEL, self.SURFACE_POLYGONS)
+
+        newSurfaceLabels = [self.SURFACE_LABEL, f"{self.SURFACE_LABEL}_2", f"{self.SURFACE_LABEL}_3"]
+        self.assertEqual(newSurfaceLabels, self.surfaceCollection.surfaceLabels)

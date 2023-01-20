@@ -4,5 +4,5 @@ from .bbox import BoundingBox
 from .polygon import Polygon, Environment
 from .triangle import Triangle
 from .quad import Quad
-from .surfaceCollection import SurfaceCollection
+from .surfaceCollection import SurfaceCollection, INTERFACE_KEY
 from .rotation import Rotation

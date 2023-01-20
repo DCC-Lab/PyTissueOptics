@@ -6,6 +6,8 @@ from pytissueoptics.scene.geometry import Polygon
 
 logger = getLogger(__name__)
 
+INTERFACE_KEY = "interface"
+
 
 class SurfaceCollection:
     def __init__(self):
@@ -18,7 +20,7 @@ class SurfaceCollection:
     def add(self, surfaceLabel: str, polygons: List[Polygon]):
         if self._contains(surfaceLabel):
             logger.debug("A surface with the same label already exists. Incrementing label.")
-            surfaceLabel = self._validateLabel(surfaceLabel)
+            surfaceLabel = self._incrementLabel(surfaceLabel)
         self._surfaces[surfaceLabel] = []
         self.setPolygons(surfaceLabel, polygons)
 
@@ -45,7 +47,7 @@ class SurfaceCollection:
         else:
             outsidePolygons = []
             for surfaceLabel in self.surfaceLabels:
-                if "interface" in surfaceLabel:
+                if INTERFACE_KEY in surfaceLabel:
                     continue
                 outsidePolygons.extend(self.getPolygons(surfaceLabel))
 
@@ -83,10 +85,8 @@ class SurfaceCollection:
     def _contains(self, surfaceLabel: str) -> bool:
         return surfaceLabel in self.surfaceLabels
 
-    def _validateLabel(self, surfaceLabel: str) -> str:
-        if surfaceLabel not in self.surfaceLabels:
-            return surfaceLabel
-        idx = 0
+    def _incrementLabel(self, surfaceLabel: str) -> str:
+        idx = 2
         while f"{surfaceLabel}_{idx}" in self.surfaceLabels:
             idx += 1
         return f"{surfaceLabel}_{idx}"
