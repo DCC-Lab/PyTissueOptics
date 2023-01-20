@@ -132,7 +132,7 @@ class Scene:
         for solid in self._solids:
             surfaceLabels = solid.surfaceLabels
             for surfaceLabel in surfaceLabels:
-                material = solid.getPolygons(surfaceLabel)[0].insideMaterial
+                material = solid.getPolygons(surfaceLabel)[0].insideEnvironment.material
                 if material not in materials:
                     materials.append(material)
         return list(materials)

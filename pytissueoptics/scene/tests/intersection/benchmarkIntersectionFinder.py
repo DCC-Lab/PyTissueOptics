@@ -252,7 +252,7 @@ class IntersectionFinderBenchmark:
 
     @staticmethod
     def _measureSignal(intersection: Intersection) -> float:
-        if intersection.polygon.insideMaterial is None:
+        if intersection.polygon.insideEnvironment.material is None:
             return 0.125
         return 1.0
 

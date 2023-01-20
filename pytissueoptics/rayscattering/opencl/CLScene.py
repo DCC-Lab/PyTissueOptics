@@ -91,10 +91,12 @@ class CLScene:
             self._surfaceLabels[self.getSolidID(outsideSolid)][surfaceID] = surfaceLabel
 
     def _compileSurface(self, polygonRef, firstPolygonID, lastPolygonID):
-        insideMaterialID = self.getMaterialID(polygonRef.insideMaterial)
-        outsideMaterialID = self.getMaterialID(polygonRef.outsideMaterial)
-        insideSolidID = self.getSolidID(polygonRef.insideEnvironment.solid)
-        outsideSolidID = self.getSolidID(polygonRef.outsideEnvironment.solid)
+        insideEnvironment = polygonRef.insideEnvironment
+        outsideEnvironment = polygonRef.outsideEnvironment
+        insideMaterialID = self.getMaterialID(insideEnvironment.material)
+        outsideMaterialID = self.getMaterialID(outsideEnvironment.material)
+        insideSolidID = self.getSolidID(insideEnvironment.solid)
+        outsideSolidID = self.getSolidID(outsideEnvironment.solid)
         toSmooth = polygonRef.toSmooth
 
         self._surfacesInfo.append(SurfaceCLInfo(firstPolygonID, lastPolygonID,
