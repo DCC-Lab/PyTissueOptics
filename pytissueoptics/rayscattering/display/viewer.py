@@ -143,7 +143,7 @@ class Viewer:
                        f"Consider using a larger binSize or tighter limits.")
 
         points = self._pointCloudFactory.getPointCloudOfSolids().solidPoints
-        hist, _ = np.histogramdd(points[:, 1:], bins=bins, normed=False, weights=points[:, 0], range=limits)
+        hist, _ = np.histogramdd(points[:, 1:], bins=bins, weights=points[:, 0], range=limits)
         hist = hist.astype(np.float32)
 
         if logScale:

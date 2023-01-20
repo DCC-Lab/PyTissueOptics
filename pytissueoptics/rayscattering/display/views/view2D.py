@@ -105,7 +105,7 @@ class View2D:
             return
 
         u, v, w = dataPoints[:, 1 + self.axisU], dataPoints[:, 1 + self.axisV], dataPoints[:, 0]
-        sumUVProjection = np.histogram2d(u, v, weights=w, normed=False, bins=(self._binsU, self._binsV),
+        sumUVProjection = np.histogram2d(u, v, weights=w, bins=(self._binsU, self._binsV),
                                           range=(sorted(self._limitsU), sorted(self._limitsV)))[0]
         self._dataUV += np.flip(sumUVProjection, axis=1)
         self._hasData = True
