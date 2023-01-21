@@ -134,7 +134,7 @@ class IntersectionFinderBenchmark:
                 logger.logDataPoint(signal, intersection.position)
         t2 = time.time()
         traversalTime = t2 - t1
-        partition = intersectionFinder.partition
+        partition = intersectionFinder._partition
         print(
             f"{constructor.__class__.__name__:^20.20s}"
             f" - {constructionTime:^10.2f}"
@@ -218,7 +218,7 @@ class IntersectionFinderBenchmark:
 
     def _saveFastStats(self, scene: Scene, intersectionFinder: FastIntersectionFinder, traversalTime: float,
                        buildTime: float):
-        partition = intersectionFinder.partition
+        partition = intersectionFinder._partition
         self.partitions[-1].append(partition)
         self.stats.loc[self.stats.shape[0]] = [f"{scene.__class__.__name__}", f"{len(scene.getPolygons()):^12}",
                                                f"{len(partition.getLeafPolygons()):^12}",

@@ -77,6 +77,13 @@ class TestLogger(unittest.TestCase):
         logger.logPoint(Vector(0, 0, 0), InteractionKey(None, None))
         self.assertEqual(1, len(logger.getPoints()))
 
+    def testWhenLogDataWithNoKey_shouldAddDataWithEmptyKey(self):
+        logger = Logger()
+
+        logger.logPoint(Vector(0, 0, 0))
+
+        self.assertEqual(1, len(logger.getPoints(InteractionKey(None, None))))
+
     def testGivenLoggerWithData_shouldHaveNDataPointsOnlyEqualToTheNumberOfDataPoints(self):
         logger = Logger()
         logger.logDataPoint(10, Vector(0, 0, 0), self.INTERACTION_KEY)

@@ -61,31 +61,33 @@ class Logger:
         return [key.surfaceLabel for key in self._data.keys() if key.solidLabel == solidLabel
                 and key.surfaceLabel is not None]
 
-    def logPoint(self, point: Vector, key: InteractionKey):
+    def logPoint(self, point: Vector, key: InteractionKey = None):
         self._appendData([point.x, point.y, point.z], DataType.POINT, key)
 
-    def logDataPoint(self, value: float, position: Vector, key: InteractionKey):
+    def logDataPoint(self, value: float, position: Vector, key: InteractionKey = None):
         self._appendData([value, position.x, position.y, position.z], DataType.DATA_POINT, key)
 
-    def logSegment(self, start: Vector, end: Vector, key: InteractionKey):
+    def logSegment(self, start: Vector, end: Vector, key: InteractionKey = None):
         self._appendData([start.x, start.y, start.z, end.x, end.y, end.z], DataType.SEGMENT, key)
 
-    def logPointArray(self, array: np.ndarray, key: InteractionKey):
+    def logPointArray(self, array: np.ndarray, key: InteractionKey = None):
         """ 'array' must be of shape (n, 3) where second axis is (x, y, z) """
         assert array.shape[1] == 3 and array.ndim == 2, "Point array must be of shape (n, 3)"
         self._appendData(array, DataType.POINT, key)
 
-    def logDataPointArray(self, array: np.ndarray, key: InteractionKey):
+    def logDataPointArray(self, array: np.ndarray, key: InteractionKey = None):
         """ 'array' must be of shape (n, 4) where second axis is (value, x, y, z) """
         assert array.shape[1] == 4 and array.ndim == 2, "Data point array must be of shape (n, 4)"
         self._appendData(array, DataType.DATA_POINT, key)
 
-    def logSegmentArray(self, array: np.ndarray, key: InteractionKey):
+    def logSegmentArray(self, array: np.ndarray, key: InteractionKey = None):
         """ 'array' must be of shape (n, 6) where second axis is (x1, y1, z1, x2, y2, z2) """
         assert array.shape[1] == 6 and array.ndim == 2, "Segment array must be of shape (n, 6)"
         self._appendData(array, DataType.SEGMENT, key)
 
-    def _appendData(self, data: Union[List, np.ndarray], dataType: DataType, key: InteractionKey):
+    def _appendData(self, data: Union[List, np.ndarray], dataType: DataType, key: InteractionKey = None):
+        if key is None:
+            key = InteractionKey(None, None)
         self._validateKey(key)
         previousData = getattr(self._data[key], dataType.value)
         if previousData is None:
