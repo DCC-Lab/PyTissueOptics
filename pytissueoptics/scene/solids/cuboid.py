@@ -93,16 +93,3 @@ class Cuboid(Solid):
         if np.any(np.abs(relativeVertices) >= bounds):
             return False
         return True
-
-
-if __name__ == "__main__":
-    from pytissueoptics.scene.viewer.mayavi import MayaviViewer
-
-    cuboid1 = Cuboid(5, 1, 4, position=Vector(4, 0.5, 0))
-    cuboid2 = Cuboid(5, 2, 4, position=Vector(4, 1, -6))
-    cuboid3 = Cuboid(2, 3, 4, position=Vector(-2, 1.5, -3))
-    cuboidStack = cuboid1.stack(cuboid2).stack(cuboid3, onSurface='right')
-
-    viewer = MayaviViewer()
-    viewer.add(cuboidStack, representation="wireframe", lineWidth=3)
-    viewer.show()

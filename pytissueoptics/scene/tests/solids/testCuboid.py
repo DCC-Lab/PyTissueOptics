@@ -129,6 +129,18 @@ class TestCuboid(unittest.TestCase):
         for i in range(3):
             self.assertTrue(f"interface{i}" in cuboidStack.surfaceLabels)
 
+    def testWhenStackAnotherStackNotAlongTheAlreadyStackedAxis_shouldNotStack(self):
+        baseCuboid1 = Cuboid(5, 3, 4)
+        otherCuboid1 = Cuboid(5, 1, 4)
+        cuboidStack1 = baseCuboid1.stack(otherCuboid1, onSurface='top')
+
+        baseCuboid2 = Cuboid(2, 4, 4)
+        otherCuboid2 = Cuboid(3, 4, 4)
+        cuboidStack2 = baseCuboid2.stack(otherCuboid2, onSurface='right')
+
+        with self.assertRaises(Exception):
+            cuboidStack1.stack(cuboidStack2, onSurface='top')
+
     def testWhenContainsWithVerticesThatAreAllInsideTheCuboid_shouldReturnTrue(self):
         cuboid = Cuboid(1, 1, 8, position=Vector(2, 2, 0))
         cuboid.rotate(30, 0, 0)
