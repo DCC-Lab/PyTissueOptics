@@ -159,6 +159,25 @@ class TestAnyIntersectionFinder:
         self.assertEqual(1, intersection.position.y)
         self.assertEqual(1, intersection.position.z)
 
+    def testGivenRayLengthIsLongerThanDistanceToIntersection_shouldFindIntersection(self):
+        ray = Ray(origin=Vector(0, 0, 0), direction=Vector(0, 0, 1), length=10)
+        solid = Cube(2, position=Vector(0, 0, 5))
+
+        intersection = self.getIntersectionFinder([solid]).findIntersection(ray)
+
+        self.assertIsNotNone(intersection)
+        self.assertEqual(0, intersection.position.x)
+        self.assertEqual(0, intersection.position.y)
+        self.assertEqual(4, intersection.position.z)
+
+    def testGivenRayLengthIsShorterThanDistanceToIntersection_shouldNotFindIntersection(self):
+        ray = Ray(origin=Vector(0, 0, 0), direction=Vector(0, 0, 1), length=3)
+        solid = Cube(2, position=Vector(0, 0, 5))
+
+        intersection = self.getIntersectionFinder([solid]).findIntersection(ray)
+
+        self.assertIsNone(intersection)
+
     def assertVectorEqual(self, expected, actual):
         self.assertEqual(expected.x, actual.x)
         self.assertEqual(expected.y, actual.y)
@@ -178,7 +197,6 @@ class TestFastIntersectionFinder(TestAnyIntersectionFinder, unittest.TestCase):
 
 
 class TestEndToEndIntersection(unittest.TestCase):
-
     def setUp(self) -> None:
         scene = PhantomScene()
         self.intersectionFinders = [FastIntersectionFinder(scene, constructor=NoSplitOneAxisConstructor(), maxDepth=3),

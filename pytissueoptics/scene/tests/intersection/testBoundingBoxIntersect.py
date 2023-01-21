@@ -49,7 +49,7 @@ class TestAnyBoxIntersect:
     def testGivenRayInsideBox_shouldReturnRayOrigin(self):
         box = BoundingBox([0, 1], [0, 1], [-2, 1])
         rayOrigin = Vector(0.25, 0.25, 0)
-        rayDirection = Vector(0.1, 0, -1)
+        rayDirection = Vector(0, 0, -1)
         rayDirection.normalize()
         ray = Ray(rayOrigin, rayDirection)
 
@@ -60,7 +60,7 @@ class TestAnyBoxIntersect:
     def testGivenRayLengthShorterThanBoxIntersection_shouldReturnNone(self):
         box = BoundingBox([0, 1], [0, 1], [-1, 0])
         rayOrigin = Vector(0.25, 0.25, 2)
-        rayDirection = Vector(0.1, 0, -1)
+        rayDirection = Vector(0, 0, -1)
         rayDirection.normalize()
         ray = Ray(rayOrigin, rayDirection, length=1.8)
 

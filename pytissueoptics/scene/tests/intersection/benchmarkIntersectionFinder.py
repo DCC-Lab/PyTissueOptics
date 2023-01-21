@@ -1,5 +1,7 @@
 from typing import List
 
+import numpy as np
+
 from pytissueoptics.scene.geometry import Vector
 from pytissueoptics.scene.scene import Scene
 from pytissueoptics.scene.logger import Logger
@@ -8,8 +10,8 @@ from pytissueoptics.scene.tree import TreeConstructor
 from pytissueoptics.scene.tree.treeConstructor.binary.splitTreeAxesConstructor import SplitThreeAxesConstructor
 from pytissueoptics.scene.tree.treeConstructor.binary.noSplitOneAxisConstructor import NoSplitOneAxisConstructor
 from pytissueoptics.scene.tree.treeConstructor.binary.noSplitThreeAxesConstructor import NoSplitThreeAxesConstructor
-from pytissueoptics.scene.intersection import FastIntersectionFinder, SimpleIntersectionFinder, UniformRaySource, \
-    RandomPositionAndOrientationRaySource, RaySource
+from pytissueoptics.scene.intersection import FastIntersectionFinder, SimpleIntersectionFinder, \
+    UniformRaySource, RaySource, Ray
 from pytissueoptics.scene.tests.scene.benchmarkScenes import AAxisAlignedPolygonScene, APolygonScene, ACubeScene, \
     ASphereScene, TwoCubesScene, TwoSpheresScene, RandomShapesScene, XAlignedSpheres, ZAlignedSpheres, \
     DiagonallyAlignedSpheres, PhantomScene
@@ -18,9 +20,9 @@ from pytissueoptics.scene.viewer import MayaviViewer
 import pandas
 import time
 
+
 pandas.set_option('display.max_columns', 20)
 pandas.set_option('display.width', 1200)
-RPORaySource = RandomPositionAndOrientationRaySource
 
 
 class IntersectionFinderBenchmark:
@@ -182,7 +184,8 @@ class IntersectionFinderBenchmark:
         self._saveSimpleStats(scene, intersectionFinder, traversalTime * self.factor)
 
     def runBenchmarkForSceneWithConstructor(self, scene: Scene, constructor: TreeConstructor):
-        source = RPORaySource(self.rayAmount, scene.getBoundingBox().xyzLimits, position=Vector(0,0,0))
+        source = RandomPositionAndOrientationRaySource(self.rayAmount, scene.getBoundingBox().xyzLimits,
+                                                       position=Vector(0,0,0))
         self.runBenchmarkForSceneWithConstructorAndSource(scene, constructor, source)
 
     def runBenchmarkForSceneWithConstructorAndSource(self, scene: Scene, constructor: TreeConstructor,
@@ -255,6 +258,30 @@ class IntersectionFinderBenchmark:
         if intersection.polygon.insideEnvironment.material is None:
             return 0.125
         return 1.0
+
+
+class RandomPositionAndOrientationRaySource(RaySource):
+    def __init__(self, amount, xyzLimits, position=None):
+        self._position = position
+        self._amount = amount
+        self._limits = xyzLimits
+        super(RandomPositionAndOrientationRaySource, self).__init__()
+
+    def _createRays(self):
+        if self._position is None:
+            origin_xs = np.random.uniform(self._limits[0][0], self._limits[0][1], self._amount)
+            origin_ys = np.random.uniform(self._limits[1][0], self._limits[1][1], self._amount)
+            origin_zs = np.random.uniform(self._limits[2][0], self._limits[2][1], self._amount)
+        else:
+            origin_xs = np.full(self._amount, self._position.x)
+            origin_ys = np.full(self._amount, self._position.y)
+            origin_zs = np.full(self._amount, self._position.z)
+
+        direction_xs = np.random.uniform(-1, 1, self._amount)
+        direction_ys = np.random.uniform(-1, 1, self._amount)
+        direction_zs = np.random.uniform(-1, 1, self._amount)
+        for i in range(self._amount):
+            self._rays.append(Ray(Vector(origin_xs[i], origin_ys[i], origin_zs[i]), Vector(direction_xs[i], direction_ys[i], direction_zs[i])))
 
 
 if __name__ == '__main__':
