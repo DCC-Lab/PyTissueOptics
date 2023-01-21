@@ -31,6 +31,8 @@ class DataType(Enum):
 
 
 class Logger:
+    DEFAULT_LOGGER_PATH = "simulation.log"
+
     def __init__(self, fromFilepath: str = None):
         self._data: Dict[InteractionKey, InteractionData] = {}
         self.info: dict = {}
@@ -134,18 +136,16 @@ class Logger:
     def _keyExists(self, key: InteractionKey) -> bool:
         if key.solidLabel not in self.getStoredSolidLabels():
             warnings.warn(f"No data stored for solid labeled '{key.solidLabel}'. Available: {self.getStoredSolidLabels()}. ")
-        if key.surfaceLabel and key.surfaceLabel not in self.getStoredSurfaceLabels(key.solidLabel):
+        elif key.surfaceLabel and key.surfaceLabel not in self.getStoredSurfaceLabels(key.solidLabel):
             warnings.warn(f"No data stored for surface labeled '{key.surfaceLabel}' for solid '{key.solidLabel}'. "
                           f"Available: {self.getStoredSurfaceLabels(key.solidLabel)}. ")
         if key in self._data:
             return True
-        if not key.surfaceLabel:
-            warnings.warn(f"No data stored inside the solid labeled '{key.solidLabel}'.")
         return False
 
     def save(self, filepath: str = None):
         if filepath is None and self._filepath is None:
-            filepath = "simulation.log"
+            filepath = self.DEFAULT_LOGGER_PATH
             warnings.warn(f"No filepath specified. Saving to {filepath}.")
         elif filepath is None:
             filepath = self._filepath
@@ -167,7 +167,3 @@ class Logger:
     @property
     def nDataPoints(self) -> int:
         return sum(len(data.dataPoints) for data in self._data.values())
-
-    @property
-    def isEmpty(self) -> bool:
-        return self.nDataPoints == 0

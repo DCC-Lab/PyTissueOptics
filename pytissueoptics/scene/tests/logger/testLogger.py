@@ -72,6 +72,25 @@ class TestLogger(unittest.TestCase):
         self.assertEqual(2, len(logger.getSegments()))
         self.assertTrue(np.array_equal([1, 1, 1, 2, 2, 2], logger.getSegments()[-1]))
 
+    def testWhenLogDataWithEmptyKey_shouldAddData(self):
+        logger = Logger()
+        logger.logPoint(Vector(0, 0, 0), InteractionKey(None, None))
+        self.assertEqual(1, len(logger.getPoints()))
+
+    def testGivenLoggerWithData_shouldHaveNDataPointsOnlyEqualToTheNumberOfDataPoints(self):
+        logger = Logger()
+        logger.logDataPoint(10, Vector(0, 0, 0), self.INTERACTION_KEY)
+        logger.logDataPoint(20, Vector(1, 0, 0), InteractionKey("another solid", "another surface"))
+        logger.logPoint(Vector(1, 0, 0), self.INTERACTION_KEY)
+        logger.logSegment(Vector(0, 0, 0), Vector(1, 0, 0), self.INTERACTION_KEY)
+
+        self.assertEqual(2, logger.nDataPoints)
+
+    def testWhenGetData_shouldReturnNumpyArrayFormat(self):
+        logger = Logger()
+        logger.logPoint(Vector(0, 0, 0), self.INTERACTION_KEY)
+        self.assertTrue(isinstance((logger.getPoints()), np.ndarray))
+
     def testWhenGetDataWithKey_shouldReturnDataStoredForThisKey(self):
         sameKey = InteractionKey(self.SOLID_LABEL, self.SURFACE_LABEL)
         anotherKey = InteractionKey(self.SOLID_LABEL, "another surface")
@@ -86,6 +105,23 @@ class TestLogger(unittest.TestCase):
         self.assertEqual(2, len(logger.getPoints(self.INTERACTION_KEY)))
         self.assertEqual(1, len(logger.getPoints(anotherKeyWithoutSurface)))
 
+    def testWhenGetDataWithSolidLabelKey_shouldOnlyReturnDataStoredWithThisSolidLabelKey(self):
+        solidKey = InteractionKey(self.SOLID_LABEL)
+        solidSurfaceKey = InteractionKey(self.SOLID_LABEL, self.SURFACE_LABEL)
+
+        logger = Logger()
+        logger.logPoint(Vector(0, 0, 0), solidKey)
+        logger.logPoint(Vector(1, 0, 0), solidSurfaceKey)
+
+        self.assertEqual(1, len(logger.getPoints(solidKey)))
+
+    def testWhenGetSpecificDataTypeWithEmptyKey_shouldReturnAllDataOfThisType(self):
+        logger = Logger()
+        logger.logDataPoint(0, Vector(0, 0, 0), self.INTERACTION_KEY)
+        logger.logPoint(Vector(0, 0, 0), InteractionKey("another solid", "another surface"))
+
+        self.assertEqual(1, len(logger.getDataPoints()))
+
     def testWhenGetDataWithEmptyKey_shouldReturnAllData(self):
         anotherKey = InteractionKey(self.SOLID_LABEL, "another surface")
         logger = Logger()
@@ -97,23 +133,17 @@ class TestLogger(unittest.TestCase):
         self.assertEqual(4, len(logger.getPoints()))
         self.assertEqual(4, len(logger.getPoints(InteractionKey(None, None))))
 
-    def testWhenGetData_shouldReturnNumpyArrayFormat(self):
-        logger = Logger()
-        logger.logPoint(Vector(0, 0, 0), self.INTERACTION_KEY)
-        self.assertTrue(isinstance((logger.getPoints()), np.ndarray))
-        self.assertTrue(isinstance((logger.getPoints(self.INTERACTION_KEY)), np.ndarray))
-
     def testWhenGetDataWithNonExistentKey_shouldWarnAndReturnNone(self):
         logger = Logger()
         with self.assertWarns(UserWarning):
             self.assertIsNone(logger.getPoints(self.INTERACTION_KEY))
 
-    def testWhenGetDataWithNonSurfaceLabelKey_shouldWarnAndReturnNone(self):
+    def testWhenGetDataWithWrongSurfaceLabelKey_shouldWarnAndReturnNone(self):
         logger = Logger()
         logger.logPoint(Vector(0, 0, 0), self.INTERACTION_KEY)
 
         with self.assertWarns(UserWarning):
-            self.assertIsNone(logger.getPoints(InteractionKey(self.SOLID_LABEL, "another surface")))
+            self.assertIsNone(logger.getPoints(InteractionKey(self.SOLID_LABEL, "wrong surface")))
 
     def testGivenEmptyLogger_whenGetData_shouldReturnNone(self):
         logger = Logger()
@@ -173,6 +203,30 @@ class TestLogger(unittest.TestCase):
             logger.save(filePath)
 
             self.assertTrue(os.path.exists(filePath))
+
+    def testWhenSaveWithNoFilePath_shouldWarnAndSaveToDefaultLocation(self):
+        logger = Logger()
+        with tempfile.TemporaryDirectory() as tempDir:
+            logger.DEFAULT_LOGGER_PATH = os.path.join(tempDir, "test.log")
+
+            with self.assertWarns(UserWarning):
+                logger.save()
+
+            self.assertTrue(os.path.exists(logger.DEFAULT_LOGGER_PATH))
+
+    def testGivenNewLoggerFromNonExistentFilePath_shouldWarnUserThatNoDataWasLoaded(self):
+        with self.assertWarns(UserWarning):
+            Logger(fromFilepath="nonExistentFile.log")
+
+    def testGivenLoggerWithFilePath_whenSave_shouldSaveToThisFile(self):
+        with tempfile.TemporaryDirectory() as tempDir:
+            newFilePath = os.path.join(tempDir, "test.log")
+            with self.assertWarns(UserWarning):
+                logger = Logger(fromFilepath=newFilePath)
+
+            logger.save()
+
+            self.assertTrue(os.path.exists(newFilePath))
 
     def testGivenALoggerPreviouslySaved_whenLoad_shouldLoadPreviousLoggerFromFile(self):
         previousLogger = Logger()

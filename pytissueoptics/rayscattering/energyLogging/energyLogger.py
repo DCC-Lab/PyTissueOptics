@@ -217,3 +217,7 @@ class EnergyLogger(Logger):
             return super().nDataPoints
         else:
             return self._nDataPointsRemoved
+
+    @property
+    def isEmpty(self) -> bool:
+        return self.nDataPoints == 0
