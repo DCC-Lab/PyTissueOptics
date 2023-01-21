@@ -193,8 +193,8 @@ class Solid:
     def getLayerLabels(self) -> List[str]:
         return list(self._layerLabels.keys())
 
-    def getLayerSurfaceLabels(self, solidLabel) -> List[str]:
-        return list(self._layerLabels[solidLabel])
+    def getLayerSurfaceLabels(self, layerSolidLabel) -> List[str]:
+        return list(self._layerLabels[layerSolidLabel])
 
     def smooth(self, surfaceLabel: str = None):
         """ Prepare smoothing by calculating vertex normals. This is not done

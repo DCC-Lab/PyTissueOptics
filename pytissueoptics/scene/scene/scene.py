@@ -1,5 +1,6 @@
 import sys
-from typing import List, Dict, Optional
+import warnings
+from typing import List, Optional
 
 from pytissueoptics.scene.geometry import Environment
 from pytissueoptics.scene.geometry import Vector
@@ -38,7 +39,7 @@ class Scene:
 
     def _validatePosition(self, newSolid: Solid):
         """ Assert newSolid position is valid and make proper adjustments so that the
-        material at each solid interface is well defined. """
+        material at each solid interface is well-defined. """
         if len(self._solids) == 0:
             return
 
@@ -71,10 +72,11 @@ class Scene:
         labelSet = set(s.getLabel() for s in self.solids)
         if solid.getLabel() not in labelSet:
             return
-
-        idx = 0
+        idx = 2
         while f"{solid.getLabel()}_{idx}" in labelSet:
             idx += 1
+        warnings.warn(f"A solid with label '{solid.getLabel()}' already exists in the scene. "
+                      f"Renaming to '{solid.getLabel()}_{idx}'.")
         solid.setLabel(f"{solid.getLabel()}_{idx}")
 
     def _findIntersectingSuspectsFor(self, solid) -> List[Solid]:
@@ -114,7 +116,9 @@ class Scene:
 
     def getSurfaceLabels(self, solidLabel) -> List[str]:
         solid = self.getSolid(solidLabel)
-        if solid.isStack():
+        if solid is None:
+            return []
+        if solid.isStack() and solid.getLabel() != solidLabel:
             return solid.getLayerSurfaceLabels(solidLabel)
         return solid.surfaceLabels
 
@@ -124,7 +128,7 @@ class Scene:
     def getPolygons(self) -> List[Polygon]:
         polygons = []
         for solid in self._solids:
-            polygons.extend(solid.surfaces.getPolygons())
+            polygons.extend(solid.getPolygons())
         return polygons
 
     def getMaterials(self) -> list:

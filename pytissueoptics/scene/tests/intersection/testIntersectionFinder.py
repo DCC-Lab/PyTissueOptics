@@ -73,8 +73,8 @@ class TestAnyIntersectionFinder:
 
     def testGivenRayIsIntersectingMultipleSolids_shouldReturnClosestIntersection(self):
         ray = Ray(origin=Vector(0, 0.5, 0), direction=Vector(0, 0, 1))
-        solid1 = Cube(2, position=Vector(0, 0, 5))
-        solid2 = Cube(2, position=Vector(0, 0, 10))
+        solid1 = Cube(2, position=Vector(0, 0, 5), label="solid1")
+        solid2 = Cube(2, position=Vector(0, 0, 10), label="solid2")
         solids = [solid1, solid2]
 
         intersection = self.getIntersectionFinder(solids).findIntersection(ray)
