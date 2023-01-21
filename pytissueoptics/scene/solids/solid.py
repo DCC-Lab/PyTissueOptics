@@ -152,6 +152,13 @@ class Solid:
             verticesArray.append(vertex.array)
         return np.asarray(verticesArray)
 
+    def _setInsideEnvironment(self):
+        polygons = self._surfaces.getPolygons()
+        if not self._material and polygons[0].insideEnvironment is not None:
+            return
+        for polygon in polygons:
+            polygon.setInsideEnvironment(Environment(self._material, self))
+
     def _computeMesh(self):
         self._surfaces = SurfaceCollection()
         if self._primitive == primitives.TRIANGLE:
@@ -167,19 +174,8 @@ class Solid:
     def _computeQuadMesh(self):
         raise NotImplementedError(f"Quad mesh not implemented for Solids of type {type(self).__name__}")
 
-    def _setInsideEnvironment(self):
-        polygons = self._surfaces.getPolygons()
-        if not self._material and polygons[0].insideEnvironment is not None:
-            return
-        for polygon in polygons:
-            polygon.setInsideEnvironment(Environment(self._material, self))
-
-    def setMaterial(self, material):
-        self._material = material
-        self._setInsideEnvironment()
-
     def contains(self, *vertices: Vertex) -> bool:
-        return False
+        raise NotImplementedError(f"Method contains(<Vertex>) not implemented for Solids of type {type(self).__name__}")
 
     def isStack(self) -> bool:
         for surfaceLabel in self.surfaceLabels:

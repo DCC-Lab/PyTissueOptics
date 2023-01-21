@@ -6,7 +6,7 @@ from mockito import mock, verify, when
 from pytissueoptics.scene.geometry import Vector, Quad, Polygon, Vertex, Environment
 from pytissueoptics.scene.geometry import primitives
 from pytissueoptics.scene.solids import Solid
-from pytissueoptics.scene.geometry import SurfaceCollection
+from pytissueoptics.scene.geometry import SurfaceCollection, INTERFACE_KEY
 
 
 class TestSolid(unittest.TestCase):
@@ -138,7 +138,7 @@ class TestSolid(unittest.TestCase):
         self.assertFalse(self.solid.isStack())
 
     def testGivenASolidWithInterfaces_shouldBeAStack(self):
-        self.solid.surfaces.add("interface0", [])
+        self.solid.surfaces.add(INTERFACE_KEY + "_1", [])
         self.assertTrue(self.solid.isStack())
 
     def testWhenSmooth_shouldSetVertexNormalAsAverageOfAdjacentPolygonNormals(self):
@@ -156,6 +156,29 @@ class TestSolid(unittest.TestCase):
         self.assertEqual(Vector(0, 0, 1), frontVertex.normal)
         backVertex = self.solid.vertices[5]
         self.assertIsNone(backVertex.normal)
+
+    def testWhenSetLabel_shouldChangeLabel(self):
+        newLabel = "newLabel"
+        self.solid.setLabel(newLabel)
+        self.assertEqual(newLabel, self.solid.getLabel())
+
+    def _testGivenNoSurfaces_whenCreateSolidWithAnyPrimitive_shouldRaiseException(self, anyPrimitive):
+        with self.assertRaises(NotImplementedError):
+            Solid(position=self.position, material=self.material, vertices=self.CUBOID_VERTICES,
+                  surfaces=None, primitive=anyPrimitive)
+
+    def testGivenNoSurfaces_whenCreateSolidWithTrianglePrimitive_shouldRaiseException(self):
+        self._testGivenNoSurfaces_whenCreateSolidWithAnyPrimitive_shouldRaiseException(primitives.TRIANGLE)
+
+    def testGivenNoSurfaces_whenCreateSolidWithQuadPrimitive_shouldRaiseException(self):
+        self._testGivenNoSurfaces_whenCreateSolidWithAnyPrimitive_shouldRaiseException(primitives.QUAD)
+
+    def testGivenNoSurfaces_whenCreateSolidWithAnotherPrimitive_shouldRaiseException(self):
+        self._testGivenNoSurfaces_whenCreateSolidWithAnyPrimitive_shouldRaiseException("anotherPrimitive")
+
+    def testWhenCheckIfContainsAVertex_shouldRaiseException(self):
+        with self.assertRaises(NotImplementedError):
+            self.solid.contains(Vertex(0, 0, 0))
 
     @staticmethod
     def createPolygonMock() -> Polygon:

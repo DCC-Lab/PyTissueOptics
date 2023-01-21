@@ -52,7 +52,7 @@ class Cuboid(Solid):
         self._surfaces.add('front', [Quad(V[5], V[4], V[7], V[6])])
         self._surfaces.add('back', [Quad(V[0], V[1], V[2], V[3])])
 
-    def stack(self, other: 'Cuboid', onSurface: str = 'top') -> 'Cuboid':
+    def stack(self, other: 'Cuboid', onSurface: str = 'top', stackLabel="CuboidStack") -> 'Cuboid':
         """
         Basic implementation for stacking cuboids along an axis.
 
@@ -69,10 +69,10 @@ class Cuboid(Solid):
         """
         stacker = CuboidStacker()
         stackResult = stacker.stack(onCuboid=self, otherCuboid=other, onSurface=onSurface)
-        return Cuboid._fromStackResult(stackResult)
+        return Cuboid._fromStackResult(stackResult, label=stackLabel)
 
     @classmethod
-    def _fromStackResult(cls, stackResult: StackResult, label="CuboidStack") -> 'Cuboid':
+    def _fromStackResult(cls, stackResult: StackResult, label: str) -> 'Cuboid':
         # subtracting stackCentroid from all vertices because solid creation will translate back to position.
         for vertex in stackResult.vertices:
             vertex.subtract(stackResult.position)

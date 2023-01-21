@@ -4,7 +4,7 @@ from mockito import mock, verify, when
 
 from pytissueoptics.scene import Cuboid
 from pytissueoptics.scene.scene import Scene
-from pytissueoptics.scene.geometry import Vector, BoundingBox, Environment
+from pytissueoptics.scene.geometry import Vector, BoundingBox, Environment, INTERFACE_KEY
 from pytissueoptics.scene.solids import Solid
 
 
@@ -268,9 +268,10 @@ class TestScene(unittest.TestCase):
         self.assertEqual([SOLID_LABEL_1, SOLID_LABEL_2], labels)
 
     def testGivenASceneWithAStack_whenGetSolidLabels_shouldOnlyIncludeInternalStackLayers(self):
-        stack = self.makeSolidWith(name="stack", isStack=True)
         internalLayers = ["Layer1", "Layer2"]
-        when(stack).getLayerLabels().thenReturn(internalLayers)
+        layer1 = Cuboid(1, 1, 1, label=internalLayers[0])
+        layer2 = Cuboid(1, 1, 1, label=internalLayers[1])
+        stack = layer1.stack(layer2, 'front')
         self.scene.add(stack)
 
         labels = self.scene.getSolidLabels()
@@ -302,8 +303,10 @@ class TestScene(unittest.TestCase):
 
     def testWhenGetSurfaceLabelsOfAStack_shouldReturnTheSurfaceLabelsForAllItsLayers(self):
         STACK_LABEL = "Stack"
-        stack = self.makeSolidWith(name=STACK_LABEL, isStack=True)
-        stack.surfaceLabels = ["Surface1", "Surface2", "Surface3"]
+        internalLayers = ["Layer1", "Layer2"]
+        layer1 = Cuboid(1, 1, 1, label=internalLayers[0])
+        layer2 = Cuboid(1, 1, 1, label=internalLayers[1])
+        stack = layer1.stack(layer2, 'front', stackLabel=STACK_LABEL)
         self.scene.add(stack)
 
         labels = self.scene.getSurfaceLabels(STACK_LABEL)
@@ -311,16 +314,16 @@ class TestScene(unittest.TestCase):
         self.assertEqual(stack.surfaceLabels, labels)
 
     def testWhenGetSurfaceLabelsOfAStackLayer_shouldReturnTheSurfaceLabelsOfThisLayer(self):
-        stack = self.makeSolidWith(isStack=True)
         internalLayers = ["Layer1", "Layer2"]
-        surfacesOfLayer1 = ["Surface1", "Surface2"]
-        when(stack).getLayerLabels().thenReturn(internalLayers)
-        when(stack).getLayerSurfaceLabels(internalLayers[0]).thenReturn(surfacesOfLayer1)
+        layer1 = Cuboid(1, 1, 1, label=internalLayers[0])
+        layer2 = Cuboid(1, 1, 1, label=internalLayers[1])
+        stack = layer1.stack(layer2, 'front')
         self.scene.add(stack)
 
         labels = self.scene.getSurfaceLabels(internalLayers[0])
 
-        self.assertEqual(surfacesOfLayer1, labels)
+        self.assertEqual(6, len(labels))
+        self.assertTrue(INTERFACE_KEY+"0" in labels)
 
     def testGivenNoContainedSolids_shouldHaveNoContainedLabels(self):
         labels = self.scene.getContainedSolidLabels("Solid")
