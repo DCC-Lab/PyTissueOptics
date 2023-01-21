@@ -1,19 +1,23 @@
 import unittest
 import math
 
-from pytissueoptics.scene.geometry import Vector, Vertex
+from pytissueoptics.scene.geometry import Vector, Vertex, primitives
 from pytissueoptics.scene.solids import Ellipsoid
 
 
 class TestEllipsoid(unittest.TestCase):
-    def testGivenANewDefault_shouldBePlacedAtOrigin(self):
+    def testGivenNewEllipsoidWithNoPosition_shouldBePlacedAtOrigin(self):
         ellipsoid = Ellipsoid()
         self.assertEqual(Vector(0, 0, 0), ellipsoid.position)
 
-    def testGivenANew_shouldBePlacedAtDesiredPosition(self):
+    def testGivenNewEllipsoidWithPosition_shouldBePlacedAtDesiredPosition(self):
         position = Vector(2, 2, 1)
         ellipsoid = Ellipsoid(position=position)
         self.assertEqual(Vector(2, 2, 1), ellipsoid.position)
+
+    def testGivenNewEllipsoidWithQuadPrimitive_shouldNotCreateEllipsoid(self):
+        with self.assertRaises(NotImplementedError):
+            Ellipsoid(primitive=primitives.QUAD)
 
     def testGivenALowOrderSphericalEllipsoid_shouldApproachCorrectSphereAreaTo5Percent(self):
         ellipsoid = Ellipsoid(a=1, b=1, c=1, order=3)
