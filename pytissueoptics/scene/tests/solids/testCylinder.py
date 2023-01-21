@@ -1,7 +1,7 @@
 import unittest
 import math
 
-from pytissueoptics.scene.geometry import Vector, Vertex
+from pytissueoptics.scene.geometry import Vector, Vertex, primitives
 from pytissueoptics.scene.solids import Cylinder
 
 
@@ -14,6 +14,18 @@ class TestCylinder(unittest.TestCase):
         position = Vector(2, 2, 1)
         cylinder = Cylinder(position=position)
         self.assertEqual(Vector(2, 2, 1), cylinder.position)
+
+    def testGivenANewWithQuadPrimitive_shouldNotCreateCylinder(self):
+        with self.assertRaises(NotImplementedError):
+            Cylinder(primitive=primitives.QUAD)
+
+    def testGivenANewWithUSmallerThan3_shouldNotCreateCylinder(self):
+        with self.assertRaises(ValueError):
+            Cylinder(u=2)
+
+    def testGivenANewWithVSmallerThan1_shouldNotCreateCylinder(self):
+        with self.assertRaises(ValueError):
+            Cylinder(v=0)
 
     def testGivenALowOrderCylinder_shouldApproachCorrectCylinderAreaTo5Percent(self):
         cylinder = Cylinder(radius=1, height=2, u=12)

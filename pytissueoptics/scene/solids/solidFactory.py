@@ -47,7 +47,7 @@ class SolidFactory:
         surfaceLabelsSolidNames = [surfaceLabel.split("_")[0] for surfaceLabel in self._surfaces.surfaceLabels]
         if solidLabel not in surfaceLabelsSolidNames:
             return solidLabel
-        idx = 0
+        idx = 2
         solidLabelsWithNumbers = ["_".join(surfaceLabel.split("_")[0:2]) for surfaceLabel in self._surfaces.surfaceLabels]
         while f"{solidLabel}_{idx}" in solidLabelsWithNumbers:
             idx += 1
