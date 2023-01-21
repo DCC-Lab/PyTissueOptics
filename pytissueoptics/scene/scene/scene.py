@@ -5,7 +5,7 @@ from typing import List, Optional
 from pytissueoptics.scene.geometry import Environment
 from pytissueoptics.scene.geometry import Vector
 from pytissueoptics.scene.solids import Solid
-from pytissueoptics.scene.geometry import Polygon, BoundingBox
+from pytissueoptics.scene.geometry import Polygon, BoundingBox, INTERFACE_KEY
 
 
 class Scene:
@@ -182,7 +182,7 @@ class Scene:
         environment = None
         closestDistance = sys.maxsize
         for surfaceLabel in stack.surfaceLabels:
-            if "interface" not in surfaceLabel:
+            if INTERFACE_KEY not in surfaceLabel:
                 continue
             planePolygon = stack.surfaces.getPolygons(surfaceLabel)[0]
             planeNormal = planePolygon.normal

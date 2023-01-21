@@ -1,6 +1,6 @@
 import unittest
 
-from pytissueoptics.scene.geometry import Vector, primitives, Vertex
+from pytissueoptics.scene.geometry import Vector, primitives, Vertex, INTERFACE_KEY
 from pytissueoptics.scene.solids import Cuboid
 
 
@@ -98,7 +98,7 @@ class TestCuboid(unittest.TestCase):
 
         cuboidStack = baseCuboid.stack(otherCuboid, onSurface='top')
 
-        self.assertTrue("interface0" in cuboidStack.surfaceLabels)
+        self.assertTrue(f"{INTERFACE_KEY}0" in cuboidStack.surfaceLabels)
 
     def testWhenStack_shouldPreserveEnvironmentAtEachLayer(self):
         baseMaterial = "BaseMaterial"
@@ -108,7 +108,7 @@ class TestCuboid(unittest.TestCase):
 
         cuboidStack = baseCuboid.stack(otherCuboid, onSurface='top')
 
-        interfacePolygon = cuboidStack.getPolygons("interface0")[0]
+        interfacePolygon = cuboidStack.getPolygons(f"{INTERFACE_KEY}0")[0]
 
         self.assertEqual(baseMaterial, interfacePolygon.insideEnvironment.material)
         self.assertEqual(otherMaterial, interfacePolygon.outsideEnvironment.material)
@@ -127,7 +127,7 @@ class TestCuboid(unittest.TestCase):
         cuboidStack = cuboidStack1.stack(cuboidStack2, onSurface='right')
 
         for i in range(3):
-            self.assertTrue(f"interface{i}" in cuboidStack.surfaceLabels)
+            self.assertTrue(f"{INTERFACE_KEY}{i}" in cuboidStack.surfaceLabels)
 
     def testWhenStackAnotherStackNotAlongTheAlreadyStackedAxis_shouldNotStack(self):
         baseCuboid1 = Cuboid(5, 3, 4)

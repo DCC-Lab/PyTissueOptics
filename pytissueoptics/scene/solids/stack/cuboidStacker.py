@@ -1,6 +1,6 @@
 from typing import List, Dict
 
-from pytissueoptics.scene.geometry import Vector, SurfaceCollection
+from pytissueoptics.scene.geometry import Vector, SurfaceCollection, INTERFACE_KEY
 from pytissueoptics.scene.solids.stack.stackResult import StackResult
 
 
@@ -31,7 +31,7 @@ class CuboidStacker:
         self._stackAxis = self._getSurfaceAxis(onSurfaceLabel)
         self._onSurfaceLabel = onSurfaceLabel
         self._otherSurfaceLabel = self._getOppositeSurface(onSurfaceLabel)
-        onCuboidInterfaces = [label for label in self._onCuboid.surfaceLabels if "interface" in label]
+        onCuboidInterfaces = [label for label in self._onCuboid.surfaceLabels if INTERFACE_KEY in label]
         self._newInterfaceIndex = len(onCuboidInterfaces)
 
         self._validateShapeMatch()
@@ -117,16 +117,16 @@ class CuboidStacker:
     def _getStackInterfaces(self) -> SurfaceCollection:
         interfaces = SurfaceCollection()
 
-        onCuboidInterfaces = [label for label in self._onCuboid.surfaceLabels if "interface" in label]
+        onCuboidInterfaces = [label for label in self._onCuboid.surfaceLabels if INTERFACE_KEY in label]
         for interface in onCuboidInterfaces:
             interfaces.add(interface, self._onCuboid.getPolygons(interface))
 
-        newInterfaceLabel = f"interface{self._newInterfaceIndex}"
+        newInterfaceLabel = f"{INTERFACE_KEY}{self._newInterfaceIndex}"
         interfaces.add(newInterfaceLabel, self._onCuboid.getPolygons(self._onSurfaceLabel))
 
-        otherCuboidInterfaceLabels = [label for label in self._otherCuboid.surfaceLabels if "interface" in label]
+        otherCuboidInterfaceLabels = [label for label in self._otherCuboid.surfaceLabels if INTERFACE_KEY in label]
         for i, otherInterfaceLabel in enumerate(otherCuboidInterfaceLabels):
-            newOtherInterfaceLabel = f"interface{self._newInterfaceIndex + i + 1}"
+            newOtherInterfaceLabel = f"{INTERFACE_KEY}{self._newInterfaceIndex + i + 1}"
             interfaces.add(newOtherInterfaceLabel, self._otherCuboid.getPolygons(otherInterfaceLabel))
 
         return interfaces
@@ -143,12 +143,12 @@ class CuboidStacker:
 
         for layerLabel, surfaceLabels in self._otherCuboid.getLayerLabelMap().items():
             for i, surfaceLabel in enumerate(surfaceLabels):
-                if "interface" in surfaceLabel:
-                    oldInterfaceIndex = int(surfaceLabel.split("interface")[1])
-                    surfaceLabels[i] = f"interface{oldInterfaceIndex + self._newInterfaceIndex + 1}"
+                if INTERFACE_KEY in surfaceLabel:
+                    oldInterfaceIndex = int(surfaceLabel.split(INTERFACE_KEY)[1])
+                    surfaceLabels[i] = f"{INTERFACE_KEY}{oldInterfaceIndex + self._newInterfaceIndex + 1}"
 
     def _getUpdatedLayerLabelsOf(self, cuboid: 'Cuboid') -> Dict[str, List[str]]:
-        newInterfaceLabel = f"interface{self._newInterfaceIndex}"
+        newInterfaceLabel = f"{INTERFACE_KEY}{self._newInterfaceIndex}"
 
         onCuboidLayerLabels = cuboid.getLayerLabelMap()
         if not onCuboidLayerLabels:

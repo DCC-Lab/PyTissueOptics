@@ -3,7 +3,7 @@ from typing import List, Dict
 import numpy as np
 
 from pytissueoptics.scene.geometry import Vector, utils, Polygon, Rotation, BoundingBox, Vertex
-from pytissueoptics.scene.geometry import primitives, Environment, SurfaceCollection
+from pytissueoptics.scene.geometry import primitives, Environment, SurfaceCollection, INTERFACE_KEY
 
 
 class Solid:
@@ -179,7 +179,7 @@ class Solid:
 
     def isStack(self) -> bool:
         for surfaceLabel in self.surfaceLabels:
-            if "interface" in surfaceLabel:
+            if INTERFACE_KEY in surfaceLabel:
                 return True
         return False
 
