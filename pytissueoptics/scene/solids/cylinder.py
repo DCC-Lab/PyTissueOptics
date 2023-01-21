@@ -11,8 +11,8 @@ class Cylinder(Solid):
                  primitive: str = primitives.DEFAULT, label: str = "Cylinder"):
         self._radius = radius
         self._height = height
-        if u < 2 or v < 1:
-            raise ValueError("u must be > 2 and v must be > 1")
+        if u < 3 or v < 1:
+            raise ValueError("u must be >= 3 and v must be >= 1")
         self._u = u
         self._v = v
         self._bottomCenter = Vertex(0, 0, 0)
