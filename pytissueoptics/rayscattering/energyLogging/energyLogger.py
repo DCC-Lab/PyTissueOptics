@@ -190,8 +190,8 @@ class EnergyLogger(Logger):
 
     def _compileViews(self, views: List[View2D]):
         for key, data in self._data.items():
-            datapoints = data.dataPoints
-            if datapoints is None or len(datapoints) == 0:
+            datapointsContainer = data.dataPoints
+            if datapointsContainer is None or len(datapointsContainer) == 0:
                 continue
             for view in views:
                 if view.solidLabel and not utils.labelsEqual(view.solidLabel, key.solidLabel):
@@ -200,7 +200,7 @@ class EnergyLogger(Logger):
                     continue
                 if view.surfaceLabel is None and key.surfaceLabel is not None:
                     continue
-                view.extractData(datapoints.array)
+                view.extractData(datapointsContainer.getData())
         for view in views:
             self._outdatedViews.discard(view)
 

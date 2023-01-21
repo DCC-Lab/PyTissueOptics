@@ -118,20 +118,18 @@ class Logger:
         if key and key.solidLabel:
             if not self._keyExists(key):
                 return None
-            data = getattr(self._data[key], dataType.value)
-            data.merge()
-            return data.mergedData
+            container = getattr(self._data[key], dataType.value)
+            return container.getData()
         else:
-            tempData = ListArrayContainer()
+            container = ListArrayContainer()
             for interactionData in self._data.values():
                 points = getattr(interactionData, dataType.value)
                 if points is None:
                     continue
-                tempData.extend(points)
-            if len(tempData) == 0:
+                container.extend(points)
+            if len(container) == 0:
                 return None
-            tempData.merge()
-            return tempData.mergedData
+            return container.getData()
 
     def _keyExists(self, key: InteractionKey) -> bool:
         if key.solidLabel not in self.getStoredSolidLabels():
