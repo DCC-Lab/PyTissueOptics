@@ -2,6 +2,8 @@ import numpy as np
 
 from pytissueoptics.scene.logger import Logger
 from pytissueoptics.scene.scene import Scene
+from pytissueoptics.scene.viewer.mayavi.viewPoint import ViewPointStyle, ViewPointFactory
+
 
 try:
     from mayavi import mlab
@@ -14,11 +16,11 @@ from pytissueoptics.scene.solids import Solid
 
 
 class MayaviViewer:
-    def __init__(self):
+    def __init__(self, viewPointStyle=ViewPointStyle.NATURAL):
         self._scenes = {
             "DefaultScene": {"figureParameters": {"bgColor": (0.11, 0.11, 0.11), "fgColor": (0.9, 0.9, 0.9)},
                              "Solids": [], }}
-        self._view = {"azimuth": -30, "zenith": 215, "distance": None, "pointingTowards": None, "roll": -0}
+        self._viewPoint = ViewPointFactory().create(viewPointStyle)
         self.clear()
 
     def addScene(self, scene: Scene, representation="wireframe", lineWidth=0.25, showNormals=False, normalLength=0.3,
@@ -114,8 +116,7 @@ class MayaviViewer:
         return p
 
     def _assignViewPoint(self):
-        azimuth, elevation, distance, towards, roll = (self._view[key] for key in self._view)
-        mlab.view(azimuth, elevation, distance, towards, roll)
+        mlab.view(**self._viewPoint.__dict__)
 
     def show(self):
         self._assignViewPoint()
@@ -131,13 +132,3 @@ class MayaviViewer:
     def clear(self):
         mlab.clf()
         self._resetTo("DefaultScene")
-
-
-if __name__ == "__main__":
-    from pytissueoptics.scene import Sphere, Cuboid, Vector, Scene
-
-    sphere1 = Sphere(order=2)
-    cuboid1 = Cuboid(1, 3, 3, position=Vector(4, 0, 0))
-    viewer = MayaviViewer()
-    viewer.add(sphere1, cuboid1, lineWidth=1, showNormals=True)
-    viewer.show()

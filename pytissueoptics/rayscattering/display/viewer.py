@@ -12,7 +12,7 @@ from pytissueoptics.rayscattering.display.statistics import Stats
 from pytissueoptics.rayscattering.display.utils import Direction
 from pytissueoptics.rayscattering.display.views import ViewGroup, View2D
 from pytissueoptics.rayscattering.display.profiles import Profile1DFactory
-from pytissueoptics.scene import MAYAVI_AVAILABLE, MayaviViewer
+from pytissueoptics.scene import MAYAVI_AVAILABLE, MayaviViewer, ViewPointStyle
 
 
 class Visibility(Flag):
@@ -97,7 +97,7 @@ class Viewer:
             utils.warn("Package 'mayavi' is not available. Please install it to use 3D visualizations.")
             return
 
-        self._viewer3D = MayaviViewer()
+        self._viewer3D = MayaviViewer(viewPointStyle=ViewPointStyle.OPTICS)
 
         if visibility == Visibility.AUTO:
             visibility = Visibility.DEFAULT_3D if self._logger.has3D else Visibility.DEFAULT_2D

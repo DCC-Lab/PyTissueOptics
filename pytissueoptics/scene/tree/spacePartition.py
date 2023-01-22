@@ -16,7 +16,7 @@ class SpacePartition:
     - polygons: The List[Polygon] from which the subdivision will make its choices.
     - constructor: A TreeConstructor class which will define the subdivision behaviour
     - maxDepth: the maximum depth of a node, will limit the creation of node to a certain level
-    - minLeafSize: the minimum amount of polygons a leaf can contain. No leaf node can have less polygons.
+    - minLeafSize: the minimum amount of polygons a leaf can contain. No leaf node can have fewer polygons.
 
     It is essentially a dataclass that contains a tree of nodes. The methods defined bellow are only used
     internally for benchmarking purposes.
