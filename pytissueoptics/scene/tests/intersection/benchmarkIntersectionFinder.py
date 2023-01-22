@@ -2,7 +2,8 @@ from typing import List
 
 import numpy as np
 
-from pytissueoptics.scene.geometry import Vector
+from pytissueoptics.scene.geometry import Vector, BoundingBox
+from pytissueoptics.scene.solids import Cuboid
 from pytissueoptics.scene.scene import Scene
 from pytissueoptics.scene.logger import Logger
 from pytissueoptics.scene.intersection.intersectionFinder import Intersection
@@ -144,7 +145,7 @@ class IntersectionFinderBenchmark:
             f" - {len(partition.getLeafPolygons()):^10}"
             f" - {partition.getNodeCount():^10}"
             f" - {partition.getLeafCount():^10}",
-            f" - {partition.getAverageLeafDepth():^10.2f}"
+            f" - {partition.getAverageDepth():^10.2f}"
             f" - {missedRays:^10}"
             f" - {missedRays == referenceMissed:^10}")
         if display and missedRays != referenceMissed:
@@ -231,7 +232,7 @@ class IntersectionFinderBenchmark:
                                                f"{buildTime + traversalTime:^12.2f}",
                                                f"{partition.getNodeCount():^12}",
                                                f"{partition.getLeafCount():^12}",
-                                               f"{partition.getAverageLeafDepth():^12.2f}",
+                                               f"{partition.getAverageDepth():^12.2f}",
                                                f"{partition.getAverageLeafSize():^12.2f}",
                                                f"{((self.simpleTraversalTime[-1]) / traversalTime):.1f}"]
 
@@ -245,7 +246,7 @@ class IntersectionFinderBenchmark:
             scenes = self.scenes
         for j, scene in enumerate(scenes):
             for partition in self.partitions[j]:
-                bBoxes = partition.getLeafBoundingBoxesAsCuboids()
+                bBoxes = self._getCuboidsFromBBoxes(partition.getLeafBoundingBoxes())
                 if objectsDisplay:
                     viewer.add(*scene.getSolids(), representation="surface", lineWidth=0.05,
                                opacity=objectsOpacity)
@@ -258,6 +259,16 @@ class IntersectionFinderBenchmark:
         if intersection.polygon.insideEnvironment.material is None:
             return 0.125
         return 1.0
+
+    @staticmethod
+    def _getCuboidsFromBBoxes(bBoxes: List[BoundingBox]) -> List[Cuboid]:
+        cuboids = []
+        for bbox in bBoxes:
+            a = bbox.xMax - bbox.xMin
+            b = bbox.yMax - bbox.yMin
+            c = bbox.zMax - bbox.zMin
+            cuboids.append(Cuboid(a=a, b=b, c=c, position=bbox.center))
+        return cuboids
 
 
 class RandomPositionAndOrientationRaySource(RaySource):
