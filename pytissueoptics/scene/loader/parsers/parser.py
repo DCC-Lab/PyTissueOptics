@@ -29,7 +29,7 @@ class Parser:
         self._objects: Dict[str, ParsedObject] = {}
         self._vertices: List[List[float]] = []
         self._normals: List[List[float]] = []
-        self._texCoords: List[List[float]] = []
+        self._textureCoords: List[List[float]] = []
         self._currentObjectName: str = self.NO_OBJECT
         self._currentSurfaceLabel: str = self.NO_SURFACE
         self._checkFileExtension()
@@ -59,10 +59,6 @@ class Parser:
     @property
     def normals(self):
         return self._normals
-
-    @property
-    def texCoords(self):
-        return self._texCoords
 
     @property
     def objects(self):

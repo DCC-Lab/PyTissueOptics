@@ -10,7 +10,7 @@ class TestLoader(unittest.TestCase):
     TEST_DIRECTORY = os.path.dirname(os.path.abspath(__file__))
 
     def testWhenLoadWithWrongExtension_shouldNotLoad(self):
-        with self.assertRaises(ValueError):
+        with self.assertRaises(NotImplementedError):
             _ = Loader().load(self._filepath("test.wrongExtension"), showProgress=False)
 
     def testWhenLoadingOBJ_shouldLoad(self):

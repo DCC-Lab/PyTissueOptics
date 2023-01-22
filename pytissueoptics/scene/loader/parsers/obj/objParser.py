@@ -62,7 +62,7 @@ class OBJParser(Parser):
 
     def _parseTexCoords(self, values: List[str]):
         vt = list(map(float, values[1:3]))
-        self._texCoords.append(vt)
+        self._textureCoords.append(vt)
 
     def _parseMaterial(self, values: List[str]):
         self._objects[self._currentObjectName].material = values[1]
@@ -120,6 +120,3 @@ class OBJParser(Parser):
         if len(self._objects[self._currentObjectName].surfaces) == 0 and self._currentSurfaceLabel == self.NO_SURFACE:
             self._objects[self._currentObjectName].surfaces[self.NO_SURFACE] = ParsedSurface(polygons=[], normals=[],
                                                                                              texCoords=[])
-
-    def _resetSurfaceLabel(self):
-        self._currentSurfaceLabel = self.NO_SURFACE

@@ -14,12 +14,14 @@ def logNorm(data, eps=1e-6):
     data /= np.max(data)
     return data
 
+
 def labelsEqual(label1: str, label2: str) -> bool:
     if label1 is None and label2 is None:
         return True
     if label1 is None or label2 is None:
         return False
     return label1.lower() == label2.lower()
+
 
 def labelContained(label: str, labels: List[str]) -> bool:
     if label is None:
