@@ -1,1 +1,0 @@
-from .colladaParser import ColladaParser
