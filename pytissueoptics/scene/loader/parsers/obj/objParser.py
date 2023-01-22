@@ -7,6 +7,9 @@ from pytissueoptics.scene.utils.progressBar import progressBar
 
 
 class OBJParser(Parser):
+    def __init__(self, filepath: str, showProgress: bool = True):
+        super().__init__(filepath, showProgress)
+
     def _checkFileExtension(self):
         if self._filepath.endswith('.obj'):
             return

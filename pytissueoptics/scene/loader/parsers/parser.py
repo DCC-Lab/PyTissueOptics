@@ -47,7 +47,7 @@ class Parser:
     def _validateSurfaceLabel(self):
         if self._currentSurfaceLabel not in self._objects[self._currentObjectName].surfaces:
             return
-        idx = 0
+        idx = 2
         while f"{self._currentSurfaceLabel}_{idx}" in self._objects[self._currentObjectName].surfaces:
             idx += 1
         self._currentSurfaceLabel = f"{self._currentSurfaceLabel}_{idx}"
@@ -55,6 +55,10 @@ class Parser:
     @property
     def vertices(self):
         return self._vertices
+
+    @property
+    def textureCoords(self):
+        return self._textureCoords
 
     @property
     def normals(self):
