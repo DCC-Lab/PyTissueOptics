@@ -27,17 +27,17 @@ class MayaviViewer:
             colormap="viridis", reverseColormap=False, constantColor=False, opacity=1, **kwargs):
         self.add(*scene.solids, representation=representation, lineWidth=lineWidth, showNormals=showNormals,
                  normalLength=normalLength, colormap=colormap, reverseColormap=reverseColormap,
-                 constantColor=constantColor, opacity=opacity, **kwargs)
+                 colorWithPosition=constantColor, opacity=opacity, **kwargs)
 
     def add(self, *solids: 'Solid', representation="wireframe", lineWidth=0.25, showNormals=False, normalLength=0.3,
-            colormap="viridis", reverseColormap=False, constantColor=False, opacity=1, **kwargs):
+            colormap="viridis", reverseColormap=False, colorWithPosition=False, opacity=1, **kwargs):
         for solid in solids:
             mayaviSolid = MayaviSolid(solid, loadNormals=showNormals)
             self._scenes["DefaultScene"]["Solids"].append(mayaviSolid)
             s = mlab.triangular_mesh(*mayaviSolid.triangleMesh.components, representation=representation,
                                      line_width=lineWidth, colormap=colormap, opacity=opacity, **kwargs)
             s.module_manager.scalar_lut_manager.reverse_lut = reverseColormap
-            if constantColor:
+            if colorWithPosition:
                 s.module_manager.lut_data_mode = "cell data"
             if showNormals:
                 mlab.quiver3d(*mayaviSolid.normals.components, line_width=lineWidth, scale_factor=normalLength,
@@ -121,6 +121,10 @@ class MayaviViewer:
     def show(self):
         self._assignViewPoint()
         mlab.show()
+
+    def save(self, filepath):
+        self._assignViewPoint()
+        mlab.savefig(filepath, magnification=1)
 
     def _resetTo(self, scene):
         figParams = self._scenes[scene]["figureParameters"]
