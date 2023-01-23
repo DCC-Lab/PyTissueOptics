@@ -1,4 +1,3 @@
-import traceback
 import unittest
 
 import numpy as np
@@ -19,7 +18,6 @@ class TestSource(unittest.TestCase):
     def setUp(self):
         self.photon = self._createPhoton()
         self.source = SinglePhotonSource(position=Vector(), photons=[self.photon])
-
 
     def testWhenPropagate_shouldSetInitialPhotonEnvironmentAsSourceEnvironment(self):
         self.source.propagate(self._createTissue(), showProgress=False)
