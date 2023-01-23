@@ -20,6 +20,12 @@ OVERWRITE_TEST_IMAGES = False
 _SAVE_ALONGSIDE_TEST_IMAGES = False
 
 
+def patchMayaviShow(func):
+    for module in ['show', 'gcf', 'figure', 'clf', 'triangular_mesh']:
+        func = patch('mayavi.mlab.' + module)(func)
+    return func
+
+
 class TestMayaviViewer(unittest.TestCase):
     def setUp(self):
         self.viewer = MayaviViewer()
@@ -63,8 +69,8 @@ class TestMayaviViewer(unittest.TestCase):
         emptyLogger = Logger()
         self.viewer.addLogger(emptyLogger)
 
-    @patch('mayavi.mlab.show')
-    def testWhenShow_shouldDisplayTheMayaviViewer(self, fakeShow):
+    @patchMayaviShow
+    def testWhenShow_shouldDisplayTheMayaviViewer(self, fakeShow, *args):
         solid = Cuboid(1, 1, 1)
         self.viewer.add(solid)
 
