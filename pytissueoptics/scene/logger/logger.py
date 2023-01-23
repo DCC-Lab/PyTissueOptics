@@ -64,7 +64,7 @@ class Logger:
     def logPoint(self, point: Vector, key: InteractionKey = None):
         self._appendData([point.x, point.y, point.z], DataType.POINT, key)
 
-    def logDataPoint(self, value: float, position: Vector, key: InteractionKey = None):
+    def logDataPoint(self, value: float, position: Vector, key: InteractionKey):
         self._appendData([value, position.x, position.y, position.z], DataType.DATA_POINT, key)
 
     def logSegment(self, start: Vector, end: Vector, key: InteractionKey = None):
@@ -75,7 +75,7 @@ class Logger:
         assert array.shape[1] == 3 and array.ndim == 2, "Point array must be of shape (n, 3)"
         self._appendData(array, DataType.POINT, key)
 
-    def logDataPointArray(self, array: np.ndarray, key: InteractionKey = None):
+    def logDataPointArray(self, array: np.ndarray, key: InteractionKey):
         """ 'array' must be of shape (n, 4) where second axis is (value, x, y, z) """
         assert array.shape[1] == 4 and array.ndim == 2, "Data point array must be of shape (n, 4)"
         self._appendData(array, DataType.DATA_POINT, key)
