@@ -197,4 +197,5 @@ class Scene:
 
     def __hash__(self):
         solidHash = hash(tuple(sorted([hash(s) for s in self._solids])))
-        return hash((solidHash, self._worldMaterial))
+        worldMaterialHash = hash(self._worldMaterial) if self._worldMaterial else 0
+        return hash((solidHash, worldMaterialHash))

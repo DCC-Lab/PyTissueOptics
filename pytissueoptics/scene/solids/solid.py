@@ -218,4 +218,6 @@ class Solid:
                 vertex.normal.normalize()
 
     def __hash__(self):
-        return hash((hash(tuple(self._vertices)), self._material))
+        verticesHash = hash(tuple(sorted([hash(v) for v in self._vertices])))
+        materialHash = hash(self._material) if self._material else 0
+        return hash((verticesHash, materialHash))
