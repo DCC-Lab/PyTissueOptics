@@ -5,7 +5,8 @@ import numpy as np
 
 from pytissueoptics.rayscattering import utils
 from pytissueoptics.rayscattering.energyLogging import EnergyLogger
-from pytissueoptics.rayscattering.energyLogging.pointCloud import PointCloudFactory, PointCloud
+from pytissueoptics.rayscattering.energyLogging.pointCloud import PointCloud
+from rayscattering.energyLogging import PointCloudFactory
 from pytissueoptics.rayscattering.source import Source
 from pytissueoptics.rayscattering.scatteringScene import ScatteringScene
 from pytissueoptics.rayscattering.statistics import Stats
