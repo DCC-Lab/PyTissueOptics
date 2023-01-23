@@ -3,7 +3,7 @@ import unittest
 import numpy as np
 from mockito import mock, when
 
-from pytissueoptics.rayscattering.display.statistics import Stats
+from rayscattering.statistics.statistics import Stats
 from pytissueoptics.rayscattering.source import Source
 from pytissueoptics.scene import Logger, Vector
 from pytissueoptics.scene.geometry import Environment

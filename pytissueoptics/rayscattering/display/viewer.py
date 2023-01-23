@@ -8,7 +8,7 @@ from pytissueoptics.rayscattering.energyLogging import EnergyLogger
 from pytissueoptics.rayscattering.energyLogging.pointCloud import PointCloudFactory, PointCloud
 from pytissueoptics.rayscattering.source import Source
 from pytissueoptics.rayscattering.scatteringScene import ScatteringScene
-from pytissueoptics.rayscattering.display.statistics import Stats
+from pytissueoptics.rayscattering.statistics import Stats
 from pytissueoptics.rayscattering.display.utils import Direction
 from pytissueoptics.rayscattering.display.views import ViewGroup, View2D
 from pytissueoptics.rayscattering.display.profiles import Profile1DFactory
