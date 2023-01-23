@@ -12,6 +12,7 @@ from pytissueoptics.scene.intersection.mollerTrumboreIntersect import EPS_CORREC
 from pytissueoptics.scene.logger import Logger, InteractionKey
 
 WORLD_LABEL = "world"
+WEIGHT_THRESHOLD = 1e-4
 
 
 class Photon:
@@ -40,10 +41,6 @@ class Photon:
     @property
     def direction(self) -> Vector:
         return self._direction
-
-    @property
-    def er(self) -> Vector:
-        return self._er
 
     @property
     def weight(self) -> float:
@@ -185,7 +182,7 @@ class Photon:
 
     def roulette(self):
         chance = 0.1
-        if self._weight >= 1e-4 or self._weight == 0:
+        if self._weight >= WEIGHT_THRESHOLD or self._weight == 0:
             return
         elif random.random() < chance:
             self._weight /= chance
