@@ -5,7 +5,7 @@ from typing import Union, List
 import numpy as np
 
 from pytissueoptics.rayscattering import utils
-from pytissueoptics.rayscattering.tissues import RayScatteringScene
+from pytissueoptics.rayscattering.tissues import ScatteringScene
 from pytissueoptics.rayscattering.display.views.view2D import ViewGroup, View2D
 from pytissueoptics.rayscattering.display.views.viewFactory import ViewFactory
 from pytissueoptics.scene.logger.logger import Logger, InteractionKey
@@ -13,7 +13,7 @@ from pytissueoptics.scene.geometry.vector import Vector
 
 
 class EnergyLogger(Logger):
-    def __init__(self, scene: RayScatteringScene, filepath: str = None, keep3D: bool = True,
+    def __init__(self, scene: ScatteringScene, filepath: str = None, keep3D: bool = True,
                  views: Union[ViewGroup, List[View2D]] = ViewGroup.ALL, defaultBinSize: float = 0.01,
                  infiniteLimits=((-5, 5), (-5, 5), (-5, 5))):
         """

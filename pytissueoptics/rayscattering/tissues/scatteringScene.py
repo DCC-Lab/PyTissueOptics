@@ -8,7 +8,7 @@ from pytissueoptics.scene import MayaviViewer, Scene
 from pytissueoptics.scene.solids import Solid
 
 
-class RayScatteringScene(Scene):
+class ScatteringScene(Scene):
     def __init__(self, solids: List[Solid], worldMaterial=ScatteringMaterial()):
         super().__init__(solids, worldMaterial=worldMaterial)
 

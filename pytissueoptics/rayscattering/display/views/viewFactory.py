@@ -2,14 +2,14 @@ from typing import Union, List, Tuple
 
 import numpy as np
 
-from pytissueoptics.rayscattering.tissues import RayScatteringScene
+from pytissueoptics.rayscattering.tissues import ScatteringScene
 from pytissueoptics.rayscattering.display.views.view2D import ViewGroup, View2D
 from pytissueoptics.rayscattering.display.views.defaultViews import View2DProjectionX, View2DProjectionY, View2DProjectionZ, \
     View2DSurfaceX, View2DSurfaceY, View2DSurfaceZ
 
 
 class ViewFactory:
-    def __init__(self, scene: RayScatteringScene, defaultBinSize: Union[float, Tuple[float, float, float]],
+    def __init__(self, scene: ScatteringScene, defaultBinSize: Union[float, Tuple[float, float, float]],
                  infiniteLimits: tuple):
         self._scene = scene
 

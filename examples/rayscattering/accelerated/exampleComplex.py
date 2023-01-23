@@ -22,7 +22,7 @@ else:
 cube = Cuboid(a=3, b=3, c=3, position=Vector(0, 0, 0), material=material1, label="Cube")
 sphere = Sphere(radius=1, order=3, position=Vector(0, 0, 0), material=material2, label="Sphere",
                 smooth=True)
-scene = RayScatteringScene([cube, sphere])
+scene = ScatteringScene([cube, sphere])
 
 logger = EnergyLogger(scene)
 source = DirectionalSource(position=Vector(0, 0, -2), direction=Vector(0, 0, 1), N=N,

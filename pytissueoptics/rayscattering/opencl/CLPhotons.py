@@ -11,7 +11,7 @@ from pytissueoptics.rayscattering.opencl.CLProgram import CLProgram
 from pytissueoptics.rayscattering.opencl.buffers.seedCL import SeedCL
 from pytissueoptics.rayscattering.opencl.buffers.dataPointCL import DataPointCL
 from pytissueoptics.rayscattering.opencl.buffers.photonCL import PhotonCL
-from pytissueoptics.rayscattering.tissues.rayScatteringScene import RayScatteringScene
+from pytissueoptics.rayscattering.tissues.scatteringScene import ScatteringScene
 from pytissueoptics.scene.logger.logger import Logger
 from pytissueoptics.scene.geometry import Environment
 
@@ -30,7 +30,7 @@ class CLPhotons:
         self._scene = None
         self._sceneLogger = None
 
-    def setContext(self, scene: RayScatteringScene, environment: Environment, logger: Logger = None):
+    def setContext(self, scene: ScatteringScene, environment: Environment, logger: Logger = None):
         self._scene = scene
         self._sceneLogger = logger
         self._initialMaterial = environment.material

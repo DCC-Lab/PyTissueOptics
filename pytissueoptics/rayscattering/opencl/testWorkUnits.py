@@ -24,7 +24,7 @@ def computeOptimalNWorkUnits() -> int:
     cube = Cuboid(a=3, b=3, c=3, position=Vector(0, 0, 0), material=material1, label="Cube")
     sphere = Sphere(radius=1, order=2, position=Vector(0, 0, 0), material=material2, label="Sphere",
                     smooth=True)
-    scene = RayScatteringScene([cube, sphere])
+    scene = ScatteringScene([cube, sphere])
 
     arr_workUnits, arr_speed = [], []
     MIN_bits = int(math.log(MIN_N, math.sqrt(2))) + 1

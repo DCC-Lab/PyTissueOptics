@@ -20,7 +20,7 @@ def exampleCode():
     stack1 = layer1.stack(layer2, "back")
     stackedTissue = stack1.stack(layer3, "back")
 
-    tissue = RayScatteringScene([stackedTissue])
+    tissue = ScatteringScene([stackedTissue])
 
     logger = EnergyLogger(tissue)
     source = PencilPointSource(position=Vector(0, 0, -5), direction=Vector(0, 0, 1), N=500)

@@ -4,7 +4,7 @@ from unittest.mock import patch
 
 from mockito import mock, verify, when
 
-from pytissueoptics.rayscattering.tissues import RayScatteringScene
+from pytissueoptics.rayscattering.tissues import ScatteringScene
 from pytissueoptics.rayscattering.materials import ScatteringMaterial
 from pytissueoptics.scene.solids import Cuboid
 from pytissueoptics.scene.viewer import MayaviViewer
@@ -16,19 +16,19 @@ def patchMayaviShow(func):
     return func
 
 
-class TestRayScatteringScene(unittest.TestCase):
+class TestScatteringScene(unittest.TestCase):
     def testWhenAddingASolidWithAScatteringMaterial_shouldAddSolidToTheScene(self):
-        scene = RayScatteringScene([Cuboid(1, 1, 1, material=ScatteringMaterial())])
+        scene = ScatteringScene([Cuboid(1, 1, 1, material=ScatteringMaterial())])
         self.assertEqual(len(scene.solids), 1)
 
     def testWhenAddingASolidWithNoScatteringMaterialDefined_shouldRaiseException(self):
         with self.assertRaises(Exception):
-            RayScatteringScene([Cuboid(1, 1, 1)])
+            ScatteringScene([Cuboid(1, 1, 1)])
         with self.assertRaises(Exception):
-            RayScatteringScene([Cuboid(1, 1, 1, material="Not a scattering material")])
+            ScatteringScene([Cuboid(1, 1, 1, material="Not a scattering material")])
 
     def testWhenAddToViewer_shouldAddAllSolidsToViewer(self):
-        scene = RayScatteringScene([Cuboid(1, 1, 1, material=ScatteringMaterial())])
+        scene = ScatteringScene([Cuboid(1, 1, 1, material=ScatteringMaterial())])
         viewer = mock(MayaviViewer)
         when(viewer).add(...).thenReturn()
 
@@ -38,7 +38,7 @@ class TestRayScatteringScene(unittest.TestCase):
 
     @patchMayaviShow
     def testWhenDisplay_shouldDisplayWithMayaviViewer(self, mockShow, *args):
-        scene = RayScatteringScene([Cuboid(1, 1, 1, material=ScatteringMaterial())])
+        scene = ScatteringScene([Cuboid(1, 1, 1, material=ScatteringMaterial())])
         scene.display()
 
         mockShow.assert_called_once()
@@ -49,7 +49,7 @@ class TestRayScatteringScene(unittest.TestCase):
         meanAlbedo = (material1.getAlbedo() + material2.getAlbedo()) / 2
         weightThreshold = 0.0001
 
-        scene = RayScatteringScene([Cuboid(1, 1, 1, material=material2)], worldMaterial=material1)
+        scene = ScatteringScene([Cuboid(1, 1, 1, material=material2)], worldMaterial=material1)
 
         estimation = scene.getEstimatedIPP(weightThreshold)
         expectedEstimation = -math.log(weightThreshold) / meanAlbedo

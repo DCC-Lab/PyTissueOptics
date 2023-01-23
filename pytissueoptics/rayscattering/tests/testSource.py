@@ -6,7 +6,7 @@ from mockito import mock, when, verify
 from pytissueoptics.rayscattering import PencilPointSource, Photon
 from pytissueoptics.rayscattering.materials import ScatteringMaterial
 from pytissueoptics.rayscattering.source import Source, IsotropicPointSource, DirectionalSource
-from pytissueoptics.rayscattering.tissues.rayScatteringScene import RayScatteringScene
+from pytissueoptics.rayscattering.tissues.scatteringScene import ScatteringScene
 from pytissueoptics.scene import Logger
 from pytissueoptics.scene.geometry import Environment, Vector
 
@@ -37,7 +37,7 @@ class TestSource(unittest.TestCase):
         verify(self.photon).propagate()
 
     def _createTissue(self):
-        tissue = mock(RayScatteringScene)
+        tissue = mock(ScatteringScene)
         when(tissue).getEnvironmentAt(self.SOURCE_POSITION).thenReturn(self.SOURCE_ENV)
         when(tissue).resetOutsideMaterial(...).thenReturn()
         when(tissue).getBoundingBox().thenReturn()

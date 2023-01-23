@@ -7,7 +7,7 @@ from pytissueoptics.rayscattering import utils
 from pytissueoptics.rayscattering.energyLogging import EnergyLogger
 from pytissueoptics.rayscattering.energyLogging.pointCloud import PointCloudFactory, PointCloud
 from pytissueoptics.rayscattering.source import Source
-from pytissueoptics.rayscattering.tissues import RayScatteringScene
+from pytissueoptics.rayscattering.tissues import ScatteringScene
 from pytissueoptics.rayscattering.display.statistics import Stats
 from pytissueoptics.rayscattering.display.utils import Direction
 from pytissueoptics.rayscattering.display.views import ViewGroup, View2D
@@ -76,7 +76,7 @@ class PointCloudStyle:
 
 
 class Viewer:
-    def __init__(self, scene: RayScatteringScene, source: Source, logger: EnergyLogger):
+    def __init__(self, scene: ScatteringScene, source: Source, logger: EnergyLogger):
         assert isinstance(logger, EnergyLogger), "The viewer requires an EnergyLogger."
         self._scene = scene
         self._source = source

@@ -24,7 +24,7 @@ def exampleCode():
     screen3 = Cuboid(a=0.1, b=4, c=4, position=Vector(10, 0, 0), material=blockMaterial, label="Screen3")
 
     ellipsoid = Ellipsoid(a=0.5, b=2, c=2, position=Vector(-1, 0, 0), material=glassMaterial)
-    myCustomScene = RayScatteringScene([screen1, screen2, screen3, ellipsoid])
+    myCustomScene = ScatteringScene([screen1, screen2, screen3, ellipsoid])
 
     myCustomScene.display()
 

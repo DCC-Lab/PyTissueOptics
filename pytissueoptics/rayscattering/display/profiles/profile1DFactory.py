@@ -4,13 +4,13 @@ import numpy as np
 
 from pytissueoptics.rayscattering import utils
 from pytissueoptics.rayscattering.energyLogging import EnergyLogger, PointCloudFactory
-from pytissueoptics.rayscattering.tissues import RayScatteringScene
+from pytissueoptics.rayscattering.tissues import ScatteringScene
 from pytissueoptics.rayscattering.display.profiles import Profile1D
 from pytissueoptics.rayscattering.display.utils import Direction
 
 
 class Profile1DFactory:
-    def __init__(self, scene: RayScatteringScene, logger: EnergyLogger):
+    def __init__(self, scene: ScatteringScene, logger: EnergyLogger):
         self._scene = scene
         self._logger = logger
         self._pointCloudFactory = PointCloudFactory(logger)

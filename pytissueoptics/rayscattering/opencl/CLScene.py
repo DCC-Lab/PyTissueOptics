@@ -2,7 +2,7 @@ from typing import List
 
 import numpy as np
 
-from pytissueoptics.rayscattering.tissues import RayScatteringScene
+from pytissueoptics.rayscattering.tissues import ScatteringScene
 from pytissueoptics.rayscattering.opencl.buffers import SolidCLInfo, \
     SurfaceCLInfo, TriangleCLInfo
 from pytissueoptics.rayscattering.opencl.buffers.solidCandidateCL import SolidCandidateCL
@@ -20,7 +20,7 @@ NO_SOLID_LABEL = "world"
 
 
 class CLScene:
-    def __init__(self, scene: RayScatteringScene, nWorkUnits: int):
+    def __init__(self, scene: ScatteringScene, nWorkUnits: int):
         self._sceneMaterials = scene.getMaterials()
         self._solidLabels = [solid.getLabel() for solid in scene.getSolids()]
         self._surfaceLabels = {}

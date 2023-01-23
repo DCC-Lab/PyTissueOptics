@@ -1,3 +1,3 @@
 from .phantomTissue import PhantomTissue
 from .infiniteTissue import InfiniteTissue
-from .rayScatteringScene import RayScatteringScene
+from .scatteringScene import ScatteringScene

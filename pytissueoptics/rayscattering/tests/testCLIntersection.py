@@ -75,7 +75,7 @@ class TestCLIntersection(unittest.TestCase):
         layer2 = Cuboid(a=10, b=10, c=2, position=Vector(0, 0, 0), material=material2, label="Layer 2")
         tissue = layer1.stack(layer2, "back")
         solid2 = Cuboid(2, 2, 2, position=Vector(10, 0, 0), material=material3)
-        scene = RayScatteringScene([tissue, solid2], worldMaterial=ScatteringMaterial())
+        scene = ScatteringScene([tissue, solid2], worldMaterial=ScatteringMaterial())
         return scene
 
 
