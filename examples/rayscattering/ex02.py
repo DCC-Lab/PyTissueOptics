@@ -14,7 +14,7 @@ it is not possible to view the data in 3D without binning as this generates too 
 
 def exampleCode():
     myMaterial = ScatteringMaterial(mu_s=30.0, mu_a=0.1, g=0.9)
-    tissue = tissues.InfiniteTissue(myMaterial)
+    tissue = samples.InfiniteTissue(myMaterial)
 
     logger = EnergyLogger(tissue)
     source = DivergentSource(position=Vector(0, 0, 0), direction=Vector(0, 0, 1), N=10000,

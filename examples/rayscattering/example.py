@@ -3,7 +3,7 @@ import numpy as np
 
 np.random.seed(15)
 
-tissue = tissues.PhantomTissue()
+tissue = samples.PhantomTissue()
 source = PencilPointSource(position=Vector(0, 0, -1),
                            direction=Vector(0, 0, 1), N=2000)
 logger = EnergyLogger(tissue)

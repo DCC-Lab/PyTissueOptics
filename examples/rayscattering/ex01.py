@@ -9,7 +9,7 @@ Then we propagate the PencilSource photons in the tissue and then show the distr
 
 
 def exampleCode():
-    tissue = tissues.PhantomTissue()
+    tissue = samples.PhantomTissue()
     logger = EnergyLogger(tissue)
     source = PencilPointSource(position=Vector(0, 0, -1), direction=Vector(0, 0, 1), N=2000)
 

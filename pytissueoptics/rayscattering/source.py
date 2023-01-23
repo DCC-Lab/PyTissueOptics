@@ -6,7 +6,7 @@ import numpy as np
 from pytissueoptics.rayscattering import utils
 from pytissueoptics.rayscattering.energyLogging import EnergyLogger
 from pytissueoptics.rayscattering.opencl.CLPhotons import CLPhotons
-from pytissueoptics.rayscattering.tissues.scatteringScene import ScatteringScene
+from pytissueoptics.rayscattering.scatteringScene import ScatteringScene
 from pytissueoptics.rayscattering.photon import Photon
 from pytissueoptics.rayscattering.opencl import IPPTable, CONFIG, validateOpenCL, warnings
 from pytissueoptics.scene.solids import Sphere

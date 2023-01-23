@@ -11,7 +11,7 @@ from pytissueoptics.rayscattering.opencl.CLProgram import CLProgram
 from pytissueoptics.rayscattering.opencl.buffers.seedCL import SeedCL
 from pytissueoptics.rayscattering.opencl.buffers.dataPointCL import DataPointCL
 from pytissueoptics.rayscattering.opencl.buffers.photonCL import PhotonCL
-from pytissueoptics.rayscattering.tissues.scatteringScene import ScatteringScene
+from pytissueoptics.rayscattering.scatteringScene import ScatteringScene
 from pytissueoptics.scene.logger.logger import Logger
 from pytissueoptics.scene.geometry import Environment
 

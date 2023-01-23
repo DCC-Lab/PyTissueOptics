@@ -11,7 +11,7 @@ from pytissueoptics import *
 
 N = 500000
 
-scene = tissues.PhantomTissue()
+scene = samples.PhantomTissue()
 source = DivergentSource(position=Vector(0, 0, -0.1), direction=Vector(0, 0, 1), N=N,
                          useHardwareAcceleration=True, diameter=0.2, divergence=np.pi / 4)
 logger = EnergyLogger(scene)

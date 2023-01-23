@@ -2,7 +2,7 @@ from typing import List
 
 import numpy as np
 
-from pytissueoptics.rayscattering.tissues import ScatteringScene
+from pytissueoptics.rayscattering.scatteringScene import ScatteringScene
 from pytissueoptics.rayscattering.opencl.buffers import SolidCLInfo, \
     SurfaceCLInfo, TriangleCLInfo
 from pytissueoptics.rayscattering.opencl.buffers.solidCandidateCL import SolidCandidateCL

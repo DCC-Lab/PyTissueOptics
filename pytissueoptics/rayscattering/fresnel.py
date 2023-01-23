@@ -2,8 +2,7 @@ import math
 import random
 from dataclasses import dataclass
 
-from pytissueoptics.scene import Vector
-from pytissueoptics.scene.geometry import Environment
+from pytissueoptics.scene.geometry import Environment, Vector
 from pytissueoptics.scene.intersection.intersectionFinder import Intersection
 
 

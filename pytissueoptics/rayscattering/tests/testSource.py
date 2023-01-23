@@ -6,7 +6,7 @@ from mockito import mock, when, verify
 from pytissueoptics.rayscattering import PencilPointSource, Photon
 from pytissueoptics.rayscattering.materials import ScatteringMaterial
 from pytissueoptics.rayscattering.source import Source, IsotropicPointSource, DirectionalSource
-from pytissueoptics.rayscattering.tissues.scatteringScene import ScatteringScene
+from rayscattering.scatteringScene import ScatteringScene
 from pytissueoptics.scene import Logger
 from pytissueoptics.scene.geometry import Environment, Vector
 

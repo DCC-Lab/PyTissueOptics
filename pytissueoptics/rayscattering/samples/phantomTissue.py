@@ -1,5 +1,5 @@
 from pytissueoptics.rayscattering.materials import ScatteringMaterial
-from pytissueoptics.rayscattering.tissues.scatteringScene import ScatteringScene
+from pytissueoptics.rayscattering.scatteringScene import ScatteringScene
 from pytissueoptics.scene import Cuboid, Vector
 
 

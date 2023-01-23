@@ -22,7 +22,7 @@ These parameters will be used to mimic the parameters a typical user would utili
 
 N = 10000
 
-tissue = tissues.InfiniteTissue(material=ScatteringMaterial(30, 0.1, 0.8, 1.4))
+tissue = samples.InfiniteTissue(material=ScatteringMaterial(30, 0.1, 0.8, 1.4))
 source = PencilPointSource(position=Vector(0, 0, 0), direction=Vector(0, 0, 1), N=N, useHardwareAcceleration=True)
 
 logger = EnergyLogger(tissue)

@@ -5,7 +5,7 @@ from typing import Union, List
 import numpy as np
 
 from pytissueoptics.rayscattering import utils
-from pytissueoptics.rayscattering.tissues import ScatteringScene
+from pytissueoptics.rayscattering.scatteringScene import ScatteringScene
 from pytissueoptics.rayscattering.display.views.view2D import ViewGroup, View2D
 from pytissueoptics.rayscattering.display.views.viewFactory import ViewFactory
 from pytissueoptics.scene.logger.logger import Logger, InteractionKey
