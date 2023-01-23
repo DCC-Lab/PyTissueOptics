@@ -1,4 +1,4 @@
-from pytissueoptics.rayscattering.opencl.CLObjects.CLObject import *
+from pytissueoptics.rayscattering.opencl.buffers.CLObject import *
 
 
 class SolidCandidateCL(CLObject):

@@ -1,7 +1,7 @@
 import psutil
 import numpy as np
 
-from pytissueoptics.rayscattering.opencl.CLObjects import DataPointCL
+from pytissueoptics.rayscattering.opencl.buffers import DataPointCL
 from pytissueoptics.rayscattering.opencl import CONFIG, warnings
 
 

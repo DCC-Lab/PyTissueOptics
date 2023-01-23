@@ -1,7 +1,7 @@
 from typing import List
 
 from pytissueoptics.rayscattering.materials.scatteringMaterial import ScatteringMaterial
-from pytissueoptics.rayscattering.opencl.CLObjects.CLObject import *
+from pytissueoptics.rayscattering.opencl.buffers.CLObject import *
 
 
 class MaterialCL(CLObject):

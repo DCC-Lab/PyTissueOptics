@@ -1,6 +1,6 @@
 from numpy.lib import recfunctions as rfn
 
-from pytissueoptics.rayscattering.opencl.CLObjects.CLObject import *
+from pytissueoptics.rayscattering.opencl.buffers.CLObject import *
 
 
 class PhotonCL(CLObject):

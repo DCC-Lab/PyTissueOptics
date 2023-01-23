@@ -16,7 +16,7 @@ else:
     cl = None
 
 from pytissueoptics.rayscattering.opencl.CLProgram import CLProgram
-from pytissueoptics.rayscattering.opencl.CLObjects import CLObject
+from pytissueoptics.rayscattering.opencl.buffers import CLObject
 
 
 @unittest.skipIf(not OPENCL_AVAILABLE, 'Requires PyOpenCL.')

@@ -12,7 +12,7 @@ except ImportError:
 from numpy.lib import recfunctions as rfn
 
 from pytissueoptics.rayscattering.opencl import CONFIG
-from pytissueoptics.rayscattering.opencl.CLObjects import CLObject
+from pytissueoptics.rayscattering.opencl.buffers import CLObject
 
 
 class CLProgram:

@@ -8,9 +8,9 @@ from pytissueoptics.rayscattering.opencl.utils import CLKeyLog
 from pytissueoptics.rayscattering.opencl.CLScene import CLScene
 from pytissueoptics.rayscattering.opencl.config.CLParameters import CLParameters
 from pytissueoptics.rayscattering.opencl.CLProgram import CLProgram
-from pytissueoptics.rayscattering.opencl.CLObjects.seedCL import SeedCL
-from pytissueoptics.rayscattering.opencl.CLObjects.dataPointCL import DataPointCL
-from pytissueoptics.rayscattering.opencl.CLObjects.photonCL import PhotonCL
+from pytissueoptics.rayscattering.opencl.buffers.seedCL import SeedCL
+from pytissueoptics.rayscattering.opencl.buffers.dataPointCL import DataPointCL
+from pytissueoptics.rayscattering.opencl.buffers.photonCL import PhotonCL
 from pytissueoptics.rayscattering.tissues.rayScatteringScene import RayScatteringScene
 from pytissueoptics.scene.logger.logger import Logger
 from pytissueoptics.scene.geometry import Environment

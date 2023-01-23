@@ -10,11 +10,11 @@ import matplotlib.pyplot as plt
 from pytissueoptics import ScatteringMaterial
 from pytissueoptics.rayscattering.opencl.CLProgram import CLProgram
 from pytissueoptics.scene import Vector
-from pytissueoptics.rayscattering.opencl.CLObjects import CLObject
-from pytissueoptics.rayscattering.opencl.CLObjects.seedCL import SeedCL
-from pytissueoptics.rayscattering.opencl.CLObjects.dataPointCL import DataPointCL
-from pytissueoptics.rayscattering.opencl.CLObjects.materialCL import MaterialCL
-from pytissueoptics.rayscattering.opencl.CLObjects.photonCL import PhotonCL
+from pytissueoptics.rayscattering.opencl.buffers import CLObject
+from pytissueoptics.rayscattering.opencl.buffers.seedCL import SeedCL
+from pytissueoptics.rayscattering.opencl.buffers.dataPointCL import DataPointCL
+from pytissueoptics.rayscattering.opencl.buffers.materialCL import MaterialCL
+from pytissueoptics.rayscattering.opencl.buffers.photonCL import PhotonCL
 
 execTest = False
 
