@@ -100,6 +100,9 @@ class View2D:
         Used internally by Logger2D to store 3D datapoints into this 2D view.
         Data points are (n, 4) arrays with (value, x, y, z).
         """
+        if self._binsU is None or self._binsV is None:
+            raise RuntimeError("View2D must be initialized with setContext before extracting data.")
+
         dataPoints = self._filter(dataPoints)
         if dataPoints.size == 0:
             return
