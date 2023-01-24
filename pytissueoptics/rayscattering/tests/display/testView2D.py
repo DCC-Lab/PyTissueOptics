@@ -527,8 +527,6 @@ class TestView2D(unittest.TestCase):
         view.setContext([(2, 3), (2, 4), (2, 5)], (0.1, 0.1, 0.1))
         self.assertEqual((3, 2), view.size)
 
-    # todo: visual test. maybe reroute plt.show to a temp file and compare it to a reference image.
-
     def testWhenShow_shouldPlotTheViewWithCorrectDataAndAxes(self):
         view = View2DProjection(Direction.X_POS, Direction.Y_POS)
         view.setContext([(2, 4), (2, 4), (2, 4)], (0.1, 0.1, 0.1))
