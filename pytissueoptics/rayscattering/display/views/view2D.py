@@ -177,7 +177,7 @@ class View2D:
 
         horizontalOrder = {0: [2, 1, 5, 4], 1: [2, 0, 5, 3], 2: [3, 1, 0, 4]}
         horizontalIndex = horizontalOrder[self.axis].index(currentHorizontal.value)
-        image = np.rot90(image, horizontalIndex)
+        image = np.rot90(image, -horizontalIndex)
 
         return image
 

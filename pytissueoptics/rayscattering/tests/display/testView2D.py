@@ -144,33 +144,41 @@ class TestView2D(unittest.TestCase):
 
         self.assertTrue(np.array_equal(naturalImage, alignedImage))
 
-    def testGivenCustomXView1_shouldHaveImageDataWithDefaultAlignmentEqualToNaturalView(self):
-        customView = View2DProjection(projectionDirection=Direction.X_POS, horizontalDirection=Direction.Z_NEG)
-        self._shouldHaveImageDataWithDefaultAlignmentEqualToNaturalView(customView)
+    def testGivenXViewWithCustomHorizontal_shouldHaveImageDataWithDefaultAlignmentEqualToNaturalView(self):
+        for horizontalDirection in [Direction.Y_POS, Direction.Y_NEG, Direction.Z_NEG]:
+            customView = View2DProjection(Direction.X_POS, horizontalDirection=horizontalDirection)
+            with self.subTest(horizontalDirection=horizontalDirection):
+                self._shouldHaveImageDataWithDefaultAlignmentEqualToNaturalView(customView)
 
-    def testGivenCustomXView2_shouldHaveImageDataWithDefaultAlignmentEqualToNaturalView(self):
-        customView = View2DProjection(projectionDirection=Direction.X_POS, horizontalDirection=Direction.Y_POS)
-        self._shouldHaveImageDataWithDefaultAlignmentEqualToNaturalView(customView)
+    def testGivenXViewWithReverseProjectionAndAnyHorizontal_shouldHaveImageDataWithDefaultAlignmentEqualToNaturalView(self):
+        for horizontalDirection in [Direction.Y_POS, Direction.Y_NEG, Direction.Z_POS, Direction.Z_NEG]:
+            customView = View2DProjection(Direction.X_NEG, horizontalDirection=horizontalDirection)
+            with self.subTest(horizontalDirection=horizontalDirection):
+                self._shouldHaveImageDataWithDefaultAlignmentEqualToNaturalView(customView)
 
-    def testGivenCustomXView3_shouldHaveImageDataWithDefaultAlignmentEqualToNaturalView(self):
-        customView = View2DProjection(projectionDirection=Direction.X_POS, horizontalDirection=Direction.Y_NEG)
-        self._shouldHaveImageDataWithDefaultAlignmentEqualToNaturalView(customView)
+    def testGivenYViewWithCustomHorizontal_shouldHaveImageDataWithDefaultAlignmentEqualToNaturalView(self):
+        for horizontalDirection in [Direction.X_POS, Direction.X_NEG, Direction.Z_NEG]:
+            customView = View2DProjection(Direction.Y_NEG, horizontalDirection=horizontalDirection)
+            with self.subTest(horizontalDirection=horizontalDirection):
+                self._shouldHaveImageDataWithDefaultAlignmentEqualToNaturalView(customView)
 
-    def testGivenCustomXView4_shouldHaveImageDataWithDefaultAlignmentEqualToNaturalView(self):
-        customView = View2DProjection(projectionDirection=Direction.X_NEG, horizontalDirection=Direction.Z_POS)
-        self._shouldHaveImageDataWithDefaultAlignmentEqualToNaturalView(customView)
+    def testGivenYViewWithReverseProjectionAndAnyHorizontal_shouldHaveImageDataWithDefaultAlignmentEqualToNaturalView(self):
+        for horizontalDirection in [Direction.X_POS, Direction.X_NEG, Direction.Z_POS, Direction.Z_NEG]:
+            customView = View2DProjection(Direction.Y_POS, horizontalDirection=horizontalDirection)
+            with self.subTest(horizontalDirection=horizontalDirection):
+                self._shouldHaveImageDataWithDefaultAlignmentEqualToNaturalView(customView)
 
-    def testGivenCustomXView5_shouldHaveImageDataWithDefaultAlignmentEqualToNaturalView(self):
-        customView = View2DProjection(projectionDirection=Direction.X_NEG, horizontalDirection=Direction.Z_NEG)
-        self._shouldHaveImageDataWithDefaultAlignmentEqualToNaturalView(customView)
+    def testGivenZViewWithCustomHorizontal_shouldHaveImageDataWithDefaultAlignmentEqualToNaturalView(self):
+        for horizontalDirection in [Direction.X_POS, Direction.Y_POS, Direction.Y_NEG]:
+            customView = View2DProjection(Direction.Z_POS, horizontalDirection=horizontalDirection)
+            with self.subTest(horizontalDirection=horizontalDirection):
+                self._shouldHaveImageDataWithDefaultAlignmentEqualToNaturalView(customView)
 
-    def testGivenCustomXView6_shouldHaveImageDataWithDefaultAlignmentEqualToNaturalView(self):
-        customView = View2DProjection(projectionDirection=Direction.X_NEG, horizontalDirection=Direction.Y_POS)
-        self._shouldHaveImageDataWithDefaultAlignmentEqualToNaturalView(customView)
-
-    def testGivenCustomXView7_shouldHaveImageDataWithDefaultAlignmentEqualToNaturalView(self):
-        customView = View2DProjection(projectionDirection=Direction.X_NEG, horizontalDirection=Direction.Y_NEG)
-        self._shouldHaveImageDataWithDefaultAlignmentEqualToNaturalView(customView)
+    def testGivenZViewWithReverseProjectionAndAnyHorizontal_shouldHaveImageDataWithDefaultAlignmentEqualToNaturalView(self):
+        for horizontalDirection in [Direction.X_POS, Direction.X_NEG, Direction.Y_POS, Direction.Y_NEG]:
+            customView = View2DProjection(Direction.Z_NEG, horizontalDirection=horizontalDirection)
+            with self.subTest(horizontalDirection=horizontalDirection):
+                self._shouldHaveImageDataWithDefaultAlignmentEqualToNaturalView(customView)
 
     def _shouldHaveImageDataWithDefaultAlignmentEqualToNaturalView(self, customView: View2D):
         if customView.axis == 0:
