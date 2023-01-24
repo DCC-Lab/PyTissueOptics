@@ -3,11 +3,10 @@ import unittest
 import numpy as np
 from mockito import mock, when, verify
 
-from pytissueoptics.rayscattering import PencilPointSource, Photon
+from pytissueoptics.rayscattering import PencilPointSource, Photon, EnergyLogger
 from pytissueoptics.rayscattering.materials import ScatteringMaterial
 from pytissueoptics.rayscattering.source import Source, IsotropicPointSource, DirectionalSource
-from rayscattering.scatteringScene import ScatteringScene
-from pytissueoptics.scene import Logger
+from pytissueoptics.rayscattering.scatteringScene import ScatteringScene
 from pytissueoptics.scene.geometry import Environment, Vector
 
 
@@ -24,7 +23,7 @@ class TestSource(unittest.TestCase):
         verify(self.photon).setContext(self.SOURCE_ENV, ...)
 
     def testWhenPropagate_shouldUpdatePhotonCountInLogger(self):
-        logger = Logger()
+        logger = EnergyLogger(mock(ScatteringScene), views=[])
         self.source.propagate(self._createTissue(), logger=logger, showProgress=False)
         self.assertEqual(logger.info['photonCount'], 1)
 
