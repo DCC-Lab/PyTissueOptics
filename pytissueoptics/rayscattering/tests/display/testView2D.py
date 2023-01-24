@@ -2,7 +2,7 @@ import unittest
 
 import numpy as np
 
-from pytissueoptics import Direction, View2DProjection, View2DProjectionY, View2DProjectionZ
+from pytissueoptics import Direction, View2DProjection, View2DProjectionY, View2DProjectionZ, View2DSurfaceX
 from pytissueoptics.rayscattering.display.views import View2DProjectionX, View2D
 
 
@@ -101,6 +101,13 @@ class TestView2D(unittest.TestCase):
 
         self.assertEqual(value * 3, view.getSum())
 
+    def testWhenExtractDataWithNoData_shouldIgnore(self):
+        view = View2DProjectionX()
+        view.setContext([(2, 3), (2, 3), (2, 3)], (0.1, 0.1, 0.1))
+        view.extractData(np.array([]))
+
+        self.assertEqual(0, view.getSum())
+
     def testWhenGetImageDataWithoutLogScale_shouldReturnImageOfRawData(self):
         view = View2DProjectionX()
         view.setContext([(2, 3), (2, 3), (2, 3)], (0.1, 0.1, 0.1))
@@ -131,53 +138,73 @@ class TestView2D(unittest.TestCase):
         self.assertEqual(1, image[0, -1])
         self.assertTrue(image.sum() > 1 + value)
 
+    def testWhenGetImageDataWithoutAutoFlip_shouldPreserveRawUVDirections(self):
+        view = View2DProjection(projectionDirection=Direction.Z_POS, horizontalDirection=Direction.Y_NEG)
+        view.setContext([(2, 3), (2, 3), (2, 3)], (0.1, 0.1, 0.1))
+        value = 0.5
+        dataPoints = np.array([[value, 2.05, 2.05, 0],
+                               [value, 2.05, 2.05, 5],
+                               [value, 2.5, 2.95, 0]])
+        view.extractData(dataPoints)
+
+        image = view.getImageData(logScale=False, autoFlip=False)
+
+        self.assertEqual(value * 2, image[0, -1])
+        self.assertEqual(value, image[-1, 4])
+
+    def testWhenGetImageData_shouldAutoFlipAxesToBePositive(self):
+        view = View2DProjection(projectionDirection=Direction.Z_POS, horizontalDirection=Direction.Y_NEG)
+        view.setContext([(2, 3), (2, 3), (2, 3)], (0.1, 0.1, 0.1))
+        value = 0.5
+        dataPoints = np.array([[value, 2.05, 2.05, 0],
+                               [value, 2.05, 2.05, 5],
+                               [value, 2.5, 2.95, 0]])
+        view.extractData(dataPoints)
+
+        image = view.getImageData(logScale=False)
+
+        self.assertEqual(value * 2, image[-1, 0])
+        self.assertEqual(value, image[0, -5])
+
     def testGivenADefaultView_whenGetImageWithDefaultAlignment_shouldReturnSameImage(self):
-        dataPoints = np.array([[0.5, 0, 2.05, 2.05],
-                               [0.5, 5, 2.05, 2.05],
-                               [0.5, 0, 2.5, 2.95]])
-        naturalView = View2DProjectionX()
-        naturalView.setContext([(2, 3), (2, 3), (2, 3)], (0.1, 0.1, 0.1))
-        naturalView.extractData(dataPoints)
-
-        naturalImage = naturalView.getImageData()
-        alignedImage = naturalView.getImageDataWithDefaultAlignment()
-
-        self.assertTrue(np.array_equal(naturalImage, alignedImage))
+        for defaultView in [View2DProjectionX(), View2DProjectionY(), View2DProjectionZ()]:
+            with self.subTest(axis=defaultView.axis):
+                self._shouldHaveImageDataWithDefaultAlignmentEqualToNaturalView(defaultView)
 
     def testGivenXViewWithCustomHorizontal_shouldHaveImageDataWithDefaultAlignmentEqualToNaturalView(self):
         for horizontalDirection in [Direction.Y_POS, Direction.Y_NEG, Direction.Z_NEG]:
             customView = View2DProjection(Direction.X_POS, horizontalDirection=horizontalDirection)
-            with self.subTest(horizontalDirection=horizontalDirection):
+            with self.subTest(horizontalDirection=horizontalDirection.name):
                 self._shouldHaveImageDataWithDefaultAlignmentEqualToNaturalView(customView)
 
     def testGivenXViewWithReverseProjectionAndAnyHorizontal_shouldHaveImageDataWithDefaultAlignmentEqualToNaturalView(self):
         for horizontalDirection in [Direction.Y_POS, Direction.Y_NEG, Direction.Z_POS, Direction.Z_NEG]:
             customView = View2DProjection(Direction.X_NEG, horizontalDirection=horizontalDirection)
-            with self.subTest(horizontalDirection=horizontalDirection):
+            with self.subTest(horizontalDirection=horizontalDirection.name):
                 self._shouldHaveImageDataWithDefaultAlignmentEqualToNaturalView(customView)
 
     def testGivenYViewWithCustomHorizontal_shouldHaveImageDataWithDefaultAlignmentEqualToNaturalView(self):
         for horizontalDirection in [Direction.X_POS, Direction.X_NEG, Direction.Z_NEG]:
             customView = View2DProjection(Direction.Y_NEG, horizontalDirection=horizontalDirection)
-            with self.subTest(horizontalDirection=horizontalDirection):
+            with self.subTest(horizontalDirection=horizontalDirection.name):
                 self._shouldHaveImageDataWithDefaultAlignmentEqualToNaturalView(customView)
 
     def testGivenYViewWithReverseProjectionAndAnyHorizontal_shouldHaveImageDataWithDefaultAlignmentEqualToNaturalView(self):
         for horizontalDirection in [Direction.X_POS, Direction.X_NEG, Direction.Z_POS, Direction.Z_NEG]:
             customView = View2DProjection(Direction.Y_POS, horizontalDirection=horizontalDirection)
-            with self.subTest(horizontalDirection=horizontalDirection):
+            with self.subTest(horizontalDirection=horizontalDirection.name):
                 self._shouldHaveImageDataWithDefaultAlignmentEqualToNaturalView(customView)
 
     def testGivenZViewWithCustomHorizontal_shouldHaveImageDataWithDefaultAlignmentEqualToNaturalView(self):
         for horizontalDirection in [Direction.X_POS, Direction.Y_POS, Direction.Y_NEG]:
             customView = View2DProjection(Direction.Z_POS, horizontalDirection=horizontalDirection)
-            with self.subTest(horizontalDirection=horizontalDirection):
+            with self.subTest(horizontalDirection=horizontalDirection.name):
                 self._shouldHaveImageDataWithDefaultAlignmentEqualToNaturalView(customView)
 
     def testGivenZViewWithReverseProjectionAndAnyHorizontal_shouldHaveImageDataWithDefaultAlignmentEqualToNaturalView(self):
         for horizontalDirection in [Direction.X_POS, Direction.X_NEG, Direction.Y_POS, Direction.Y_NEG]:
             customView = View2DProjection(Direction.Z_NEG, horizontalDirection=horizontalDirection)
-            with self.subTest(horizontalDirection=horizontalDirection):
+            with self.subTest(horizontalDirection=horizontalDirection.name):
                 self._shouldHaveImageDataWithDefaultAlignmentEqualToNaturalView(customView)
 
     def _shouldHaveImageDataWithDefaultAlignmentEqualToNaturalView(self, customView: View2D):
@@ -211,3 +238,100 @@ class TestView2D(unittest.TestCase):
         view.extractData(dataPointIn)
 
         self.assertEqual(value, view.getSum())
+
+    def testGivenAProjectionViewEqual_shouldBeContainedByTheOther(self):
+        solidLabel = "A"
+        view1 = View2DProjectionX(solidLabel=solidLabel)
+        view2 = View2DProjectionX(solidLabel=solidLabel)
+        view1.setContext([(2, 4), (2, 4), (2, 4)], (0.1, 0.1, 0.1))
+        view2.setContext([(2, 4), (2, 4), (2, 4)], (0.1, 0.1, 0.1))
+        self.assertTrue(view1.isContainedBy(view2))
+
+    def testGivenAViewWithDifferentBinSize_shouldNotBeContainedByTheOther(self):
+        view1 = View2DProjectionX()
+        view2 = View2DProjectionX()
+        view1.setContext([(2, 4), (2, 4), (2, 4)], (0.1, 0.1, 0.1))
+        view2.setContext([(2, 4), (2, 4), (2, 4)], (0.2, 0.2, 0.2))
+        self.assertFalse(view1.isContainedBy(view2))
+
+    def testGivenAViewWithDifferentSolidLabel_shouldNotBeContainedByTheOther(self):
+        view1 = View2DProjectionX(solidLabel="A label")
+        view2 = View2DProjectionX(solidLabel="Another label")
+        view1.setContext([(2, 4), (2, 4), (2, 4)], (0.1, 0.1, 0.1))
+        view2.setContext([(2, 4), (2, 4), (2, 4)], (0.1, 0.1, 0.1))
+        self.assertFalse(view1.isContainedBy(view2))
+
+    def testGivenAViewWithSameProjectionAxis_shouldBeContainedByTheOther(self):
+        view1 = View2DProjection(Direction.X_POS, Direction.Y_POS)
+        view2 = View2DProjection(Direction.X_NEG, Direction.Z_NEG)
+        view1.setContext([(2, 4), (2, 4), (2, 4)], (0.1, 0.1, 0.1))
+        view2.setContext([(2, 4), (2, 4), (2, 4)], (0.1, 0.1, 0.1))
+        self.assertTrue(view1.isContainedBy(view2))
+
+    def testGivenAViewWithDifferentProjectionAxis_shouldNotBeContainedByTheOther(self):
+        view1 = View2DProjectionX()
+        view2 = View2DProjectionY()
+        view1.setContext([(2, 4), (2, 4), (2, 4)], (0.1, 0.1, 0.1))
+        view2.setContext([(2, 4), (2, 4), (2, 4)], (0.1, 0.1, 0.1))
+        self.assertFalse(view1.isContainedBy(view2))
+
+    def testGivenAViewBigger_shouldNotBeContainedByTheOther(self):
+        view1 = View2DProjectionX()
+        view2 = View2DProjectionX()
+        view1.setContext([(2, 5), (2, 5), (2, 5)], (0.1, 0.1, 0.1))
+        view2.setContext([(3, 4), (3, 4), (3, 4)], (0.1, 0.1, 0.1))
+        self.assertFalse(view1.isContainedBy(view2))
+
+    @unittest.skip("Not implemented yet")
+    def testGivenAViewSmaller_shouldBeContainedByTheOther(self):
+        view1 = View2DProjectionX()
+        view2 = View2DProjectionX()
+        view1.setContext([(3, 4), (3, 4), (3, 4)], (0.1, 0.1, 0.1))
+        view2.setContext([(2, 5), (2, 5), (2, 5)], (0.1, 0.1, 0.1))
+        self.assertTrue(view1.isContainedBy(view2))
+
+    def testGivenASurfaceViewEqual_shouldBeContainedByTheOther(self):
+        view1 = View2DSurfaceX(solidLabel="A", surfaceLabel="B", surfaceEnergyLeaving=True)
+        view2 = View2DSurfaceX(solidLabel="A", surfaceLabel="B", surfaceEnergyLeaving=True)
+        view1.setContext([(2, 4), (2, 4), (2, 4)], (0.1, 0.1, 0.1))
+        view2.setContext([(2, 4), (2, 4), (2, 4)], (0.1, 0.1, 0.1))
+        self.assertTrue(view1.isContainedBy(view2))
+
+    def testGivenASurfaceViewWithDifferentLabel_shouldNotBeContainedByTheOther(self):
+        view1 = View2DSurfaceX(solidLabel="A", surfaceLabel="B", surfaceEnergyLeaving=True)
+        view2 = View2DSurfaceX(solidLabel="A", surfaceLabel="C", surfaceEnergyLeaving=True)
+        view1.setContext([(2, 4), (2, 4), (2, 4)], (0.1, 0.1, 0.1))
+        view2.setContext([(2, 4), (2, 4), (2, 4)], (0.1, 0.1, 0.1))
+        self.assertFalse(view1.isContainedBy(view2))
+
+    def testGivenASurfaceViewWithDifferentEnergyDirection_shouldNotBeContainedByTheOther(self):
+        view1 = View2DSurfaceX(solidLabel="A", surfaceLabel="B", surfaceEnergyLeaving=True)
+        view2 = View2DSurfaceX(solidLabel="A", surfaceLabel="B", surfaceEnergyLeaving=False)
+        view1.setContext([(2, 4), (2, 4), (2, 4)], (0.1, 0.1, 0.1))
+        view2.setContext([(2, 4), (2, 4), (2, 4)], (0.1, 0.1, 0.1))
+        self.assertFalse(view1.isContainedBy(view2))
+
+    def testWhenFlip_shouldFlipViewToBeSeenFromBehind(self):
+        defaultViews = [View2DProjectionX(), View2DProjectionY(), View2DProjectionZ()]
+        viewsFromBehind = [View2DProjection(Direction.X_NEG, Direction.Z_NEG),
+                           View2DProjection(Direction.Y_POS, Direction.Z_NEG),
+                           View2DProjection(Direction.Z_NEG, Direction.X_POS)]
+        for view, viewFromBehind in zip(defaultViews, viewsFromBehind):
+            with self.subTest(axis=view.axis):
+                self._whenFlip_shouldEqualOtherView(view, viewFromBehind)
+
+    def _whenFlip_shouldEqualOtherView(self, view: View2D, otherView: View2D):
+        dataPoints = np.array([[0.5, 2.05, 2.05, 2.05],
+                               [0.5, 2.05, 2.05, 2.05],
+                               [0.5, 2.95, 2.05, 2.5]])
+        view.setContext([(2, 4), (2, 4), (2, 4)], (0.1, 0.1, 0.1))
+        otherView.setContext([(2, 4), (2, 4), (2, 4)], (0.1, 0.1, 0.1))
+        view.extractData(dataPoints)
+        otherView.extractData(dataPoints)
+
+        view.flip()
+
+        self.assertTrue(view.isEqualTo(otherView))
+        self.assertTrue(np.array_equal(view.getImageData(), otherView.getImageData()))
+
+    # todo: isEqual, isContained, initDataFrom, SurfaceFilter, SliceFilter, some minor properties

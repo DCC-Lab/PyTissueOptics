@@ -122,10 +122,8 @@ class View2D:
 
     def flip(self):
         """ Flips the view as if it was seen from behind. """
-        flipHorizontal = self._projectionDirection.axis != 1
         self._projectionDirection = Direction((self._projectionDirection.value + 3) % 6)
-        if flipHorizontal:
-            self._horizontalDirection = Direction((self._horizontalDirection.value + 3) % 6)
+        self._horizontalDirection = Direction((self._horizontalDirection.value + 3) % 6)
 
     def getImageData(self, logScale: bool = True, autoFlip=True) -> np.ndarray:
         image = self._dataUV
