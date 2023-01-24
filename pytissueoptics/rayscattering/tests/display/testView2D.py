@@ -1,9 +1,14 @@
+import filecmp
+import os
+import tempfile
 import unittest
+from unittest.mock import patch
 
 import numpy as np
+from matplotlib import pyplot as plt
 
-from pytissueoptics import Direction, View2DProjection, View2DProjectionY, View2DProjectionZ, View2DSurfaceX
-from pytissueoptics.rayscattering.display.views import View2DProjectionX, View2D
+from pytissueoptics.rayscattering.display.utils import Direction
+from pytissueoptics.rayscattering.display.views import *
 
 
 class TestView2D(unittest.TestCase):
@@ -290,6 +295,13 @@ class TestView2D(unittest.TestCase):
         view2.setContext([(2, 5), (2, 5), (2, 5)], (0.1, 0.1, 0.1))
         self.assertTrue(view1.isContainedBy(view2))
 
+    def testGivenAViewSmallerWithSameNumberOfBins_shouldNotBeContainedByTheOther(self):
+        view1 = View2DProjectionX()
+        view2 = View2DProjectionX()
+        view1.setContext([(3, 4), (3, 4), (3, 4)], (0.1, 0.1, 0.1))
+        view2.setContext([(2, 4), (2, 4), (2, 4)], (0.2, 0.2, 0.2))
+        self.assertFalse(view1.isContainedBy(view2))
+
     def testGivenASurfaceViewEqual_shouldBeContainedByTheOther(self):
         view1 = View2DSurfaceX(solidLabel="A", surfaceLabel="B", surfaceEnergyLeaving=True)
         view2 = View2DSurfaceX(solidLabel="A", surfaceLabel="B", surfaceEnergyLeaving=True)
@@ -310,6 +322,85 @@ class TestView2D(unittest.TestCase):
         view1.setContext([(2, 4), (2, 4), (2, 4)], (0.1, 0.1, 0.1))
         view2.setContext([(2, 4), (2, 4), (2, 4)], (0.1, 0.1, 0.1))
         self.assertFalse(view1.isContainedBy(view2))
+
+    def testGivenAViewThatIsNotASlice_shouldHaveNoThickness(self):
+        view = View2DProjectionX()
+        self.assertIsNone(view.thickness)
+
+    def testGivenAViewThatIsNotASlice_shouldNotHaveDisplayPositionSet(self):
+        view = View2DProjectionX()
+        self.assertIsNone(view.displayPosition)
+
+    def testGivenAView_shouldBeAbleToManuallySetDisplayPosition(self):
+        view = View2DProjectionX()
+        view.displayPosition = 3
+        self.assertEqual(view.displayPosition, 3)
+
+    def testGivenASliceView_shouldSetDefaultThicknessToBinSizeOfSliceAxis(self):
+        view = View2DSliceX(position=3)
+        view.setContext([(2, 4), (2, 4), (2, 4)], (0.1, 0.2, 0.3))
+        self.assertEqual(view.thickness, 0.1)
+
+    def testGivenASliceView_shouldSetDisplayPositionAsSlicePosition(self):
+        view = View2DSliceX(position=3)
+        view.setContext([(2, 4), (2, 4), (2, 4)], (0.1, 0.2, 0.3))
+        self.assertEqual(view.displayPosition, 3)
+
+    def testGivenASliceViewEqual_shouldBeContainedByTheOther(self):
+        view1 = View2DSliceX(solidLabel="A", position=3, thickness=0.1)
+        view2 = View2DSliceX(solidLabel="A", position=3, thickness=0.1)
+        view1.setContext([(2, 4), (2, 4), (2, 4)], (0.1, 0.1, 0.1))
+        view2.setContext([(2, 4), (2, 4), (2, 4)], (0.1, 0.1, 0.1))
+        self.assertTrue(view1.isContainedBy(view2))
+
+    def testGivenASliceViewWithDifferentPosition_shouldNotBeContainedByTheOther(self):
+        view1 = View2DSliceX(solidLabel="A", position=3, thickness=0.1)
+        view2 = View2DSliceX(solidLabel="A", position=4, thickness=0.1)
+        view1.setContext([(2, 4), (2, 4), (2, 4)], (0.1, 0.1, 0.1))
+        view2.setContext([(2, 4), (2, 4), (2, 4)], (0.1, 0.1, 0.1))
+        self.assertFalse(view1.isContainedBy(view2))
+
+    def testGivenASliceViewWithDifferentThickness_shouldNotBeContainedByTheOther(self):
+        view1 = View2DSliceX(position=3, thickness=0.1)
+        view2 = View2DSliceX(position=3, thickness=0.2)
+        view1.setContext([(2, 4), (2, 4), (2, 4)], (0.1, 0.1, 0.1))
+        view2.setContext([(2, 4), (2, 4), (2, 4)], (0.1, 0.1, 0.1))
+        self.assertFalse(view1.isContainedBy(view2))
+
+    def testGivenAViewNotContainedByTheOther_shouldNotBeEqual(self):
+        view1 = View2DProjectionX()
+        view2 = View2DProjectionY()
+        view1.setContext([(2, 4), (2, 4), (2, 4)], (0.1, 0.1, 0.1))
+        view2.setContext([(2, 4), (2, 4), (2, 4)], (0.1, 0.1, 0.1))
+        self.assertFalse(view1.isEqualTo(view2))
+
+    def testGivenAViewWithOppositeProjectionDirection_shouldNotBeEqual(self):
+        view1 = View2DProjection(Direction.X_POS, Direction.Z_POS)
+        view2 = View2DProjection(Direction.X_NEG, Direction.Z_POS)
+        view1.setContext([(2, 4), (2, 4), (2, 4)], (0.1, 0.1, 0.1))
+        view2.setContext([(2, 4), (2, 4), (2, 4)], (0.1, 0.1, 0.1))
+        self.assertFalse(view1.isEqualTo(view2))
+
+    def testGivenAViewWithDifferentHorizontal_shouldNotBeEqual(self):
+        view1 = View2DProjection(Direction.X_POS, Direction.Z_POS)
+        view2 = View2DProjection(Direction.X_POS, Direction.Z_NEG)
+        view1.setContext([(2, 4), (2, 4), (2, 4)], (0.1, 0.1, 0.1))
+        view2.setContext([(2, 4), (2, 4), (2, 4)], (0.1, 0.1, 0.1))
+        self.assertFalse(view1.isEqualTo(view2))
+
+    def testGivenAViewWithDifferentBins_shouldNotBeEqual(self):
+        view1 = View2DProjectionX()
+        view2 = View2DProjectionX()
+        view1.setContext([(2, 4), (2, 4), (2, 4)], (0.1, 0.1, 0.1))
+        view2.setContext([(2, 4), (2, 4), (2, 4)], (0.2, 0.2, 0.2))
+        self.assertFalse(view1.isEqualTo(view2))
+
+    def testGivenAViewWithDifferentLimits_shouldNotBeEqual(self):
+        view1 = View2DProjectionX()
+        view2 = View2DProjectionX()
+        view1.setContext([(2, 4), (2, 4), (2, 4)], (0.2, 0.2, 0.2))
+        view2.setContext([(2, 3), (2, 3), (2, 3)], (0.1, 0.1, 0.1))
+        self.assertFalse(view1.isEqualTo(view2))
 
     def testWhenFlip_shouldFlipViewToBeSeenFromBehind(self):
         defaultViews = [View2DProjectionX(), View2DProjectionY(), View2DProjectionZ()]
@@ -334,4 +425,131 @@ class TestView2D(unittest.TestCase):
         self.assertTrue(view.isEqualTo(otherView))
         self.assertTrue(np.array_equal(view.getImageData(), otherView.getImageData()))
 
-    # todo: isEqual, isContained, initDataFrom, SurfaceFilter, SliceFilter, some minor properties
+    def testGivenAViewWithNoSolidLabel_shouldBePartOfSceneViewGroup(self):
+        view = View2DProjectionX()
+        self.assertEqual(ViewGroup.SCENE, view.group)
+
+    def testGivenAViewWithSolidLabel_shouldBePartOfSolidsViewGroup(self):
+        view = View2DProjectionX(solidLabel="A")
+        self.assertEqual(ViewGroup.SOLIDS, view.group)
+
+    def testGivenASurfaceViewOfEnergyLeaving_shouldBePartOfSurfacesLeavingViewGroup(self):
+        view = View2DSurfaceX(solidLabel="A", surfaceLabel="B", surfaceEnergyLeaving=True)
+        self.assertEqual(ViewGroup.SURFACES_LEAVING, view.group)
+
+    def testGivenASurfaceViewOfEnergyEntering_shouldBePartOfSurfacesEnteringViewGroup(self):
+        view = View2DSurfaceX(solidLabel="A", surfaceLabel="B", surfaceEnergyLeaving=False)
+        self.assertEqual(ViewGroup.SURFACES_ENTERING, view.group)
+
+    def testWhenInitDataFromAViewThatDoesNotContainTheSameData_shouldRaiseError(self):
+        view1 = View2DProjectionX()
+        view2 = View2DProjectionY()
+        view1.setContext([(2, 4), (2, 4), (2, 4)], (0.1, 0.1, 0.1))
+        view2.setContext([(2, 4), (2, 4), (2, 4)], (0.1, 0.1, 0.1))
+        with self.assertRaises(AssertionError):
+            view1.initDataFrom(view2)
+
+    def testWhenInitDataFromAnotherViewThatContainsThisView_shouldExtractTheCorrectData(self):
+        viewGiver = View2DProjection(Direction.X_POS, Direction.Z_POS)
+        for horizontalDirection in [Direction.Y_POS, Direction.Y_NEG, Direction.Z_NEG]:
+            viewReceiver = View2DProjection(Direction.X_POS, horizontalDirection)
+            with self.subTest(projection=Direction.X_POS.name, horizontal=horizontalDirection.name):
+                self._whenInitDataFromAnotherView_shouldExtractTheCorrectData(viewGiver, viewReceiver)
+
+    def testWhenInitDataFromAnotherViewThatContainsThisViewOpposite_shouldExtractTheCorrectData(self):
+        viewGiver = View2DProjection(Direction.X_POS, Direction.Z_POS)
+        for horizontalDirection in [Direction.Y_POS, Direction.Y_NEG, Direction.Z_POS, Direction.Z_NEG]:
+            viewReceiver = View2DProjection(Direction.X_NEG, horizontalDirection)
+            with self.subTest(projection=Direction.X_NEG.name, horizontal=horizontalDirection.name):
+                self._whenInitDataFromAnotherView_shouldExtractTheCorrectData(viewGiver, viewReceiver)
+
+    def _whenInitDataFromAnotherView_shouldExtractTheCorrectData(self, viewGiver: View2DProjection,
+                                                                 viewReceiver: View2DProjection):
+        viewExpected = View2DProjection(viewReceiver.projectionDirection, viewReceiver._horizontalDirection)
+        viewGiver.setContext([(2, 3), (2, 3), (2, 3)], (0.2, 0.2, 0.2))
+        viewReceiver.setContext([(2, 3), (2, 3), (2, 3)], (0.2, 0.2, 0.2))
+        viewExpected.setContext([(2, 3), (2, 3), (2, 3)], (0.2, 0.2, 0.2))
+        dataPoints = np.array([[0.5, 2.05, 2.05, 2.05],
+                               [0.5, 2.05, 2.05, 2.05],
+                               [0.5, 2.95, 2.05, 2.5]])
+        viewGiver.extractData(dataPoints)
+        viewExpected.extractData(dataPoints)
+
+        viewReceiver.initDataFrom(viewGiver)
+
+        self.assertTrue(np.array_equal(viewExpected.getImageData(), viewReceiver.getImageData()))
+
+    def testShouldHaveProperName(self):
+        view = View2DProjectionX()
+        self.assertEqual("View2DProjectionX of Scene", view.name)
+        view = View2DSurface(Direction.X_POS, Direction.Y_POS, "Solid", "Top", surfaceEnergyLeaving=False)
+        self.assertEqual("View2DSurface of Solid surface Top (entering)", view.name)
+
+    def testShouldHaveProperDescription(self):
+        view = View2DProjection(Direction.X_POS, Direction.Y_POS)
+        self.assertEqual(f"{view.name} towards X_POS with Y_POS horizontal.", view.description)
+
+    def testGivenASurfaceViewOfEnergyLeaving_whenExtractSurfaceData_shouldOnlyStorePositiveEnergy(self):
+        view = View2DSurfaceX(solidLabel="A", surfaceLabel="B", surfaceEnergyLeaving=True)
+        view.setContext([(2, 4), (2, 4), (2, 4)], (0.1, 0.1, 0.1))
+        dataPoints = np.array([[-0.5, 2.05, 2.05, 2.05],
+                               [0.5, 2.05, 2.05, 2.05],
+                               [-0.5, 2.95, 2.05, 2.5]])
+        view.extractData(dataPoints)
+
+        self.assertEqual(0.5, view.getSum())
+
+    def testGivenASurfaceViewOfEnergyEntering_whenExtractSurfaceData_shouldOnlyStoreNegativeEnergyAsPositive(self):
+        view = View2DSurfaceX(solidLabel="A", surfaceLabel="B", surfaceEnergyLeaving=False)
+        view.setContext([(2, 4), (2, 4), (2, 4)], (0.1, 0.1, 0.1))
+        dataPoints = np.array([[-0.5, 2.05, 2.05, 2.05],
+                               [0.5, 2.05, 2.05, 2.05],
+                               [-0.5, 2.95, 2.05, 2.5]])
+        view.extractData(dataPoints)
+
+        self.assertEqual(1, view.getSum())
+
+    def testGivenASliceView_whenExtractData_shouldOnlyProjectDataThatLiesInsideTheSlice(self):
+        sliceViews = [View2DSliceX(position=2, thickness=0.1),
+                      View2DSliceY(position=3, thickness=0.1),
+                      View2DSliceZ(position=4, thickness=0.1)]
+        for view in sliceViews:
+            with self.subTest(axis=view.axis):
+                view.setContext([(2, 5), (2, 5), (2, 5)], (0.1, 0.1, 0.1))
+                dataPoints = np.array([[0.5, 2.00, 3.00, 4.00],
+                                       [1.0, 2.04, 3.04, 4.04],
+                                       [2.0, 2.10, 3.10, 4.10]])
+                view.extractData(dataPoints)
+                self.assertEqual(1.5, view.getSum())
+
+    def testShouldHaveSizeInPhysicalUnits(self):
+        view = View2DProjectionX()
+        view.setContext([(2, 3), (2, 4), (2, 5)], (0.1, 0.1, 0.1))
+        self.assertEqual((3, 2), view.size)
+
+    # todo: visual test. maybe reroute plt.show to a temp file and compare it to a reference image.
+
+    def testWhenShow_shouldPlotTheViewWithCorrectDataAndAxes(self):
+        view = View2DProjection(Direction.X_POS, Direction.Y_POS)
+        view.setContext([(2, 4), (2, 4), (2, 4)], (0.1, 0.1, 0.1))
+        dataPoints = np.array([[0.5, 2.05, 2.05, 2.05],
+                               [0.5, 2.05, 2.05, 2.05],
+                               [0.5, 2.95, 2.05, 2.5]])
+        view.extractData(dataPoints)
+
+        with patch("matplotlib.pyplot.show") as mockShow:
+            view.show()
+            mockShow.assert_called_once()
+
+        TEST_IMAGES_DIR = os.path.join(os.path.dirname(__file__), 'testImages')
+        referenceImage = os.path.join(TEST_IMAGES_DIR, 'viewXPOS_uYPOS_vZNEG.png')
+
+        OVERWRITE_REFERENCE_IMAGES = False
+        if OVERWRITE_REFERENCE_IMAGES:
+            plt.savefig(referenceImage)
+            self.skipTest("Overwriting reference image")
+
+        with tempfile.TemporaryDirectory() as tempdir:
+            currentImage = os.path.join(tempdir, 'test.png')
+            plt.savefig(currentImage)
+            self.assertTrue(filecmp.cmp(referenceImage, currentImage))

@@ -200,7 +200,7 @@ class View2D:
         if source.axisU == self.axisU:
             self._dataUV = dataUV
         else:
-            self._dataUV = dataUV.T
+            self._dataUV = np.flip(dataUV.T, axis=(0, 1))
         self._hasData = source._hasData
 
     def isEqualTo(self, other: 'View2D') -> bool:
@@ -315,6 +315,10 @@ class View2D:
         if self._horizontalDirection.isPositive:
             return verticalIsNegativeWithPositiveHorizontal
         return not verticalIsNegativeWithPositiveHorizontal
+
+    @property
+    def thickness(self):
+        return self._thickness
 
     @property
     def name(self) -> str:
