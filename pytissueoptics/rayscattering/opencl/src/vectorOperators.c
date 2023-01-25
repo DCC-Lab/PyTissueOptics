@@ -114,12 +114,12 @@ __kernel void normalizeVectorGlobalKernel(__global float3 *vectors){
     normalizeVectorGlobal(&vectors[id]);
 }
 
-__kernel void rotateAroundAxisGlobalKernel(__global float3 *vector, __global float3 *axis, __global float *angle){
+__kernel void rotateAroundAxisGlobalKernel(__global float3 *vectors, __global float3 *axes, __global float *angle){
     uint i = get_global_id(0);
-    rotateAroundAxisGlobal(&vector[i], &axis[i], angle[i]);
+    rotateAroundAxisGlobal(&vectors[i], &axes[i], angle[i]);
 }
 
-__kernel void getAnyOrthogonalGlobalKernel(__global float3 *vector, __global float3 *output){
+__kernel void getAnyOrthogonalGlobalKernel(__global float3 *vectors, __global float3 *output){
     uint i = get_global_id(0);
-    output[i] = getAnyOrthogonalGlobal(&vector[i]);
+    output[i] = getAnyOrthogonalGlobal(&vectors[i]);
 }
