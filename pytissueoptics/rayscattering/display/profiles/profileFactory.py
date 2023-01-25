@@ -10,7 +10,7 @@ from pytissueoptics.rayscattering.display.profiles import Profile1D
 from pytissueoptics.rayscattering.display.utils import Direction
 
 
-class Profile1DFactory:
+class ProfileFactory:
     def __init__(self, scene: ScatteringScene, logger: EnergyLogger):
         self._scene = scene
         self._logger = logger
@@ -22,7 +22,7 @@ class Profile1DFactory:
         self._infiniteLimits = logger.infiniteLimits
 
     def create(self, horizontalDirection: Direction, solidLabel: str = None, surfaceLabel: str = None,
-               surfaceEnergyLeaving: bool = False, limits: Tuple[float, float] = None,
+               surfaceEnergyLeaving: bool = True, limits: Tuple[float, float] = None,
                binSize: float = None) -> Profile1D:
         solidLabel, surfaceLabel = self._correctCapitalization(solidLabel, surfaceLabel)
         if binSize is None:
@@ -66,6 +66,8 @@ class Profile1DFactory:
                 dataPoints = pointCloud.enteringSurfacePointsPositive
         else:
             dataPoints = pointCloud.solidPoints
+        if dataPoints is None:
+            return np.zeros(bins)
 
         x, w = dataPoints[:, horizontalDirection.axis + 1], dataPoints[:, 0]
         histogram, _ = np.histogram(x, bins=bins, range=limits, weights=w)
@@ -98,7 +100,7 @@ class Profile1DFactory:
 
             return self._extractHistogramFromView(view, horizontalDirection)
 
-        raise Exception("Cannot create 1D profile. The 3D data was discarded and no matching 2D view was found.")
+        raise RuntimeError("Cannot create 1D profile. The 3D data was discarded and no matching 2D view was found.")
 
     def _extractHistogramFromView(self, view, horizontalDirection: Direction):
         if view.axisU == horizontalDirection.axis:

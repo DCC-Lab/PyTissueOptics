@@ -12,7 +12,7 @@ from pytissueoptics.rayscattering.scatteringScene import ScatteringScene
 from pytissueoptics.rayscattering.statistics import Stats
 from pytissueoptics.rayscattering.display.utils import Direction
 from pytissueoptics.rayscattering.display.views import ViewGroup, View2D
-from pytissueoptics.rayscattering.display.profiles import Profile1DFactory
+from pytissueoptics.rayscattering.display.profiles import ProfileFactory
 from pytissueoptics.scene import MAYAVI_AVAILABLE, MayaviViewer, ViewPointStyle
 
 
@@ -85,7 +85,7 @@ class Viewer:
 
         self._viewer3D = None
         self._pointCloudFactory = PointCloudFactory(logger)
-        self._profile1DFactory = Profile1DFactory(scene, logger)
+        self._profile1DFactory = ProfileFactory(scene, logger)
 
     def listViews(self):
         return self._logger.listViews()
