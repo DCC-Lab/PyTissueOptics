@@ -79,7 +79,7 @@ class Stats:
 
     def _reportWorld(self, worldLabel: str):
         totalSolidEnergy = sum([solidStats.totalAbsorbance for solidStats in self._solidStatsMap.values()])
-        reportString = "Report of world\n".format(worldLabel)
+        reportString = "Report of '{}'\n".format(worldLabel)
         reportString += "  Absorbed {:.2f}% of total power\n".format(100 - totalSolidEnergy)
         return reportString
 
@@ -105,11 +105,11 @@ class Stats:
         if self._extractFromViews:
             return self._getAbsorbanceFromViews(solidLabel, useTotalEnergy)
         points = self._getPointCloud(solidLabel).solidPoints
-        energyInput = self._getEnergyInput(solidLabel) if not useTotalEnergy else self.getPhotonCount()
+        energyInput = self.getEnergyInput(solidLabel) if not useTotalEnergy else self.getPhotonCount()
         return 100 * self._sumEnergy(points) / energyInput
 
     def _getAbsorbanceFromViews(self, solidLabel: str, useTotalEnergy=False) -> float:
-        energyInput = self._getEnergyInput(solidLabel) if not useTotalEnergy else self.getPhotonCount()
+        energyInput = self.getEnergyInput(solidLabel) if not useTotalEnergy else self.getPhotonCount()
         absorbedEnergy = self._getAbsorbedEnergyFromViews(solidLabel)
         return 100 * absorbedEnergy / energyInput
 
@@ -139,7 +139,7 @@ class Stats:
     def getPhotonCount(self) -> int:
         return self._photonCount
 
-    def _getEnergyInput(self, solidLabel: str = None) -> float:
+    def getEnergyInput(self, solidLabel: str = None) -> float:
         if solidLabel is None:
             return self.getPhotonCount()
         if self._extractFromViews:
@@ -198,7 +198,7 @@ class Stats:
         else:
             points = self._getPointCloud(solidLabel, surfaceLabel).leavingSurfacePoints
 
-        energyInput = self._getEnergyInput(solidLabel) if not useTotalEnergy else self.getPhotonCount()
+        energyInput = self.getEnergyInput(solidLabel) if not useTotalEnergy else self.getPhotonCount()
         return 100 * self._sumEnergy(points) / energyInput
 
     def _getTransmittanceFromViews(self, solidLabel: str, surfaceLabel: str = None, useTotalEnergy=False):
@@ -207,7 +207,7 @@ class Stats:
         else:
             energyLeaving = self._getSurfaceEnergyFromViews(solidLabel, surfaceLabel, leaving=True)
 
-        energyInput = self._getEnergyInput(solidLabel) if not useTotalEnergy else self.getPhotonCount()
+        energyInput = self.getEnergyInput(solidLabel) if not useTotalEnergy else self.getPhotonCount()
         return 100 * energyLeaving / energyInput
 
     @staticmethod

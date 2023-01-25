@@ -1,111 +1,140 @@
+import io
+import os
+import sys
+import tempfile
 import unittest
+from unittest.mock import patch
 
-import numpy as np
-from mockito import mock, when
-
-from rayscattering.statistics.statistics import Stats
-from pytissueoptics.rayscattering.source import Source
-from pytissueoptics.scene import Logger, Vector
-from pytissueoptics.scene.geometry import Environment
+from pytissueoptics.rayscattering.energyLogging import EnergyLogger
+from pytissueoptics.rayscattering.scatteringScene import ScatteringScene
+from pytissueoptics.rayscattering.materials import ScatteringMaterial
+from pytissueoptics.rayscattering.statistics import Stats
+from pytissueoptics.scene.geometry import Vector
 from pytissueoptics.scene.logger import InteractionKey
-from pytissueoptics.scene.solids import Solid
+from pytissueoptics.scene.solids import Cube
 
 
-@unittest.skip("Deprecated.")
 class TestStats(unittest.TestCase):
-    def setUp(self):
-        source = self.makeTestSource()
-        self.stats = Stats(self.makeTestCubeLogger(),  source=source)
+    EXPECTED_SOLID_REPORT_LINES = ["Report of solid 'cube'",
+                               "  Absorbance: 80.00% (80.00% of total power)",
+                               "  Absorbance + Transmittance: 100.0%",
+                               "    Transmittance at 'front': 0.0%",
+                               "    Transmittance at 'back': 20.0%",
+                               '']
+    EXPECTED_REPORT_LINES = EXPECTED_SOLID_REPORT_LINES[:-1] + ["Report of 'world'",
+                                                                "  Absorbed 20.00% of total power",
+                                                                '']
 
-    def testWhenGet3DScatter_shouldReturnScatterOfAllSolidPoints(self):
-        scatter = self.stats._get3DScatter()
-        self.assertEqual(scatter.shape, (8, 4))
-        self.assertTrue(np.array_equal(scatter[:, 3], np.full(8, 0.1)))
+    def _setUp(self, keep3D=True, sourceSolidLabel=None, noViews=False):
+        logger = self.makeTestCubeLogger(keep3D=keep3D, sourceSolidLabel=sourceSolidLabel, noViews=noViews)
+        self.stats = Stats(logger)
 
-    def testGivenEmptyLogger_whenGet3DScatter_shouldReturnEmptyArray(self):
-        logger = Logger()
-        stats = Stats(logger, self.makeTestSource())
+    def testWhenGetEnergyInput_shouldReturnTotalPhotonCount(self):
+        for keep3D in [False, True]:
+            with self.subTest(["using2DLogger", "using3DLogger"][keep3D]):
+                self._setUp(keep3D=keep3D)
+                energy = self.stats.getEnergyInput()
+                self.assertEqual(1, energy)
 
-        scatter = stats._get3DScatter()
+    def testWhenGetEnergyInputOfSolid_shouldReturnSumOfAllEnergyEnteringTheSolidSurfaces(self):
+        for keep3D in [False, True]:
+            with self.subTest(["using2DLogger", "using3DLogger"][keep3D]):
+                self._setUp(keep3D=keep3D)
+                energy = self.stats.getEnergyInput("cube")
+                self.assertEqual(1, energy)
 
-        self.assertTrue(len(scatter) == 0)
+    def testGiven2DLoggerWithNoViewsOfSolid_whenGetAbsorbanceOfSolid_shouldRaiseException(self):
+        self._setUp(keep3D=False, noViews=True)
+        with self.assertRaises(Exception):
+            self.stats.getAbsorbance("cube")
 
-    def testWhenGet3DScatterOfSurface_shouldReturnScatterOfAllPointsLeavingTheSurface(self):
-        frontScatter = self.stats._get3DScatter(solidLabel="cube", surfaceLabel="front")
-        self.assertEqual(0, frontScatter.size)
+    def testGiven2DLoggerWithNoViewsOfSolid_whenGetEnergyInputOfSolid_shouldRaiseException(self):
+        self._setUp(keep3D=False, noViews=True)
+        with self.assertRaises(Exception):
+            self.stats.getEnergyInput("cube")
 
-        backScatter = self.stats._get3DScatter(solidLabel="cube", surfaceLabel="back")
-        self.assertEqual(backScatter.shape, (1, 4))
-        self.assertEqual(0.2, backScatter[:, 3])
-
-    def testWhenGet3DScatterOfPointsEnteringSurface_shouldReturnScatterOfAllPointsEnteringTheSurface(self):
-        frontScatter = self.stats._get3DScatter(solidLabel="cube", surfaceLabel="front", enteringSurface=True)
-        self.assertEqual(frontScatter.shape, (1, 4))
-        self.assertEqual(1, frontScatter[:, 3])
-
-        backScatter = self.stats._get3DScatter(solidLabel="cube", surfaceLabel="back", enteringSurface=True)
-        self.assertEqual(0, backScatter.size)
-
-    def testWhenGet2DScatterWithYProjection_shouldReturnScatterOfAllSolidPointsProjectedToXZ(self):
-        x, z, value = self.stats._get2DScatter(projection="y")
-        self.assertTrue(np.array_equal(value, np.full(8, 0.1)))
-        self.assertTrue(len(x) == len(z) == len(value))
-        self.assertTrue(np.array_equal(x, np.zeros(8)))
-        self.assertTrue(np.isclose(z, np.arange(0.1, 0.9, 0.1)).all())
-
-    def testWhenGet2DScatterOfSurface_shouldReturnScatterOfAllPointsLeavingTheSurface(self):
-        frontScatter = self.stats._get2DScatter(solidLabel="cube", surfaceLabel="front")
-        x, z, value = frontScatter
-        self.assertEqual(0, len(value))
-
-        backScatter = self.stats._get2DScatter(solidLabel="cube", surfaceLabel="back")
-        x, z, value = backScatter
-        self.assertEqual(0, x)
-        self.assertEqual(1, z)
-        self.assertEqual(0.2, value)
-
-    def testWhenGet1DScatterAlongZ_shouldReturnScatterOfAllSolidPointsProjectedOnZAxis(self):
-        z, value = self.stats._get1DScatter(along="z")
-        self.assertTrue(np.array_equal(value, np.full(8, 0.1)))
-        self.assertTrue(len(z) == len(value))
-        self.assertTrue(np.isclose(z, np.arange(0.1, 0.9, 0.1)).all())
-
-    def testWhenGetEnergyInput_shouldReturnSumOfAllEnergyEnteringTheSolidSurfaces(self):
-        energyInput = self.stats._getEnergyInput("cube")
-        self.assertEqual(1, energyInput)
+    def testGiven2DLoggerWithNoViewsOfSurface_whenGetTransmittanceOfSurface_shouldRaiseException(self):
+        self._setUp(keep3D=False, noViews=True)
+        with self.assertRaises(Exception):
+            self.stats.getTransmittance("cube", "front")
 
     def testGivenSourceInSolid_whenGetEnergyInput_shouldAddSourceEnergyToSolidInputEnergy(self):
-        solid = mock(Solid)
-        when(solid).getLabel().thenReturn("cube")
-        source = self.makeTestSource(solid)
-        self.stats = Stats(self.makeTestCubeLogger(), source=source)
+        for keep3D in [False, True]:
+            with self.subTest(["using2DLogger", "using3DLogger"][keep3D]):
+                self._setUp(keep3D=keep3D, sourceSolidLabel="cube")
+                energy = self.stats.getEnergyInput("cube")
+                self.assertEqual(1 + 1, energy)
 
-        energy = self.stats._getEnergyInput("cube")
+    def testWhenGetAbsorbanceOfSolid_shouldReturnAbsorbanceInPercentage(self):
+        for keep3D in [False, True]:
+            with self.subTest(["using2DLogger", "using3DLogger"][keep3D]):
+                self._setUp(keep3D=keep3D)
+                self.assertAlmostEqual(80, self.stats.getAbsorbance("cube"), places=5)
 
-        self.assertEqual(1 + 1, energy)
+    def testWhenGetTransmittanceOfSolid_shouldReturnTransmittanceOfWholeSolid(self):
+        for keep3D in [False, True]:
+            with self.subTest(["using2DLogger", "using3DLogger"][keep3D]):
+                self._setUp(keep3D=keep3D)
+                self.assertAlmostEqual(20, self.stats.getTransmittance("cube"), places=5)
 
-    def testAbsorbanceOfSolid(self):
-        self.assertAlmostEqual(0.8, self.stats.getAbsorbance("cube"))
+    def testWhenGetTransmittanceOfSolidSurface_shouldReturnTransmittanceAtThisSurface(self):
+        for keep3D in [False, True]:
+            with self.subTest(["using2DLogger", "using3DLogger"][keep3D]):
+                self._setUp(keep3D=keep3D)
+                self.assertAlmostEqual(0, self.stats.getTransmittance("cube", "front"), places=5)
+                self.assertAlmostEqual(20, self.stats.getTransmittance("cube", "back"), places=5)
 
-    def testTransmittanceOfSolid(self):
-        self.assertAlmostEqual(0.2, self.stats.getTransmittance("cube"))
+    def testWhenReportSolid_shouldPrintAFullReportOfThisSolidAndItsSurfaces(self):
+        for keep3D in [False, True]:
+            with self.subTest(["using2DLogger", "using3DLogger"][keep3D]):
+                self._setUp(keep3D=keep3D)
 
-    def testGivenALoggerWithNoSolidInteractions_whenGet3DScatter_shouldWarnAndReturnEmptyArray(self):
-        logger = self.makeTestCubeLogger()
-        logger._data.pop(InteractionKey("cube"))
-        stats = Stats(logger, source=self.makeTestSource())
+                with patch('sys.stdout', new_callable=io.StringIO) as mock_stdout:
+                    self.stats.report(solidLabel="cube")
+                    reportLines = mock_stdout.getvalue().splitlines()
 
+                self.assertEqual(self.EXPECTED_SOLID_REPORT_LINES, reportLines)
+
+    def testWhenReport_shouldPrintAFullReportOfAllSolidsAndTheirSurfaces(self):
+        for keep3D in [False, True]:
+            with self.subTest(["using2DLogger", "using3DLogger"][keep3D]):
+                self._setUp(keep3D=keep3D)
+
+                with patch('sys.stdout', new_callable=io.StringIO) as mock_stdout:
+                    self.stats.report()
+                    reportLines = mock_stdout.getvalue().splitlines()
+
+                self.assertEqual(self.EXPECTED_REPORT_LINES, reportLines)
+
+    def testWhenReportToFile_shouldWriteReportToFile(self):
+        with tempfile.TemporaryDirectory() as tempDir:
+            filename = os.path.join(tempDir, "report.txt")
+            self._setUp()
+
+            self.stats.report(saveToFile=filename, verbose=False)
+
+            with open(filename, "r") as file:
+                reportLines = file.read().splitlines()
+
+            self.assertEqual(self.EXPECTED_REPORT_LINES[:-1], reportLines)
+
+    def testWhenReportNonExistingSolid_shouldWarnAndIgnore(self):
+        self._setUp(keep3D=True)
         with self.assertWarns(UserWarning):
-            self.assertEqual(0, len(stats._get3DScatter(solidLabel="cube")))
+            self.stats.report(solidLabel="non-existing")
 
     @staticmethod
-    def makeTestCubeLogger() -> Logger:
+    def makeTestCubeLogger(keep3D=True, sourceSolidLabel=None, noViews=False) -> EnergyLogger:
         """ We log a few points taken from a unit cube centered at the origin where a single photon
         was propagated. We log one point entering front surface at z=0 with weight=1, then 8 points
         of weight 0.1 centered from z=0.1 to z=0.8, and one point exiting back surface at z=1 with
-        a remaining weight of 0.2 so it correctly adds up to 1.
+        a remaining weight of 0.2, so it correctly adds up to 1.
         """
-        logger = Logger()
+        cube = Cube(1, position=Vector(0, 0, 0.5), material=ScatteringMaterial())
+        scene = ScatteringScene([cube])
+        logger = EnergyLogger(scene, keep3D=keep3D)
+        if noViews:
+            logger = EnergyLogger(scene, keep3D=keep3D, views=[])
         solidInteraction = InteractionKey("cube")
         frontInteraction = InteractionKey("cube", "front")
         backInteraction = InteractionKey("cube", "back")
@@ -113,12 +142,9 @@ class TestStats(unittest.TestCase):
             logger.logDataPoint(0.1, Vector(0, 0, 0.1*i), solidInteraction)
         logger.logDataPoint(-1, Vector(0, 0, 0), frontInteraction)
         logger.logDataPoint(0.2, Vector(0, 0, 1), backInteraction)
-        return logger
+        logger.info["photonCount"] = 1
+        logger.info["sourceSolidLabel"] = sourceSolidLabel
 
-    @staticmethod
-    def makeTestSource(inSolid: Solid = None):
-        source = mock(Source)
-        sourceEnv = Environment(None, inSolid)
-        when(source).getPhotonCount().thenReturn(1)
-        when(source).getEnvironment().thenReturn(sourceEnv)
-        return source
+        # Logging the energy that left the solid in the outside world
+        logger.logDataPoint(0.2, Vector(0, 0, 10), InteractionKey("world"))
+        return logger
