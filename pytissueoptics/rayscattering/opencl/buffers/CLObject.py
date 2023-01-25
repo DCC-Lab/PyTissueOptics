@@ -90,3 +90,30 @@ class CLObject:
         itemSize = cls.STRUCT_DTYPE.itemsize
         alignedItemSize = 2 ** (itemSize - 1).bit_length()
         return alignedItemSize
+
+
+class EmptyBuffer(CLObject):
+    def __init__(self, N: int):
+        self._N = N
+        super().__init__()
+
+    def _getInitialHostBuffer(self) -> np.ndarray:
+        return np.empty(self._N, dtype=np.float32)
+
+
+class RandomBuffer(CLObject):
+    def __init__(self, N: int):
+        self._N = N
+        super().__init__()
+
+    def _getInitialHostBuffer(self) -> np.ndarray:
+        return np.random.rand(self._N).astype(np.float32)
+
+
+class BufferOf(CLObject):
+    def __init__(self, array: np.ndarray):
+        self._array = array
+        super().__init__()
+
+    def _getInitialHostBuffer(self) -> np.ndarray:
+        return self._array
