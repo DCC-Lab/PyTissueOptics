@@ -4,7 +4,7 @@ from typing import Optional
 
 
 class IPPTable:
-    TABLE_PATH = os.path.join(os.path.dirname(__file__), "../ipp.json")
+    TABLE_PATH = os.path.join(os.path.dirname(os.path.dirname(__file__)), "ipp.json")
 
     def __init__(self):
         self._assertExists()

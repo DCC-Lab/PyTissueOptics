@@ -18,6 +18,8 @@ float getRandomFloatValue(__global unsigned int *seeds, unsigned int id){
      return result;
     }
 
+// ----------------- TEST KERNELS -----------------
+
  __kernel void fillRandomFloatBuffer(__global unsigned int *seeds, __global float *randomNumbers){
     int id = get_global_id(0);
     randomNumbers[id] = getRandomFloatValue(seeds, id);

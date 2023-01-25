@@ -15,14 +15,13 @@ from pytissueoptics.rayscattering.opencl.buffers.seedCL import SeedCL
 from pytissueoptics.rayscattering.opencl.buffers.dataPointCL import DataPointCL
 from pytissueoptics.rayscattering.opencl.buffers.materialCL import MaterialCL
 from pytissueoptics.rayscattering.opencl.buffers.photonCL import PhotonCL
+from pytissueoptics.rayscattering.opencl.config.CLConfig import OPENCL_SOURCE_DIR
 
-execTest = False
 
-
-@unittest.skipIf(execTest is not True, 'Skipped by default, this is a validation/technology test.')
+@unittest.skip('DEPRECATED')
 class TestOpenCLKernels(unittest.TestCase):
     def setUp(self):
-        sourcePath = os.path.dirname(os.path.abspath(__file__)) + "{0}..{0}opencl{0}src{0}propagation.c".format(os.path.sep)
+        sourcePath = os.path.join(OPENCL_SOURCE_DIR, "propagation.c")
         self.program = CLProgram(sourcePath)
 
         self.ctx = self.program._context
@@ -33,7 +32,7 @@ class TestOpenCLKernels(unittest.TestCase):
 
     def _getCLObjects(self) -> List[CLObject]:
         N = 10
-        photons = PhotonCL(np.zeros((N, 3)), np.ones((N, 3)))
+        photons = PhotonCL(np.zeros((N, 3)), np.ones((N, 3)), materialID=0, solidID=0)
         material = MaterialCL([ScatteringMaterial()])
         logger = DataPointCL(size=N*10)
         randomSeed = SeedCL(size=N)
