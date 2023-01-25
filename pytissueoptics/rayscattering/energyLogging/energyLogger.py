@@ -153,7 +153,6 @@ class EnergyLogger(Logger):
         for i, v in enumerate(self._views):
             if v.isEqualTo(view):
                 return i
-        raise ValueError("View not found.")
 
     def _viewExists(self, view: View2D) -> bool:
         return any([view.isEqualTo(v) for v in self._views])
