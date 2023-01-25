@@ -551,3 +551,4 @@ class TestView2D(unittest.TestCase):
             currentImage = os.path.join(tempdir, 'test.png')
             plt.savefig(currentImage)
             self.assertTrue(filecmp.cmp(referenceImage, currentImage))
+        plt.close()

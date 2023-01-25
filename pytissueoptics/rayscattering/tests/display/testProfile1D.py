@@ -31,6 +31,7 @@ class TestProfile1D(unittest.TestCase):
             self.skipTest("Overwriting reference image")
 
         with tempfile.TemporaryDirectory() as tempdir:
-            currentImage = os.path.join(tempdir, 'test.png')
+            currentImage = os.path.join(tempdir, 'profile1D.png')
             plt.savefig(currentImage)
             self.assertTrue(filecmp.cmp(referenceImage, currentImage))
+        plt.close()
