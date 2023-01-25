@@ -23,6 +23,7 @@ class CLProgram:
 
         self._mainQueue = cl.CommandQueue(self._context)
         self._program = None
+        self._include = ''
 
     def launchKernel(self, kernelName: str, N: int, arguments: list, verbose: bool = False):
         t0 = time.time()
@@ -54,7 +55,7 @@ class CLProgram:
             _object.build(self._device, self._context)
 
         typeDeclarations = ''.join([_object.declaration for _object in objects])
-        sourceCode = typeDeclarations + self._makeSource(self._sourcePath)
+        sourceCode = self._include + typeDeclarations + self._makeSource(self._sourcePath)
 
         self._program = cl.Program(self._context, sourceCode).build()
 
@@ -64,6 +65,9 @@ class CLProgram:
             return rfn.structured_to_unstructured(_object.hostBuffer, dtype=dtype)
         else:
             return _object.hostBuffer
+
+    def include(self, code: str):
+        self._include += code
 
     @staticmethod
     def _makeSource(sourcePath) -> str:
