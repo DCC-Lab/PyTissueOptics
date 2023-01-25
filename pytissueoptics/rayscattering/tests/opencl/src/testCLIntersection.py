@@ -120,7 +120,3 @@ class IntersectionCL(CLObject):
 
     def _getInitialHostBuffer(self) -> np.ndarray:
         return np.empty(self._N, dtype=self._dtype)
-
-
-if __name__ == '__main__':
-    unittest.main()

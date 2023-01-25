@@ -118,3 +118,8 @@ __kernel void rotateAroundAxisGlobalKernel(__global float3 *vector, __global flo
     uint i = get_global_id(0);
     rotateAroundAxisGlobal(&vector[i], &axis[i], angle[i]);
 }
+
+__kernel void getAnyOrthogonalGlobalKernel(__global float3 *vector, __global float3 *output){
+    uint i = get_global_id(0);
+    output[i] = getAnyOrthogonalGlobal(&vector[i]);
+}

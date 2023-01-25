@@ -155,6 +155,11 @@ class TestVector(unittest.TestCase):
         vector.rotateAround(Vector(0, 0, 1), np.pi / 2)
         self.assertEqual(Vector(0, 1, 0), vector)
 
+    def testGivenVectorTowardsXY_whenRotateAroundYAxisBy270Degrees_shouldPointTowardsYZ(self):
+        vector = Vector(1, 1, 0)
+        vector.rotateAround(Vector(0, 1, 0), np.pi * 3 / 2)
+        self.assertEqual(Vector(0, 1, 1), vector)
+
     def testWhenPrintVector_shouldPrintComponents(self):
         vector = Vector(1, 2, 3)
         self.assertEqual("<Vector>:(1, 2, 3)", str(vector))
