@@ -250,3 +250,31 @@ __kernel void interactKernel(__constant Material *materials, __global DataPoint 
                              uint logIndex, __global Photon *photons, uint photonID){
     interact(photons, materials, logger, logIndex, photonID);
 }
+
+__kernel void logIntersectionKernel(float3 normal, int surfaceID, __global Surface *surfaces,
+                    __global DataPoint *logger, uint logIndex, __global Photon *photons, uint photonID){
+    Intersection intersection;
+    intersection.normal = normal;
+    intersection.surfaceID = surfaceID;
+    logIntersection(&intersection, photons, surfaces, logger, &logIndex, photonID);
+}
+
+__kernel void reflectOrRefractKernel(float3 normal, int surfaceID, float distanceLeft,
+                                     __constant Material *materials, __global Surface *surfaces,
+                                     __global DataPoint *logger, uint logIndex, __global uint *seeds,
+                                     __global Photon *photons, uint photonID){
+    Intersection intersection;
+    intersection.normal = normal;
+    intersection.surfaceID = surfaceID;
+    intersection.distanceLeft = distanceLeft;
+    reflectOrRefract(&intersection, photons, materials, surfaces, logger, &logIndex, seeds, photonID, photonID);
+}
+
+__kernel void propagateStepKernel(float distance, __constant Material *materials, __global Surface *surfaces,
+                    __global uint *seeds, __global DataPoint *logger, uint logIndex,
+                    __global Photon *photons, uint photonID){
+    Scene scene;
+    scene.surfaces = surfaces;
+    uint gid = photonID;
+    propagateStep(distance, photons, materials, &scene, seeds, logger, &logIndex, gid, photonID);
+}

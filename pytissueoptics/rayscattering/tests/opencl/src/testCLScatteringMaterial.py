@@ -30,6 +30,19 @@ class TestCLScatteringMaterial(unittest.TestCase):
         distance = self.program.getData(distanceBuffer)[0]
         self.assertAlmostEqual(-math.log(randomNumber) / mu_t, distance, places=5)
 
+    def testWhenGetScatteringDistanceInVacuum_shouldReturnInfinity(self):
+        nWorkUnits = 1
+        randomNumber = 0.5
+        randomNumberBuffer = BufferOf(np.array([randomNumber], dtype=np.float32))
+        distanceBuffer = EmptyBuffer(nWorkUnits)
+        mu_t = np.float32(0)
+
+        self.program.launchKernel("getScatteringDistanceKernel", N=nWorkUnits,
+                                  arguments=[distanceBuffer, randomNumberBuffer, mu_t])
+
+        distance = self.program.getData(distanceBuffer)[0]
+        self.assertEqual(math.inf, distance)
+
     def testWhenGetScatteringAnglePhi_shouldReturnAngleBetween0And2Pi(self):
         randomNumbers = [0, 0.5, 1]
         nWorkUnits = len(randomNumbers)
