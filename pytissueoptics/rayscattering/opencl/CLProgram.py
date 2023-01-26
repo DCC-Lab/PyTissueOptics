@@ -81,7 +81,8 @@ class CLProgram:
             line = f.readline()
             while line.startswith("#include"):
                 libFileName = line.split('"')[1]
-                sourceCode += open(os.path.join(includeDir, libFileName)).read()
+                with open(os.path.join(includeDir, libFileName), 'r') as libFile:
+                    sourceCode += libFile.read()
                 line = f.readline()
             sourceCode += line
             sourceCode += f.read()

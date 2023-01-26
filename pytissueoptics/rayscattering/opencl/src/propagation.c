@@ -210,3 +210,11 @@ __kernel void propagate(uint maxPhotons, uint maxInteractions, float weightThres
         photonCount++;
     }
 }
+
+
+// ---------------------------- TEST KERNELS ----------------------------
+
+
+__kernel void moveByKernel(float distance, __global Photon *photons, uint photonID){
+    moveBy(distance, photons, photonID);
+}
