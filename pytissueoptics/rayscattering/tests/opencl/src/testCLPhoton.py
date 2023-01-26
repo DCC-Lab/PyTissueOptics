@@ -5,11 +5,11 @@ from dataclasses import dataclass
 
 import numpy as np
 
-from pytissueoptics import Vector, ScatteringMaterial
+from pytissueoptics import Vector, ScatteringMaterial, ScatteringScene
 from pytissueoptics.rayscattering.opencl import OPENCL_AVAILABLE
 from pytissueoptics.rayscattering.opencl.config.CLConfig import OPENCL_SOURCE_DIR
 from pytissueoptics.rayscattering.opencl.CLProgram import CLProgram
-from rayscattering.opencl.CLScene import NO_SURFACE_ID, NO_LOG_ID, NO_SOLID_ID
+from rayscattering.opencl.CLScene import NO_SURFACE_ID, NO_LOG_ID, NO_SOLID_ID, CLScene
 from rayscattering.opencl.buffers import *
 from pytissueoptics.scene.intersection.mollerTrumboreIntersect import EPS_CORRECTION
 
@@ -392,6 +392,31 @@ class TestCLPhoton(unittest.TestCase):
         expectedPosition = self.INITIAL_POSITION + self.INITIAL_DIRECTION * (intersectionDistance + EPS_CORRECTION)
         self._assertVectorAlmostEqual(expectedPosition, photonResult.position)
 
+    # TODO
+    # missing some tests regarding returned value (I failed to inject a distanceBuffer in the kernel for now):
+    #  - testWhenReflectOrRefract..._shouldReturnCorrectDistanceLeft
+    #  - testWhenStep..._shouldReturnCorrectDistanceLeft
+
+    def testWhenPropagateInInfiniteMedium_shouldPropagateUntilItHasNoMoreEnergy(self):
+        self._mockFindIntersection(exists=False)
+        rouletteChance = 0.1  # taken from the code
+        self._mockRandomValue(rouletteChance * 2)  # deactivates roulette rescaling
+
+        photonResult = self._photonPropagateInInfiniteMedium()
+
+        self._assertVectorNotAlmostEqual(self.INITIAL_POSITION, photonResult.position)
+        self.assertEqual(0, photonResult.weight)
+
+    def testWhenPropagateReachesMaxInteractions_shouldReturnCurrentPhotonState(self):
+        self._mockFindIntersection(exists=False)
+        self._mockRandomValue(0.2)  # deactivates roulette rescaling
+
+        photonResult = self._photonPropagateInInfiniteMedium(factorOfMaxInteractions=0.5)
+
+        self._assertVectorNotAlmostEqual(self.INITIAL_POSITION, photonResult.position)
+        self.assertNotEqual(self.INITIAL_WEIGHT, photonResult.weight)
+        self.assertNotEqual(0, photonResult.weight)
+
     def _photonFunc(self, funcName: str, *args) -> PhotonResult:
         self._addMissingDeclarations(args)
 
@@ -404,6 +429,30 @@ class TestCLPhoton(unittest.TestCase):
                                   arguments=npArgs + [photonBuffer, np.int32(0)])
         photonResult = self._getPhotonResult(photonBuffer)
         return photonResult
+
+    def _photonPropagateInInfiniteMedium(self, factorOfMaxInteractions=1.0) -> PhotonResult:
+        material = ScatteringMaterial(5, 2, 0.9, 1.4)
+        WEIGHT_THRESHOLD = 0.02
+        # With roulette rescaling OFF, this is exactly the number of interactions
+        avgInteractions = -np.log(WEIGHT_THRESHOLD) / material.getAlbedo()
+        maxInteractions = int(np.ceil(avgInteractions) * factorOfMaxInteractions)
+
+        s = self._getCLSceneOfInfiniteMedium(material)
+        logger = DataPointCL(maxInteractions)
+        photonBuffer = PhotonCL(positions=np.array([self.INITIAL_POSITION.array]),
+                                directions=np.array([self.INITIAL_DIRECTION.array]),
+                                materialID=0, solidID=self.INITIAL_SOLID_ID, weight=self.INITIAL_WEIGHT)
+        self.program.launchKernel(kernelName="propagate", N=1,
+                                  arguments=[np.int32(1), np.int32(maxInteractions), np.float32(WEIGHT_THRESHOLD), np.int32(1),
+                                             photonBuffer, s.materials, s.nSolids, s.solids, s.surfaces, s.triangles,
+                                             s.vertices, s.solidCandidates, SeedCL(1), logger])
+        return self._getPhotonResult(photonBuffer)
+
+    @staticmethod
+    def _getCLSceneOfInfiniteMedium(material):
+        scene = ScatteringScene([], worldMaterial=material)
+        sceneCL = CLScene(scene, nWorkUnits=1)
+        return sceneCL
 
     def _addMissingDeclarations(self, kernelArguments):
         self.program._include = ''
