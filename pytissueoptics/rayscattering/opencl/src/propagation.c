@@ -218,3 +218,35 @@ __kernel void propagate(uint maxPhotons, uint maxInteractions, float weightThres
 __kernel void moveByKernel(float distance, __global Photon *photons, uint photonID){
     moveBy(distance, photons, photonID);
 }
+
+__kernel void scatterByKernel(float phi, float theta, __global Photon *photons, uint photonID){
+    photons[photonID].er = getAnyOrthogonalGlobal(&photons[photonID].direction);
+    scatterBy(phi, theta, photons, photonID);
+}
+
+__kernel void decreaseWeightByKernel(float delta_weight, __global Photon *photons, uint photonID){
+    decreaseWeightBy(delta_weight, photons, photonID);
+}
+
+__kernel void rouletteKernel(float weightThreshold, __global uint *seeds, __global Photon *photons, uint photonID){
+    roulette(weightThreshold, photons, seeds, photonID, photonID);
+}
+
+__kernel void reflectKernel(float3 incidencePlane, float angleDeflection, __global Photon *photons, uint photonID){
+    FresnelIntersection fresnelIntersection;
+    fresnelIntersection.incidencePlane = incidencePlane;
+    fresnelIntersection.angleDeflection = angleDeflection;
+    reflect(&fresnelIntersection, photons, photonID);
+}
+
+__kernel void refractKernel(float3 incidencePlane, float angleDeflection, __global Photon *photons, uint photonID){
+    FresnelIntersection fresnelIntersection;
+    fresnelIntersection.incidencePlane = incidencePlane;
+    fresnelIntersection.angleDeflection = angleDeflection;
+    refract(&fresnelIntersection, photons, photonID);
+}
+
+__kernel void interactKernel(__constant Material *materials, __global DataPoint *logger,
+                             uint logIndex, __global Photon *photons, uint photonID){
+    interact(photons, materials, logger, logIndex, photonID);
+}
