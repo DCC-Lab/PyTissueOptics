@@ -24,6 +24,7 @@ class CLProgram:
         self._mainQueue = cl.CommandQueue(self._context)
         self._program = None
         self._include = ''
+        self._mocks = []
 
     def launchKernel(self, kernelName: str, N: int, arguments: list, verbose: bool = False):
         t0 = time.time()
@@ -56,6 +57,9 @@ class CLProgram:
 
         typeDeclarations = ''.join([_object.declaration for _object in objects])
         sourceCode = self._include + typeDeclarations + self._makeSource(self._sourcePath)
+
+        for code, mock in self._mocks:
+            sourceCode = sourceCode.replace(code, mock)
 
         self._program = cl.Program(self._context, sourceCode).build()
 
@@ -97,3 +101,10 @@ class CLProgram:
     @property
     def device(self):
         return self._device
+
+    def mock(self, code: str, mock: str):
+        """
+        Used internally for testing purposes.
+        Acts as a simple string replacement for the source code.
+        """
+        self._mocks.append((code, mock))
