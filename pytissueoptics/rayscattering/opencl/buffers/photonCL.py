@@ -14,12 +14,13 @@ class PhotonCL(CLObject):
              ("solidID", cl.cltypes.int)])
 
     def __init__(self, positions: np.ndarray, directions: np.ndarray,
-                 materialID: int, solidID: int):
+                 materialID: int, solidID: int, weight=1.0):
         self._positions = positions
         self._directions = directions
         self._N = positions.shape[0]
         self._materialID = materialID
         self._solidID = solidID
+        self._weight = weight
 
         super().__init__()
 
@@ -29,7 +30,7 @@ class PhotonCL(CLObject):
         buffer[:, 0:3] = self._positions
         buffer[:, 4:7] = self._directions
         buffer = rfn.unstructured_to_structured(buffer, self._dtype)
-        buffer["weight"] = 1.0
+        buffer["weight"] = self._weight
         buffer["materialID"] = self._materialID
         buffer["solidID"] = self._solidID
         return buffer

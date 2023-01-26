@@ -401,7 +401,7 @@ class TestPhoton(unittest.TestCase):
         self.assertFalse(self.photon.isAlive)
 
     @patch('random.random', return_value=0.09)
-    def testWhenRouletteWithWeightBelowThresholdAndLucky_shouldRescaleWeight(self, _):
+    def testWhenRouletteWithWeightBelowThresholdAndLucky_shouldRescaleWeightToPreserveStatistics(self, _):
         rouletteChance = 0.1  # defined in Photon.roulette()
         self.photon._weight = 0.9 * WEIGHT_THRESHOLD
         self.photon.roulette()
