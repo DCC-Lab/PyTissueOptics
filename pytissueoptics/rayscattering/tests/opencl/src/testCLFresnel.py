@@ -1,3 +1,4 @@
+import math
 import os
 import unittest
 from dataclasses import dataclass
@@ -31,32 +32,121 @@ class FresnelResult:
 
 @unittest.skipIf(not OPENCL_AVAILABLE, 'Requires PyOpenCL.')
 class TestCLFresnel(unittest.TestCase):
+    OUTSIDE_SOLID_ID = 0
+    INSIDE_SOLID_ID = 1
+    OUTSIDE_MATERIAL_ID = 0
+    INSIDE_MATERIAL_ID = 1
+
     def setUp(self):
         sourcePath = os.path.join(OPENCL_SOURCE_DIR, "fresnel.c")
         self.program = CLProgram(sourcePath)
         self.program.include(self._getMissingSourceCode())
 
-    def testWhenComputeFresnelIntersection(self):
-        N = 1  # Kernel size errors when trying a vector buffer. Limiting to 1 for now, which is fine for testing.
-        rayDirection = Vector(1, 0, 0)
+    def _setUpWith(self, n1=1.0, n2=1.5, normal=Vector(0, 0, 1)):
+        outsideMaterial = ScatteringMaterial(0.8, 0.2, 0.9, n1)
+        insideMaterial = ScatteringMaterial(0.8, 0.2, 0.9, n2)
+        self.materials = MaterialCL([outsideMaterial, insideMaterial])
+        self.surfaces = SurfaceCL([SurfaceCLInfo(0, 1, self.INSIDE_MATERIAL_ID, self.OUTSIDE_MATERIAL_ID,
+                                                 self.INSIDE_SOLID_ID, self.OUTSIDE_SOLID_ID, False)])
+        self.normal = normal
+        self.n1 = n1
+        self.n2 = n2
+        self.intersection = IntersectionCL(normal=normal, surfaceID=0)
+        self.rayAt45 = Vector(1, 0, -1)
+        self.rayAt45.normalize()
 
-        materials = MaterialCL([ScatteringMaterial(0.8, 0.2, 0.9, 1.4),
-                                ScatteringMaterial(0.8, 0.2, 0.9, 1.2)])
-        surfaces = SurfaceCL([SurfaceCLInfo(0, 10, 0, 1, 0, 1, False),
-                              SurfaceCLInfo(0, 10, 0, 1, 0, 1, False)])
-        intersection = IntersectionCL(distance=1, position=Vector(0, 0, 0), normal=Vector(0, 0, 1),
-                                      surfaceID=0, polygonID=0)
-        singleRayDirection = cl.cltypes.make_float3(*rayDirection.array)
+    def testWhenCompute_shouldReturnAFresnelIntersection(self):
+        self._setUpWith(n1=1.0, n2=1.5)
+
+        fresnelResult = self._computeFresnelIntersection(self.rayAt45)
+
+        self.assertNotEqual(0, fresnelResult.angleDeflection)
+        self.assertEqual(Vector(0, 1, 0), fresnelResult.incidencePlane)
+
+    def testWhenIsReflected_shouldComputeReflectionDeflection(self):
+        self._setUpWith(n1=1.0, n2=1.5)
+        self._mockIsReflected(True)
+
+        fresnelResult = self._computeFresnelIntersection(self.rayAt45)
+
+        self.assertTrue(fresnelResult.isReflected)
+        self.assertAlmostEqual(-np.pi / 2, fresnelResult.angleDeflection, places=6)
+
+    def testWhenIsRefracted_shouldComputeRefractionDeflection(self):
+        self._setUpWith(n1=1.0, n2=1.5)
+        self._mockIsReflected(False)
+
+        fresnelResult = self._computeFresnelIntersection(self.rayAt45)
+
+        expectedDeflection = np.pi / 4 - np.arcsin(self.n1 / self.n2 * np.sin(np.pi / 4))
+        self.assertFalse(fresnelResult.isReflected)
+        self.assertAlmostEqual(expectedDeflection, fresnelResult.angleDeflection, places=6)
+
+    def testIfGoingInside_shouldSetNextEnvironmentAsEnvironmentInside(self):
+        self._setUpWith(n1=1.0, n2=1.5)
+        self._mockIsReflected(False)
+
+        fresnelResult = self._computeFresnelIntersection(self.rayAt45)
+
+        self.assertEqual(self.INSIDE_MATERIAL_ID, fresnelResult.nextMaterialID)
+        self.assertEqual(self.INSIDE_SOLID_ID, fresnelResult.nextSolidID)
+
+    def testIfGoingOutside_shouldSetNextEnvironmentAsEnvironmentOutside(self):
+        surfaceNormalAlongRayDirection = Vector(0, 0, -1)
+        self._setUpWith(n1=1.0, n2=1.5, normal=surfaceNormalAlongRayDirection)
+        self._mockIsReflected(False)
+
+        fresnelResult = self._computeFresnelIntersection(self.rayAt45)
+
+        self.assertEqual(self.OUTSIDE_MATERIAL_ID, fresnelResult.nextMaterialID)
+        self.assertEqual(self.OUTSIDE_SOLID_ID, fresnelResult.nextSolidID)
+
+    def testGivenAnAngleOfIncidenceAboveTotalInternalReflection_shouldHaveAReflectionCoefficientOf1(self):
+        self._setUpWith(n1=np.sqrt(2), n2=1)
+        R = self._getReflectionCoefficient(self.rayAt45)
+        self.assertEqual(1, R)
+
+    def testGivenSameRefractiveIndices_shouldHaveAReflectionCoefficientOf0(self):
+        self._setUpWith(n1=1.5, n2=1.5)
+        R = self._getReflectionCoefficient(self.rayAt45)
+        self.assertEqual(0, R)
+
+    def testGivenPerpendicularIncidence_shouldHaveCorrectReflectionCoefficient(self):
+        self._setUpWith(n1=1.0, n2=1.5, normal=Vector(0, 0, 1))
+
+        R = self._getReflectionCoefficient(rayDirection=Vector(0, 0, -1))
+
+        expectedR = ((self.n2 - self.n1) / (self.n2 + self.n1)) ** 2
+        self.assertAlmostEqual(expectedR, R, places=6)
+
+    def _computeFresnelIntersection(self, rayDirection: Vector) -> FresnelResult:
+        N = 1  # Kernel size errors when trying a vector buffer. Limiting to 1 for now, which is fine for testing.
+        singleRayDirectionBuffer = cl.cltypes.make_float3(*rayDirection.array)
         seeds = SeedCL(N)
         fresnelBuffer = FresnelIntersectionCL(N)
-
         self.program.launchKernel("computeFresnelIntersectionKernel", N=N,
-                                  arguments=[singleRayDirection, intersection,
-                                             materials, surfaces, seeds, fresnelBuffer])
+                                  arguments=[singleRayDirectionBuffer, self.intersection,
+                                             self.materials, self.surfaces, seeds, fresnelBuffer])
 
-        fresnelResult = self._getFresnelResult(fresnelBuffer)
-        print(fresnelResult)
-        self.assertTrue(fresnelResult.isReflected)
+        return self._getFresnelResult(fresnelBuffer)
+
+    def _getReflectionCoefficient(self, rayDirection: Vector) -> float:
+        normal = self.normal.copy()
+        goingInside = rayDirection.dot(normal) < 0
+        if goingInside:
+            normal.multiply(-1)
+        thetaIn = math.acos(normal.dot(rayDirection))
+
+        N = 1
+        coefficientBuffer = FloatContainerCL(N)
+
+        self.program._build([self.materials, self.surfaces, self.intersection])
+        self.program.include(self.materials.declaration + self.surfaces.declaration + self.intersection.declaration)
+
+        self.program.launchKernel("getReflectionCoefficientKernel", N=N,
+                                  arguments=[np.float32(self.n1), np.float32(self.n2),
+                                             np.float32(thetaIn), coefficientBuffer])
+        return float(self.program.getData(coefficientBuffer)[0])
 
     def _getFresnelResult(self, fresnelBuffer) -> FresnelResult:
         fresnelIntersection = self.program.getData(fresnelBuffer)[0]
@@ -71,6 +161,20 @@ class TestCLFresnel(unittest.TestCase):
             randomSourceCode = f.read()
         return vectorOperatorsSourceCode + randomSourceCode
 
+    def _mockIsReflected(self, isReflected: bool):
+        isReflectedFunction = """bool _getIsReflected(float nIn, float nOut, float thetaIn, __global uint *seeds, uint gid) {
+    float R = _getReflectionCoefficient(nIn, nOut, thetaIn);
+    float randomFloat = getRandomFloatValue(seeds, gid);
+    if (R > randomFloat) {
+        return true;
+    }
+    return false;
+}"""
+        mockFunction = """bool _getIsReflected(float nIn, float nOut, float thetaIn, __global uint *seeds, uint gid) {
+        return %s;
+        }""" % str(isReflected).lower()
+        self.program.mock(isReflectedFunction, mockFunction)
+
 
 class IntersectionCL(CLObject):
     STRUCT_NAME = "Intersection"
@@ -83,8 +187,8 @@ class IntersectionCL(CLObject):
                              ("polygonID", cl.cltypes.uint),
                              ("distanceLeft", cl.cltypes.float)])
 
-    def __init__(self, distance: float, position: Vector, normal: Vector, surfaceID: int, polygonID: int,
-                 distanceLeft: float = 0, isTooClose: bool = False):
+    def __init__(self, distance: float = 10, position=Vector(0, 0, 0), normal=Vector(0, 0, 1),
+                 surfaceID=0, polygonID=0, distanceLeft: float = 0, isTooClose: bool = False):
         self._distance = distance
         self._position = position
         self._normal = normal
@@ -117,6 +221,18 @@ class FresnelIntersectionCL(CLObject):
                              ("angleDeflection", cl.cltypes.float),
                              ("nextMaterialID", cl.cltypes.uint),
                              ("nextSolidID", cl.cltypes.int)])
+
+    def __init__(self, N: int):
+        self._N = N
+        super().__init__(skipDeclaration=True)
+
+    def _getInitialHostBuffer(self) -> np.ndarray:
+        return np.empty(self._N, dtype=self._dtype)
+
+
+class FloatContainerCL(CLObject):
+    STRUCT_NAME = "FloatContainer"
+    STRUCT_DTYPE = np.dtype([("value", cl.cltypes.float)])
 
     def __init__(self, N: int):
         self._N = N

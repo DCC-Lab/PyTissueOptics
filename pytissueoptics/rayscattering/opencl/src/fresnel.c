@@ -110,3 +110,13 @@ __kernel void computeFresnelIntersectionKernel(float3 rayDirection, __global Int
     uint gid = get_global_id(0);
     fresnelIntersections[gid] = computeFresnelIntersection(rayDirection, &intersections[gid], materials, surfaces, seeds, gid);
 }
+
+struct FloatContainer {
+    float value;
+};
+typedef struct FloatContainer FloatContainer;
+
+__kernel void getReflectionCoefficientKernel(float n1, float n2, float thetaIn, __global FloatContainer *results) {
+    uint gid = get_global_id(0);
+    results[gid].value = _getReflectionCoefficient(n1, n2, thetaIn);
+}
