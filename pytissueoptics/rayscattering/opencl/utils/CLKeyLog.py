@@ -11,6 +11,10 @@ SURFACE_ID_COL = 5
 
 
 class CLKeyLog:
+    """ Parses a DataPointCL array of shape (N, 6) where each point is of the form
+    (weight, x, y, z, solidID, surfaceID) to extract a dictionary of InteractionKey
+    and their corresponding datapoint array of the form (weight, x, y, z). The
+    translation from IDs to their corresponding labels is done using the given CLScene. """
     def __init__(self, log: np.ndarray, sceneCL: CLScene):
         self._log = log
         self._sceneCL = sceneCL
@@ -23,6 +27,7 @@ class CLKeyLog:
         self._extractKeyLog()
 
     def toSceneLogger(self, sceneLogger: Logger):
+        """ Writes the extracted key-based log to the given scene logger."""
         for key, points in self._keyLog.items():
             sceneLogger.logDataPointArray(points, key)
 
