@@ -120,7 +120,7 @@ class CLConfig:
                       "minutes. ")
         self.AUTO_SAVE = False
         try:
-            from pytissueoptics.rayscattering.opencl.testWorkUnits import computeOptimalNWorkUnits
+            from rayscattering.opencl.utils.optimalWorkUnits import computeOptimalNWorkUnits
             optimalNWorkUnits = computeOptimalNWorkUnits()
             self.AUTO_SAVE = True
         except Exception as e:
