@@ -129,7 +129,9 @@ class Source:
             logger.info["photonCount"] = 0
         logger.info["photonCount"] += self.getPhotonCount()
 
-        sourceSolid = self.getEnvironment().solid
+        if self._environment is None:
+            self._environment = Environment(None)
+        sourceSolid = self._environment.solid
         logger.info["sourceSolidLabel"] = sourceSolid.getLabel() if sourceSolid else None
 
         if "sourceHash" not in logger.info:
@@ -145,14 +147,6 @@ class Source:
 
     def getPhotonCount(self) -> int:
         return self._N
-
-    def getPosition(self) -> Vector:
-        return self._position
-
-    def getEnvironment(self) -> Environment:
-        if self._environment is None:
-            return Environment(None)
-        return self._environment
 
     def addToViewer(self, viewer: MayaviViewer, size: float = 0.1):
         sphere = Sphere(radius=size/2, position=self._position)
