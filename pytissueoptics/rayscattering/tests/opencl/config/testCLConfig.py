@@ -7,9 +7,11 @@ from pytissueoptics.rayscattering.opencl.config import CLConfig as clc
 
 def tempConfigPath(func):
     def wrapper(*args, **kwargs):
+        previousPath = clc.OPENCL_CONFIG_PATH
         with tempfile.TemporaryDirectory() as tempDir:
             clc.OPENCL_CONFIG_PATH = os.path.join(tempDir, "config.json")
             func(*args, **kwargs)
+        clc.OPENCL_CONFIG_PATH = previousPath
     return wrapper
 
 
