@@ -116,7 +116,7 @@ class Source:
 
     def _loadPhotonsOpenCL(self):
         positions, directions = self.getInitialPositionsAndDirections()
-        self._photons = CLPhotons(positions, directions, self._N)
+        self._photons = CLPhotons(positions, directions)
 
     def _prepareLogger(self, logger: Optional[Logger]):
         if logger is None:

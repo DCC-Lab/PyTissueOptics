@@ -19,10 +19,11 @@ PROPAGATION_SOURCE_PATH = os.path.join(os.path.dirname(os.path.abspath(__file__)
 
 
 class CLPhotons:
-    def __init__(self, positions: np.ndarray, directions: np.ndarray, N: int):
+    def __init__(self, positions: np.ndarray, directions: np.ndarray):
+        assert positions.shape == directions.shape, "Positions and directions must have the same shape."
         self._positions = positions
         self._directions = directions
-        self._N = np.uint32(N)
+        self._N = np.uint32(len(positions))
         self._weightThreshold = np.float32(CONFIG.WEIGHT_THRESHOLD)
         self._initialMaterial = None
         self._initialSolid = None
@@ -37,6 +38,7 @@ class CLPhotons:
         self._initialSolid = environment.solid
 
     def propagate(self, IPP: float, verbose: bool = False):
+        assert self._scene is not None, "Context must be set before propagation."
         program = CLProgram(sourcePath=PROPAGATION_SOURCE_PATH)
         params = CLParameters(self._N, AVG_IT_PER_PHOTON=IPP)
 

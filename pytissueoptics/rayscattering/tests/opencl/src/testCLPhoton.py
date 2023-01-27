@@ -433,7 +433,7 @@ class TestCLPhoton(unittest.TestCase):
     def _photonPropagateInInfiniteMedium(self, factorOfMaxInteractions=1.0) -> PhotonResult:
         material = ScatteringMaterial(5, 2, 0.9, 1.4)
         WEIGHT_THRESHOLD = 0.02
-        # With roulette rescaling OFF, this is exactly the number of interactions
+        # With roulette rescaling OFF, this is a bit more than the number of interactions needed to reach the threshold
         avgInteractions = -np.log(WEIGHT_THRESHOLD) / material.getAlbedo()
         maxInteractions = int(np.ceil(avgInteractions) * factorOfMaxInteractions)
 
