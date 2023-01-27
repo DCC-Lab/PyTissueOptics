@@ -23,18 +23,6 @@ class CLParameters:
     def workItemAmount(self):
         return np.int32(self._workItemAmount)
 
-    @workItemAmount.setter
-    def workItemAmount(self, value: int):
-        self._workItemAmount = value
-
-    @property
-    def maxLoggerMemory(self):
-        return np.int32(self._maxLoggerMemory)
-
-    @maxLoggerMemory.setter
-    def maxLoggerMemory(self, value: int):
-        self._maxLoggerMemory = value
-
     @property
     def maxPhotonsPerBatch(self):
         return np.int32(self._maxPhotonsPerBatch)
@@ -49,25 +37,13 @@ class CLParameters:
     def maxLoggableInteractions(self):
         return np.int32(self._maxLoggerMemory / DATAPOINT_SIZE)
 
-    @maxLoggableInteractions.setter
-    def maxLoggableInteractions(self, value):
-        self._maxLoggerMemory = np.int32(value * DATAPOINT_SIZE)
-
     @property
     def maxLoggableInteractionsPerWorkItem(self):
-        return np.int32((self.maxLoggerMemory / DATAPOINT_SIZE) / self._workItemAmount)
-
-    @maxLoggableInteractionsPerWorkItem.setter
-    def maxLoggableInteractionsPerWorkItem(self, value):
-        self._maxLoggerMemory = np.int32((value * DATAPOINT_SIZE) * self._workItemAmount)
+        return np.int32(self.maxLoggableInteractions / self._workItemAmount)
 
     @property
     def photonsPerWorkItem(self):
         return np.int32(np.floor(self._maxPhotonsPerBatch / self._workItemAmount))
-    
-    @photonsPerWorkItem.setter
-    def photonsPerWorkItem(self, value: int):
-        self._maxPhotonsPerBatch = np.int32(value * self._workItemAmount)
 
     @property
     def requiredRAMBytes(self) -> float:

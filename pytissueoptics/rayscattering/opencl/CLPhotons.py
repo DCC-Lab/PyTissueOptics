@@ -3,10 +3,9 @@ import time
 
 import numpy as np
 
-from pytissueoptics.rayscattering.opencl import CONFIG
-from pytissueoptics.rayscattering.opencl.utils import CLKeyLog
+from pytissueoptics.rayscattering.opencl import WEIGHT_THRESHOLD
+from pytissueoptics.rayscattering.opencl.utils import CLKeyLog, CLParameters
 from pytissueoptics.rayscattering.opencl.CLScene import CLScene
-from pytissueoptics.rayscattering.opencl.config.CLParameters import CLParameters
 from pytissueoptics.rayscattering.opencl.CLProgram import CLProgram
 from pytissueoptics.rayscattering.opencl.buffers.seedCL import SeedCL
 from pytissueoptics.rayscattering.opencl.buffers.dataPointCL import DataPointCL
@@ -24,7 +23,7 @@ class CLPhotons:
         self._positions = positions
         self._directions = directions
         self._N = np.uint32(len(positions))
-        self._weightThreshold = np.float32(CONFIG.WEIGHT_THRESHOLD)
+        self._weightThreshold = np.float32(WEIGHT_THRESHOLD)
         self._initialMaterial = None
         self._initialSolid = None
 
