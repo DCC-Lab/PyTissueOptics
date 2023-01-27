@@ -11,7 +11,7 @@ DATAPOINT_SIZE = DataPointCL.getItemSize()
 class CLParameters:
     def __init__(self, N, AVG_IT_PER_PHOTON):
         nBatch = 1/CONFIG.BATCH_LOAD_FACTOR
-        avgPhotonsPerBatch = int(N / min(nBatch, CONFIG.N_WORK_UNITS))
+        avgPhotonsPerBatch = int(np.ceil(N / min(nBatch, CONFIG.N_WORK_UNITS)))
         self._maxLoggerMemory = avgPhotonsPerBatch * AVG_IT_PER_PHOTON * DATAPOINT_SIZE
         self._maxLoggerMemory = min(self._maxLoggerMemory, CONFIG.MAX_MEMORY)
         self._maxPhotonsPerBatch = min(2 * avgPhotonsPerBatch, N)

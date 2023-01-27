@@ -69,3 +69,23 @@ class TestCLPhotons(unittest.TestCase):
             energyLeaving += np.sum(surfacePoints[:, 0])
 
         self.assertAlmostEqual(energyInput, energyScattered + energyLeaving, places=2)
+
+    def testWhenPropagateOnly1Photon_shouldPropagate(self):
+        N = 1
+        # Testing in infinite scene so that photons will scatter all their energy
+        worldMaterial = ScatteringMaterial(5, 2, 0.9, 1.4)
+        infiniteScene = ScatteringScene([], worldMaterial=worldMaterial)
+        logger = EnergyLogger(infiniteScene)
+
+        positions = np.full((N, 3), 0)
+        directions = np.full((N, 3), 0)
+        directions[:, 2] = 1
+        photons = CLPhotons(positions, directions)
+        photons.setContext(infiniteScene, Environment(worldMaterial), logger=logger)
+        IPP = infiniteScene.getEstimatedIPP(WEIGHT_THRESHOLD)
+
+        photons.propagate(IPP=IPP, verbose=False)
+
+        dataPoints = logger.getDataPoints()
+        totalWeightScattered = float(np.sum(dataPoints[:, 0]))
+        self.assertAlmostEqual(N, totalWeightScattered, places=2)
