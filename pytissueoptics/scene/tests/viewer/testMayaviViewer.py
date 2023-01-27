@@ -103,7 +103,7 @@ class TestMayaviViewer(unittest.TestCase):
         logger = Logger()
         for i in range(3):
             logger.logPoint(Vector(0, i/3, 0))
-            logger.logDataPoint(i/20, Vector(1, i/3, 0))
+            logger.logDataPoint(i/20, Vector(1, i/3, 0), None)
         logger.logSegment(Vector(0, 1, 0), Vector(1, 0, 0))
         return logger
 
