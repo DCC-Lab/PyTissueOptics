@@ -47,7 +47,10 @@ class CLConfig:
         parameterKeys = list(DEFAULT_CONFIG.keys())
         for key in parameterKeys:
             if key not in self._config:
-                raise ValueError(errorMessage + "The parameter '{}' is missing.".format(key))
+                self._config[key] = DEFAULT_CONFIG[key]
+                self.save()
+                raise ValueError(errorMessage + "The parameter '{}' is missing. Resetting to default "
+                                                "value...".format(key))
 
         self._validateDeviceIndex()
         self._validateMaxMemory()
@@ -197,7 +200,10 @@ class CLConfig:
 
     @property
     def MAX_MEMORY(self):
-        return self._config["MAX_MEMORY_MB"] * 1024 ** 2
+        maxMemoryMB = self._config["MAX_MEMORY_MB"]
+        if maxMemoryMB is None:
+            return None
+        return maxMemoryMB * 1024 ** 2
 
     @property
     def IPP_TEST_N_PHOTONS(self):
