@@ -1,9 +1,15 @@
+import hashlib
 import math
+import pickle
 
 import numpy as np
 
 from pytissueoptics.scene.geometry import Vector, Triangle, primitives, utils, Vertex
 from pytissueoptics.scene.solids import Solid
+
+
+def hash2(obj):
+    return int(hashlib.md5(pickle.dumps(obj)).hexdigest(), 16)
 
 
 class Ellipsoid(Solid):
@@ -77,7 +83,7 @@ class Ellipsoid(Solid):
             ci = self._createMidVertex(polygon.vertices[2], polygon.vertices[0])
             newVertices = [ai, bi, ci]
             for i, vertex in enumerate(newVertices):
-                vHash = hash(vertex)
+                vHash = hash2((vertex.x, vertex.y, vertex.z))
                 if vHash in self._verticesCache:
                     newVertices[i] = self._verticesCache[vHash]
                     self._verticesCache.pop(vHash)
