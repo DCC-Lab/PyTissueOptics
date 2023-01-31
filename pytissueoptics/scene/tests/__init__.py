@@ -1,7 +1,7 @@
 from matplotlib import pyplot as plt
 
 
-SHOW_VISUAL_TESTS = True
+SHOW_VISUAL_TESTS = False
 
 
 def compareVisuals(expectedImagePath, currentImagePath, title: str) -> bool:

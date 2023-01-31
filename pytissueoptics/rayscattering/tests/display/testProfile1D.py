@@ -9,6 +9,8 @@ from matplotlib import pyplot as plt
 
 from pytissueoptics import Direction
 from pytissueoptics.rayscattering.display.profiles import Profile1D
+from pytissueoptics.rayscattering.tests import SHOW_VISUAL_TESTS
+from pytissueoptics.scene.tests import compareVisuals
 
 TEST_IMAGES_DIR = os.path.join(os.path.dirname(__file__), 'testImages')
 
@@ -30,8 +32,15 @@ class TestProfile1D(unittest.TestCase):
             plt.savefig(referenceImage)
             self.skipTest("Overwriting reference image")
 
+        if not SHOW_VISUAL_TESTS:
+            self.skipTest("Visual tests are disabled. Set rayscattering.tests.SHOW_VISUAL_TESTS to True to enable them.")
+
         with tempfile.TemporaryDirectory() as tempdir:
-            currentImage = os.path.join(tempdir, 'profile1D.png')
+            currentImage = os.path.join(tempdir, 'test.png')
             plt.savefig(currentImage)
-            self.assertTrue(filecmp.cmp(referenceImage, currentImage))
-        plt.close()
+            plt.close()
+
+            isOK = compareVisuals(referenceImage, currentImage,
+                                  title="TestView2D: View2DProjectionX")
+        if not isOK:
+            self.fail("Visual test failed.")
