@@ -136,3 +136,6 @@ class MayaviViewer:
     def clear(self):
         mlab.clf()
         self._resetTo("DefaultScene")
+
+    def close(self):
+        mlab.close()
