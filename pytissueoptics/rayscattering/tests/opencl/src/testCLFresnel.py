@@ -102,7 +102,7 @@ class TestCLFresnel(unittest.TestCase):
         self.assertEqual(self.OUTSIDE_SOLID_ID, fresnelResult.nextSolidID)
 
     def testGivenAnAngleOfIncidenceAboveTotalInternalReflection_shouldHaveAReflectionCoefficientOf1(self):
-        self._setUpWith(n1=np.sqrt(2), n2=1)
+        self._setUpWith(n1=np.sqrt(2.01), n2=1)
         R = self._getReflectionCoefficient(self.rayAt45)
         self.assertEqual(1, R)
 
