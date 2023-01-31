@@ -11,7 +11,7 @@ from pytissueoptics.scene.solids import Cuboid, Sphere, Ellipsoid
 from pytissueoptics.scene.scene import Scene
 from pytissueoptics.scene.geometry import Vector
 from pytissueoptics.scene.viewer.mayavi import MayaviViewer, ViewPointStyle
-from pytissueoptics.scene.tests import SHOW_VISUAL_TESTS
+from pytissueoptics.scene.tests import SHOW_VISUAL_TESTS, compareVisuals
 
 TEST_IMAGES_DIR = os.path.join(os.path.dirname(__file__), 'testImages')
 
@@ -86,32 +86,16 @@ class TestMayaviViewer(unittest.TestCase):
         if not SHOW_VISUAL_TESTS:
             self.skipTest("Visual tests are disabled. Set scene.tests.SHOW_VISUAL_TESTS to True to enable them.")
 
-        self.visualIsOK = True
         with tempfile.TemporaryDirectory() as tmpdir:
             currentImageFile = os.path.join(tmpdir, 'currentViewer.png')
             self.viewer.save(currentImageFile)
             self.viewer.close()
 
-            fig, ax = plt.subplots(1, 2)
-            ax[0].imshow(plt.imread(expectedImageFile))
-            ax[1].imshow(plt.imread(currentImageFile))
-            ax[0].set_title('Expected view')
-            ax[1].set_title('Current view')
-            axOK = plt.axes([0.7, 0.05, 0.1, 0.075])
-            axFAIL = plt.axes([0.81, 0.05, 0.1, 0.075])
-            btnOK = plt.Button(axOK, 'OK')
-            btnFAIL = plt.Button(axFAIL, 'FAIL')
-            btnOK.on_clicked(self._visualOK)
-            btnFAIL.on_clicked(lambda event: self._visualOK(event, False))
-            plt.suptitle(f"TestMayaviViewer: {displayName}")
-            plt.show()
+            isOK = compareVisuals(expectedImageFile, currentImageFile,
+                                  title=f"TestMayaviViewer: {displayName}")
 
-        if not self.visualIsOK:
-            self.fail("Visual test failed.")
-
-    def _visualOK(self, event, OK: bool = True):
-        plt.close()
-        self.visualIsOK = OK
+            if not isOK:
+                self.fail("Visual test failed.")
 
     @staticmethod
     def _getTestLogger():
