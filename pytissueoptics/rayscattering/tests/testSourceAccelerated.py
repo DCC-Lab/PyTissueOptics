@@ -11,7 +11,7 @@ from pytissueoptics.rayscattering.opencl import OPENCL_AVAILABLE, CONFIG
 from pytissueoptics.rayscattering.source import Source
 from pytissueoptics.rayscattering.opencl.CLPhotons import CLPhotons
 from pytissueoptics.scene.geometry import Environment
-from rayscattering.opencl import IPPTable
+from pytissueoptics.rayscattering.opencl import IPPTable
 
 
 def tempTablePath(func):

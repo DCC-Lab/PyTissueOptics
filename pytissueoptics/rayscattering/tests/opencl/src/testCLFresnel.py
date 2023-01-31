@@ -9,7 +9,7 @@ from numpy.lib import recfunctions as rfn
 from pytissueoptics import Vector, ScatteringMaterial
 from pytissueoptics.rayscattering.opencl import OPENCL_AVAILABLE
 from pytissueoptics.rayscattering.opencl.config.CLConfig import OPENCL_SOURCE_DIR
-from rayscattering.opencl.buffers import MaterialCL, SurfaceCL, SurfaceCLInfo, SeedCL
+from pytissueoptics.rayscattering.opencl.buffers import MaterialCL, SurfaceCL, SurfaceCLInfo, SeedCL
 
 
 if OPENCL_AVAILABLE:
