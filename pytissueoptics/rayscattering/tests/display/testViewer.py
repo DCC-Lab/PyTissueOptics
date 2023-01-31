@@ -140,8 +140,9 @@ class TestViewer(unittest.TestCase):
         self.viewer.show3D(visibility=Visibility.POINT_CLOUD)
 
         mockAddDataPoints.assert_called()
-        addedSolidPoints = mockAddDataPoints.call_args_list[0].args[0]
-        addedSurfacePoints = mockAddDataPoints.call_args_list[1].args[0]
+        addedSolidPoints = mockAddDataPoints.call_args_list[0][0][0]
+        addedSurfacePoints = mockAddDataPoints.call_args_list[1][0][0]
+
         self.assertTrue(np.array_equal(addedSolidPoints, aPointCloud.solidPoints))
         self.assertTrue(np.array_equal(addedSurfacePoints, aPointCloud.leavingSurfacePoints))
         mockShow.assert_called_once()
@@ -172,7 +173,7 @@ class TestViewer(unittest.TestCase):
                            pointCloudStyle=PointCloudStyle(showSolidPoints=False))
 
         mockAddDataPoints.assert_called_once()
-        self.assertTrue(np.array_equal(mockAddDataPoints.call_args.args[0], aPointCloud.leavingSurfacePoints))
+        self.assertTrue(np.array_equal(mockAddDataPoints.call_args[0][0], aPointCloud.leavingSurfacePoints))
         mockShow.assert_called_once()
 
     @patchMayaviRender
@@ -190,7 +191,7 @@ class TestViewer(unittest.TestCase):
                                                            showSurfacePointsEntering=True))
 
         mockAddDataPoints.assert_called_once()
-        self.assertTrue(np.array_equal(mockAddDataPoints.call_args.args[0], aPointCloud.enteringSurfacePointsPositive))
+        self.assertTrue(np.array_equal(mockAddDataPoints.call_args[0][0], aPointCloud.enteringSurfacePointsPositive))
         mockShow.assert_called_once()
 
     @patchMayaviRender
@@ -202,9 +203,9 @@ class TestViewer(unittest.TestCase):
         self.viewer.show3D(visibility=Visibility.VIEWS)
 
         mockAddImage.assert_called_once()
-        addedImage = mockAddImage.call_args.args[0]
+        addedImage = mockAddImage.call_args[0][0]
         self.assertTrue(np.array_equal(sceneView.getImageDataWithDefaultAlignment(), addedImage))
-        displayedPosition = mockAddImage.call_args.args[4]
+        displayedPosition = mockAddImage.call_args[0][4]
         self.assertEqual(-2.1, displayedPosition)
         mockShow.assert_called_once()
 
@@ -219,9 +220,9 @@ class TestViewer(unittest.TestCase):
         self.viewer.show3D(visibility=Visibility.VIEWS, viewsVisibility=[theViewIndex])
 
         mockAddImage.assert_called_once()
-        addedImage = mockAddImage.call_args.args[0]
+        addedImage = mockAddImage.call_args[0][0]
         self.assertTrue(np.array_equal(sceneView.getImageDataWithDefaultAlignment(), addedImage))
-        displayedPosition = mockAddImage.call_args.args[4]
+        displayedPosition = mockAddImage.call_args[0][4]
         self.assertEqual(-2.1, displayedPosition)
         mockShow.assert_called_once()
 
