@@ -9,8 +9,8 @@ from pytissueoptics import Vector, ScatteringMaterial, ScatteringScene
 from pytissueoptics.rayscattering.opencl import OPENCL_AVAILABLE
 from pytissueoptics.rayscattering.opencl.config.CLConfig import OPENCL_SOURCE_DIR
 from pytissueoptics.rayscattering.opencl.CLProgram import CLProgram
-from rayscattering.opencl.CLScene import NO_SURFACE_ID, NO_LOG_ID, NO_SOLID_ID, CLScene
-from rayscattering.opencl.buffers import *
+from pytissueoptics.rayscattering.opencl.CLScene import NO_SURFACE_ID, NO_LOG_ID, NO_SOLID_ID, CLScene
+from pytissueoptics.rayscattering.opencl.buffers import *
 from pytissueoptics.scene.intersection.mollerTrumboreIntersect import EPS_CORRECTION
 
 

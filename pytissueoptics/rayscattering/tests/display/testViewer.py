@@ -12,9 +12,9 @@ from pytissueoptics.rayscattering.energyLogging import EnergyLogger
 from pytissueoptics.rayscattering.scatteringScene import ScatteringScene
 from pytissueoptics.rayscattering.source import Source
 from pytissueoptics.rayscattering.display.viewer import Viewer, Visibility, PointCloudStyle
-from rayscattering.display.profiles import ProfileFactory, Profile1D
-from rayscattering.display.views import View2D
-from rayscattering.energyLogging import PointCloudFactory, PointCloud
+from pytissueoptics.rayscattering.display.profiles import ProfileFactory, Profile1D
+from pytissueoptics.rayscattering.display.views import View2D
+from pytissueoptics.rayscattering.energyLogging import PointCloudFactory, PointCloud
 
 
 def patchMayaviRender(func):

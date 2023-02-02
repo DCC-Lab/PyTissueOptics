@@ -5,7 +5,7 @@ import numpy as np
 from pytissueoptics import ScatteringScene, ScatteringMaterial, EnergyLogger, Cube
 from pytissueoptics.rayscattering.opencl.CLPhotons import CLPhotons
 from pytissueoptics.scene.geometry import Environment
-from rayscattering.opencl import WEIGHT_THRESHOLD
+from pytissueoptics.rayscattering.opencl import WEIGHT_THRESHOLD
 from pytissueoptics.scene.logger import InteractionKey
 
 
