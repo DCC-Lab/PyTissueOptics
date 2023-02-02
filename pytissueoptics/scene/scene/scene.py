@@ -104,6 +104,7 @@ class Scene:
             for layerLabel in solid.getLayerLabels():
                 if layerLabel.lower() == solidLabel.lower():
                     return solid
+        raise ValueError(f"Solid '{solidLabel}' not found in scene. Available solids: {self.getSolidLabels()}")
 
     def getSolidLabels(self) -> List[str]:
         labels = []

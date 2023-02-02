@@ -1,3 +1,4 @@
+import warnings
 from typing import List, Dict
 
 import numpy as np
@@ -175,7 +176,10 @@ class Solid:
         raise NotImplementedError(f"Quad mesh not implemented for Solids of type {type(self).__name__}")
 
     def contains(self, *vertices: Vertex) -> bool:
-        raise NotImplementedError(f"Method contains(<Vertex>) not implemented for Solids of type {type(self).__name__}")
+        # todo: implement basic contain with polygon bboxes
+        warnings.warn(f"Method contains(Vertex) is not implemented for Solids of type {type(self).__name__}. "
+                      "Returning False", RuntimeWarning)
+        return False
 
     def isStack(self) -> bool:
         for surfaceLabel in self.surfaceLabels:

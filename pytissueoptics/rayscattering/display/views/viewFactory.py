@@ -6,6 +6,7 @@ from pytissueoptics.rayscattering.scatteringScene import ScatteringScene
 from pytissueoptics.rayscattering.display.views.view2D import ViewGroup, View2D
 from pytissueoptics.rayscattering.display.views.defaultViews import View2DProjectionX, View2DProjectionY, View2DProjectionZ, \
     View2DSurfaceX, View2DSurfaceY, View2DSurfaceZ
+from pytissueoptics.rayscattering import utils
 
 
 class ViewFactory:
@@ -90,6 +91,9 @@ class ViewFactory:
         if view.solidLabel:
             solid = self._scene.getSolid(view.solidLabel)
             limits3D = solid.getBoundingBox().xyzLimits
+            if view.surfaceLabel and view.surfaceLabel not in solid.surfaceLabels:
+                utils.warn("Surface label '{}' not found in solid '{}'. Available surface labels: {}".format(
+                    view.surfaceLabel, view.solidLabel, solid.surfaceLabels))
         else:
             sceneBoundingBox = self._scene.getBoundingBox()
             if sceneBoundingBox is None:
