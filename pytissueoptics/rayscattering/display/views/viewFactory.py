@@ -91,7 +91,7 @@ class ViewFactory:
         if view.solidLabel:
             solid = self._scene.getSolid(view.solidLabel)
             limits3D = solid.getBoundingBox().xyzLimits
-            if view.surfaceLabel and view.surfaceLabel not in solid.surfaceLabels:
+            if not self._viewHasValidSurfaceLabel(view):
                 utils.warn("Surface label '{}' not found in solid '{}'. Available surface labels: {}".format(
                     view.surfaceLabel, view.solidLabel, solid.surfaceLabels))
         else:
@@ -102,6 +102,17 @@ class ViewFactory:
                 limits3D = sceneBoundingBox.xyzLimits
         limits3D = [(d[0], d[1]) for d in limits3D]
         view.setContext(limits3D=limits3D, binSize3D=self._defaultBinSize3D)
+
+    def _viewHasValidSurfaceLabel(self, view) -> bool:
+        if view.surfaceLabel is None:
+            return True
+        solid = self._scene.getSolid(view.solidLabel)
+        if view.surfaceLabel in solid.surfaceLabels:
+            return True
+        for containedSolidLabel in self._scene.getContainedSolidLabels(view.solidLabel):
+            if view.surfaceLabel in self._scene.getSurfaceLabels(containedSolidLabel):
+                return True
+        return False
 
     @staticmethod
     def _getDefaultViewsXYZ(solidLabel: str = None) -> List[View2D]:
