@@ -218,6 +218,17 @@ class TestScene(unittest.TestCase):
         self.assertEqual(Environment("middleMaterial", middleLayer), middleEnv)
         self.assertEqual(Environment("backMaterial", backLayer), backEnv)
 
+    def testWhenGetEnvironmentWithPositionInsideAContainedSolid_shouldReturnEnvironmentOfThisContainedSolid(self):
+        SOLID = Cuboid(3, 3, 3, material="Material of solid", label="Solid")
+        CONTAINED_SOLID = Cuboid(2, 2, 2, material="Material of contained solid", label="Contained solid")
+
+        self.scene.add(SOLID)
+        self.scene.add(CONTAINED_SOLID)
+
+        env = self.scene.getEnvironmentAt(Vector(0, 0, 0))
+
+        self.assertEqual(CONTAINED_SOLID.getEnvironment(), env)
+
     def testWhenGetSolidFromLabel_shouldReturnTheSolid(self):
         SOLID_LABEL = "Solid"
         solid = self.makeSolidWith(name=SOLID_LABEL)
