@@ -8,7 +8,7 @@ from pytissueoptics.scene.solids import Solid
 class Cylinder(Solid):
     def __init__(self, radius: float = 1, height: float = 1, u: int = 32, v: int = 3,
                  position: Vector = Vector(0, 0, 0), material=None,
-                 primitive: str = primitives.DEFAULT, label: str = "Cylinder"):
+                 primitive: str = primitives.DEFAULT, label: str = "cylinder"):
         self._radius = radius
         self._height = height
         if u < 3 or v < 1:
