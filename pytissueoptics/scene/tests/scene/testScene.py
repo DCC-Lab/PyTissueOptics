@@ -227,14 +227,13 @@ class TestScene(unittest.TestCase):
 
         self.assertEqual(solid, returnedSolid)
 
-    def testWhenGetSolidFromLabelThatDoesNotExist_shouldReturnNone(self):
+    def testWhenGetSolidFromLabelThatDoesNotExist_shouldRaise(self):
         SOLID_LABEL = "Solid"
         solid = self.makeSolidWith(name=SOLID_LABEL)
         self.scene.add(solid)
 
-        returnedSolid = self.scene.getSolid("NonExistingLabel")
-
-        self.assertIsNone(returnedSolid)
+        with self.assertRaises(ValueError):
+            self.scene.getSolid("NonExistingLabel")
 
     def testWhenGetSolidFromLabelWithCapitalizationError_shouldReturnTheSolid(self):
         SOLID_LABEL_CAPITALIZED = "Solid"
@@ -292,14 +291,13 @@ class TestScene(unittest.TestCase):
 
         self.assertEqual(solid1.surfaceLabels, labels)
 
-    def testWhenGetSurfaceLabelsOfSolidThatDoesNotExist_shouldReturnNoLabels(self):
+    def testWhenGetSurfaceLabelsOfSolidThatDoesNotExist_shouldRaise(self):
         solid = self.makeSolidWith()
         solid.surfaceLabels = ["Surface1", "Surface2"]
         self.scene.add(solid)
 
-        labels = self.scene.getSurfaceLabels("NonExistingLabel")
-
-        self.assertEqual([], labels)
+        with self.assertRaises(ValueError):
+            self.scene.getSurfaceLabels("NonExistingLabel")
 
     def testWhenGetSurfaceLabelsOfAStack_shouldReturnTheSurfaceLabelsForAllItsLayers(self):
         STACK_LABEL = "Stack"

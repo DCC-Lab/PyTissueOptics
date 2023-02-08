@@ -39,6 +39,7 @@ class TestViewFactory(unittest.TestCase):
     def testWhenBuildAViewWithSolidLabel_shouldSetContextWithSolidLimits(self):
         sceneView = mock(View2D)
         sceneView.solidLabel = self.TEST_CUBE.getLabel()
+        sceneView.surfaceLabel = None
         when(sceneView).setContext(...).thenReturn()
 
         self.viewFactory.build([sceneView])

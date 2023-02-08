@@ -176,9 +176,9 @@ class TestSolid(unittest.TestCase):
     def testGivenNoSurfaces_whenCreateSolidWithAnotherPrimitive_shouldRaiseException(self):
         self._testGivenNoSurfaces_whenCreateSolidWithAnyPrimitive_shouldRaiseException("anotherPrimitive")
 
-    def testWhenCheckIfContainsAVertex_shouldRaiseException(self):
-        with self.assertRaises(NotImplementedError):
-            self.solid.contains(Vertex(0, 0, 0))
+    def testWhenCheckIfContainsAVertex_shouldWarnAndReturnFalse(self):
+        with self.assertWarns(RuntimeWarning):
+            self.assertFalse(self.solid.contains(Vertex(0, 0, 0)))
 
     @staticmethod
     def createPolygonMock() -> Polygon:
