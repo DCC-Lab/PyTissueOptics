@@ -9,6 +9,7 @@ class TestCylinder(unittest.TestCase):
     def testGivenANewDefault_shouldBePlacedAtOrigin(self):
         cylinder = Cylinder()
         self.assertEqual(Vector(0, 0, 0), cylinder.position)
+        self.assertEqual(Vector(0, 0, 0), cylinder.bbox.center)
 
     def testGivenANew_shouldBePlacedAtDesiredPosition(self):
         position = Vector(2, 2, 1)

@@ -20,6 +20,8 @@ class Cylinder(Solid):
         self._minRadius = math.cos(math.pi / self._u) * self._radius
         super().__init__(position=position, material=material, primitive=primitive,
                          vertices=[self._bottomCenter, self._topCenter], smooth=True, label=label)
+        self.translateBy(Vector(0, 0, -height / 2))
+        self._position += Vector(0, 0, height / 2)
 
     @property
     def direction(self) -> Vector:
