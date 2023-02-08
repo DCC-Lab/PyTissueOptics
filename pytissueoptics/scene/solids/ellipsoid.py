@@ -162,6 +162,7 @@ class Ellipsoid(Solid):
         for relativeVertexArray in relativeVerticesArray:
             relativeVertex = Vertex(*relativeVertexArray)
             vertexRadius = relativeVertex.getNorm()
+            relativeVertex.normalize()
             if vertexRadius == 0:
                 continue
             minRadius = self._getMinimumRadiusTowards(relativeVertex)
