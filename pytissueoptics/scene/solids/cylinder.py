@@ -65,6 +65,7 @@ class Cylinder(Solid):
         self._surfaces.add("middle", middleTriangles)
 
     def _computeBottomTriangles(self, vertices: List[Vertex]):
+        vertices.reverse()
         bottomTriangles = []
         for i in range(self._u):
             nextIndex = (i + 1) % self._u
