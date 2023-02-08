@@ -19,8 +19,8 @@ class ScatteringScene(Scene):
                             f"This is required for any RayScatteringScene. ")
         super().add(solid, position)
 
-    def addToViewer(self, viewer: MayaviViewer):
-        viewer.add(*self.solids, representation="surface", colormap="bone", opacity=0.1)
+    def addToViewer(self, viewer: MayaviViewer, representation='surface', colormap='bone', opacity=0.1, **kwargs):
+        viewer.add(*self.solids, representation=representation, colormap=colormap, opacity=opacity, **kwargs)
 
     def display(self):
         viewer = MayaviViewer()

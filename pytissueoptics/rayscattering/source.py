@@ -148,9 +148,10 @@ class Source:
     def getPhotonCount(self) -> int:
         return self._N
 
-    def addToViewer(self, viewer: MayaviViewer, size: float = 0.1):
+    def addToViewer(self, viewer: MayaviViewer, size: float = 0.1,
+                    representation='surface', colormap='Wistia', opacity=0.8, **kwargs):
         sphere = Sphere(radius=size/2, position=self._position)
-        viewer.add(sphere, representation="surface", colormap="Wistia", opacity=0.8)
+        viewer.add(sphere, representation=representation, colormap=colormap, opacity=opacity, **kwargs)
 
     @property
     def _nameHash(self) -> int:
