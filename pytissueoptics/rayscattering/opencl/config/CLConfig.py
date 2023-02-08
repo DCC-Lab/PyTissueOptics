@@ -75,7 +75,9 @@ class CLConfig:
                 self._config["DEVICE_INDEX"] = None
                 return self._validateDeviceIndex()
         elif numberOfDevices == 0:
-            raise ValueError("No OpenCL devices found. Please install the OpenCL drivers for your hardware.")
+            raise ValueError("No OpenCL devices found. Please install the OpenCL drivers for your hardware or "
+                             "disable hardware acceleration by creating a light source with the argument "
+                             "`useHardwareAcceleration=False`.")
         elif numberOfDevices == 1:
             self._showAvailableDevices()
             warnings.warn(
