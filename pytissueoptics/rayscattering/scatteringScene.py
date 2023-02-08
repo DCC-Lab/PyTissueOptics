@@ -9,8 +9,8 @@ from pytissueoptics.scene.solids import Solid
 
 
 class ScatteringScene(Scene):
-    def __init__(self, solids: List[Solid], worldMaterial=ScatteringMaterial()):
-        super().__init__(solids, worldMaterial=worldMaterial)
+    def __init__(self, solids: List[Solid], worldMaterial=ScatteringMaterial(), ignoreIntersections: bool = False):
+        super().__init__(solids, worldMaterial=worldMaterial, ignoreIntersections=ignoreIntersections)
 
     def add(self, solid: Solid, position: Vector = None):
         polygonSample = solid.getPolygons()[0]
