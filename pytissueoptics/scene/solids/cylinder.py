@@ -82,7 +82,7 @@ class Cylinder(Solid):
     def _computeQuadMesh(self):
         raise NotImplementedError("Quad mesh not implemented for Cylinder")
 
-    def contains(self, *vertices: Vertex) -> bool:
+    def contains(self, *vertices: Vector) -> bool:
         for vertex in vertices:
             direction = self.direction
             direction.normalize()

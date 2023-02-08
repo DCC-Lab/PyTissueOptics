@@ -150,7 +150,7 @@ class Ellipsoid(Solid):
     def _computeQuadMesh(self):
         raise NotImplementedError
 
-    def contains(self, *vertices: Vertex) -> bool:
+    def contains(self, *vertices: Vector) -> bool:
         """ Only returns true if all vertices are inside the minimum radius of the ellipsoid
         towards each vertex direction (more restrictive with low order ellipsoids). """
         verticesArray = np.asarray([vertex.array for vertex in vertices])

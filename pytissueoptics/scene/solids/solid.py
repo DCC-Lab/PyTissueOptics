@@ -179,8 +179,8 @@ class Solid:
     def _computeQuadMesh(self):
         raise NotImplementedError(f"Quad mesh not implemented for Solids of type {type(self).__name__}")
 
-    def contains(self, *vertices: Vertex) -> bool:
         # todo: implement basic contain with polygon bboxes
+    def contains(self, *vertices: Vector) -> bool:
         warnings.warn(f"Method contains(Vertex) is not implemented for Solids of type {type(self).__name__}. "
                       "Returning False", RuntimeWarning)
         return False

@@ -82,7 +82,7 @@ class Cuboid(Solid):
         cuboid._layerLabels = stackResult.layerLabels
         return cuboid
 
-    def contains(self, *vertices: Vertex) -> bool:
+    def contains(self, *vertices: Vector) -> bool:
         vertices = np.asarray([vertex.array for vertex in vertices])
         relativeVertices = vertices - self.position.array
 
