@@ -29,6 +29,7 @@ class Solid:
         self._resetBoundingBoxes()
         self._resetPolygonsCentroids()
 
+        self._smoothing = False
         if smooth:
             self.smooth()
 
@@ -119,6 +120,9 @@ class Solid:
         self._resetBoundingBoxes()
         self._resetPolygonsCentroids()
 
+        if self._smoothing:
+            self.smooth()
+
     def getEnvironment(self, surfaceLabel: str = None) -> Environment:
         if surfaceLabel:
             return self.surfaces.getInsideEnvironment(surfaceLabel)
@@ -206,6 +210,9 @@ class Solid:
         be changed by overwriting the signature with a specific surfaceLabel in
         another solid implementation and calling super().smooth(surfaceLabel).
         """
+        self._smoothing = True
+        for vertex in self.vertices:
+            vertex.normal = None
 
         polygons = self.getPolygons(surfaceLabel)
 
