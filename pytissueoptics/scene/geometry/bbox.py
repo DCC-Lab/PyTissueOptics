@@ -169,6 +169,30 @@ class BoundingBox:
         if other.zMax < self.zMax:
             self._zLim[1] = other.zMax
 
+    def exclude(self, other: 'BoundingBox'):
+        if not self.intersects(other):
+            return
+
+        largestArea = 0
+        currentBBox = None
+        for axis in range(3):
+            leftLimits = [self[axis][0], other[axis][0]]
+            rightLimits = [other[axis][1], self[axis][1]]
+            leftLength = leftLimits[1] - leftLimits[0]
+            rightLength = rightLimits[1] - rightLimits[0]
+            croppedLimits = leftLimits if leftLength > rightLength else rightLimits
+            newXYZLimits = self._xyzLimits.copy()
+            newXYZLimits[axis] = croppedLimits
+            newBBox = BoundingBox(*newXYZLimits)
+            boxArea = newBBox.getArea()
+            if boxArea > largestArea:
+                largestArea = boxArea
+                currentBBox = newBBox
+
+        for axis in range(3):
+            self._xyzLimits[axis][0] = currentBBox[axis][0]
+            self._xyzLimits[axis][1] = currentBBox[axis][1]
+
     def __getitem__(self, index: int) -> List[float]:
         return self._xyzLimits[index]
 

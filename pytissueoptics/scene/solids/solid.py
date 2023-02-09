@@ -179,11 +179,24 @@ class Solid:
     def _computeQuadMesh(self):
         raise NotImplementedError(f"Quad mesh not implemented for Solids of type {type(self).__name__}")
 
-        # todo: implement basic contain with polygon bboxes
     def contains(self, *vertices: Vector) -> bool:
-        warnings.warn(f"Method contains(Vertex) is not implemented for Solids of type {type(self).__name__}. "
-                      "Returning False", RuntimeWarning)
-        return False
+        for vertex in vertices:
+            if not self._bbox.contains(vertex):
+                return False
+        internalBBox = self._getInternalBBox()
+        for vertex in vertices:
+            if not internalBBox.contains(vertex):
+                warnings.warn(f"Method contains(Vertex) is not implemented for Solids of type {type(self).__name__}. "
+                              "Returning False since Vertex does not lie in the internal bounding box "
+                              "(underestimating containment). ", RuntimeWarning)
+                return False
+        return True
+
+    def _getInternalBBox(self):
+        insideBBox = self._bbox.copy()
+        for polygon in self.getPolygons():
+            insideBBox.exclude(polygon.bbox)
+        return insideBBox
 
     def isStack(self) -> bool:
         for surfaceLabel in self.surfaceLabels:

@@ -176,9 +176,21 @@ class TestSolid(unittest.TestCase):
     def testGivenNoSurfaces_whenCreateSolidWithAnotherPrimitive_shouldRaiseException(self):
         self._testGivenNoSurfaces_whenCreateSolidWithAnyPrimitive_shouldRaiseException("anotherPrimitive")
 
-    def testWhenCheckIfContainsAVertex_shouldWarnAndReturnFalse(self):
+    def testWhenCheckIfContainsAVertexOutsideBBox_shouldReturnFalse(self):
+        self.assertFalse(self.solid.contains(Vertex(0, 0, 0)))
+
+    def testWhenCheckIfContainsAVertexInsideInternalBBox_shouldReturnTrue(self):
+        self.assertTrue(self.solid.contains(Vertex(2, 2, 0)))
+
+    def testWhenCheckIfContainsAVertexPartiallyInside_shouldWarnAndReturnFalse(self):
+        otherVertices = [Vertex(1, 1, -0.5), Vertex(3, 1, -0.5), Vertex(3, 3, -0.5), Vertex(1, 3, -0.5)]
+        self.CUBOID_VERTICES.extend(otherVertices)
+        self.CUBOID_SURFACES.add('other', [Quad(*otherVertices)])
+        self.solid = Solid(material=self.material, vertices=self.CUBOID_VERTICES,
+                           surfaces=self.CUBOID_SURFACES, primitive=primitives.TRIANGLE)
+
         with self.assertWarns(RuntimeWarning):
-            self.assertFalse(self.solid.contains(Vertex(0, 0, 0)))
+            self.assertFalse(self.solid.contains(Vertex(2, 2, -0.75)))
 
     @staticmethod
     def createPolygonMock() -> Polygon:

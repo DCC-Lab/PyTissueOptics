@@ -58,7 +58,11 @@ class Scene:
                 self._assertIsNotAStack(otherSolid)
                 self._processContainedSolid(newSolid, container=otherSolid)
             else:
-                raise NotImplementedError("Cannot place a solid that partially intersects with an existing solid. ")
+                raise NotImplementedError("Cannot place a solid that partially intersects with an existing solid. "
+                                          "Since this might be underestimating containment, you can also create a "
+                                          "scene with 'ignoreIntersections=True' to ignore this error and manually "
+                                          "handle environments of contained solids with "
+                                          "containedSolid.setOutsideEnvironment(containerSolid.getEnvironment()).")
 
     def _processContainedSolid(self, solid: Solid, container: Solid):
         solid.setOutsideEnvironment(container.getEnvironment())
