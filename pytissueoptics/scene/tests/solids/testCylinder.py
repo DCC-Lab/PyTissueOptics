@@ -76,3 +76,7 @@ class TestCylinder(unittest.TestCase):
         cylinder = Cylinder(radius=1000, height=3, u=6, position=Vector(0, 0, 0))
         vertices = [Vertex(0, 866, 0)]
         self.assertTrue(cylinder.contains(*vertices))
+
+    def testWhenSmoothWithLessThan16Sides_shouldWarn(self):
+        with self.assertWarns(UserWarning):
+            Cylinder(u=15, smooth=True)
