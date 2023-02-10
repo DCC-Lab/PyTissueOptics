@@ -22,7 +22,7 @@ class Cuboid(Solid):
 
     def __init__(self, a: float, b: float, c: float,
                  vertices: List[Vertex] = None, position: Vector = Vector(0, 0, 0), surfaces: SurfaceCollection = None,
-                 material=None, label: str = "cuboid", primitive: str = primitives.DEFAULT):
+                 material=None, label: str = "cuboid", primitive: str = primitives.DEFAULT, labelOverride=True):
 
         self.shape = [a, b, c]
 
@@ -32,7 +32,7 @@ class Cuboid(Solid):
                         Vertex(-a / 2, -b / 2, -c / 2), Vertex(a / 2, -b / 2, -c / 2), Vertex(a / 2, b / 2, -c / 2),
                         Vertex(-a / 2, b / 2, -c / 2)]
 
-        super().__init__(vertices, position, surfaces, material, label, primitive)
+        super().__init__(vertices, position, surfaces, material, label, primitive, labelOverride=labelOverride)
 
     def _computeTriangleMesh(self):
         V = self._vertices
@@ -78,7 +78,7 @@ class Cuboid(Solid):
             vertex.subtract(stackResult.position)
 
         cuboid = Cuboid(*stackResult.shape, position=stackResult.position, vertices=stackResult.vertices,
-                        surfaces=stackResult.surfaces, label=label, primitive=stackResult.primitive)
+                        surfaces=stackResult.surfaces, label=label, primitive=stackResult.primitive, labelOverride=False)
         cuboid._layerLabels = stackResult.layerLabels
         return cuboid
 

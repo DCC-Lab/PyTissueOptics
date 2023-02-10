@@ -10,7 +10,7 @@ from pytissueoptics.scene.geometry import primitives, Environment, SurfaceCollec
 class Solid:
     def __init__(self, vertices: List[Vertex], position: Vector = Vector(0, 0, 0),
                  surfaces: SurfaceCollection = None, material=None,
-                 label: str = "solid", primitive: str = primitives.DEFAULT, smooth: bool = False):
+                 label: str = "solid", primitive: str = primitives.DEFAULT, smooth: bool = False, labelOverride=True):
         self._vertices = vertices
         self._surfaces = surfaces
         self._material = material
@@ -23,7 +23,10 @@ class Solid:
 
         if not self._surfaces:
             self._computeMesh()
+        if labelOverride:
             self.setLabel(label)
+        else:
+            self._surfaces._solidLabel = ""
 
         self.translateTo(position)
         self._setInsideEnvironment()
