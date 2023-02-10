@@ -27,6 +27,7 @@ class CuboidStacker:
         assert onSurfaceLabel in self.SURFACE_KEYS, f"Available surfaces to stack on are: {self.SURFACE_KEYS}"
         self._onCuboid = onCuboid
         self._otherCuboid = otherCuboid
+        self._assertNoDuplicateLabel()
 
         self._stackAxis = self._getSurfaceAxis(onSurfaceLabel)
         self._onSurfaceLabel = onSurfaceLabel
@@ -35,6 +36,18 @@ class CuboidStacker:
         self._newInterfaceIndex = len(onCuboidInterfaces)
 
         self._validateShapeMatch()
+
+    def _assertNoDuplicateLabel(self):
+        onCuboidLayerLabels = self._onCuboid.getLayerLabels()
+        if not onCuboidLayerLabels:
+            onCuboidLayerLabels = [self._onCuboid.getLabel()]
+        otherCuboidLayerLabels = self._otherCuboid.getLayerLabels()
+        if not otherCuboidLayerLabels:
+            otherCuboidLayerLabels = [self._otherCuboid.getLabel()]
+
+        for label in onCuboidLayerLabels:
+            assert label not in otherCuboidLayerLabels, f"Found duplicate layer label in stack: {label}. " \
+                                                        f"Please rename one of the layers."
 
     def _getSurfaceAxis(self, surfaceLabel: str) -> int:
         return max(axis if surfaceLabel in surfacePair else -1 for axis, surfacePair in enumerate(self.SURFACE_PAIRS))
