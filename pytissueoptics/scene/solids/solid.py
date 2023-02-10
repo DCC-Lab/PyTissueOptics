@@ -23,6 +23,7 @@ class Solid:
 
         if not self._surfaces:
             self._computeMesh()
+            self.setLabel(label)
 
         self.translateTo(position)
         self._setInsideEnvironment()
@@ -63,6 +64,7 @@ class Solid:
         return self._label
 
     def setLabel(self, label: str):
+        self._surfaces.updateSolidLabel(label)
         self._label = label
 
     def _resetBoundingBoxes(self):
