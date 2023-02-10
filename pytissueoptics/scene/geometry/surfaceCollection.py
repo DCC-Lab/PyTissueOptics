@@ -27,7 +27,7 @@ class SurfaceCollection:
 
     def getPolygons(self, surfaceLabel: str = None) -> List[Polygon]:
         if surfaceLabel:
-            surfaceLabel = self._processLabel(surfaceLabel)
+            surfaceLabel = self.processLabel(surfaceLabel)
             self._assertContains(surfaceLabel)
             return self._surfaces[surfaceLabel]
         else:
@@ -37,7 +37,7 @@ class SurfaceCollection:
             return allPolygons
 
     def setPolygons(self, surfaceLabel: str, polygons: List[Polygon]):
-        surfaceLabel = self._processLabel(surfaceLabel)
+        surfaceLabel = self.processLabel(surfaceLabel)
         self._assertContains(surfaceLabel)
         for polygon in polygons:
             polygon.surfaceLabel = surfaceLabel
@@ -108,7 +108,7 @@ class SurfaceCollection:
         for polygon in self._surfaces[newLabel]:
             polygon.surfaceLabel = newLabel
 
-    def _processLabel(self, surfaceLabel: str):
+    def processLabel(self, surfaceLabel: str):
         if surfaceLabel is None:
             return None
         if surfaceLabel in self.surfaceLabels:
