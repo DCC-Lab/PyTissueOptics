@@ -128,6 +128,11 @@ class ProfileFactory:
 
         originalSurfaceLabels = self._logger.getSeenSurfaceLabels(solidLabel)
         lowerCaseSurfaceLabels = [l.lower() for l in originalSurfaceLabels]
+
+        altLabel = f'{solidLabel}_{surfaceLabel}'
+        if altLabel.lower() in lowerCaseSurfaceLabels:
+            surfaceLabel = altLabel
+
         if surfaceLabel.lower() in lowerCaseSurfaceLabels:
             labelIndex = lowerCaseSurfaceLabels.index(surfaceLabel.lower())
             surfaceLabel = originalSurfaceLabels[labelIndex]

@@ -50,7 +50,7 @@ class ViewFactory:
         return views
 
     def _getDefaultSurfaceViews(self, solidLabel: str, surfaceLabel: str,
-                               includeLeaving: bool, includeEntering: bool, takenFromSolid: str = None) -> List[View2D]:
+                                includeLeaving: bool, includeEntering: bool, takenFromSolid: str = None) -> List[View2D]:
         if takenFromSolid is None:
             takenFromSolid = solidLabel
         surfaceNormal = self._getSurfaceNormal(takenFromSolid, surfaceLabel)
@@ -112,6 +112,10 @@ class ViewFactory:
         for containedSolidLabel in self._scene.getContainedSolidLabels(view.solidLabel):
             if view.surfaceLabel in self._scene.getSurfaceLabels(containedSolidLabel):
                 return True
+
+        if view.solidLabel not in view.surfaceLabel:
+            view._surfaceLabel = solid.completeSurfaceLabel(view.surfaceLabel)
+            return self._viewHasValidSurfaceLabel(view)
         return False
 
     @staticmethod
