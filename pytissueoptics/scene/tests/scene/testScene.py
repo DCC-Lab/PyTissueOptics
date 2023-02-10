@@ -204,9 +204,9 @@ class TestScene(unittest.TestCase):
         self.assertEqual(self.scene.getWorldEnvironment(), env)
 
     def testWhenGetEnvironmentWithPositionContainedInAStack_shouldReturnEnvironmentOfProperStackLayer(self):
-        frontLayer = Cuboid(1, 1, 1, material="frontMaterial")
-        middleLayer = Cuboid(1, 1, 1, material="middleMaterial")
-        backLayer = Cuboid(1, 1, 1, material="backMaterial")
+        frontLayer = Cuboid(1, 1, 1, material="frontMaterial", label="frontLayer")
+        middleLayer = Cuboid(1, 1, 1, material="middleMaterial", label="middleLayer")
+        backLayer = Cuboid(1, 1, 1, material="backMaterial", label="backLayer")
         stack = backLayer.stack(middleLayer, 'front').stack(frontLayer, 'front')
         self.scene.add(stack, position=Vector(0, 0, 0))
 
@@ -355,8 +355,8 @@ class TestScene(unittest.TestCase):
 
     def testWhenGetMaterials_shouldReturnAllMaterialsPresentInTheScene(self):
         layerMaterials = ["Material1", "Material2"]
-        frontLayer = Cuboid(1, 1, 1, material=layerMaterials[0])
-        middleLayer = Cuboid(1, 1, 1, material=layerMaterials[1])
+        frontLayer = Cuboid(1, 1, 1, material=layerMaterials[0], label="Front Layer")
+        middleLayer = Cuboid(1, 1, 1, material=layerMaterials[1], label="Middle Layer")
         stack = middleLayer.stack(frontLayer, 'front')
         self.scene.add(stack)
 
