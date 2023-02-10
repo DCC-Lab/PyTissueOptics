@@ -64,7 +64,7 @@ class TestEnergyLogger(unittest.TestCase):
         self.logger = EnergyLogger(self.TEST_SCENE, keep3D=False, views=[sceneView, cubeView, surfaceView])
 
         self.logger.logDataPointArray(np.array([[1, 0, 0, 0]]), InteractionKey("cube"))
-        self.logger.logDataPointArray(np.array([[2, 0, 0, 0]]), InteractionKey("cube", "top"))
+        self.logger.logDataPointArray(np.array([[2, 0, 0, 0]]), InteractionKey("cube", "cube_top"))
         self.logger.logDataPointArray(np.array([[4, 0, 0, 0]]), InteractionKey("sphere"))
 
         self.assertEqual(1, cubeView.getSum())

@@ -84,14 +84,14 @@ class TestViewFactory(unittest.TestCase):
         #  and another view of the energy leaving from the cube and into the sphere
         surfaceLeavingViews = self.viewFactory.build(ViewGroup.SURFACES_LEAVING)
 
-        expectedViews = [View2DSurfaceX("cube", "left"),
-                         View2DSurfaceX("cube", "right"),
-                         View2DSurfaceY("cube", "bottom"),
-                         View2DSurfaceY("cube", "top"),
-                         View2DSurfaceZ("cube", "front"),
-                         View2DSurfaceZ("cube", "back"),
-                         View2DSurfaceZ("cube", "ellipsoid"),
-                         View2DSurfaceZ("sphere", "ellipsoid")]
+        expectedViews = [View2DSurfaceX("cube", "cube_left"),
+                         View2DSurfaceX("cube", "cube_right"),
+                         View2DSurfaceY("cube", "cube_bottom"),
+                         View2DSurfaceY("cube", "cube_top"),
+                         View2DSurfaceZ("cube", "cube_front"),
+                         View2DSurfaceZ("cube", "cube_back"),
+                         View2DSurfaceZ("cube", "sphere_ellipsoid"),
+                         View2DSurfaceZ("sphere", "sphere_ellipsoid")]
         expectedViews[1].flip()
         expectedViews[2].flip()
         expectedViews[5].flip()
@@ -106,14 +106,14 @@ class TestViewFactory(unittest.TestCase):
     def testWhenBuildASurfacesEnteringViewGroup_shouldCreateAndReturnTheDefaultEnteringSurfaceViewForEachSolidSurface(self):
         surfaceEnteringViews = self.viewFactory.build(ViewGroup.SURFACES_ENTERING)
 
-        expectedViews = [View2DSurfaceX("cube", "left", surfaceEnergyLeaving=False),
-                         View2DSurfaceX("cube", "right", surfaceEnergyLeaving=False),
-                         View2DSurfaceY("cube", "bottom", surfaceEnergyLeaving=False),
-                         View2DSurfaceY("cube", "top", surfaceEnergyLeaving=False),
-                         View2DSurfaceZ("cube", "front", surfaceEnergyLeaving=False),
-                         View2DSurfaceZ("cube", "back", surfaceEnergyLeaving=False),
-                         View2DSurfaceZ("cube", "ellipsoid", surfaceEnergyLeaving=False),
-                         View2DSurfaceZ("sphere", "ellipsoid", surfaceEnergyLeaving=False)]
+        expectedViews = [View2DSurfaceX("cube", "cube_left", surfaceEnergyLeaving=False),
+                         View2DSurfaceX("cube", "cube_right", surfaceEnergyLeaving=False),
+                         View2DSurfaceY("cube", "cube_bottom", surfaceEnergyLeaving=False),
+                         View2DSurfaceY("cube", "cube_top", surfaceEnergyLeaving=False),
+                         View2DSurfaceZ("cube", "cube_front", surfaceEnergyLeaving=False),
+                         View2DSurfaceZ("cube", "cube_back", surfaceEnergyLeaving=False),
+                         View2DSurfaceZ("cube", "sphere_ellipsoid", surfaceEnergyLeaving=False),
+                         View2DSurfaceZ("sphere", "sphere_ellipsoid", surfaceEnergyLeaving=False)]
         expectedViews[1].flip()
         expectedViews[2].flip()
         expectedViews[5].flip()
