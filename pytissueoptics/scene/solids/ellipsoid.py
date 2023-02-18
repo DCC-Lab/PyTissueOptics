@@ -1,5 +1,5 @@
-import math
 import hashlib
+import math
 import pickle
 
 import numpy as np
@@ -150,7 +150,7 @@ class Ellipsoid(Solid):
     def _computeQuadMesh(self):
         raise NotImplementedError
 
-    def contains(self, *vertices: Vertex) -> bool:
+    def contains(self, *vertices: Vector) -> bool:
         """ Only returns true if all vertices are inside the minimum radius of the ellipsoid
         towards each vertex direction (more restrictive with low order ellipsoids). """
         verticesArray = np.asarray([vertex.array for vertex in vertices])
@@ -162,6 +162,7 @@ class Ellipsoid(Solid):
         for relativeVertexArray in relativeVerticesArray:
             relativeVertex = Vertex(*relativeVertexArray)
             vertexRadius = relativeVertex.getNorm()
+            relativeVertex.normalize()
             if vertexRadius == 0:
                 continue
             minRadius = self._getMinimumRadiusTowards(relativeVertex)

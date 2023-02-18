@@ -100,6 +100,9 @@ class View2D:
         Used internally by Logger2D to store 3D datapoints into this 2D view.
         Data points are (n, 4) arrays with (value, x, y, z).
         """
+        if self._binsU is None or self._binsV is None:
+            raise RuntimeError("View2D must be initialized with setContext before extracting data.")
+
         dataPoints = self._filter(dataPoints)
         if dataPoints.size == 0:
             return
@@ -119,10 +122,8 @@ class View2D:
 
     def flip(self):
         """ Flips the view as if it was seen from behind. """
-        flipHorizontal = self._projectionDirection.axis != 1
         self._projectionDirection = Direction((self._projectionDirection.value + 3) % 6)
-        if flipHorizontal:
-            self._horizontalDirection = Direction((self._horizontalDirection.value + 3) % 6)
+        self._horizontalDirection = Direction((self._horizontalDirection.value + 3) % 6)
 
     def getImageData(self, logScale: bool = True, autoFlip=True) -> np.ndarray:
         image = self._dataUV
@@ -174,7 +175,7 @@ class View2D:
 
         horizontalOrder = {0: [2, 1, 5, 4], 1: [2, 0, 5, 3], 2: [3, 1, 0, 4]}
         horizontalIndex = horizontalOrder[self.axis].index(currentHorizontal.value)
-        image = np.rot90(image, horizontalIndex)
+        image = np.rot90(image, -horizontalIndex)
 
         return image
 
@@ -199,7 +200,7 @@ class View2D:
         if source.axisU == self.axisU:
             self._dataUV = dataUV
         else:
-            self._dataUV = dataUV.T
+            self._dataUV = np.flip(dataUV.T, axis=(0, 1))
         self._hasData = source._hasData
 
     def isEqualTo(self, other: 'View2D') -> bool:
@@ -314,6 +315,10 @@ class View2D:
         if self._horizontalDirection.isPositive:
             return verticalIsNegativeWithPositiveHorizontal
         return not verticalIsNegativeWithPositiveHorizontal
+
+    @property
+    def thickness(self):
+        return self._thickness
 
     @property
     def name(self) -> str:

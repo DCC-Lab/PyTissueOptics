@@ -47,7 +47,10 @@ class CLConfig:
         parameterKeys = list(DEFAULT_CONFIG.keys())
         for key in parameterKeys:
             if key not in self._config:
-                raise ValueError(errorMessage + "The parameter '{}' is missing.".format(key))
+                self._config[key] = DEFAULT_CONFIG[key]
+                self.save()
+                raise ValueError(errorMessage + "The parameter '{}' is missing. Resetting to default "
+                                                "value...".format(key))
 
         self._validateDeviceIndex()
         self._validateMaxMemory()
@@ -72,7 +75,9 @@ class CLConfig:
                 self._config["DEVICE_INDEX"] = None
                 return self._validateDeviceIndex()
         elif numberOfDevices == 0:
-            raise ValueError("No OpenCL devices found. Please install the OpenCL drivers for your hardware.")
+            raise ValueError("No OpenCL devices found. Please install the OpenCL drivers for your hardware or "
+                             "disable hardware acceleration by creating a light source with the argument "
+                             "`useHardwareAcceleration=False`.")
         elif numberOfDevices == 1:
             self._showAvailableDevices()
             warnings.warn(
@@ -117,7 +122,7 @@ class CLConfig:
                       "minutes. ")
         self.AUTO_SAVE = False
         try:
-            from pytissueoptics.rayscattering.opencl.testWorkUnits import computeOptimalNWorkUnits
+            from rayscattering.opencl.utils.optimalWorkUnits import computeOptimalNWorkUnits
             optimalNWorkUnits = computeOptimalNWorkUnits()
             self.AUTO_SAVE = True
         except Exception as e:
@@ -197,7 +202,10 @@ class CLConfig:
 
     @property
     def MAX_MEMORY(self):
-        return self._config["MAX_MEMORY_MB"] * 1024 ** 2
+        maxMemoryMB = self._config["MAX_MEMORY_MB"]
+        if maxMemoryMB is None:
+            return None
+        return maxMemoryMB * 1024 ** 2
 
     @property
     def IPP_TEST_N_PHOTONS(self):

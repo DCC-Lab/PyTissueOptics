@@ -22,7 +22,7 @@ class Cuboid(Solid):
 
     def __init__(self, a: float, b: float, c: float,
                  vertices: List[Vertex] = None, position: Vector = Vector(0, 0, 0), surfaces: SurfaceCollection = None,
-                 material=None, label: str = "cuboid", primitive: str = primitives.DEFAULT):
+                 material=None, label: str = "cuboid", primitive: str = primitives.DEFAULT, labelOverride=True):
 
         self.shape = [a, b, c]
 
@@ -32,7 +32,7 @@ class Cuboid(Solid):
                         Vertex(-a / 2, -b / 2, -c / 2), Vertex(a / 2, -b / 2, -c / 2), Vertex(a / 2, b / 2, -c / 2),
                         Vertex(-a / 2, b / 2, -c / 2)]
 
-        super().__init__(vertices, position, surfaces, material, label, primitive)
+        super().__init__(vertices, position, surfaces, material, label, primitive, labelOverride=labelOverride)
 
     def _computeTriangleMesh(self):
         V = self._vertices
@@ -52,7 +52,7 @@ class Cuboid(Solid):
         self._surfaces.add('front', [Quad(V[5], V[4], V[7], V[6])])
         self._surfaces.add('back', [Quad(V[0], V[1], V[2], V[3])])
 
-    def stack(self, other: 'Cuboid', onSurface: str = 'top') -> 'Cuboid':
+    def stack(self, other: 'Cuboid', onSurface: str = 'top', stackLabel="CuboidStack") -> 'Cuboid':
         """
         Basic implementation for stacking cuboids along an axis.
 
@@ -69,20 +69,20 @@ class Cuboid(Solid):
         """
         stacker = CuboidStacker()
         stackResult = stacker.stack(onCuboid=self, otherCuboid=other, onSurface=onSurface)
-        return Cuboid._fromStackResult(stackResult)
+        return Cuboid._fromStackResult(stackResult, label=stackLabel)
 
     @classmethod
-    def _fromStackResult(cls, stackResult: StackResult, label="CuboidStack") -> 'Cuboid':
+    def _fromStackResult(cls, stackResult: StackResult, label: str) -> 'Cuboid':
         # subtracting stackCentroid from all vertices because solid creation will translate back to position.
         for vertex in stackResult.vertices:
             vertex.subtract(stackResult.position)
 
         cuboid = Cuboid(*stackResult.shape, position=stackResult.position, vertices=stackResult.vertices,
-                        surfaces=stackResult.surfaces, label=label, primitive=stackResult.primitive)
+                        surfaces=stackResult.surfaces, label=label, primitive=stackResult.primitive, labelOverride=False)
         cuboid._layerLabels = stackResult.layerLabels
         return cuboid
 
-    def contains(self, *vertices: Vertex) -> bool:
+    def contains(self, *vertices: Vector) -> bool:
         vertices = np.asarray([vertex.array for vertex in vertices])
         relativeVertices = vertices - self.position.array
 
@@ -93,16 +93,3 @@ class Cuboid(Solid):
         if np.any(np.abs(relativeVertices) >= bounds):
             return False
         return True
-
-
-if __name__ == "__main__":
-    from pytissueoptics.scene.viewer.mayavi import MayaviViewer
-
-    cuboid1 = Cuboid(5, 1, 4, position=Vector(4, 0.5, 0))
-    cuboid2 = Cuboid(5, 2, 4, position=Vector(4, 1, -6))
-    cuboid3 = Cuboid(2, 3, 4, position=Vector(-2, 1.5, -3))
-    cuboidStack = cuboid1.stack(cuboid2).stack(cuboid3, onSurface='right')
-
-    viewer = MayaviViewer()
-    viewer.add(cuboidStack, representation="wireframe", lineWidth=3)
-    viewer.show()

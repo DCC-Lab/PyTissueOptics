@@ -101,3 +101,22 @@ FresnelIntersection computeFresnelIntersection(float3 rayDirection, Intersection
 
     return fresnelIntersection;
 }
+
+// --------------- TEST KERNEL ---------------
+
+__kernel void computeFresnelIntersectionKernel(float3 rayDirection, __global Intersection *intersections,
+        __constant Material *materials, __global Surface *surfaces, __global uint *seeds,
+        __global FresnelIntersection *fresnelIntersections) {
+    uint gid = get_global_id(0);
+    fresnelIntersections[gid] = computeFresnelIntersection(rayDirection, &intersections[gid], materials, surfaces, seeds, gid);
+}
+
+struct FloatContainer {
+    float value;
+};
+typedef struct FloatContainer FloatContainer;
+
+__kernel void getReflectionCoefficientKernel(float n1, float n2, float thetaIn, __global FloatContainer *results) {
+    uint gid = get_global_id(0);
+    results[gid].value = _getReflectionCoefficient(n1, n2, thetaIn);
+}

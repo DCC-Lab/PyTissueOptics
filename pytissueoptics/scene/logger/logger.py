@@ -31,6 +31,8 @@ class DataType(Enum):
 
 
 class Logger:
+    DEFAULT_LOGGER_PATH = "simulation.log"
+
     def __init__(self, fromFilepath: str = None):
         self._data: Dict[InteractionKey, InteractionData] = {}
         self.info: dict = {}
@@ -40,22 +42,35 @@ class Logger:
         if fromFilepath:
             self.load(fromFilepath)
 
-    def getLoggedSolidLabels(self) -> List[str]:
+    def getSeenSolidLabels(self) -> List[str]:
+        """ Returns a list of all solid labels that have been logged in the past
+        even if the data was discarded. """
         return list(self._labels.keys())
 
-    def getLoggedSurfaceLabels(self, solidLabel: str) -> List[str]:
+    def getSeenSurfaceLabels(self, solidLabel: str) -> List[str]:
+        """ Returns a list of all surface labels that have been logged in the past
+        for the given solid even if the data was discarded. """
         return self._labels[solidLabel]
 
-    def logPoint(self, point: Vector, key: InteractionKey):
+    def getStoredSolidLabels(self) -> List[str]:
+        """ Returns a list of all solid labels that are currently stored in the logger. """
+        return list(set(key.solidLabel for key in self._data.keys()))
+
+    def getStoredSurfaceLabels(self, solidLabel: str) -> List[str]:
+        """ Returns a list of all surface labels that are currently stored in the logger. """
+        return [key.surfaceLabel for key in self._data.keys() if key.solidLabel == solidLabel
+                and key.surfaceLabel is not None]
+
+    def logPoint(self, point: Vector, key: InteractionKey = None):
         self._appendData([point.x, point.y, point.z], DataType.POINT, key)
 
     def logDataPoint(self, value: float, position: Vector, key: InteractionKey):
         self._appendData([value, position.x, position.y, position.z], DataType.DATA_POINT, key)
 
-    def logSegment(self, start: Vector, end: Vector, key: InteractionKey):
+    def logSegment(self, start: Vector, end: Vector, key: InteractionKey = None):
         self._appendData([start.x, start.y, start.z, end.x, end.y, end.z], DataType.SEGMENT, key)
 
-    def logPointArray(self, array: np.ndarray, key: InteractionKey):
+    def logPointArray(self, array: np.ndarray, key: InteractionKey = None):
         """ 'array' must be of shape (n, 3) where second axis is (x, y, z) """
         assert array.shape[1] == 3 and array.ndim == 2, "Point array must be of shape (n, 3)"
         self._appendData(array, DataType.POINT, key)
@@ -65,12 +80,14 @@ class Logger:
         assert array.shape[1] == 4 and array.ndim == 2, "Data point array must be of shape (n, 4)"
         self._appendData(array, DataType.DATA_POINT, key)
 
-    def logSegmentArray(self, array: np.ndarray, key: InteractionKey):
+    def logSegmentArray(self, array: np.ndarray, key: InteractionKey = None):
         """ 'array' must be of shape (n, 6) where second axis is (x1, y1, z1, x2, y2, z2) """
         assert array.shape[1] == 6 and array.ndim == 2, "Segment array must be of shape (n, 6)"
         self._appendData(array, DataType.SEGMENT, key)
 
-    def _appendData(self, data: Union[List, np.ndarray], dataType: DataType, key: InteractionKey):
+    def _appendData(self, data: Union[List, np.ndarray], dataType: DataType, key: InteractionKey = None):
+        if key is None:
+            key = InteractionKey(None, None)
         self._validateKey(key)
         previousData = getattr(self._data[key], dataType.value)
         if previousData is None:
@@ -105,36 +122,32 @@ class Logger:
         if key and key.solidLabel:
             if not self._keyExists(key):
                 return None
-            data = getattr(self._data[key], dataType.value)
-            data.merge()
-            return data.mergedData
+            container = getattr(self._data[key], dataType.value)
+            return container.getData()
         else:
-            tempData = ListArrayContainer()
+            container = ListArrayContainer()
             for interactionData in self._data.values():
                 points = getattr(interactionData, dataType.value)
                 if points is None:
                     continue
-                tempData.extend(points)
-            if len(tempData) == 0:
+                container.extend(points)
+            if len(container) == 0:
                 return None
-            tempData.merge()
-            return tempData.mergedData
+            return container.getData()
 
     def _keyExists(self, key: InteractionKey) -> bool:
-        if key.solidLabel not in self.getLoggedSolidLabels():
-            warnings.warn(f"No data stored for solid labeled '{key.solidLabel}'. Available: {self.getLoggedSolidLabels()}. ")
-        if key.surfaceLabel and key.surfaceLabel not in self.getLoggedSurfaceLabels(key.solidLabel):
+        if key.solidLabel not in self.getStoredSolidLabels():
+            warnings.warn(f"No data stored for solid labeled '{key.solidLabel}'. Available: {self.getStoredSolidLabels()}. ")
+        elif key.surfaceLabel and key.surfaceLabel not in self.getStoredSurfaceLabels(key.solidLabel):
             warnings.warn(f"No data stored for surface labeled '{key.surfaceLabel}' for solid '{key.solidLabel}'. "
-                          f"Available: {self.getLoggedSurfaceLabels(key.solidLabel)}. ")
+                          f"Available: {self.getStoredSurfaceLabels(key.solidLabel)}. ")
         if key in self._data:
             return True
-        if not key.surfaceLabel:
-            warnings.warn(f"No data stored inside the solid labeled '{key.solidLabel}'.")
         return False
 
     def save(self, filepath: str = None):
         if filepath is None and self._filepath is None:
-            filepath = "simulation.log"
+            filepath = self.DEFAULT_LOGGER_PATH
             warnings.warn(f"No filepath specified. Saving to {filepath}.")
         elif filepath is None:
             filepath = self._filepath
@@ -156,7 +169,3 @@ class Logger:
     @property
     def nDataPoints(self) -> int:
         return sum(len(data.dataPoints) for data in self._data.values())
-
-    @property
-    def isEmpty(self) -> bool:
-        return self.nDataPoints == 0

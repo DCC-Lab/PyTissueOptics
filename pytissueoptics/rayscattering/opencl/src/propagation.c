@@ -210,3 +210,71 @@ __kernel void propagate(uint maxPhotons, uint maxInteractions, float weightThres
         photonCount++;
     }
 }
+
+
+// ---------------------------- TEST KERNELS ----------------------------
+
+
+__kernel void moveByKernel(float distance, __global Photon *photons, uint photonID){
+    moveBy(distance, photons, photonID);
+}
+
+__kernel void scatterByKernel(float phi, float theta, __global Photon *photons, uint photonID){
+    photons[photonID].er = getAnyOrthogonalGlobal(&photons[photonID].direction);
+    scatterBy(phi, theta, photons, photonID);
+}
+
+__kernel void decreaseWeightByKernel(float delta_weight, __global Photon *photons, uint photonID){
+    decreaseWeightBy(delta_weight, photons, photonID);
+}
+
+__kernel void rouletteKernel(float weightThreshold, __global uint *seeds, __global Photon *photons, uint photonID){
+    roulette(weightThreshold, photons, seeds, photonID, photonID);
+}
+
+__kernel void reflectKernel(float3 incidencePlane, float angleDeflection, __global Photon *photons, uint photonID){
+    FresnelIntersection fresnelIntersection;
+    fresnelIntersection.incidencePlane = incidencePlane;
+    fresnelIntersection.angleDeflection = angleDeflection;
+    reflect(&fresnelIntersection, photons, photonID);
+}
+
+__kernel void refractKernel(float3 incidencePlane, float angleDeflection, __global Photon *photons, uint photonID){
+    FresnelIntersection fresnelIntersection;
+    fresnelIntersection.incidencePlane = incidencePlane;
+    fresnelIntersection.angleDeflection = angleDeflection;
+    refract(&fresnelIntersection, photons, photonID);
+}
+
+__kernel void interactKernel(__constant Material *materials, __global DataPoint *logger,
+                             uint logIndex, __global Photon *photons, uint photonID){
+    interact(photons, materials, logger, logIndex, photonID);
+}
+
+__kernel void logIntersectionKernel(float3 normal, int surfaceID, __global Surface *surfaces,
+                    __global DataPoint *logger, uint logIndex, __global Photon *photons, uint photonID){
+    Intersection intersection;
+    intersection.normal = normal;
+    intersection.surfaceID = surfaceID;
+    logIntersection(&intersection, photons, surfaces, logger, &logIndex, photonID);
+}
+
+__kernel void reflectOrRefractKernel(float3 normal, int surfaceID, float distanceLeft,
+                                     __constant Material *materials, __global Surface *surfaces,
+                                     __global DataPoint *logger, uint logIndex, __global uint *seeds,
+                                     __global Photon *photons, uint photonID){
+    Intersection intersection;
+    intersection.normal = normal;
+    intersection.surfaceID = surfaceID;
+    intersection.distanceLeft = distanceLeft;
+    reflectOrRefract(&intersection, photons, materials, surfaces, logger, &logIndex, seeds, photonID, photonID);
+}
+
+__kernel void propagateStepKernel(float distance, __constant Material *materials, __global Surface *surfaces,
+                    __global uint *seeds, __global DataPoint *logger, uint logIndex,
+                    __global Photon *photons, uint photonID){
+    Scene scene;
+    scene.surfaces = surfaces;
+    uint gid = photonID;
+    propagateStep(distance, photons, materials, &scene, seeds, logger, &logIndex, gid, photonID);
+}

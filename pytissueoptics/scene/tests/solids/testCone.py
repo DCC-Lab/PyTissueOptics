@@ -1,6 +1,6 @@
 import unittest
 
-from pytissueoptics.scene.geometry import Vector, Vertex
+from pytissueoptics.scene.geometry import Vector, Vertex, primitives
 from pytissueoptics.scene.solids import Cone
 
 
@@ -16,3 +16,7 @@ class TestCone(unittest.TestCase):
         vertices = [Vertex(0, 0, 1), Vertex(0, 0.50, 1.5)]
         result = cylinder.contains(*vertices)
         self.assertFalse(result)
+
+    def testGivenANewWithQuadPrimitive_shouldNotCreateCone(self):
+        with self.assertRaises(NotImplementedError):
+            Cone(primitive=primitives.QUAD)

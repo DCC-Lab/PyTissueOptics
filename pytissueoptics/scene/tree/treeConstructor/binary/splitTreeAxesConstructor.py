@@ -189,8 +189,8 @@ class SplitThreeAxesConstructor(NoSplitOneAxisConstructor):
     @staticmethod
     def _intersectPlaneWithRay(normal: Vector, planePoint: Vector, ray: Ray, tol=1e-6) -> Optional[Vector]:
         """
-        Naive Algorithm. It is a little bit faster than Möller-Trombore for this purpose.
-        1. normal.dot(direction), to check if plane and are are coplanar
+        Naive Algorithm. It is a little faster than Möller-Trombore for this purpose.
+        1. normal.dot(direction), to check if plane and ray are coplanar
         2. the dot product of two perpendicular vectors is equal to 0  | (normal.dot(planePoint - origin)) = 0
         3. we parametrize the ray equation as | origin + direction * t = planePoint
         4. we solve for t.

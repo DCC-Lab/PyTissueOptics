@@ -6,7 +6,7 @@ import numpy as np
 from pytissueoptics.rayscattering import utils
 from pytissueoptics.rayscattering.energyLogging import EnergyLogger
 from pytissueoptics.rayscattering.opencl.CLPhotons import CLPhotons
-from pytissueoptics.rayscattering.tissues.rayScatteringScene import RayScatteringScene
+from pytissueoptics.rayscattering.scatteringScene import ScatteringScene
 from pytissueoptics.rayscattering.photon import Photon
 from pytissueoptics.rayscattering.opencl import IPPTable, CONFIG, validateOpenCL, warnings
 from pytissueoptics.scene.solids import Sphere
@@ -30,7 +30,7 @@ class Source:
 
         self._loadPhotons()
 
-    def propagate(self, scene: RayScatteringScene, logger: Logger = None, showProgress: bool = True):
+    def propagate(self, scene: ScatteringScene, logger: Logger = None, showProgress: bool = True):
         self._environment = scene.getEnvironmentAt(self._position)
         self._prepareLogger(logger)
 
@@ -41,14 +41,14 @@ class Source:
         else:
             self._propagateCPU(scene, logger, showProgress)
 
-    def _propagateCPU(self, scene: RayScatteringScene, logger: Logger = None, showProgress: bool = True):
+    def _propagateCPU(self, scene: ScatteringScene, logger: Logger = None, showProgress: bool = True):
         intersectionFinder = FastIntersectionFinder(scene)
 
         for i in progressBar(range(self._N), desc="Propagating photons", disable=not showProgress):
             self._photons[i].setContext(self._environment, intersectionFinder=intersectionFinder, logger=logger)
             self._photons[i].propagate()
 
-    def _getAverageInteractionsPerPhoton(self, scene: RayScatteringScene) -> float:
+    def _getAverageInteractionsPerPhoton(self, scene: ScatteringScene) -> float:
         """
         Returns the average number of interactions per photon (IPP) for a given experiment (scene and source
         combination). This is used to optimize the hardware accelerated kernel (OpenCL).
@@ -65,10 +65,10 @@ class Source:
 
         return IPPTable().getIPP(experimentHash)
 
-    def _getExperimentHash(self, scene: RayScatteringScene) -> int:
+    def _getExperimentHash(self, scene: ScatteringScene) -> int:
         return hash((scene, self))
 
-    def _measureIPP(self, scene: RayScatteringScene):
+    def _measureIPP(self, scene: ScatteringScene):
         warnings.warn("WARNING: Could not find the average interactions per photon (IPP) for this experiment. \n... "
                       "[Estimating IPP]")
 
@@ -86,14 +86,14 @@ class Source:
 
         warnings.warn(f"... [IPP test took {time.time() - t0:.2f}s]")
 
-    def _updateIPP(self, scene: RayScatteringScene, logger: Logger = None):
+    def _updateIPP(self, scene: ScatteringScene, logger: Logger = None):
         if logger is None:
             return
         measuredIPP = logger.nDataPoints / self._N
         table = IPPTable()
         table.updateIPP(self._getExperimentHash(scene), self._N, measuredIPP)
 
-    def _propagateOpenCL(self, IPP: float, scene: RayScatteringScene, logger: Logger = None,
+    def _propagateOpenCL(self, IPP: float, scene: ScatteringScene, logger: Logger = None,
                          showProgress: bool = True):
         self._photons.setContext(scene, self._environment, logger=logger)
         self._photons.propagate(IPP=IPP, verbose=showProgress)
@@ -116,7 +116,7 @@ class Source:
 
     def _loadPhotonsOpenCL(self):
         positions, directions = self.getInitialPositionsAndDirections()
-        self._photons = CLPhotons(positions, directions, self._N)
+        self._photons = CLPhotons(positions, directions)
 
     def _prepareLogger(self, logger: Optional[Logger]):
         if logger is None:
@@ -129,7 +129,9 @@ class Source:
             logger.info["photonCount"] = 0
         logger.info["photonCount"] += self.getPhotonCount()
 
-        sourceSolid = self.getEnvironment().solid
+        if self._environment is None:
+            self._environment = Environment(None)
+        sourceSolid = self._environment.solid
         logger.info["sourceSolidLabel"] = sourceSolid.getLabel() if sourceSolid else None
 
         if "sourceHash" not in logger.info:
@@ -146,17 +148,10 @@ class Source:
     def getPhotonCount(self) -> int:
         return self._N
 
-    def getPosition(self) -> Vector:
-        return self._position
-
-    def getEnvironment(self) -> Environment:
-        if self._environment is None:
-            return Environment(None)
-        return self._environment
-
-    def addToViewer(self, viewer: MayaviViewer, size: float = 0.1):
+    def addToViewer(self, viewer: MayaviViewer, size: float = 0.1,
+                    representation='surface', colormap='Wistia', opacity=0.8, **kwargs):
         sphere = Sphere(radius=size/2, position=self._position)
-        viewer.add(sphere, representation="surface", colormap="Wistia", opacity=0.8)
+        viewer.add(sphere, representation=representation, colormap=colormap, opacity=opacity, **kwargs)
 
     @property
     def _nameHash(self) -> int:

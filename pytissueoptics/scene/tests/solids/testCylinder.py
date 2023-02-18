@@ -1,7 +1,7 @@
 import unittest
 import math
 
-from pytissueoptics.scene.geometry import Vector, Vertex
+from pytissueoptics.scene.geometry import Vector, Vertex, primitives
 from pytissueoptics.scene.solids import Cylinder
 
 
@@ -9,11 +9,24 @@ class TestCylinder(unittest.TestCase):
     def testGivenANewDefault_shouldBePlacedAtOrigin(self):
         cylinder = Cylinder()
         self.assertEqual(Vector(0, 0, 0), cylinder.position)
+        self.assertEqual(Vector(0, 0, 0), cylinder.bbox.center)
 
     def testGivenANew_shouldBePlacedAtDesiredPosition(self):
         position = Vector(2, 2, 1)
         cylinder = Cylinder(position=position)
         self.assertEqual(Vector(2, 2, 1), cylinder.position)
+
+    def testGivenANewWithQuadPrimitive_shouldNotCreateCylinder(self):
+        with self.assertRaises(NotImplementedError):
+            Cylinder(primitive=primitives.QUAD)
+
+    def testGivenANewWithUSmallerThan3_shouldNotCreateCylinder(self):
+        with self.assertRaises(ValueError):
+            Cylinder(u=2)
+
+    def testGivenANewWithVSmallerThan1_shouldNotCreateCylinder(self):
+        with self.assertRaises(ValueError):
+            Cylinder(v=0)
 
     def testGivenALowOrderCylinder_shouldApproachCorrectCylinderAreaTo5Percent(self):
         cylinder = Cylinder(radius=1, height=2, u=12)
@@ -63,3 +76,7 @@ class TestCylinder(unittest.TestCase):
         cylinder = Cylinder(radius=1000, height=3, u=6, position=Vector(0, 0, 0))
         vertices = [Vertex(0, 866, 0)]
         self.assertTrue(cylinder.contains(*vertices))
+
+    def testWhenSmoothWithLessThan16Sides_shouldWarn(self):
+        with self.assertWarns(UserWarning):
+            Cylinder(u=15, smooth=True)

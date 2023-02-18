@@ -1,6 +1,6 @@
 import unittest
 
-from pytissueoptics.scene.geometry import Vector, primitives, Vertex
+from pytissueoptics.scene.geometry import Vector, primitives, Vertex, INTERFACE_KEY
 from pytissueoptics.scene.solids import Cuboid
 
 
@@ -40,16 +40,23 @@ class TestCuboid(unittest.TestCase):
         centroid.divide(len(surfacePolygons))
         return centroid
 
-    def testWhenStackOnNonExistentSurface_shouldNotStack(self):
+    def testWhenStackCuboidsWithTheSameLabel_shouldNotStack(self):
         baseCuboid = Cuboid(4, 5, 3)
         otherCuboid = Cuboid(4, 5, 1)
+
+        with self.assertRaises(AssertionError):
+            baseCuboid.stack(otherCuboid, 'front')
+
+    def testWhenStackOnNonExistentSurface_shouldNotStack(self):
+        baseCuboid = Cuboid(4, 5, 3, label="BaseCuboid")
+        otherCuboid = Cuboid(4, 5, 1, label="OtherCuboid")
 
         with self.assertRaises(Exception):
             baseCuboid.stack(otherCuboid, onSurface='BadSurfaceKey')
 
     def testWhenStackUnmatchedSurfaces_shouldNotStack(self):
-        baseCuboid = Cuboid(5, 3, 4)
-        otherCuboid = Cuboid(5, 1, 4)
+        baseCuboid = Cuboid(5, 3, 4, label="BaseCuboid")
+        otherCuboid = Cuboid(5, 1, 4, label="OtherCuboid")
 
         with self.assertRaises(Exception):
             baseCuboid.stack(otherCuboid, onSurface='right')
@@ -57,24 +64,24 @@ class TestCuboid(unittest.TestCase):
     def testWhenStackOnASurface_shouldMoveTheOtherCuboidToBeAdjacentToThisSurface(self):
         basePosition = Vector(2, 2, 1)
         otherPosition = Vector(5, 0, 4)
-        baseCuboid = Cuboid(5, 3, 4, position=basePosition)
-        otherCuboid = Cuboid(5, 1, 4, position=otherPosition)
+        baseCuboid = Cuboid(5, 3, 4, position=basePosition, label="BaseCuboid")
+        otherCuboid = Cuboid(5, 1, 4, position=otherPosition, label="OtherCuboid")
 
         baseCuboid.stack(otherCuboid, onSurface='bottom')
 
         self.assertEqual(baseCuboid.position + Vector(0, -2, 0), otherCuboid.position)
 
     def testWhenStack_shouldShareSurfacesWithTheOtherCuboid(self):
-        baseCuboid = Cuboid(5, 3, 4)
-        otherCuboid = Cuboid(5, 1, 4)
+        baseCuboid = Cuboid(5, 3, 4, label="BaseCuboid")
+        otherCuboid = Cuboid(5, 1, 4, label="OtherCuboid")
 
         baseCuboid.stack(otherCuboid, onSurface='top')
 
         self.assertEqual(baseCuboid.getPolygons('top'), otherCuboid.getPolygons('bottom'))
 
     def testWhenStack_shouldSetOtherCuboidEnvironmentAtInterface(self):
-        baseCuboid = Cuboid(5, 3, 4)
-        otherCuboid = Cuboid(5, 1, 4)
+        baseCuboid = Cuboid(5, 3, 4, label="BaseCuboid")
+        otherCuboid = Cuboid(5, 1, 4, label="OtherCuboid")
         topEnvironment = otherCuboid.getEnvironment()
 
         baseCuboid.stack(otherCuboid, onSurface='top')
@@ -84,8 +91,8 @@ class TestCuboid(unittest.TestCase):
 
     def testWhenStack_shouldReturnANewCuboidMadeOfTheseTwoCuboids(self):
         basePosition = Vector(2, 2, 1)
-        baseCuboid = Cuboid(5, 3, 4, position=basePosition)
-        otherCuboid = Cuboid(5, 1, 4)
+        baseCuboid = Cuboid(5, 3, 4, position=basePosition, label="BaseCuboid")
+        otherCuboid = Cuboid(5, 1, 4, label="OtherCuboid")
 
         cuboidStack = baseCuboid.stack(otherCuboid, onSurface='bottom')
 
@@ -93,12 +100,12 @@ class TestCuboid(unittest.TestCase):
         self.assertEqual(basePosition - Vector(0, 0.5, 0), cuboidStack.position)
 
     def testWhenStack_shouldReturnANewCuboidWithAFirstInterface(self):
-        baseCuboid = Cuboid(5, 3, 4)
-        otherCuboid = Cuboid(5, 1, 4)
+        baseCuboid = Cuboid(5, 3, 4, label="BaseCuboid")
+        otherCuboid = Cuboid(5, 1, 4, label="OtherCuboid")
 
         cuboidStack = baseCuboid.stack(otherCuboid, onSurface='top')
 
-        self.assertTrue("interface0" in cuboidStack.surfaceLabels)
+        self.assertTrue(f"{INTERFACE_KEY}0" in cuboidStack.surfaceLabels)
 
     def testWhenStack_shouldPreserveEnvironmentAtEachLayer(self):
         baseMaterial = "BaseMaterial"
@@ -108,7 +115,7 @@ class TestCuboid(unittest.TestCase):
 
         cuboidStack = baseCuboid.stack(otherCuboid, onSurface='top')
 
-        interfacePolygon = cuboidStack.getPolygons("interface0")[0]
+        interfacePolygon = cuboidStack.getPolygons(f"{INTERFACE_KEY}0")[0]
 
         self.assertEqual(baseMaterial, interfacePolygon.insideEnvironment.material)
         self.assertEqual(otherMaterial, interfacePolygon.outsideEnvironment.material)
@@ -116,18 +123,30 @@ class TestCuboid(unittest.TestCase):
         self.assertEqual(otherCuboid, interfacePolygon.outsideEnvironment.solid)
 
     def testWhenStackAnotherStack_shouldReturnANewCuboidWithAllStackInterfaces(self):
-        baseCuboid1 = Cuboid(5, 3, 4)
-        otherCuboid1 = Cuboid(5, 1, 4)
+        baseCuboid1 = Cuboid(5, 3, 4, label="BaseCuboid1")
+        otherCuboid1 = Cuboid(5, 1, 4, label="OtherCuboid1")
         cuboidStack1 = baseCuboid1.stack(otherCuboid1, onSurface='top')
 
-        baseCuboid2 = Cuboid(2, 4, 4)
-        otherCuboid2 = Cuboid(3, 4, 4)
+        baseCuboid2 = Cuboid(2, 4, 4, label="BaseCuboid2")
+        otherCuboid2 = Cuboid(3, 4, 4, label="OtherCuboid2")
         cuboidStack2 = baseCuboid2.stack(otherCuboid2, onSurface='right')
 
         cuboidStack = cuboidStack1.stack(cuboidStack2, onSurface='right')
 
         for i in range(3):
-            self.assertTrue(f"interface{i}" in cuboidStack.surfaceLabels)
+            self.assertTrue(f"{INTERFACE_KEY}{i}" in cuboidStack.surfaceLabels)
+
+    def testWhenStackAnotherStackNotAlongTheAlreadyStackedAxis_shouldNotStack(self):
+        baseCuboid1 = Cuboid(5, 3, 4, label="base1")
+        otherCuboid1 = Cuboid(5, 1, 4, label="other1")
+        cuboidStack1 = baseCuboid1.stack(otherCuboid1, onSurface='top')
+
+        baseCuboid2 = Cuboid(2, 4, 4, label="base2")
+        otherCuboid2 = Cuboid(3, 4, 4, label="other2")
+        cuboidStack2 = baseCuboid2.stack(otherCuboid2, onSurface='right')
+
+        with self.assertRaises(Exception):
+            cuboidStack1.stack(cuboidStack2, onSurface='top')
 
     def testWhenContainsWithVerticesThatAreAllInsideTheCuboid_shouldReturnTrue(self):
         cuboid = Cuboid(1, 1, 8, position=Vector(2, 2, 0))

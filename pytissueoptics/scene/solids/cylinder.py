@@ -1,4 +1,5 @@
 import math
+import warnings
 from typing import List
 
 from pytissueoptics.scene.geometry import Vector, Triangle, primitives, Vertex
@@ -8,18 +9,20 @@ from pytissueoptics.scene.solids import Solid
 class Cylinder(Solid):
     def __init__(self, radius: float = 1, height: float = 1, u: int = 32, v: int = 3,
                  position: Vector = Vector(0, 0, 0), material=None,
-                 primitive: str = primitives.DEFAULT, label: str = "Cylinder"):
+                 primitive: str = primitives.DEFAULT, label: str = "cylinder", smooth=True):
         self._radius = radius
         self._height = height
-        if u < 2 or v < 1:
-            raise ValueError("u must be > 2 and v must be > 1")
+        if u < 3 or v < 1:
+            raise ValueError("u must be >= 3 and v must be >= 1")
         self._u = u
         self._v = v
         self._bottomCenter = Vertex(0, 0, 0)
         self._topCenter = Vertex(0, 0, height)
         self._minRadius = math.cos(math.pi / self._u) * self._radius
         super().__init__(position=position, material=material, primitive=primitive,
-                         vertices=[self._bottomCenter, self._topCenter], smooth=True, label=label)
+                         vertices=[self._bottomCenter, self._topCenter], smooth=smooth, label=label)
+        self.translateBy(Vector(0, 0, -height / 2))
+        self._position += Vector(0, 0, height / 2)
 
     @property
     def direction(self) -> Vector:
@@ -65,6 +68,7 @@ class Cylinder(Solid):
         self._surfaces.add("middle", middleTriangles)
 
     def _computeBottomTriangles(self, vertices: List[Vertex]):
+        vertices.reverse()
         bottomTriangles = []
         for i in range(self._u):
             nextIndex = (i + 1) % self._u
@@ -81,7 +85,7 @@ class Cylinder(Solid):
     def _computeQuadMesh(self):
         raise NotImplementedError("Quad mesh not implemented for Cylinder")
 
-    def contains(self, *vertices: Vertex) -> bool:
+    def contains(self, *vertices: Vector) -> bool:
         for vertex in vertices:
             direction = self.direction
             direction.normalize()
@@ -107,4 +111,6 @@ class Cylinder(Solid):
         return 1
 
     def smooth(self, surfaceLabel: str = None):
+        if self._u < 16:
+            warnings.warn("Smoothing a cylinder with less than 16 sides (u < 16) may result in intersection errors.")
         super(Cylinder, self).smooth("middle")

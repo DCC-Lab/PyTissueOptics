@@ -1,6 +1,9 @@
 from typing import List
 
-from pytissueoptics.scene.geometry import Vector
+import numpy as np
+
+from pytissueoptics.scene.geometry import Vector, BoundingBox
+from pytissueoptics.scene.solids import Cuboid
 from pytissueoptics.scene.scene import Scene
 from pytissueoptics.scene.logger import Logger
 from pytissueoptics.scene.intersection.intersectionFinder import Intersection
@@ -8,8 +11,8 @@ from pytissueoptics.scene.tree import TreeConstructor
 from pytissueoptics.scene.tree.treeConstructor.binary.splitTreeAxesConstructor import SplitThreeAxesConstructor
 from pytissueoptics.scene.tree.treeConstructor.binary.noSplitOneAxisConstructor import NoSplitOneAxisConstructor
 from pytissueoptics.scene.tree.treeConstructor.binary.noSplitThreeAxesConstructor import NoSplitThreeAxesConstructor
-from pytissueoptics.scene.intersection import FastIntersectionFinder, SimpleIntersectionFinder, UniformRaySource, \
-    RandomPositionAndOrientationRaySource, RaySource
+from pytissueoptics.scene.intersection import FastIntersectionFinder, SimpleIntersectionFinder, \
+    UniformRaySource, RaySource, Ray
 from pytissueoptics.scene.tests.scene.benchmarkScenes import AAxisAlignedPolygonScene, APolygonScene, ACubeScene, \
     ASphereScene, TwoCubesScene, TwoSpheresScene, RandomShapesScene, XAlignedSpheres, ZAlignedSpheres, \
     DiagonallyAlignedSpheres, PhantomScene
@@ -18,9 +21,9 @@ from pytissueoptics.scene.viewer import MayaviViewer
 import pandas
 import time
 
+
 pandas.set_option('display.max_columns', 20)
 pandas.set_option('display.width', 1200)
-RPORaySource = RandomPositionAndOrientationRaySource
 
 
 class IntersectionFinderBenchmark:
@@ -134,7 +137,7 @@ class IntersectionFinderBenchmark:
                 logger.logDataPoint(signal, intersection.position)
         t2 = time.time()
         traversalTime = t2 - t1
-        partition = intersectionFinder.partition
+        partition = intersectionFinder._partition
         print(
             f"{constructor.__class__.__name__:^20.20s}"
             f" - {constructionTime:^10.2f}"
@@ -142,7 +145,7 @@ class IntersectionFinderBenchmark:
             f" - {len(partition.getLeafPolygons()):^10}"
             f" - {partition.getNodeCount():^10}"
             f" - {partition.getLeafCount():^10}",
-            f" - {partition.getAverageLeafDepth():^10.2f}"
+            f" - {partition.getAverageDepth():^10.2f}"
             f" - {missedRays:^10}"
             f" - {missedRays == referenceMissed:^10}")
         if display and missedRays != referenceMissed:
@@ -182,7 +185,8 @@ class IntersectionFinderBenchmark:
         self._saveSimpleStats(scene, intersectionFinder, traversalTime * self.factor)
 
     def runBenchmarkForSceneWithConstructor(self, scene: Scene, constructor: TreeConstructor):
-        source = RPORaySource(self.rayAmount, scene.getBoundingBox().xyzLimits, position=Vector(0,0,0))
+        source = RandomPositionAndOrientationRaySource(self.rayAmount, scene.getBoundingBox().xyzLimits,
+                                                       position=Vector(0,0,0))
         self.runBenchmarkForSceneWithConstructorAndSource(scene, constructor, source)
 
     def runBenchmarkForSceneWithConstructorAndSource(self, scene: Scene, constructor: TreeConstructor,
@@ -218,7 +222,7 @@ class IntersectionFinderBenchmark:
 
     def _saveFastStats(self, scene: Scene, intersectionFinder: FastIntersectionFinder, traversalTime: float,
                        buildTime: float):
-        partition = intersectionFinder.partition
+        partition = intersectionFinder._partition
         self.partitions[-1].append(partition)
         self.stats.loc[self.stats.shape[0]] = [f"{scene.__class__.__name__}", f"{len(scene.getPolygons()):^12}",
                                                f"{len(partition.getLeafPolygons()):^12}",
@@ -228,7 +232,7 @@ class IntersectionFinderBenchmark:
                                                f"{buildTime + traversalTime:^12.2f}",
                                                f"{partition.getNodeCount():^12}",
                                                f"{partition.getLeafCount():^12}",
-                                               f"{partition.getAverageLeafDepth():^12.2f}",
+                                               f"{partition.getAverageDepth():^12.2f}",
                                                f"{partition.getAverageLeafSize():^12.2f}",
                                                f"{((self.simpleTraversalTime[-1]) / traversalTime):.1f}"]
 
@@ -242,7 +246,7 @@ class IntersectionFinderBenchmark:
             scenes = self.scenes
         for j, scene in enumerate(scenes):
             for partition in self.partitions[j]:
-                bBoxes = partition.getLeafBoundingBoxesAsCuboids()
+                bBoxes = self._getCuboidsFromBBoxes(partition.getLeafBoundingBoxes())
                 if objectsDisplay:
                     viewer.add(*scene.getSolids(), representation="surface", lineWidth=0.05,
                                opacity=objectsOpacity)
@@ -252,9 +256,43 @@ class IntersectionFinderBenchmark:
 
     @staticmethod
     def _measureSignal(intersection: Intersection) -> float:
-        if intersection.polygon.insideMaterial is None:
+        if intersection.polygon.insideEnvironment.material is None:
             return 0.125
         return 1.0
+
+    @staticmethod
+    def _getCuboidsFromBBoxes(bBoxes: List[BoundingBox]) -> List[Cuboid]:
+        cuboids = []
+        for bbox in bBoxes:
+            a = bbox.xMax - bbox.xMin
+            b = bbox.yMax - bbox.yMin
+            c = bbox.zMax - bbox.zMin
+            cuboids.append(Cuboid(a=a, b=b, c=c, position=bbox.center))
+        return cuboids
+
+
+class RandomPositionAndOrientationRaySource(RaySource):
+    def __init__(self, amount, xyzLimits, position=None):
+        self._position = position
+        self._amount = amount
+        self._limits = xyzLimits
+        super(RandomPositionAndOrientationRaySource, self).__init__()
+
+    def _createRays(self):
+        if self._position is None:
+            origin_xs = np.random.uniform(self._limits[0][0], self._limits[0][1], self._amount)
+            origin_ys = np.random.uniform(self._limits[1][0], self._limits[1][1], self._amount)
+            origin_zs = np.random.uniform(self._limits[2][0], self._limits[2][1], self._amount)
+        else:
+            origin_xs = np.full(self._amount, self._position.x)
+            origin_ys = np.full(self._amount, self._position.y)
+            origin_zs = np.full(self._amount, self._position.z)
+
+        direction_xs = np.random.uniform(-1, 1, self._amount)
+        direction_ys = np.random.uniform(-1, 1, self._amount)
+        direction_zs = np.random.uniform(-1, 1, self._amount)
+        for i in range(self._amount):
+            self._rays.append(Ray(Vector(origin_xs[i], origin_ys[i], origin_zs[i]), Vector(direction_xs[i], direction_ys[i], direction_zs[i])))
 
 
 if __name__ == '__main__':

@@ -1,7 +1,10 @@
 import numpy as np
 
+from pytissueoptics.scene.geometry import BoundingBox
 from pytissueoptics.scene.logger import Logger
 from pytissueoptics.scene.scene import Scene
+from pytissueoptics.scene.viewer.mayavi.viewPoint import ViewPointStyle, ViewPointFactory
+
 
 try:
     from mayavi import mlab
@@ -14,28 +17,28 @@ from pytissueoptics.scene.solids import Solid
 
 
 class MayaviViewer:
-    def __init__(self):
+    def __init__(self, viewPointStyle=ViewPointStyle.NATURAL):
         self._scenes = {
             "DefaultScene": {"figureParameters": {"bgColor": (0.11, 0.11, 0.11), "fgColor": (0.9, 0.9, 0.9)},
                              "Solids": [], }}
-        self._view = {"azimuth": -30, "zenith": 215, "distance": None, "pointingTowards": None, "roll": -0}
+        self._viewPoint = ViewPointFactory().create(viewPointStyle)
         self.clear()
 
     def addScene(self, scene: Scene, representation="wireframe", lineWidth=0.25, showNormals=False, normalLength=0.3,
             colormap="viridis", reverseColormap=False, constantColor=False, opacity=1, **kwargs):
         self.add(*scene.solids, representation=representation, lineWidth=lineWidth, showNormals=showNormals,
                  normalLength=normalLength, colormap=colormap, reverseColormap=reverseColormap,
-                 constantColor=constantColor, opacity=opacity, **kwargs)
+                 colorWithPosition=constantColor, opacity=opacity, **kwargs)
 
     def add(self, *solids: 'Solid', representation="wireframe", lineWidth=0.25, showNormals=False, normalLength=0.3,
-            colormap="viridis", reverseColormap=False, constantColor=False, opacity=1, **kwargs):
+            colormap="viridis", reverseColormap=False, colorWithPosition=False, opacity=1, **kwargs):
         for solid in solids:
             mayaviSolid = MayaviSolid(solid, loadNormals=showNormals)
             self._scenes["DefaultScene"]["Solids"].append(mayaviSolid)
             s = mlab.triangular_mesh(*mayaviSolid.triangleMesh.components, representation=representation,
                                      line_width=lineWidth, colormap=colormap, opacity=opacity, **kwargs)
             s.module_manager.scalar_lut_manager.reverse_lut = reverseColormap
-            if constantColor:
+            if colorWithPosition:
                 s.module_manager.lut_data_mode = "cell data"
             if showNormals:
                 mlab.quiver3d(*mayaviSolid.normals.components, line_width=lineWidth, scale_factor=normalLength,
@@ -114,12 +117,15 @@ class MayaviViewer:
         return p
 
     def _assignViewPoint(self):
-        azimuth, elevation, distance, towards, roll = (self._view[key] for key in self._view)
-        mlab.view(azimuth, elevation, distance, towards, roll)
+        mlab.view(**self._viewPoint.__dict__)
 
     def show(self):
         self._assignViewPoint()
         mlab.show()
+
+    def save(self, filepath):
+        self._assignViewPoint()
+        mlab.savefig(filepath, magnification=1)
 
     def _resetTo(self, scene):
         figParams = self._scenes[scene]["figureParameters"]
@@ -132,12 +138,11 @@ class MayaviViewer:
         mlab.clf()
         self._resetTo("DefaultScene")
 
+    def close(self):
+        mlab.close()
 
-if __name__ == "__main__":
-    from pytissueoptics.scene import Sphere, Cuboid, Vector, Scene
-
-    sphere1 = Sphere(order=2)
-    cuboid1 = Cuboid(1, 3, 3, position=Vector(4, 0, 0))
-    viewer = MayaviViewer()
-    viewer.add(sphere1, cuboid1, lineWidth=1, showNormals=True)
-    viewer.show()
+    def addBBox(self, bbox: BoundingBox, lineWidth=0.25, color=(1, 1, 1), opacity=1.0, **kwargs):
+        """ Adds a bounding box to the scene. """
+        s = mlab.plot3d([bbox.xMin, bbox.xMax], [bbox.yMin, bbox.yMax], [bbox.zMin, bbox.zMax],
+                        tube_radius=None, line_width=0, opacity=0)
+        mlab.outline(s, line_width=lineWidth, color=color, opacity=opacity, **kwargs)

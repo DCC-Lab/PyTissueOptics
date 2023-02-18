@@ -32,15 +32,8 @@ class Loader:
         ext = self._fileExtension
         if ext == ".obj":
             self._parser = OBJParser(self._filepath, showProgress)
-
-        elif ext == ".dae":
-            raise NotImplementedError
-
-        elif ext == ".zmx":
-            raise NotImplementedError
-
         else:
-            raise ValueError("This format is not supported.")
+            raise NotImplementedError("This format is not supported.")
 
     def _convert(self, showProgress: bool = True) -> List[Solid]:
         vertices = []

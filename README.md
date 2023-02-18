@@ -41,7 +41,7 @@ from pytissueoptics import *
 material = ScatteringMaterial(mu_s=3.0, mu_a=1.0, g=0.8, n=1.5)
 
 tissue = Cuboid(a=1, b=3, c=1, position=Vector(2, 0, 0), material=material)
-scene = RayScatteringScene([tissue])
+scene = ScatteringScene([tissue])
 
 logger = Logger()
 source = PencilPointSource(position=Vector(-3, 0, 0), direction=Vector(1, 0, 0), N=1000)

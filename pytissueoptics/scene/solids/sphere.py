@@ -29,7 +29,7 @@ class Sphere(Ellipsoid):
     def _computeQuadMesh(self):
         raise NotImplementedError
 
-    def contains(self, *vertices: Vertex) -> bool:
+    def contains(self, *vertices: Vector) -> bool:
         """ Only returns true if all vertices are inside the minimum radius of the sphere
         (more restrictive with low order spheres). """
         minRadius = self._getMinimumRadius()

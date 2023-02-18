@@ -5,14 +5,15 @@ import numpy as np
 
 from pytissueoptics.rayscattering import utils
 from pytissueoptics.rayscattering.energyLogging import EnergyLogger
-from pytissueoptics.rayscattering.energyLogging.pointCloud import PointCloudFactory, PointCloud
+from pytissueoptics.rayscattering.energyLogging.pointCloud import PointCloud
+from pytissueoptics.rayscattering.energyLogging import PointCloudFactory
 from pytissueoptics.rayscattering.source import Source
-from pytissueoptics.rayscattering.tissues import RayScatteringScene
-from pytissueoptics.rayscattering.display.statistics import Stats
+from pytissueoptics.rayscattering.scatteringScene import ScatteringScene
+from pytissueoptics.rayscattering.statistics import Stats
 from pytissueoptics.rayscattering.display.utils import Direction
 from pytissueoptics.rayscattering.display.views import ViewGroup, View2D
-from pytissueoptics.rayscattering.display.profiles import Profile1DFactory
-from pytissueoptics.scene import MAYAVI_AVAILABLE, MayaviViewer
+from pytissueoptics.rayscattering.display.profiles import ProfileFactory
+from pytissueoptics.scene import MAYAVI_AVAILABLE, MayaviViewer, ViewPointStyle
 
 
 class Visibility(Flag):
@@ -76,7 +77,7 @@ class PointCloudStyle:
 
 
 class Viewer:
-    def __init__(self, scene: RayScatteringScene, source: Source, logger: EnergyLogger):
+    def __init__(self, scene: ScatteringScene, source: Source, logger: EnergyLogger):
         assert isinstance(logger, EnergyLogger), "The viewer requires an EnergyLogger."
         self._scene = scene
         self._source = source
@@ -84,7 +85,7 @@ class Viewer:
 
         self._viewer3D = None
         self._pointCloudFactory = PointCloudFactory(logger)
-        self._profile1DFactory = Profile1DFactory(scene, logger)
+        self._profileFactory = ProfileFactory(scene, logger)
 
     def listViews(self):
         return self._logger.listViews()
@@ -97,7 +98,7 @@ class Viewer:
             utils.warn("Package 'mayavi' is not available. Please install it to use 3D visualizations.")
             return
 
-        self._viewer3D = MayaviViewer()
+        self._viewer3D = MayaviViewer(viewPointStyle=ViewPointStyle.OPTICS)
 
         if visibility == Visibility.AUTO:
             visibility = Visibility.DEFAULT_3D if self._logger.has3D else Visibility.DEFAULT_2D
@@ -156,7 +157,7 @@ class Viewer:
     def show2D(self, view: View2D = None, viewIndex: int = None, logScale: bool = True, colormap: str = "viridis"):
         self._logger.showView(view=view, viewIndex=viewIndex, logScale=logScale, colormap=colormap)
 
-    def show2DAllViews(self, viewGroup = ViewGroup.ALL):
+    def show2DAllViews(self, viewGroup=ViewGroup.ALL):
         for i in range(len(self._logger.views)):
             if self._logger.views[i].group not in viewGroup:
                 continue
@@ -165,7 +166,7 @@ class Viewer:
     def show1D(self, along: Direction, logScale: bool = True,
                solidLabel: str = None, surfaceLabel: str = None, surfaceEnergyLeaving: bool = True,
                limits: Tuple[float, float] = None, binSize: float = None):
-        profile = self._profile1DFactory.create(along, solidLabel, surfaceLabel, surfaceEnergyLeaving, limits, binSize)
+        profile = self._profileFactory.create(along, solidLabel, surfaceLabel, surfaceEnergyLeaving, limits, binSize)
         profile.show(logScale=logScale)
 
     def reportStats(self, solidLabel: str = None, saveToFile: str = None, verbose=True):

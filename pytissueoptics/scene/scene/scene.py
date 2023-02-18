@@ -1,10 +1,11 @@
 import sys
-from typing import List, Dict, Optional
+import warnings
+from typing import List, Optional, Dict
 
 from pytissueoptics.scene.geometry import Environment
 from pytissueoptics.scene.geometry import Vector
 from pytissueoptics.scene.solids import Solid
-from pytissueoptics.scene.geometry import Polygon, BoundingBox
+from pytissueoptics.scene.geometry import Polygon, BoundingBox, INTERFACE_KEY
 
 
 class Scene:
@@ -12,7 +13,7 @@ class Scene:
                  worldMaterial=None):
         self._solids = []
         self._ignoreIntersections = ignoreIntersections
-        self._solidsContainedIn = {}
+        self._solidsContainedIn: Dict[str, List[str]] = {}
         self._worldMaterial = worldMaterial
         
         if solids:
@@ -38,7 +39,7 @@ class Scene:
 
     def _validatePosition(self, newSolid: Solid):
         """ Assert newSolid position is valid and make proper adjustments so that the
-        material at each solid interface is well defined. """
+        material at each solid interface is well-defined. """
         if len(self._solids) == 0:
             return
 
@@ -57,7 +58,11 @@ class Scene:
                 self._assertIsNotAStack(otherSolid)
                 self._processContainedSolid(newSolid, container=otherSolid)
             else:
-                raise NotImplementedError("Cannot place a solid that partially intersects with an existing solid. ")
+                raise NotImplementedError("Cannot place a solid that partially intersects with an existing solid. "
+                                          "Since this might be underestimating containment, you can also create a "
+                                          "scene with 'ignoreIntersections=True' to ignore this error and manually "
+                                          "handle environments of contained solids with "
+                                          "containedSolid.setOutsideEnvironment(containerSolid.getEnvironment()).")
 
     def _processContainedSolid(self, solid: Solid, container: Solid):
         solid.setOutsideEnvironment(container.getEnvironment())
@@ -71,10 +76,11 @@ class Scene:
         labelSet = set(s.getLabel() for s in self.solids)
         if solid.getLabel() not in labelSet:
             return
-
-        idx = 0
+        idx = 2
         while f"{solid.getLabel()}_{idx}" in labelSet:
             idx += 1
+        warnings.warn(f"A solid with label '{solid.getLabel()}' already exists in the scene. "
+                      f"Renaming to '{solid.getLabel()}_{idx}'.")
         solid.setLabel(f"{solid.getLabel()}_{idx}")
 
     def _findIntersectingSuspectsFor(self, solid) -> List[Solid]:
@@ -102,6 +108,7 @@ class Scene:
             for layerLabel in solid.getLayerLabels():
                 if layerLabel.lower() == solidLabel.lower():
                     return solid
+        raise ValueError(f"Solid '{solidLabel}' not found in scene. Available solids: {self.getSolidLabels()}")
 
     def getSolidLabels(self) -> List[str]:
         labels = []
@@ -114,7 +121,9 @@ class Scene:
 
     def getSurfaceLabels(self, solidLabel) -> List[str]:
         solid = self.getSolid(solidLabel)
-        if solid.isStack():
+        if solid is None:
+            return []
+        if solid.isStack() and solid.getLabel() != solidLabel:
             return solid.getLayerSurfaceLabels(solidLabel)
         return solid.surfaceLabels
 
@@ -124,7 +133,7 @@ class Scene:
     def getPolygons(self) -> List[Polygon]:
         polygons = []
         for solid in self._solids:
-            polygons.extend(solid.surfaces.getPolygons())
+            polygons.extend(solid.getPolygons())
         return polygons
 
     def getMaterials(self) -> list:
@@ -132,7 +141,7 @@ class Scene:
         for solid in self._solids:
             surfaceLabels = solid.surfaceLabels
             for surfaceLabel in surfaceLabels:
-                material = solid.getPolygons(surfaceLabel)[0].insideMaterial
+                material = solid.getPolygons(surfaceLabel)[0].insideEnvironment.material
                 if material not in materials:
                     materials.append(material)
         return list(materials)
@@ -160,12 +169,28 @@ class Scene:
         return False
 
     def getEnvironmentAt(self, position: Vector) -> Environment:
+        # First, recursively look if position is in a contained solid.
+        for containerLabel in self._solidsContainedIn.keys():
+            env = self._getEnvironmentOfContainerAt(position, containerLabel)
+            if env is not None:
+                return env
+
         for solid in self._solids:
             if solid.contains(position):
                 if solid.isStack():
                     return self._getEnvironmentOfStackAt(position, solid)
                 return solid.getEnvironment()
         return self.getWorldEnvironment()
+
+    def _getEnvironmentOfContainerAt(self, position: Vector, containerLabel: str) -> Optional[Environment]:
+        containerSolid = self.getSolid(containerLabel)
+        if not containerSolid.contains(position):
+            return None
+        for containedLabel in self.getContainedSolidLabels(containerLabel):
+            containedEnv = self._getEnvironmentOfContainerAt(position, containedLabel)
+            if containedEnv:
+                return containedEnv
+        return containerSolid.getEnvironment()
 
     @staticmethod
     def _getEnvironmentOfStackAt(position: Vector, stack: Solid) -> Environment:
@@ -178,7 +203,7 @@ class Scene:
         environment = None
         closestDistance = sys.maxsize
         for surfaceLabel in stack.surfaceLabels:
-            if "interface" not in surfaceLabel:
+            if INTERFACE_KEY not in surfaceLabel:
                 continue
             planePolygon = stack.surfaces.getPolygons(surfaceLabel)[0]
             planeNormal = planePolygon.normal
@@ -193,4 +218,5 @@ class Scene:
 
     def __hash__(self):
         solidHash = hash(tuple(sorted([hash(s) for s in self._solids])))
-        return hash((solidHash, self._worldMaterial))
+        worldMaterialHash = hash(self._worldMaterial) if self._worldMaterial else 0
+        return hash((solidHash, worldMaterialHash))

@@ -5,15 +5,15 @@ from typing import Union, List
 import numpy as np
 
 from pytissueoptics.rayscattering import utils
-from pytissueoptics.rayscattering.tissues import RayScatteringScene
+from pytissueoptics.rayscattering.scatteringScene import ScatteringScene
 from pytissueoptics.rayscattering.display.views.view2D import ViewGroup, View2D
 from pytissueoptics.rayscattering.display.views.viewFactory import ViewFactory
 from pytissueoptics.scene.logger.logger import Logger, InteractionKey
-from pytissueoptics.scene.geometry.vector import Vector
+from pytissueoptics.scene.geometry import Vector
 
 
 class EnergyLogger(Logger):
-    def __init__(self, scene: RayScatteringScene, filepath: str = None, keep3D: bool = True,
+    def __init__(self, scene: ScatteringScene, filepath: str = None, keep3D: bool = True,
                  views: Union[ViewGroup, List[View2D]] = ViewGroup.ALL, defaultBinSize: float = 0.01,
                  infiniteLimits=((-5, 5), (-5, 5), (-5, 5))):
         """
@@ -105,7 +105,7 @@ class EnergyLogger(Logger):
 
     def save(self, filepath: str = None):
         if filepath is None and self._filepath is None:
-            filepath = "simulation.log"
+            filepath = self.DEFAULT_LOGGER_PATH
             utils.warn(f"No filepath specified. Saving to {filepath}.")
         elif filepath is None:
             filepath = self._filepath
@@ -140,7 +140,7 @@ class EnergyLogger(Logger):
                        "Using only the views from the file.".format(filepath))
 
     @property
-    def views(self):
+    def views(self) -> List[View2D]:
         return self._views
 
     def getView(self, index: int) -> View2D:
@@ -153,7 +153,6 @@ class EnergyLogger(Logger):
         for i, v in enumerate(self._views):
             if v.isEqualTo(view):
                 return i
-        raise ValueError("View not found.")
 
     def _viewExists(self, view: View2D) -> bool:
         return any([view.isEqualTo(v) for v in self._views])
@@ -190,8 +189,8 @@ class EnergyLogger(Logger):
 
     def _compileViews(self, views: List[View2D]):
         for key, data in self._data.items():
-            datapoints = data.dataPoints
-            if datapoints is None or len(datapoints) == 0:
+            datapointsContainer = data.dataPoints
+            if datapointsContainer is None or len(datapointsContainer) == 0:
                 continue
             for view in views:
                 if view.solidLabel and not utils.labelsEqual(view.solidLabel, key.solidLabel):
@@ -200,7 +199,7 @@ class EnergyLogger(Logger):
                     continue
                 if view.surfaceLabel is None and key.surfaceLabel is not None:
                     continue
-                view.extractData(datapoints.array)
+                view.extractData(datapointsContainer.getData())
         for view in views:
             self._outdatedViews.discard(view)
 
@@ -217,3 +216,19 @@ class EnergyLogger(Logger):
             return super().nDataPoints
         else:
             return self._nDataPointsRemoved
+
+    @property
+    def isEmpty(self) -> bool:
+        return self.nDataPoints == 0
+
+    def logPoint(self, point: Vector, key: InteractionKey = None):
+        raise NotImplementedError("Can only log data points to an EnergyLogger.")
+
+    def logPointArray(self, array: np.ndarray, key: InteractionKey = None):
+        raise NotImplementedError("Can only log data points to an EnergyLogger.")
+
+    def logSegment(self, start: Vector, end: Vector, key: InteractionKey = None):
+        raise NotImplementedError("Can only log data points to an EnergyLogger.")
+
+    def logSegmentArray(self, array: np.ndarray, key: InteractionKey = None):
+        raise NotImplementedError("Can only log data points to an EnergyLogger.")

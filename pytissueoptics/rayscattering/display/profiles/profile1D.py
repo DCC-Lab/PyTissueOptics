@@ -21,11 +21,10 @@ class Profile1D:
 
     def show(self, logScale: bool = True):
         limits = sorted(self.limits)
-        bins = np.linspace(limits[0], limits[1], self.data.size)
         if self.horizontalDirection.isNegative:
             self.data = np.flip(self.data, axis=0)
-            bins = np.flip(bins, axis=0)
             limits = (limits[1], limits[0])
+        bins = np.linspace(limits[0], limits[1], self.data.size + 1)[:-1]
 
         plt.bar(bins, self.data, width=np.diff(bins)[0], align='edge')
 
