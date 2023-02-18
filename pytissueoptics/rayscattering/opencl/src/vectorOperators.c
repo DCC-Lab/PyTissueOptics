@@ -1,23 +1,23 @@
 
-void normalizeVectorLocal(float4 *vector){
+void normalizeVectorLocal(float3 *vector){
     float length = sqrt(vector->x * vector->x + vector->y * vector->y + vector->z * vector->z);
     if (length != 0.0f) {
         vector->x /= length;
         vector->y /= length;
         vector->z /= length;
     }
-    }
+}
 
-void normalizeVectorGlobal(__global float4 *vector){
+void normalizeVectorGlobal(__global float3 *vector){
     float length = sqrt(vector->x * vector->x + vector->y * vector->y + vector->z * vector->z);
     if (length != 0.0f) {
         vector->x /= length;
         vector->y /= length;
         vector->z /= length;
     }
-    }
+}
 
-void rotateAroundAxisGlobal(__global float4 *mainVector, __global float4 *axisVector, float theta){
+void rotateAroundAxisGlobal(__global float3 *mainVector, __global float3 *axisVector, float theta){
     normalizeVectorGlobal(axisVector);
     float sint = sin(theta);
     float cost = cos(theta);
@@ -42,8 +42,8 @@ void rotateAroundAxisGlobal(__global float4 *mainVector, __global float4 *axisVe
     mainVector->z = z;
     }
 
-void rotateAroundAxisLocal(float4 *mainVector, float4 *axisVector, float theta){
-    normalizeVectorLocal(axisVector);
+void rotateAround(__global float3 *mainVector, float3 *axisVector, float theta){
+//    normalizeVectorLocal(axisVector);
     float sint = sin(theta);
     float cost = cos(theta);
     float one_cost = 1.0f - cost;
@@ -65,26 +65,31 @@ void rotateAroundAxisLocal(float4 *mainVector, float4 *axisVector, float theta){
     mainVector->x = x;
     mainVector->y = y;
     mainVector->z = z;
-    }
+}
 
-float4 getAnyOrthogonalGlobal(__global float4 *vector){
+float3 getAnyOrthogonalGlobal(__global float3 *vector){
     if (fabs(vector->z) < fabs(vector->x)){
-        float4 r = (float4)(vector->y, -vector->x, 0.0f, 0.0f);
-        return r;
-        }
-
-    else{
-        float4 r = (float4)(0.0f, -vector->z, vector->y, 0.0f);
-        return r;}
+        return (float3)(vector->y, -vector->x, 0.0f);
     }
+    return (float3)(0.0f, -vector->z, vector->y);
+}
+
+float3 getAnyOrthogonal(float3 *vector){
+    if (fabs(vector->z) < fabs(vector->x)){
+        return (float3)(vector->y, -vector->x, 0.0f);
+    }
+    return (float3)(0.0f, -vector->z, vector->y);
+}
 
 
-__kernel void normalizeVectorGlobalKernel(__global float4 *vectors){
+// ----------- TEST KERNELS -------------
+
+__kernel void normalizeVectorGlobalKernel(__global float3 *vectors){
     uint id = get_global_id(0);
     normalizeVectorGlobal(&vectors[id]);
-    }
+}
 
-__kernel void rotateAroundAxisGlobalKernel(__global float4 *vector, __global float4 *axis, __global float *angle){
+__kernel void rotateAroundAxisGlobalKernel(__global float3 *vector, __global float3 *axis, __global float *angle){
     uint i = get_global_id(0);
     rotateAroundAxisGlobal(&vector[i], &axis[i], angle[i]);
-    }
+}

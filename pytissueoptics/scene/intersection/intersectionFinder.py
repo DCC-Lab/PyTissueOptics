@@ -23,6 +23,7 @@ class Intersection:
     outsideEnvironment: Environment = None
     surfaceLabel: str = None
     distanceLeft: float = None
+    isTooClose: bool = False
 
 
 class IntersectionFinder:
@@ -43,6 +44,7 @@ class IntersectionFinder:
             distance = (intersectionPoint - ray.origin).getNorm()
             if distance < closestIntersection.distance:
                 closestIntersection = Intersection(distance, intersectionPoint, polygon)
+                closestIntersection.isTooClose = ray.isTooClose
 
         if closestIntersection.distance == sys.maxsize:
             return None
@@ -66,18 +68,40 @@ class IntersectionFinder:
 
 class SimpleIntersectionFinder(IntersectionFinder):
     def findIntersection(self, ray: Ray) -> Optional[Intersection]:
+        """
+        Find the closest intersection between a ray and the scene.
+
+        1. Find all solids for which the ray intersects their bounding box.
+            N.B.: Note that the ray may start inside the bounding box. In which case the bbox intersection test is not
+                possible, and we simply set the bbox intersection distance to zero.
+        2. Sort these solid candidates by bbox intersection distance.
+        3. For each solid, find the closest polygon intersection.
+            3.1 If a polygon intersection is found for a given solid candidate, then we return this intersection point
+            without testing the other solid candidates since they are ordered by distance.
+            N.B.: Except for the case of multiple contained solids where it is not possible to order them in a
+            meaningful way, so in this case we need to test all of them (candidate distance is zero) before
+            returning the closest intersection found.
+        """
         bboxIntersections = self._findBBoxIntersectingSolids(ray)
         bboxIntersections.sort(key=lambda x: x[0])
-        for (distance, solid) in bboxIntersections:
+
+        closestDistance = sys.maxsize
+        closestIntersection = None
+        for i, (distance, solid) in enumerate(bboxIntersections):
+            contained = distance == 0
+            if not contained and closestIntersection:
+                break
             intersection = self._findClosestPolygonIntersection(ray, solid.getPolygons())
-            if intersection:
-                return self._composeIntersection(ray, intersection)
-        return None
+            if intersection and intersection.distance < closestDistance:
+                closestDistance = intersection.distance
+                closestIntersection = intersection
+
+        return self._composeIntersection(ray, closestIntersection)
 
     def _findBBoxIntersectingSolids(self, ray) -> Optional[List[Tuple[float, Solid]]]:
         """ We need to handle the special case where ray starts inside bbox. The Box Intersect will not compute
-        the intersection for this case and will instead return ray.origin. When that happens, distance will be 0
-        and we exit to check the polygons of this solid. """
+        the intersection for this case and will instead return ray.origin. When that happens, distance will be 0,
+        and we continue to check for possibly other contained solids. """
         solidCandidates = []
         for solid in self._scene.solids:
             bboxIntersectionPoint = self._boxIntersect.getIntersection(ray, solid.bbox)
@@ -85,8 +109,6 @@ class SimpleIntersectionFinder(IntersectionFinder):
                 continue
             distance = (bboxIntersectionPoint - ray.origin).getNorm()
             solidCandidates.append((distance, solid))
-            if distance == 0:
-                break
         return solidCandidates
 
 

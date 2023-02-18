@@ -1,123 +1,121 @@
+import gc
 import os
 import time
 
-try:
-    import pyopencl as cl
-    OPENCL_AVAILABLE = True
-except ImportError:
-    OPENCL_AVAILABLE = False
 import numpy as np
-from numpy.lib import recfunctions as rfn
 
-from pytissueoptics.rayscattering.opencl.types import makePhotonType, makeMaterialType, makeLoggerType
-from pytissueoptics.rayscattering.tissues import InfiniteTissue
+from pytissueoptics.rayscattering.opencl import CONFIG
+from pytissueoptics.rayscattering.opencl.CLKeyLog import CLKeyLog
+from pytissueoptics.rayscattering.opencl.CLScene import CLScene
+from pytissueoptics.rayscattering.opencl.CLParameters import CLParameters
+from pytissueoptics.rayscattering.opencl.CLProgram import CLProgram
+from pytissueoptics.rayscattering.opencl.CLObjects.seedCL import SeedCL
+from pytissueoptics.rayscattering.opencl.CLObjects.dataPointCL import DataPointCL
+from pytissueoptics.rayscattering.opencl.CLObjects.photonCL import PhotonCL
 from pytissueoptics.rayscattering.tissues.rayScatteringScene import RayScatteringScene
-from pytissueoptics.scene import Logger
-from pytissueoptics.scene.logger import InteractionKey
+from pytissueoptics.scene.logger.logger import Logger
+from pytissueoptics.scene.geometry import Environment
+
+PROPAGATION_SOURCE_PATH = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'src', 'propagation.c')
 
 
 class CLPhotons:
-    def __init__(self, positions: np.ndarray, directions: np.ndarray, N: int, weightThreshold: float = 0.0001):
-        self._sourceFolderPath = os.path.dirname(os.path.abspath(__file__)) + "{0}src{0}".format(os.sep)
+    def __init__(self, positions: np.ndarray, directions: np.ndarray, N: int):
         self._positions = positions
         self._directions = directions
-        self._N = N
-        self._weightThreshold = np.float32(weightThreshold)
-        self._logger = None
+        self._N = np.uint32(N)
+        self._weightThreshold = np.float32(CONFIG.WEIGHT_THRESHOLD)
+        self._initialMaterial = None
+        self._initialSolid = None
 
-        self._context = cl.create_some_context()
-        self._mainQueue = cl.CommandQueue(self._context)
-        self._device = self._context.devices[0]
-        self._program = None
+        self._scene = None
+        self._sceneLogger = None
 
-        self._HOST_photons, self._DEVICE_photons, self._photon_dtype, self._c_decl_photon = None, None, None, None
-        self._HOST_material, self._DEVICE_material, self._material_dtype, self._c_decl_mat = None, None, None, None
-        self._HOST_logger, self._DEVICE_logger, self._logger_dtype, self._c_decl_logger = None, None, None, None
-        self._HOST_randomSeed, self._DEVICE_randomSeed, self._HOST_randomFloat, self._DEVICE_randomFloat = None, None, None, None
+    def setContext(self, scene: RayScatteringScene, environment: Environment, logger: Logger = None):
+        self._scene = scene
+        self._sceneLogger = logger
+        self._initialMaterial = environment.material
+        self._initialSolid = environment.solid
 
-        self._makeTypes()
+    def propagate(self, IPP: float, verbose: bool = False):
+        program = CLProgram(sourcePath=PROPAGATION_SOURCE_PATH)
+        params = CLParameters(self._N, AVG_IT_PER_PHOTON=IPP)
 
-    def _extractFromScene(self, scene: RayScatteringScene):
-        if type(scene) is not InfiniteTissue:
-            raise TypeError("OpenCL propagation is only supported for InfiniteTissue for the moment.")
-        self._worldMaterial = scene.getWorldEnvironment().material
+        scene = CLScene(self._scene, params.workItemAmount)
 
-    def _buildProgram(self):
-        randomSource = open(os.path.join(self._sourceFolderPath, "random.c")).read()
-        vectorSource = open(os.path.join(self._sourceFolderPath, "vectorOperators.c")).read()
-        propagationSource = open(os.path.join(self._sourceFolderPath, "propagation.c")).read()
+        kernelPhotons = PhotonCL(self._positions[0:params.maxPhotonsPerBatch], self._directions[0:params.maxPhotonsPerBatch],
+                                 materialID=scene.getMaterialID(self._initialMaterial), solidID=scene.getSolidID(self._initialSolid))
+        photonPool = PhotonCL(self._positions[params.maxPhotonsPerBatch:], self._directions[params.maxPhotonsPerBatch:],
+                              materialID=scene.getMaterialID(self._initialMaterial), solidID=scene.getSolidID(self._initialSolid))
+        photonPool.make(program.device)
+        seeds = SeedCL(params.maxPhotonsPerBatch)
+        logger = DataPointCL(size=params.maxLoggableInteractions)
 
-        self._program = cl.Program(self._context, self._c_decl_photon + self._c_decl_mat + self._c_decl_logger +
-                                   randomSource + vectorSource + propagationSource).build()
-
-    def prepareAndPropagate(self, scene: RayScatteringScene, logger: Logger):
-        self._logger = logger
-        self._extractFromScene(scene)
-        self._makeBuffers()
-        self._buildProgram()
-        self._propagate()
-
-    def _propagate(self):
+        photonCount = 0
+        batchCount = 0
         t0 = time.time_ns()
-        datasize = np.uint32(len(self._HOST_photons))
-        self._program.propagate(self._mainQueue, self._HOST_photons.shape, None, datasize, self._weightThreshold,
-                                self._DEVICE_photons,
-                                self._DEVICE_material, self._DEVICE_logger, self._DEVICE_randomFloat,
-                                self._DEVICE_randomSeed)
-        self._mainQueue.finish()
-        cl.enqueue_copy(self._mainQueue, dest=self._HOST_logger, src=self._DEVICE_logger)
-        t1 = time.time_ns()
-        print("CLPhotons.propagate: {} s".format((t1 - t0) / 1e9))
 
-        log = rfn.structured_to_unstructured(self._HOST_logger)
-        self._logger.logDataPointArray(log, InteractionKey("universe", None))
+        while photonCount < self._N:
+            t1 = time.time_ns()
+            program.launchKernel(kernelName="propagate", N=np.int32(params.workItemAmount),
+                                 arguments=[np.int32(params.photonsPerWorkItem),
+                                            np.int32(params.maxLoggableInteractionsPerWorkItem),
+                                            self._weightThreshold, np.int32(params.workItemAmount), kernelPhotons,
+                                            scene.materials, scene.nSolids, scene.solids, scene.surfaces, scene.triangles,
+                                            scene.vertices, scene.solidCandidates, seeds, logger])
+            t2 = time.time_ns()
 
-    def _makeTypes(self):
-        self._photon_dtype, self._c_decl_photon = makePhotonType(self._device)
-        self._material_dtype, self._c_decl_mat = makeMaterialType(self._device)
-        self._logger_dtype, self._c_decl_logger = makeLoggerType(self._device)
+            log = program.getData(logger)
+            self._translateToSceneLogger(log, scene)
 
-    def _makeBuffers(self):
-        self._makePhotonsBuffer()
-        self._makeMaterialsBuffer()
-        self._makeLoggerBuffer()
-        self._makeRandomBuffer()
+            logger.reset()
+            program.getData(kernelPhotons)
+            batchPhotonCount, photonCount = self._replaceFullyPropagatedPhotons(kernelPhotons, photonPool,
+                                                                                photonCount, params.maxPhotonsPerBatch)
 
-    def _makePhotonsBuffer(self):
-        photonsPrototype = np.zeros(self._N, dtype=self._photon_dtype)
-        photonsPrototype = rfn.structured_to_unstructured(photonsPrototype)
-        photonsPrototype[:, 0:3] = self._positions[:, ::]
-        photonsPrototype[:, 4:7] = self._directions[:, ::]
-        photonsPrototype[:, 12] = 1.0
-        photonsPrototype[:, 13] = 0
-        self._HOST_photons = rfn.unstructured_to_structured(photonsPrototype, self._photon_dtype)
-        self._DEVICE_photons = cl.Buffer(self._context, cl.mem_flags.READ_WRITE | cl.mem_flags.COPY_HOST_PTR,
-                                         hostbuf=self._HOST_photons)
+            self._showProgress(photonCount, batchPhotonCount, batchCount, t0, t1, t2, params.maxPhotonsPerBatch, verbose)
+            params.maxPhotonsPerBatch = kernelPhotons.length
+            batchCount += 1
 
-    def _makeRandomBuffer(self):
-        self._HOST_randomSeed = np.random.randint(low=0, high=2 ** 32 - 1, size=self._N,
-                                                  dtype=cl.cltypes.uint)
-        self._DEVICE_randomSeed = cl.Buffer(self._context, cl.mem_flags.READ_WRITE | cl.mem_flags.COPY_HOST_PTR,
-                                            hostbuf=self._HOST_randomSeed)
-        self._HOST_randomFloat = np.empty(self._N, dtype=cl.cltypes.float)
-        self._DEVICE_randomFloat = cl.Buffer(self._context, cl.mem_flags.READ_WRITE | cl.mem_flags.COPY_HOST_PTR,
-                                             hostbuf=self._HOST_randomFloat)
+    def _replaceFullyPropagatedPhotons(self, kernelPhotons: PhotonCL, photonPool: PhotonCL,
+                                       photonCount: int, currentKernelLength: int) -> (int, int):
+        photonsToRemove = []
+        batchPhotonCount = 0
+        for i in range(currentKernelLength):
+            if kernelPhotons.hostBuffer[i]["weight"] == 0:
+                newPhotonsRemaining = photonCount + currentKernelLength < self._N
+                if newPhotonsRemaining:
+                    kernelPhotons.hostBuffer[i] = photonPool.hostBuffer[photonCount]
+                else:
+                    photonsToRemove.append(i)
+                photonCount += 1
+                batchPhotonCount += 1
+        kernelPhotons.hostBuffer = np.delete(kernelPhotons.hostBuffer, photonsToRemove)
+        return batchPhotonCount, photonCount
 
-    def _makeMaterialsBuffer(self):
-        self._HOST_material = np.empty(1, dtype=self._material_dtype)
-        self._HOST_material["mu_s"] = np.float32(self._worldMaterial.mu_s)
-        self._HOST_material["mu_a"] = np.float32(self._worldMaterial.mu_a)
-        self._HOST_material["mu_t"] = np.float32(self._worldMaterial.mu_t)
-        self._HOST_material["g"] = np.float32(self._worldMaterial.g)
-        self._HOST_material["n"] = np.float32(self._worldMaterial.n)
-        self._HOST_material["albedo"] = np.float32(self._worldMaterial.getAlbedo())
-        self._HOST_material["material_id"] = np.uint32(0)
-        self._DEVICE_material = cl.Buffer(self._context, cl.mem_flags.READ_ONLY | cl.mem_flags.COPY_HOST_PTR,
-                                          hostbuf=self._HOST_material)
+    def _translateToSceneLogger(self, log, sceneCL, verbose: bool = False):
+        if not self._sceneLogger:
+            return
 
-    def _makeLoggerBuffer(self):
-        loggerSize = int(
-            -np.log(self._weightThreshold) / self._worldMaterial.getAlbedo()) * self._N
-        self._HOST_logger = np.empty(loggerSize, dtype=self._logger_dtype)
-        self._DEVICE_logger = cl.Buffer(self._context, cl.mem_flags.WRITE_ONLY | cl.mem_flags.COPY_HOST_PTR,
-                                        hostbuf=self._HOST_logger)
+        t5 = time.time()
+        keyLog = CLKeyLog(log, sceneCL=sceneCL)
+        keyLog.toSceneLogger(self._sceneLogger)
+        if verbose:
+            print(f" ... {time.time() - t5:.3f} s. [Translate OpenCL Logger to Scene Logger]")
+
+    def _showProgress(self, photonCount: int, localPhotonCount: int, batchCount: int, t0: float, t1: float,
+                      t2: float, currentKernelLength: int, verbose: bool = True):
+        if not verbose:
+            return
+        if localPhotonCount == 0:
+            print(f"{photonCount}/{self._N}\t{((time.time_ns() - t0) / 1e9):.4f} s\t ::"
+                  f" Batch #{batchCount}\t :: {currentKernelLength} \t{((t2 - t1) / 1e9):.2f} s\t ::"
+                  f"({(photonCount * 100 / self._N):.2f}%) \t ::"
+                  f"Finished propagation: {localPhotonCount}")
+        else:
+            print(f"{photonCount}/{self._N}\t{((time.time_ns() - t0) / 1e9):.4f} s\t ::"
+                  f" Batch #{batchCount}\t :: {currentKernelLength} \t{((t2 - t1) / 1e9):.2f} s\t ::"
+                  f" ETA: {((time.time_ns() - t0) / 1e9) * (np.float64(self._N) / np.float64(photonCount)):.2f} s\t ::"
+                  f"({(photonCount * 100 / self._N):.2f}%) \t ::"
+                  f"Eff: {np.float64((t2 - t1) / 1e3) / localPhotonCount:.2f} us/photon\t ::"
+                  f"Finished propagation: {localPhotonCount}")

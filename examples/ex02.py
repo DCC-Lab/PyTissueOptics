@@ -16,7 +16,7 @@ def exampleCode():
     logger = Logger()
     myMaterial = ScatteringMaterial(mu_s=30.0, mu_a=0.1, g=0.9)
     tissue = tissues.InfiniteTissue(myMaterial)
-    source = DivergentSource(position=Vector(0, 0, 0), direction=Vector(0, 0, 1), N=20000,
+    source = DivergentSource(position=Vector(0, 0, 0), direction=Vector(0, 0, 1), N=10000,
                              diameter=0.2, divergence=math.pi/4, useHardwareAcceleration=True)
 
     source.propagate(tissue, logger=logger)

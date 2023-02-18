@@ -1,6 +1,11 @@
-from pytissueoptics.rayscattering import *
-from pytissueoptics.rayscattering.tissues import InfiniteTissue
-from pytissueoptics.scene import Vector, Logger
+import os
+import sys
+
+modulePath = os.path.abspath(__file__ + 4 * '/..')
+sys.path.append(modulePath)
+
+from pytissueoptics import *
+
 
 """
 This example shows how to use the OpenCL Source.
@@ -15,12 +20,14 @@ The average anisotropy coefficient is around 0.8 - 0.9
 These parameters will be used to mimic the parameters a typical user would utilize in a simulation.
 """
 
+N = 10000
 
-tissue = InfiniteTissue(material=ScatteringMaterial(30, 0.1, 0.8, 1.4))
-source = PencilPointSource(position=Vector(0, 0, 0), direction=Vector(0, 0, 1), N=50000, useHardwareAcceleration=True)
+tissue = tissues.InfiniteTissue(material=ScatteringMaterial(30, 0.1, 0.8, 1.4))
+source = PencilPointSource(position=Vector(0, 0, 0), direction=Vector(0, 0, 1), N=N, useHardwareAcceleration=True)
+
 logger = Logger()
 
 source.propagate(tissue, logger=logger)
 
 stats = Stats(logger, source, tissue)
-stats.showEnergy2D(bins=101, logScale=True, limits=[[-10, 10], [-10, 10]])
+stats.showEnergy2D(bins=1001, logScale=True, limits=[[-10, 10], [-10, 10]])

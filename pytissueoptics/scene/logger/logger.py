@@ -14,7 +14,7 @@ from pytissueoptics.scene.geometry import Vector
 @dataclass(frozen=True)
 class InteractionKey:
     solidLabel: str
-    surfaceLabel: str = None
+    surfaceLabel: Optional[str] = None
 
 
 @dataclass
@@ -144,3 +144,7 @@ class Logger:
 
         with open(filepath, "rb") as file:
             self._data, self.info = pickle.load(file)
+
+    @property
+    def nDataPoints(self) -> int:
+        return sum(len(data.dataPoints) for data in self._data.values())

@@ -27,8 +27,8 @@ def exampleCode():
     source.propagate(layerTissueScene, logger)
 
     stats = Stats(logger, source, layerTissueScene)
-    stats.showEnergy3D()
     stats.report()
+    stats.showEnergy3D()
 
 
 if __name__ == "__main__":

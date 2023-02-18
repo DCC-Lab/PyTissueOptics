@@ -97,6 +97,16 @@ class Scene:
             polygons.extend(solid.surfaces.getPolygons())
         return polygons
 
+    def getMaterials(self) -> list:
+        materials = [self._worldMaterial]
+        for solid in self._solids:
+            surfaceLabels = solid.surfaceLabels
+            for surfaceLabel in surfaceLabels:
+                material = solid.getPolygons(surfaceLabel)[0].insideMaterial
+                if material not in materials:
+                    materials.append(material)
+        return list(materials)
+
     def getBoundingBox(self) -> Optional[BoundingBox]:
         if len(self._solids) == 0:
             return None
@@ -144,3 +154,7 @@ class Scene:
                 isInside = distanceFromPlane < 0
                 environment = planePolygon.insideEnvironment if isInside else planePolygon.outsideEnvironment
         return environment
+
+    def __hash__(self):
+        solidHash = hash(tuple(sorted([hash(s) for s in self._solids])))
+        return hash((solidHash, self._worldMaterial))

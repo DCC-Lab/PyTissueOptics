@@ -138,3 +138,6 @@ class Vector:
             return Vector(self._y, -self._x, 0)
 
         return Vector(0, -self._z, self._y)
+
+    def __hash__(self):
+        return hash((self._x, self._y, self._z))

@@ -1,5 +1,7 @@
 from typing import List
 
+import numpy as np
+
 from pytissueoptics import Vector
 from pytissueoptics.rayscattering.materials import ScatteringMaterial
 from pytissueoptics.scene import MayaviViewer, Scene
@@ -24,3 +26,13 @@ class RayScatteringScene(Scene):
         viewer = MayaviViewer()
         self.addToViewer(viewer)
         viewer.show()
+
+    def getEstimatedIPP(self, weightThreshold: float) -> float:
+        """
+        Get the estimated number of interactions per photon. This gross estimation is done by assuming an infinite
+        medium of mean scene albedo. Used as a starting point for the OpenCL kernel optimization.
+        """
+        materials = self.getMaterials()
+        averageAlbedo = sum([mat.getAlbedo() for mat in materials]) / len(materials)
+        estimatedIPP = -np.log(weightThreshold) / averageAlbedo
+        return estimatedIPP

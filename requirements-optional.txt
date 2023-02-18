@@ -1,3 +1,4 @@
-mayavi
+vtk==9.0.2
+mayavi==4.8.0
 pyqt5
 pyopencl

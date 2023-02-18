@@ -4,6 +4,7 @@ import warnings
 from typing import Optional, Union, Tuple, List
 
 import matplotlib
+matplotlib.use("qt5agg")
 import numpy as np
 from matplotlib import pyplot as plt
 
@@ -187,10 +188,11 @@ class Stats:
         scatter = np.concatenate([points[:, 1:], points[:, :1]], axis=1)
         return scatter
 
-    def showEnergy1D(self, solidLabel: str = None, surfaceLabel: str = None, along: str = 'z', bins: int = None):
+    def showEnergy1D(self, solidLabel: str = None, surfaceLabel: str = None, along: str = 'z', bins: int = None,
+                     limits: List[float] = None):
         x, c = self._get1DScatter(solidLabel, surfaceLabel, along)
         if bins is not None:
-            plt.hist(x, bins=bins, weights=c)
+            plt.hist(x, bins=bins, weights=c, range=limits)
         else:
             plt.scatter(x, c)
         plt.xlabel(along)
