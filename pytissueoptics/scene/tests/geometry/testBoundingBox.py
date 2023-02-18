@@ -117,6 +117,24 @@ class TestBoundingBox(unittest.TestCase):
 
         self.assertFalse(bbox.intersects(nonIntersectingBox))
 
+    def testWhenExcludeAnotherBBoxNotIntersecting_shouldNotChangeCurrentBBox(self):
+        bbox = BoundingBox([0, 5], [0, 5], [0, 5])
+        nonIntersectingBox = BoundingBox([5, 7], [0, 5], [1, 4])
+
+        bbox.exclude(nonIntersectingBox)
+        self.assertEqual(BoundingBox([0, 5], [0, 5], [0, 5]), bbox)
+
+    def testWhenExcludeAnotherBBoxIntersecting_shouldShrinkCurrentBBoxToExcludeTheOther(self):
+        bbox = BoundingBox([0, 5], [0, 5], [0, 5])
+
+        intersectingBox1 = BoundingBox([3, 4], [3, 4], [3, 4])
+        bbox.exclude(intersectingBox1)
+        self.assertEqual(BoundingBox([0, 3], [0, 5], [0, 5]), bbox)
+
+        intersectingBox2 = BoundingBox([2.5, 3.5], [2, 3], [2, 3])
+        bbox.exclude(intersectingBox2)
+        self.assertEqual(BoundingBox([0, 2.5], [0, 5], [0, 5]), bbox)
+
     def testWhenCopyBBox_newBboxShouldBeIdenticalButIndependent(self):
         bbox = BoundingBox([0, 5], [0, 5], [0, 5])
         newBbox = bbox.copy()

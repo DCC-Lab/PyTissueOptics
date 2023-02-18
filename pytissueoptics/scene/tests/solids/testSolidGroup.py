@@ -33,6 +33,6 @@ class TestSolidGroup(unittest.TestCase):
 
         groupSurfaceLabels = solidGroup.surfaceLabels
         self.assertEqual(18, len(groupSurfaceLabels))
-        for expectedCuboidLabel in [CUBOID_LABEL, f"{CUBOID_LABEL}_2", f"{CUBOID_LABEL}_3"]:
+        for expectedCuboidLabel in [CUBOID_LABEL, f"{CUBOID_LABEL}2", f"{CUBOID_LABEL}3"]:
             for surfaceLabel in self.cuboidSurfaceLabels:
                 self.assertIn(f"{expectedCuboidLabel}_{surfaceLabel}", groupSurfaceLabels)

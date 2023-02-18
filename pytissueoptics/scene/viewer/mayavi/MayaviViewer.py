@@ -1,5 +1,6 @@
 import numpy as np
 
+from pytissueoptics.scene.geometry import BoundingBox
 from pytissueoptics.scene.logger import Logger
 from pytissueoptics.scene.scene import Scene
 from pytissueoptics.scene.viewer.mayavi.viewPoint import ViewPointStyle, ViewPointFactory
@@ -139,3 +140,9 @@ class MayaviViewer:
 
     def close(self):
         mlab.close()
+
+    def addBBox(self, bbox: BoundingBox, lineWidth=0.25, color=(1, 1, 1), opacity=1.0, **kwargs):
+        """ Adds a bounding box to the scene. """
+        s = mlab.plot3d([bbox.xMin, bbox.xMax], [bbox.yMin, bbox.yMax], [bbox.zMin, bbox.zMax],
+                        tube_radius=None, line_width=0, opacity=0)
+        mlab.outline(s, line_width=lineWidth, color=color, opacity=opacity, **kwargs)

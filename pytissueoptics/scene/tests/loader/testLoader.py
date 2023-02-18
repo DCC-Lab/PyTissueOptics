@@ -33,7 +33,8 @@ class TestLoader(unittest.TestCase):
     def testWhenLoadingMultiGroupObject_shouldSplitCorrectGroups(self):
         loader = Loader()
         solids = loader.load(self._filepath("testCubeTrianglesMulti.obj"), showProgress=False)
-        self.assertCountEqual(["front", "back", "bottom", "top", "right", "left"], solids[0].surfaceLabels)
+        self.assertCountEqual(["cube_front", "cube_back", "cube_bottom",
+                               "cube_top", "cube_right", "cube_left"], solids[0].surfaceLabels)
 
     def testWhenLoadingMultiGroupObject_shouldHaveCorrectAmountOfElementsPerGroup(self):
         loader = Loader()

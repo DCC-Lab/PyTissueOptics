@@ -160,7 +160,7 @@ class TestProfileFactory(unittest.TestCase):
     def testGiven2DLogger_whenCreateSurfaceProfile_shouldExtractSolidProfileFromLoggerData(self):
         self.TEST_LOGGER = EnergyLogger(self.TEST_SCENE, keep3D=False, defaultBinSize=1.0)
         surfaceData = np.array([[1, 1.5, 1.5, 1.5], [-1, -1.5, -1.5, -1.5]])
-        self.TEST_LOGGER.logDataPointArray(surfaceData, InteractionKey("cube", "top"))
+        self.TEST_LOGGER.logDataPointArray(surfaceData, InteractionKey("cube", "cube_top"))
         self.profileFactory = ProfileFactory(self.TEST_SCENE, self.TEST_LOGGER)
 
         expectedSurfaceDataLeaving = np.array([0, 0, 0, 1])

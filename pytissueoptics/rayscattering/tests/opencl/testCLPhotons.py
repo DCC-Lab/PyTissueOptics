@@ -56,14 +56,14 @@ class TestCLPhotons(unittest.TestCase):
 
         photons.propagate(IPP=IPP, verbose=False)
 
-        frontSurfacePoints = logger.getDataPoints(InteractionKey("cube", "front"))
+        frontSurfacePoints = logger.getDataPoints(InteractionKey("cube", "cube_front"))
         energyInput = -np.sum(frontSurfacePoints[:, 0])  # should be around 97% of total energy because of reflections
         cubePoints = logger.getDataPoints(InteractionKey("cube"))
         energyScattered = np.sum(cubePoints[:, 0])
 
         energyLeaving = 0
         for surfaceLabel in logger.getStoredSurfaceLabels("cube"):
-            if surfaceLabel == "front":
+            if "front" in surfaceLabel:
                 continue
             surfacePoints = logger.getDataPoints(InteractionKey("cube", surfaceLabel))
             energyLeaving += np.sum(surfacePoints[:, 0])

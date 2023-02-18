@@ -12,10 +12,11 @@ class SolidFactory:
                    label: str = "solidGroup", smooth=False) -> Solid:
         self._vertices = []
         self._surfaces = SurfaceCollection()
+        self._validateLabels(solids)
         self._fillSurfacesAndVertices(solids)
 
         solid = Solid(vertices=self._vertices, surfaces=self._surfaces, material=material, label=label,
-                      primitive=primitives.POLYGON, smooth=smooth)
+                      primitive=primitives.POLYGON, smooth=smooth, labelOverride=False)
         solid._position = self._getCentroid(solids)
         solid.translateTo(position)
         return solid
@@ -27,15 +28,21 @@ class SolidFactory:
             vertexSum += solid.position
         return vertexSum / (len(solids))
 
+    def _validateLabels(self, solids):
+        seenSolidLabels = set()
+        for solid in solids:
+            i = 2
+            baseLabel = solid.getLabel()
+            while solid.getLabel() in seenSolidLabels:
+                solid.setLabel(f"{baseLabel}{i}")
+                i += 1
+            seenSolidLabels.add(solid.getLabel())
+
     def _fillSurfacesAndVertices(self, solids):
         for solid in solids:
             self._addSolidVertices(solid)
-            solidLabel = self._validateSolidLabel(solid.getLabel())
             for surfaceLabel in solid.surfaceLabels:
-                self._addSurface(solid, solidLabel, surfaceLabel)
-
-    def _addSurface(self, solid, solidLabel, surfaceLabel):
-        self._surfaces.add(solidLabel + "_" + surfaceLabel, solid.getPolygons(surfaceLabel))
+                self._surfaces.add(surfaceLabel, solid.getPolygons(surfaceLabel))
 
     def _addSolidVertices(self, solid):
         currentVerticesIDs = {id(vertex) for vertex in self._vertices}

@@ -12,6 +12,7 @@ INTERFACE_KEY = "interface"
 class SurfaceCollection:
     def __init__(self):
         self._surfaces: Dict[str, List[Polygon]] = {}
+        self._solidLabel = None
 
     @property
     def surfaceLabels(self) -> List[str]:
@@ -26,6 +27,7 @@ class SurfaceCollection:
 
     def getPolygons(self, surfaceLabel: str = None) -> List[Polygon]:
         if surfaceLabel:
+            surfaceLabel = self.processLabel(surfaceLabel)
             self._assertContains(surfaceLabel)
             return self._surfaces[surfaceLabel]
         else:
@@ -35,6 +37,7 @@ class SurfaceCollection:
             return allPolygons
 
     def setPolygons(self, surfaceLabel: str, polygons: List[Polygon]):
+        surfaceLabel = self.processLabel(surfaceLabel)
         self._assertContains(surfaceLabel)
         for polygon in polygons:
             polygon.surfaceLabel = surfaceLabel
@@ -90,3 +93,26 @@ class SurfaceCollection:
         while f"{surfaceLabel}_{idx}" in self.surfaceLabels:
             idx += 1
         return f"{surfaceLabel}_{idx}"
+
+    def updateSolidLabel(self, label):
+        for surfaceLabel in self.surfaceLabels:
+            labelComponents = surfaceLabel.split("_")
+            if labelComponents[0] == self._solidLabel:
+                labelComponents.pop(0)
+            newSurfaceLabel = "_".join([label] + labelComponents)
+            self._updateLabel(surfaceLabel, newSurfaceLabel)
+        self._solidLabel = label
+
+    def _updateLabel(self, oldLabel: str, newLabel: str):
+        self._surfaces[newLabel] = self._surfaces.pop(oldLabel)
+        for polygon in self._surfaces[newLabel]:
+            polygon.surfaceLabel = newLabel
+
+    def processLabel(self, surfaceLabel: str):
+        if surfaceLabel is None:
+            return None
+        if surfaceLabel in self.surfaceLabels:
+            return surfaceLabel
+        if self._solidLabel in surfaceLabel:
+            return surfaceLabel
+        return f"{self._solidLabel}_{surfaceLabel}"

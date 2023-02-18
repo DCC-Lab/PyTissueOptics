@@ -16,11 +16,11 @@ from pytissueoptics.scene.solids import Cube
 
 class TestStats(unittest.TestCase):
     EXPECTED_SOLID_REPORT_LINES = ["Report of solid 'cube'",
-                               "  Absorbance: 80.00% (80.00% of total power)",
-                               "  Absorbance + Transmittance: 100.0%",
-                               "    Transmittance at 'front': 0.0%",
-                               "    Transmittance at 'back': 20.0%",
-                               '']
+                                   "  Absorbance: 80.00% (80.00% of total power)",
+                                   "  Absorbance + Transmittance: 100.0%",
+                                   "    Transmittance at 'cube_front': 0.0%",
+                                   "    Transmittance at 'cube_back': 20.0%",
+                                   '']
     EXPECTED_REPORT_LINES = EXPECTED_SOLID_REPORT_LINES[:-1] + ["Report of 'world'",
                                                                 "  Absorbed 20.00% of total power",
                                                                 '']
@@ -56,7 +56,7 @@ class TestStats(unittest.TestCase):
     def testGiven2DLoggerWithNoViewsOfSurface_whenGetTransmittanceOfSurface_shouldRaiseException(self):
         self._setUp(keep3D=False, noViews=True)
         with self.assertRaises(Exception):
-            self.stats.getTransmittance("cube", "front")
+            self.stats.getTransmittance("cube", "cube_front")
 
     def testGivenSourceInSolid_whenGetEnergyInput_shouldAddSourceEnergyToSolidInputEnergy(self):
         for keep3D in [False, True]:
@@ -81,8 +81,8 @@ class TestStats(unittest.TestCase):
         for keep3D in [False, True]:
             with self.subTest(["using2DLogger", "using3DLogger"][keep3D]):
                 self._setUp(keep3D=keep3D)
-                self.assertAlmostEqual(0, self.stats.getTransmittance("cube", "front"), places=5)
-                self.assertAlmostEqual(20, self.stats.getTransmittance("cube", "back"), places=5)
+                self.assertAlmostEqual(0, self.stats.getTransmittance("cube", "cube_front"), places=5)
+                self.assertAlmostEqual(20, self.stats.getTransmittance("cube", "cube_back"), places=5)
 
     def testWhenReportSolid_shouldPrintAFullReportOfThisSolidAndItsSurfaces(self):
         for keep3D in [False, True]:
@@ -136,8 +136,8 @@ class TestStats(unittest.TestCase):
         if noViews:
             logger = EnergyLogger(scene, keep3D=keep3D, views=[])
         solidInteraction = InteractionKey("cube")
-        frontInteraction = InteractionKey("cube", "front")
-        backInteraction = InteractionKey("cube", "back")
+        frontInteraction = InteractionKey("cube", "cube_front")
+        backInteraction = InteractionKey("cube", "cube_back")
         for i in range(1, 9):
             logger.logDataPoint(0.1, Vector(0, 0, 0.1*i), solidInteraction)
         logger.logDataPoint(-1, Vector(0, 0, 0), frontInteraction)
@@ -145,6 +145,6 @@ class TestStats(unittest.TestCase):
         logger.info["photonCount"] = 1
         logger.info["sourceSolidLabel"] = sourceSolidLabel
 
-        # Logging the energy that left the solid in the outside world
+        # Logging the energy that left the solid on the outside world
         logger.logDataPoint(0.2, Vector(0, 0, 10), InteractionKey("world"))
         return logger

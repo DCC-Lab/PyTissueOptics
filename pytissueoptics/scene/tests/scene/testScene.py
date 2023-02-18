@@ -204,9 +204,9 @@ class TestScene(unittest.TestCase):
         self.assertEqual(self.scene.getWorldEnvironment(), env)
 
     def testWhenGetEnvironmentWithPositionContainedInAStack_shouldReturnEnvironmentOfProperStackLayer(self):
-        frontLayer = Cuboid(1, 1, 1, material="frontMaterial")
-        middleLayer = Cuboid(1, 1, 1, material="middleMaterial")
-        backLayer = Cuboid(1, 1, 1, material="backMaterial")
+        frontLayer = Cuboid(1, 1, 1, material="frontMaterial", label="frontLayer")
+        middleLayer = Cuboid(1, 1, 1, material="middleMaterial", label="middleLayer")
+        backLayer = Cuboid(1, 1, 1, material="backMaterial", label="backLayer")
         stack = backLayer.stack(middleLayer, 'front').stack(frontLayer, 'front')
         self.scene.add(stack, position=Vector(0, 0, 0))
 
@@ -218,6 +218,17 @@ class TestScene(unittest.TestCase):
         self.assertEqual(Environment("middleMaterial", middleLayer), middleEnv)
         self.assertEqual(Environment("backMaterial", backLayer), backEnv)
 
+    def testWhenGetEnvironmentWithPositionInsideAContainedSolid_shouldReturnEnvironmentOfThisContainedSolid(self):
+        SOLID = Cuboid(3, 3, 3, material="Material of solid", label="Solid")
+        CONTAINED_SOLID = Cuboid(2, 2, 2, material="Material of contained solid", label="Contained solid")
+
+        self.scene.add(SOLID)
+        self.scene.add(CONTAINED_SOLID)
+
+        env = self.scene.getEnvironmentAt(Vector(0, 0, 0))
+
+        self.assertEqual(CONTAINED_SOLID.getEnvironment(), env)
+
     def testWhenGetSolidFromLabel_shouldReturnTheSolid(self):
         SOLID_LABEL = "Solid"
         solid = self.makeSolidWith(name=SOLID_LABEL)
@@ -227,14 +238,13 @@ class TestScene(unittest.TestCase):
 
         self.assertEqual(solid, returnedSolid)
 
-    def testWhenGetSolidFromLabelThatDoesNotExist_shouldReturnNone(self):
+    def testWhenGetSolidFromLabelThatDoesNotExist_shouldRaise(self):
         SOLID_LABEL = "Solid"
         solid = self.makeSolidWith(name=SOLID_LABEL)
         self.scene.add(solid)
 
-        returnedSolid = self.scene.getSolid("NonExistingLabel")
-
-        self.assertIsNone(returnedSolid)
+        with self.assertRaises(ValueError):
+            self.scene.getSolid("NonExistingLabel")
 
     def testWhenGetSolidFromLabelWithCapitalizationError_shouldReturnTheSolid(self):
         SOLID_LABEL_CAPITALIZED = "Solid"
@@ -292,14 +302,13 @@ class TestScene(unittest.TestCase):
 
         self.assertEqual(solid1.surfaceLabels, labels)
 
-    def testWhenGetSurfaceLabelsOfSolidThatDoesNotExist_shouldReturnNoLabels(self):
+    def testWhenGetSurfaceLabelsOfSolidThatDoesNotExist_shouldRaise(self):
         solid = self.makeSolidWith()
         solid.surfaceLabels = ["Surface1", "Surface2"]
         self.scene.add(solid)
 
-        labels = self.scene.getSurfaceLabels("NonExistingLabel")
-
-        self.assertEqual([], labels)
+        with self.assertRaises(ValueError):
+            self.scene.getSurfaceLabels("NonExistingLabel")
 
     def testWhenGetSurfaceLabelsOfAStack_shouldReturnTheSurfaceLabelsForAllItsLayers(self):
         STACK_LABEL = "Stack"
@@ -346,8 +355,8 @@ class TestScene(unittest.TestCase):
 
     def testWhenGetMaterials_shouldReturnAllMaterialsPresentInTheScene(self):
         layerMaterials = ["Material1", "Material2"]
-        frontLayer = Cuboid(1, 1, 1, material=layerMaterials[0])
-        middleLayer = Cuboid(1, 1, 1, material=layerMaterials[1])
+        frontLayer = Cuboid(1, 1, 1, material=layerMaterials[0], label="Front Layer")
+        middleLayer = Cuboid(1, 1, 1, material=layerMaterials[1], label="Middle Layer")
         stack = middleLayer.stack(frontLayer, 'front')
         self.scene.add(stack)
 

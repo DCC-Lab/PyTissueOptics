@@ -19,8 +19,8 @@ else:
     material1 = ScatteringMaterial(mu_s=1.5, mu_a=1, g=0.9, n=1.4)
     material2 = ScatteringMaterial(mu_s=2.5, mu_a=1, g=0.9, n=1.7)
 
-cube = Cuboid(a=3, b=3, c=3, position=Vector(0, 0, 0), material=material1, label="Cube")
-sphere = Sphere(radius=1, order=3, position=Vector(0, 0, 0), material=material2, label="Sphere",
+cube = Cuboid(a=3, b=3, c=3, position=Vector(0, 0, 0), material=material1, label="cube")
+sphere = Sphere(radius=1, order=3, position=Vector(0, 0, 0), material=material2, label="sphere",
                 smooth=True)
 scene = ScatteringScene([cube, sphere])
 
@@ -34,5 +34,5 @@ viewer = Viewer(scene, source, logger)
 viewer.reportStats()
 
 viewer.show2D(View2DProjectionY())
-viewer.show2D(View2DProjectionY(solidLabel="Sphere"))
+viewer.show2D(View2DProjectionY(solidLabel="sphere"))
 viewer.show3D()

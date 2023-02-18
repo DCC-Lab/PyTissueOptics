@@ -9,8 +9,8 @@ from pytissueoptics.scene.solids import Solid
 
 
 class ScatteringScene(Scene):
-    def __init__(self, solids: List[Solid], worldMaterial=ScatteringMaterial()):
-        super().__init__(solids, worldMaterial=worldMaterial)
+    def __init__(self, solids: List[Solid], worldMaterial=ScatteringMaterial(), ignoreIntersections: bool = False):
+        super().__init__(solids, worldMaterial=worldMaterial, ignoreIntersections=ignoreIntersections)
 
     def add(self, solid: Solid, position: Vector = None):
         polygonSample = solid.getPolygons()[0]
@@ -19,8 +19,8 @@ class ScatteringScene(Scene):
                             f"This is required for any RayScatteringScene. ")
         super().add(solid, position)
 
-    def addToViewer(self, viewer: MayaviViewer):
-        viewer.add(*self.solids, representation="surface", colormap="bone", opacity=0.1)
+    def addToViewer(self, viewer: MayaviViewer, representation='surface', colormap='bone', opacity=0.1, **kwargs):
+        viewer.add(*self.solids, representation=representation, colormap=colormap, opacity=opacity, **kwargs)
 
     def display(self):
         viewer = MayaviViewer()
