@@ -16,23 +16,24 @@ As discussed in the [why use this package](#why-use-this-package) section, code 
 - Great data visualization with `Mayavi`.
 - Multi-layered tissues.
 - Hardware acceleration with `OpenCL`.
+- Discard 3D data (auto-binning to 2D views).
+- Independent 3D graphics framework under `scene`. 
 
 ## Getting started
-Install with `pip` or get the [code](https://github.com/DCC-Lab/PyTissueOptics) from GitHub. If you're having trouble installing,
-please [read the documentation](https://pytissueoptics.readthedocs.io/en/latest/).
+Install with `pip` or get the [code](https://github.com/DCC-Lab/PyTissueOptics) from GitHub.
 
 ```shell
 pip install pytissueoptics
 ```
+
 To launch a simple simulation, follow these steps.
 1. Import the `pytissueoptics` module
 2. Define the following objects:
-    - `scene`: a `RayScatteringScene` object, which defines the scene and the optical properties of the media. This objects takes in a list of `Solid` as its argument. These `Solid` will have a `ScatteringMaterial` and a position. This is clear in the example code below.
-    - `source`: a `Source` object, which defines the source of photons (`hardwareAccelerated=True` can be set here)
-    - `logger`: a `Logger` object, which logs the simulation progress
-    - `stats`: a `Stats` object, which computes the statistics of the simulation and displays the results
-3. propagate the photons in your `scene` with `source.propagate`.
-4. display the results by calling the appropriate method from your `stats` object.
+    - `scene`: a `RayScatteringScene` object, which defines the scene and the optical properties of the media, or use a pre-defined scene from the `samples` module. The scene takes in a list of `Solid` as its argument. These `Solid` will have a `ScatteringMaterial` and a position. This is clear in the examples below.
+    - `source`: a `Source` object, which defines the source of photons (`hardwareAccelerated=True` can be set here).
+    - `logger`: an `EnergyLogger` object, which logs the simulation progress ('keep3D=False' can be set to auto-bin to 2D views).
+3. Propagate the photons in your `scene` with `source.propagate`.
+4. Define a `Viewer` object and display the results by calling the desired methods. It offers various visualizations of the experiment as well as a statistics report.
 
 Here's what it might look like:
 ```python
@@ -43,14 +44,15 @@ material = ScatteringMaterial(mu_s=3.0, mu_a=1.0, g=0.8, n=1.5)
 tissue = Cuboid(a=1, b=3, c=1, position=Vector(2, 0, 0), material=material)
 scene = ScatteringScene([tissue])
 
-logger = Logger()
+logger = EnergyLogger(scene)
 source = PencilPointSource(position=Vector(-3, 0, 0), direction=Vector(1, 0, 0), N=1000)
 source.propagate(scene, logger)
 
-stats = Stats(logger, source, scene)
-stats.showEnergy3D()
-stats.report()
+viewer = Viewer(scene, source, logger)
+viewer.reportStats()
+viewer.show3D()
 ```
+
 For more details on how to use this package for your own research, please refer to the [documentation](https://pytissueoptics.readthedocs.io/en/latest/).
 
 Also, you can check out the `pytissueoptics/examples` folder for more examples on how to use the package.
@@ -75,6 +77,84 @@ offers you. With the new OpenCL implementation, speed is not an issue anymore, s
 ### Known limitations
 1. It uses Henyey-Greenstein approximation for scattering direction because it is sufficient most of the time.
 2. Reflections are specular, which does not accounts for the roughness of materials. It is planned to implement Bling-Phong reflection model in a future release.
+
+## Examples
+
+### Multi-layered phantom tissue with hardware acceleration
+Located at `examples/rayscattering/accelerated/exampleSimple.py`.
+Using a pre-defined tissue from the `samples` module.
+
+```python
+N = 500000
+scene = samples.PhantomTissue()
+source = DivergentSource(position=Vector(0, 0, -0.1), direction=Vector(0, 0, 1), N=N,
+                         useHardwareAcceleration=True, diameter=0.2, divergence=np.pi / 4)
+logger = EnergyLogger(scene)
+source.propagate(scene, logger=logger)
+
+viewer = Viewer(scene, source, logger)
+viewer.reportStats()
+
+viewer.show2D(View2DProjectionX())
+viewer.show2D(View2DProjectionX(solidLabel="middleLayer"))
+viewer.show2D(View2DSurfaceZ(solidLabel="middleLayer", surfaceLabel="interface0"))
+viewer.show1D(Direction.Z_POS)
+viewer.show3D()
+```
+
+#### Default figures generated
+![image](https://user-images.githubusercontent.com/29587649/212522495-7cc1e3f6-d89c-45f0-9e5b-a2c5479f893c.png)
+![image](https://user-images.githubusercontent.com/29587649/212522501-e6e55de4-47f8-4a78-a4e1-29208aa251ae.png)
+![image](https://user-images.githubusercontent.com/29587649/212522508-1d8dfff6-aa64-45a9-bfb4-6503dfb9333c.png)
+![image](https://user-images.githubusercontent.com/29587649/212522514-15612eaa-5cb9-49b8-8a1f-c17be7ca82d7.png)
+![image](https://user-images.githubusercontent.com/29587649/212522545-d7f9e70a-bd9e-4731-b374-d7bcc31602b4.png)
+
+#### Discarding the 3D data
+When the raw simulation data gets too large, the 3D data can be automatically binned to pre-defined 2D views. 
+```python
+logger = EnergyLogger(scene, keep3D=False)
+```
+All 2D views are unchanged, because they are included in the default 2D views tracked by the EnergyLogger. 
+The 1D profile and stats report are also properly computed from the stored 2D data.
+The 3D display will auto-switch to Visibility.DEFAULT_2D which includes Visibility.VIEWS with ViewGroup.SCENE (XYZ projections of the whole scene) visible by default. 
+![image](https://user-images.githubusercontent.com/29587649/212522583-be81fd59-3479-4350-9bd6-2dce2ed43330.png)
+
+#### Display some 2D views with the 3D point cloud
+The argument `viewsVisibility` can accept a `ViewGroup` tag like SCENE, SURFACES, etc, but also a list of indices for finer control. You can list all stored views with `logger.listViews()` or `viewer.listViews()`. 
+Here we toggle the visibility of 2D views along the default 3D visibility (which includes the point cloud). 
+```python
+logger = EnergyLogger(scene)
+[...]
+viewer.show3D(visibility=Visibility.DEFAULT_3D | Visibility.VIEWS,  viewsVisibility=[0, 1])
+```
+![image](https://user-images.githubusercontent.com/29587649/212522847-ffcf6905-7d79-4ce8-abc2-a474facc4745.png)
+
+#### Display custom 2D views
+If `keep3D=False`, the custom views (like slices, which are not included in the default views) have to be added to the logger before propagation like so:
+```python
+logger = EnergyLogger(scene, keep3D=False)
+logger.addView(View2DSliceZ(position=0.5, thickness=0.1, limits=((-1, 1), (-1, 1))))
+logger.addView(View2DSliceZ(position=1, thickness=0.1, limits=((-1, 1), (-1, 1))))
+logger.addView(View2DSliceZ(position=1.5, thickness=0.1, limits=((-1, 1), (-1, 1))))
+```
+If the logger keeps track of 3D data, then it's not a problem and the views can be added later with `logger.addView(customView)` or implicitly when asking for a 2D display from `viewer.show2D(customView)`.
+![image](https://user-images.githubusercontent.com/29587649/212523201-2be697cc-76ea-4059-bdc4-63f5d3e24ed7.png)
+
+#### Display interactive 3D volume slicer
+Requires 3D data.
+```python
+viewer.show3DVolumeSlicer()
+```
+![image](https://user-images.githubusercontent.com/29587649/212523428-75ec7bf9-b9c7-463f-874e-01e1973d7d2c.png)
+
+#### Save and append simulation results
+The `EnergyLogger` data can be saved to file. This can also be used along with `keep3D=False` to only save 2D data. Every time the code is run, the previous data is loaded and extended. This is particularly useful to propagate a very large amount of photons (possibly infinite) in smaller batches so the hardware doesn't run out of memory.
+```python
+[...]
+logger = EnergyLogger(scene, "myExperiment.log", keep3D=False)
+source.propagate(scene, logger)
+logger.save()
+```
 
 ## Acknowledgment
 This package was first inspired by the standard, tested, and loved [MCML from Wang, Jacques and Zheng](https://omlc.org/software/mc/mcpubs/1995LWCMPBMcml.pdf) , itself based on [Prahl](https://omlc.org/~prahl/pubs/abs/prahl89.html) and completely documented, explained, dissected by [Jacques](https://omlc.org/software/mc/) and [Prahl](https://omlc.org/~prahl/pubs/abs/prahl89.html). This would not be possible without the work of these pionneers.
