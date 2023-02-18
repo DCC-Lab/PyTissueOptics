@@ -103,11 +103,7 @@ viewer.show3D()
 ```
 
 #### Default figures generated
-![image](https://user-images.githubusercontent.com/29587649/212522495-7cc1e3f6-d89c-45f0-9e5b-a2c5479f893c.png)
-![image](https://user-images.githubusercontent.com/29587649/212522501-e6e55de4-47f8-4a78-a4e1-29208aa251ae.png)
-![image](https://user-images.githubusercontent.com/29587649/212522508-1d8dfff6-aa64-45a9-bfb4-6503dfb9333c.png)
-![image](https://user-images.githubusercontent.com/29587649/212522514-15612eaa-5cb9-49b8-8a1f-c17be7ca82d7.png)
-![image](https://user-images.githubusercontent.com/29587649/212522545-d7f9e70a-bd9e-4731-b374-d7bcc31602b4.png)
+![stack_visuals](https://user-images.githubusercontent.com/29587649/219904076-f52c850f-7e86-45a3-8e32-ac3e1fbed051.png)
 
 #### Discarding the 3D data
 When the raw simulation data gets too large, the 3D data can be automatically binned to pre-defined 2D views. 
