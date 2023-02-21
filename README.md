@@ -29,7 +29,7 @@ pip install pytissueoptics
 To launch a simple simulation, follow these steps.
 1. Import the `pytissueoptics` module
 2. Define the following objects:
-    - `scene`: a `RayScatteringScene` object, which defines the scene and the optical properties of the media, or use a pre-defined scene from the `samples` module. The scene takes in a list of `Solid` as its argument. These `Solid` will have a `ScatteringMaterial` and a position. This is clear in the examples below.
+    - `scene`: a `ScatteringScene` object, which defines the scene and the optical properties of the media, or use a pre-defined scene from the `samples` module. The scene takes in a list of `Solid` as its argument. These `Solid` will have a `ScatteringMaterial` and a position. This is clear in the examples below.
     - `source`: a `Source` object, which defines the source of photons (`hardwareAccelerated=True` can be set here).
     - `logger`: an `EnergyLogger` object, which logs the simulation progress ('keep3D=False' can be set to auto-bin to 2D views).
 3. Propagate the photons in your `scene` with `source.propagate`.
