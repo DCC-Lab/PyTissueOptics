@@ -167,5 +167,9 @@ class Logger:
             self._data, self.info, self._labels = pickle.load(file)
 
     @property
+    def hasFilePath(self):
+        return self._filepath is not None
+
+    @property
     def nDataPoints(self) -> int:
         return sum(len(data.dataPoints) for data in self._data.values())

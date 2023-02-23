@@ -31,7 +31,6 @@ def exampleCode():
     logger = EnergyLogger(myCustomScene, "ex03.log")
     source = DirectionalSource(position=Vector(-3, 0, 0), direction=Vector(1, 0, 0), diameter=1, N=10000)
     source.propagate(myCustomScene, logger)
-    logger.save()
 
     viewer = Viewer(myCustomScene, source, logger)
     viewer.reportStats()

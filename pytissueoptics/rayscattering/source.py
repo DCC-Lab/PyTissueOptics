@@ -41,6 +41,8 @@ class Source:
         else:
             self._propagateCPU(scene, logger, showProgress)
 
+        self._saveLogger(logger)
+
     def _propagateCPU(self, scene: ScatteringScene, logger: Logger = None, showProgress: bool = True):
         intersectionFinder = FastIntersectionFinder(scene)
 
@@ -140,6 +142,12 @@ class Source:
             if logger.info["sourceHash"] != hash(self):
                 utils.warn("WARNING: The logger was previously used with a different source. This may corrupt "
                            "statistics and visualization. Proceed at your own risk.")
+
+    def _saveLogger(self, logger: Logger):
+        if logger is None:
+            return
+        if logger.hasFilePath:
+            logger.save()
 
     @property
     def photons(self):

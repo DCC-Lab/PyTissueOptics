@@ -1,3 +1,5 @@
+import os
+import tempfile
 import unittest
 
 import numpy as np
@@ -57,6 +59,15 @@ class TestSource(unittest.TestCase):
         logger = EnergyLogger(mock(ScatteringScene), views=[])
         self.source.propagate(self._createTissue(), logger=logger, showProgress=False)
         self.assertEqual(logger.info['sourceHash'], hash(self.source))
+
+    def testGivenLoggerWithFilePath_whenPropagate_shouldSaveLogger(self):
+        with tempfile.TemporaryDirectory() as tempdir:
+            filepath = os.path.join(tempdir, 'test.log')
+            logger = EnergyLogger(mock(ScatteringScene), views=[], filepath=filepath)
+
+            self.source.propagate(self._createTissue(), logger=logger, showProgress=False)
+
+            self.assertTrue(os.path.exists(filepath))
 
     def testGivenLoggerUsedOnADifferentSource_whenPropagate_shouldWarn(self):
         logger = EnergyLogger(mock(ScatteringScene), views=[])

@@ -115,6 +115,7 @@ class TestSourceAccelerated(unittest.TestCase):
         logger = mock(EnergyLogger)
         logger.info = {}
         logger.nDataPoints = nDataPoints
+        logger.hasFilePath = False
         return logger
 
 
