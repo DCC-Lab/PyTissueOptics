@@ -63,7 +63,8 @@ class TestSource(unittest.TestCase):
     def testGivenLoggerWithFilePath_whenPropagate_shouldSaveLogger(self):
         with tempfile.TemporaryDirectory() as tempdir:
             filepath = os.path.join(tempdir, 'test.log')
-            logger = EnergyLogger(mock(ScatteringScene), views=[], filepath=filepath)
+            with self.assertWarns(UserWarning):
+                logger = EnergyLogger(mock(ScatteringScene), views=[], filepath=filepath)
 
             self.source.propagate(self._createTissue(), logger=logger, showProgress=False)
 
