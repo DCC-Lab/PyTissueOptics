@@ -53,4 +53,4 @@ class TestScatteringScene(unittest.TestCase):
 
         estimation = scene.getEstimatedIPP(weightThreshold)
         expectedEstimation = -math.log(weightThreshold) / meanAlbedo
-        self.assertEqual(expectedEstimation, estimation)
+        self.assertAlmostEqual(expectedEstimation, estimation, places=7)
