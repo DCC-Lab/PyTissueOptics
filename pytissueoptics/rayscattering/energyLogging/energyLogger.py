@@ -14,7 +14,7 @@ from pytissueoptics.scene.geometry import Vector
 
 class EnergyLogger(Logger):
     def __init__(self, scene: ScatteringScene, filepath: str = None, keep3D: bool = True,
-                 views: Union[ViewGroup, List[View2D]] = ViewGroup.ALL, defaultBinSize: float = 0.01,
+                 views: Union[ViewGroup, List[View2D]] = ViewGroup.ALL, defaultBinSize: Union[float, tuple] = 0.01,
                  infiniteLimits=((-5, 5), (-5, 5), (-5, 5))):
         """
         Log the energy deposited by scattering photons as well as the energy that crossed surfaces. Every interaction
