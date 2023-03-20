@@ -255,7 +255,10 @@ class Viewer:
             alignedCorner = alignedCorner[::-1]
             alignedSize = alignedSize[::-1]
 
-        self._viewer3D.addImage(alignedImage, alignedSize, alignedCorner, view.axis, view.displayPosition, colormap)
+        try:
+            self._viewer3D.addImage(alignedImage, alignedSize, alignedCorner, view.axis, view.displayPosition, colormap)
+        except MemoryError:
+            utils.warn(f"ERROR: Not enough memory to display the view ({view.name}). Consider using a larger bin size.")
 
     @property
     def _sceneLimits(self):
