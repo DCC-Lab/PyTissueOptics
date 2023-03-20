@@ -96,6 +96,14 @@ class TestView2D(unittest.TestCase):
         self.assertEqual(expectedBinsU, view.binsU)
         self.assertEqual(expectedBinsV, view.binsV)
 
+    def testGivenNotEnoughMemory_whenSetContext_shouldRaiseException(self):
+        view = View2DProjectionX()
+        limits3D = [(0, 200), (0, 200), (0, 200)]
+        binSize3D = (0.0001, 0.0001, 0.0001)
+
+        with self.assertRaises(MemoryError):
+            view.setContext(limits3D, binSize3D)
+
     def testGivenProjectionView_whenExtractData_shouldProject3DPointsToThis2DView(self):
         view = View2DProjectionX()
         view.setContext([(2, 3), (2, 3), (2, 3)], (0.1, 0.1, 0.1))

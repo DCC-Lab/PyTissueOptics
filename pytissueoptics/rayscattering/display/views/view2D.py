@@ -93,7 +93,11 @@ class View2D:
         if self._horizontalDirection.isNegative:
             self._limitsU = self._limitsU[::-1]
 
-        self._dataUV = np.zeros((self._binsU, self._binsV), dtype=np.float32)
+        try:
+            self._dataUV = np.zeros((self._binsU, self._binsV), dtype=np.float32)
+        except MemoryError:
+            raise MemoryError(f"Cannot allocate memory for 2D view. "
+                              f"Consider increasing `defaultBinSize` of EnergyLogger.")
 
     def extractData(self, dataPoints: np.ndarray):
         """
