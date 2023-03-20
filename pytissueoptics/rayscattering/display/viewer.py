@@ -144,7 +144,12 @@ class Viewer:
                        f"Consider using a larger binSize or tighter limits.")
 
         points = self._pointCloudFactory.getPointCloudOfSolids().solidPoints
-        hist, _ = np.histogramdd(points[:, 1:], bins=bins, weights=points[:, 0], range=limits)
+        try:
+            hist, _ = np.histogramdd(points[:, 1:], bins=bins, weights=points[:, 0], range=limits)
+        except MemoryError:
+            utils.warn("ERROR: Not enough memory to create the volume slicer. "
+                       "Consider using a larger binSize or tighter limits.")
+            return
         hist = hist.astype(np.float32)
 
         if logScale:
