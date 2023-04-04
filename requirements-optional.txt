@@ -1,4 +1,4 @@
+pyopencl
+pyqt5
 vtk == 9.2.2
 mayavi == 4.8.1
-pyqt5
-pyopencl

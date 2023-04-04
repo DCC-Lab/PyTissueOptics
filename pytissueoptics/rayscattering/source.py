@@ -71,8 +71,8 @@ class Source:
         return hash((scene, self))
 
     def _measureIPP(self, scene: ScatteringScene):
-        warnings.warn("WARNING: Could not find the average interactions per photon (IPP) for this experiment. \n... "
-                      "[Estimating IPP]")
+        warnings.warn("This experiment was not seen before. The program will need to estimate the average interactions "
+                      "per photon (IPP). \n... Estimating IPP]")
 
         t0 = time.time()
         tempN = self._N

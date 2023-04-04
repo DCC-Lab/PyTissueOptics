@@ -40,7 +40,11 @@ class CLConfig:
         self._config = None
         self._load()
 
-        self._clContext = cl.create_some_context()
+        try:
+            self._clContext = cl.create_some_context()
+        except cl.LogicError as e:
+            warnings.warn("Warning: PyOpenCL is installed, but no OpenCL drivers were found. ")
+            raise e
 
     def validate(self):
         errorMessage = f"The OpenCL config file at '{OPENCL_CONFIG_RELPATH}' is not valid. "
