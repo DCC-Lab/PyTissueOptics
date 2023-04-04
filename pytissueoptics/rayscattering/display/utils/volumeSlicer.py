@@ -96,7 +96,7 @@ class VolumeSlicer(HasTraits):
             # Turn the interaction off
             ipw.ipw.interaction = 0
 
-        self.scene3d.scene.background = (0, 0, 0)
+        self.scene3d.scene.background = (0.11, 0.11, 0.11)
         # Keep the view always pointing up
         self.scene3d.scene.interactor.interactor_style = \
                                  tvtk.InteractorStyleTerrain()
@@ -158,7 +158,7 @@ class VolumeSlicer(HasTraits):
         # 2D interaction: only pan and zoom
         scene.scene.interactor.interactor_style = \
                                  tvtk.InteractorStyleImage()
-        scene.scene.background = (0, 0, 0)
+        scene.scene.background = (0.11, 0.11, 0.11)
 
 
     @on_trait_change('scene_x.activated')
