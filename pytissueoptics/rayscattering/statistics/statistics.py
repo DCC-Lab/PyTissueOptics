@@ -30,7 +30,10 @@ class Stats:
         self._pointCloudFactory = PointCloudFactory(logger)
         self._extractFromViews = not logger.has3D
 
-        self._photonCount = logger.info["photonCount"]
+        try:
+            self._photonCount = logger.info["photonCount"]
+        except KeyError:
+            raise RuntimeError("Logger is empty. Cannot compute statistics.")
         self._sourceSolidLabel = logger.info["sourceSolidLabel"]
 
         self._solidStatsMap = {}
