@@ -181,7 +181,10 @@ class View2D:
 
     def show(self, logScale: bool = True, colormap: str = 'viridis'):
         cmap = copy.copy(matplotlib.cm.get_cmap(colormap))
-        cmap.set_bad(cmap.colors[0])
+        try:
+            cmap.set_bad(cmap.colors[0])
+        except AttributeError:
+            pass
 
         image = self.getImageData(logScale=logScale)
 
