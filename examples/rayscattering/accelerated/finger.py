@@ -19,7 +19,7 @@ References:
  fat mu_a (fig13 & 16) (Simpson, 600-1000nm): https://iopscience.iop.org/article/10.1088/0031-9155/58/11/R37
  geometry: ...
 """
-# fixme: default IPP test of 1000 photons will take a long time (20s on my laptop).
+# fixme: default IPP test of 1000 photons will take a long time (36s on my laptop).
 #  can be changed manually in /rayscattering/opencl/config.json if you want.
 
 IR = True  # around 1100 nm
@@ -39,13 +39,15 @@ if not IR:  # around 550 nm
     fatMat = ScatteringMaterial(mu_s=300, mu_a=0.5, g=0.85, n=1.46)  # mu_a estimated with fig 16 @ 550 nm, g guessed
     skinMat = ScatteringMaterial(mu_s=200, mu_a=0.5, g=0.8, n=1.36)  # g @ 550 nm
 
-epidermis = Ellipsoid(0.9, 3, 0.9, order=3, material=ScatteringMaterial(mu_s=20, mu_a=2, g=0.95, n=1.36), label="epidermis")
-dermis = Ellipsoid(0.85, 2.95, 0.85, order=3, material=ScatteringMaterial(mu_s=20, mu_a=2, g=0.95, n=1.36), label="dermis")
+epidermis = Ellipsoid(0.9, 3, 0.9, order=3, material=skinMat, label="epidermis")
+dermis = Ellipsoid(0.85, 2.95, 0.85, order=3, material=skinMat, label="dermis")
 fat = Ellipsoid(0.8, 2.9, 0.8, order=3, material=fatMat, label="fat")
 bone = Cylinder(0.25, 5, material=boneMat, label="bone")
 bone.rotate(90)
 
 scene = ScatteringScene([epidermis, dermis, fat, bone])
+for solid in scene.solids:
+    solid.translateBy(Vector(0, 0, 0.9))
 logger = EnergyLogger(scene)
 
 source = DirectionalSource(position=Vector(0, 0, -2), direction=Vector(0, 0, 1), N=10000, useHardwareAcceleration=True,
@@ -56,5 +58,5 @@ source.propagate(scene, logger)
 viewer = Viewer(scene, source, logger)
 viewer.reportStats()
 colormap = ["Blues", "Reds"][IR]
-viewer.show2D(View2DProjectionX(limits=((-1, 1), (-1.5, 1.5)), binSize=0.005), colormap=colormap)
+viewer.show2D(View2DProjectionX(limits=((0, 1.8), (-1.5, 1.5)), binSize=0.005), colormap=colormap)
 # viewer.show3D()
