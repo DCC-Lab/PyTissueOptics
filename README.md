@@ -76,7 +76,7 @@ offers you. With the new OpenCL implementation, speed is not an issue anymore, s
 
 ### Known limitations
 1. It uses Henyey-Greenstein approximation for scattering direction because it is sufficient most of the time.
-2. Reflections are specular, which does not accounts for the roughness of materials. It is planned to implement Bling-Phong reflection model in a future release.
+2. Reflections are specular, which does not account for the roughness of materials. It is planned to implement Bling-Phong reflection model in a future release.
 
 ## Examples
 
