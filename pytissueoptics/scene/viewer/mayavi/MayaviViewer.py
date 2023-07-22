@@ -90,7 +90,15 @@ class MayaviViewer:
                  axis: int = 2, position: float = 0, colormap: str = 'viridis'):
         if size is None:
             size = image.shape
+        # Limitation: the current call to Mayavi.mlab.imshow will display half of the first pixel.
+        # Workaround: oversample the image.
+        #  However, this can become expensive for large images where the edge is not that visible anyway,
+        #  so we use less oversampling.
         overSampling = 5  # 10% lost on edge pixel (0.5/oversampling)
+        if image.size > 10**6:
+            overSampling = 2  # 25% lost on edge pixel for images > 1MB
+        if image.size > 10**7:
+            overSampling = 1  # 50% lost on edge pixel for images > 10MB
         image = np.repeat(np.repeat(image, overSampling, axis=0), overSampling, axis=1)
 
         # In the 3D viewer, right is negative X and down is negative Y.
