@@ -20,6 +20,7 @@ As discussed in the [why use this package](#why-use-this-package) section, code 
 - Independent 3D graphics framework under `scene`. 
 
 ## Getting started
+
 Install with `pip` or get the [code](https://github.com/DCC-Lab/PyTissueOptics) from GitHub.
 
 ```shell
@@ -52,11 +53,7 @@ viewer = Viewer(scene, source, logger)
 viewer.reportStats()
 viewer.show3D()
 ```
-
-For more details on how to use this package for your own research, please refer to the [documentation](https://pytissueoptics.readthedocs.io/en/latest/).
-
-Also, you can check out the `pytissueoptics/examples` folder for more examples on how to use the package.
-
+Check out the `pytissueoptics/examples` folder for more examples on how to use the package.
 
 ## Hardware acceleration
 Hardware acceleration can offer a speed increase factor around 1000x depending on the scene. By default, the program will use the Python implementation, but hardware acceleration can be turned on when creating any light `Source`:
