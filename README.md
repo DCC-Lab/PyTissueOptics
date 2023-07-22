@@ -50,9 +50,7 @@ stats = Stats(logger, source, scene)
 stats.showEnergy3D()
 stats.report()
 ```
-For more details on how to use this package for your own research, please refer to the [documentation](https://pytissueoptics.readthedocs.io/en/latest/).
-
-Also, you can check out the `pytissueoptics/examples` folder for more examples on how to use the package.
+Check out the `pytissueoptics/examples` folder for more examples on how to use the package.
 
 
 ## Hardware acceleration
