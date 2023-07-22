@@ -18,8 +18,7 @@ As discussed in the [why use this package](#why-use-this-package) section, code 
 - Hardware acceleration with `OpenCL`.
 
 ## Getting started
-Install with `pip` or get the [code](https://github.com/DCC-Lab/PyTissueOptics) from GitHub. If you're having trouble installing,
-please [read the documentation](https://pytissueoptics.readthedocs.io/en/latest/).
+Install with `pip` or get the [code](https://github.com/DCC-Lab/PyTissueOptics) from GitHub. 
 
 ```shell
 pip install pytissueoptics
