@@ -1,18 +1,16 @@
-import gc
 import os
 import time
 
 import numpy as np
 
-from pytissueoptics.rayscattering.opencl import CONFIG
-from pytissueoptics.rayscattering.opencl.CLKeyLog import CLKeyLog
+from pytissueoptics.rayscattering.opencl import WEIGHT_THRESHOLD
+from pytissueoptics.rayscattering.opencl.utils import CLKeyLog, CLParameters
 from pytissueoptics.rayscattering.opencl.CLScene import CLScene
-from pytissueoptics.rayscattering.opencl.CLParameters import CLParameters
 from pytissueoptics.rayscattering.opencl.CLProgram import CLProgram
-from pytissueoptics.rayscattering.opencl.CLObjects.seedCL import SeedCL
-from pytissueoptics.rayscattering.opencl.CLObjects.dataPointCL import DataPointCL
-from pytissueoptics.rayscattering.opencl.CLObjects.photonCL import PhotonCL
-from pytissueoptics.rayscattering.tissues.rayScatteringScene import RayScatteringScene
+from pytissueoptics.rayscattering.opencl.buffers.seedCL import SeedCL
+from pytissueoptics.rayscattering.opencl.buffers.dataPointCL import DataPointCL
+from pytissueoptics.rayscattering.opencl.buffers.photonCL import PhotonCL
+from pytissueoptics.rayscattering.scatteringScene import ScatteringScene
 from pytissueoptics.scene.logger.logger import Logger
 from pytissueoptics.scene.geometry import Environment
 
@@ -20,24 +18,26 @@ PROPAGATION_SOURCE_PATH = os.path.join(os.path.dirname(os.path.abspath(__file__)
 
 
 class CLPhotons:
-    def __init__(self, positions: np.ndarray, directions: np.ndarray, N: int):
+    def __init__(self, positions: np.ndarray, directions: np.ndarray):
+        assert positions.shape == directions.shape, "Positions and directions must have the same shape."
         self._positions = positions
         self._directions = directions
-        self._N = np.uint32(N)
-        self._weightThreshold = np.float32(CONFIG.WEIGHT_THRESHOLD)
+        self._N = np.uint32(len(positions))
+        self._weightThreshold = np.float32(WEIGHT_THRESHOLD)
         self._initialMaterial = None
         self._initialSolid = None
 
         self._scene = None
         self._sceneLogger = None
 
-    def setContext(self, scene: RayScatteringScene, environment: Environment, logger: Logger = None):
+    def setContext(self, scene: ScatteringScene, environment: Environment, logger: Logger = None):
         self._scene = scene
         self._sceneLogger = logger
         self._initialMaterial = environment.material
         self._initialSolid = environment.solid
 
     def propagate(self, IPP: float, verbose: bool = False):
+        assert self._scene is not None, "Context must be set before propagation."
         program = CLProgram(sourcePath=PROPAGATION_SOURCE_PATH)
         params = CLParameters(self._N, AVG_IT_PER_PHOTON=IPP)
 

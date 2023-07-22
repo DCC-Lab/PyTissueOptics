@@ -12,7 +12,7 @@ except ImportError:
 from numpy.lib import recfunctions as rfn
 
 from pytissueoptics.rayscattering.opencl import CONFIG
-from pytissueoptics.rayscattering.opencl.CLObjects import CLObject
+from pytissueoptics.rayscattering.opencl.buffers import CLObject
 
 
 class CLProgram:
@@ -23,6 +23,8 @@ class CLProgram:
 
         self._mainQueue = cl.CommandQueue(self._context)
         self._program = None
+        self._include = ''
+        self._mocks = []
 
     def launchKernel(self, kernelName: str, N: int, arguments: list, verbose: bool = False):
         t0 = time.time()
@@ -54,13 +56,22 @@ class CLProgram:
             _object.build(self._device, self._context)
 
         typeDeclarations = ''.join([_object.declaration for _object in objects])
-        sourceCode = typeDeclarations + self._makeSource(self._sourcePath)
+        sourceCode = self._include + typeDeclarations + self._makeSource(self._sourcePath)
+
+        for code, mock in self._mocks:
+            sourceCode = sourceCode.replace(code, mock)
 
         self._program = cl.Program(self._context, sourceCode).build()
 
     def getData(self, _object: CLObject, dtype: np.dtype = np.float32):
         cl.enqueue_copy(self._mainQueue, dest=_object.hostBuffer, src=_object.deviceBuffer)
-        return rfn.structured_to_unstructured(_object.hostBuffer, dtype=dtype)
+        if _object.STRUCT_DTYPE is not None:
+            return rfn.structured_to_unstructured(_object.hostBuffer, dtype=dtype)
+        else:
+            return _object.hostBuffer
+
+    def include(self, code: str):
+        self._include += code
 
     @staticmethod
     def _makeSource(sourcePath) -> str:
@@ -70,7 +81,8 @@ class CLProgram:
             line = f.readline()
             while line.startswith("#include"):
                 libFileName = line.split('"')[1]
-                sourceCode += open(os.path.join(includeDir, libFileName)).read()
+                with open(os.path.join(includeDir, libFileName), 'r') as libFile:
+                    sourceCode += libFile.read()
                 line = f.readline()
             sourceCode += line
             sourceCode += f.read()
@@ -90,3 +102,10 @@ class CLProgram:
     @property
     def device(self):
         return self._device
+
+    def mock(self, code: str, mock: str):
+        """
+        Used internally for testing purposes.
+        Acts as a simple string replacement for the source code.
+        """
+        self._mocks.append((code, mock))

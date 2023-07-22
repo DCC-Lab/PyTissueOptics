@@ -43,28 +43,20 @@ class Polygon:
         return True
 
     @property
-    def normal(self):
+    def normal(self) -> Vector:
         return self._normal
 
     @property
-    def vertices(self):
+    def vertices(self) -> List[Vertex]:
         return self._vertices
 
     @property
-    def insideEnvironment(self):
+    def insideEnvironment(self) -> Environment:
         return self._insideEnvironment
 
     @property
-    def outsideEnvironment(self):
+    def outsideEnvironment(self) -> Environment:
         return self._outsideEnvironment
-
-    @property
-    def insideMaterial(self):
-        return self._insideEnvironment.material
-
-    @property
-    def outsideMaterial(self):
-        return self._outsideEnvironment.material
 
     @property
     def bbox(self) -> BoundingBox:
@@ -79,12 +71,6 @@ class Polygon:
 
     def setInsideEnvironment(self, environment: Environment):
         self._insideEnvironment = environment
-
-    def setOutsideMaterial(self, material):
-        self._outsideEnvironment.material = material
-
-    def setInsideMaterial(self, material):
-        self._insideEnvironment.material = material
 
     def resetCentroid(self):
         vertexSum = Vector(0, 0, 0)

@@ -3,13 +3,12 @@ from typing import List, Optional
 from pytissueoptics.scene.geometry import BoundingBox, Vector, Polygon
 from pytissueoptics.scene.tree import TreeConstructor
 from pytissueoptics.scene.tree import Node
-from pytissueoptics.scene.solids import Cuboid
 
 
 class SpacePartition:
     """
-    This is a SpacePartition that saves the subdivion of the available space. The space it partitioned as a tree.
-    The tree has nodes that split and contain other node, up to the leaf node, the smallest units.
+    This is a SpacePartition that saves the subdivision of the available space. The space is partitioned as a tree.
+    The tree has nodes that split and contain other nodes, up to the leaf node, the smallest units.
     Each node has a boundingBox and a List of polygons that it contains.
 
     To construct a SpacePartition, you must give those parameters.
@@ -17,7 +16,10 @@ class SpacePartition:
     - polygons: The List[Polygon] from which the subdivision will make its choices.
     - constructor: A TreeConstructor class which will define the subdivision behaviour
     - maxDepth: the maximum depth of a node, will limit the creation of node to a certain level
-    - minLeafSize: the minimum amount of polygons a leaf can contain. No leaf node can have less polygons.
+    - minLeafSize: the minimum amount of polygons a leaf can contain. No leaf node can have fewer polygons.
+
+    It is essentially a dataclass that contains a tree of nodes. The methods defined bellow are only used
+    internally for benchmarking purposes.
     """
 
     def __init__(self, bbox: BoundingBox, polygons: List[Polygon], constructor: TreeConstructor, maxDepth=6,
@@ -29,6 +31,10 @@ class SpacePartition:
         self._constructor = constructor
         self._root = Node(polygons=self._polygons, bbox=self._bbox)
         self._constructor.constructTree(self._root, maxDepth=maxDepth, minLeafSize=minLeafSize)
+
+    @property
+    def root(self) -> Node:
+        return self._root
 
     def searchPoint(self, point: Vector, node: Node = None) -> Optional[Node]:
         if node is None:
@@ -49,10 +55,6 @@ class SpacePartition:
             else:
                 return None
         return isInside
-
-    @property
-    def root(self) -> Node:
-        return self._root
 
     def getNodeCount(self, node=None) -> int:
         if node is None:
@@ -94,16 +96,7 @@ class SpacePartition:
         nodesBbox = [node.bbox for node in nodesList]
         return nodesBbox
 
-    def getLeafBoundingBoxesAsCuboids(self) -> List[Cuboid]:
-        cuboids = []
-        for bbox in self.getLeafBoundingBoxes():
-            a = bbox.xMax - bbox.xMin
-            b = bbox.yMax - bbox.yMin
-            c = bbox.zMax - bbox.zMin
-            cuboids.append(Cuboid(a=a, b=b, c=c, position=bbox.center))
-        return cuboids
-
-    def getMaxLeafDepth(self) -> int:
+    def getMaxDepth(self) -> int:
         leaves = self.getLeafNodes()
         maxDepth = 0
         for leaf in leaves:
@@ -111,7 +104,7 @@ class SpacePartition:
                 maxDepth = leaf.depth
         return maxDepth
 
-    def getAverageLeafDepth(self) -> float:
+    def getAverageDepth(self) -> float:
         leaves = self.getLeafNodes()
         avgDepth = 0
         for leaf in leaves:

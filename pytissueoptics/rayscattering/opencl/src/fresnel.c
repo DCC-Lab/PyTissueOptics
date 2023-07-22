@@ -101,3 +101,36 @@ FresnelIntersection computeFresnelIntersection(float3 rayDirection, Intersection
 
     return fresnelIntersection;
 }
+
+// --------------- TEST KERNEL ---------------
+
+Intersection getLocalIntersection(__global Intersection *intersections, uint gid) {
+    Intersection intersection;
+    intersection.exists = intersections[gid].exists;
+    intersection.isTooClose = intersections[gid].isTooClose;
+    intersection.distance = intersections[gid].distance;
+    intersection.position = intersections[gid].position;
+    intersection.normal = intersections[gid].normal;
+    intersection.surfaceID = intersections[gid].surfaceID;
+    intersection.polygonID = intersections[gid].polygonID;
+    intersection.distanceLeft = intersections[gid].distanceLeft;
+    return intersection;
+}
+
+__kernel void computeFresnelIntersectionKernel(float3 rayDirection, __global Intersection *intersections,
+        __constant Material *materials, __global Surface *surfaces, __global uint *seeds,
+        __global FresnelIntersection *fresnelIntersections) {
+    uint gid = get_global_id(0);
+    Intersection localIntersection = getLocalIntersection(intersections, gid);
+    fresnelIntersections[gid] = computeFresnelIntersection(rayDirection, &localIntersection, materials, surfaces, seeds, gid);
+}
+
+struct FloatContainer {
+    float value;
+};
+typedef struct FloatContainer FloatContainer;
+
+__kernel void getReflectionCoefficientKernel(float n1, float n2, float thetaIn, __global FloatContainer *results) {
+    uint gid = get_global_id(0);
+    results[gid].value = _getReflectionCoefficient(n1, n2, thetaIn);
+}

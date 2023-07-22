@@ -4,7 +4,7 @@ from pytissueoptics.scene.geometry import Polygon, Vector, Vertex
 
 
 def getSmoothNormal(polygon: Polygon, position: Vector) -> Vector:
-    """ If the intersecting polygon was prepared for smoothing (ie. it has vertex
+    """ If the intersecting polygon was prepared for smoothing (i.e. it has vertex
     normals), we interpolate the normal at the intersection point using the normal
     of all its vertices. The interpolation is done using the general barycentric
     coordinates algorithm from http://www.geometry.caltech.edu/pubs/MHBD02.pdfv. """

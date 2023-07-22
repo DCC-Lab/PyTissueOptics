@@ -1,15 +1,16 @@
-from typing import List
+import warnings
+from typing import List, Dict
 
 import numpy as np
 
-from pytissueoptics.scene.geometry import Vector, utils, Polygon, Rotation, BoundingBox, Vertex, Triangle
-from pytissueoptics.scene.geometry import primitives, Environment, SurfaceCollection
+from pytissueoptics.scene.geometry import Vector, utils, Polygon, Rotation, BoundingBox, Vertex
+from pytissueoptics.scene.geometry import primitives, Environment, SurfaceCollection, INTERFACE_KEY
 
 
 class Solid:
     def __init__(self, vertices: List[Vertex], position: Vector = Vector(0, 0, 0),
                  surfaces: SurfaceCollection = None, material=None,
-                 label: str = "solid", primitive: str = primitives.DEFAULT, smooth: bool = False):
+                 label: str = "solid", primitive: str = primitives.DEFAULT, smooth: bool = False, labelOverride=True):
         self._vertices = vertices
         self._surfaces = surfaces
         self._material = material
@@ -18,15 +19,21 @@ class Solid:
         self._orientation: Rotation = Rotation()
         self._bbox = None
         self._label = label
+        self._layerLabels = {}
 
         if not self._surfaces:
             self._computeMesh()
+        if labelOverride:
+            self.setLabel(label)
+        else:
+            self._surfaces._solidLabel = ""
 
         self.translateTo(position)
         self._setInsideEnvironment()
         self._resetBoundingBoxes()
         self._resetPolygonsCentroids()
 
+        self._smoothing = False
         if smooth:
             self.smooth()
 
@@ -60,6 +67,7 @@ class Solid:
         return self._label
 
     def setLabel(self, label: str):
+        self._surfaces.updateSolidLabel(label)
         self._label = label
 
     def _resetBoundingBoxes(self):
@@ -117,6 +125,9 @@ class Solid:
         self._resetBoundingBoxes()
         self._resetPolygonsCentroids()
 
+        if self._smoothing:
+            self.smooth()
+
     def getEnvironment(self, surfaceLabel: str = None) -> Environment:
         if surfaceLabel:
             return self.surfaces.getInsideEnvironment(surfaceLabel)
@@ -151,6 +162,13 @@ class Solid:
             verticesArray.append(vertex.array)
         return np.asarray(verticesArray)
 
+    def _setInsideEnvironment(self):
+        polygons = self._surfaces.getPolygons()
+        if not self._material and polygons[0].insideEnvironment is not None:
+            return
+        for polygon in polygons:
+            polygon.setInsideEnvironment(Environment(self._material, self))
+
     def _computeMesh(self):
         self._surfaces = SurfaceCollection()
         if self._primitive == primitives.TRIANGLE:
@@ -166,25 +184,42 @@ class Solid:
     def _computeQuadMesh(self):
         raise NotImplementedError(f"Quad mesh not implemented for Solids of type {type(self).__name__}")
 
-    def _setInsideEnvironment(self):
-        polygons = self._surfaces.getPolygons()
-        if not self._material and polygons[0].insideEnvironment is not None:
-            return
-        for polygon in polygons:
-            polygon.setInsideEnvironment(Environment(self._material, self))
+    def contains(self, *vertices: Vector) -> bool:
+        for vertex in vertices:
+            if not self._bbox.contains(vertex):
+                return False
+        internalBBox = self._getInternalBBox()
+        for vertex in vertices:
+            if not internalBBox.contains(vertex):
+                warnings.warn(f"Method contains(Vertex) is not implemented for Solids of type {type(self).__name__}. "
+                              "Returning False since Vertex does not lie in the internal bounding box "
+                              "(underestimating containment). ", RuntimeWarning)
+                return False
+        return True
 
-    def setMaterial(self, material):
-        self._material = material
-        self._setInsideEnvironment()
-
-    def contains(self, *vertices: Vertex) -> bool:
-        return False
+    def _getInternalBBox(self):
+        insideBBox = self._bbox.copy()
+        for polygon in self.getPolygons():
+            insideBBox.exclude(polygon.bbox)
+        return insideBBox
 
     def isStack(self) -> bool:
         for surfaceLabel in self.surfaceLabels:
-            if "interface" in surfaceLabel:
+            if INTERFACE_KEY in surfaceLabel:
                 return True
         return False
+
+    def getLayerLabelMap(self) -> Dict[str, List[str]]:
+        return self._layerLabels
+
+    def getLayerLabels(self) -> List[str]:
+        return list(self._layerLabels.keys())
+
+    def getLayerSurfaceLabels(self, layerSolidLabel) -> List[str]:
+        return list(self._layerLabels[layerSolidLabel])
+
+    def completeSurfaceLabel(self, surfaceLabel: str) -> str:
+        return self._surfaces.processLabel(surfaceLabel)
 
     def smooth(self, surfaceLabel: str = None):
         """ Prepare smoothing by calculating vertex normals. This is not done
@@ -196,6 +231,9 @@ class Solid:
         be changed by overwriting the signature with a specific surfaceLabel in
         another solid implementation and calling super().smooth(surfaceLabel).
         """
+        self._smoothing = True
+        for vertex in self.vertices:
+            vertex.normal = None
 
         polygons = self.getPolygons(surfaceLabel)
 
@@ -212,5 +250,6 @@ class Solid:
                 vertex.normal.normalize()
 
     def __hash__(self):
-
-        return hash((hash(tuple(self._vertices)), self._material))
+        verticesHash = hash(tuple(sorted([hash(v) for v in self._vertices])))
+        materialHash = hash(self._material) if self._material else 0
+        return hash((verticesHash, materialHash))

@@ -73,8 +73,8 @@ class TestAnyIntersectionFinder:
 
     def testGivenRayIsIntersectingMultipleSolids_shouldReturnClosestIntersection(self):
         ray = Ray(origin=Vector(0, 0.5, 0), direction=Vector(0, 0, 1))
-        solid1 = Cube(2, position=Vector(0, 0, 5))
-        solid2 = Cube(2, position=Vector(0, 0, 10))
+        solid1 = Cube(2, position=Vector(0, 0, 5), label="solid1")
+        solid2 = Cube(2, position=Vector(0, 0, 10), label="solid2")
         solids = [solid1, solid2]
 
         intersection = self.getIntersectionFinder(solids).findIntersection(ray)
@@ -98,65 +98,6 @@ class TestAnyIntersectionFinder:
         self.assertAlmostEqual(0.9*3, intersection.position.y, 4)
         self.assertAlmostEqual(3, intersection.position.z, 4)
 
-    def testGivenRayStartsAtAnInterfaceAndLeaves_shouldNotFindIntersection(self):
-        ray = Ray(origin=Vector(0, 0, 1), direction=Vector(0, 0, 1))
-        solid = Cube(2, position=Vector(0, 0, 0))
-
-        intersection = self.getIntersectionFinder([solid]).findIntersection(ray)
-
-        self.assertIsNone(intersection)
-
-    def testGivenRayStartsSlightlyInsideAnInterfaceAndLeaves_shouldFindIntersection(self):
-        eps = 1e-6  # 1e-7 will not pass
-        ray = Ray(origin=Vector(0, 0, 1-eps), direction=Vector(0, 0, 1))
-        solid = Cube(2, position=Vector(0, 0, 0))
-
-        intersection = self.getIntersectionFinder([solid]).findIntersection(ray)
-
-        self.assertIsNotNone(intersection)
-
-    def testGivenRayStartsAtACubeCornerAndLeaves_shouldNotFindIntersection(self):
-        ray = Ray(origin=Vector(1, 1, 1), direction=Vector(0, 0, 1))
-        solid = Cube(2, position=Vector(0, 0, 0))
-
-        intersection = self.getIntersectionFinder([solid]).findIntersection(ray)
-
-        self.assertIsNone(intersection)
-
-    def testGivenRayStartsAtAnInterfaceAndGoesInside_shouldOnlyFindIntersectionOnOtherSideOfSolid(self):
-        ray = Ray(origin=Vector(0, 0, 1), direction=Vector(0, 0, -1))
-        solid = Cube(2, position=Vector(0, 0, 0))
-
-        intersection = self.getIntersectionFinder([solid]).findIntersection(ray)
-
-        self.assertIsNotNone(intersection)
-        self.assertEqual(0, intersection.position.x)
-        self.assertEqual(0, intersection.position.y)
-        self.assertEqual(-1, intersection.position.z)
-
-    def testGivenRayStartsAtACubeCornerAndGoesInside_shouldOnlyFindIntersectionOnOtherSideOfCube(self):
-        ray = Ray(origin=Vector(1, 1, 1), direction=Vector(-1, -1, -1))
-        solid = Cube(2, position=Vector(0, 0, 0))
-
-        intersection = self.getIntersectionFinder([solid]).findIntersection(ray)
-
-        self.assertIsNotNone(intersection)
-        self.assertEqual(-1, intersection.position.x)
-        self.assertEqual(-1, intersection.position.y)
-        self.assertEqual(-1, intersection.position.z)
-
-    def testGivenRayStartsSlightlyInsideCubeCornerAndLeaves_shouldFindIntersection(self):
-        eps = 1e-6  # 1e-7 will not pass
-        ray = Ray(origin=Vector(1-eps, 1-eps, 1-eps), direction=Vector(1, 1, 1))
-        solid = Cube(2, position=Vector(0, 0, 0))
-
-        intersection = self.getIntersectionFinder([solid]).findIntersection(ray)
-
-        self.assertIsNotNone(intersection)
-        self.assertEqual(1, intersection.position.x)
-        self.assertEqual(1, intersection.position.y)
-        self.assertEqual(1, intersection.position.z)
-
     def testGivenRayIsOnACubeSurface_shouldFindIntersectionAtCrossing(self):
         ray = Ray(origin=Vector(0, 1, 0), direction=Vector(0, 0, 1))
         solid = Cube(2, position=Vector(0, 0, 0))
@@ -179,6 +120,69 @@ class TestAnyIntersectionFinder:
         self.assertEqual(1, intersection.position.y)
         self.assertEqual(1, intersection.position.z)
 
+    def testGivenRayStartsAtAnInterface_shouldFindIntersectionAtRayOrigin(self):
+        ray = Ray(origin=Vector(0, 0, 1), direction=Vector(0, 0, 1))
+        solid = Cube(2, position=Vector(0, 0, 0))
+
+        intersection = self.getIntersectionFinder([solid]).findIntersection(ray)
+
+        self.assertIsNotNone(intersection)
+        self.assertVectorEqual(ray.origin, intersection.position)
+
+    def testGivenRayStartsAtACubeCorner_shouldFindIntersectionAtRayOrigin(self):
+        ray = Ray(origin=Vector(1, 1, 1), direction=Vector(0, 0, 1))
+        solid = Cube(2, position=Vector(0, 0, 0))
+
+        intersection = self.getIntersectionFinder([solid]).findIntersection(ray)
+
+        self.assertIsNotNone(intersection)
+        self.assertVectorEqual(ray.origin, intersection.position)
+
+    def testGivenRayStartsSlightlyInsideAnInterfaceAndLeaves_shouldFindIntersection(self):
+        eps = 1e-6  # 1e-7 will not pass
+        ray = Ray(origin=Vector(0, 0, 1-eps), direction=Vector(0, 0, 1))
+        solid = Cube(2, position=Vector(0, 0, 0))
+
+        intersection = self.getIntersectionFinder([solid]).findIntersection(ray)
+
+        self.assertIsNotNone(intersection)
+
+    def testGivenRayStartsSlightlyInsideCubeCornerAndLeaves_shouldFindIntersection(self):
+        eps = 1e-6  # 1e-7 will not pass
+        ray = Ray(origin=Vector(1-eps, 1-eps, 1-eps), direction=Vector(1, 1, 1))
+        solid = Cube(2, position=Vector(0, 0, 0))
+
+        intersection = self.getIntersectionFinder([solid]).findIntersection(ray)
+
+        self.assertIsNotNone(intersection)
+        self.assertEqual(1, intersection.position.x)
+        self.assertEqual(1, intersection.position.y)
+        self.assertEqual(1, intersection.position.z)
+
+    def testGivenRayLengthIsLongerThanDistanceToIntersection_shouldFindIntersection(self):
+        ray = Ray(origin=Vector(0, 0, 0), direction=Vector(0, 0, 1), length=10)
+        solid = Cube(2, position=Vector(0, 0, 5))
+
+        intersection = self.getIntersectionFinder([solid]).findIntersection(ray)
+
+        self.assertIsNotNone(intersection)
+        self.assertEqual(0, intersection.position.x)
+        self.assertEqual(0, intersection.position.y)
+        self.assertEqual(4, intersection.position.z)
+
+    def testGivenRayLengthIsShorterThanDistanceToIntersection_shouldNotFindIntersection(self):
+        ray = Ray(origin=Vector(0, 0, 0), direction=Vector(0, 0, 1), length=3)
+        solid = Cube(2, position=Vector(0, 0, 5))
+
+        intersection = self.getIntersectionFinder([solid]).findIntersection(ray)
+
+        self.assertIsNone(intersection)
+
+    def assertVectorEqual(self, expected, actual):
+        self.assertEqual(expected.x, actual.x)
+        self.assertEqual(expected.y, actual.y)
+        self.assertEqual(expected.z, actual.z)
+
 
 class TestSimpleIntersectionFinder(TestAnyIntersectionFinder, unittest.TestCase):
     def getIntersectionFinder(self, solids) -> IntersectionFinder:
@@ -193,7 +197,6 @@ class TestFastIntersectionFinder(TestAnyIntersectionFinder, unittest.TestCase):
 
 
 class TestEndToEndIntersection(unittest.TestCase):
-
     def setUp(self) -> None:
         scene = PhantomScene()
         self.intersectionFinders = [FastIntersectionFinder(scene, constructor=NoSplitOneAxisConstructor(), maxDepth=3),

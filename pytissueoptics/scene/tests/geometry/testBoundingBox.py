@@ -117,6 +117,24 @@ class TestBoundingBox(unittest.TestCase):
 
         self.assertFalse(bbox.intersects(nonIntersectingBox))
 
+    def testWhenExcludeAnotherBBoxNotIntersecting_shouldNotChangeCurrentBBox(self):
+        bbox = BoundingBox([0, 5], [0, 5], [0, 5])
+        nonIntersectingBox = BoundingBox([5, 7], [0, 5], [1, 4])
+
+        bbox.exclude(nonIntersectingBox)
+        self.assertEqual(BoundingBox([0, 5], [0, 5], [0, 5]), bbox)
+
+    def testWhenExcludeAnotherBBoxIntersecting_shouldShrinkCurrentBBoxToExcludeTheOther(self):
+        bbox = BoundingBox([0, 5], [0, 5], [0, 5])
+
+        intersectingBox1 = BoundingBox([3, 4], [3, 4], [3, 4])
+        bbox.exclude(intersectingBox1)
+        self.assertEqual(BoundingBox([0, 3], [0, 5], [0, 5]), bbox)
+
+        intersectingBox2 = BoundingBox([2.5, 3.5], [2, 3], [2, 3])
+        bbox.exclude(intersectingBox2)
+        self.assertEqual(BoundingBox([0, 2.5], [0, 5], [0, 5]), bbox)
+
     def testWhenCopyBBox_newBboxShouldBeIdenticalButIndependent(self):
         bbox = BoundingBox([0, 5], [0, 5], [0, 5])
         newBbox = bbox.copy()
@@ -144,15 +162,15 @@ class TestBoundingBox(unittest.TestCase):
         with self.subTest("update"):
             newBbox = bbox.copy()
             newBbox.update("x", "min", -10)
-            self.assertEqual(newBbox.xLim, newBbox._xyzLimits[0])
+            self.assertEqual(newBbox.xLim, newBbox.xyzLimits[0])
         with self.subTest("extendTo"):
             newBbox = bbox.copy()
             newBbox.extendTo(BoundingBox([-1, 6], [-1, 6], [-1, 6]))
-            self.assertEqual(newBbox.xLim, newBbox._xyzLimits[0])
+            self.assertEqual(newBbox.xLim, newBbox.xyzLimits[0])
         with self.subTest("shrinkTo"):
             newBbox = bbox.copy()
             newBbox.shrinkTo(BoundingBox([1, 4], [1, 4], [1, 4]))
-            self.assertEqual(newBbox.xLim, newBbox._xyzLimits[0])
+            self.assertEqual(newBbox.xLim, newBbox.xyzLimits[0])
 
     def testWithCopiedBbox_whenUpdatingAndFetchingAxisLimits_newBboxShouldNotReturnOldParameters(self):
         bbox = BoundingBox([0, 5], [0, 5], [0, 5])
@@ -184,3 +202,7 @@ class TestBoundingBox(unittest.TestCase):
             self.assertEqual(splitBbox.getAxisWidth("x"), newBbox.getAxisWidth("x"))
             self.assertEqual(splitBbox.getAxisLimits("x"), newBbox.getAxisLimits("x"))
             self.assertEqual(splitBbox.getAxisLimit("x", "min"), newBbox.getAxisLimit("x", "min"))
+
+    def testWhenPrintBBox_shouldShowLimits(self):
+        bbox = BoundingBox([0, 5], [0, 5], [0, 5])
+        self.assertEqual(str(bbox), "<BoundingBox>:(xLim=[0, 5], yLim=[0, 5], zLim=[0, 5])")

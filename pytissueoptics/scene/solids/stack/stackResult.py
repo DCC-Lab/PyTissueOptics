@@ -1,4 +1,4 @@
-from typing import List
+from typing import List, Dict
 from dataclasses import dataclass
 from pytissueoptics.scene.geometry import Vector, SurfaceCollection, Vertex
 
@@ -11,3 +11,4 @@ class StackResult:
     vertices: List[Vertex]
     surfaces: SurfaceCollection
     primitive: str
+    layerLabels: Dict[str, List[str]]

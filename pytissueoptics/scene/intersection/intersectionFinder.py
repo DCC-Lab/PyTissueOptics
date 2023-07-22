@@ -149,7 +149,3 @@ class FastIntersectionFinder(IntersectionFinder):
         if bboxDistance > closestDistance:
             return False
         return True
-
-    @property
-    def partition(self):
-        return self._partition
