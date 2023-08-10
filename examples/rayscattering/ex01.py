@@ -1,4 +1,4 @@
-import exampleenv
+import env
 from pytissueoptics import *
 
 TITLE = "PencilSource propagation through 3 layers of tissue"
@@ -12,7 +12,7 @@ Then we propagate the PencilSource photons in the tissue and then show the distr
 def exampleCode():
     tissue = samples.PhantomTissue()
     logger = EnergyLogger(tissue)
-    source = PencilPointSource(position=Vector(0, 0, -1), direction=Vector(0, 0, 1), N=20000)
+    source = PencilPointSource(position=Vector(0, 0, -1), direction=Vector(0, 0, 1), N=10000)
 
     source.propagate(tissue, logger=logger)
 

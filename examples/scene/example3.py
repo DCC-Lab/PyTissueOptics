@@ -1,3 +1,5 @@
+import env
+
 TITLE = "Load a .obj wavefront file"
 
 DESCRIPTION = """ """

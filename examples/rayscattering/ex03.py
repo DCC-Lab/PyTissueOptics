@@ -1,4 +1,4 @@
-import exampleenv
+import env
 from pytissueoptics import *
 
 TITLE = "Propagate in a custom scene and play with focal of different objects." \

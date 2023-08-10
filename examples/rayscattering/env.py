@@ -1,7 +1,6 @@
-# We set up the environment o we do not have to install PyTissueOptics to run the examples.
-# By adjusting the path, we use the current version in development 
+# We set up the environment so we do not have to install PyTissueOptics to run the examples.
+# By adjusting the path, we use the current version in development.
 
-# append module root directory to sys.path
 import sys
 import os
 sys.path.insert(0,

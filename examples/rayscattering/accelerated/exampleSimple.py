@@ -1,12 +1,6 @@
-import os
-import sys
-
-import numpy as np
-
-modulePath = os.path.abspath(__file__ + 4 * '/..')
-sys.path.append(modulePath)
-
+import env
 from pytissueoptics import *
+import numpy as np
 
 
 N = 500000
