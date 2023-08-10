@@ -19,13 +19,28 @@ As discussed in the [why use this package](#why-use-this-package) section, code 
 - Discard 3D data (auto-binning to 2D views).
 - Independent 3D graphics framework under `scene`. 
 
-## Getting started
+## Installation
+Requires Python 3.6+ installed on the device.
 
-Install with `pip` or get the [code](https://github.com/DCC-Lab/PyTissueOptics) from GitHub.
+PyTissueOptics can be installed via `pip` or by cloning the repository.
 
+### Installing the development version
+1. Clone the repository.
+2. Create a virtual environment inside the repository with `python -m venv venv`.
+3. Activate the virtual environment. 
+    - On MacOS/Linux: `source venv/bin/activate`.
+    - On Windows: `venv\Scripts\activate.bat`.
+4. Upgrade `pip` with `pip install --upgrade pip`.
+5. Install the package requirements with `pip install -r requirements.txt`.
+6. Install the optional requirements with `pip install -r requirements-optional.txt`.
+
+### Installing the previous release
+> Currently, this `pip` version is outdated. We recommend installing the development version.
 ```shell
 pip install pytissueoptics
 ```
+
+## Getting started
 
 To launch a simple simulation, follow these steps.
 1. Import the `pytissueoptics` module
