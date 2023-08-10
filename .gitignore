@@ -136,3 +136,4 @@ pytissueoptics/scene/tests/tree/treeConstructor/profilerTreeConstructor.py
 pytissueoptics/rayscattering/tests/_trial_temp/_trial_marker
 pytissueoptics/rayscattering/opencl/config.json
 pytissueoptics/rayscattering/opencl/ipp.json
+.vscode/settings.json
