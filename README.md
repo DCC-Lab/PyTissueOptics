@@ -6,9 +6,11 @@
 <img src="./docs/README.assets/pytissue-demo-banenr.jpg">
 </p>
 
-This python package is an object-oriented implementation of Monte Carlo modeling for light tranport in diffuse media. The package is **extremely easy to use**, and **polyvalent** as it allows simulations in arbitrary complex scenes. The package offers both a default Python implementation as well as an hardware-accelerated version using OpenCL. 
+This python package is an object-oriented implementation of Monte Carlo modeling for light transport in diffuse media. 
+The package is very **easy to set up and use**, and its mesh-based approach makes it a **polyvalent** tool to simulate light transport in arbitrarily complex scenes. 
+The package offers both a native Python implementation and a hardware-accelerated version using OpenCL. 
 
-As discussed in the [why use this package](#why-use-this-package) section, code efficiency isn't the only variable at play. This code is **easy to understand**, **easily scalable** and **very simple to modify** for your need. It was designed with **research and education** in mind.
+As discussed in the [why use this package](#why-use-this-package) section, computation time isn't the only variable at play. This code is **easy to understand**, **easily scalable** and **very simple to modify** for your need. It was designed with **research and education** in mind.
 
 ## Notable features
 - Arbitrarily complex 3D environments.
@@ -16,6 +18,7 @@ As discussed in the [why use this package](#why-use-this-package) section, code 
 - Great data visualization with `Mayavi`.
 - Multi-layered tissues.
 - Hardware acceleration with `OpenCL`.
+- Accurate Fresnel reflection and refraction with surface smoothing.
 - Discard 3D data (auto-binning to 2D views).
 - Independent 3D graphics framework under `scene`. 
 
@@ -74,10 +77,10 @@ Hardware acceleration can offer a speed increase factor around 1000x depending o
 ```python
 source = DivergentSource(useHardwareAcceleration=True, ...)
 ```
-Follow the instructions on screen to get setup properly for the first execution. It will require the package PyOpenCL to be installed as well as OpenCL drivers for your hardware of choice. 
+Follow the instructions on screen to get setup properly for the first execution. This will require OpenCL drivers for your hardware of choice. NVIDIA and AMD GPU drivers should contain their corresponding OpenCL driver by default. 
 
 ## Why use this package
-It is known, as April of 2022, Python is **the most used** language ([Tiobe index](https://www.tiobe.com/tiobe-index/)).
+It is known, as April 2022, Python is **the most used** language ([Tiobe index](https://www.tiobe.com/tiobe-index/)).
 This is due to the ease of use, the gentle learning curve, and growing community and tools. There was a need for 
 such a package in Python, so that not only long hardened C/C++ programmers could use the power of Monte Carlo simulations.
 It is fairly reasonable to imagine you could start a calculation in Python in a few minutes, run it overnight and get
@@ -127,7 +130,7 @@ The 3D display will auto-switch to Visibility.DEFAULT_2D which includes Visibili
 ![image](https://user-images.githubusercontent.com/29587649/212522583-be81fd59-3479-4350-9bd6-2dce2ed43330.png)
 
 #### Display some 2D views with the 3D point cloud
-The argument `viewsVisibility` can accept a `ViewGroup` tag like SCENE, SURFACES, etc, but also a list of indices for finer control. You can list all stored views with `logger.listViews()` or `viewer.listViews()`. 
+The argument `viewsVisibility` can accept a `ViewGroup` tag like SCENE, SURFACES, etc., but also a list of indices for finer control. You can list all stored views with `logger.listViews()` or `viewer.listViews()`. 
 Here we toggle the visibility of 2D views along the default 3D visibility (which includes the point cloud). 
 ```python
 logger = EnergyLogger(scene)
@@ -164,4 +167,4 @@ logger.save()
 ```
 
 ## Acknowledgment
-This package was first inspired by the standard, tested, and loved [MCML from Wang, Jacques and Zheng](https://omlc.org/software/mc/mcpubs/1995LWCMPBMcml.pdf) , itself based on [Prahl](https://omlc.org/~prahl/pubs/abs/prahl89.html) and completely documented, explained, dissected by [Jacques](https://omlc.org/software/mc/) and [Prahl](https://omlc.org/~prahl/pubs/abs/prahl89.html). This would not be possible without the work of these pionneers.
+This package was first inspired by the standard, tested, and loved [MCML from Wang, Jacques and Zheng](https://omlc.org/software/mc/mcpubs/1995LWCMPBMcml.pdf) , itself based on [Prahl](https://omlc.org/~prahl/pubs/abs/prahl89.html) and completely documented, explained, dissected by [Jacques](https://omlc.org/software/mc/) and [Prahl](https://omlc.org/~prahl/pubs/abs/prahl89.html). This would not be possible without the work of these pioneers.
