@@ -48,7 +48,7 @@ To launch a simple simulation, follow these steps.
 1. Import the `pytissueoptics` module
 2. Define the following objects:
     - `scene`: a `ScatteringScene` object, which defines the scene and the optical properties of the media, or use a pre-defined scene from the `samples` module. The scene takes in a list of `Solid` as its argument. These `Solid` will have a `ScatteringMaterial` and a position. This is clear in the examples below.
-    - `source`: a `Source` object, which defines the source of photons (`useHardwareAcceleration=True` can be set here).
+    - `source`: a `Source` object, which defines the source of photons.
     - `logger`: an `EnergyLogger` object, which logs the simulation progress ('keep3D=False' can be set to auto-bin to 2D views).
 3. Propagate the photons in your `scene` with `source.propagate`.
 4. Define a `Viewer` object and display the results by calling the desired methods. It offers various visualizations of the experiment as well as a statistics report.
@@ -73,11 +73,16 @@ viewer.show3D()
 Check out the `pytissueoptics/examples` folder for more examples on how to use the package.
 
 ## Hardware acceleration
-Hardware acceleration can offer a speed increase factor around 1000x depending on the scene. By default, the program will use the Python implementation, but hardware acceleration can be turned on when creating any light `Source`:
 ```python
 source = DivergentSource(useHardwareAcceleration=True, ...)
 ```
-Follow the instructions on screen to get setup properly for the first execution. This will require OpenCL drivers for your hardware of choice. NVIDIA and AMD GPU drivers should contain their corresponding OpenCL driver by default. 
+Hardware acceleration can offer a speed increase factor around 1000x depending on the scene. 
+By default, the program will try to use hardware acceleration if possible, which will require OpenCL drivers for your hardware of choice. 
+NVIDIA and AMD GPU drivers should contain their corresponding OpenCL driver by default. 
+To force the use of the native Python implementation, set `useHardwareAcceleration=False` when creating a light `Source`.
+
+Follow the instructions on screen to get setup properly for the first hardware accelerated execution which will offer 
+to run a benchmark test to determine the ideal number of work units for your hardware. 
 
 ## Why use this package
 It is known, as April 2022, Python is **the most used** language ([Tiobe index](https://www.tiobe.com/tiobe-index/)).
@@ -94,15 +99,14 @@ offers you. With the new OpenCL implementation, speed is not an issue anymore, s
 
 ## Examples
 
-### Multi-layered phantom tissue with hardware acceleration
+### Multi-layered phantom tissue
 Located at `examples/rayscattering/accelerated/exampleSimple.py`.
 Using a pre-defined tissue from the `samples` module.
 
 ```python
 N = 500000
 scene = samples.PhantomTissue()
-source = DivergentSource(position=Vector(0, 0, -0.1), direction=Vector(0, 0, 1), N=N,
-                         useHardwareAcceleration=True, diameter=0.2, divergence=np.pi / 4)
+source = DivergentSource(position=Vector(0, 0, -0.1), direction=Vector(0, 0, 1), N=N, diameter=0.2, divergence=np.pi / 4)
 logger = EnergyLogger(scene)
 source.propagate(scene, logger=logger)
 
@@ -130,7 +134,7 @@ The 3D display will auto-switch to Visibility.DEFAULT_2D which includes Visibili
 ![image](https://user-images.githubusercontent.com/29587649/212522583-be81fd59-3479-4350-9bd6-2dce2ed43330.png)
 
 #### Display some 2D views with the 3D point cloud
-The argument `viewsVisibility` can accept a `ViewGroup` tag like SCENE, SURFACES, etc., but also a list of indices for finer control. You can list all stored views with `logger.listViews()` or `viewer.listViews()`. 
+The argument `viewsVisibility` can accept a `ViewGroup` tag like SCENE, SURFACES, etc., but also a list of indices for fine control. You can list all stored views with `logger.listViews()` or `viewer.listViews()`. 
 Here we toggle the visibility of 2D views along the default 3D visibility (which includes the point cloud). 
 ```python
 logger = EnergyLogger(scene)
