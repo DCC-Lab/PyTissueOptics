@@ -32,7 +32,6 @@ PyTissueOptics can be installed via `pip` or by cloning the repository.
     - On Windows: `venv\Scripts\activate.bat`.
 4. Upgrade `pip` with `pip install --upgrade pip`.
 5. Install the package requirements with `pip install -r requirements.txt`.
-6. Install the optional requirements with `pip install -r requirements-optional.txt`.
 
 ### Installing the previous release
 > Currently, this `pip` version is outdated. We recommend installing the development version.
