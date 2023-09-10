@@ -1,6 +1,6 @@
-import math
-
+import env
 from pytissueoptics import *
+import math
 
 TITLE = "Hardware Accelerated Monte Carlo in Infinite Medium"
 

@@ -1,3 +1,4 @@
+import env
 from pytissueoptics import *
 
 TITLE = "Propagation in a custom layer stack."

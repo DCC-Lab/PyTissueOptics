@@ -1,3 +1,4 @@
+import env
 from pytissueoptics import *
 import numpy as np
 
