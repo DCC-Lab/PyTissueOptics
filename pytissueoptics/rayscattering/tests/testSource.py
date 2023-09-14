@@ -114,13 +114,15 @@ class SinglePhotonSource(Source):
 class TestPencilSource(unittest.TestCase):
     def testShouldHavePhotonsAllPointingInTheSourceDirection(self):
         sourceDirection = Vector(1, 0, 0)
-        pencilSource = PencilPointSource(position=Vector(), direction=sourceDirection, N=10)
+        pencilSource = PencilPointSource(position=Vector(), direction=sourceDirection, N=10,
+                                         useHardwareAcceleration=False)
         for photon in pencilSource.photons:
             self.assertEqual(sourceDirection, photon.direction)
 
     def testShouldHavePhotonsAllPositionedAtTheSourcePosition(self):
         sourcePosition = Vector(3, 3, 0)
-        pencilSource = PencilPointSource(position=sourcePosition, direction=Vector(0, 0, 1), N=10)
+        pencilSource = PencilPointSource(position=sourcePosition, direction=Vector(0, 0, 1), N=10,
+                                         useHardwareAcceleration=False)
         for photon in pencilSource.photons:
             self.assertEqual(sourcePosition, photon.position)
 
@@ -146,7 +148,8 @@ class TestIsotropicPointSource(unittest.TestCase):
 class TestDirectionalSource(unittest.TestCase):
     def testShouldHavePhotonsAllPointingInTheSourceDirection(self):
         sourceDirection = Vector(1, 0, 0)
-        directionalSource = DirectionalSource(position=Vector(), direction=sourceDirection, diameter=1, N=10)
+        directionalSource = DirectionalSource(position=Vector(), direction=sourceDirection, diameter=1, N=10,
+                                              useHardwareAcceleration=False)
         for photon in directionalSource.photons:
             self.assertEqual(sourceDirection, photon.direction)
 
@@ -155,7 +158,7 @@ class TestDirectionalSource(unittest.TestCase):
         sourcePosition = Vector(3, 3, 0)
         sourceDiameter = 2
         directionalSourceTowardsY = DirectionalSource(position=sourcePosition, direction=Vector(0, 1, 0),
-                                                      diameter=sourceDiameter, N=10)
+                                                      diameter=sourceDiameter, N=10, useHardwareAcceleration=False)
         for photon in directionalSourceTowardsY.photons:
             self.assertTrue(np.isclose(photon.position.y, sourcePosition.y))
             self.assertTrue(photon.position.x <= sourcePosition.x + sourceDiameter / 2)
@@ -182,8 +185,8 @@ class TestDivergentSource(unittest.TestCase):
         np.random.seed(0)
         sourcePosition = Vector(3, 3, 0)
         sourceDiameter = 2
-        divergentSourceTowardsY = DivergentSource(position=sourcePosition, direction=Vector(0, 1, 0),
-                                                    diameter=sourceDiameter, divergence=0.2, N=10)
+        divergentSourceTowardsY = DivergentSource(sourcePosition, Vector(0, 1, 0), sourceDiameter,
+                                                  divergence=0.2, N=10, useHardwareAcceleration=False)
         for photon in divergentSourceTowardsY.photons:
             self.assertTrue(np.isclose(photon.position.y, sourcePosition.y))
             self.assertTrue(photon.position.x <= sourcePosition.x + sourceDiameter / 2)
@@ -196,7 +199,8 @@ class TestDivergentSource(unittest.TestCase):
 
     def testGivenNoDivergence_shouldHavePhotonsAllPointingInTheSourceDirection(self):
         sourceDirection = Vector(1, 0, 0)
-        divergentSource = DivergentSource(position=Vector(), direction=sourceDirection, diameter=1, divergence=0, N=10)
+        divergentSource = DivergentSource(position=Vector(), direction=sourceDirection, diameter=1, divergence=0, N=10,
+                                          useHardwareAcceleration=False)
         for photon in divergentSource.photons:
             self.assertEqual(sourceDirection, photon.direction)
 
@@ -204,7 +208,7 @@ class TestDivergentSource(unittest.TestCase):
         sourceDirection = Vector(1, 0, 0)
         divergence = np.pi/4
         divergentSource = DivergentSource(position=Vector(), direction=sourceDirection, diameter=1,
-                                          divergence=divergence, N=10)
+                                          divergence=divergence, N=10, useHardwareAcceleration=False)
         minDot = np.cos(divergence/2)
         for photon in divergentSource.photons:
             dot = photon.direction.dot(sourceDirection)
