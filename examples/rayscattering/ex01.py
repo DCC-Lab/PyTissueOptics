@@ -1,17 +1,17 @@
 from pytissueoptics import *
 
-TITLE = "PencilSource propagation through 3 layers of tissue"
+TITLE = "PencilSource propagation through a multi-layered tissue"
 
-DESCRIPTION = """ Here we simulate the propagation of a pencil source through a custom tissue called PhantomTissue.
-This tissue is composed of a stacked cuboid with 3 layers of different material.
-Then we propagate the PencilSource photons in the tissue and then show the distribution of the energy in the tissue at various locations.
-"""
+DESCRIPTION = """ Propagation of a pencil source through a sample tissue called PhantomTissue. This tissue is composed 
+of a stacked cuboid made of 3 layers of different material. """
 
 
 def exampleCode():
+    N = 100000 if hardwareAccelerationIsAvailable() else 1000
+
     tissue = samples.PhantomTissue()
     logger = EnergyLogger(tissue)
-    source = PencilPointSource(position=Vector(0, 0, -1), direction=Vector(0, 0, 1), N=10000)
+    source = PencilPointSource(position=Vector(0, 0, -1), direction=Vector(0, 0, 1), N=N)
 
     source.propagate(tissue, logger=logger)
 

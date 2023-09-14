@@ -3,7 +3,7 @@ from pytissueoptics import *
 import numpy as np
 
 
-N = 500000
+N = 500000 if hardwareAccelerationIsAvailable() else 2000
 
 scene = samples.PhantomTissue()
 source = DivergentSource(position=Vector(0, 0, -0.1), direction=Vector(0, 0, 1), N=N,

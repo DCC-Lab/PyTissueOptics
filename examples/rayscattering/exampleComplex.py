@@ -4,12 +4,12 @@ from pytissueoptics import *
 HIGH_SCATTERING = True
 
 if HIGH_SCATTERING:
-    N = 10000
+    N = 10000 if hardwareAccelerationIsAvailable() else 200
 
     material1 = ScatteringMaterial(mu_s=20, mu_a=0.1, g=0.9, n=1.4)
     material2 = ScatteringMaterial(mu_s=30, mu_a=0.2, g=0.9, n=1.7)
 else:
-    N = 200000
+    N = 200000 if hardwareAccelerationIsAvailable() else 2000
 
     material1 = ScatteringMaterial(mu_s=1.5, mu_a=1, g=0.9, n=1.4)
     material2 = ScatteringMaterial(mu_s=2.5, mu_a=1, g=0.9, n=1.7)

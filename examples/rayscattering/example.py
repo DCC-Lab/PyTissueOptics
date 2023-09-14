@@ -3,10 +3,11 @@ from pytissueoptics import *
 import numpy as np
 
 np.random.seed(15)
+N = 100000 if hardwareAccelerationIsAvailable() else 1000
 
 tissue = samples.PhantomTissue()
 source = PencilPointSource(position=Vector(0, 0, -1),
-                           direction=Vector(0, 0, 1), N=2000)
+                           direction=Vector(0, 0, 1), N=N)
 logger = EnergyLogger(tissue)
 
 source.propagate(tissue, logger=logger)
