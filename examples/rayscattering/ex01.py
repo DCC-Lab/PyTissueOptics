@@ -1,4 +1,3 @@
-import env
 from pytissueoptics import *
 
 TITLE = "PencilSource propagation through 3 layers of tissue"
@@ -28,4 +27,5 @@ def exampleCode():
 
 
 if __name__ == "__main__":
+    import env
     exampleCode()

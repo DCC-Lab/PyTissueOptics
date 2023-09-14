@@ -1,4 +1,3 @@
-import env
 from pytissueoptics import *
 
 TITLE = "Propagation in a custom layer stack."
@@ -33,4 +32,5 @@ def exampleCode():
 
 
 if __name__ == "__main__":
+    import env
     exampleCode()

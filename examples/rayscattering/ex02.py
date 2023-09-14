@@ -1,6 +1,4 @@
-import env
 from pytissueoptics import *
-import math
 
 TITLE = "Hardware Accelerated Monte Carlo in Infinite Medium"
 
@@ -13,6 +11,8 @@ it is not possible to view the data in 3D without binning as this generates too 
 
 
 def exampleCode():
+    import math
+
     myMaterial = ScatteringMaterial(mu_s=30.0, mu_a=0.1, g=0.9)
     tissue = samples.InfiniteTissue(myMaterial)
 
@@ -29,4 +29,5 @@ def exampleCode():
 
 
 if __name__ == "__main__":
+    import env
     exampleCode()

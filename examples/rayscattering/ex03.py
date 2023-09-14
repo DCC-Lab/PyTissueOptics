@@ -1,4 +1,3 @@
-import env
 from pytissueoptics import *
 
 TITLE = "Propagate in a custom scene and play with focal of different objects." \
@@ -43,4 +42,5 @@ def exampleCode():
 
 
 if __name__ == "__main__":
+    import env
     exampleCode()
