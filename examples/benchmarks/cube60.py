@@ -16,9 +16,9 @@ DESCRIPTION = """ Pencil source propagation through a homogeneous cube of size 6
 def exampleCode():
     import numpy as np
     np.random.seed(9265358)
-    N = 10000 if hardwareAccelerationIsAvailable() else 1000
+    N = 1000000 if hardwareAccelerationIsAvailable() else 1000
 
-    tissue = ScatteringScene([Cube(60, material=ScatteringMaterial(mu_a=0.002, mu_s=5, g=0.9, n=1))])
+    tissue = ScatteringScene([Cube(60, material=ScatteringMaterial(mu_a=0.005, mu_s=1, g=0.01, n=1))])
     logger = EnergyLogger(tissue, keep3D=False, defaultBinSize=0.1)
     source = PencilPointSource(position=Vector(0, 0, 10), direction=Vector(0, 0, 1), N=N)
 
