@@ -41,7 +41,7 @@ class CLConfig:
         self._load()
 
         try:
-            self._clContext = cl.create_some_context()
+            cl.create_some_context(interactive=False)
         except cl.LogicError as e:
             warnings.warn("Warning: PyOpenCL is installed, but no OpenCL drivers were found. ")
             raise e
@@ -186,7 +186,10 @@ class CLConfig:
 
     @property
     def _devices(self) -> List[cl.Device]:
-        return self._clContext.devices
+        devices = []
+        for platform in cl.get_platforms():
+            devices += platform.get_devices()
+        return devices
 
     @property
     def DEVICE_INDEX(self):
@@ -199,7 +202,7 @@ class CLConfig:
 
     @property
     def device(self) -> cl.Device:
-        return self._clContext.devices[self.DEVICE_INDEX]
+        return self._devices[self.DEVICE_INDEX]
 
     @property
     def N_WORK_UNITS(self):
@@ -242,7 +245,7 @@ class CLConfig:
 
     @property
     def clContext(self):
-        return self._clContext
+        return cl.Context([self.device])
 
     def showAvailableDevices(self):
         print("Available devices:")
