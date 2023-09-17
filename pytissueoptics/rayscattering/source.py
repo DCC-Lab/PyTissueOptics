@@ -44,6 +44,8 @@ class Source:
         self._saveLogger(logger)
 
     def _propagateCPU(self, scene: ScatteringScene, logger: Logger = None, showProgress: bool = True):
+        if showProgress:
+            print(f"Propagating {self._N} photons without hardware acceleration...")
         intersectionFinder = FastIntersectionFinder(scene)
 
         for i in progressBar(range(self._N), desc="Propagating photons", disable=not showProgress):
@@ -97,6 +99,8 @@ class Source:
 
     def _propagateOpenCL(self, IPP: float, scene: ScatteringScene, logger: Logger = None,
                          showProgress: bool = True):
+        if showProgress:
+            print(f"Propagating {self._N} photons with hardware acceleration on device {CONFIG.device.name}...")
         self._photons.setContext(scene, self._environment, logger=logger)
         self._photons.propagate(IPP=IPP, verbose=showProgress)
 
