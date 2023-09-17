@@ -8,3 +8,4 @@ pyqt5
 traitsui <= 7.4.3
 vtk == 9.2.2
 mayavi == 4.8.1
+Pygments
