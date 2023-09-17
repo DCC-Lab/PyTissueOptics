@@ -8,7 +8,7 @@ rm dist/*; python setup.py sdist bdist_wheel; python -m twine upload dist/*
 
 setuptools.setup(
     name="pytissueoptics",
-    version="2.0.0",
+    version="2.0.0-beta.1",
     url="https://github.com/DCC-Lab/PyTissueOptics",
     authors=["Marc-Andre Vigneault", "Ludovick Begin", "Daniel Cote"],
     authors_emails=["marc-andre.vigneault.2@ulaval.ca", "ludovick.begin.1@ulaval.ca", "dccote@cervo.ulaval.ca"],
