@@ -6,9 +6,12 @@ from typing import List
 
 try:
     import pyopencl as cl
-
     OPENCL_AVAILABLE = True
 except ImportError:
+    class DummyCL:
+        def __getattr__(self, item):
+            return None
+    cl = DummyCL()
     OPENCL_AVAILABLE = False
 
 warnings.formatwarning = lambda msg, *args, **kwargs: f'{msg}\n'
