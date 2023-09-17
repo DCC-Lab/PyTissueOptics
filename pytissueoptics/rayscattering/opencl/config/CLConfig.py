@@ -72,10 +72,10 @@ class CLConfig:
 
     def _validateDeviceIndex(self):
         numberOfDevices = len(self._devices)
-        if self._DEVICE_INDEX is not None:
-            if self._DEVICE_INDEX not in range(numberOfDevices):
+        if self.DEVICE_INDEX is not None:
+            if self.DEVICE_INDEX not in range(numberOfDevices):
                 warnings.warn(
-                    f"Invalid device index {self._DEVICE_INDEX}. Resetting to 'null' for automatic selection.")
+                    f"Invalid device index {self.DEVICE_INDEX}. Resetting to 'null' for automatic selection.")
                 self._config["DEVICE_INDEX"] = None
                 return self._validateDeviceIndex()
         elif numberOfDevices == 0:
@@ -83,14 +83,14 @@ class CLConfig:
                              "disable hardware acceleration by creating a light source with the argument "
                              "`useHardwareAcceleration=False`.")
         elif numberOfDevices == 1:
-            self._showAvailableDevices()
+            self.showAvailableDevices()
             warnings.warn(
                 f"Using the only available OpenCL device 0 ({self._devices[0].name}). \n\tIf your desired device "
                 f"doesn't show, it may be because its OpenCL drivers are not installed. \n\tTo reset device selection, "
                 f"reset DEVICE_INDEX parameter to 'null' in '{OPENCL_CONFIG_RELPATH}'.")
             self._config["DEVICE_INDEX"] = 0
         else:
-            self._showAvailableDevices()
+            self.showAvailableDevices()
             deviceIndex = int(input(f"Please select your device by entering the corresponding index between "
                                     f"[0-{numberOfDevices - 1}]: "))
             assert deviceIndex in range(numberOfDevices), f"Invalid device index '{deviceIndex}'. Not in " \
@@ -189,12 +189,17 @@ class CLConfig:
         return self._clContext.devices
 
     @property
-    def _DEVICE_INDEX(self):
+    def DEVICE_INDEX(self):
         return self._config["DEVICE_INDEX"]
+
+    @DEVICE_INDEX.setter
+    def DEVICE_INDEX(self, value: int):
+        self._config["DEVICE_INDEX"] = value
+        self._validateDeviceIndex()
 
     @property
     def device(self) -> cl.Device:
-        return self._clContext.devices[self._DEVICE_INDEX]
+        return self._clContext.devices[self.DEVICE_INDEX]
 
     @property
     def N_WORK_UNITS(self):
@@ -211,13 +216,25 @@ class CLConfig:
             return None
         return maxMemoryMB * 1024 ** 2
 
+    @MAX_MEMORY.setter
+    def MAX_MEMORY(self, memoryInMB: int):
+        self._config["MAX_MEMORY_MB"] = memoryInMB
+
     @property
     def IPP_TEST_N_PHOTONS(self):
         return self._config["IPP_TEST_N_PHOTONS"]
 
+    @IPP_TEST_N_PHOTONS.setter
+    def IPP_TEST_N_PHOTONS(self, value: int):
+        self._config["IPP_TEST_N_PHOTONS"] = value
+
     @property
     def BATCH_LOAD_FACTOR(self):
         return self._config["BATCH_LOAD_FACTOR"]
+
+    @BATCH_LOAD_FACTOR.setter
+    def BATCH_LOAD_FACTOR(self, value: float):
+        self._config["BATCH_LOAD_FACTOR"] = value
 
     @property
     def WEIGHT_THRESHOLD(self):
@@ -227,7 +244,7 @@ class CLConfig:
     def clContext(self):
         return self._clContext
 
-    def _showAvailableDevices(self):
+    def showAvailableDevices(self):
         print("Available devices:")
         for i, device in enumerate(self._devices):
             print(f"... Device [{i}]: {device.name} ({device.global_mem_size // 1024 ** 2} MB "
