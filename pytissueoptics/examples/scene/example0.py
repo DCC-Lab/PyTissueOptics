@@ -1,3 +1,5 @@
+import env
+
 TITLE = "Explore different Shapes"
 
 DESCRIPTION = """  
@@ -20,5 +22,4 @@ def exampleCode():
 
 
 if __name__ == "__main__":
-    import env
     exampleCode()

@@ -1,3 +1,4 @@
+import env
 from pytissueoptics import *
 
 TITLE = "Sphere inside a cube"
@@ -31,5 +32,4 @@ def exampleCode():
 
 
 if __name__ == "__main__":
-    import env
     exampleCode()

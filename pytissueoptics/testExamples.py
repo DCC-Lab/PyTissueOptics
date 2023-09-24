@@ -15,9 +15,9 @@ class TestExamples(unittest.TestCase):
                 self.assertTrue(hasattr(module, "TITLE"))
                 self.assertTrue(hasattr(module, "DESCRIPTION"))
                 self.assertTrue(hasattr(module, "exampleCode"))
-                self.assertTrue(srcCode.startswith("from pytissueoptics import *"))
+                self.assertTrue(srcCode.startswith("import env\nfrom pytissueoptics import *"))
                 self.assertTrue(srcCode.endswith("if __name__ == \"__main__\":\n" +
-                                                 "    import env\n" + "    exampleCode()\n"))
+                                                 "    exampleCode()\n"))
 
     def testLoadExamples(self):
         allExamples = loadExamples()

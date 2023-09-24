@@ -1,3 +1,5 @@
+import env
+
 TITLE = "Transforms on a Solid"
 
 DESCRIPTION = """  Translation Transform and Rotation Transform can be applied on Solids.
@@ -21,5 +23,4 @@ def exampleCode():
 
 
 if __name__ == "__main__":
-    import env
     exampleCode()

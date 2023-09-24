@@ -1,5 +1,6 @@
 import os
 import re
+import sys
 import importlib
 from dataclasses import dataclass
 from typing import List
@@ -13,6 +14,8 @@ EXAMPLE_FILE_PATTERN = r"^(ex\d+)\.py$"
 EXAMPLE_DIR = os.path.join(os.path.dirname(__file__), EXAMPLE_MODULE)
 EXAMPLE_FILES = [file for file in os.listdir(EXAMPLE_DIR) if re.match(EXAMPLE_FILE_PATTERN, file)]
 EXAMPLE_FILES.sort()
+
+sys.path.insert(0, EXAMPLE_DIR)
 
 
 @dataclass
