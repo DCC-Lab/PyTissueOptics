@@ -29,7 +29,3 @@ class TestExamples(unittest.TestCase):
                 self.assertTrue(example.description)
                 self.assertTrue(example.func)
                 self.assertTrue(example.sourceCode)
-
-
-if __name__ == '__main__':
-    unittest.main()

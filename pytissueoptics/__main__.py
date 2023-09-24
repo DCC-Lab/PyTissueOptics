@@ -3,7 +3,7 @@ import sys
 import argparse
 
 from pytissueoptics import __version__
-from examples import loadExamples
+from pytissueoptics.examples import loadExamples
 
 ap = argparse.ArgumentParser(prog="python -m pytissueoptics", description="Run PyTissueOptics examples. ")
 ap.add_argument("-v", "--version", action="version", version=f"PyTissueOptics {__version__}")

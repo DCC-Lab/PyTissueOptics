@@ -107,7 +107,7 @@ offers you. With the new OpenCL implementation, speed is not an issue anymore, s
 ## Examples
 
 ### Multi-layered phantom tissue
-Located at `examples/rayscattering/accelerated/exampleSimple.py`.
+Located at `pytissueoptics/examples/rayscattering/ex01.py`.
 Using a pre-defined tissue from the `samples` module.
 
 ```python

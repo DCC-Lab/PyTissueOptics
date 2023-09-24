@@ -28,7 +28,7 @@ def loadExamples() -> List[Example]:
     allExamples = []
     for file in EXAMPLE_FILES:
         name = re.match(EXAMPLE_FILE_PATTERN, file).group(1)
-        module = importlib.import_module(f"examples.{EXAMPLE_MODULE}.{name}")
+        module = importlib.import_module(f"pytissueoptics.examples.{EXAMPLE_MODULE}.{name}")
         with open(os.path.join(EXAMPLE_DIR, file), 'r') as f:
             srcCode = f.read()
         pattern = r"def exampleCode\(\):\s*(.*?)\s*if __name__ == \"__main__\":"
