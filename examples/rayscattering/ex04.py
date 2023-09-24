@@ -1,16 +1,14 @@
-import env
 from pytissueoptics import *
 
-TITLE = "Propagation in a custom layer stack."
+TITLE = "Custom layer stack"
 
-DESCRIPTION = """  
-This example shows how to make a layer stack. You initialize multiple Cuboid() and stack them in a layer stack.
-You can do this using cuboid.stack(secondCuboid). The cuboid sides on the stacked face has to have the same dimensions
-on both cuboids.
-"""
+DESCRIPTION = """ This example shows how to make a layer stack. You initialize multiple Cuboid() and stack them in a 
+layer stack. You can do this using cuboid.stack(secondCuboid). The stacked face need to have the same size on both 
+cuboids. """
 
 
 def exampleCode():
+    N = 100000 if hardwareAccelerationIsAvailable() else 500
     materialLayer1 = ScatteringMaterial(mu_s=2, mu_a=0.5, g=0.7, n=1.3)
     materialLayer2 = ScatteringMaterial(mu_s=5, mu_a=0.8, g=0.8, n=1.4)
     materialLayer3 = ScatteringMaterial(mu_s=50, mu_a=2.5, g=0.9, n=1.5)
@@ -24,7 +22,7 @@ def exampleCode():
     tissue = ScatteringScene([stackedTissue])
 
     logger = EnergyLogger(tissue)
-    source = PencilPointSource(position=Vector(0, 0, -5), direction=Vector(0, 0, 1), N=500)
+    source = PencilPointSource(position=Vector(0, 0, -5), direction=Vector(0, 0, 1), N=N)
     source.propagate(tissue, logger)
 
     viewer = Viewer(tissue, source, logger)
@@ -33,4 +31,5 @@ def exampleCode():
 
 
 if __name__ == "__main__":
+    import env
     exampleCode()

@@ -24,3 +24,7 @@ def validateOpenCL() -> bool:
 
     CONFIG.validate()
     return True
+
+
+def hardwareAccelerationIsAvailable() -> bool:
+    return OPENCL_AVAILABLE and OPENCL_OK

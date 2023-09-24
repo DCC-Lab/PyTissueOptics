@@ -1,5 +1,3 @@
-import env
-
 TITLE = "Load a .obj wavefront file"
 
 DESCRIPTION = """ """
@@ -16,4 +14,5 @@ def exampleCode():
 
 
 if __name__ == "__main__":
+    import env
     exampleCode()

@@ -1,11 +1,10 @@
-import env
 from pytissueoptics import *
 
 TITLE = "Propagate in a custom scene and play with focal of different objects." \
         "Learn to save and load your data so you don't have to simulate again."
 
 DESCRIPTION = """  
-There are Cuboid() which serve as screens for visualization, and an Ellipsoid() as a lens. They all go into a 
+Thin Cuboid solids are used as screens for visualization, and an Ellipsoid() as a lens. They all go into a 
 RayScatteringScene which takes a list of solid. We can display our scene before propagation. Then, we repeat the
 usual steps of propagation. By changing the index 'n' of the lens material, we can see how the focal is affected.
 
@@ -16,6 +15,8 @@ the different views and information the object Stats provides.
 
 
 def exampleCode():
+    N = 100000 if hardwareAccelerationIsAvailable() else 2000
+
     glassMaterial = ScatteringMaterial(mu_s=0.0, mu_a=0, g=0.7, n=1.34)
     absorptiveMaterial = ScatteringMaterial(mu_s=1.0, mu_a=0.5, g=1.0)
     blockMaterial = ScatteringMaterial(mu_s=1.0, mu_a=10, g=0.7, n=1.0)
@@ -30,7 +31,7 @@ def exampleCode():
     myCustomScene.display()
 
     logger = EnergyLogger(myCustomScene, "ex03.log")
-    source = DirectionalSource(position=Vector(-3, 0, 0), direction=Vector(1, 0, 0), diameter=1, N=10000)
+    source = DirectionalSource(position=Vector(-3, 0, 0), direction=Vector(1, 0, 0), diameter=1, N=N)
     source.propagate(myCustomScene, logger)
 
     viewer = Viewer(myCustomScene, source, logger)
@@ -43,4 +44,5 @@ def exampleCode():
 
 
 if __name__ == "__main__":
+    import env
     exampleCode()

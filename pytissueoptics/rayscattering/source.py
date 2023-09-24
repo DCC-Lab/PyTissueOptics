@@ -18,7 +18,7 @@ from pytissueoptics.scene.viewer import MayaviViewer
 
 
 class Source:
-    def __init__(self, position: Vector, N: int, useHardwareAcceleration: bool = False):
+    def __init__(self, position: Vector, N: int, useHardwareAcceleration: bool = True):
         self._position = position
         self._N = N
         self._photons: Union[List[Photon], CLPhotons] = []
@@ -175,7 +175,7 @@ class Source:
 
 class DirectionalSource(Source):
     def __init__(self, position: Vector, direction: Vector, diameter: float, N: int,
-                 useHardwareAcceleration: bool = False):
+                 useHardwareAcceleration: bool = True):
         self._diameter = diameter
         self._direction = direction
         self._direction.normalize()
@@ -219,7 +219,7 @@ class DirectionalSource(Source):
 
 
 class PencilPointSource(DirectionalSource):
-    def __init__(self, position: Vector, direction: Vector, N: int, useHardwareAcceleration: bool = False):
+    def __init__(self, position: Vector, direction: Vector, N: int, useHardwareAcceleration: bool = True):
         super().__init__(position=position, direction=direction, diameter=0, N=N,
                          useHardwareAcceleration=useHardwareAcceleration)
 
@@ -238,7 +238,7 @@ class IsotropicPointSource(Source):
 
 class DivergentSource(DirectionalSource):
     def __init__(self, position: Vector, direction: Vector, diameter: float, divergence: float, N: int,
-                 useHardwareAcceleration: bool = False):
+                 useHardwareAcceleration: bool = True):
         self._divergence = divergence
 
         super().__init__(position=position, direction=direction, diameter=diameter, N=N,
