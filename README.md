@@ -39,6 +39,7 @@ PyTissueOptics can be installed via `pip` or by cloning the repository.
 ### Installing the previous release
 > Currently, this `pip` version is outdated. We recommend installing the development version.
 ```shell
+pip install --upgrade pip
 pip install pytissueoptics
 ```
 
