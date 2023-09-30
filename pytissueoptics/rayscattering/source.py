@@ -15,9 +15,10 @@ from pytissueoptics.scene.intersection import FastIntersectionFinder
 from pytissueoptics.scene.logger import Logger
 from pytissueoptics.scene.utils import progressBar
 from pytissueoptics.scene.viewer import MayaviViewer
+from pytissueoptics.scene.viewer import Displayable
 
 
-class Source:
+class Source(Displayable):
     def __init__(self, position: Vector, N: int, useHardwareAcceleration: bool = True):
         self._position = position
         self._N = N
