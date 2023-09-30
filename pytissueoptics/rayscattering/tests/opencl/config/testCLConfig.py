@@ -27,7 +27,7 @@ class TestCLConfig(unittest.TestCase):
         with self.assertWarns(UserWarning):
             config = clc.CLConfig()
         self.assertEqual(None, config.N_WORK_UNITS)
-        self.assertEqual(None, config.MAX_MEMORY)
+        self.assertEqual(None, config.MAX_MEMORY_MB)
         self.assertEqual(1000, config.IPP_TEST_N_PHOTONS)
         self.assertEqual(0.20, config.BATCH_LOAD_FACTOR)
 
@@ -47,8 +47,8 @@ class TestCLConfig(unittest.TestCase):
         config = clc.CLConfig()
         with self.assertWarns(UserWarning):
             config.validate()
-        self.assertIsNotNone(config.MAX_MEMORY)
-        self.assertNotEqual(0, config.MAX_MEMORY)
+        self.assertIsNotNone(config.MAX_MEMORY_MB)
+        self.assertNotEqual(0, config.MAX_MEMORY_MB)
 
     @tempConfigPath
     def testGivenFileIsMissingParameter_whenValidate_shouldResetDefaultValueAndRaise(self):
@@ -70,4 +70,4 @@ class TestCLConfig(unittest.TestCase):
         with self.assertRaises(ValueError):
             config.validate()
         config = clc.CLConfig()
-        self.assertIsNone(config.MAX_MEMORY)
+        self.assertIsNone(config.MAX_MEMORY_MB)

@@ -90,7 +90,7 @@ class CLConfig:
             warnings.warn(
                 f"Using the only available OpenCL device 0 ({self._devices[0].name}). \n\tIf your desired device "
                 f"doesn't show, it may be because its OpenCL drivers are not installed. \n\tTo reset device selection, "
-                f"reset DEVICE_INDEX parameter to 'null' in '{OPENCL_CONFIG_RELPATH}'.")
+                f"reset global CONFIG.DEVICE_INDEX parameter to 'None'.")
             self._config["DEVICE_INDEX"] = 0
         else:
             self.showAvailableDevices()
@@ -116,9 +116,8 @@ class CLConfig:
             else:
                 self._config["MAX_MEMORY_MB"] = DEFAULT_MAX_MEMORY_MB
                 warnings.warn(f"Setting MAX_MEMORY_MB to {self._config['MAX_MEMORY_MB']} MB to limit out-of-memory "
-                              f"errors even though your device has a capacity of {maxDeviceMemoryMB} MB. \n\tIf you "
-                              f"want to allow for more memory, you can manually change this value inside the config "
-                              f"file at '{OPENCL_CONFIG_RELPATH}'.")
+                              f"errors even though your device has a capacity of {maxDeviceMemoryMB} MB. \n\tYou can "
+                              f"change this global parameter under `CONFIG.MAX_MEMORY_MB`.")
             self.save()
 
     def _autoSetNWorkUnits(self):
@@ -136,8 +135,8 @@ class CLConfig:
             self.AUTO_SAVE = True
             self._config["N_WORK_UNITS"] = None
             self.save()
-            raise ValueError(f"The automatic test for optimal N_WORK_UNITS failed. Please manually run the test "
-                             f"script 'testWorkUnits.py' and set N_WORK_UNITS in the config file at "
+            raise ValueError(f"The automatic test for optimal N_WORK_UNITS failed. Please retry after adressing the error "
+                             f"or manually set N_WORK_UNITS in the config file at "
                              f"'{OPENCL_CONFIG_RELPATH}'. \n... Error message: {e}")
         self._processOptimalNWorkUnits(optimalNWorkUnits)
         self.save()
@@ -216,14 +215,14 @@ class CLConfig:
         self._config["N_WORK_UNITS"] = value
 
     @property
-    def MAX_MEMORY(self):
+    def MAX_MEMORY_MB(self):
         maxMemoryMB = self._config["MAX_MEMORY_MB"]
         if maxMemoryMB is None:
             return None
-        return maxMemoryMB * 1024 ** 2
+        return maxMemoryMB
 
-    @MAX_MEMORY.setter
-    def MAX_MEMORY(self, memoryInMB: int):
+    @MAX_MEMORY_MB.setter
+    def MAX_MEMORY_MB(self, memoryInMB: int):
         self._config["MAX_MEMORY_MB"] = memoryInMB
 
     @property
