@@ -5,6 +5,7 @@ from mockito import mock, verify, when
 
 from pytissueoptics.scene.geometry import Vector, Quad, Polygon, Vertex, Environment
 from pytissueoptics.scene.geometry import primitives
+from pytissueoptics.scene.geometry.rotation import Rotation
 from pytissueoptics.scene.solids import Solid
 from pytissueoptics.scene.geometry import SurfaceCollection, INTERFACE_KEY
 
@@ -120,6 +121,25 @@ class TestSolid(unittest.TestCase):
         self.assertAlmostEqual(expectedPosition.x, self.solid.position.x)
         self.assertAlmostEqual(expectedPosition.y, self.solid.position.y)
         self.assertAlmostEqual(expectedPosition.z, self.solid.position.z)
+    
+    def testWhenOrient_shouldRotateSolidToAlignWithGivenOrientation(self):
+        fromOrientation = Vector(0, 1, 1)
+        toOrientation = Vector(0, 1, -1)
+        expectedRotation = Rotation(-90, 0, 0)
+        self.solid.rotate = mock()
+
+        self.solid.orient(toOrientation, fromOrientation)
+        
+        self.solid.rotate.assert_called_once_with(expectedRotation.xTheta, expectedRotation.yTheta, expectedRotation.zTheta, None)
+
+    def testWhenOrientWithoutOriginalOrientation_shouldUsePositiveZAxisAsOriginalOrientation(self):
+        toOrientation = Vector(0, 1, -1)
+        expectedRotation = Rotation(-135, 0, 0)
+        self.solid.rotate = mock()
+
+        self.solid.orient(toOrientation)
+
+        self.solid.rotate.assert_called_once_with(expectedRotation.xTheta, expectedRotation.yTheta, expectedRotation.zTheta, None)
 
     def testWhenTranslate_shouldTranslateBBoxOfSolidAndPolygons(self):
         polygon = self.createPolygonMock()

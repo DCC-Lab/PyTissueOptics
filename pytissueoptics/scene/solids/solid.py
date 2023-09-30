@@ -128,6 +128,11 @@ class Solid:
         if self._smoothing:
             self.smooth()
 
+    def orient(self, finalOrientation: Vector, initialOrientation: Vector = Vector(0, 0, 1), rotationCenter: Vector = None):
+        """ Rotate the solid so that its direction is aligned with the given final orientation. """
+        rotation = Rotation.between(initialOrientation, finalOrientation)
+        self.rotate(rotation.xTheta, rotation.yTheta, rotation.zTheta, rotationCenter)
+
     def getEnvironment(self, surfaceLabel: str = None) -> Environment:
         if surfaceLabel:
             return self.surfaces.getInsideEnvironment(surfaceLabel)
