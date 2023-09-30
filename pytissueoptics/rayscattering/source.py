@@ -13,6 +13,8 @@ from pytissueoptics.scene.solids import Sphere
 from pytissueoptics.scene.geometry import Vector, Environment
 from pytissueoptics.scene.intersection import FastIntersectionFinder
 from pytissueoptics.scene.logger import Logger
+from pytissueoptics.scene.solids.cone import Cone
+from pytissueoptics.scene.solids.cylinder import Cylinder
 from pytissueoptics.scene.utils import progressBar
 from pytissueoptics.scene.viewer import MayaviViewer
 from pytissueoptics.scene.viewer import Displayable
@@ -162,7 +164,7 @@ class Source(Displayable):
         return self._N
 
     def addToViewer(self, viewer: MayaviViewer, size: float = 0.1,
-                    representation='surface', colormap='Wistia', opacity=0.8, **kwargs):
+                    representation='surface', colormap='Wistia', opacity=1.0, **kwargs):
         sphere = Sphere(radius=size/2, position=self._position)
         viewer.add(sphere, representation=representation, colormap=colormap, opacity=opacity, **kwargs)
 
@@ -194,6 +196,20 @@ class DirectionalSource(Source):
         positions = self._getInitialPositions()
         directions = self._getInitialDirections()
         return positions, directions
+
+    def addToViewer(self, viewer: MayaviViewer, size: float = 0.1, representation='surface', colormap='Wistia', opacity=1, **kwargs):
+        defaultSolidDirection = Vector(0, 0, 1)
+        baseHeight = 0.5 * size
+        baseCenter = self._position + defaultSolidDirection * baseHeight/2
+        base = Cylinder(radius=size/8, height=baseHeight, position=baseCenter)
+        coneHeight = size - baseHeight
+        coneCenter = self._position + defaultSolidDirection * (baseHeight + coneHeight/2)
+        arrow = Cone(position=coneCenter, radius=size/3, height=coneHeight)
+
+        base.orient(self._direction, rotationCenter=self._position)
+        arrow.orient(self._direction, rotationCenter=self._position)
+
+        viewer.add(base, arrow, representation=representation, colormap=colormap, opacity=opacity, **kwargs)
 
     def _getInitialPositions(self):
         return self._getUniformlySampledDisc(self._diameter) + self._position.array
