@@ -22,6 +22,13 @@ As discussed in the [why use this package](#why-use-this-package) section, compu
 - Discard 3D data (auto-binning to 2D views).
 - Independent 3D graphics framework under `scene`. 
 
+## Table of Contents
+- [Installation](#installation)
+- [Getting Started](#getting-started)
+- [Hardware Acceleration](#hardware-acceleration)
+- [Why Use This Package](#why-use-this-package)
+- [Examples](#examples)
+
 ## Installation
 Requires Python 3.6+ installed on the device.
 
