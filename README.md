@@ -43,8 +43,15 @@ pip install pytissueoptics
 ```
 
 ## Getting started
+A command-line interface is available to help you run examples and tests.
+```shell
+python -m pytissueoptics --help
+python -m pytissueoptics --list
+python -m pytissueoptics --examples 1,2,3
+python -m pytissueoptics --tests
+```
 
-To launch a simple simulation, follow these steps.
+To launch a simple simulation on your own, follow these steps.
 1. Import the `pytissueoptics` module
 2. Define the following objects:
     - `scene`: a `ScatteringScene` object, which defines the scene and the optical properties of the media, or use a pre-defined scene from the `samples` module. The scene takes in a list of `Solid` as its argument. These `Solid` will have a `ScatteringMaterial` and a position. This is clear in the examples below.
@@ -100,7 +107,7 @@ offers you. With the new OpenCL implementation, speed is not an issue anymore, s
 ## Examples
 
 ### Multi-layered phantom tissue
-Located at `examples/rayscattering/accelerated/exampleSimple.py`.
+Located at `pytissueoptics/examples/rayscattering/ex01.py`.
 Using a pre-defined tissue from the `samples` module.
 
 ```python

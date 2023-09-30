@@ -1,4 +1,5 @@
-from pytissueoptics import *
+import env
+from pytissueoptics import *    
 
 TITLE = "Divergent source propagation through a multi-layered tissue"
 
@@ -28,5 +29,4 @@ def exampleCode():
 
 
 if __name__ == "__main__":
-    import env
     exampleCode()

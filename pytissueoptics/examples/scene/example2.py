@@ -1,3 +1,5 @@
+import env
+
 TITLE = "Stacking Cuboids"
 
 DESCRIPTION = """  It is possible to stack multiple cuboids together, which will manage the interface materials.
@@ -24,5 +26,4 @@ def exampleCode():
 
 
 if __name__ == "__main__":
-    import env
     exampleCode() 

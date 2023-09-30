@@ -1,3 +1,4 @@
+import env
 from pytissueoptics import *
 
 TITLE = "Propagate in a custom scene and play with focal of different objects." \
@@ -13,10 +14,12 @@ At that point you can comment out the line ‘source.propagate()‘ if you don't
 the different views and information the object Stats provides.
 """
 
+# FIXME: does not work with hardware acceleration. Rays are passing through the lens without intersecting it.
+
 
 def exampleCode():
-    N = 100000 if hardwareAccelerationIsAvailable() else 2000
-
+    # N = 100000 if hardwareAccelerationIsAvailable() else 2000
+    N = 2000
     glassMaterial = ScatteringMaterial(mu_s=0.0, mu_a=0, g=0.7, n=1.34)
     absorptiveMaterial = ScatteringMaterial(mu_s=1.0, mu_a=0.5, g=1.0)
     blockMaterial = ScatteringMaterial(mu_s=1.0, mu_a=10, g=0.7, n=1.0)
@@ -30,8 +33,9 @@ def exampleCode():
 
     myCustomScene.display()
 
-    logger = EnergyLogger(myCustomScene, "ex03.log")
-    source = DirectionalSource(position=Vector(-3, 0, 0), direction=Vector(1, 0, 0), diameter=1, N=N)
+    logger = EnergyLogger(myCustomScene)
+    source = DirectionalSource(position=Vector(-3, 0, 0), direction=Vector(1, 0, 0), diameter=1, N=N,
+                               useHardwareAcceleration=False)
     source.propagate(myCustomScene, logger)
 
     viewer = Viewer(myCustomScene, source, logger)
@@ -44,5 +48,4 @@ def exampleCode():
 
 
 if __name__ == "__main__":
-    import env
     exampleCode()
