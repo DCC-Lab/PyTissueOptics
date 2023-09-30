@@ -23,7 +23,7 @@ def exampleCode():
     tissue = ScatteringScene([stackedTissue])
 
     logger = EnergyLogger(tissue)
-    source = PencilPointSource(position=Vector(0, 0, -5), direction=Vector(0, 0, 1), N=N)
+    source = PencilPointSource(position=Vector(0, 0, -2), direction=Vector(0, 0, 1), N=N, displaySize=0.5)
     source.propagate(tissue, logger)
 
     viewer = Viewer(tissue, source, logger)

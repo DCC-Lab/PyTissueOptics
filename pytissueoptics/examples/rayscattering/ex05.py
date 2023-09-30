@@ -19,7 +19,7 @@ def exampleCode():
     scene = ScatteringScene([cube, sphere])
 
     logger = EnergyLogger(scene)
-    source = DirectionalSource(position=Vector(0, 0, -2), direction=Vector(0, 0, 1), N=N, diameter=0.5)
+    source = DirectionalSource(position=Vector(0, 0, -2), direction=Vector(0, 0, 1), N=N, diameter=0.5, displaySize=0.25)
 
     source.propagate(scene, logger)
 

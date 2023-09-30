@@ -20,11 +20,11 @@ class ScatteringScene(Scene):
                             f"This is required for any RayScatteringScene. ")
         super().add(solid, position)
 
-    def show(self, source: Displayable = None, sourceSize: float = 0.1, **kwargs):
+    def show(self, source: Displayable = None, **kwargs):
         viewer = MayaviViewer()
         self.addToViewer(viewer, **kwargs)
         if source:
-            source.addToViewer(viewer, size=sourceSize)
+            source.addToViewer(viewer)
         viewer.show()
 
     def getEstimatedIPP(self, weightThreshold: float) -> float:

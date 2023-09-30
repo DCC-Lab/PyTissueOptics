@@ -30,12 +30,11 @@ def exampleCode():
 
     ellipsoid = Ellipsoid(a=0.5, b=2, c=2, position=Vector(-1, 0, 0), material=glassMaterial)
     myCustomScene = ScatteringScene([screen1, screen2, screen3, ellipsoid])
-
-    myCustomScene.show()
-
     logger = EnergyLogger(myCustomScene)
     source = DirectionalSource(position=Vector(-3, 0, 0), direction=Vector(1, 0, 0), diameter=1, N=N,
-                               useHardwareAcceleration=False)
+                               useHardwareAcceleration=False, displaySize=0.5)
+    myCustomScene.show(source=source)
+
     source.propagate(myCustomScene, logger)
 
     viewer = Viewer(myCustomScene, source, logger)
