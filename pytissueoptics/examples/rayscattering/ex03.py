@@ -31,7 +31,7 @@ def exampleCode():
     ellipsoid = Ellipsoid(a=0.5, b=2, c=2, position=Vector(-1, 0, 0), material=glassMaterial)
     myCustomScene = ScatteringScene([screen1, screen2, screen3, ellipsoid])
 
-    myCustomScene.display()
+    myCustomScene.show()
 
     logger = EnergyLogger(myCustomScene)
     source = DirectionalSource(position=Vector(-3, 0, 0), direction=Vector(1, 0, 0), diameter=1, N=N,

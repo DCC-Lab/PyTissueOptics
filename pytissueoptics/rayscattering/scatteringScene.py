@@ -22,7 +22,7 @@ class ScatteringScene(Scene):
     def addToViewer(self, viewer: MayaviViewer, representation='surface', colormap='bone', opacity=0.1, **kwargs):
         viewer.add(*self.solids, representation=representation, colormap=colormap, opacity=opacity, **kwargs)
 
-    def display(self):
+    def show(self):
         viewer = MayaviViewer()
         self.addToViewer(viewer)
         viewer.show()

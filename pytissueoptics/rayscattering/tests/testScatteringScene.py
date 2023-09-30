@@ -37,9 +37,9 @@ class TestScatteringScene(unittest.TestCase):
         verify(viewer).add(*scene.solids, ...)
 
     @patchMayaviShow
-    def testWhenDisplay_shouldDisplayWithMayaviViewer(self, mockShow, *args):
+    def testWhenShow_shouldShowInsideMayaviViewer(self, mockShow, *args):
         scene = ScatteringScene([Cuboid(1, 1, 1, material=ScatteringMaterial())])
-        scene.display()
+        scene.show()
 
         mockShow.assert_called_once()
 

@@ -15,6 +15,8 @@ def exampleCode():
     source = DivergentSource(position=Vector(0, 0, -0.1), direction=Vector(0, 0, 1), N=N,
                              diameter=0.1, divergence=0.4)
 
+    tissue.show()
+
     source.propagate(tissue, logger=logger)
 
     viewer = Viewer(tissue, source, logger)
