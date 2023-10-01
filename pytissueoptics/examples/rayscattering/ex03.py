@@ -14,36 +14,33 @@ At that point you can comment out the line ‘source.propagate()‘ if you don't
 the different views and information the object Stats provides.
 """
 
-# FIXME: does not work with hardware acceleration. Rays are passing through the lens without intersecting it.
-
 
 def exampleCode():
-    # N = 100000 if hardwareAccelerationIsAvailable() else 2000
-    N = 2000
+    N = 100000 if hardwareAccelerationIsAvailable() else 2000
     glassMaterial = ScatteringMaterial(mu_s=0.0, mu_a=0, g=0.7, n=1.34)
     absorptiveMaterial = ScatteringMaterial(mu_s=1.0, mu_a=0.5, g=1.0)
     blockMaterial = ScatteringMaterial(mu_s=1.0, mu_a=10, g=0.7, n=1.0)
+    
+    screen1 = Cuboid(a=4, b=4, c=0.1, position=Vector(0, 0, 3), material=absorptiveMaterial, label="Screen1")
+    screen2 = Cuboid(a=4, b=4, c=0.1, position=Vector(0, 0, 5), material=absorptiveMaterial, label="Screen2")
+    screen3 = Cuboid(a=4, b=4, c=0.1, position=Vector(0, 0, 10), material=blockMaterial, label="Screen3")
 
-    screen1 = Cuboid(a=0.1, b=4, c=4, position=Vector(3, 0, 0), material=absorptiveMaterial, label="Screen1")
-    screen2 = Cuboid(a=0.1, b=4, c=4, position=Vector(5, 0, 0), material=absorptiveMaterial, label="Screen2")
-    screen3 = Cuboid(a=0.1, b=4, c=4, position=Vector(10, 0, 0), material=blockMaterial, label="Screen3")
-
-    ellipsoid = Ellipsoid(a=0.5, b=2, c=2, position=Vector(-1, 0, 0), material=glassMaterial)
+    ellipsoid = Ellipsoid(a=2, b=2, c=0.5, position=Vector(0, 0, -1), material=glassMaterial)
     myCustomScene = ScatteringScene([screen1, screen2, screen3, ellipsoid])
-    logger = EnergyLogger(myCustomScene)
-    source = DirectionalSource(position=Vector(-3, 0, 0), direction=Vector(1, 0, 0), diameter=1, N=N,
-                               useHardwareAcceleration=False, displaySize=0.5)
+    source = DirectionalSource(position=Vector(0, 0, -3), direction=Vector(0, 0, 1), diameter=1, N=N, displaySize=0.5)
+
     myCustomScene.show(source=source)
 
+    logger = EnergyLogger(myCustomScene)
     source.propagate(myCustomScene, logger)
 
     viewer = Viewer(myCustomScene, source, logger)
     viewer.reportStats()
 
     viewer.show3D()
-    viewer.show2D(View2DProjectionX("Screen1"), logScale=False)
-    viewer.show2D(View2DSurfaceX("Screen2", "left", surfaceEnergyLeaving=False), logScale=False)
-    viewer.show2D(View2DProjectionX("Screen3"))
+    viewer.show2D(View2DProjectionZ("Screen1"), logScale=False)
+    viewer.show2D(View2DSurfaceZ("Screen2", "front", surfaceEnergyLeaving=False), logScale=False)
+    viewer.show2D(View2DProjectionZ("Screen3"))
 
 
 if __name__ == "__main__":
