@@ -23,7 +23,7 @@ setuptools.setup(
     packages=setuptools.find_packages(),
     install_requires=[
         'numpy',
-        'matplotlib',
+        'matplotlib<3.8.0',
         'tqdm',
         'mockito',
         'psutil',
