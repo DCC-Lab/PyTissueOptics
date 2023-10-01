@@ -162,7 +162,7 @@ class Stats:
         for surfaceLabel in self._logger.getSeenSurfaceLabels(solidLabel):
             energy += self._getSurfaceEnergyFromViews(solidLabel, surfaceLabel, leaving=leaving)
 
-        if utils.labelsEqual(self._sourceSolidLabel, solidLabel):
+        if utils.labelsEqual(self._sourceSolidLabel, solidLabel) and not leaving:
             energy += self.getPhotonCount()
         return energy
 
