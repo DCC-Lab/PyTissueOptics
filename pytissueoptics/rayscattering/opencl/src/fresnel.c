@@ -95,7 +95,7 @@ FresnelIntersection computeFresnelIntersection(float3 rayDirection, Intersection
     }
     fresnelIntersection.incidencePlane = normalize(fresnelIntersection.incidencePlane);
 
-    float thetaIn = acos(dot(normal, rayDirection));
+    float thetaIn = acos(clamp(dot(normal, rayDirection), -1.0f, 1.0f));
 
     _createFresnelIntersection(&fresnelIntersection, nIn, nOut, thetaIn, seeds, gid);
 
