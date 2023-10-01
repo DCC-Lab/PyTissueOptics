@@ -1,3 +1,5 @@
+import env
+
 TITLE = "Load a .obj wavefront file"
 
 DESCRIPTION = """ """
@@ -6,7 +8,7 @@ DESCRIPTION = """ """
 def exampleCode():
     from pytissueoptics.scene import loadSolid, MayaviViewer
 
-    solid = loadSolid("droid.obj")
+    solid = loadSolid("pytissueoptics/examples/scene/droid.obj")
 
     viewer = MayaviViewer()
     viewer.add(solid, representation="surface", showNormals=True, normalLength=0.2)
@@ -14,5 +16,4 @@ def exampleCode():
 
 
 if __name__ == "__main__":
-    import env
     exampleCode()

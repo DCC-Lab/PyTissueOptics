@@ -6,9 +6,11 @@ from pytissueoptics.scene.geometry import Environment
 from pytissueoptics.scene.geometry import Vector
 from pytissueoptics.scene.solids import Solid
 from pytissueoptics.scene.geometry import Polygon, BoundingBox, INTERFACE_KEY
+from pytissueoptics.scene.viewer.displayable import Displayable
+from pytissueoptics.scene.viewer.mayavi import MayaviViewer
 
 
-class Scene:
+class Scene(Displayable):
     def __init__(self, solids: List[Solid] = None, ignoreIntersections=False,
                  worldMaterial=None):
         self._solids = []
@@ -33,6 +35,9 @@ class Scene:
     @property
     def solids(self):
         return self._solids
+
+    def addToViewer(self, viewer: MayaviViewer, representation='surface', colormap='bone', opacity=0.1, **kwargs):
+        viewer.add(*self.solids, representation=representation, colormap=colormap, opacity=opacity, **kwargs)
 
     def getWorldEnvironment(self) -> Environment:
         return Environment(self._worldMaterial)
@@ -150,7 +155,7 @@ class Scene:
         if len(self._solids) == 0:
             return None
 
-        bbox = self._solids[0].getBoundingBox()
+        bbox = self._solids[0].getBoundingBox().copy()
         for solid in self._solids[1:]:
             bbox.extendTo(solid.getBoundingBox())
         return bbox

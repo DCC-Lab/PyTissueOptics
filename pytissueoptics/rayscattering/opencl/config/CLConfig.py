@@ -6,9 +6,12 @@ from typing import List
 
 try:
     import pyopencl as cl
-
     OPENCL_AVAILABLE = True
 except ImportError:
+    class DummyCL:
+        def __getattr__(self, item):
+            return None
+    cl = DummyCL()
     OPENCL_AVAILABLE = False
 
 warnings.formatwarning = lambda msg, *args, **kwargs: f'{msg}\n'
@@ -41,7 +44,7 @@ class CLConfig:
         self._load()
 
         try:
-            self._clContext = cl.create_some_context()
+            cl.create_some_context(interactive=False)
         except cl.LogicError as e:
             warnings.warn("Warning: PyOpenCL is installed, but no OpenCL drivers were found. ")
             raise e
@@ -72,10 +75,10 @@ class CLConfig:
 
     def _validateDeviceIndex(self):
         numberOfDevices = len(self._devices)
-        if self._DEVICE_INDEX is not None:
-            if self._DEVICE_INDEX not in range(numberOfDevices):
+        if self.DEVICE_INDEX is not None:
+            if self.DEVICE_INDEX not in range(numberOfDevices):
                 warnings.warn(
-                    f"Invalid device index {self._DEVICE_INDEX}. Resetting to 'null' for automatic selection.")
+                    f"Invalid device index {self.DEVICE_INDEX}. Resetting to 'null' for automatic selection.")
                 self._config["DEVICE_INDEX"] = None
                 return self._validateDeviceIndex()
         elif numberOfDevices == 0:
@@ -83,14 +86,14 @@ class CLConfig:
                              "disable hardware acceleration by creating a light source with the argument "
                              "`useHardwareAcceleration=False`.")
         elif numberOfDevices == 1:
-            self._showAvailableDevices()
+            self.showAvailableDevices()
             warnings.warn(
                 f"Using the only available OpenCL device 0 ({self._devices[0].name}). \n\tIf your desired device "
                 f"doesn't show, it may be because its OpenCL drivers are not installed. \n\tTo reset device selection, "
-                f"reset DEVICE_INDEX parameter to 'null' in '{OPENCL_CONFIG_RELPATH}'.")
+                f"reset global CONFIG.DEVICE_INDEX parameter to 'None'.")
             self._config["DEVICE_INDEX"] = 0
         else:
-            self._showAvailableDevices()
+            self.showAvailableDevices()
             deviceIndex = int(input(f"Please select your device by entering the corresponding index between "
                                     f"[0-{numberOfDevices - 1}]: "))
             assert deviceIndex in range(numberOfDevices), f"Invalid device index '{deviceIndex}'. Not in " \
@@ -113,9 +116,8 @@ class CLConfig:
             else:
                 self._config["MAX_MEMORY_MB"] = DEFAULT_MAX_MEMORY_MB
                 warnings.warn(f"Setting MAX_MEMORY_MB to {self._config['MAX_MEMORY_MB']} MB to limit out-of-memory "
-                              f"errors even though your device has a capacity of {maxDeviceMemoryMB} MB. \n\tIf you "
-                              f"want to allow for more memory, you can manually change this value inside the config "
-                              f"file at '{OPENCL_CONFIG_RELPATH}'.")
+                              f"errors even though your device has a capacity of {maxDeviceMemoryMB} MB. \n\tYou can "
+                              f"change this global parameter under `CONFIG.MAX_MEMORY_MB`.")
             self.save()
 
     def _autoSetNWorkUnits(self):
@@ -133,8 +135,8 @@ class CLConfig:
             self.AUTO_SAVE = True
             self._config["N_WORK_UNITS"] = None
             self.save()
-            raise ValueError(f"The automatic test for optimal N_WORK_UNITS failed. Please manually run the test "
-                             f"script 'testWorkUnits.py' and set N_WORK_UNITS in the config file at "
+            raise ValueError(f"The automatic test for optimal N_WORK_UNITS failed. Please retry after adressing the error "
+                             f"or manually set N_WORK_UNITS in the config file at "
                              f"'{OPENCL_CONFIG_RELPATH}'. \n... Error message: {e}")
         self._processOptimalNWorkUnits(optimalNWorkUnits)
         self.save()
@@ -186,15 +188,23 @@ class CLConfig:
 
     @property
     def _devices(self) -> List[cl.Device]:
-        return self._clContext.devices
+        devices = []
+        for platform in cl.get_platforms():
+            devices += platform.get_devices()
+        return devices
 
     @property
-    def _DEVICE_INDEX(self):
+    def DEVICE_INDEX(self):
         return self._config["DEVICE_INDEX"]
+
+    @DEVICE_INDEX.setter
+    def DEVICE_INDEX(self, value: int):
+        self._config["DEVICE_INDEX"] = value
+        self._validateDeviceIndex()
 
     @property
     def device(self) -> cl.Device:
-        return self._clContext.devices[self._DEVICE_INDEX]
+        return self._devices[self.DEVICE_INDEX]
 
     @property
     def N_WORK_UNITS(self):
@@ -205,19 +215,31 @@ class CLConfig:
         self._config["N_WORK_UNITS"] = value
 
     @property
-    def MAX_MEMORY(self):
+    def MAX_MEMORY_MB(self):
         maxMemoryMB = self._config["MAX_MEMORY_MB"]
         if maxMemoryMB is None:
             return None
-        return maxMemoryMB * 1024 ** 2
+        return maxMemoryMB
+
+    @MAX_MEMORY_MB.setter
+    def MAX_MEMORY_MB(self, memoryInMB: int):
+        self._config["MAX_MEMORY_MB"] = memoryInMB
 
     @property
     def IPP_TEST_N_PHOTONS(self):
         return self._config["IPP_TEST_N_PHOTONS"]
 
+    @IPP_TEST_N_PHOTONS.setter
+    def IPP_TEST_N_PHOTONS(self, value: int):
+        self._config["IPP_TEST_N_PHOTONS"] = value
+
     @property
     def BATCH_LOAD_FACTOR(self):
         return self._config["BATCH_LOAD_FACTOR"]
+
+    @BATCH_LOAD_FACTOR.setter
+    def BATCH_LOAD_FACTOR(self, value: float):
+        self._config["BATCH_LOAD_FACTOR"] = value
 
     @property
     def WEIGHT_THRESHOLD(self):
@@ -225,9 +247,9 @@ class CLConfig:
 
     @property
     def clContext(self):
-        return self._clContext
+        return cl.Context([self.device])
 
-    def _showAvailableDevices(self):
+    def showAvailableDevices(self):
         print("Available devices:")
         for i, device in enumerate(self._devices):
             print(f"... Device [{i}]: {device.name} ({device.global_mem_size // 1024 ** 2} MB "

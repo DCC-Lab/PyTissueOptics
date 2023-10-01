@@ -4,7 +4,11 @@ try:
     import pyopencl as cl
     import pyopencl.tools
 except ImportError:
-    pass
+    class DummyType:
+        def __getattr__(self, item):
+            return None
+    cl = DummyType()
+    cl.cltypes = DummyType()
 
 
 class CLObject:
@@ -20,7 +24,7 @@ class CLObject:
         self._HOST_buffer = None
         self._DEVICE_buffer = None
 
-    def build(self, device: 'cl.Device', context):
+    def build(self, device: cl.Device, context):
         if self.deviceBuffer is not None:
             if self._buildOnce:
                 return

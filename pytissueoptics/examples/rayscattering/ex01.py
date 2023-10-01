@@ -1,4 +1,5 @@
-from pytissueoptics import *
+import env
+from pytissueoptics import *    
 
 TITLE = "Divergent source propagation through a multi-layered tissue"
 
@@ -11,8 +12,10 @@ def exampleCode():
 
     tissue = samples.PhantomTissue()
     logger = EnergyLogger(tissue)
-    source = DivergentSource(position=Vector(0, 0, -0.1), direction=Vector(0, 0, 1), N=N,
-                             diameter=0.1, divergence=0.4)
+    source = DivergentSource(position=Vector(0, 0, -0.2), direction=Vector(0, 0, 1), N=N,
+                             diameter=0.1, divergence=0.4, displaySize=0.2)
+
+    tissue.show(source=source)
 
     source.propagate(tissue, logger=logger)
 
@@ -28,5 +31,4 @@ def exampleCode():
 
 
 if __name__ == "__main__":
-    import env
     exampleCode()

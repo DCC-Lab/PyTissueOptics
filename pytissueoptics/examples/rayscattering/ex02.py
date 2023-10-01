@@ -1,3 +1,4 @@
+import env
 from pytissueoptics import *
 
 TITLE = "Propagation in an Infinite Medium"
@@ -27,5 +28,4 @@ def exampleCode():
 
 
 if __name__ == "__main__":
-    import env
     exampleCode()

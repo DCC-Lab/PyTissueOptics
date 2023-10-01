@@ -91,8 +91,7 @@ class Viewer:
         return self._logger.listViews()
 
     def show3D(self, visibility=Visibility.AUTO, viewsVisibility: Union[ViewGroup, List[int]] = ViewGroup.SCENE,
-               pointCloudStyle=PointCloudStyle(), sourceSize: float = 0.1,
-               viewsSolidLabels: List[str] = None, viewsSurfaceLabels: List[str] = None,
+               pointCloudStyle=PointCloudStyle(), viewsSolidLabels: List[str] = None, viewsSurfaceLabels: List[str] = None,
                viewsLogScale: bool = True, viewsColormap: str = "viridis"):
         if not MAYAVI_AVAILABLE:
             utils.warn("Package 'mayavi' is not available. Please install it to use 3D visualizations.")
@@ -111,7 +110,7 @@ class Viewer:
             self._scene.addToViewer(self._viewer3D)
 
         if Visibility.SOURCE in visibility:
-            self._source.addToViewer(self._viewer3D, size=sourceSize)
+            self._source.addToViewer(self._viewer3D)
 
         if Visibility.POINT_CLOUD in visibility:
             self._addPointCloud(pointCloudStyle)

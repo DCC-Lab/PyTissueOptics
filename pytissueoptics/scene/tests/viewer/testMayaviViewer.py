@@ -33,11 +33,6 @@ class TestMayaviViewer(unittest.TestCase):
         self.viewer.addLogger(logger)
         self._assertViewerDisplays("logger_natural")
 
-    def testWhenAddScene_shouldDrawAllItsSolids(self):
-        scene = self._getTestScene()
-        self.viewer.addScene(scene)
-        self._assertViewerDisplays("scene_natural")
-
     def testGivenOpticsViewPoint_shouldDisplayFromOpticsViewPoint(self):
         self.viewer = MayaviViewer(viewPointStyle=ViewPointStyle.OPTICS)
         self.viewer.add(self._getSimpleSolid())

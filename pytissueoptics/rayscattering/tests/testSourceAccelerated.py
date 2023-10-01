@@ -47,7 +47,7 @@ class TestSourceAccelerated(unittest.TestCase):
         source = SinglePhotonSourceAccelerated()
 
         with self.assertWarns(UserWarning):
-            source.propagate(scene, logger)
+            source.propagate(scene, logger, showProgress=False)
 
     @tempTablePath
     @patch('pytissueoptics.rayscattering.source.CLPhotons')
@@ -58,7 +58,7 @@ class TestSourceAccelerated(unittest.TestCase):
         source = SinglePhotonSourceAccelerated()
 
         with self.assertWarns(UserWarning):
-            source.propagate(scene, logger)
+            source.propagate(scene, logger, showProgress=False)
 
         verify(self.photons).setContext(scene, self.SOURCE_ENV, logger=logger)
 
@@ -74,9 +74,9 @@ class TestSourceAccelerated(unittest.TestCase):
         experimentHash = hash((scene, source))
         IPPTable().updateIPP(experimentHash, N, IPP)
 
-        source.propagate(scene, logger)
+        source.propagate(scene, logger, showProgress=False)
 
-        verify(self.photons).propagate(IPP=IPP, verbose=True)
+        verify(self.photons).propagate(IPP=IPP, verbose=False)
 
     @tempTablePath
     @patch('pytissueoptics.rayscattering.source.CLPhotons')
@@ -96,10 +96,10 @@ class TestSourceAccelerated(unittest.TestCase):
         _LoggerClassMock.return_value = estimationLogger
 
         with self.assertWarns(UserWarning):
-            source.propagate(scene, self._createMockLogger())
+            source.propagate(scene, self._createMockLogger(), showProgress=False)
 
         verify(self.photons).propagate(IPP=IPPEstimate, verbose=False)
-        verify(self.photons).propagate(IPP=IPPMeasuredInTest, verbose=True)
+        verify(self.photons).propagate(IPP=IPPMeasuredInTest, verbose=False)
 
     def _createMockScene(self, IPPEstimate=10):
         scene = mock(ScatteringScene)
