@@ -1,3 +1,4 @@
+import env
 from pytissueoptics import *
 
 TITLE = "MCX Spherical shells"
@@ -37,5 +38,4 @@ def exampleCode():
 
 
 if __name__ == "__main__":
-    import env
     exampleCode()
