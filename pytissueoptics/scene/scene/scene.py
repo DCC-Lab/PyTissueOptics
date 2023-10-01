@@ -155,7 +155,7 @@ class Scene(Displayable):
         if len(self._solids) == 0:
             return None
 
-        bbox = self._solids[0].getBoundingBox()
+        bbox = self._solids[0].getBoundingBox().copy()
         for solid in self._solids[1:]:
             bbox.extendTo(solid.getBoundingBox())
         return bbox
