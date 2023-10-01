@@ -33,7 +33,9 @@ class Rotation:
         """ Create the euler rotation needed to go from one orientation to another. """
         fromDirection.normalize()
         toDirection.normalize()
-        angle = np.arccos(fromDirection.dot(toDirection))
+        dot = fromDirection.dot(toDirection)
+        dot = max(min(dot, 1), -1)
+        angle = np.arccos(dot)
         axis = fromDirection.cross(toDirection)
         axis.normalize()
         axis = axis.array
