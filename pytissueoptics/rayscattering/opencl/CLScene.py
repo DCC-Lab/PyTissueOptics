@@ -88,7 +88,10 @@ class CLScene:
         if surfaceID not in self._surfaceLabels[solidID]:
             self._surfaceLabels[solidID][surfaceID] = surfaceLabel
         if outsideSolid is not None:
-            self._surfaceLabels[self.getSolidID(outsideSolid)][surfaceID] = surfaceLabel
+            outsideSolidID = self.getSolidID(outsideSolid)
+            if outsideSolidID not in self._surfaceLabels:
+                self._surfaceLabels[outsideSolidID] = {}
+            self._surfaceLabels[outsideSolidID][surfaceID] = surfaceLabel
 
     def _compileSurface(self, polygonRef, firstPolygonID, lastPolygonID):
         insideEnvironment = polygonRef.insideEnvironment
@@ -130,7 +133,8 @@ class CLScene:
 
             vertexIDs = [vertexToID[id(v)] for v in triangle.vertices]
             self._trianglesInfo.append(TriangleCLInfo(vertexIDs, triangle.normal))
-            self._processPolygon(triangle, surfaceLabel, surfaceID=len(self._surfacesInfo))
+            newSurfaceID = len(self._surfacesInfo)
+            self._processPolygon(triangle, surfaceLabel, surfaceID=newSurfaceID)
             lastSolid = currentSolid
 
         self._compileSurface(polygonRef=polygons[-1],
