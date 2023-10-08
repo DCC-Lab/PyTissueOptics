@@ -153,11 +153,9 @@ class Ellipsoid(Solid):
     def contains(self, *vertices: Vector) -> bool:
         """ Only returns true if all vertices are inside the minimum radius of the ellipsoid
         towards each vertex direction (more restrictive with low order ellipsoids). """
-        verticesArray = np.asarray([vertex.array for vertex in vertices])
-        relativeVerticesArray = verticesArray - self.position.array
-
-        if self._orientation:
-            relativeVerticesArray = utils.rotateVerticesArray(relativeVerticesArray, self._orientation, inverse=True)
+        relativeVertices = [vertex - self.position for vertex in vertices]
+        relativeVertices = self._applyInverseRotation(relativeVertices)
+        relativeVerticesArray = np.asarray([vertex.array for vertex in relativeVertices])
 
         for relativeVertexArray in relativeVerticesArray:
             relativeVertex = Vertex(*relativeVertexArray)
