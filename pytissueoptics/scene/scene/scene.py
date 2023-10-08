@@ -13,7 +13,7 @@ from pytissueoptics.scene.viewer.mayavi import MayaviViewer
 class Scene(Displayable):
     def __init__(self, solids: List[Solid] = None, ignoreIntersections=False,
                  worldMaterial=None):
-        self._solids = []
+        self._solids: List[Solid] = []
         self._ignoreIntersections = ignoreIntersections
         self._solidsContainedIn: Dict[str, List[str]] = {}
         self._worldMaterial = worldMaterial
@@ -56,11 +56,9 @@ class Scene(Displayable):
 
         for otherSolid in intersectingSuspects:
             if newSolid.contains(*otherSolid.getVertices()):
-                self._assertIsNotAStack(newSolid)
                 self._processContainedSolid(otherSolid, container=newSolid)
                 break
             elif otherSolid.contains(*newSolid.getVertices()):
-                self._assertIsNotAStack(otherSolid)
                 self._processContainedSolid(newSolid, container=otherSolid)
             else:
                 raise NotImplementedError("Cannot place a solid that partially intersects with an existing solid. "
@@ -70,12 +68,17 @@ class Scene(Displayable):
                                           "containedSolid.setOutsideEnvironment(containerSolid.getEnvironment()).")
 
     def _processContainedSolid(self, solid: Solid, container: Solid):
-        solid.setOutsideEnvironment(container.getEnvironment())
-
-        if container.getLabel() not in self._solidsContainedIn:
-            self._solidsContainedIn[container.getLabel()] = [solid.getLabel()]
+        if container.isStack():
+            containerEnv = self._getEnvironmentOfStackAt(solid.position, container)
         else:
-            self._solidsContainedIn[container.getLabel()].append(solid.getLabel())
+            containerEnv = container.getEnvironment()
+        solid.setOutsideEnvironment(containerEnv)
+
+        containerLabel = containerEnv.solid.getLabel()
+        if containerLabel not in self._solidsContainedIn:
+            self._solidsContainedIn[containerLabel] = [solid.getLabel()]
+        else:
+            self._solidsContainedIn[containerLabel].append(solid.getLabel())
 
     def _validateLabel(self, solid):
         labelSet = set(s.getLabel() for s in self.solids)
@@ -95,11 +98,6 @@ class Scene(Displayable):
             if solidBBox.intersects(otherSolid.getBoundingBox()):
                 intersectingSuspects.append(otherSolid)
         return intersectingSuspects
-
-    @staticmethod
-    def _assertIsNotAStack(solid: Solid):
-        if solid.isStack():
-            raise NotImplementedError("Cannot place a solid inside a solid stack. ")
 
     def getSolids(self) -> List[Solid]:
         return self._solids
@@ -195,6 +193,8 @@ class Scene(Displayable):
             containedEnv = self._getEnvironmentOfContainerAt(position, containedLabel)
             if containedEnv:
                 return containedEnv
+        if containerSolid.isStack():
+            return self._getEnvironmentOfStackAt(position, containerSolid)
         return containerSolid.getEnvironment()
 
     @staticmethod

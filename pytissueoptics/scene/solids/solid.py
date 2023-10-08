@@ -190,6 +190,11 @@ class Solid:
         raise NotImplementedError(f"Quad mesh not implemented for Solids of type {type(self).__name__}")
 
     def contains(self, *vertices: Vector) -> bool:
+        """
+        Provides a simple implementation, which should be overwritten by subclasses to provide more accuracy.
+        This implementation will only check the outer bounding box of the solid to check if the vertices are outside. 
+        Similarly, it will create a max internal bounding box and check if the vertices are inside. 
+        """
         for vertex in vertices:
             if not self._bbox.contains(vertex):
                 return False
