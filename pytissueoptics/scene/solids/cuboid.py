@@ -107,7 +107,8 @@ class Cuboid(Solid):
             bbox = self._getLayerBBox(layerLabel)
             bboxShape = [bbox.xWidth, bbox.yWidth, bbox.zWidth]
             bounds = [s/2 for s in bboxShape]
-            layerRelativeVertices = relativeVertices - bbox.center.array
+            layerOffset = bbox.center - self.position
+            layerRelativeVertices = relativeVertices - np.asarray(layerOffset.array)
             if np.all(np.abs(layerRelativeVertices) < bounds):
                 return True
         return False
