@@ -1,5 +1,5 @@
 import warnings
-from typing import List, Dict
+from typing import Callable, List, Dict
 
 import numpy as np
 
@@ -109,18 +109,34 @@ class Solid:
         solid surface to compute its new normal.
         """
         rotation = Rotation(xTheta, yTheta, zTheta)
+        rotationFunction = lambda vertices: self._rotateWithEuler(rotation, vertices)
+
+        self._rotateWith(rotationFunction, rotationCenter)
+        self._orientation.add(rotation)
+
+    def orient(self, finalOrientation: Vector, initialOrientation: Vector = Vector(0, 0, 1), rotationCenter: Vector = None):
+        """ Rotate the solid so that its direction is aligned with the given final orientation. """
+        axis, angle = utils.getAxisAngleBetween(initialOrientation, finalOrientation)
+        rotationFunction = lambda vertices: self._rotateWithAxisAngle(axis, angle, vertices)
+
+        self._rotateWith(rotationFunction, rotationCenter)
+        # TODO: Find a way to log this new orientation
+
+    def _rotateWith(self, rotationFunction: Callable[[List[Vector]], List[Vector]], rotationCenter: Vector = None):
         if rotationCenter is None:
             rotationCenter = self.position
-        verticesArrayAtOrigin = np.concatenate((self._verticesArray, np.array([self._position.array]))) - rotationCenter.array
-        rotatedVerticesArrayAtOrigin = utils.rotateVerticesArray(verticesArrayAtOrigin, rotation)
-        rotatedVerticesArray = rotatedVerticesArrayAtOrigin + rotationCenter.array
+        verticesAtOrigin = [vertex - rotationCenter for vertex in self._vertices]
+        verticesAtOrigin.append(self.position - rotationCenter)
 
-        for (vertex, rotatedVertexArray) in zip(self._vertices, rotatedVerticesArray):
-            vertex.update(*rotatedVertexArray)
+        rotatedVerticesAtOrigin = rotationFunction(verticesAtOrigin)
 
-        self._position = Vector(*rotatedVerticesArray[-1])
+        rotatedVertices = [vertex + rotationCenter for vertex in rotatedVerticesAtOrigin]
 
-        self._orientation.add(rotation)
+        for (vertex, rotatedVertex) in zip(self._vertices, rotatedVertices):
+            vertex.update(*rotatedVertex.array)
+
+        self._position = rotatedVertices[-1]
+
         self._surfaces.resetNormals()
         self._resetBoundingBoxes()
         self._resetPolygonsCentroids()
@@ -128,10 +144,17 @@ class Solid:
         if self._smoothing:
             self.smooth()
 
-    def orient(self, finalOrientation: Vector, initialOrientation: Vector = Vector(0, 0, 1), rotationCenter: Vector = None):
-        """ Rotate the solid so that its direction is aligned with the given final orientation. """
-        rotation = Rotation.between(initialOrientation, finalOrientation)
-        self.rotate(rotation.xTheta, rotation.yTheta, rotation.zTheta, rotationCenter)
+    @staticmethod
+    def _rotateWithAxisAngle(axis: Vector, angle: float, vertices: List[Vector]) -> List[Vector]:
+        for vertex in vertices:
+            vertex.rotateAround(axis, angle)
+        return vertices
+
+    @staticmethod
+    def _rotateWithEuler(rotation: Rotation, vertices: List[Vector]) -> List[Vector]:
+        verticesArray = np.asarray([vertex.array for vertex in vertices])
+        rotatedVerticesArray = utils.rotateVerticesArray(verticesArray, rotation)
+        return [Vector(*vertex) for vertex in rotatedVerticesArray]
 
     def getEnvironment(self, surfaceLabel: str = None) -> Environment:
         if surfaceLabel:
