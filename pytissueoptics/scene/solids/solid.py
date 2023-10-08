@@ -6,6 +6,7 @@ import numpy as np
 from pytissueoptics.scene.geometry import Vector, utils, Polygon, Rotation, BoundingBox, Vertex
 from pytissueoptics.scene.geometry import primitives, Environment, SurfaceCollection, INTERFACE_KEY
 
+INITIAL_SOLID_ORIENTATION = Vector(0, 0, 1)
 
 class Solid:
     def __init__(self, vertices: List[Vertex], position: Vector = Vector(0, 0, 0),
@@ -16,7 +17,8 @@ class Solid:
         self._material = material
         self._primitive = primitive
         self._position = Vector(0, 0, 0)
-        self._orientation: Rotation = Rotation()
+        self._rotation: Rotation = Rotation()
+        self._orientation: Vector = INITIAL_SOLID_ORIENTATION
         self._bbox = None
         self._label = label
         self._layerLabels = {}
@@ -109,18 +111,20 @@ class Solid:
         solid surface to compute its new normal.
         """
         rotation = Rotation(xTheta, yTheta, zTheta)
-        rotationFunction = lambda vertices: self._rotateWithEuler(rotation, vertices)
+        rotationFunction = lambda vertices: self._rotateWithEuler(vertices, rotation)
 
         self._rotateWith(rotationFunction, rotationCenter)
-        self._orientation.add(rotation)
+        self._rotation.add(rotation)
 
-    def orient(self, finalOrientation: Vector, initialOrientation: Vector = Vector(0, 0, 1), rotationCenter: Vector = None):
-        """ Rotate the solid so that its direction is aligned with the given final orientation. """
-        axis, angle = utils.getAxisAngleBetween(initialOrientation, finalOrientation)
-        rotationFunction = lambda vertices: self._rotateWithAxisAngle(axis, angle, vertices)
+    def orient(self, towards: Vector):
+        """ Rotate the solid so that its direction is aligned with the given vector "towards". 
+        Note that the original solid orientation is set to (0, 0, 1). """
+        initialOrientation = self._orientation
+        axis, angle = utils.getAxisAngleBetween(initialOrientation, towards)
+        rotationFunction = lambda vertices: self._rotateWithAxisAngle(vertices, axis, angle)
 
-        self._rotateWith(rotationFunction, rotationCenter)
-        # TODO: Find a way to log this new orientation
+        self._rotateWith(rotationFunction, None)
+        self._orientation = towards
 
     def _rotateWith(self, rotationFunction: Callable[[List[Vector]], List[Vector]], rotationCenter: Vector = None):
         if rotationCenter is None:
@@ -145,15 +149,15 @@ class Solid:
             self.smooth()
 
     @staticmethod
-    def _rotateWithAxisAngle(axis: Vector, angle: float, vertices: List[Vector]) -> List[Vector]:
+    def _rotateWithAxisAngle(vertices: List[Vector], axis: Vector, angle: float) -> List[Vector]:
         for vertex in vertices:
             vertex.rotateAround(axis, angle)
         return vertices
 
     @staticmethod
-    def _rotateWithEuler(rotation: Rotation, vertices: List[Vector]) -> List[Vector]:
+    def _rotateWithEuler(vertices: List[Vector], rotation: Rotation, inverse: bool = False) -> List[Vector]:
         verticesArray = np.asarray([vertex.array for vertex in vertices])
-        rotatedVerticesArray = utils.rotateVerticesArray(verticesArray, rotation)
+        rotatedVerticesArray = utils.rotateVerticesArray(verticesArray, rotation, inverse)
         return [Vector(*vertex) for vertex in rotatedVerticesArray]
 
     def getEnvironment(self, surfaceLabel: str = None) -> Environment:
@@ -230,6 +234,19 @@ class Solid:
         for polygon in self.getPolygons():
             insideBBox.exclude(polygon.bbox)
         return insideBBox
+
+    def _applyInverseRotation(self, vertices: List[Vector]) -> List[Vector]:
+        # TODO: account for rotation centers
+        if self._rotation and self._orientation:
+            raise Exception("Rotation correction (often used for solid containment checks) "
+                            "is not implemented for solids that underwent rotations "
+                            "with both the Euler rotate() and the axis-angle orient() methods.")
+        if self._rotation:
+            return self._rotateWithEuler(vertices, self._rotation, inverse=True)
+        if self._orientation != INITIAL_SOLID_ORIENTATION:
+            axis, angle = utils.getAxisAngleBetween(self._orientation, INITIAL_SOLID_ORIENTATION)
+            return self._rotateWithAxisAngle(vertices, axis, angle)
+        return vertices
 
     def isStack(self) -> bool:
         for surfaceLabel in self.surfaceLabels:
