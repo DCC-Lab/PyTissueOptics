@@ -237,7 +237,7 @@ class Solid:
 
     def _applyInverseRotation(self, vertices: List[Vector]) -> List[Vector]:
         # TODO: account for rotation centers
-        if self._rotation and self._orientation:
+        if self._rotation and self._orientation != INITIAL_SOLID_ORIENTATION:
             raise Exception("Rotation correction (often used for solid containment checks) "
                             "is not implemented for solids that underwent rotations "
                             "with both the Euler rotate() and the axis-angle orient() methods.")
