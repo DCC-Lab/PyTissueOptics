@@ -12,12 +12,22 @@ class CLParameters:
     def __init__(self, N, AVG_IT_PER_PHOTON):
         nBatch = 1/CONFIG.BATCH_LOAD_FACTOR
         avgPhotonsPerBatch = int(np.ceil(N / min(nBatch, CONFIG.N_WORK_UNITS)))
-        self._maxLoggerMemory = avgPhotonsPerBatch * AVG_IT_PER_PHOTON * DATAPOINT_SIZE
-        self._maxLoggerMemory = min(self._maxLoggerMemory, CONFIG.MAX_MEMORY_MB * 1024**2)
+        self._maxLoggerMemory = self._calculateAverageBatchMemorySize(avgPhotonsPerBatch, AVG_IT_PER_PHOTON)
         self._maxPhotonsPerBatch = min(2 * avgPhotonsPerBatch, N)
         self._workItemAmount = CONFIG.N_WORK_UNITS
 
         self._assertEnoughRAM()
+
+    def _calculateAverageBatchMemorySize(self, avgPhotonsPerBatch: int, avgInteractionsPerPhoton: float) -> int:
+        """
+        Calculates the required number of bytes to allocate for each batch when expecting the given average number of
+        interactions per photon. Note that each work unit requires a minimum of 2 available log entries to operate.
+        """
+        avgInteractions = avgPhotonsPerBatch * avgInteractionsPerPhoton
+        minInteractions = 2 * CONFIG.N_WORK_UNITS
+        batchSize = max(avgInteractions, minInteractions) * DATAPOINT_SIZE
+        maxSize = CONFIG.MAX_MEMORY_MB * 1024**2
+        return min(batchSize, maxSize)
 
     @property
     def workItemAmount(self):
