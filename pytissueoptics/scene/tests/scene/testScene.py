@@ -46,30 +46,23 @@ class TestScene(unittest.TestCase):
     def testWhenAddingASolidInsideAnotherOne_shouldUpdateOutsideMaterialOfThisSolid(self):
         OUTSIDE_SOLID = self.makeSolidWith(BoundingBox([0, 5], [0, 5], [0, 5]), contains=True, name="Outside-solid")
         SOLID = self.makeSolidWith(BoundingBox([1, 3], [1, 3], [1, 3]))
-        OUTSIDE_SOLID_ENV = Environment("A material")
-        when(OUTSIDE_SOLID).getEnvironment().thenReturn(OUTSIDE_SOLID_ENV)
         self.scene.add(OUTSIDE_SOLID)
 
         self.scene.add(SOLID)
 
-        verify(SOLID).setOutsideEnvironment(OUTSIDE_SOLID_ENV)
+        verify(SOLID).setOutsideEnvironment(OUTSIDE_SOLID.getEnvironment())
 
     def testWhenAddingASolidOverAnotherOne_shouldUpdateOutsideMaterialOfTheOtherSolid(self):
         INSIDE_SOLID = self.makeSolidWith(BoundingBox([0, 5], [0, 5], [0, 5]), name="Inside-solid")
         self.scene.add(INSIDE_SOLID)
-
         SOLID = self.makeSolidWith(BoundingBox([-1, 6], [-1, 6], [-1, 6]), contains=True)
-        SOLID_ENV = Environment("A material")
-        when(SOLID).getEnvironment().thenReturn(SOLID_ENV)
 
         self.scene.add(SOLID)
 
-        verify(INSIDE_SOLID).setOutsideEnvironment(SOLID_ENV)
+        verify(INSIDE_SOLID).setOutsideEnvironment(SOLID.getEnvironment())
 
     def testWhenAddingASolidInsideMultipleOtherSolids_shouldUpdateOutsideMaterialOfThisSolid(self):
         OUTSIDE_SOLID = self.makeSolidWith(BoundingBox([1, 4], [1, 4], [1, 4]), name="Outside-solid")
-        OUTSIDE_SOLID_ENV = Environment("Outside solid material")
-        when(OUTSIDE_SOLID).getEnvironment().thenReturn(OUTSIDE_SOLID_ENV)
         self.scene.add(OUTSIDE_SOLID)
 
         TOPMOST_OUTSIDE_SOLID = self.makeSolidWith(BoundingBox([0, 5], [0, 5], [0, 5]),
@@ -81,7 +74,7 @@ class TestScene(unittest.TestCase):
 
         self.scene.add(SOLID)
 
-        verify(SOLID).setOutsideEnvironment(OUTSIDE_SOLID_ENV)
+        verify(SOLID).setOutsideEnvironment(OUTSIDE_SOLID.getEnvironment())
 
     def testWhenAddingASolidOverMultipleOtherSolids_shouldUpdateOutsideMaterialOfTheTopMostSolid(self):
         TOPMOST_INSIDE_SOLID = self.makeSolidWith(BoundingBox([0, 5], [0, 5], [0, 5]), contains=True,
@@ -92,41 +85,83 @@ class TestScene(unittest.TestCase):
         self.scene.add(INSIDE_SOLID)
 
         SOLID = self.makeSolidWith(BoundingBox([-1, 6], [-1, 6], [-1, 6]), contains=True)
-        SOLID_MATERIAL = "A material"
-        when(SOLID).getEnvironment().thenReturn(SOLID_MATERIAL)
-
         self.scene.add(SOLID)
 
-        verify(TOPMOST_INSIDE_SOLID).setOutsideEnvironment(SOLID_MATERIAL)
+        verify(TOPMOST_INSIDE_SOLID).setOutsideEnvironment(SOLID.getEnvironment())
 
     def testWhenAddingASolidThatFitsInsideOneButAlsoContainsOne_shouldUpdateOutsideMaterialOfThisSolidAndTheOneInside(self):
         INSIDE_SOLID = self.makeSolidWith(BoundingBox([2, 3], [2, 3], [2, 3]), name="Inside-solid")
         self.scene.add(INSIDE_SOLID)
 
         OUTSIDE_SOLID = self.makeSolidWith(BoundingBox([0, 5], [0, 5], [0, 5]), contains=True, name="Outside-solid")
-        OUTSIDE_SOLID_ENV = Environment("Outside material")
-        when(OUTSIDE_SOLID).getEnvironment().thenReturn(OUTSIDE_SOLID_ENV)
         self.scene.add(OUTSIDE_SOLID)
 
         SOLID = self.makeSolidWith(BoundingBox([1, 4], [1, 4], [1, 4]))
-        SOLID_ENV = Environment("Inside material")
-        when(SOLID).getEnvironment().thenReturn(SOLID_ENV)
         when(SOLID).contains(...).thenReturn(False).thenReturn(True)
 
         self.scene.add(SOLID)
 
-        verify(SOLID).setOutsideEnvironment(OUTSIDE_SOLID_ENV)
-        verify(INSIDE_SOLID).setOutsideEnvironment(SOLID_ENV)
+        verify(SOLID).setOutsideEnvironment(OUTSIDE_SOLID.getEnvironment())
+        verify(INSIDE_SOLID).setOutsideEnvironment(SOLID.getEnvironment())
 
-    def testWhenAddingASolidInsideASolidStack_shouldRaiseNotImplementedError(self):
-        CUBOID_STACK = self.makeSolidWith(BoundingBox([1, 4], [1, 4], [1, 4]), contains=True,
-                                          isStack=True, name="Cuboid-stack")
+    def testWhenAddingASolidInsideASolidStack_shouldUpdateOutsideMaterialOfThisSolidToTheProperStackLayer(self):
+        frontLayer = Cuboid(1, 1, 1, material="frontMaterial", label="frontLayer")
+        middleLayer = Cuboid(1, 1, 1, material="middleMaterial", label="middleLayer")
+        backLayer = Cuboid(1, 1, 1, material="backMaterial", label="backLayer")
+        CUBOID_STACK = backLayer.stack(middleLayer, 'front').stack(frontLayer, 'front')
+        self.scene.add(CUBOID_STACK, position=Vector(0, 0, 0))
+
+        SOLID_INSIDE_MIDDLE_LAYER = Cuboid(0.9, 0.9, 0.9, material="insideMaterial", label="insideSolid")
+
+        self.scene.add(SOLID_INSIDE_MIDDLE_LAYER)
+
+        anyPolygonOfSolidInside = SOLID_INSIDE_MIDDLE_LAYER.getPolygons()[0]
+        self.assertEqual(anyPolygonOfSolidInside.outsideEnvironment, middleLayer.getEnvironment())
+
+    def testWhenAddingASolidInsideASolidStackThatWasMovedAndRotated_shouldStillUpdateOutsideMaterialOfThisSolidToTheProperStackLayer(self):
+        positionOffset = Vector(0, 10, 0)
+        rotations = {'yTheta': 35}
+        frontLayer = Cuboid(1, 1, 1, material="frontMaterial", label="frontLayer")
+        middleLayer = Cuboid(1, 1, 1, material="middleMaterial", label="middleLayer")
+        backLayer = Cuboid(1, 1, 1, material="backMaterial", label="backLayer")
+        CUBOID_STACK = backLayer.stack(middleLayer, 'front').stack(frontLayer, 'front')
+        CUBOID_STACK.translateTo(positionOffset)
+        CUBOID_STACK.rotate(**rotations)
         self.scene.add(CUBOID_STACK)
 
-        INSIDE_SOLID = self.makeSolidWith(BoundingBox([2, 3], [2, 3], [2, 3]))
+        SOLID_INSIDE_MIDDLE_LAYER = Cuboid(0.9, 0.9, 0.9, material="insideMaterial", label="insideSolid")
+        SOLID_INSIDE_MIDDLE_LAYER.translateTo(positionOffset)
+        SOLID_INSIDE_MIDDLE_LAYER.rotate(**rotations)
 
-        with self.assertRaises(NotImplementedError):
-            self.scene.add(INSIDE_SOLID)
+        self.scene.add(SOLID_INSIDE_MIDDLE_LAYER)
+
+        anyPolygonOfSolidInside = SOLID_INSIDE_MIDDLE_LAYER.getPolygons()[0]
+        self.assertEqual(anyPolygonOfSolidInside.outsideEnvironment, middleLayer.getEnvironment())
+
+    def testWhenAddingAStackOverAnotherSolid_shouldUpdateOutsideMaterialOfTheOtherSolidWithTheProperStackLayer(self):
+        SOLID_INSIDE_FRONT_LAYER = Cuboid(0.9, 0.9, 0.9, material="insideMaterial", label="insideSolid")
+        self.scene.add(SOLID_INSIDE_FRONT_LAYER, position=Vector(0, 0, -1))
+
+        frontLayer = Cuboid(1, 1, 1, material="frontMaterial", label="frontLayer")
+        middleLayer = Cuboid(1, 1, 1, material="middleMaterial", label="middleLayer")
+        backLayer = Cuboid(1, 1, 1, material="backMaterial", label="backLayer")
+        CUBOID_STACK = backLayer.stack(middleLayer, 'front').stack(frontLayer, 'front')
+        self.scene.add(CUBOID_STACK, position=Vector(0, 0, 0))
+
+        anyPolygonOfSolidInside = SOLID_INSIDE_FRONT_LAYER.getPolygons()[0]
+        self.assertEqual(anyPolygonOfSolidInside.outsideEnvironment, frontLayer.getEnvironment())
+
+    def testWhenAddingASolidThatPartiallyOverlapsWithInternalStackLayers_shouldNotAdd(self):
+        frontLayer = Cuboid(1, 1, 1, material="frontMaterial", label="frontLayer")
+        middleLayer = Cuboid(1, 1, 1, material="middleMaterial", label="middleLayer")
+        backLayer = Cuboid(1, 1, 1, material="backMaterial", label="backLayer")
+        CUBOID_STACK = backLayer.stack(middleLayer, 'front').stack(frontLayer, 'front')
+        self.scene.add(CUBOID_STACK, position=Vector(0, 0, 0))
+
+        SOLID = Cuboid(0.9, 1.1, 0.9, material="outsideMaterial", label="outsideSolid")
+
+        with self.assertRaises(Exception):
+            self.scene.add(SOLID)
 
     def testGivenASceneThatIgnoresIntersections_whenAddingASolidThatPartlyMergesWithAnotherOne_shouldAddTheSolid(self):
         scene = Scene(ignoreIntersections=True)
@@ -256,12 +291,13 @@ class TestScene(unittest.TestCase):
         self.assertEqual(solid, returnedSolid)
 
     def testWhenGetSolidFromInternalStackLayerLabel_shouldReturnTheWholeStack(self):
-        stack = self.makeSolidWith(name="stack", isStack=True)
-        internalLayers = ["Layer1", "Layer2", "Layer3"]
-        when(stack).getLayerLabels().thenReturn(internalLayers)
+        frontLayer = Cuboid(1, 1, 1, material="frontMaterial", label="frontLayer")
+        middleLayer = Cuboid(1, 1, 1, material="middleMaterial", label="middleLayer")
+        backLayer = Cuboid(1, 1, 1, material="backMaterial", label="backLayer")
+        stack = backLayer.stack(middleLayer, 'front').stack(frontLayer, 'front')
         self.scene.add(stack)
 
-        returnedSolid = self.scene.getSolid(internalLayers[1])
+        returnedSolid = self.scene.getSolid("frontLayer")
 
         self.assertEqual(stack, returnedSolid)
 
@@ -401,15 +437,17 @@ class TestScene(unittest.TestCase):
         self.assertNotEqual(hash(sceneA), hash(sceneB))
 
     @staticmethod
-    def makeSolidWith(bbox: BoundingBox = None, contains=False, isStack=False, name="solid"):
+    def makeSolidWith(bbox: BoundingBox = None, contains=False, name="solid") -> Solid:
         solid = mock(Solid)
         when(solid).getLabel().thenReturn(name)
         when(solid).setLabel(...).thenReturn()
         when(solid).getBoundingBox().thenReturn(bbox)
-        when(solid).isStack().thenReturn(isStack)
         when(solid).getVertices().thenReturn([])
+        when(solid).isStack().thenReturn(False)
         when(solid).setOutsideEnvironment(...).thenReturn()
-        when(solid).getEnvironment().thenReturn(Environment("A material"))
+        when(solid).getEnvironment().thenReturn(Environment("A material", solid))
         when(solid).getVertices().thenReturn([])
         when(solid).contains(...).thenReturn(contains)
+        if bbox:
+            solid.position = bbox.center
         return solid
