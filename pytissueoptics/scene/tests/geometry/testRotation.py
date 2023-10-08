@@ -56,3 +56,14 @@ class TestRotation(unittest.TestCase):
         self.assertEqual(expectedRotation.xTheta, rotation.xTheta)
         self.assertEqual(expectedRotation.yTheta, rotation.yTheta)
         self.assertEqual(expectedRotation.zTheta, rotation.zTheta)
+
+    def testBetweenOppositePlanesOrientations_shouldReturnExpectedRotation(self):
+        fromOrientation = Vector(1, 1, 1)
+        toOrientation = Vector(-1, -1, -1)
+        expectedRotation = Rotation(180, 0, -90)
+
+        rotation = Rotation.between(fromOrientation, toOrientation)
+
+        self.assertEqual(expectedRotation.xTheta, rotation.xTheta)
+        self.assertEqual(expectedRotation.yTheta, rotation.yTheta)
+        self.assertEqual(expectedRotation.zTheta, rotation.zTheta)
