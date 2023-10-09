@@ -90,7 +90,7 @@ class Cuboid(Solid):
         if np.any(np.abs(relativeVertices) >= bounds):
             return False
 
-        if vertices.shape[0] == 1:
+        if len(vertices) == 1:
             # No need to check possible stack layers since a single vertex will always be perfectly contained in one of them.
             return True
 

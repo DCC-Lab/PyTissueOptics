@@ -241,7 +241,6 @@ class Solid:
         return insideBBox
 
     def _applyInverseRotation(self, vertices: List[Vector]) -> List[Vector]:
-        # TODO: account for rotation centers
         if self._rotation and self._orientation != INITIAL_SOLID_ORIENTATION:
             raise Exception("Rotation correction (often used for solid containment checks) "
                             "is not implemented for solids that underwent rotations "
