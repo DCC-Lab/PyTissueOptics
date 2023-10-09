@@ -198,16 +198,15 @@ class DirectionalSource(Source):
         return positions, directions
 
     def addToViewer(self, viewer: MayaviViewer, representation='surface', colormap='Wistia', opacity=1, **kwargs):
-        defaultSolidDirection = Vector(0, 0, 1)
         baseHeight = 0.5 * self.displaySize
-        baseCenter = self._position + defaultSolidDirection * baseHeight/2
+        baseCenter = self._position + self._direction * baseHeight/2
         base = Cylinder(radius=self.displaySize/8, height=baseHeight, position=baseCenter)
         coneHeight = self.displaySize - baseHeight
-        coneCenter = self._position + defaultSolidDirection * (baseHeight + coneHeight/2)
+        coneCenter = self._position + self._direction * (baseHeight + coneHeight/2)
         arrow = Cone(position=coneCenter, radius=self.displaySize/3, height=coneHeight)
 
-        base.orient(self._direction, rotationCenter=self._position)
-        arrow.orient(self._direction, rotationCenter=self._position)
+        base.orient(self._direction)
+        arrow.orient(self._direction)
 
         viewer.add(base, arrow, representation=representation, colormap=colormap, opacity=opacity, **kwargs)
 

@@ -276,9 +276,6 @@ void setSmoothNormal(Intersection *intersection, __global Triangle *triangles, _
                     weights[1] * vertices[triangles[intersection->polygonID].vertexIDs[1]].normal +
                     weights[2] * vertices[triangles[intersection->polygonID].vertexIDs[2]].normal;
     }
-    float3 newNormal = weights[0] * vertices[triangles[intersection->polygonID].vertexIDs[0]].normal +
-                        weights[1] * vertices[triangles[intersection->polygonID].vertexIDs[1]].normal +
-                        weights[2] * vertices[triangles[intersection->polygonID].vertexIDs[2]].normal;
 
     // Do not allow the new smooth normal to have a different dot product with ray direction. 
     // This is a rare edge case that can happen when the ray direction is approximately parallel to the surface. More comon in low resolution meshes (like icosphere of order 1)
