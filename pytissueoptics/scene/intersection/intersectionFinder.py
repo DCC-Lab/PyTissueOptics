@@ -55,7 +55,13 @@ class IntersectionFinder:
         if not intersection:
             return None
 
-        intersection.normal = shader.getSmoothNormal(intersection.polygon, intersection.position)
+        smoothNormal = shader.getSmoothNormal(intersection.polygon, intersection.position)
+
+        # If the resulting smooth normal changes the sign of the dot product with the ray direction, do not smooth.
+        if smoothNormal.dot(ray.direction) * intersection.polygon.normal.dot(ray.direction) < 0:
+            smoothNormal = intersection.polygon.normal
+
+        intersection.normal = smoothNormal
         intersection.insideEnvironment = intersection.polygon.insideEnvironment
         intersection.outsideEnvironment = intersection.polygon.outsideEnvironment
         intersection.surfaceLabel = intersection.polygon.surfaceLabel
