@@ -239,6 +239,17 @@ float _cotangent(float3 v0, float3 v1, float3 v2) {
 }
 
 void setSmoothNormal(Intersection *intersection, __global Triangle *triangles, __global Vertex *vertices, Ray *ray) {
+    
+    // Check edge case where the intersection is directly on a vertex, in which case we just return the vertex normal.
+    for (uint i = 0; i < 3; i++) {
+        float3 vertex = vertices[triangles[intersection->polygonID].vertexIDs[i]].position;
+        if (length(intersection->position - vertex) < EPS_SIDE) {
+            intersection->normal = vertices[triangles[intersection->polygonID].vertexIDs[i]].normal;
+            return;
+        }
+    }
+    
+    // Compute the new smooth normal as a weighted average of the vertex normals.
     float weights[3];
     for (uint i = 0; i < 3; i++) {
         float3 vertex = vertices[triangles[intersection->polygonID].vertexIDs[i]].position;
