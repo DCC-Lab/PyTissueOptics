@@ -178,6 +178,28 @@ class TestAnyIntersectionFinder:
 
         self.assertIsNone(intersection)
 
+    def testGivenSmoothSolid_shouldSmoothTheIntersectionNormal(self):
+        ray = Ray(origin=Vector(0, 0.7, -3), direction=Vector(0, 0, 1))
+        solid = Sphere(radius=1, order=1)
+
+        intersection = self.getIntersectionFinder([solid]).findIntersection(ray)
+
+        expectedAngle = math.atan(intersection.position.y / intersection.position.z)
+        expectedNormal = Vector(0, -math.sin(expectedAngle), -math.cos(expectedAngle))
+        self.assertIsNotNone(intersection)
+        self.assertEqual(expectedNormal, intersection.normal)
+
+    def testGivenSmoothSolid_shouldNotSmoothTheIntersectionNormalIfItChangesTheSignOfTheDotProductWithTheRayDirection(self):
+        ray = Ray(origin=Vector(0, 0.955, -2), direction=Vector(0, 0.02, 1))
+        solid = Sphere(radius=1, order=1)
+
+        intersection = self.getIntersectionFinder([solid]).findIntersection(ray)
+
+        smoothAngle = math.atan(intersection.position.y / intersection.position.z)
+        smoothNormal = Vector(0, -math.sin(smoothAngle), -math.cos(smoothAngle))
+        self.assertIsNotNone(intersection)
+        self.assertNotEqual(smoothNormal, intersection.normal)
+
     def assertVectorEqual(self, expected, actual):
         self.assertEqual(expected.x, actual.x)
         self.assertEqual(expected.y, actual.y)

@@ -10,6 +10,11 @@ def getSmoothNormal(polygon: Polygon, position: Vector) -> Vector:
     coordinates algorithm from http://www.geometry.caltech.edu/pubs/MHBD02.pdfv. """
     if not polygon.toSmooth:
         return polygon.normal
+    
+    # Check edge case where the intersection is directly on a vertex, in which case we just return the vertex normal.
+    for vertex in polygon.vertices:
+        if (position - vertex).getNorm() < 1e-6:
+            return vertex.normal
 
     weights = _getBarycentricWeights(polygon.vertices, position)
 
@@ -37,4 +42,7 @@ def _cotangent(a: Vector, b: Vector, c: Vector) -> float:
     """ Cotangent of triangle abc at vertex b. """
     ba = a - b
     bc = c - b
-    return bc.dot(ba) / bc.cross(ba).getNorm()
+    norm = ba.cross(bc).getNorm()
+    if norm < 1e-6:
+        norm = 1e-6
+    return bc.dot(ba) / norm
