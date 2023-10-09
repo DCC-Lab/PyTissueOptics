@@ -7,6 +7,7 @@ from numpy.lib import recfunctions as rfn
 
 from pytissueoptics import *
 from pytissueoptics.rayscattering.opencl import OPENCL_AVAILABLE
+from pytissueoptics.rayscattering.opencl.buffers import *
 from pytissueoptics.rayscattering.opencl.config.CLConfig import OPENCL_SOURCE_DIR
 from pytissueoptics.rayscattering.opencl.CLPhotons import CLScene
 
@@ -116,7 +117,21 @@ class IntersectionCL(CLObject):
 
     def __init__(self, N: int):
         self._N = N
+        self._polygonIDs = np.zeros(N, dtype=cl.cltypes.uint)
+        self._positions = np.zeros((N, 3), dtype=cl.cltypes.float)
+        self._normals = np.zeros((N, 3), dtype=cl.cltypes.float)
         super().__init__(skipDeclaration=True)
 
+    def setResults(self, polygonIDs: np.ndarray, positions: np.ndarray, normals: np.ndarray):
+        self._polygonIDs = polygonIDs
+        self._positions = positions
+        self._normals = normals
+
     def _getInitialHostBuffer(self) -> np.ndarray:
-        return np.empty(self._N, dtype=self._dtype)
+        buffer = np.empty(self._N, dtype=self._dtype)
+        buffer = rfn.structured_to_unstructured(buffer)
+        buffer[:, 3:6] = self._positions
+        buffer[:, 7:10] = self._normals
+        buffer[:, 12] = self._polygonIDs
+        buffer = rfn.unstructured_to_structured(buffer, self._dtype)
+        return buffer
