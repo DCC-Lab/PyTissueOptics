@@ -1,7 +1,9 @@
 import unittest
 
+import numpy as np
+
 from pytissueoptics.scene.geometry import Vector, primitives, Vertex, INTERFACE_KEY
-from pytissueoptics.scene.solids import Cuboid
+from pytissueoptics.scene.solids import Cuboid, Cube
 
 
 class TestCuboid(unittest.TestCase):
@@ -161,3 +163,18 @@ class TestCuboid(unittest.TestCase):
         vertices = [Vertex(2, 2, 3), Vertex(2, 2, 0)]
 
         self.assertFalse(cuboid.contains(*vertices))
+
+    def testGivenTwoCubesContainedAfterDifferentRotationCenters_whenContains_shouldReturnTrue(self):
+        outerCube = Cube(3, label="outerCube")
+        innerCube = Cube(2.9, label="innerCube")
+        self.assertTrue(outerCube.contains(*innerCube.vertices))
+
+        distanceFromRotationCenter = 10
+        rotationCenterXY = -np.sin(np.pi/4) * distanceFromRotationCenter
+        rotationCenter = Vector(rotationCenterXY, rotationCenterXY, 0)
+
+        innerCube.translateTo(Vector(rotationCenterXY+distanceFromRotationCenter, rotationCenterXY, 0))
+        outerCube.rotate(0, 0, 45)
+        innerCube.rotate(0, 0, 45, rotationCenter)
+
+        self.assertTrue(outerCube.contains(*innerCube.vertices))
