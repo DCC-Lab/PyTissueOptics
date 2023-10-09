@@ -2,8 +2,7 @@ from typing import List
 
 import numpy as np
 
-from pytissueoptics.scene.geometry import Vector, Quad, Triangle, utils, Vertex
-from pytissueoptics.scene.geometry import primitives
+from pytissueoptics.scene.geometry import Vector, Quad, Triangle, utils, Vertex, BoundingBox, Polygon, primitives
 from pytissueoptics.scene.solids import Solid
 from pytissueoptics.scene.geometry import SurfaceCollection
 from pytissueoptics.scene.solids.stack.cuboidStacker import CuboidStacker
@@ -90,4 +89,36 @@ class Cuboid(Solid):
         bounds = [s/2 for s in self.shape]
         if np.any(np.abs(relativeVertices) >= bounds):
             return False
+
+        if vertices.shape[0] == 1:
+            # No need to check possible stack layers since a single vertex will always be perfectly contained in one of them.
+            return True
+
+        if self.isStack():
+            # At this point, all vertices are contained in the bounding box of the stack.
+            # We just need to make sure they are contained in a single layer.
+            return self._aSingleLayerContains(relativeVertices)
         return True
+
+    def _aSingleLayerContains(self, relativeVertices: np.ndarray) -> bool:
+        for layerLabel in self._layerLabels:
+            bbox = self._getLayerBBox(layerLabel)
+            bboxShape = [bbox.xWidth, bbox.yWidth, bbox.zWidth]
+            bounds = [s/2 for s in bboxShape]
+            layerOffset = bbox.center - self.position
+            layerRelativeVertices = relativeVertices - np.asarray(layerOffset.array)
+            if np.all(np.abs(layerRelativeVertices) < bounds):
+                return True
+        return False
+
+    def _getLayerBBox(self, layerLabel: str) -> BoundingBox:
+        polygons = self._getLayerPolygons(layerLabel)
+        bbox = BoundingBox.fromPolygons(polygons)
+        return bbox
+
+    def _getLayerPolygons(self, layerLabel: str) -> List[Polygon]:
+        layerSurfaceLabels = self._layerLabels[layerLabel]
+        polygons = []
+        for surfaceLabel in layerSurfaceLabels:
+            polygons.extend(self._surfaces.getPolygons(surfaceLabel))
+        return polygons
