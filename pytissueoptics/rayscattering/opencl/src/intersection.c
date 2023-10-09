@@ -268,11 +268,12 @@ void setSmoothNormal(Intersection *intersection, __global Triangle *triangles, _
             float d = length(vertex - intersection->position);
             weights[i] = (cotPrev + cotNext) / (d * d);
         }
-        printf("weights: %f %f %f\n", weights[0], weights[1], weights[2]);
+
         float sum = weights[0] + weights[1] + weights[2];
         for (uint i = 0; i < 3; i++) {
             weights[i] /= sum;
         }
+
         newNormal = weights[0] * vertices[triangles[intersection->polygonID].vertexIDs[0]].normal +
                     weights[1] * vertices[triangles[intersection->polygonID].vertexIDs[1]].normal +
                     weights[2] * vertices[triangles[intersection->polygonID].vertexIDs[2]].normal;
