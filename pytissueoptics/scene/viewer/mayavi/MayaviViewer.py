@@ -2,7 +2,6 @@ import numpy as np
 
 from pytissueoptics.scene.geometry import BoundingBox
 from pytissueoptics.scene.logger import Logger
-from pytissueoptics.scene.scene import Scene
 from pytissueoptics.scene.viewer.mayavi.viewPoint import ViewPointStyle, ViewPointFactory
 
 
@@ -23,12 +22,6 @@ class MayaviViewer:
                              "Solids": [], }}
         self._viewPoint = ViewPointFactory().create(viewPointStyle)
         self.clear()
-
-    def addScene(self, scene: Scene, representation="wireframe", lineWidth=0.25, showNormals=False, normalLength=0.3,
-            colormap="viridis", reverseColormap=False, constantColor=False, opacity=1, **kwargs):
-        self.add(*scene.solids, representation=representation, lineWidth=lineWidth, showNormals=showNormals,
-                 normalLength=normalLength, colormap=colormap, reverseColormap=reverseColormap,
-                 colorWithPosition=constantColor, opacity=opacity, **kwargs)
 
     def add(self, *solids: 'Solid', representation="wireframe", lineWidth=0.25, showNormals=False, normalLength=0.3,
             colormap="viridis", reverseColormap=False, colorWithPosition=False, opacity=1, **kwargs):

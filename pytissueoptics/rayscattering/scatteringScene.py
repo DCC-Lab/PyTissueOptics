@@ -6,6 +6,7 @@ from pytissueoptics import Vector
 from pytissueoptics.rayscattering.materials import ScatteringMaterial
 from pytissueoptics.scene import MayaviViewer, Scene
 from pytissueoptics.scene.solids import Solid
+from pytissueoptics.scene.viewer.displayable import Displayable
 
 
 class ScatteringScene(Scene):
@@ -19,12 +20,11 @@ class ScatteringScene(Scene):
                             f"This is required for any RayScatteringScene. ")
         super().add(solid, position)
 
-    def addToViewer(self, viewer: MayaviViewer, representation='surface', colormap='bone', opacity=0.1, **kwargs):
-        viewer.add(*self.solids, representation=representation, colormap=colormap, opacity=opacity, **kwargs)
-
-    def display(self):
+    def show(self, source: Displayable = None, **kwargs):
         viewer = MayaviViewer()
-        self.addToViewer(viewer)
+        self.addToViewer(viewer, **kwargs)
+        if source:
+            source.addToViewer(viewer)
         viewer.show()
 
     def getEstimatedIPP(self, weightThreshold: float) -> float:

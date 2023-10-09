@@ -83,12 +83,10 @@ class Cuboid(Solid):
         return cuboid
 
     def contains(self, *vertices: Vector) -> bool:
-        vertices = np.asarray([vertex.array for vertex in vertices])
-        relativeVertices = vertices - self.position.array
+        relativeVertices = [vertex - self.position for vertex in vertices]
+        relativeVertices = self._applyInverseRotation(relativeVertices)
 
-        if self._orientation:
-            relativeVertices = utils.rotateVerticesArray(relativeVertices, self._orientation, inverse=True)
-
+        relativeVertices = np.asarray([vertex.array for vertex in relativeVertices])
         bounds = [s/2 for s in self.shape]
         if np.any(np.abs(relativeVertices) >= bounds):
             return False

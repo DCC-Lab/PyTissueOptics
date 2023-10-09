@@ -13,16 +13,20 @@ from pytissueoptics.scene.solids import Sphere
 from pytissueoptics.scene.geometry import Vector, Environment
 from pytissueoptics.scene.intersection import FastIntersectionFinder
 from pytissueoptics.scene.logger import Logger
+from pytissueoptics.scene.solids.cone import Cone
+from pytissueoptics.scene.solids.cylinder import Cylinder
 from pytissueoptics.scene.utils import progressBar
 from pytissueoptics.scene.viewer import MayaviViewer
+from pytissueoptics.scene.viewer import Displayable
 
 
-class Source:
-    def __init__(self, position: Vector, N: int, useHardwareAcceleration: bool = True):
+class Source(Displayable):
+    def __init__(self, position: Vector, N: int, useHardwareAcceleration: bool = True, displaySize: float = 0.1):
         self._position = position
         self._N = N
         self._photons: Union[List[Photon], CLPhotons] = []
         self._environment = None
+        self.displaySize = displaySize
 
         if useHardwareAcceleration:
             useHardwareAcceleration = validateOpenCL()
@@ -160,9 +164,8 @@ class Source:
     def getPhotonCount(self) -> int:
         return self._N
 
-    def addToViewer(self, viewer: MayaviViewer, size: float = 0.1,
-                    representation='surface', colormap='Wistia', opacity=0.8, **kwargs):
-        sphere = Sphere(radius=size/2, position=self._position)
+    def addToViewer(self, viewer: MayaviViewer, representation='surface', colormap='Wistia', opacity=1.0, **kwargs):
+        sphere = Sphere(radius=self.displaySize/2, position=self._position)
         viewer.add(sphere, representation=representation, colormap=colormap, opacity=opacity, **kwargs)
 
     @property
@@ -179,7 +182,7 @@ class Source:
 
 class DirectionalSource(Source):
     def __init__(self, position: Vector, direction: Vector, diameter: float, N: int,
-                 useHardwareAcceleration: bool = True):
+                 useHardwareAcceleration: bool = True, displaySize: float = 0.1):
         self._diameter = diameter
         self._direction = direction
         self._direction.normalize()
@@ -187,12 +190,26 @@ class DirectionalSource(Source):
         self._xAxis.normalize()
         self._yAxis = self._direction.cross(self._xAxis)
         self._yAxis.normalize()
-        super().__init__(position=position, N=N, useHardwareAcceleration=useHardwareAcceleration)
+        super().__init__(position=position, N=N, useHardwareAcceleration=useHardwareAcceleration, displaySize=displaySize)
 
     def getInitialPositionsAndDirections(self) -> Tuple[np.ndarray, np.ndarray]:
         positions = self._getInitialPositions()
         directions = self._getInitialDirections()
         return positions, directions
+
+    def addToViewer(self, viewer: MayaviViewer, representation='surface', colormap='Wistia', opacity=1, **kwargs):
+        defaultSolidDirection = Vector(0, 0, 1)
+        baseHeight = 0.5 * self.displaySize
+        baseCenter = self._position + defaultSolidDirection * baseHeight/2
+        base = Cylinder(radius=self.displaySize/8, height=baseHeight, position=baseCenter)
+        coneHeight = self.displaySize - baseHeight
+        coneCenter = self._position + defaultSolidDirection * (baseHeight + coneHeight/2)
+        arrow = Cone(position=coneCenter, radius=self.displaySize/3, height=coneHeight)
+
+        base.orient(self._direction, rotationCenter=self._position)
+        arrow.orient(self._direction, rotationCenter=self._position)
+
+        viewer.add(base, arrow, representation=representation, colormap=colormap, opacity=opacity, **kwargs)
 
     def _getInitialPositions(self):
         return self._getUniformlySampledDisc(self._diameter) + self._position.array
@@ -223,9 +240,9 @@ class DirectionalSource(Source):
 
 
 class PencilPointSource(DirectionalSource):
-    def __init__(self, position: Vector, direction: Vector, N: int, useHardwareAcceleration: bool = True):
+    def __init__(self, position: Vector, direction: Vector, N: int, useHardwareAcceleration: bool = True, displaySize: float = 0.1):
         super().__init__(position=position, direction=direction, diameter=0, N=N,
-                         useHardwareAcceleration=useHardwareAcceleration)
+                         useHardwareAcceleration=useHardwareAcceleration, displaySize=displaySize)
 
 
 class IsotropicPointSource(Source):
@@ -242,11 +259,11 @@ class IsotropicPointSource(Source):
 
 class DivergentSource(DirectionalSource):
     def __init__(self, position: Vector, direction: Vector, diameter: float, divergence: float, N: int,
-                 useHardwareAcceleration: bool = True):
+                 useHardwareAcceleration: bool = True, displaySize: float = 0.1):
         self._divergence = divergence
 
         super().__init__(position=position, direction=direction, diameter=diameter, N=N,
-                         useHardwareAcceleration=useHardwareAcceleration)
+                         useHardwareAcceleration=useHardwareAcceleration, displaySize=displaySize)
 
     def _getInitialDirections(self):
         thetaDiameter = np.tan(self._divergence/2) * 2

@@ -39,7 +39,9 @@ class FresnelIntersect:
             incidencePlane = rayDirection.getAnyOrthogonal()
         incidencePlane.normalize()
 
-        self._thetaIn = math.acos(normal.dot(rayDirection))
+        dot = normal.dot(rayDirection)
+        dot = max(min(dot, 1), -1)
+        self._thetaIn = math.acos(dot)
 
         return self._create(nextEnvironment, incidencePlane)
 
