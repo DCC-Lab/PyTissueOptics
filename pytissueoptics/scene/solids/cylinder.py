@@ -26,7 +26,9 @@ class Cylinder(Solid):
 
     @property
     def direction(self) -> Vector:
-        return self._topCenter - self._bottomCenter
+        direction = self._topCenter - self._bottomCenter
+        direction.normalize()
+        return direction
 
     def _computeTriangleMesh(self):
         verticesGroups = self._computeVertices()
@@ -86,19 +88,18 @@ class Cylinder(Solid):
         raise NotImplementedError("Quad mesh not implemented for Cylinder")
 
     def contains(self, *vertices: Vector) -> bool:
+        direction = self.direction
+        basePosition = self._position - direction * self._height / 2
         for vertex in vertices:
-            direction = self.direction
-            direction.normalize()
-            localPoint = vertex - self._position
+            localPoint = vertex - basePosition
             alongCylinder = direction.dot(localPoint)
             if alongCylinder < 0 or alongCylinder > self._height:
                 return False
-            else:
-                radiusCheck = self._minRadiusAtHeightAlong(alongCylinder)
-                radialComponent = localPoint - direction * alongCylinder
-                radialDistanceFromBase = radialComponent.getNorm()
-                if radialDistanceFromBase > radiusCheck:
-                    return False
+            radiusCheck = self._minRadiusAtHeightAlong(alongCylinder)
+            radialComponent = localPoint - direction * alongCylinder
+            radialDistanceFromBase = radialComponent.getNorm()
+            if radialDistanceFromBase > radiusCheck:
+                return False
 
         return True
 

@@ -68,13 +68,28 @@ class TestCylinder(unittest.TestCase):
         self.assertFalse(cylinder.contains(*vertices))
 
     def testWhenContainsWithVerticesOutsideMinRadius_shouldReturnFalse(self):
-        cylinder = Cylinder(radius=1000, height=3, u=6, position=Vector(0, 0, 0))
-        vertices = [Vertex(0, 867, 0)]
-        self.assertFalse(cylinder.contains(*vertices))
+        r = 1000
+        h = 3
+        minRadiusWith6Divisions = 0.866
+        f = minRadiusWith6Divisions * 1.01
+        cylinder = Cylinder(radius=r, height=h, u=6, position=Vector(0, 0, 0))
+        
+        vertices = [Vertex(f * r, 0, 0), Vertex(0, f * r, 0), Vertex(0, 0, h * 0.51),
+                    Vertex(-f * r, 0, 0), Vertex(0, -f * r, 0), Vertex(0, 0, -h * 0.51)]
+        
+        for vertex in vertices:
+            self.assertFalse(cylinder.contains(vertex))
 
     def testWhenContainsWithVerticesInsideMinRadius_shouldReturnTrue(self):
-        cylinder = Cylinder(radius=1000, height=3, u=6, position=Vector(0, 0, 0))
-        vertices = [Vertex(0, 866, 0)]
+        r = 1000
+        h = 3
+        minRadiusWith6Divisions = 0.866
+        f = minRadiusWith6Divisions * 0.99
+        cylinder = Cylinder(radius=r, height=h, u=6, position=Vector(0, 0, 0))
+        
+        vertices = [Vertex(f * r, 0, 0), Vertex(0, f * r, 0), Vertex(0, 0, h * 0.49),
+                    Vertex(-f * r, 0, 0), Vertex(0, -f * r, 0), Vertex(0, 0, -h * 0.49)]
+
         self.assertTrue(cylinder.contains(*vertices))
 
     def testWhenSmoothWithLessThan16Sides_shouldWarn(self):
