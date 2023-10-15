@@ -1,7 +1,7 @@
 import env
 from pytissueoptics import *
 
-TITLE = "MCX Skin vessel"
+TITLE = "Skin vessel"
 
 DESCRIPTION = """ Adapted MCX built-in example - a 3-layer domain with a cylindrical vessel inclusion 
 to simulate skin/vessel measurements. This benchmark was first constructed by Dr. Steve Jacques in his mcxyz software
@@ -17,7 +17,7 @@ def exampleCode():
     dermisLayer = Cuboid(1, 0.84, 1, material=ScatteringMaterial(mu_a=0.04585, mu_s=35.65406, g=0.9, n=1.38), label="dermis")
     zStack = waterLayer.stack(epidermisLayer).stack(dermisLayer)
     zStack.translateTo(Vector(0, 0, 0))
-    bloodVessel = Cylinder(0.1, 0.99, material=ScatteringMaterial(mu_a=23.05427, mu_s=9.3985, g=0.9, n=1.361), label="blood", smooth=True)
+    bloodVessel = Cylinder(0.1, 0.99, material=ScatteringMaterial(mu_a=23.05427, mu_s=9.3985, g=0.9, n=1.361), label="blood")
 
     scene = ScatteringScene([zStack, bloodVessel])
 
