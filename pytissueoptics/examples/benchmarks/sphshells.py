@@ -25,6 +25,10 @@ def exampleCode():
 
     viewer.show2D(View2DProjectionX())
     viewer.show2D(View2DProjectionZ())
+    viewer.show2D(View2DProjectionX(solidLabel="outer"))
+    viewer.show2D(View2DProjectionX(solidLabel="inner"))
+    viewer.show2D(View2DProjectionX(solidLabel="core"))
+
     viewer.show2D(View2DSurfaceZ(solidLabel="outer", surfaceLabel="ellipsoid"))
     viewer.show1D(Direction.Z_POS)
     viewer.show3D(pointCloudStyle=PointCloudStyle(showSolidPoints=False))
