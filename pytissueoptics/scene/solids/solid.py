@@ -8,6 +8,7 @@ from pytissueoptics.scene.geometry import primitives, Environment, SurfaceCollec
 
 INITIAL_SOLID_ORIENTATION = Vector(0, 0, 1)
 
+
 class Solid:
     def __init__(self, vertices: List[Vertex], position: Vector = Vector(0, 0, 0),
                  surfaces: SurfaceCollection = None, material=None,
@@ -107,7 +108,7 @@ class Solid:
 
         Since we know the position of the centroid in global coordinates, we extract a centered array reference
         to the vertices and rotate them with euler rotation before moving that reference back to the solid's position.
-        Finally we update the solid vertices' components with the values of this rotated array reference and ask each
+        Finally, we update the solid vertices' components with the values of this rotated array reference and ask each
         solid surface to compute its new normal.
         """
         rotation = Rotation(xTheta, yTheta, zTheta)
@@ -129,7 +130,7 @@ class Solid:
     def _rotateWith(self, rotationFunction: Callable[[List[Vector]], List[Vector]], rotationCenter: Vector = None):
         if rotationCenter is None:
             rotationCenter = self.position
-        verticesAtOrigin = [vertex - rotationCenter for vertex in self._vertices]
+        verticesAtOrigin: List[Vector] = [vertex - rotationCenter for vertex in self._vertices]
         verticesAtOrigin.append(self.position - rotationCenter)
 
         rotatedVerticesAtOrigin = rotationFunction(verticesAtOrigin)

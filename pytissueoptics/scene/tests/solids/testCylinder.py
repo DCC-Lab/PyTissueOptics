@@ -55,8 +55,8 @@ class TestCylinder(unittest.TestCase):
 
     def testWhenContainsWithVerticesThatAreAllInsideTheCylinder_shouldReturnTrue(self):
         cylinder = Cylinder(radius=1, height=3, u=32, v=2, position=Vector(2, 2, 0))
-        cylinder.rotate(0, 30, 0)
-        vertices = [Vertex(3.4, 2, 2.4), Vertex(2, 2, 0.5)]
+        cylinder.rotate(0, 45, 0)
+        vertices = [Vertex(2+1, 2, 1), Vertex(2, 2, 0.5)]
 
         self.assertTrue(cylinder.contains(*vertices))
 
