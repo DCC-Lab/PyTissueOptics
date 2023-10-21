@@ -32,8 +32,6 @@ As discussed in the [why use this package](#why-use-this-package) section, compu
 ## Installation
 Requires Python 3.6+ installed on the device.
 
-PyTissueOptics can be installed via `pip` or by cloning the repository.
-
 ### Installing the development version
 1. Clone the repository.
 2. Create a virtual environment inside the repository with `python -m venv venv`.
@@ -47,7 +45,7 @@ PyTissueOptics can be installed via `pip` or by cloning the repository.
 > Currently, this `pip` version is outdated. We recommend installing the development version.
 ```shell
 pip install --upgrade pip
-pip install pytissueoptics
+pip install --upgrade pytissueoptics
 ```
 
 ## Getting started
