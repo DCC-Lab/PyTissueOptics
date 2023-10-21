@@ -152,8 +152,8 @@ class TestCuboid(unittest.TestCase):
 
     def testWhenContainsWithVerticesThatAreAllInsideTheCuboid_shouldReturnTrue(self):
         cuboid = Cuboid(1, 1, 8, position=Vector(2, 2, 0))
-        cuboid.rotate(30, 0, 0)
-        vertices = [Vertex(2, 2 - 1.71, 3), Vertex(2, 2, 0)]
+        cuboid.rotate(45, 0, 0)
+        vertices = [Vertex(2, 2 - 2.5, 2.5), Vertex(2, 2, 0)]
 
         self.assertTrue(cuboid.contains(*vertices))
 
