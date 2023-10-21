@@ -63,8 +63,10 @@ class CLProgram:
 
         self._program = cl.Program(self._context, sourceCode).build()
 
-    def getData(self, _object: CLObject, dtype: np.dtype = np.float32):
+    def getData(self, _object: CLObject, dtype: np.dtype = np.float32, returnData: bool = True):
         cl.enqueue_copy(self._mainQueue, dest=_object.hostBuffer, src=_object.deviceBuffer)
+        if not returnData:
+            return
         if _object.STRUCT_DTYPE is not None:
             return rfn.structured_to_unstructured(_object.hostBuffer, dtype=dtype)
         else:

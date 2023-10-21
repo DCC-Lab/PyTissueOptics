@@ -69,7 +69,7 @@ class CLPhotons:
             self._translateToSceneLogger(log, scene)
 
             logger.reset()
-            program.getData(kernelPhotons)
+            program.getData(kernelPhotons, returnData=False)
             batchPhotonCount, photonCount = self._replaceFullyPropagatedPhotons(kernelPhotons, photonPool,
                                                                                 photonCount, params.maxPhotonsPerBatch)
 
