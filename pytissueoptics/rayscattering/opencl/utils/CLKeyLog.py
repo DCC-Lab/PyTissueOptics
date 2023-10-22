@@ -1,4 +1,5 @@
 from multiprocessing.pool import ThreadPool
+from typing import List
 
 import numpy as np
 
@@ -58,8 +59,7 @@ class CLKeyLog:
 
     def _sortBatch(self, startIdx: int):
         ba, bb = startIdx, startIdx + self._batchSize
-        batchLog = self._log[ba:bb]
-        batchLog = self._sort(batchLog, column=SOLID_ID_COL)
+        batchLog = self._sort(self._log[ba:bb], columns=[SOLID_ID_COL, SURFACE_ID_COL])
 
         solidChanges = self._getValueChangeIndices(batchLog, column=SOLID_ID_COL)
 
@@ -70,7 +70,6 @@ class CLKeyLog:
                 continue
             a, b = solidChanges[i], solidChanges[i + 1]
             batchSolidLog = batchLog[a:b]
-            batchSolidLog = self._sort(batchSolidLog, column=SURFACE_ID_COL)
 
             surfaceChanges = self._getValueChangeIndices(batchSolidLog, column=SURFACE_ID_COL)
             for j in range(len(surfaceChanges) - 1):
@@ -89,8 +88,8 @@ class CLKeyLog:
         return np.concatenate(([0], indices, [log.shape[0]]))
 
     @staticmethod
-    def _sort(log: np.ndarray, column: int):
-        return log[log[:, column].argsort()]
+    def _sort(log: np.ndarray, columns: List[int]):
+        return log[np.lexsort([log[:, i] for i in columns])]
 
     def _merge(self):
         """ Merges the local batches into a single key log with unique interaction keys. """
