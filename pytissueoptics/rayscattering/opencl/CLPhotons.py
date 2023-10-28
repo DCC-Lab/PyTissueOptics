@@ -69,7 +69,7 @@ class CLPhotons:
             self._translateToSceneLogger(log, scene)
 
             logger.reset()
-            program.getData(kernelPhotons)
+            program.getData(kernelPhotons, returnData=False)
             batchPhotonCount, photonCount = self._replaceFullyPropagatedPhotons(kernelPhotons, photonPool,
                                                                                 photonCount, params.maxPhotonsPerBatch)
 
@@ -77,20 +77,26 @@ class CLPhotons:
             params.maxPhotonsPerBatch = kernelPhotons.length
             batchCount += 1
 
-    def _replaceFullyPropagatedPhotons(self, kernelPhotons: PhotonCL, photonPool: PhotonCL,
-                                       photonCount: int, currentKernelLength: int) -> (int, int):
-        photonsToRemove = []
-        batchPhotonCount = 0
-        for i in range(currentKernelLength):
-            if kernelPhotons.hostBuffer[i]["weight"] == 0:
-                newPhotonsRemaining = photonCount + currentKernelLength < self._N
-                if newPhotonsRemaining:
-                    kernelPhotons.hostBuffer[i] = photonPool.hostBuffer[photonCount]
-                else:
-                    photonsToRemove.append(i)
-                photonCount += 1
-                batchPhotonCount += 1
+    def _replaceFullyPropagatedPhotons(self, kernelPhotons: PhotonCL, photonPool: PhotonCL, photonCount: int,
+                                       currentKernelLength: int) -> (int, int):
+        photonsToReplace = np.where(kernelPhotons.hostBuffer["weight"] == 0)[0]
+        batchPhotonCount = len(photonsToReplace)
+
+        if batchPhotonCount == 0:
+            return batchPhotonCount, photonCount
+
+        newPhotonsRemaining = photonCount + currentKernelLength < self._N
+        if newPhotonsRemaining:
+            replacement_photons = photonPool.hostBuffer[photonCount:photonCount + batchPhotonCount]
+            photonsToRemove = photonsToReplace[len(replacement_photons):]
+            photonsToReplace = photonsToReplace[:len(replacement_photons)]
+            kernelPhotons.hostBuffer[photonsToReplace] = replacement_photons
+        else:
+            photonsToRemove = photonsToReplace
+
         kernelPhotons.hostBuffer = np.delete(kernelPhotons.hostBuffer, photonsToRemove)
+
+        photonCount += batchPhotonCount
         return batchPhotonCount, photonCount
 
     def _translateToSceneLogger(self, log, sceneCL, verbose: bool = False):
