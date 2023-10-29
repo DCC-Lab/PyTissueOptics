@@ -23,6 +23,12 @@ class BatchTiming:
         self._printHeader()
 
     def recordBatch(self, photonCount: int, propagationTime: float, dataTransferTime: float, dataConversionTime: float, totalTime: float):
+        """
+        Photon count is the number of photons that were propagated in the batch. The other times are in nanoseconds.
+        Propagation time is the time it took to run the propagation kernel. Data transfer time is the time it took to
+        transfer the raw 3D data from the GPU. Data conversion time is the time it took to sort and convert the 
+        interactions IDs into proper InteractionKey points. 
+        """
         self._photonCount += photonCount
         self._propagationTime += propagationTime
         self._dataTransferTime += dataTransferTime
