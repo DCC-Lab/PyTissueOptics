@@ -4,7 +4,7 @@ import time
 import numpy as np
 
 from pytissueoptics.rayscattering.opencl import WEIGHT_THRESHOLD
-from pytissueoptics.rayscattering.opencl.utils import CLKeyLog, CLParameters
+from pytissueoptics.rayscattering.opencl.utils import CLKeyLog, CLParameters, BatchTiming
 from pytissueoptics.rayscattering.opencl.CLScene import CLScene
 from pytissueoptics.rayscattering.opencl.CLProgram import CLProgram
 from pytissueoptics.rayscattering.opencl.buffers.seedCL import SeedCL
@@ -53,7 +53,9 @@ class CLPhotons:
 
         photonCount = 0
         batchCount = 0
-        t0 = time.time_ns()
+        
+        if verbose:
+            timing = BatchTiming(self._N)
 
         while photonCount < self._N:
             t1 = time.time_ns()
@@ -64,16 +66,19 @@ class CLPhotons:
                                             scene.materials, scene.nSolids, scene.solids, scene.surfaces, scene.triangles,
                                             scene.vertices, scene.solidCandidates, seeds, logger])
             t2 = time.time_ns()
-
             log = program.getData(logger)
+            t3 = time.time_ns()
             self._translateToSceneLogger(log, scene)
+            t4 = time.time_ns()
 
             logger.reset()
             program.getData(kernelPhotons, returnData=False)
             batchPhotonCount, photonCount = self._replaceFullyPropagatedPhotons(kernelPhotons, photonPool,
                                                                                 photonCount, params.maxPhotonsPerBatch)
+            if verbose:
+                timing.recordBatch(batchPhotonCount, propagationTime=(t2 - t1), dataTransferTime=(t3 - t2),
+                                   dataConversionTime=(t4 - t3), totalTime=(time.time_ns() - t1))
 
-            self._showProgress(photonCount, batchPhotonCount, batchCount, t0, t1, t2, params.maxPhotonsPerBatch, verbose)
             params.maxPhotonsPerBatch = kernelPhotons.length
             batchCount += 1
 
@@ -99,29 +104,9 @@ class CLPhotons:
         photonCount += batchPhotonCount
         return batchPhotonCount, photonCount
 
-    def _translateToSceneLogger(self, log, sceneCL, verbose: bool = False):
+    def _translateToSceneLogger(self, log, sceneCL):
         if not self._sceneLogger:
             return
 
-        t5 = time.time()
         keyLog = CLKeyLog(log, sceneCL=sceneCL)
         keyLog.toSceneLogger(self._sceneLogger)
-        if verbose:
-            print(f" ... {time.time() - t5:.3f} s. [Translate OpenCL Logger to Scene Logger]")
-
-    def _showProgress(self, photonCount: int, localPhotonCount: int, batchCount: int, t0: float, t1: float,
-                      t2: float, currentKernelLength: int, verbose: bool = True):
-        if not verbose:
-            return
-        if localPhotonCount == 0:
-            print(f"{photonCount}/{self._N}\t{((time.time_ns() - t0) / 1e9):.4f} s\t ::"
-                  f" Batch #{batchCount}\t :: {currentKernelLength} \t{((t2 - t1) / 1e9):.2f} s\t ::"
-                  f"({(photonCount * 100 / self._N):.2f}%) \t ::"
-                  f"Finished propagation: {localPhotonCount}")
-        else:
-            print(f"{photonCount}/{self._N}\t{((time.time_ns() - t0) / 1e9):.4f} s\t ::"
-                  f" Batch #{batchCount}\t :: {currentKernelLength} \t{((t2 - t1) / 1e9):.2f} s\t ::"
-                  f" ETA: {((time.time_ns() - t0) / 1e9) * (np.float64(self._N) / np.float64(photonCount)):.2f} s\t ::"
-                  f"({(photonCount * 100 / self._N):.2f}%) \t ::"
-                  f"Eff: {np.float64((t2 - t1) / 1e3) / localPhotonCount:.2f} us/photon\t ::"
-                  f"Finished propagation: {localPhotonCount}")
