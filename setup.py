@@ -29,8 +29,8 @@ setuptools.setup(
         'psutil',
         'pyopencl',
         'pyqt5',
-        'traitsui<=7.4.3',
-        'vtk==9.2.2',
+        'traitsui<8.0.0',
+        'vtk>=9.2.2',
         'mayavi==4.8.1',
         'Pygments',
     ],
@@ -50,6 +50,7 @@ setuptools.setup(
         'Programming Language :: Python :: 3.8',
         'Programming Language :: Python :: 3.9',
         'Programming Language :: Python :: 3.10',
+        'Programming Language :: Python :: 3.11',
         'Operating System :: OS Independent'
     ],
 )
