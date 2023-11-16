@@ -21,6 +21,7 @@ class Cylinder(Solid):
             raise ValueError("u must be >= 3")
         if length != 0 and v < 1:
             raise ValueError("v must be >= 1 for non-zero length")
+        assert radius > 0 and length >= 0
         self._u = u
         self._v = v
         self._s = s
