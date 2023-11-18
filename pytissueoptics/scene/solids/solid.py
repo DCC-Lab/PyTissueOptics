@@ -271,7 +271,7 @@ class Solid:
     def completeSurfaceLabel(self, surfaceLabel: str) -> str:
         return self._surfaces.processLabel(surfaceLabel)
 
-    def smooth(self, surfaceLabel: str = None):
+    def smooth(self, surfaceLabel: str = None, reset: bool = True):
         """ Prepare smoothing by calculating vertex normals. This is not done
         by default. The vertex normals are used during ray-polygon intersection
         to return an interpolated (smooth) normal. A vertex normal is defined
@@ -282,8 +282,9 @@ class Solid:
         another solid implementation and calling super().smooth(surfaceLabel).
         """
         self._smoothing = True
-        for vertex in self.vertices:
-            vertex.normal = None
+        if reset:
+            for vertex in self.vertices:
+                vertex.normal = None
 
         polygons = self.getPolygons(surfaceLabel)
 
