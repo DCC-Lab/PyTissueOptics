@@ -111,3 +111,39 @@ class ThickLens(Cylinder):
         for surfaceLabel in self._surfaces.surfaceLabels:
             self.smooth(surfaceLabel, reset=False)
 
+
+class SymmetricLens(ThickLens):
+    """ A symmetrical thick lens of focal length `f` in air. """
+    def __init__(self, f: float, diameter: float, thickness: float, material: RefractiveMaterial,
+                 position: Vector(0, 0, 0), label: str = "lens", primitive: str = primitives.DEFAULT,
+                 smooth: bool = True, u: int = 32, v: int = 2, s: int = 10):
+        # For thick lenses, the focal length is given by the lensmaker's equation:
+        # 1/f = (n - 1) * (1/R1 - 1/R2 + (n - 1) * d / (n * R1 * R2))
+        # with R2 = -R1, we get the following quadratic equation to solve:
+        # 1/f = (n - 1) * (2/R - (n - 1) * d / (n * R^2))
+        n = material.n
+        p = math.sqrt(f * n * (f * n - thickness)) * (n - 1) / n
+        R = f * (n - 1) + p * np.sign(f)
+        super().__init__(R, -R, diameter, thickness, position, material, label, primitive, smooth, u, v, s)
+
+
+class PlanoConvexLens(ThickLens):
+    def __init__(self, f: float, diameter: float, thickness: float, material: RefractiveMaterial,
+                 position: Vector(0, 0, 0), label: str = "lens", primitive: str = primitives.DEFAULT,
+                 smooth: bool = True, u: int = 32, v: int = 2, s: int = 10):
+        R1 = f * (material.n - 1)
+        R2 = math.inf
+        if f < 0:
+            R1, R2 = R2, R1
+        super().__init__(R1, R2, diameter, thickness, position, material, label, primitive, smooth, u, v, s)
+
+
+class PlanoConcaveLens(ThickLens):
+    def __init__(self, f: float, diameter: float, thickness: float, material: RefractiveMaterial,
+                 position: Vector(0, 0, 0), label: str = "lens", primitive: str = primitives.DEFAULT,
+                 smooth: bool = True, u: int = 32, v: int = 2, s: int = 10):
+        R1 = math.inf
+        R2 = f * (material.n - 1)
+        if f < 0:
+            R1, R2 = R2, R1
+        super().__init__(R1, R2, diameter, thickness, position, material, label, primitive, smooth, u, v, s)
