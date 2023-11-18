@@ -20,7 +20,7 @@ class ThickLens(Cylinder):
     """
     def __init__(self, frontRadius: float, backRadius: float, diameter: float, thickness: float,
                  position: Vector = Vector(0, 0, 0), material=None, label: str = "thick lens",
-                 primitive: str = primitives.DEFAULT, smooth: bool = True, u: int = 32, v: int = 2, s: int = 10):
+                 primitive: str = primitives.DEFAULT, smooth: bool = True, u: int = 24, v: int = 2, s: int = 24):
         frontRadius = frontRadius if frontRadius != 0 else math.inf
         backRadius = backRadius if backRadius != 0 else math.inf
         if abs(frontRadius) <= diameter / 2:
@@ -34,8 +34,7 @@ class ThickLens(Cylinder):
         self._frontRadius = frontRadius
         self._backRadius = backRadius
 
-        length = self._computeLateralLength(thickness)
-        print(f"lateral length: {length}")
+        length = self._computeEdgeThickness(thickness)
         super().__init__(radius=diameter / 2, length=length, u=u, v=v, s=s, position=position,
                          material=material, label=label, primitive=primitive, smooth=smooth)
 
@@ -47,9 +46,9 @@ class ThickLens(Cylinder):
     def _hasBackCurvature(self) -> bool:
         return self._backRadius != 0 and self._backRadius != math.inf
 
-    def _computeLateralLength(self, thickness) -> float:
+    def _computeEdgeThickness(self, centerThickness) -> float:
         """ Returns the thickness of the lens on its side. This is the length required to build the base cylinder
-        before applying the curvature. """
+        before applying surface curvature. """
         dt1, dt2 = 0, 0
         if self._hasFrontCurvature:
             dt1 = abs(self._frontRadius) - math.sqrt(self._frontRadius**2 - self._diameter**2/4)
@@ -57,14 +56,18 @@ class ThickLens(Cylinder):
         if self._hasBackCurvature:
             dt2 = abs(self._backRadius) - math.sqrt(self._backRadius**2 - self._diameter**2/4)
             dt2 *= -np.sign(self._backRadius)
-        lateralLength = thickness - dt1 - dt2
-        if lateralLength < 0:
-            raise ValueError(f"Desired thickness is too small for the given radii and diameter.")
-        return lateralLength
+        edgeThickness = centerThickness - dt1 - dt2
+        if edgeThickness < 0:
+            raise ValueError(f"Desired center thickness is too small for the given radii and diameter.")
+        return edgeThickness
 
     @property
-    def _centerThickness(self) -> float:
+    def centerThickness(self) -> float:
         return (self._frontCenter - self._backCenter).getNorm()
+
+    @property
+    def edgeThickness(self) -> float:
+        return self._length
 
     @property
     def focalLength(self) -> float:
@@ -76,7 +79,7 @@ class ThickLens(Cylinder):
         n = self._material.n
         R1 = self._frontRadius
         R2 = self._backRadius
-        d = self._centerThickness
+        d = self.centerThickness
         if n == 1:
             return math.inf
         if self._hasFrontCurvature and self._hasBackCurvature:
@@ -115,7 +118,7 @@ class ThickLens(Cylinder):
     def smooth(self, surfaceLabel: str = None, reset: bool = True):
         if surfaceLabel:
             return super(Cylinder, self).smooth(surfaceLabel, reset)
-        for surfaceLabel in self._surfaces.surfaceLabels:
+        for surfaceLabel in ["front", "back"]:
             self.smooth(surfaceLabel, reset=False)
 
 
@@ -123,7 +126,7 @@ class SymmetricLens(ThickLens):
     """ A symmetrical thick lens of focal length `f` in air. """
     def __init__(self, f: float, diameter: float, thickness: float, material: RefractiveMaterial,
                  position: Vector(0, 0, 0), label: str = "lens", primitive: str = primitives.DEFAULT,
-                 smooth: bool = True, u: int = 32, v: int = 2, s: int = 10):
+                 smooth: bool = True, u: int = 24, v: int = 2, s: int = 24):
         # For thick lenses, the focal length is given by the lensmaker's equation:
         # 1/f = (n - 1) * (1/R1 - 1/R2 + (n - 1) * d / (n * R1 * R2))
         # with R2 = -R1, we get the following quadratic equation to solve:
@@ -137,7 +140,7 @@ class SymmetricLens(ThickLens):
 class PlanoConvexLens(ThickLens):
     def __init__(self, f: float, diameter: float, thickness: float, material: RefractiveMaterial,
                  position: Vector(0, 0, 0), label: str = "lens", primitive: str = primitives.DEFAULT,
-                 smooth: bool = True, u: int = 32, v: int = 2, s: int = 10):
+                 smooth: bool = True, u: int = 24, v: int = 2, s: int = 24):
         R1 = f * (material.n - 1)
         R2 = math.inf
         if f < 0:
@@ -148,7 +151,7 @@ class PlanoConvexLens(ThickLens):
 class PlanoConcaveLens(ThickLens):
     def __init__(self, f: float, diameter: float, thickness: float, material: RefractiveMaterial,
                  position: Vector(0, 0, 0), label: str = "lens", primitive: str = primitives.DEFAULT,
-                 smooth: bool = True, u: int = 32, v: int = 2, s: int = 10):
+                 smooth: bool = True, u: int = 24, v: int = 2, s: int = 24):
         R1 = math.inf
         R2 = f * (material.n - 1)
         if f < 0:

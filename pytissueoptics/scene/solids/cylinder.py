@@ -142,9 +142,14 @@ class Cylinder(Solid):
     def _getShrinkFactor(heightAlong: float) -> float:
         return 1
 
-    def smooth(self, surfaceLabel: str = None):
+    def smooth(self, surfaceLabel: str = None, reset: bool = True):
         if self._u < 16:
             warnings.warn("Smoothing a cylinder with less than 16 sides (u < 16) may result in intersection errors.")
         if surfaceLabel:
-            return super(Cylinder, self).smooth(surfaceLabel)
-        self.smooth("lateral")
+            return super(Cylinder, self).smooth(surfaceLabel, reset)
+        self.smooth("lateral", reset=True)
+
+    def __hash__(self):
+        materialHash = hash(self._material) if self._material else 0
+        propertyHash = hash((self._radius, self._length, self._frontCenter, self._backCenter))
+        return hash((materialHash, propertyHash))

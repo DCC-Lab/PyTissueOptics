@@ -280,7 +280,7 @@ void setSmoothNormal(Intersection *intersection, __global Triangle *triangles, _
     }
 
     // Do not allow the new smooth normal to have a different dot product with ray direction. 
-    // This is a rare edge case that can happen when the ray direction is approximately parallel to the surface. More comon in low resolution meshes (like icosphere of order 1)
+    // This is a rare edge case that can happen when the ray direction is approximately parallel to the surface. More common in low resolution meshes (like icosphere of order 1)
     // Not accounting for this can lead to a photon slightly going inside another solid mesh, but being considered as leaving the other solid (during FresnelIntersection calculations).
     // Which would result in the wrong next environment being set as well as the wrong step correction being applied after refraction.
     if (dot(newNormal, ray->direction) * dot(intersection->normal, ray->direction) < 0) {
