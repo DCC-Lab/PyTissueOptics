@@ -33,9 +33,9 @@ class ThickLens(Cylinder):
         self._diameter = diameter
         self._frontRadius = frontRadius
         self._backRadius = backRadius
-        self._centerThickness = thickness
 
-        length = self._computeLateralLength()
+        length = self._computeLateralLength(thickness)
+        print(f"lateral length: {length}")
         super().__init__(radius=diameter / 2, length=length, u=u, v=v, s=s, position=position,
                          material=material, label=label, primitive=primitive, smooth=smooth)
 
@@ -47,7 +47,7 @@ class ThickLens(Cylinder):
     def _hasBackCurvature(self) -> bool:
         return self._backRadius != 0 and self._backRadius != math.inf
 
-    def _computeLateralLength(self) -> float:
+    def _computeLateralLength(self, thickness) -> float:
         """ Returns the thickness of the lens on its side. This is the length required to build the base cylinder
         before applying the curvature. """
         dt1, dt2 = 0, 0
@@ -57,7 +57,14 @@ class ThickLens(Cylinder):
         if self._hasBackCurvature:
             dt2 = abs(self._backRadius) - math.sqrt(self._backRadius**2 - self._diameter**2/4)
             dt2 *= -np.sign(self._backRadius)
-        return max(self._centerThickness - dt1 - dt2, 0)
+        lateralLength = thickness - dt1 - dt2
+        if lateralLength < 0:
+            raise ValueError(f"Desired thickness is too small for the given radii and diameter.")
+        return lateralLength
+
+    @property
+    def _centerThickness(self) -> float:
+        return (self._frontCenter - self._backCenter).getNorm()
 
     @property
     def focalLength(self) -> float:
