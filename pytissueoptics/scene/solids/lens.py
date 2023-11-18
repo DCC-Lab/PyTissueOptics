@@ -70,6 +70,14 @@ class ThickLens(Cylinder):
         return self._length
 
     @property
+    def frontRadius(self) -> float:
+        return self._frontRadius
+
+    @property
+    def backRadius(self) -> float:
+        return self._backRadius
+
+    @property
     def focalLength(self) -> float:
         """ Returns the focal length of the lens in air. Requires a refractive material to be defined."""
         if self._material is None or not issubclass(type(self._material), RefractiveMaterial):
@@ -125,7 +133,7 @@ class ThickLens(Cylinder):
 class SymmetricLens(ThickLens):
     """ A symmetrical thick lens of focal length `f` in air. """
     def __init__(self, f: float, diameter: float, thickness: float, material: RefractiveMaterial,
-                 position: Vector(0, 0, 0), label: str = "lens", primitive: str = primitives.DEFAULT,
+                 position: Vector = Vector(0, 0, 0), label: str = "lens", primitive: str = primitives.DEFAULT,
                  smooth: bool = True, u: int = 24, v: int = 2, s: int = 24):
         # For thick lenses, the focal length is given by the lensmaker's equation:
         # 1/f = (n - 1) * (1/R1 - 1/R2 + (n - 1) * d / (n * R1 * R2))
@@ -139,7 +147,7 @@ class SymmetricLens(ThickLens):
 
 class PlanoConvexLens(ThickLens):
     def __init__(self, f: float, diameter: float, thickness: float, material: RefractiveMaterial,
-                 position: Vector(0, 0, 0), label: str = "lens", primitive: str = primitives.DEFAULT,
+                 position: Vector = Vector(0, 0, 0), label: str = "lens", primitive: str = primitives.DEFAULT,
                  smooth: bool = True, u: int = 24, v: int = 2, s: int = 24):
         R1 = f * (material.n - 1)
         R2 = math.inf
@@ -150,7 +158,7 @@ class PlanoConvexLens(ThickLens):
 
 class PlanoConcaveLens(ThickLens):
     def __init__(self, f: float, diameter: float, thickness: float, material: RefractiveMaterial,
-                 position: Vector(0, 0, 0), label: str = "lens", primitive: str = primitives.DEFAULT,
+                 position: Vector = Vector(0, 0, 0), label: str = "lens", primitive: str = primitives.DEFAULT,
                  smooth: bool = True, u: int = 24, v: int = 2, s: int = 24):
         R1 = math.inf
         R2 = f * (material.n - 1)
