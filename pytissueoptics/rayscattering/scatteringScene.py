@@ -20,9 +20,9 @@ class ScatteringScene(Scene):
                             f"This is required for any RayScatteringScene. ")
         super().add(solid, position)
 
-    def show(self, source: Displayable = None, **kwargs):
+    def show(self, source: Displayable = None, opacity=0.8, colormap="cool", **kwargs):
         viewer = MayaviViewer()
-        self.addToViewer(viewer, **kwargs)
+        self.addToViewer(viewer, opacity=opacity, colormap=colormap, **kwargs)
         if source:
             source.addToViewer(viewer)
         viewer.show()

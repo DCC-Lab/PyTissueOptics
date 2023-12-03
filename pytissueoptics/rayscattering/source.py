@@ -200,10 +200,10 @@ class DirectionalSource(Source):
     def addToViewer(self, viewer: MayaviViewer, representation='surface', colormap='Wistia', opacity=1, **kwargs):
         baseHeight = 0.5 * self.displaySize
         baseCenter = self._position + self._direction * baseHeight/2
-        base = Cylinder(radius=self.displaySize/8, height=baseHeight, position=baseCenter)
+        base = Cylinder(radius=self.displaySize/8, length=baseHeight, position=baseCenter)
         coneHeight = self.displaySize - baseHeight
         coneCenter = self._position + self._direction * (baseHeight + coneHeight/2)
-        arrow = Cone(position=coneCenter, radius=self.displaySize/3, height=coneHeight)
+        arrow = Cone(position=coneCenter, radius=self.displaySize/3, length=coneHeight)
 
         base.orient(self._direction)
         arrow.orient(self._direction)

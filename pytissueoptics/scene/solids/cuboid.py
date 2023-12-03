@@ -2,7 +2,7 @@ from typing import List
 
 import numpy as np
 
-from pytissueoptics.scene.geometry import Vector, Quad, Triangle, utils, Vertex, BoundingBox, Polygon, primitives
+from pytissueoptics.scene.geometry import Vector, Quad, Triangle, Vertex, BoundingBox, Polygon, primitives
 from pytissueoptics.scene.solids import Solid
 from pytissueoptics.scene.geometry import SurfaceCollection
 from pytissueoptics.scene.solids.stack.cuboidStacker import CuboidStacker

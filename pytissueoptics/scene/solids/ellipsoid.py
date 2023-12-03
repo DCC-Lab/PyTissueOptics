@@ -4,7 +4,7 @@ import pickle
 
 import numpy as np
 
-from pytissueoptics.scene.geometry import Vector, Triangle, primitives, utils, Vertex
+from pytissueoptics.scene.geometry import Vector, Triangle, primitives, Vertex
 from pytissueoptics.scene.solids import Solid
 
 

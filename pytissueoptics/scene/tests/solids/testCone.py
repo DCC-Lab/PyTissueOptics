@@ -10,7 +10,7 @@ class TestCone(unittest.TestCase):
         h = 3
         midRadius = r * 0.5
         f = 0.9
-        cylinder = Cone(radius=r, height=h, u=32, v=2, position=Vector(0, 0, 0))
+        cylinder = Cone(radius=r, length=h, u=32, v=2, position=Vector(0, 0, 0))
         
         vertices = [Vertex(f*midRadius, 0, 0), Vertex(0, f*midRadius, 0), Vertex(-f*midRadius, 0, 0), Vertex(0, -f*midRadius, 0), 
                     Vertex(0, 0, f*h*0.5), Vertex(0, 0, -f*h*0.5)]
@@ -22,7 +22,7 @@ class TestCone(unittest.TestCase):
         h = 3
         midRadius = r * 0.5
         f = 1.1
-        cylinder = Cone(radius=r, height=h, u=32, v=2, position=Vector(0, 0, 0))
+        cylinder = Cone(radius=r, length=h, u=32, v=2, position=Vector(0, 0, 0))
         
         vertices = [Vertex(f*midRadius, 0, 0), Vertex(0, f*midRadius, 0), Vertex(-f*midRadius, 0, 0), Vertex(0, -f*midRadius, 0), 
                     Vertex(0, 0, f*h*0.5), Vertex(0, 0, -f*h*0.5)]
