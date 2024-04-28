@@ -1,0 +1,22 @@
+==============   MCX   ======================
+Grid Absorbed Energy: 0.39297568798065186
+Outer Shell Absorbed Energy: 0.014215022325515747
+Inner Shell Absorbed Energy: 0.10685422271490097
+Core Absorbed Energy: 0.002779541537165642
+total by summing all the energies: 0.51682448387146
+========================================
+Total Absorbed Energy: 0.51682448387146
+========================================
+
+
+===============   PYTISSUEOPTICS   ==================
+Report of solid 'cube'
+  Absorbance: 30.20% (43.83% of total power)
+  Report of solid 'outer'
+  Absorbance: 1.64% (1.29% of total power)
+Report of solid 'inner'
+  Absorbance: 23.57% (7.15% of total power)
+Report of solid 'core'
+  Absorbance: 47.53% (0.26% of total power)
+
+ Total Absorbed Energy: 52.53%

@@ -47,26 +47,23 @@ voxel_indices_core = find_voxel_indices_in_sphere(grid_size, voxel_size, center,
 # voxel_indices now contains the (x, y, z) indices of all voxels inside the sphere
 
 energyDataOuter = np.sum([data[x, y, z] for x, y, z in voxel_indices_outer])
-energyDataOuter_conservative = np.sum([data[x, y, z] for x, y, z in voxel_indices_outer_conservative])
 energyDataInner = np.sum([data[x, y, z] for x, y, z in voxel_indices_inner])
-energyDataInner_conservative = np.sum([data[x, y, z] for x, y, z in voxel_indices_inner_conservative])
 energyDataCore = np.sum([data[x, y, z] for x, y, z in voxel_indices_core])
 energyDataGrid = np.sum(data)
 
 
 energyGrid = energyDataGrid - energyDataOuter
-energyDataOuter_conservative = energyDataOuter_conservative - energyDataInner
 energyDataOuter = energyDataOuter - energyDataInner
-
 energyDataInner = energyDataInner - energyDataCore
-energyDataInner_conservative = energyDataInner_conservative - energyDataCore
 
 
+print("\n========================================")
 print(f"Grid Absorbed Energy: {energyGrid}")
 print(f"Outer Shell Absorbed Energy: {energyDataOuter}")
-print(f"Outer Shell Conservative Absorbed Energy: {energyDataOuter_conservative}")
 print(f"Inner Shell Absorbed Energy: {energyDataInner}")
-print(f"Inner Shell Conservative Absorbed Energy: {energyDataInner_conservative}")
 print(f"Core Absorbed Energy: {energyDataCore}")
+print(f"total by summing all the energies: {energyGrid + energyDataOuter + energyDataInner + energyDataCore}")
+print("========================================")
 print(f"Total Absorbed Energy: {energyDataGrid}")
-print(f"total by summing all the energies: {energyGrid + energyDataOuter + energyDataInner_conservative + energyDataCore}")
+print("========================================\n")
+
