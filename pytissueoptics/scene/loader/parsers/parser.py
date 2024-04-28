@@ -29,7 +29,7 @@ class Parser:
         self._objects: Dict[str, ParsedObject] = {}
         self._vertices: List[List[float]] = []
         self._normals: List[List[float]] = []
-        self._texCoords: List[List[float]] = []
+        self._textureCoords: List[List[float]] = []
         self._currentObjectName: str = self.NO_OBJECT
         self._currentSurfaceLabel: str = self.NO_SURFACE
         self._checkFileExtension()
@@ -47,7 +47,7 @@ class Parser:
     def _validateSurfaceLabel(self):
         if self._currentSurfaceLabel not in self._objects[self._currentObjectName].surfaces:
             return
-        idx = 0
+        idx = 2
         while f"{self._currentSurfaceLabel}_{idx}" in self._objects[self._currentObjectName].surfaces:
             idx += 1
         self._currentSurfaceLabel = f"{self._currentSurfaceLabel}_{idx}"
@@ -57,12 +57,12 @@ class Parser:
         return self._vertices
 
     @property
-    def normals(self):
-        return self._normals
+    def textureCoords(self):
+        return self._textureCoords
 
     @property
-    def texCoords(self):
-        return self._texCoords
+    def normals(self):
+        return self._normals
 
     @property
     def objects(self):

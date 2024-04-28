@@ -54,7 +54,7 @@ class GemsBoxIntersect(BoxIntersectStrategy):
             else:
                 maxT.append(-1)
 
-        # Set plane as the one with largest distance.
+        # Set plane as the one with the largest distance.
         plane = maxT.index(max(maxT))
 
         # Check final candidate is inside box and construct intersection point

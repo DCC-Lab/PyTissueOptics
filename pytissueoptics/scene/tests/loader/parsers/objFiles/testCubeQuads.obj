@@ -1,6 +1,9 @@
 # WaveFront *.obj file made by hand for testing purposes
 # This is a unit cube with 6 faces and 6 groups
 
+# unsupported material lib for testing purposes
+mtllib cube.mtl
+
 v -0.5 -0.5 -0.5
 v 0.5 -0.5 -0.5
 v 0.5 0.5 -0.5

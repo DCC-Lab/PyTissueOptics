@@ -1,3 +1,0 @@
-mayavi
-pyqt5
-pyopencl

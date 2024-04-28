@@ -1,4 +1,4 @@
-from pytissueoptics.scene.geometry import Vector, Vertex, primitives
+from pytissueoptics.scene.geometry import Vector, primitives
 from pytissueoptics.scene.solids import Ellipsoid
 
 
@@ -29,7 +29,7 @@ class Sphere(Ellipsoid):
     def _computeQuadMesh(self):
         raise NotImplementedError
 
-    def contains(self, *vertices: Vertex) -> bool:
+    def contains(self, *vertices: Vector) -> bool:
         """ Only returns true if all vertices are inside the minimum radius of the sphere
         (more restrictive with low order spheres). """
         minRadius = self._getMinimumRadius()

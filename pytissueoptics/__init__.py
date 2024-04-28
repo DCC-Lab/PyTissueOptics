@@ -1,4 +1,5 @@
 from .scene import *
 from .rayscattering import *
-from .rayscattering import tissues
-from .rayscattering.tissues import RayScatteringScene
+
+
+__version__ = "2.0.0b1"

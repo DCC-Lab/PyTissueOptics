@@ -7,6 +7,7 @@ from pytissueoptics.scene.shader import getSmoothNormal
 
 class TestSmoothing(unittest.TestCase):
     def setUp(self):
+        # Create a XY square polygon with normals pointing outwards along the Z axis.
         vertices = [Vertex(0, 0, 0), Vertex(1, 0, 0),
                     Vertex(1, 1, 0), Vertex(0, 1, 0)]
         normals = [Vector(-1, -1, 1), Vector(1, -1, 1),
@@ -15,7 +16,7 @@ class TestSmoothing(unittest.TestCase):
             normals[i].normalize()
             vertices[i].normal = normals[i]
 
-        self.initialNormal = Vector(0, 0, -1)
+        self.initialNormal = Vector(0, 0, 1)
         self.polygon = Polygon(vertices=vertices, normal=self.initialNormal)
         self.polygon.toSmooth = True
 
@@ -29,12 +30,14 @@ class TestSmoothing(unittest.TestCase):
         smoothNormal = getSmoothNormal(self.polygon, Vector(0.2, 0.2, 0))
         self.assertEqual(self.initialNormal, smoothNormal)
 
-    def testGivenPositionOnSideOfPolygon_shouldRaiseZeroDivisionError(self):
-        position = Vector(0.5, 1, 0)
-        with self.assertRaises(ZeroDivisionError):
-            getSmoothNormal(self.polygon, position)
+    def testGivenPositionOnSideOfPolygon_shouldReturnInterpolatedNormalBetweenSideVertices(self):
+        position = Vector(0.5, 0, 0)
+        smoothNormal = getSmoothNormal(self.polygon, position)
+        expectedNormal = Vector(0, -1, 1)
+        expectedNormal.normalize()
+        self.assertEqual(expectedNormal, smoothNormal)
 
-    def testGivenPositionOutsidePolygon_shouldRaiseZeroDivisionError(self):
-        position = Vector(-1, 0, 0)
-        with self.assertRaises(ZeroDivisionError):
-            getSmoothNormal(self.polygon, position)
+    def testGivenPositionOnVertex_shouldReturnVertexNormal(self):
+        position = Vector(0, 0, 0)
+        smoothNormal = getSmoothNormal(self.polygon, position)
+        self.assertEqual(self.polygon.vertices[0].normal, smoothNormal)

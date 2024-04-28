@@ -1,10 +1,10 @@
-import math
 import hashlib
+import math
 import pickle
 
 import numpy as np
 
-from pytissueoptics.scene.geometry import Vector, Triangle, primitives, utils, Vertex
+from pytissueoptics.scene.geometry import Vector, Triangle, primitives, Vertex
 from pytissueoptics.scene.solids import Solid
 
 
@@ -158,18 +158,17 @@ class Ellipsoid(Solid):
     def _computeQuadMesh(self):
         raise NotImplementedError
 
-    def contains(self, *vertices: Vertex) -> bool:
+    def contains(self, *vertices: Vector) -> bool:
         """ Only returns true if all vertices are inside the minimum radius of the ellipsoid
         towards each vertex direction (more restrictive with low order ellipsoids). """
-        verticesArray = np.asarray([vertex.array for vertex in vertices])
-        relativeVerticesArray = verticesArray - self.position.array
-
-        if self._orientation:
-            relativeVerticesArray = utils.rotateVerticesArray(relativeVerticesArray, self._orientation, inverse=True)
+        relativeVertices = [vertex - self.position for vertex in vertices]
+        relativeVertices = self._applyInverseRotation(relativeVertices)
+        relativeVerticesArray = np.asarray([vertex.array for vertex in relativeVertices])
 
         for relativeVertexArray in relativeVerticesArray:
             relativeVertex = Vertex(*relativeVertexArray)
             vertexRadius = relativeVertex.getNorm()
+            relativeVertex.normalize()
             if vertexRadius == 0:
                 continue
             minRadius = self._getMinimumRadiusTowards(relativeVertex)

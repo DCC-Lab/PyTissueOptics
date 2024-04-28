@@ -1,6 +1,9 @@
+from typing import Tuple
+
 import numpy as np
 
 from pytissueoptics.scene.geometry import Rotation
+from pytissueoptics.scene.geometry.vector import Vector
 
 
 def rotateVerticesArray(verticesArray: np.ndarray, r: Rotation, inverse=False) -> np.ndarray:
@@ -50,3 +53,15 @@ def _xRotationMatrix(theta) -> np.ndarray:
     return np.asarray([[1, 0, 0],
                        [0, cosTheta, -sinTheta],
                        [0, sinTheta, cosTheta]])
+
+
+def getAxisAngleBetween(fromDirection: Vector, toDirection: Vector) -> Tuple[Vector, float]:
+    fromDirection.normalize()
+    toDirection.normalize()
+    dot = fromDirection.dot(toDirection)
+    dot = max(min(dot, 1), -1)
+    angle = np.arccos(dot)
+    axis = fromDirection.cross(toDirection)
+    axis.normalize()
+    axis = axis.array
+    return Vector(*axis), angle

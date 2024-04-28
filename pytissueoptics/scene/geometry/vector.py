@@ -99,6 +99,9 @@ class Vector:
         return Vector(self._x, self._y, self._z)
 
     def rotateAround(self, unitAxis: 'Vector', theta: float):
+        """
+        Rotate the vector around `unitAxis` by `theta` radians. Assumes the axis to be a unit vector.
+        """
         # This is the most expensive (and most common)
         # operation when performing Monte Carlo in tissue
         # (15% of time spent here). It is difficult to optimize without
@@ -140,3 +143,6 @@ class Vector:
             return Vector(self._y, -self._x, 0)
 
         return Vector(0, -self._z, self._y)
+
+    def __hash__(self):
+        return hash((self._x, self._y, self._z))

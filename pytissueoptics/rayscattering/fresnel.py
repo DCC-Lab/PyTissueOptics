@@ -2,8 +2,7 @@ import math
 import random
 from dataclasses import dataclass
 
-from pytissueoptics.scene import Vector
-from pytissueoptics.scene.geometry import Environment
+from pytissueoptics.scene.geometry import Environment, Vector
 from pytissueoptics.scene.intersection.intersectionFinder import Intersection
 
 
@@ -40,7 +39,9 @@ class FresnelIntersect:
             incidencePlane = rayDirection.getAnyOrthogonal()
         incidencePlane.normalize()
 
-        self._thetaIn = math.acos(normal.dot(rayDirection))
+        dot = normal.dot(rayDirection)
+        dot = max(min(dot, 1), -1)
+        self._thetaIn = math.acos(dot)
 
         return self._create(nextEnvironment, incidencePlane)
 

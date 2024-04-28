@@ -8,17 +8,19 @@ uint wangHash(uint seed){
     return seed;
 }
 
-float getRandomFloatValue(__global unsigned int *seedBuffer, unsigned int id){
+float getRandomFloatValue(__global unsigned int *seeds, unsigned int id){
      float result = 0.0f;
      while(result == 0.0f){
-         uint rnd_seed = wangHash(seedBuffer[id]);
-         seedBuffer[id] = rnd_seed;
+         uint rnd_seed = wangHash(seeds[id]);
+         seeds[id] = rnd_seed;
          result = (float)rnd_seed / (float)UINT_MAX;
      }
      return result;
-    }
+}
 
- __kernel void fillRandomFloatBuffer(__global unsigned int *seedBuffer, __global float *randomFloatBuffer){
+// ----------------- TEST KERNELS -----------------
+
+ __kernel void fillRandomFloatBuffer(__global unsigned int *seeds, __global float *randomNumbers){
     int id = get_global_id(0);
-    randomFloatBuffer[id] = getRandomFloatValue(seedBuffer, id);
-    }
+    randomNumbers[id] = getRandomFloatValue(seeds, id);
+}

@@ -6,3 +6,4 @@ from .ellipsoid import Ellipsoid
 from .sphere import Sphere
 from .cylinder import Cylinder
 from .cone import Cone
+from .lens import ThickLens, SymmetricLens, PlanoConvexLens, PlanoConcaveLens

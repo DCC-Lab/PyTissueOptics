@@ -2,8 +2,10 @@ import math
 
 import numpy as np
 
+from pytissueoptics.scene.material import RefractiveMaterial
 
-class ScatteringMaterial:
+
+class ScatteringMaterial(RefractiveMaterial):
     def __init__(self, mu_s=0, mu_a=0, g=0, n=1.0):
         self.mu_s = mu_s
         self.mu_a = mu_a
@@ -15,7 +17,7 @@ class ScatteringMaterial:
             self._albedo = 0
 
         self.g = g
-        self.n = n
+        super().__init__(n)
 
     def getAlbedo(self):
         return self._albedo
@@ -38,3 +40,6 @@ class ScatteringMaterial:
             temp = (1 - g * g) / (1 - g + 2 * g * np.random.random())
             cost = (1 + g * g - temp * temp) / (2 * g)
         return np.arccos(cost), phi
+
+    def __hash__(self):
+        return hash((self.mu_s, self.mu_a, self.g, self.n))

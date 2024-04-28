@@ -1,7 +1,7 @@
 import unittest
 import math
 
-from pytissueoptics.scene.geometry import Vector, Vertex
+from pytissueoptics.scene.geometry import Vector, Vertex, primitives
 from pytissueoptics.scene.solids import Sphere
 
 
@@ -14,6 +14,10 @@ class TestSphere(unittest.TestCase):
         position = Vector(2, 2, 1)
         sphere = Sphere(position=position)
         self.assertEqual(Vector(2, 2, 1), sphere.position)
+
+    def testGivenANewSphereWithQuadPrimitive_shouldNotCreateSphere(self):
+        with self.assertRaises(NotImplementedError):
+            Sphere(primitive=primitives.QUAD)
 
     def testGivenANewDefaultSphere_shouldHaveARadiusOf1(self):
         sphere = Sphere()
