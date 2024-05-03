@@ -1,0 +1,45 @@
+MCX
+=====================================================================================
+simulated 1000000 photons (1000000) with 1 devices (repeat x1)
+MCX simulation speed: 1191.90 photon/ms
+total simulated energy: 1000000.00      absorbed: 50.63054%
+(loss due to initial specular reflection is excluded in the total)
+
+========================================
+Grid Absorbed Energy: 0.34065714478492737
+Outer Shell Absorbed Energy: 0.16564759612083435
+Sum of Absorbed Energy: 0.5063047409057617
+========================================
+Total Absorbed Energy: 0.5063047409057617
+========================================
+
+
+
+
+PYTISSUEOPTICS
+=============================== SIMULATION PROGRESS ===============================
+[BATCH #] ::  [PHOTON COUNT]   :: [SPEED (ph/ms)] :: [TIME ELAPSED] :: [TIME LEFT]
+    1     ::   119555 (12.0%)  ::      59.70      ::      2.00 s    ::   14.75 s
+    2     ::   237120 (23.7%)  ::      58.58      ::      4.05 s    ::   13.02 s
+    3     ::   354323 (35.4%)  ::      58.22      ::      6.09 s    ::   11.09 s
+    4     ::   470956 (47.1%)  ::      56.98      ::      8.27 s    ::    9.29 s
+    5     ::   587514 (58.8%)  ::      56.01      ::     10.49 s    ::    7.36 s
+    6     ::   704103 (70.4%)  ::      55.15      ::     12.77 s    ::    5.37 s
+    7     ::   816445 (81.6%)  ::      53.85      ::     15.16 s    ::    3.41 s
+    8     ::   921351 (92.1%)  ::      52.48      ::     17.56 s    ::    1.50 s
+    9     ::   980867 (98.1%)  ::      49.35      ::     19.87 s    ::    0.39 s
+    10    ::  999902 (100.0%)  ::      45.17      ::     22.14 s    ::    0.00 s
+    11    ::  1000000 (100.0%) ::      40.44      ::     24.73 s    ::    0.00 s
+
+Computation splits:
+	Propagation: 25.0%
+	Data transfer: 22.8%
+	Data conversion: 50.8%
+===================================================================================
+
+Report of solid 'outer'
+  Absorbance: 13.53% (9.61% of total power)
+Report of solid 'grid'
+  Absorbance: 23.68% (37.69% of total power)
+
+Total: 47.3% (47.3% of total power)
