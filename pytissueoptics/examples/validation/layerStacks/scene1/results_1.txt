@@ -10,24 +10,20 @@ Total absorbed:44.1295
 =========Python===========
 Report of solid 'frontLayer'
   Absorbance: 25.78% (25.35% of total power)
-  Absorbance + Transmittance: 100.0%
-    Transmittance at 'frontLayer_front': 52.1%
-    Transmittance at 'interface1': 22.1%
-    Transmittance at 'frontLayer_bottom': 0.0%
-    Transmittance at 'frontLayer_top': 0.0%
-    Transmittance at 'frontLayer_right': 0.0%
-Report of solid 'backLayer'
-  Absorbance: 71.53% (0.04% of total power)
-  Absorbance + Transmittance: 100.0%
-    Transmittance at 'interface0': 28.5%
-    Transmittance at 'backLayer_back': 0.0%
 Report of solid 'middleLayer'
   Absorbance: 99.64% (21.67% of total power)
-  Absorbance + Transmittance: 100.0%
-    Transmittance at 'interface0': 0.2%
-    Transmittance at 'interface1': 0.1%
+Report of solid 'backLayer'
+  Absorbance: 71.53% (0.04% of total power)
 
 Total absorbed: 47.06%
 
+
 ======MCX=========
-Total absorbed: 44.75015%
+Value in the input of MCX were multiplied by 10 because all value are described in 1/mm
+========================================
+Layer 1 Absorbed Energy: 0.251911997795105
+Layer 2 Absorbed Energy: 0.19558343291282654
+Layer 3 Absorbed Energy: 5.362779575079912e-06
+========================================
+Total Absorbed Energy: 0.4475007951259613 total energy in the domain:  0.44750082
+========================================

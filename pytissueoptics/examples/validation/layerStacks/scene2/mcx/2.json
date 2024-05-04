@@ -8,7 +8,7 @@
     "DoPartialPath" : 0,
     "DoSaveSeed" : 0,
     "DoSaveRef" : 0,
-    "OutputType" : "X"
+    "OutputType" : "E"
   },
   "Domain" : {
     "OriginType" : 1,
@@ -47,16 +47,6 @@
     "MediaFormat" : "byte"
   },
   "Optode" : {
-    "Detector" : [
-      {
-        "Pos" : [
-          2.4000000000000000E+001,
-          2.9000000000000000E+001,
-          0.0000000000000000E+000
-        ],
-        "R" : 1.0000000000000000E+000
-      }
-    ],
     "Source" : {
       "Pos" : [
         50,
