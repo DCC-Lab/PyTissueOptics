@@ -11,8 +11,8 @@ DESCRIPTION = """ Pencil source propagation through a homogeneous cube of size 6
 def exampleCode():
     N = 100000 if hardwareAccelerationIsAvailable() else 1000
     absorbancess = []
-    for ua in np.linspace(0.001, 0.05, 50):
-        tissue = ScatteringScene([Cube(60, material=ScatteringMaterial(mu_a=ua, mu_s=1, g=0.01, n=1), label="cube")])
+    for g in np.linspace(0.1, 1, 20):
+        tissue = ScatteringScene([Cube(60, material=ScatteringMaterial(mu_a=0.005, mu_s=0.01, g=g, n=1), label="cube")])
         logger = EnergyLogger(tissue, defaultBinSize=0.1)
         source = PencilPointSource(position=Vector(0, 0, -29.99), direction=Vector(0, 0, 1), N=N, displaySize=1)
 
@@ -20,7 +20,7 @@ def exampleCode():
 
         stats = Stats(logger)
 
-        absorbancess.append((ua, stats.getAbsorbance("cube")))
+        absorbancess.append((g, stats.getAbsorbance("cube")))
         #viewer.reportStats()
 
         #viewer.show2D(View2DProjectionX())

@@ -1,0 +1,42 @@
+==== MCML ====
+A_l #Absorption as a function of layer. [-]
+      0.2612
+      0.1486
+      0.2313
+
+Total: 64.11%
+
+==== Python ====
+Report of solid 'frontLayer'
+  Absorbance: 20.07% (25.86% of total power)
+  Absorbance + Transmittance: 100.0%
+    Transmittance at 'frontLayer_front': 17.3%
+    Transmittance at 'interface1': 62.7%
+    Transmittance at 'frontLayer_bottom': 0.0%
+    Transmittance at 'frontLayer_top': 0.0%
+    Transmittance at 'frontLayer_left': 0.0%
+    Transmittance at 'frontLayer_right': 0.0%
+Report of solid 'backLayer'
+  Absorbance: 56.89% (24.21% of total power)
+  Absorbance + Transmittance: 100.0%
+    Transmittance at 'backLayer_back': 23.8%
+    Transmittance at 'interface0': 19.3%
+    Transmittance at 'backLayer_bottom': 0.0%
+    Transmittance at 'backLayer_left': 0.0%
+    Transmittance at 'backLayer_top': 0.0%
+    Transmittance at 'backLayer_right': 0.0%
+Report of solid 'middleLayer'
+  Absorbance: 16.96% (15.09% of total power)
+  Absorbance + Transmittance: 100.0%
+    Transmittance at 'interface0': 47.9%
+    Transmittance at 'interface1': 35.2%
+    Transmittance at 'middleLayer_left': 0.0%
+    Transmittance at 'middleLayer_right': 0.0%
+    Transmittance at 'middleLayer_bottom': 0.0%
+
+Total: 65.16%, 65.09, 65.10 (3 simulations distinctes)
+
+===== MCX =====
+
+Total: 65.80%
+New simulation: 73
