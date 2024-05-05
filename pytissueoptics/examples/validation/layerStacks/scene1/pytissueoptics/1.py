@@ -20,7 +20,7 @@ class ValidationStack(ScatteringScene):
         mu_s = [20, 2, 200]
         mu_a = [0.1, 10, 2]
         g = [0.7, 0.9, 0.95]
-        w = 10
+        w = 50
         t = [1, 0.5, 1]
 
         frontLayer = Cuboid(w, w, t[0], material=ScatteringMaterial(mu_s[0], mu_a[0], g[0], n[0]), label="frontLayer")
@@ -33,23 +33,23 @@ class ValidationStack(ScatteringScene):
 
 
 def exampleCode():
-    N = 100000 if hardwareAccelerationIsAvailable() else 1000
+    N = 1000000 if hardwareAccelerationIsAvailable() else 1000
     layerStack = ValidationStack()
     logger = EnergyLogger(layerStack)
     source = PencilPointSource(position=Vector(0, 0, -0.01), direction=Vector(0, 0, 1), N=N)
 
-    layerStack.show(source=source)
+    #layerStack.show(source=source)
 
     source.propagate(layerStack, logger=logger)
 
     viewer = Viewer(layerStack, source, logger)
     viewer.reportStats()
 
-    viewer.show2D(View2DProjectionX())
-    viewer.show2D(View2DProjectionX(solidLabel="middleLayer"))
-    viewer.show2D(View2DSurfaceZ(solidLabel="middleLayer", surfaceLabel="interface1", surfaceEnergyLeaving=False))
-    viewer.show1D(Direction.Z_POS)
-    viewer.show3D()
+    #viewer.show2D(View2DProjectionX())
+    #viewer.show2D(View2DProjectionX(solidLabel="middleLayer"))
+    #viewer.show2D(View2DSurfaceZ(solidLabel="middleLayer", surfaceLabel="interface1", surfaceEnergyLeaving=False))
+    #viewer.show1D(Direction.Z_POS)
+    #viewer.show3D()
     #viewer.show3D(pointCloudStyle=PointCloudStyle(showSolidPoints=False))
 
 

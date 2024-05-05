@@ -37,7 +37,7 @@ def exampleCode():
     layerStack = ValidationStack()
     logger = EnergyLogger(layerStack)
     source = PencilPointSource(position=Vector(0, 0, -1), direction=Vector(0, 0, 1), N=N)
-    layerStack.show(source=source)
+    #layerStack.show(source=source)
 
     source.propagate(layerStack, logger=logger)
 

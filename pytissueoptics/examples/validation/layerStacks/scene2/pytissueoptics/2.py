@@ -38,18 +38,18 @@ def exampleCode():
     logger = EnergyLogger(layerStack)
     source = PencilPointSource(position=Vector(0, 0, -0.01), direction=Vector(0, 0, 1), N=N)
 
-    layerStack.show(source=source)
+    #layerStack.show(source=source)
 
     source.propagate(layerStack, logger=logger)
 
     viewer = Viewer(layerStack, source, logger)
     viewer.reportStats()
 
-    viewer.show2D(View2DProjectionX())
-    viewer.show2D(View2DProjectionX(solidLabel="middleLayer"))
-    viewer.show2D(View2DSurfaceZ(solidLabel="middleLayer", surfaceLabel="interface1", surfaceEnergyLeaving=False))
-    viewer.show1D(Direction.Z_POS)
-    viewer.show3D()
+    #viewer.show2D(View2DProjectionX())
+    #viewer.show2D(View2DProjectionX(solidLabel="middleLayer"))
+    #viewer.show2D(View2DSurfaceZ(solidLabel="middleLayer", surfaceLabel="interface1", surfaceEnergyLeaving=False))
+    #viewer.show1D(Direction.Z_POS)
+    #viewer.show3D()
     #viewer.show3D(pointCloudStyle=PointCloudStyle(showSolidPoints=False))
 
 
