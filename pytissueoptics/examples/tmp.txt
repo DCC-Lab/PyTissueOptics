@@ -1,0 +1,8 @@
+Report of solid 'cube'
+  Absorbance: 46.34% (46.34% of total power)
+  Absorbance + Transmittance: 100.0%
+    Transmittance at 'cube_front': 53.7%
+    Transmittance at 'cube_left': 0.0%
+    Transmittance at 'cube_bottom': 0.0%
+    Transmittance at 'cube_right': 0.0%
+    Transmittance at 'cube_top': 0.0%

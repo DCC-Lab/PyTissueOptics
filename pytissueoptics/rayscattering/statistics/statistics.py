@@ -229,10 +229,10 @@ class Stats:
         filename, extension = filepath.split(".")
         if extension == "":
             extension = "txt"
-        if os.path.exists(filepath):
-            while os.path.exists("{}_{}.{}".format(filepath, i, extension)):
-                i += 1
-            filename = "{}_{}".format(filepath, i)
+        # if os.path.exists(filepath):
+        #     while os.path.exists("{}_{}.{}".format(filepath, i, extension)):
+        #         i += 1
+        #     filename = "{}_{}".format(filepath, i)
         filepath = "{}.{}".format(filename, extension)
         with open(filepath, "wb") as file:
             file.write(report.encode("utf-8"))
