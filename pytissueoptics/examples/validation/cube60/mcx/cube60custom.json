@@ -1,6 +1,6 @@
 {
   "Session": {
-    "ID": "cube60",
+    "ID": "cube60_g_sweep",
     "Photons": 1000000,
     "DoMismatch": false,
     "DoAutoThread": true,
@@ -91,8 +91,8 @@
       },
       {
         "mua": 0.005,
-        "mus": 1,
-        "g": 0.01,
+        "mus": 0.01,
+        "g": 0.8,
         "n": 1
       }
     ]

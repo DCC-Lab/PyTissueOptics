@@ -13,8 +13,26 @@ g_start=0.1
 g_end=1
 g_step=0
 
+# Help function to explain the usage of the script
+help() {
+  echo "Usage: $0 [options]"
+  echo ""
+  echo "Options:"
+  echo "  -a u_a_start      Start value for u_a (default: 0.005)"
+  echo "  -b u_a_end        End value for u_a (default: 5)"
+  echo "  -c u_a_step       Step value for u_a (default: 0, use 0 to avoid sweeping)"
+  echo "  -d u_s_start      Start value for u_s (default: 0.01)"
+  echo "  -e u_s_end        End value for u_s (default: 10)"
+  echo "  -f u_s_step       Step value for u_s (default: 0, use 0 to avoid sweeping)"
+  echo "  -g g_start        Start value for g (default: 0.1)"
+  echo "  -h g_end          End value for g (default: 1)"
+  echo "  -i g_step         Step value for g (default: 0, use 0 to avoid sweeping)"
+  echo "  --help            Display this help message and exit"
+  exit 0
+}
+
 # Parse command-line options
-while getopts "a:b:c:d:e:f:g:h:i:" opt; do
+while getopts "a:b:c:d:e:f:g:h:i:-:" opt; do
   case $opt in
     a) u_a_start=$OPTARG ;;
     b) u_a_end=$OPTARG ;;
@@ -25,6 +43,12 @@ while getopts "a:b:c:d:e:f:g:h:i:" opt; do
     g) g_start=$OPTARG ;;
     h) g_end=$OPTARG ;;
     i) g_step=$OPTARG ;;
+    -)
+      case $OPTARG in
+        help) help ;;
+        *) echo "Invalid option --$OPTARG" >&2; exit 1 ;;
+      esac
+      ;;
     \?) echo "Invalid option -$OPTARG" >&2; exit 1 ;;
   esac
 done
