@@ -9,15 +9,15 @@ from pytissueoptics import *
 HIGH_SCATTERING = True
 
 if HIGH_SCATTERING:
-    N = 10000
+    N = 1000
 
-    material1 = ScatteringMaterial(mu_s=20, mu_a=0.1, g=0.9, n=1.4)
+    material1 = ScatteringMaterial(mu_s=20, mu_a=0.1, g=0.9, n=1.0)
     material2 = ScatteringMaterial(mu_s=30, mu_a=0.2, g=0.9, n=1.7)
 else:
-    N = 200000
+    N = 2000000
 
-    material1 = ScatteringMaterial(mu_s=1.5, mu_a=1, g=0.9, n=1.4)
-    material2 = ScatteringMaterial(mu_s=2.5, mu_a=1, g=0.9, n=1.7)
+    material1 = ScatteringMaterial(mu_s=0.01, mu_a=1, g=0, n=1.0)
+    material2 = ScatteringMaterial(mu_s=0.001, mu_a=0.01, g=0.9, n=1.7)
 
 cube = Cuboid(a=3, b=3, c=3, position=Vector(0, 0, 0), material=material1, label="cube")
 sphere = Sphere(radius=1, order=3, position=Vector(0, 0, 0), material=material2, label="sphere",
@@ -26,7 +26,7 @@ scene = ScatteringScene([cube, sphere])
 
 logger = EnergyLogger(scene)
 source = DirectionalSource(position=Vector(0, 0, -2), direction=Vector(0, 0, 1), N=N,
-                           useHardwareAcceleration=True, diameter=0.5)
+                           useHardwareAcceleration=False, diameter=1)
 
 source.propagate(scene, logger)
 

@@ -31,3 +31,4 @@ source.propagate(tissue, logger=logger)
 
 viewer = Viewer(tissue, source, logger)
 viewer.show2D(View2DProjectionX())
+viewer.show3D()
