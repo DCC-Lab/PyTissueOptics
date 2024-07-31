@@ -232,3 +232,7 @@ class TestDivergentSource(unittest.TestCase):
         divergentSource2 = DivergentSource(position=Vector(), direction=sourceDirection, diameter=1,
                                            divergence=divergence2, N=1)
         self.assertNotEqual(hash(divergentSource1), hash(divergentSource2))
+
+if __name__ == "__main__":
+    unittest.main()
+

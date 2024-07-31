@@ -1,3 +1,4 @@
+import envtest
 import math
 import os
 import unittest
@@ -240,3 +241,8 @@ class FloatContainerCL(CLObject):
 
     def _getInitialHostBuffer(self) -> np.ndarray:
         return np.empty(self._N, dtype=self._dtype)
+
+
+
+if __name__ == "__main__":
+    unittest.main()

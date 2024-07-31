@@ -1,3 +1,4 @@
+import envtest
 import os
 import traceback
 import unittest
@@ -90,3 +91,6 @@ class TestCLNormalSmoothing(unittest.TestCase):
         for clObject in missingObjects:
             clObject.make(self.program.device)
             self.program.include(clObject.declaration)
+
+if __name__ == "__main__":
+    unittest.main()

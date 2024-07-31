@@ -1,3 +1,4 @@
+import envtest
 import os
 import traceback
 import unittest
@@ -135,3 +136,6 @@ class IntersectionCL(CLObject):
         buffer[:, 12] = self._polygonIDs
         buffer = rfn.unstructured_to_structured(buffer, self._dtype)
         return buffer
+
+if __name__ == "__main__":
+    unittest.main()

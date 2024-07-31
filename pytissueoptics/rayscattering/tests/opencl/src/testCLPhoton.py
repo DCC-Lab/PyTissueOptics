@@ -1,3 +1,4 @@
+import envtest
 import math
 import os
 import unittest
@@ -531,3 +532,6 @@ class TestCLPhoton(unittest.TestCase):
         intersection.isTooClose = %s;
         """ % (str(exists).lower(), distance, x, y, z, surfaceID, distanceLeft, str(isTooClose).lower())
         self.program.mock(intersectionCall, mockCall)
+
+if __name__ == "__main__":
+    unittest.main()

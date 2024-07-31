@@ -1,3 +1,4 @@
+import envtest
 import math
 import os
 import unittest
@@ -89,3 +90,6 @@ class TestCLScatteringMaterial(unittest.TestCase):
         struct Photon {uint materialID;};
         typedef struct Photon Photon;
         """
+
+if __name__ == "__main__":
+    unittest.main()
