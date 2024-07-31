@@ -55,7 +55,10 @@ class IntersectionFinder:
         if not intersection:
             return None
 
-        smoothNormal = shader.getSmoothNormal(intersection.polygon, intersection.position)
+        if os.environ.get('AVOID_SMOOTH_BUG', '') == '1':
+            smoothNormal = intersection.polygon.normal
+        else:
+            smoothNormal = shader.getSmoothNormal(intersection.polygon, intersection.position)
 
         # If the resulting smooth normal changes the sign of the dot product with the ray direction, do not smooth.
         if smoothNormal.dot(ray.direction) * intersection.polygon.normal.dot(ray.direction) < 0:
