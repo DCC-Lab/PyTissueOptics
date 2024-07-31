@@ -101,7 +101,7 @@ celerybeat-schedule
 .env
 .venv
 env/
-venv/
+venv*/
 ENV/
 env.bak/
 venv.bak/
@@ -137,3 +137,6 @@ pytissueoptics/rayscattering/tests/_trial_temp/_trial_marker
 pytissueoptics/rayscattering/opencl/config.json
 pytissueoptics/rayscattering/opencl/ipp.json
 .vscode/settings.json
+
+# macOS
+.DS_Store
