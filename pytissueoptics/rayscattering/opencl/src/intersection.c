@@ -245,6 +245,7 @@ float _cotangent(float3 v0, float3 v1, float3 v2) {
 void setSmoothNormal(Intersection *intersection, __global Triangle *triangles, __global Vertex *vertices, Ray *ray) {
     float3 newNormal;
     bool newNormalSet = false;
+    uint gid = get_global_id(0);
 
     // Check edge case where the intersection is directly on a vertex, in which case we just return the vertex normal.
     for (uint i = 0; i < 3; i++) {
@@ -351,5 +352,9 @@ __kernel void findIntersections(__global Ray *rays, uint nSolids, __global Solid
 
 __kernel void setSmoothNormals(__global Intersection *intersections, __global Triangle *triangles, __global Vertex *vertices, __global Ray *rays) {
     uint gid = get_global_id(0);
-    setSmoothNormal(&intersections[gid], triangles, vertices, &rays[gid]);
+    Intersection intersection = intersections[gid];
+    Ray ray = rays[gid];
+    setSmoothNormal(&intersection, triangles, vertices, &ray);
+    intersections[gid] = intersection;
+    rays[gid] = ray; 
 }
