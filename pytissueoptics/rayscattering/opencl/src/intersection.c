@@ -242,15 +242,16 @@ float _cotangent(float3 v0, float3 v1, float3 v2) {
     return dot(edge1, edge0) / lengthCross;
 }
 
-Intersection setSmoothNormal(Intersection intersection, __global Triangle *triangles, __global Vertex *vertices, Ray ray) {
+void setSmoothNormal(Intersection *intersection, __global Triangle *triangles, __global Vertex *vertices, Ray *ray) {
     float3 newNormal;
     bool newNormalSet = false;
+    uint gid = get_global_id(0);
 
     // Check edge case where the intersection is directly on a vertex, in which case we just return the vertex normal.
     for (uint i = 0; i < 3; i++) {
-        float3 vertex = vertices[triangles[intersection.polygonID].vertexIDs[i]].position;
-        if (length(intersection.position - vertex) < EPS_SIDE) {
-            newNormal = vertices[triangles[intersection.polygonID].vertexIDs[i]].normal;
+        float3 vertex = vertices[triangles[intersection->polygonID].vertexIDs[i]].position;
+        if (length(intersection->position - vertex) < EPS_SIDE) {
+            newNormal = vertices[triangles[intersection->polygonID].vertexIDs[i]].normal;
             newNormalSet = true;
             break;
         }
@@ -260,12 +261,12 @@ Intersection setSmoothNormal(Intersection intersection, __global Triangle *trian
         // Compute the new smooth normal as a weighted average of the vertex normals.
         float weights[3];
         for (uint i = 0; i < 3; i++) {
-            float3 vertex = vertices[triangles[intersection.polygonID].vertexIDs[i]].position;
-            float3 prevVertex = vertices[triangles[intersection.polygonID].vertexIDs[(i + 2) % 3]].position;
-            float3 nextVertex = vertices[triangles[intersection.polygonID].vertexIDs[(i + 1) % 3]].position;
-            float cotPrev = _cotangent(intersection.position, vertex, prevVertex);
-            float cotNext = _cotangent(intersection.position, vertex, nextVertex);
-            float d = length(vertex - intersection.position);
+            float3 vertex = vertices[triangles[intersection->polygonID].vertexIDs[i]].position;
+            float3 prevVertex = vertices[triangles[intersection->polygonID].vertexIDs[(i + 2) % 3]].position;
+            float3 nextVertex = vertices[triangles[intersection->polygonID].vertexIDs[(i + 1) % 3]].position;
+            float cotPrev = _cotangent(intersection->position, vertex, prevVertex);
+            float cotNext = _cotangent(intersection->position, vertex, nextVertex);
+            float d = length(vertex - intersection->position);
             weights[i] = (cotPrev + cotNext) / (d * d);
         }
 
@@ -274,34 +275,31 @@ Intersection setSmoothNormal(Intersection intersection, __global Triangle *trian
             weights[i] /= sum;
         }
 
-        newNormal = weights[0] * vertices[triangles[intersection.polygonID].vertexIDs[0]].normal +
-                    weights[1] * vertices[triangles[intersection.polygonID].vertexIDs[1]].normal +
-                    weights[2] * vertices[triangles[intersection.polygonID].vertexIDs[2]].normal;
+        newNormal = weights[0] * vertices[triangles[intersection->polygonID].vertexIDs[0]].normal +
+                    weights[1] * vertices[triangles[intersection->polygonID].vertexIDs[1]].normal +
+                    weights[2] * vertices[triangles[intersection->polygonID].vertexIDs[2]].normal;
     }
 
     // Do not allow the new smooth normal to have a different dot product with ray direction. 
     // This is a rare edge case that can happen when the ray direction is approximately parallel to the surface. More common in low resolution meshes (like icosphere of order 1)
     // Not accounting for this can lead to a photon slightly going inside another solid mesh, but being considered as leaving the other solid (during FresnelIntersection calculations).
     // Which would result in the wrong next environment being set as well as the wrong step correction being applied after refraction.
-    if (dot(newNormal, ray.direction) * dot(intersection.normal, ray.direction) < 0) {
-        return intersection; //FIXME
+    if (dot(newNormal, ray->direction) * dot(intersection->normal, ray->direction) < 0) {
+        return;
     }
-    intersection.normal = newNormal;
-    intersection.normal = normalize(intersection.normal);
-
-    return intersection;
+    intersection->normal = newNormal;
+    intersection->normal = normalize(intersection->normal);
 }
 
-Intersection _composeIntersection(Intersection intersection, Ray ray, Scene *scene) {
-    if (!intersection.exists) {
-        return intersection;
+void _composeIntersection(Intersection *intersection, Ray *ray, Scene *scene) {
+    if (!intersection->exists) {
+        return;
     }
 
-    if (scene->surfaces[intersection.surfaceID].toSmooth) {
-        intersection = setSmoothNormal(intersection, scene->triangles, scene->vertices, ray);
+    if (scene->surfaces[intersection->surfaceID].toSmooth) {
+        setSmoothNormal(intersection, scene->triangles, scene->vertices, ray);
     }
-    intersection.distanceLeft = ray.length - intersection.distance;
-    return intersection;
+    intersection->distanceLeft = ray->length - intersection->distance;
 }
 
 Intersection findIntersection(Ray ray, Scene *scene, uint gid) {
@@ -338,7 +336,7 @@ Intersection findIntersection(Ray ray, Scene *scene, uint gid) {
         }
     }
 
-    closestIntersection = _composeIntersection(closestIntersection, ray, scene);
+    _composeIntersection(&closestIntersection, &ray, scene);
     return closestIntersection;
 }
 
@@ -354,5 +352,11 @@ __kernel void findIntersections(__global Ray *rays, uint nSolids, __global Solid
 
 __kernel void setSmoothNormals(__global Intersection *intersections, __global Triangle *triangles, __global Vertex *vertices, __global Ray *rays) {
     uint gid = get_global_id(0);
-    setSmoothNormal(intersections[gid], triangles, vertices, rays[gid]);
+
+    Intersection intersection = intersections[gid];
+    Ray ray = rays[gid];
+    setSmoothNormal(&intersection, triangles, vertices, &ray);
+    intersections[gid] = intersection;
+    rays[gid] = ray; 
+    
 }
