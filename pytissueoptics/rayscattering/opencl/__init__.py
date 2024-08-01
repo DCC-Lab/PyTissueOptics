@@ -17,17 +17,17 @@ else:
 
 def forceCalculationOnCPU():
     os.environ["PYTISSUE_FORCE_CPU"] = "1"
-    print("You can define PYTISSUE_FORCE_CPU=1 in your profile to avoid this call.")
+    # warnings.warn("You can define PYTISSUE_FORCE_CPU=1 in your profile to avoid this call.")
 
 def avoidSmoothingBug():
     os.environ["AVOID_SMOOTHING_BUG"] = "1"
-    print("You can define AVOID_SMOOTHING_BUG=1 in your profile to avoid this call.")
+    # warnings.warn("You can define AVOID_SMOOTHING_BUG=1 in your profile to avoid this call.")
 
 def validateOpenCL() -> bool:
     notAvailableMessage = "Error: Hardware acceleration not available. Falling back to CPU. "
     
     if os.environ.get("PYTISSUE_FORCE_CPU", '0') != '0':
-        warnings.warn("User requested not using OpenCL with environment variable 'PYTISSUE_FORCE_CPU'=1.")
+        # warnings.warn("User requested not using OpenCL with environment variable 'PYTISSUE_FORCE_CPU'=1.")
         return False
     if not OPENCL_AVAILABLE:
         warnings.warn(notAvailableMessage + "Please install pyopencl.")

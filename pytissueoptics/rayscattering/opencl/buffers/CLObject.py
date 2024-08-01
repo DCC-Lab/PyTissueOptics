@@ -96,13 +96,24 @@ class CLObject:
         return alignedItemSize
 
 
-class EmptyBuffer(CLObject):
-    def __init__(self, N: int):
-        self._N = N
+class Buffer(CLObject):
+    def __init__(self, N: int, value=None, dtype=None):
         super().__init__()
+        self._N = N
+        self._value = value
+        self._dtype = np.float32
+        if dtype is not None:
+            self._dtype = dtype
 
     def _getInitialHostBuffer(self) -> np.ndarray:
-        return np.empty(self._N, dtype=np.float32)
+        if self._value is None:
+            return np.empty(self._N, dtype=self._dtype)
+        else:
+            return np.zeros(self._N, dtype=self._dtype)
+
+class EmptyBuffer(Buffer):
+    def __init__(self, N: int):
+        super().__init__(N=N, value=None)
 
 
 class RandomBuffer(CLObject):
