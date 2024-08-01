@@ -1,3 +1,4 @@
+import envtest
 import unittest
 
 from pytissueoptics.scene import Vector
@@ -41,3 +42,6 @@ class TestSmoothing(unittest.TestCase):
         position = Vector(0, 0, 0)
         smoothNormal = getSmoothNormal(self.polygon, position)
         self.assertEqual(self.polygon.vertices[0].normal, smoothNormal)
+
+if __name__ == "__main__":
+    unittest.main()
