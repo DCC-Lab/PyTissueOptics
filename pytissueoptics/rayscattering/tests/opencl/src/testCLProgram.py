@@ -43,30 +43,32 @@ class TestCLProgram(unittest.TestCase):
         for value in seeds.hostBuffer:
             self.assertTrue(value != 0)
 
-    @unittest.skip('Expected to fail')
     def test_call_random_value_with_same_seeds_buffer_should_give_same_results(self):
+        """
+        If we use the same seeds, then the two calculations should be the same.
+        This tests fails and should not, but the impact is minimal: the cude still runs fine
+        it simply means we cannot run the same computation twice for testing.
+
+        However, the same tests but with the CLObjects runs fine in testGeneralOpenCL.py
+        """
         nWorkUnits = 10
 
         seed_array = np.array([12345]*nWorkUnits, dtype=cl.cltypes.uint)
         seeds1 = BufferOf(seed_array)
         seeds2 = BufferOf(seed_array)
-        seeds3 = BufferOf(seed_array)
 
         valueBuffer1 = Buffer(nWorkUnits, value=0)
         valueBuffer2 = Buffer(nWorkUnits, value=0)
-        valueBuffer3 = Buffer(nWorkUnits, value=0)
 
         source_path = os.path.join(OPENCL_SOURCE_DIR, "random.c")
         program = CLProgram(source_path)
         
         program.launchKernel(kernelName='fillRandomFloatBuffer', N=nWorkUnits, arguments = [seeds1, valueBuffer1])
         program.launchKernel(kernelName='fillRandomFloatBuffer', N=nWorkUnits, arguments = [seeds2, valueBuffer2])
-        program.launchKernel(kernelName='fillRandomFloatBuffer', N=nWorkUnits, arguments = [seeds3, valueBuffer3])
 
         # We need to sort because values are not necessarily in order
         print(sorted(valueBuffer1.hostBuffer))
         print(sorted(valueBuffer2.hostBuffer))
-        print(sorted(valueBuffer3.hostBuffer))
 
         for value1, value2 in zip(sorted(valueBuffer1.hostBuffer), sorted(valueBuffer2.hostBuffer)) :
             self.assertEqual(value1, value2)
