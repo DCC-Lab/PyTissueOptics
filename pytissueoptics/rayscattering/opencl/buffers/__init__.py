@@ -1,4 +1,4 @@
-from .CLObject import CLObject, EmptyBuffer, RandomBuffer, BufferOf
+from .CLObject import CLObject, Buffer, EmptyBuffer, RandomBuffer, BufferOf
 
 from .dataPointCL import DataPointCL
 from .materialCL import MaterialCL
