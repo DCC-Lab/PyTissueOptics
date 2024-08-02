@@ -473,6 +473,8 @@ class TestOpenCLIds(unittest.TestCase):
         """
         My assumption was that workunits would be fed in order but that is not true.
         I don't know how to compute the global_id from the local parameters then
+        It does not matter: use get_global_id() but this is a basic issue in 
+        understanding OpenCL for me.
         """
 
         queue = pycl.CommandQueue(self.context)
@@ -488,7 +490,7 @@ class TestOpenCLIds(unittest.TestCase):
 
         self.assertEqual(np.sum(local_sizes.hostBuffer), nWorkUnits)
 
-    def test_random_kernel(self):
+    def test_call_random_value_with_same_seeds_buffer_should_give_same_results(self):
         self.program_source =  """
 
             uint wangHash(uint seed){
