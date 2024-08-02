@@ -3,8 +3,6 @@ from pytissueoptics.rayscattering.opencl.config.IPPTable import IPPTable
 import os
 
 OPENCL_OK = True
-# PYTISSUE_FORCE_CPU = os.environ.get('PYTISSUE_FORCE_CPU', '0')
-# AVOID_SMOOTHING_BUG = os.environ.get('AVOID_SMOOTHING_BUG', '0')
 
 if OPENCL_AVAILABLE:
     try:
@@ -18,10 +16,6 @@ else:
 def forceCalculationOnCPU():
     os.environ["PYTISSUE_FORCE_CPU"] = "1"
     # warnings.warn("You can define PYTISSUE_FORCE_CPU=1 in your profile to avoid this call.")
-
-def avoidSmoothingBug():
-    os.environ["AVOID_SMOOTHING_BUG"] = "1"
-    # warnings.warn("You can define AVOID_SMOOTHING_BUG=1 in your profile to avoid this call.")
 
 def validateOpenCL() -> bool:
     notAvailableMessage = "Error: Hardware acceleration not available. Falling back to CPU. "
