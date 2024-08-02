@@ -1,14 +1,18 @@
+# import envtest
 import unittest
 
-from examples import *
+from pytissueoptics.examples import *
 
 
 class TestExamples(unittest.TestCase):
+    def test_examples_exists(self):
+        self.assertTrue(len(EXAMPLE_FILES) > 0)
+
     def testExampleFormat(self):
         self.assertTrue(len(EXAMPLE_FILES) > 0)
         for file in EXAMPLE_FILES:
             name = re.match(EXAMPLE_FILE_PATTERN, file).group(1)
-            module = importlib.import_module(f"examples.{EXAMPLE_MODULE}.{name}")
+            module = importlib.import_module(f"pytissueoptics.examples.{EXAMPLE_MODULE}.{name}")
             with open(os.path.join(EXAMPLE_DIR, file), 'r') as f:
                 srcCode = f.read()
             with self.subTest(name):
@@ -29,3 +33,6 @@ class TestExamples(unittest.TestCase):
                 self.assertTrue(example.description)
                 self.assertTrue(example.func)
                 self.assertTrue(example.sourceCode)
+
+if __name__ == "__main__":
+    unittest.main()

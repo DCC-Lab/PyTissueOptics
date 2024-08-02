@@ -392,7 +392,8 @@ class TestOpenCLIds(unittest.TestCase):
         self.gpuDevices = pycl.get_platforms()[0].get_devices(pycl.device_type.GPU)
         self.context = pycl.Context(devices=self.gpuDevices)
         self.queue = pycl.CommandQueue(self.context)
-        self.program_source = Path('test_opencl.c').read_text()        
+        rootdir = Path(__file__).parent
+        self.program_source = Path(rootdir, 'test_opencl.c').read_text()        
         self.program = pycl.Program(self.context, self.program_source).build()
 
     def test_get_kernel_info(self):

@@ -1,4 +1,3 @@
-import envtest
 import unittest
 
 from pytissueoptics.scene import Vector
