@@ -1,13 +1,14 @@
 from typing import List
 
 import numpy as np
+import os
 
 from pytissueoptics import Vector
 from pytissueoptics.rayscattering.materials import ScatteringMaterial
-from pytissueoptics.scene import MayaviViewer, Scene
+from pytissueoptics.scene import Scene
 from pytissueoptics.scene.solids import Solid
 from pytissueoptics.scene.viewer.displayable import Displayable
-
+from pytissueoptics.scene import MayaviViewer, MAYAVI_AVAILABLE
 
 class ScatteringScene(Scene):
     def __init__(self, solids: List[Solid], worldMaterial=ScatteringMaterial(), ignoreIntersections: bool = False):
@@ -21,11 +22,14 @@ class ScatteringScene(Scene):
         super().add(solid, position)
 
     def show(self, source: Displayable = None, opacity=0.8, colormap="cool", **kwargs):
-        viewer = MayaviViewer()
-        self.addToViewer(viewer, opacity=opacity, colormap=colormap, **kwargs)
-        if source:
-            source.addToViewer(viewer)
-        viewer.show()
+        if MAYAVI_AVAILABLE:
+            viewer = MayaviViewer()
+            self.addToViewer(viewer, opacity=opacity, colormap=colormap, **kwargs)
+            if source:
+                source.addToViewer(viewer)
+            viewer.show()
+        else:
+            print("3D viewer unavailable")
 
     def getEstimatedIPP(self, weightThreshold: float) -> float:
         """

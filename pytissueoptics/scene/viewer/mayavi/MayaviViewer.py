@@ -1,15 +1,21 @@
 import numpy as np
-
+import os
 from pytissueoptics.scene.geometry import BoundingBox
 from pytissueoptics.scene.logger import Logger
 from pytissueoptics.scene.viewer.mayavi.viewPoint import ViewPointStyle, ViewPointFactory
 
 
 try:
-    from mayavi import mlab
-    MAYAVI_AVAILABLE = True
+    if os.environ.get('PYTISSUE_NO3DDISPLAY','0') == '1':
+        MAYAVI_AVAILABLE = False
+        mlab = None
+    else:
+        from mayavi import mlab
+        MAYAVI_AVAILABLE = True
+
 except ImportError:
     MAYAVI_AVAILABLE = False
+    mlab = None
 
 from pytissueoptics.scene.viewer.mayavi import MayaviSolid
 from pytissueoptics.scene.solids import Solid

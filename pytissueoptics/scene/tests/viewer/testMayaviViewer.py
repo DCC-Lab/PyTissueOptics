@@ -5,13 +5,14 @@ import os
 
 import numpy as np
 from matplotlib import pyplot as plt
-
 from pytissueoptics import Logger
 from pytissueoptics.scene.solids import Cuboid, Sphere, Ellipsoid
 from pytissueoptics.scene.scene import Scene
 from pytissueoptics.scene.geometry import Vector
-from pytissueoptics.scene.viewer.mayavi import MayaviViewer, ViewPointStyle
-from pytissueoptics.scene.tests import SHOW_VISUAL_TESTS, compareVisuals
+
+if os.environ.get('PYTISSUE_NO3DDISPLAY','0') == '0':
+    from pytissueoptics.scene.viewer.mayavi import MayaviViewer, ViewPointStyle
+    from pytissueoptics.scene.tests import SHOW_VISUAL_TESTS, compareVisuals
 
 TEST_IMAGES_DIR = os.path.join(os.path.dirname(__file__), 'testImages')
 
@@ -23,7 +24,7 @@ def patchMayaviShow(func):
         func = patch('mayavi.mlab.' + module)(func)
     return func
 
-
+@unittest.skipIf(os.environ.get('PYTISSUE_NO3DDISPLAY','0') == '1','No display available')
 class TestMayaviViewer(unittest.TestCase):
     def setUp(self):
         self.viewer = MayaviViewer()

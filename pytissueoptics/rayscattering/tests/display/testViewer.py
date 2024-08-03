@@ -1,20 +1,23 @@
 import sys
+import os
 import unittest
 from unittest.mock import patch
 
 import numpy as np
 from mockito import mock, when, verify, ANY
 
-from pytissueoptics import Direction, View2DProjectionX, ViewGroup
-from pytissueoptics.scene.logger import Logger
-from pytissueoptics.scene.geometry import BoundingBox
-from pytissueoptics.rayscattering.energyLogging import EnergyLogger
-from pytissueoptics.rayscattering.scatteringScene import ScatteringScene
-from pytissueoptics.rayscattering.source import Source
-from pytissueoptics.rayscattering.display.viewer import Viewer, Visibility, PointCloudStyle
-from pytissueoptics.rayscattering.display.profiles import ProfileFactory, Profile1D
-from pytissueoptics.rayscattering.display.views import View2D
-from pytissueoptics.rayscattering.energyLogging import PointCloudFactory, PointCloud
+
+if os.environ.get('PYTISSUE_NO3DDISPLAY','0') == '0':
+    from pytissueoptics import Direction, View2DProjectionX, ViewGroup
+    from pytissueoptics.scene.logger import Logger
+    from pytissueoptics.scene.geometry import BoundingBox
+    from pytissueoptics.rayscattering.energyLogging import EnergyLogger
+    from pytissueoptics.rayscattering.scatteringScene import ScatteringScene
+    from pytissueoptics.rayscattering.source import Source
+    from pytissueoptics.rayscattering.display.viewer import Viewer, Visibility, PointCloudStyle
+    from pytissueoptics.rayscattering.display.profiles import ProfileFactory, Profile1D
+    from pytissueoptics.rayscattering.display.views import View2D
+    from pytissueoptics.rayscattering.energyLogging import PointCloudFactory, PointCloud
 
 
 def patchMayaviRender(func):
@@ -22,7 +25,7 @@ def patchMayaviRender(func):
         func = patch('mayavi.mlab.' + module)(func)
     return func
 
-
+@unittest.skipIf(os.environ.get('PYTISSUE_NO3DDISPLAY','0') == '1','No display available')
 class TestViewer(unittest.TestCase):
     def setUp(self):
         self.scene = mock(ScatteringScene)
