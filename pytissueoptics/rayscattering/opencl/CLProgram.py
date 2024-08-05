@@ -18,6 +18,9 @@ from pytissueoptics.rayscattering.opencl.buffers import CLObject
 class CLProgram:
     def __init__(self, sourcePath: str):
         self._sourcePath = sourcePath
+        if not os.path.isfile(self._sourcePath):
+            raise FileNotFoundError(f"The source file {self._sourcePath} does not exist")
+
         self._context = CONFIG.clContext
         self._device = CONFIG.device
 

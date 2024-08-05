@@ -89,3 +89,6 @@ class TestCLPhotons(unittest.TestCase):
         dataPoints = logger.getDataPoints()
         totalWeightScattered = float(np.sum(dataPoints[:, 0]))
         self.assertAlmostEqual(N, totalWeightScattered, places=2)
+
+if __name__ == "__main__":
+    unittest.main()

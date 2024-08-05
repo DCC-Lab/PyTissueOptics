@@ -71,3 +71,6 @@ class TestCLKeyLog(unittest.TestCase):
         verify(sceneLogger, times=1).logDataPointArray(...)
         expectedWorldData = arg_that(lambda arg: np.array_equal(arg, np.array([[1, 0, 0, 0], [3, 0, 0, 0]])))
         verify(sceneLogger).logDataPointArray(expectedWorldData, InteractionKey(NO_SOLID_LABEL))
+
+if __name__ == "__main__":
+    unittest.main()

@@ -7,7 +7,7 @@ from unittest.mock import patch
 import numpy as np
 from matplotlib import pyplot as plt
 
-from pytissueoptics import Direction
+from pytissueoptics.rayscattering.display.utils import Direction
 from pytissueoptics.rayscattering.display.profiles import Profile1D
 from pytissueoptics.rayscattering.tests import SHOW_VISUAL_TESTS
 from pytissueoptics.scene.tests import compareVisuals

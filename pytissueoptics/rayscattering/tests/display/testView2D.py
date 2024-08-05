@@ -99,7 +99,7 @@ class TestView2D(unittest.TestCase):
     def testGivenNotEnoughMemory_whenSetContext_shouldRaiseException(self):
         view = View2DProjectionX()
         limits3D = [(0, 200), (0, 200), (0, 200)]
-        binSize3D = (0.0001, 0.0001, 0.0001)
+        binSize3D = (0.00001, 0.00001, 0.00001)
 
         with self.assertRaises(MemoryError):
             view.setContext(limits3D, binSize3D)
