@@ -59,3 +59,6 @@ class TestCLRandom(unittest.TestCase):
         randomValues1 = self.program.getData(valueBuffer1)
         randomValues2 = self.program.getData(valueBuffer2)
         self.assertTrue(np.all(randomValues1 == randomValues2))
+
+if __name__ == "__main__":
+    unittest.main()
