@@ -2,6 +2,7 @@ from enum import Flag
 from typing import List, Tuple, Union
 
 import numpy as np
+import os
 
 from pytissueoptics.rayscattering import utils
 from pytissueoptics.rayscattering.energyLogging import EnergyLogger
@@ -93,7 +94,7 @@ class Viewer:
     def show3D(self, visibility=Visibility.AUTO, viewsVisibility: Union[ViewGroup, List[int]] = ViewGroup.SCENE,
                pointCloudStyle=PointCloudStyle(), viewsSolidLabels: List[str] = None, viewsSurfaceLabels: List[str] = None,
                viewsLogScale: bool = True, viewsColormap: str = "viridis"):
-        if not MAYAVI_AVAILABLE or os.environ['PYTISSUE_NO3DDISPLAY','0'] == '1':
+        if not MAYAVI_AVAILABLE or os.environ.get('PYTISSUE_NO3DDISPLAY','0') == '1':
             utils.warn("Package 'mayavi' is not available. Please install it to use 3D visualizations.")
             return
 
