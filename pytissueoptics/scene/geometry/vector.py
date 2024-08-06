@@ -1,5 +1,5 @@
 import math
-
+import numpy as np
 
 class Vector:
     """
@@ -8,49 +8,57 @@ class Vector:
     """
 
     def __init__(self, x: float = 0, y: float = 0, z: float = 0):
-        self._x = x
-        self._y = y
-        self._z = z
+        self._data = np.array([x,y,z], dtype=np.float32)
+
+    @property
+    def array(self) -> np.array:
+        return self._data
+
+    @array.setter
+    def array(self, new_values):
+        self._data[0] = new_values.x
+        self._data[1] = new_values.y
+        self._data[2] = new_values.z
 
     @property
     def x(self):
-        return self._x
+        return self._data[0]
 
     @property
     def y(self):
-        return self._y
+        return self._data[1]
 
     @property
     def z(self):
-        return self._z
+        return self._data[2]
 
     @x.setter
     def x(self, value):
-        self._x = value
+        self._data[0] = value
 
     @y.setter
     def y(self, value):
-        self._y = value
+        self._data[1] = value
 
     @z.setter
     def z(self, value):
-        self._z = value
+        self._data[2] = value
 
     def __repr__(self):
         return f"<Vector>:({self.x}, {self.y}, {self.z})"
 
     def __eq__(self, other: 'Vector'):
         tol = 1e-5
-        if math.isclose(other._x, self.x, abs_tol=tol) and math.isclose(other._y, self.y, abs_tol=tol) and math.isclose(other._z, self.z, abs_tol=tol):
+        if math.isclose(other.x, self.x, abs_tol=tol) and math.isclose(other.y, self.y, abs_tol=tol) and math.isclose(other.z, self.z, abs_tol=tol):
             return True
         else:
             return False
 
     def __sub__(self, other: 'Vector') -> 'Vector':
-        return Vector(self.x - other.x, self.y - other._y, self.z - other._z)
+        return Vector(self.x - other.x, self.y - other.y, self.z - other.z)
 
     def __add__(self, other: 'Vector') -> 'Vector':
-        return Vector(self.x + other.x, self.y + other._y, self.z + other._z)
+        return Vector(self.x + other.x, self.y + other.y, self.z + other.z)
 
     def __mul__(self, scalar: float) -> 'Vector':
         return Vector(self.x * scalar, self.y * scalar, self.z * scalar)
@@ -59,24 +67,16 @@ class Vector:
         return Vector(self.x / scalar, self.y / scalar, self.z / scalar)
 
     def add(self, other: 'Vector'):
-        self.x += other._x
-        self.y += other._y
-        self.z += other._z
+        self.array += other.array
 
     def subtract(self, other: 'Vector'):
-        self.x -= other._x
-        self.y -= other._y
-        self.z -= other._z
+        self.array -= other.array
 
     def multiply(self, scalar: float):
-        self.x *= scalar
-        self.y *= scalar
-        self.z *= scalar
+        self.array *= scalar
 
     def divide(self, scalar: float):
-        self.x /= scalar
-        self.y /= scalar
-        self.z /= scalar
+        self.array /= scalar
 
     def getNorm(self) -> float:
         return (self.x ** 2 + self.y ** 2 + self.z ** 2) ** (1 / 2)
@@ -90,15 +90,12 @@ class Vector:
 
     def cross(self, other: 'Vector') -> 'Vector':
         ux, uy, uz = self.x, self.y, self.z
-        vx, vy, vz = other._x, other._y, other._z
+        vx, vy, vz = other.x, other.y, other.z
         return Vector(uy * vz - uz * vy, uz * vx - ux * vz, ux * vy - uy * vx)
 
     def dot(self, other: 'Vector') -> float:
-        return self.x*other._x + self.y*other._y + self.z*other._z
+        return self.x*other.x + self.y*other.y + self.z*other.z
 
-    @property
-    def array(self) -> list:
-        return [self.x, self.y, self.z]
 
     def update(self, x: float, y: float, z: float):
         self.x = x
@@ -147,7 +144,6 @@ class Vector:
             + (cost + uz * uz * one_cost) * Z
 
         self.update(x, y, z)
-        self.normalize()
 
     def getAnyOrthogonal(self) -> 'Vector':
         if abs(self.z) < abs(self.x):

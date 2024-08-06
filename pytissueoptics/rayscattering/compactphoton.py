@@ -10,32 +10,8 @@ WEIGHT_THRESHOLD = 1e-4
 class CompactVector(Vector):
     npVector = np.dtype([("x", np.float32),("y", np.float32),("z", np.float32)])
     def __init__(self, rawBuffer, index=0, offset=0, stride=0):
-        self._array = np.frombuffer(rawBuffer, dtype=np.float32, count=3, offset=offset+index*stride)
-
-    @property
-    def x(self) -> np.float32:
-        return self._array[0]
-
-    @property
-    def y(self) -> np.float32:
-        return self._array[1]
-
-    @property
-    def z(self) -> np.float32:
-        return self._array[2]
-
-    @x.setter
-    def x(self, value):
-        self._array[0] = value
-
-    @y.setter
-    def y(self, value):
-        self._array[1] = value
-
-    @z.setter
-    def z(self, value):
-        self._array[2] = value
-
+        super().__init__()
+        self._data = np.frombuffer(rawBuffer, dtype=np.float32, count=3, offset=offset+index*stride)
 
 class CompactPhoton(Photon):
     Struct = np.dtype([("position", CompactVector.npVector),
