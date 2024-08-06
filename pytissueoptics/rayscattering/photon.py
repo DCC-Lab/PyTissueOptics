@@ -31,19 +31,39 @@ class Photon:
 
     @property
     def isAlive(self) -> bool:
-        return self._weight > 0
+        return self.weight > 0
 
     @property
     def position(self) -> Vector:
         return self._position
 
+    @position.setter
+    def position(self, vector):
+        self._position = vector
+
     @property
     def direction(self) -> Vector:
         return self._direction
 
+    @direction.setter
+    def direction(self, vector):
+        self._direction = vector
+
+    @property
+    def er(self) -> Vector:
+        return self._er
+
+    @er.setter
+    def er(self, vector):
+        self._er = vector
+
     @property
     def weight(self) -> float:
         return self._weight
+
+    @weight.setter
+    def weight(self, value):
+        self._weight = value
 
     @property
     def material(self) -> ScatteringMaterial:
@@ -83,7 +103,7 @@ class Photon:
             distanceLeft = self.reflectOrRefract(intersection)
         else:
             if math.isinf(distance):
-                self._weight = 0
+                self.weight = 0
                 return 0
 
             self.moveBy(distance)
@@ -96,7 +116,7 @@ class Photon:
                 if solidTowardsNormal != self._environment.solid:
                     stepSign = -1
                 stepCorrection = intersection.normal * stepSign * EPS_CORRECTION
-                self._position += stepCorrection
+                self.position += stepCorrection
 
             self.scatter()
 
@@ -106,7 +126,7 @@ class Photon:
         if self._intersectionFinder is None:
             return None
 
-        stepRay = Ray(self._position, self._direction, distance)
+        stepRay = Ray(self.position, self.direction, distance)
         return self._intersectionFinder.findIntersection(stepRay)
 
     def reflectOrRefract(self, intersection: Intersection):
@@ -139,7 +159,7 @@ class Photon:
 
         # Move away from intersecting surface by a small amount
         stepCorrection = intersection.normal * stepSign * EPS_CORRECTION
-        self._position += stepCorrection
+        self.position += stepCorrection
 
         # Remove this distance correction from the distance left, but set to zero if the result is negative.
         intersection.distanceLeft -= EPS_CORRECTION
@@ -149,17 +169,17 @@ class Photon:
         return intersection.distanceLeft
 
     def _getFresnelIntersection(self, intersection: Intersection) -> FresnelIntersection:
-        return self._fresnelIntersect.compute(self._direction, intersection)
+        return self._fresnelIntersect.compute(self.direction, intersection)
 
     def moveBy(self, distance):
-        self._position += self._direction * distance
+        self.position += self.direction * distance
 
     def reflect(self, fresnelIntersection: FresnelIntersection):
-        self._direction.rotateAround(fresnelIntersection.incidencePlane,
+        self.direction.rotateAround(fresnelIntersection.incidencePlane,
                                      fresnelIntersection.angleDeflection)
 
     def refract(self, fresnelIntersection: FresnelIntersection):
-        self._direction.rotateAround(fresnelIntersection.incidencePlane,
+        self.direction.rotateAround(fresnelIntersection.incidencePlane,
                                      fresnelIntersection.angleDeflection)
 
     def scatter(self):
@@ -168,25 +188,25 @@ class Photon:
         self.interact()
 
     def scatterBy(self, theta, phi):
-        self._er.rotateAround(self._direction, phi)
-        self._direction.rotateAround(self._er, theta)
+        self.er.rotateAround(self.direction, phi)
+        self.direction.rotateAround(self.er, theta)
 
     def interact(self):
-        delta = self._weight * self.material.getAlbedo()
+        delta = self.weight * self.material.getAlbedo()
         self._decreaseWeightBy(delta)
 
     def _decreaseWeightBy(self, delta):
         self._logWeightDecrease(delta)
-        self._weight -= delta
+        self.weight -= delta
 
     def roulette(self):
         chance = 0.1
-        if self._weight >= WEIGHT_THRESHOLD or self._weight == 0:
+        if self.weight >= WEIGHT_THRESHOLD or self.weight == 0:
             return
         elif random.random() < chance:
-            self._weight /= chance
+            self.weight /= chance
         else:
-            self._weight = 0
+            self.weight = 0
 
     def _logIntersection(self, intersection: Intersection):
         if self._logger is None:
@@ -194,18 +214,18 @@ class Photon:
         solidA = intersection.insideEnvironment.solid
         solidLabelA = solidA.getLabel() if solidA else None
         key = InteractionKey(solidLabelA, intersection.surfaceLabel)
-        isLeavingSurface = self._direction.dot(intersection.normal) > 0
+        isLeavingSurface = self.direction.dot(intersection.normal) > 0
         sign = 1 if isLeavingSurface else -1
-        self._logger.logDataPoint(sign * self._weight, self._position, key)
+        self._logger.logDataPoint(sign * self.weight, self.position, key)
 
         solidB = intersection.outsideEnvironment.solid
         if solidB is None:
             return
         solidLabelB = solidB.getLabel()
         key = InteractionKey(solidLabelB, intersection.surfaceLabel)
-        self._logger.logDataPoint(-sign * self._weight, self._position, key)
+        self._logger.logDataPoint(-sign * self.weight, self.position, key)
 
     def _logWeightDecrease(self, delta):
         if self._logger:
             key = InteractionKey(self.solidLabel)
-            self._logger.logDataPoint(delta, self._position, key)
+            self._logger.logDataPoint(delta, self.position, key)
