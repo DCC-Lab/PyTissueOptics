@@ -2,21 +2,17 @@ import math
 import random
 from typing import Optional
 import numpy as np
-from pytissueoptics.rayscattering.photon import Photon, Vector
+from pytissueoptics.rayscattering.photon import Photon
+from pytissueoptics.scene.geometry import Vector, CompactVector
+from pytissueoptics.rayscattering import Source
 
 WORLD_LABEL = "world"
 WEIGHT_THRESHOLD = 1e-4
 
-class CompactVector(Vector):
-    npVector = np.dtype([("x", np.float32),("y", np.float32),("z", np.float32)])
-    def __init__(self, rawBuffer, index=0, offset=0, stride=0):
-        super().__init__()
-        self._data = np.frombuffer(rawBuffer, dtype=np.float32, count=3, offset=offset+index*stride)
-
 class CompactPhoton(Photon):
-    Struct = np.dtype([("position", CompactVector.npVector),
-                      ("direction", CompactVector.npVector),
-                      ("er", CompactVector.npVector),
+    npStruct = np.dtype([("position", CompactVector.npStruct),
+                      ("direction", CompactVector.npStruct),
+                      ("er", CompactVector.npStruct),
                       ("weight", np.float32)                      
                       ])
 
@@ -27,14 +23,14 @@ class CompactPhoton(Photon):
         self.index = index
         self.array = None
 
-        self._position = CompactVector(self.compactPhotons.rawbuffer, index=self.index, offset=0, stride=CompactPhoton.Struct.itemsize)
-        self._direction = CompactVector(self.compactPhotons.rawbuffer, index=self.index, offset=3*4, stride=CompactPhoton.Struct.itemsize)
-        self._er = CompactVector(self.compactPhotons.rawbuffer, index=self.index, offset=6*4, stride=CompactPhoton.Struct.itemsize)
+        self._position = CompactVector(self.compactPhotons.rawbuffer, index=self.index, offset=0, stride=CompactPhoton.npStruct.itemsize)
+        self._direction = CompactVector(self.compactPhotons.rawbuffer, index=self.index, offset=3*4, stride=CompactPhoton.npStruct.itemsize)
+        self._er = CompactVector(self.compactPhotons.rawbuffer, index=self.index, offset=6*4, stride=CompactPhoton.npStruct.itemsize)
 
     @property
     def elementAsStruct(self):
         if self.array is None:
-            self.array = np.frombuffer(self.compactPhotons.rawbuffer, dtype=CompactPhoton.Struct, count=1, offset=CompactPhoton.Struct.itemsize * self.index)
+            self.array = np.frombuffer(self.compactPhotons.rawbuffer, dtype=CompactPhoton.npStruct, count=1, offset=CompactPhoton.npStruct.itemsize * self.index)
         return self.array[0]
 
     @property
@@ -70,6 +66,7 @@ class CompactPhoton(Photon):
     @property
     def weight(self):
         return self.elementAsStruct[3]
+
     @weight.setter
     def weight(self, value):
         self.elementAsStruct[3] = value
@@ -80,8 +77,8 @@ class CompactPhotons:
     def __init__(self, compactPhotonsStructuredBuffer=None, maxCount=None):
         self.maxCount = maxCount
         if maxCount is not None:
-            self._photons = np.zeros((maxCount,), dtype=CompactPhoton.Struct)
-            self.rawbuffer = self._photons.data
+            self.photons = np.zeros((maxCount,), dtype=CompactPhoton.npStruct)
+            self.rawbuffer = self.photons.data
         else:
             raise ValueError('You must provide a compactPhotonsStructuredBuffer or a maxCount')
 
@@ -111,4 +108,13 @@ class CompactPhotons:
 
     def append(self, tuple):
         raise RuntimeError('You can only replace elements from a pre-allocated CompactPhotons')
+
+    def propagateAll(self, environment, ):
+        for i, photon in self.photons:
+            photon.setContext(self.environment, intersectionFinder=intersectionFinder, logger=logger)
+            photon.propagate()
+
+class CompactSource(Source):
+    def __init__(self, position: Vector, displaySize: float = 0.1):
+        super().__init__(position=position, N=N, useHardwareAcceleration = True, displaySize=displaySize)
 

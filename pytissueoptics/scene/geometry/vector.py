@@ -1,14 +1,22 @@
-import math
 import numpy as np
 
 class Vector:
+    npStruct = np.dtype([("x", np.float32),("y", np.float32),("z", np.float32)])
+
     """
     Basic implementation of a mutable 3D Vector. It implements most of the basic vector operation.
     Mutability is necessary when working with shared object references for expected behavior.
+    Internally, the (x,y,z) components are kept in a numpy.array.  This facilitates computation
+    but it also allows to provide our own array that can be used.  This is the central part
+    of the CompactVector class that uses an already allocated structured numpy array to keep 
+    many vectors together in a large array.
     """
 
-    def __init__(self, x: float = 0, y: float = 0, z: float = 0):
-        self._data = np.array([x,y,z], dtype=np.float32)
+    def __init__(self, x: float = 0, y: float = 0, z: float = 0, array=None):
+        if array is not None:
+            self._data = array
+        else:
+            self._data = np.array([x,y,z], dtype=np.float32)
 
     @property
     def array(self) -> np.array:
@@ -49,44 +57,45 @@ class Vector:
 
     def __eq__(self, other: 'Vector'):
         tol = 1e-5
-        if math.isclose(other.x, self.x, abs_tol=tol) and math.isclose(other.y, self.y, abs_tol=tol) and math.isclose(other.z, self.z, abs_tol=tol):
+        if np.isclose(other.x, self.x, atol=tol) and np.isclose(other.y, self.y, atol=tol) and np.isclose(other.z, self.z, atol=tol):
             return True
         else:
             return False
 
     def __sub__(self, other: 'Vector') -> 'Vector':
-        return Vector(self.x - other.x, self.y - other.y, self.z - other.z)
+        # return Vector(self.x - other.x, self.y - other.y, self.z - other.z)
+        return Vector(array=self._data-other._data)
 
     def __add__(self, other: 'Vector') -> 'Vector':
-        return Vector(self.x + other.x, self.y + other.y, self.z + other.z)
+        # return Vector(self.x + other.x, self.y + other.y, self.z + other.z)
+        return Vector(array=self._data+other._data)
 
     def __mul__(self, scalar: float) -> 'Vector':
-        return Vector(self.x * scalar, self.y * scalar, self.z * scalar)
+        # return Vector(self.x * scalar, self.y * scalar, self.z * scalar)
+        return Vector(array=self._data * scalar)
 
     def __truediv__(self, scalar: float) -> 'Vector':
-        return Vector(self.x / scalar, self.y / scalar, self.z / scalar)
+        # return Vector(self.x / scalar, self.y / scalar, self.z / scalar)
+        return Vector(array=self._data / scalar)
 
     def add(self, other: 'Vector'):
-        self.array += other.array
+        self._data += other._data
 
     def subtract(self, other: 'Vector'):
-        self.array -= other.array
+        self._data -= other._data
 
     def multiply(self, scalar: float):
-        self.array *= scalar
+        self._data *= scalar
 
     def divide(self, scalar: float):
-        self.array /= scalar
+        self._data /= scalar
 
     def getNorm(self) -> float:
-        return (self.x ** 2 + self.y ** 2 + self.z ** 2) ** (1 / 2)
+        return np.linalg.norm(self._data)
 
     def normalize(self):
         norm = self.getNorm()
-        if norm != 0:
-            self.x = self.x / norm
-            self.y = self.y / norm
-            self.z = self.z / norm
+        self._data /= norm
 
     def cross(self, other: 'Vector') -> 'Vector':
         ux, uy, uz = self.x, self.y, self.z
@@ -94,8 +103,7 @@ class Vector:
         return Vector(uy * vz - uz * vy, uz * vx - ux * vz, ux * vy - uy * vx)
 
     def dot(self, other: 'Vector') -> float:
-        return self.x*other.x + self.y*other.y + self.z*other.z
-
+        return self._data@other._data
 
     def update(self, x: float, y: float, z: float):
         self.x = x
@@ -104,6 +112,9 @@ class Vector:
 
     def copy(self) -> 'Vector':
         return Vector(self.x, self.y, self.z)
+
+    # def rotateAround(self, unitAxis: 'Vector', theta: float):
+    #     self.rotateAround_Matrix(unitAxis, theta)
 
     def rotateAround(self, unitAxis: 'Vector', theta: float):
         """
@@ -121,29 +132,40 @@ class Vector:
         # and the performance gain was minimal (<20%).
         # For now, this is the best, most readable solution.
 
-        cost = math.cos(theta)
-        sint = math.sin(theta)
+        cost = np.cos(theta)
+        sint = np.sin(theta)
         one_cost = 1 - cost
 
         ux = unitAxis.x
         uy = unitAxis.y
         uz = unitAxis.z
 
-        X = self.x
-        Y = self.y
-        Z = self.z
+        uxuy=(ux * uy)
+        uxuz=(ux * uz)
+        uyuz=(uy * uz)
 
-        x = (cost + ux * ux * one_cost) * X \
-            + (ux * uy * one_cost - uz * sint) * Y \
-            + (ux * uz * one_cost + uy * sint) * Z
-        y = (uy * ux * one_cost + uz * sint) * X \
-            + (cost + uy * uy * one_cost) * Y \
-            + (uy * uz * one_cost - ux * sint) * Z
-        z = (uz * ux * one_cost - uy * sint) * X \
-            + (uz * uy * one_cost + ux * sint) * Y \
-            + (cost + uz * uz * one_cost) * Z
+        rot = np.array([[(cost + ux * ux * one_cost), (uxuy * one_cost - uz * sint),(uxuz * one_cost + uy * sint)],
+                        [(uxuy * one_cost + uz * sint),(cost + uy * uy * one_cost),(uyuz * one_cost - ux * sint)],
+                        [(uxuz * one_cost - uy * sint), (uyuz * one_cost + ux * sint),  (cost + uz * uz * one_cost) ]
+                       ])
 
-        self.update(x, y, z)
+        result = rot@self._data
+        self.update(result[0], result[1], result[2])
+
+    def rotateAround_Rodrigue(self, unitAxis: 'Vector', theta: float):
+        """
+        Rotate the vector around `unitAxis` by `theta` radians. Assumes the axis to be a unit vector.
+        It could have been faster, but it is not. Leaving here for historical reasons.
+        """
+
+        cost = np.cos(theta)
+        sint = np.sin(theta)
+        one_cost = 1 - cost
+
+        # # Rodrigues' rotation formula
+        result = self * cost + unitAxis.cross(self) * sint + unitAxis * unitAxis.dot(self) * one_cost
+
+        self.update(result.x, result.y, result.z)
 
     def getAnyOrthogonal(self) -> 'Vector':
         if abs(self.z) < abs(self.x):
@@ -153,3 +175,8 @@ class Vector:
 
     def __hash__(self):
         return hash((self.x, self.y, self.z))
+
+
+class CompactVector(Vector):
+    def __init__(self, rawBuffer, index=0, offset=0, stride=0):
+        super().__init__(array=np.frombuffer(rawBuffer, dtype=np.float32, count=3, offset=offset+index*stride))

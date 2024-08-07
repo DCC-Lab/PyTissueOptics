@@ -3,7 +3,8 @@ import math
 import sys
 import unittest
 import numpy as np
-from pytissueoptics.rayscattering.compactphoton import CompactPhoton, CompactPhotons, CompactVector, Vector
+from pytissueoptics.rayscattering.compactphoton import CompactPhoton, CompactPhotons
+from pytissueoptics.scene.geometry import Environment, Vector, CompactVector
 from pytissueoptics.rayscattering.scatteringScene import ScatteringScene
 from pytissueoptics.rayscattering.materials import ScatteringMaterial
 
@@ -34,73 +35,87 @@ class TestCompactPhotons(unittest.TestCase):
         self.assertTrue( all(a==[7,8,9,10,11,6]))
 
 
-    # def test_init_compact_photons(self):
-    #     self.assertIsNotNone(CompactPhotons(maxCount=1000))
+    def test_init_compact_photons(self):
+        self.assertIsNotNone(CompactPhotons(maxCount=1000))
 
-    # def test_get_compact_photon_from_photons(self):
-    #     photons = CompactPhotons(maxCount=1000)
+    def test_get_compact_photon_from_photons(self):
+        photons = CompactPhotons(maxCount=1000)
 
-    #     for i in range(photons.maxCount):
-    #         self.assertEqual(photons[i].position, Vector(0,0,0))
-    #         self.assertEqual(photons[i].direction,Vector(0,0,0))
-    #         self.assertEqual(photons[i].er, Vector(0,0,0))
-    #         self.assertEqual(photons[i].weight, 0)
+        for i in range(photons.maxCount):
+            self.assertEqual(photons[i].position, Vector(0,0,0))
+            self.assertEqual(photons[i].direction,Vector(0,0,0))
+            self.assertEqual(photons[i].er, Vector(0,0,0))
+            self.assertEqual(photons[i].weight, 0)
 
-    # def test_assign_compact_photon_from_photons(self):
-    #     photons = CompactPhotons(maxCount=1000)
+    def test_assign_compact_photon_from_photons(self):
+        photons = CompactPhotons(maxCount=1000)
 
-    #     for i in range(photons.maxCount):
-    #         photons[i].position =  Vector(1,2,3)
-    #         photons[i].direction =  Vector(2*i,2*i,2*i)
-    #         photons[i].er =  Vector(3*i,3*i,3*i)
-    #         photons[i].weight =  i
+        for i in range(photons.maxCount):
+            photons[i].position =  Vector(1,2,3)
+            photons[i].direction =  Vector(2*i,2*i,2*i)
+            photons[i].er =  Vector(3*i,3*i,3*i)
+            photons[i].weight =  i
 
-    #     for i in range(photons.maxCount):
-    #         self.assertEqual(photons[i].position, Vector(1,2,3))
-    #         self.assertEqual(photons[i].direction, Vector(2*i, 2*i, 2*i))
-    #         self.assertEqual(photons[i].er, Vector(3*i, 3*i, 3*i))
-    #         self.assertEqual(photons[i].weight, i)
+        for i in range(photons.maxCount):
+            self.assertEqual(photons[i].position, Vector(1,2,3))
+            self.assertEqual(photons[i].direction, Vector(2*i, 2*i, 2*i))
+            self.assertEqual(photons[i].er, Vector(3*i, 3*i, 3*i))
+            self.assertEqual(photons[i].weight, i)
 
-    # def test_assign_compact_photon_from_photons(self):
-    #     photons = CompactPhotons(maxCount=1000)
+    def test_assign_compact_photon_from_photons(self):
+        photons = CompactPhotons(maxCount=1000)
 
-    #     for i, photon in enumerate(photons):
-    #         photon.position =  Vector(i,i,i)
-    #         photon.direction =  Vector(2*i,2*i,2*i)
-    #         photon.er =  Vector(3*i,3*i,3*i)
-    #         photon.weight =  i
+        for i, photon in enumerate(photons):
+            photon.position =  Vector(i,i,i)
+            photon.direction =  Vector(2*i,2*i,2*i)
+            photon.er =  Vector(3*i,3*i,3*i)
+            photon.weight =  i
 
-    #     for i in range(photons.maxCount):
-    #         self.assertEqual(photons[i].position, Vector(i,i,i))
-    #         self.assertEqual(photons[i].direction, Vector(2*i, 2*i, 2*i))
-    #         self.assertEqual(photons[i].er, Vector(3*i, 3*i, 3*i))
-    #         self.assertEqual(photons[i].weight, i)
+        for i in range(photons.maxCount):
+            self.assertEqual(photons[i].position, Vector(i,i,i))
+            self.assertEqual(photons[i].direction, Vector(2*i, 2*i, 2*i))
+            self.assertEqual(photons[i].er, Vector(3*i, 3*i, 3*i))
+            self.assertEqual(photons[i].weight, i)
 
-    # def test_propagate(self):
-    #     import cProfile, pstats, io
-    #     from pstats import SortKey
-    #     pr = cProfile.Profile()
-    #     pr.enable()
+    def test_propagate_no_profiler(self):
+        photons = CompactPhotons(maxCount=10)
+        for i, photon in enumerate(photons):
+            photon.direction =  Vector(0,0,1)
+            photon.er =  Vector(1,0,0)
+            photon.weight =  1
 
-    #     photons = CompactPhotons(maxCount=10)
-    #     for i, photon in enumerate(photons):
-    #         photon.direction =  Vector(0,0,1)
-    #         photon.er =  Vector(1,0,0)
-    #         photon.weight =  1
+        scene = ScatteringScene(solids=[], worldMaterial=ScatteringMaterial(mu_s=100, mu_a=0.1, g=0, n=1.0))
 
-    #     scene = ScatteringScene(solids=[], worldMaterial=ScatteringMaterial(mu_s=100, mu_a=0.1, g=0, n=1.0))
+        for i, photon in enumerate(photons):
+            photon.setContext(scene.getEnvironmentAt(photon.position))
+            photon.propagate()
+            print(i)
 
-    #     for i, photon in enumerate(photons):
-    #         photon.setContext(scene.getEnvironmentAt(photon.position))
-    #         photon.propagate()
-    #         print(i)
+    # @unittest.skip('No profiling')
+    def test_propagate_profiler(self):
+        import cProfile, pstats, io
+        from pstats import SortKey
+        pr = cProfile.Profile()
+        pr.enable()
 
-    #     pr.disable()
-    #     s = io.StringIO()
-    #     sortby = SortKey.TIME
-    #     ps = pstats.Stats(pr, stream=s).sort_stats(sortby)
-    #     ps.print_stats()
-    #     print(s.getvalue())
+        photons = CompactPhotons(maxCount=10)
+        for i, photon in enumerate(photons):
+            photon.direction =  Vector(0,0,1)
+            photon.er =  Vector(1,0,0)
+            photon.weight =  1
+
+        scene = ScatteringScene(solids=[], worldMaterial=ScatteringMaterial(mu_s=100, mu_a=0.1, g=0, n=1.0))
+
+        for i, photon in enumerate(photons):
+            photon.setContext(scene.getEnvironmentAt(photon.position))
+            photon.propagate()
+
+        pr.disable()
+        s = io.StringIO()
+        sortby = SortKey.TIME
+        ps = pstats.Stats(pr, stream=s).sort_stats(sortby)
+        ps.print_stats()
+        print(s.getvalue())
 
 if __name__ == "__main__":
     unittest.main()

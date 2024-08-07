@@ -1,7 +1,7 @@
 from .photon import Photon
 from .materials import ScatteringMaterial
 from .energyLogging import EnergyLogger
-from .source import PencilPointSource, IsotropicPointSource, DirectionalSource, DivergentSource
+from .source import Source, PencilPointSource, IsotropicPointSource, DirectionalSource, DivergentSource
 from .scatteringScene import ScatteringScene
 from .statistics import Stats
 from .display.viewer import Viewer, PointCloudStyle, Visibility, ViewGroup, Direction
