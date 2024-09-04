@@ -1,0 +1,23 @@
+pipreqs.txt
+# how to make
+pipreqs --savepath pipreqs.txt .
+# how to install from
+pip install -r pipreqs.txt
+# =====================================================================
+# This is just an example file, this require package list doesn't work!
+# =====================================================================
+
+
+
+
+matplotlib==3.7.5
+mockito==1.5.1
+numpy==1.24.4
+pandas==2.2.2
+psutil==6.0.0
+Pygments==2.18.0
+pyopencl==2024.2.7
+setuptools==72.1.0
+tqdm==4.66.5
+traits==6.4.3
+traitsui==8.0.0
