@@ -32,6 +32,9 @@ As discussed in the [why use this package](#why-use-this-package) section, compu
 ## Installation
 Requires Python 3.6+ installed on the device.
 
+### Requirements that worked
+If you can run this project, after successful instalation, please add a pull request with your environment installed package list dump into requirements_that_worked folder. It will help us to maintain the project and the other users to run.
+
 ### Installing the development version
 1. Clone the repository.
 2. Create a virtual environment inside the repository with `python -m venv venv`.
