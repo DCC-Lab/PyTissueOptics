@@ -16,7 +16,7 @@
 		"DebugFlag":	0,
 		"SaveDataMask":	0,
 		"OutputFormat":	"jnii",
-		"OutputType":	"x"
+		"OutputType":	"e"
 	},
 	"Forward":	{
 		"T0":	0,
@@ -27,6 +27,11 @@
 		"MediaFormat":	"byte",
 		"LengthUnit":	1,
 		"Media":	[{
+				"mua":	0,
+				"mus":	0,
+				"g":	1,
+				"n":	1
+			},{
 				"mua":	0.01,
 				"mus":	0.1,
 				"g":	0.99,
@@ -58,18 +63,18 @@
 	},
 	"Shapes":	[{
 			"Grid":	{
-				"Tag":	0,
+				"Tag":	1,
 				"Size":	[13, 13, 13]
 			}
 		}, {
 			"Sphere":	{
-				"Tag":	1,
+				"Tag":	2,
 				"O":	[6.5, 6.5, 6.5],
 				"R":	5
 			}
 		}, {
 			"Sphere":	{
-				"Tag":	2,
+				"Tag":	3,
 				"O":	[6.5, 6.5, 6.5],
 				"R":	4.5
 			}
