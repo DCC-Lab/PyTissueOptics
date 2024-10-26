@@ -16,7 +16,7 @@ class ValidationStack(ScatteringScene):
         super().__init__(self.TISSUE, worldMaterial)
 
     def _create(self):
-        n = [1.37, 1.37, 1.37]
+        n = [1.0, 1.0, 1.0]
         mu_s = [100, 10, 10]
         mu_a = [1, 1, 2]
         g = [0.9, 0, 0.7]
@@ -36,7 +36,7 @@ def exampleCode():
     N = 1000000 if hardwareAccelerationIsAvailable() else 1000
     layerStack = ValidationStack()
     logger = EnergyLogger(layerStack)
-    source = PencilPointSource(position=Vector(0, 0, -1), direction=Vector(0, 0, 1), N=N)
+    source = PencilPointSource(position=Vector(0, 0, -0.1), direction=Vector(0, 0, 1), N=N)
     #layerStack.show(source=source)
 
     source.propagate(layerStack, logger=logger)

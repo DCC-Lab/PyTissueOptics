@@ -1,0 +1,23 @@
+========== MCX ===========
+% total absorbed: 50.5694%
+========================================
+Grid Absorbed Energy: 0.33874
+Outer Shell Absorbed Energy: 0.01555
+Inner Shell Absorbed Energy: 0.1459
+Core Absorbed Energy: 0.005453
+Sum of Absorbed Energy: 0.5056
+========================================
+Total Absorbed Energy: 0.50569
+========================================
+
+===== PyTissueOptics =====
+Report of solid 'grid'
+  Absorbance: 23.45% (38.52% of total power)
+  Report of solid 'outer'
+  Absorbance: 1.52% (1.41% of total power)
+Report of solid 'inner'
+  Absorbance: 26.50% (6.72% of total power)
+Report of solid 'core'
+  Absorbance: 45.84% (0.31% of total power)
+
+% of total power absorbed: 47.96%
