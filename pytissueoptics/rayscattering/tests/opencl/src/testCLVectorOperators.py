@@ -88,3 +88,6 @@ class TestCLVectorOperators(unittest.TestCase):
         vectors = self.program.getData(vectorBuffer)
         vectors = rfn.structured_to_unstructured(vectors, dtype=np.float32)
         return [Vector(*vector[:3]) for vector in vectors]
+
+if __name__ == "__main__":
+    unittest.main()

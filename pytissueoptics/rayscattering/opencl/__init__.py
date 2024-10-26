@@ -1,5 +1,6 @@
 from pytissueoptics.rayscattering.opencl.config.CLConfig import warnings, CLConfig, OPENCL_AVAILABLE, WEIGHT_THRESHOLD
 from pytissueoptics.rayscattering.opencl.config.IPPTable import IPPTable
+import os
 
 OPENCL_OK = True
 
@@ -12,9 +13,16 @@ if OPENCL_AVAILABLE:
 else:
     CONFIG = None
 
+def forceCalculationOnCPU():
+    os.environ["PYTISSUE_FORCE_CPU"] = "1"
+    # warnings.warn("You can define PYTISSUE_FORCE_CPU=1 in your profile to avoid this call.")
 
 def validateOpenCL() -> bool:
     notAvailableMessage = "Error: Hardware acceleration not available. Falling back to CPU. "
+    
+    if os.environ.get("PYTISSUE_FORCE_CPU", '0') != '0':
+        # warnings.warn("User requested not using OpenCL with environment variable 'PYTISSUE_FORCE_CPU'=1.")
+        return False
     if not OPENCL_AVAILABLE:
         warnings.warn(notAvailableMessage + "Please install pyopencl.")
         return False
@@ -27,4 +35,5 @@ def validateOpenCL() -> bool:
 
 
 def hardwareAccelerationIsAvailable() -> bool:
-    return OPENCL_AVAILABLE and OPENCL_OK
+    PYTISSUE_FORCE_CPU = (os.environ.get('PYTISSUE_FORCE_CPU', '0') == '1')
+    return OPENCL_AVAILABLE and OPENCL_OK and (not PYTISSUE_FORCE_CPU)
