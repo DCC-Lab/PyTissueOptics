@@ -39,7 +39,9 @@ Requires Python 3.6+ installed on the device.
     - On MacOS/Linux: `source venv/bin/activate`.
     - On Windows: `venv\Scripts\activate.bat`.
 4. Upgrade `pip` with `pip install --upgrade pip`.
-5. Install the package requirements with `pip install -r requirements.txt`.
+5. Use one of these:
+    - Install the package requirements with `pip install -r requirements.txt`.
+    - Install the whole package and its requirements with `python setup.py install`.
 
 ### Installing the previous release
 > Currently, this `pip` version is outdated. We recommend installing the development version.
