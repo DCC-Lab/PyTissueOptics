@@ -1,5 +1,6 @@
 import math
 import unittest
+import os
 from unittest.mock import patch
 
 from mockito import mock, verify, when
@@ -7,7 +8,6 @@ from mockito import mock, verify, when
 from pytissueoptics.rayscattering.scatteringScene import ScatteringScene
 from pytissueoptics.rayscattering.materials import ScatteringMaterial
 from pytissueoptics.scene.solids import Cuboid
-from pytissueoptics.scene.viewer import MayaviViewer
 
 
 def patchMayaviShow(func):
@@ -27,7 +27,10 @@ class TestScatteringScene(unittest.TestCase):
         with self.assertRaises(Exception):
             ScatteringScene([Cuboid(1, 1, 1, material="Not a scattering material")])
 
+    @unittest.skipIf(os.environ.get('PYTISSUE_NO3DDISPLAY','0') == '1','No display available')
     def testWhenAddToViewer_shouldAddAllSolidsToViewer(self):
+        from pytissueoptics.scene.viewer import MayaviViewer
+
         scene = ScatteringScene([Cuboid(1, 1, 1, material=ScatteringMaterial())])
         viewer = mock(MayaviViewer)
         when(viewer).add(...).thenReturn()
@@ -36,6 +39,7 @@ class TestScatteringScene(unittest.TestCase):
 
         verify(viewer).add(*scene.solids, ...)
 
+    @unittest.skipIf(os.environ.get('PYTISSUE_NO3DDISPLAY','0') == '1','No display available')
     @patchMayaviShow
     def testWhenShow_shouldShowInsideMayaviViewer(self, mockShow, *args):
         scene = ScatteringScene([Cuboid(1, 1, 1, material=ScatteringMaterial())])

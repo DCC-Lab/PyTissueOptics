@@ -67,9 +67,6 @@ class TestCLProgram(unittest.TestCase):
         program.launchKernel(kernelName='fillRandomFloatBuffer', N=nWorkUnits, arguments = [seeds2, valueBuffer2])
 
         # We need to sort because values are not necessarily in order
-        print(sorted(valueBuffer1.hostBuffer))
-        print(sorted(valueBuffer2.hostBuffer))
-
         for value1, value2 in zip(sorted(valueBuffer1.hostBuffer), sorted(valueBuffer2.hostBuffer)) :
             self.assertEqual(value1, value2)
 

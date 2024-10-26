@@ -146,7 +146,7 @@ class TestCLFresnel(unittest.TestCase):
         self.program.launchKernel("getReflectionCoefficientKernel", N=N,
                                   arguments=[np.float32(self.n1), np.float32(self.n2),
                                              np.float32(thetaIn), coefficientBuffer])
-        return float(self.program.getData(coefficientBuffer)[0])
+        return float(self.program.getData(coefficientBuffer)[0][0])
 
     def _getFresnelResult(self, fresnelBuffer) -> FresnelResult:
         fresnelIntersection = self.program.getData(fresnelBuffer)[0]
