@@ -27,9 +27,9 @@ def find_voxel_indices_in_layer(grid_size, voxel_size, layerPosition, layerthick
 
     return indices
 
-layer1 = np.sum([data[x, y, z] for x, y, z in find_voxel_indices_in_layer(1000, 1, 0, 10)])
-layer2 = np.sum([data[x, y, z] for x, y, z in find_voxel_indices_in_layer(1000, 1, 10, 1)])
-layer3 = np.sum([data[x, y, z] for x, y, z in find_voxel_indices_in_layer(1000, 1, 11, 10)])
+layer1 = np.sum([data[x, y, z] for x, y, z in find_voxel_indices_in_layer(1000, 0.01, 0, 10)])
+layer2 = np.sum([data[x, y, z] for x, y, z in find_voxel_indices_in_layer(1000, 0.01, 10, 1)])
+layer3 = np.sum([data[x, y, z] for x, y, z in find_voxel_indices_in_layer(1000, 0.01, 11, 10)])
 a = np.asarray(data).shape
 print("\n========================================")
 print(f"Layer 1 Absorbed Energy: {layer1}")

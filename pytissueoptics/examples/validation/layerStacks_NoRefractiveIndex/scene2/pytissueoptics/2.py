@@ -16,7 +16,7 @@ class ValidationStack(ScatteringScene):
         super().__init__(self.TISSUE, worldMaterial)
 
     def _create(self):
-        n = [1.3, 1.4, 1.5]
+        n = [1.0, 1.0, 1.0]
         mu_s = [1.0, 5.0, 50]
         mu_a = [0.5, 0.8, 2.5]
         g = [0.7, 0.8, 0.9]
