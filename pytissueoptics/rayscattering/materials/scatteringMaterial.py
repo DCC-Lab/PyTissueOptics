@@ -7,6 +7,10 @@ from pytissueoptics.scene.material import RefractiveMaterial
 
 class ScatteringMaterial(RefractiveMaterial):
     def __init__(self, mu_s=0, mu_a=0, g=0, n=1.0):
+        if mu_s < 0 or mu_a < 0:
+            raise ValueError("Scattering and absorption coefficients must be positive.")
+        if mu_s != 0 and mu_a == 0:
+            raise ValueError("Scattering cannot occur without absorption.")
         self.mu_s = mu_s
         self.mu_a = mu_a
         self.mu_t = self.mu_a + self.mu_s
