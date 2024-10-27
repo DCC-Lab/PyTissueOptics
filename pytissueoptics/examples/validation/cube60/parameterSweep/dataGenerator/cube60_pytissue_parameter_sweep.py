@@ -13,7 +13,7 @@ def pytissueoptics_cube60_sweep_simulator(mu_a_values: List[float], mu_s_values:
             for g in g_values:
                 tissue = ScatteringScene([Cube(60, material=ScatteringMaterial(mu_a=mu_a, mu_s=mu_s, g=g, n=1), label="cube")])
                 logger = EnergyLogger(tissue, defaultBinSize=0.1)
-                source = PencilPointSource(position=Vector(0, 0, -29.99), direction=Vector(0, 0, 1), N=N, displaySize=1)
+                source = PencilPointSource(position=Vector(0, 0, -30), direction=Vector(0, 0, 1), N=N, displaySize=1)
                 source.propagate(tissue, logger=logger)
                 stats = Stats(logger)
                 results.append(SweepSimResult(g=g, mus=mu_s, absorbance=stats.getAbsorbance("cube"), mua=mu_a))
@@ -23,6 +23,5 @@ def pytissueoptics_cube60_sweep_simulator(mu_a_values: List[float], mu_s_values:
 
 
 if __name__ == "__main__":
-    # results = pytissueoptics_cube60_sweep_simulator(mu_a_values, mu_s_values, g_values, N=100000, seed=0)
-    # SweepSimResult.save_to_json(results, "/generatedSweepData/cube60_sweep_results.json", software="pytissueoptics")
-    SweepSimResult.merge_json_files("cube60_sweep_results.json", "../generatedSweepData/cube60_sweep_results.json", "../generatedSweepData/cube60_sweep_results_merged.json")
+    results = pytissueoptics_cube60_sweep_simulator([0.005], [5.0,7.0,10.0,15.0,20.0,25.0,30.0], g_values, N=100000, seed=0)
+    SweepSimResult.save_to_json(results, "../cube60_sweep_results.json", software="pytissueoptics")

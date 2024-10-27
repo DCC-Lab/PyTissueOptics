@@ -1,71 +1,124 @@
-
-def plot_absorbance(results, g_value=None, mus_value=None):
-    x = []
-    y = []
-    for result in results:
-        if g_value is not None and result.g == g_value:
-            x.append(result.mus)
-            y.append(result.absorbance)
-        elif mus_value is not None and result.mus == mus_value:
-            x.append(result.g)
-            y.append(result.absorbance)
-
-    plt.plot(x, y, 'o-')
-    plt.xlabel('g' if g_value is None else 'mus')
-    plt.ylabel('Total Energy Absorbed (%)')
-    plt.show()
+import json
+import numpy as np
+import matplotlib.pyplot as plt
+import seaborn as sns
 
 
-def compute_absorbance_difference(
-        results_a: List[SweepSimResult],
-        results_b: List[SweepSimResult],
-        g_value: Optional[float] = None,
-        mus_value: Optional[float] = None
-) -> Tuple[List[float], List[float]]:
-    if g_value is None and mus_value is None:
-        raise ValueError("Either g_value or mus_value must be specified.")
+def load_data(filename):
+    with open(filename, 'r') as f:
+        data = json.load(f)
+    return data
 
-    # Determine the filtering criterion and dependent variable
-    if g_value is not None:
-        # Filter by g_value, making mus the dependent variable
-        filtered_a = [result for result in results_a if result.g == g_value]
-        filtered_b = [result for result in results_b if result.g == g_value]
-        dependent_attr = 'mus'
+
+def plot_comparison(data, model1, model2, plot_type, mua=None, mus=None, g=None):
+    """
+    Plot comparisons between two models based on plot_type.
+
+    Parameters:
+    - data: dict, the nested data dictionary containing absorbance values.
+    - model1, model2: str, names of the models to compare.
+    - plot_type: str, one of ['absolute', 'absolute_difference', 'relative_error', 'all'].
+    - mua, mus, g: float, specify one or two parameters to hold constant.
+    """
+    if sum(x is not None for x in [mua, mus, g]) != 1 and sum(x is not None for x in [mua, mus, g]) != 2:
+        raise ValueError("Exactly one or two of mua, mus, or g must be specified.")
+
+    # Determine the fixed parameter(s)
+    if mua is not None:
+        fixed_param, fixed_value = 'mua', str(mua)
+        x_param, y_param = 'mus', 'g'
+        x_values = sorted(map(float, data[fixed_value].keys()))
+        y_values = sorted({g for mus_values in data[fixed_value].values() for g in mus_values.keys()})
+    elif mus is not None:
+        fixed_param, fixed_value = 'mus', str(mus)
+        x_param, y_param = 'mua', 'g'
+        x_values = sorted(map(float, data.keys()))
+        y_values = sorted(
+            {g for mua_values in data.values() if fixed_value in mua_values for g in mua_values[fixed_value].keys()})
     else:
-        # Filter by mus_value, making g the dependent variable
-        filtered_a = [result for result in results_a if result.mus == mus_value]
-        filtered_b = [result for result in results_b if result.mus == mus_value]
-        dependent_attr = 'g'
+        fixed_param, fixed_value = 'g', str(g)
+        x_param, y_param = 'mua', 'mus'
+        x_values = sorted(map(float, data.keys()))
+        y_values = sorted(
+            {mus for mua_values in data.values() for mus_values in mua_values.values() if fixed_value in mus_values})
 
-    # Organize results by the dependent attribute
-    results_a_dict = {getattr(result, dependent_attr): result.absorbance for result in filtered_a}
-    results_b_dict = {getattr(result, dependent_attr): result.absorbance for result in filtered_b}
+    # Prepare data matrices
+    model1_data = np.zeros((len(x_values), len(y_values)))
+    model2_data = np.zeros((len(x_values), len(y_values)))
+    abs_diff_data = np.zeros((len(x_values), len(y_values)))
+    rel_error_data = np.zeros((len(x_values), len(y_values)))
 
-    # Calculate the absorbance differences for matching dependent values
-    dependant_values = []
-    delta_absorbance = []
+    for i, x_val in enumerate(x_values):
+        for j, y_val in enumerate(y_values):
+            try:
+                if fixed_param == 'mua':
+                    m1_val = data[fixed_value][str(x_val)][y_val].get(model1, 0)
+                    m2_val = data[fixed_value][str(x_val)][y_val].get(model2, 0)
+                elif fixed_param == 'mus':
+                    m1_val = data[str(x_val)][fixed_value][y_val].get(model1, 0)
+                    m2_val = data[str(x_val)][fixed_value][y_val].get(model2, 0)
+                elif fixed_param == 'g':
+                    m1_val = data[str(x_val)][y_val][fixed_value].get(model1, 0)
+                    m2_val = data[str(x_val)][y_val][fixed_value].get(model2, 0)
 
-    for value in results_a_dict:
-        if value in results_b_dict:
-            dependant_values.append(value)
-            delta_absorbance.append(results_b_dict[value] - results_a_dict[value])
+                model1_data[i, j] = m1_val
+                model2_data[i, j] = m2_val
+                abs_diff_data[i, j] = abs(m1_val - m2_val)
+                rel_error_data[i, j] = (
+                            (m1_val - m2_val) / m1_val * 100) if m1_val != 0 else np.nan  # Convert to percentage
+            except KeyError:
+                model1_data[i, j] = model2_data[i, j] = abs_diff_data[i, j] = rel_error_data[i, j] = np.nan
 
-    return dependant_values, delta_absorbance
+    # Determine plot layout based on plot_type
+    if plot_type == 'absolute':
+        fig, axes = plt.subplots(1, 2, figsize=(14, 6), constrained_layout=True)
+        sns.heatmap(model1_data, xticklabels=y_values, yticklabels=x_values, ax=axes[0], cmap='viridis',
+                    cbar_kws={'label': f'Absorbance ({model1})'})
+        axes[0].set_title(f'Absorbance ({model1})')
+        sns.heatmap(model2_data, xticklabels=y_values, yticklabels=x_values, ax=axes[1], cmap='viridis',
+                    cbar_kws={'label': f'Absorbance ({model2})'})
+        axes[1].set_title(f'Absorbance ({model2})')
 
+    elif plot_type == 'absolute_difference':
+        fig, ax = plt.subplots(figsize=(8, 6))
+        sns.heatmap(abs_diff_data, xticklabels=y_values, yticklabels=x_values, ax=ax, cmap='magma',
+                    cbar_kws={'label': 'Absolute Absorbance Difference'})
+        ax.set_title(f'Absolute Difference |{model1} - {model2}|')
 
-def plot_absorbance_difference(dependant_values: List[float], delta_absorbance: List[float], dependent_attr: str):
-    """
-    Plots the absorbance difference against the dependent variable.
+    elif plot_type == 'relative_error':
+        fig, ax = plt.subplots(figsize=(8, 6))
+        sns.heatmap(rel_error_data, xticklabels=y_values, yticklabels=x_values, ax=ax, cmap='coolwarm',
+                    cbar_kws={'label': f'Relative Error (%) to {model1}'}, annot=False, fmt=".0f")
+        ax.set_title(f'Relative Error between {model1} and {model2}')
 
-    :param dependant_values: List of mus or g values (dependent variable).
-    :param delta_absorbance: List of absorbance differences for the dependent variable values.
-    :param dependent_attr: Name of the dependent attribute ('mus' or 'g') for labeling.
-    """
-    plt.figure(figsize=(8, 6))
-    plt.plot(dependant_values, delta_absorbance, marker='o', linestyle='-', color='b', label="Δ Absorbance")
-    plt.xlabel(f"{dependent_attr} value")
-    plt.ylabel("Absorbance Difference")
-    plt.title(f"Absorbance Difference vs {dependent_attr.capitalize()}")
-    plt.grid(True)
-    plt.legend()
+    elif plot_type == 'all':
+        fig, axes = plt.subplots(1, 4, figsize=(24, 6), constrained_layout=True)
+        sns.heatmap(model1_data, xticklabels=y_values, yticklabels=x_values, ax=axes[0], cmap='viridis',
+                    cbar_kws={'label': f'Absorbance ({model1})'})
+        axes[0].set_title(f'Absorbance ({model1})')
+
+        sns.heatmap(model2_data, xticklabels=y_values, yticklabels=x_values, ax=axes[1], cmap='viridis',
+                    cbar_kws={'label': f'Absorbance ({model2})'})
+        axes[1].set_title(f'Absorbance ({model2})')
+
+        sns.heatmap(abs_diff_data, xticklabels=y_values, yticklabels=x_values, ax=axes[2], cmap='magma',
+                    cbar_kws={'label': 'Absolute Absorbance Difference'})
+        axes[2].set_title(f'Absolute Difference |{model1} - {model2}|')
+
+        sns.heatmap(rel_error_data, xticklabels=y_values, yticklabels=x_values, ax=axes[3], cmap='coolwarm',
+                    cbar_kws={'label': f'Relative Error (%) to {model1}'}, annot=False, fmt=".0f")
+        axes[3].set_title(f'Relative Error between {model1} and {model2}')
+
+    # Common labels
+    for ax in fig.axes:
+        ax.set_xlabel(y_param)
+        ax.set_ylabel(x_param)
+    plt.suptitle(
+        f"Comparison between {model1} and {model2} ({plot_type.replace('_', ' ').capitalize()})\nFixed {fixed_param} = {fixed_value}")
     plt.show()
+
+
+# Load data and example usage
+data = load_data('cube60_sweep_results.json')
+plot_comparison(data, 'pytissueoptics', 'mcx', plot_type='all',
+                mua=0.005)  # Specify 'absolute', 'absolute_difference', 'relative_error', or 'all'
