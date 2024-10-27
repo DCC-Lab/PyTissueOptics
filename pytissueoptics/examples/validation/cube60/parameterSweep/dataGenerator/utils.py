@@ -11,36 +11,36 @@ mu_s_values = [0.005, 0.01, 0.015, 0.020, 0.025, 0.03, 0.035, 0.04, 0.045, 0.05,
 
 @dataclass
 class SweepSimResult:
-    g: float
-    mus: float
-    absorbance: float
     mua: float
+    mus: float
+    g: float
+    absorbance: float
+
 
     @classmethod
-    def save_to_json(cls, results: List['SweepSimResult'], filename: str, software: str = "mcx"):
+    def save_to_json(cls, results: List['SweepSimResult'], filename: str, software="mcx"):
         """
-        Saves or appends a list of SweepSimResult instances to a JSON file in a hierarchical format.
+        Saves a list of SweepSimResult instances to a JSON file in a hierarchical format.
+        If the file already exists, it appends the new data under the software key.
 
-        :param results: List of SweepSimResult instances to save or append.
-        :param filename: Filename to save or append the JSON data.
-        :param software: Name of the software to specify the absorbance source.
+        :param results: List of SweepSimResult instances to save.
+        :param filename: Filename to save the JSON data.
+        :param software: The simulation software name to use as a key in the JSON file.
         """
         # Load existing data if the file exists
         if os.path.exists(filename):
             with open(filename, 'r') as f:
                 data = json.load(f)
         else:
-            data = {}  # Create a new structure if the file doesn't exist
+            data = {}
 
-        # Populate the nested dictionary structure with new results
+        # Populate the nested dictionary structure
         for result in results:
-            # Extract parameters
             mua = str(result.mua)
             mus = str(result.mus)
             g = str(result.g)
-            absorbance = result.absorbance
 
-            # Ensure each level exists in the dictionary
+            # Ensure hierarchy for mua, mus, and g levels
             if mua not in data:
                 data[mua] = {}
             if mus not in data[mua]:
@@ -48,10 +48,10 @@ class SweepSimResult:
             if g not in data[mua][mus]:
                 data[mua][mus][g] = {}
 
-            # Update absorbance data for the specified software
-            data[mua][mus][g][software] = absorbance
+            # Set the absorbance for the specified software, updating only this key if it exists
+            data[mua][mus][g][software] = result.absorbance
 
-        # Save the updated structure to the JSON file
+        # Write the updated data back to the file
         with open(filename, 'w') as f:
             json.dump(data, f, indent=4)
 

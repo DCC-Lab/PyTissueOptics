@@ -23,5 +23,6 @@ def pytissueoptics_cube60_sweep_simulator(mu_a_values: List[float], mu_s_values:
 
 
 if __name__ == "__main__":
-    results = pytissueoptics_cube60_sweep_simulator(mu_a_values, mu_s_values, g_values, N=100000, seed=0)
-    SweepSimResult.save_to_json(results, "cube60_sweep_results.json", software="pytissueoptics")
+    # results = pytissueoptics_cube60_sweep_simulator(mu_a_values, mu_s_values, g_values, N=100000, seed=0)
+    # SweepSimResult.save_to_json(results, "/generatedSweepData/cube60_sweep_results.json", software="pytissueoptics")
+    SweepSimResult.merge_json_files("cube60_sweep_results.json", "../generatedSweepData/cube60_sweep_results.json", "../generatedSweepData/cube60_sweep_results_merged.json")

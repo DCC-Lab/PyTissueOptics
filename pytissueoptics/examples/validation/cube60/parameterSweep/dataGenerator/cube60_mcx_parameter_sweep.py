@@ -73,4 +73,4 @@ def mcx_cube60_sweep_simulator(u_a_values: List[float], u_s_values: List[float],
 
 if __name__ == "__main__":
     results = mcx_cube60_sweep_simulator(mu_a_values, mu_s_values, g_values)
-    SweepSimResult.save_to_json(results, '../generatedSweepData/cube60_sweep_results.json')
+    SweepSimResult.save_to_json(results, 'cube60_sweep_results.json')
