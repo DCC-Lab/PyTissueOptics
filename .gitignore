@@ -2130,3 +2130,5 @@ pytissueoptics/examples/validation/cube60/parameterSweep/pytissueoptics/jsonTest
 pytissueoptics/examples/validation/cube60/parameterSweep/pytissueoptics/jsonTestFiles/input_0.005_0.005_0.8.json
 pytissueoptics/examples/validation/cube60/parameterSweep/pytissueoptics/jsonTestFiles/input_0.005_0.005_0.5.json
 pytissueoptics/examples/validation/cube60/parameterSweep/pytissueoptics/jsonTestFiles/input_0.005_0.005_0.3.json
+/pytissueoptics/examples/validation/cube60/parameterSweep/dataGenerator/temp/
+*.mco
