@@ -1,0 +1,103 @@
+{
+  "Session":	{
+		"ID":	"cubeshells",
+		"Photons":	1000000,
+		"RNGSeed":	1648335518,
+		"DoMismatch":	true,
+		"DoSaveVolume":	true,
+		"DoNormalize":	true,
+		"DoPartialPath":	false,
+		"DoSaveRef":	false,
+		"DoSaveExit":	false,
+		"DoSaveSeed":	false,
+		"DoAutoThread":	true,
+		"DoDCS":	false,
+		"DoSpecular":	false,
+		"DebugFlag":	0,
+		"SaveDataMask":	0,
+		"OutputFormat":	"jnii",
+		"OutputType":	"e"
+	},
+	"Forward":	{
+		"T0":	0,
+		"T1":	4.99999996961265e-09,
+		"Dt":	4.99999996961265e-09
+	},
+	"Domain":	{
+		"MediaFormat":	"byte",
+		"LengthUnit":	1,
+		"Media":	[{
+				"mua":	0.001,
+				"mus":	0.01,
+				"g":	0.99,
+				"n":	1.0
+			}, {
+				"mua":	0.02,
+				"mus":	0.2,
+				"g":	0.9,
+				"n":	1.0
+			}, {
+				"mua":	0.001,
+				"mus":	0.1,
+				"g":	0.7,
+				"n":	1.0
+			}],
+		"Dim":	[130, 130, 130],
+		"OriginType":	1
+	},
+	"Optode":	{
+		"Source":	{
+			"Type":	"pencil",
+			"Pos":	[65, 65, 0],
+			"Dir":	[0, 0, 1, 0],
+			"Param1":	[0, 0, 0, 0],
+			"Param2":	[0, 0, 0, 0],
+			"SrcNum":	1
+		},
+		"Detector":	[]
+	},
+  "Shapes": [
+    {
+      "Grid": {
+        "Tag": 0,
+        "Size": [
+          130,
+          130,
+          130
+        ]
+      }
+    },
+    {
+      "Box": {
+        "Tag": 1,
+        "Size": [
+          100,
+          100,
+          100
+        ],
+        "O": [
+          15,
+          15,
+          15
+        ]
+      }
+    },
+    {
+      "Box": {
+        "Tag": 2,
+        "Size": [
+          90,
+          90,
+          90
+        ],
+        "O": [
+          20,
+          20,
+          20
+        ]
+      }
+    },
+    {
+    }
+  ]
+}

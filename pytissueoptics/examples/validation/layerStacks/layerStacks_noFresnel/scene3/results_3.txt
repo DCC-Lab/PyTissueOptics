@@ -1,0 +1,27 @@
+==== MCML ====
+A_l #Absorption as a function of layer. [-]
+      0.2612
+      0.1486
+      0.2313
+
+Total: 64.11%
+
+==== Python ====
+Report of solid 'frontLayer'
+  Absorbance: 20.07% (25.86% of total power)
+Report of solid 'middleLayer'
+Absorbance: 16.96% (15.09% of total power)
+Report of solid 'backLayer'
+  Absorbance: 56.89% (24.21% of total power)
+
+Total: 65.16%, 65.09, 65.10 (3 simulations distinctes)
+
+
+===== MCX =====
+========================================
+Layer 1 Absorbed Energy: 0.2685098350048065
+Layer 2 Absorbed Energy: 0.15252754092216492
+Layer 3 Absorbed Energy: 0.23700115084648132
+========================================
+Total Absorbed Energy: 0.6580384969711304 total energy in the domain:  0.6580385
+========================================
