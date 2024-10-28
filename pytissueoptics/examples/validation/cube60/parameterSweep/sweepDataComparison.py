@@ -165,4 +165,4 @@ def plot_comparison(data, model1, model2, plot_type, mua=None, mus=None, g=None)
 
 # Load data and example usage
 data = load_data('cube60_sweep_results.json')
-plot_comparison(data, 'mcxyz', 'mcx', plot_type='three', mua=0.005)  # New option for three plots
+plot_comparison(data, 'pytissueoptics', 'mcx', plot_type='three', mua=0.005)  # New option for three plots
