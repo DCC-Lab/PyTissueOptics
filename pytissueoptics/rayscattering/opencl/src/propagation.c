@@ -115,7 +115,7 @@ float reflectOrRefract(Intersection *intersection, __global Photon *photons, __c
 
         float mut1 = materials[photons[photonID].materialID].mu_t;
         float mut2 = materials[fresnelIntersection.nextMaterialID].mu_t;
-        if (mut1 == 0) {
+        if (mut1 == 0) {  // TODO: double check this switch.
             intersection->distanceLeft = 0;
         } else if (mut2 != 0) {
             intersection->distanceLeft *= mut1 / mut2;
@@ -126,10 +126,14 @@ float reflectOrRefract(Intersection *intersection, __global Photon *photons, __c
         photons[photonID].solidID = fresnelIntersection.nextSolidID;
     }
 
+//    float local_eps = 100 * 0.0000005f; // Weird double transmittance when under 5e-7
     float3 stepCorrection = stepSign * intersection->normal * EPS_CORRECTION;
     photons[photonID].position += stepCorrection;
 
-    intersection->distanceLeft -= EPS_CORRECTION;
+//    intersection->distanceLeft += 0.0000000000000000000001 * local_eps;  // TODO: is that correct?
+    // FIXME: find the correct way to handle this. Currently requires +/- 1 bit shift to work depending on sim props.
+    intersection->distanceLeft -= 0.0000000000001 * EPS_CORRECTION;
+    // TODO: understand the effect of a distanceLeft of 0 and when it happens (see switch above).
     if (intersection->distanceLeft < 0) {
         intersection->distanceLeft = 0;
     }
@@ -169,7 +173,9 @@ float propagateStep(float distance, __global Photon *photons, __constant Materia
                 stepSign = -1;
             }
             float3 stepCorrection = stepSign * intersection.normal * EPS_CORRECTION;
-            photons[photonID].position += stepCorrection;
+            photons[photonID].position += stepCorrection; // TODO: Investigate if this free move is legal.
+            // TODO: study the effect of each epsilon value and if they should be constants or f(material) like f(mu_t).
+            // TODO: document "isTooClose" behavior (dependent on EPS, and corrected with EPS_CORRECTION).
         }
 
         scatter(photons, materials, seeds, logger, logIndex, gid, photonID);

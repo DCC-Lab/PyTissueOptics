@@ -10,7 +10,7 @@ uint wangHash(uint seed){
 
 float getRandomFloatValue(__global unsigned int *seeds, unsigned int id){
      float result = 0.0f;
-     while(result == 0.0f){
+     while(result == 0.0f){ // TODO: Check if MCML always avoids zero as well.
          uint rnd_seed = wangHash(seeds[id]);
          seeds[id] = rnd_seed;
          result = (float)rnd_seed / (float)UINT_MAX;

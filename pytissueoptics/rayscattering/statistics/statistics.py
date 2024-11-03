@@ -80,7 +80,7 @@ class Stats:
     def _reportWorld(self, worldLabel: str):
         totalSolidEnergy = sum([solidStats.totalAbsorbance for solidStats in self._solidStatsMap.values()])
         reportString = "Report of '{}'\n".format(worldLabel)
-        reportString += "  Absorbed {:.2f}% of total power\n".format(100 - totalSolidEnergy)
+        reportString += "  Absorbed {:.5f}% of total power\n".format(100 - totalSolidEnergy)
         return reportString
 
     def _reportSolid(self, solidLabel: str):
@@ -88,16 +88,16 @@ class Stats:
         reportString = "Report of solid '{}'\n".format(solidLabel)
 
         if solidStats.absorbance is None:
-            reportString += ("  Absorbance: N/A ({:.2f}% of total power)\n".format(solidStats.totalAbsorbance))
+            reportString += ("  Absorbance: N/A ({:.5f}% of total power)\n".format(solidStats.totalAbsorbance))
             reportString += "  Absorbance + Transmittance: N/A\n"
             return reportString
 
         reportString += (
-            "  Absorbance: {:.2f}% ({:.2f}% of total power)\n".format(solidStats.absorbance, solidStats.totalAbsorbance))
-        reportString += ("  Absorbance + Transmittance: {:.1f}%\n".format(solidStats.absorbance + solidStats.transmittance))
+            "  Absorbance: {:.5f}% ({:.5f}% of total power)\n".format(solidStats.absorbance, solidStats.totalAbsorbance))
+        reportString += ("  Absorbance + Transmittance: {:.5f}%\n".format(solidStats.absorbance + solidStats.transmittance))
 
         for surfaceLabel, surfaceStats in solidStats.surfaces.items():
-            reportString += "    Transmittance at '{}': {:.1f}%\n".format(surfaceLabel, surfaceStats.transmittance)
+            reportString += "    Transmittance at '{}': {:.5f}%\n".format(surfaceLabel, surfaceStats.transmittance)
 
         return reportString
 
@@ -187,25 +187,30 @@ class Stats:
             stats[surfaceLabel] = SurfaceStats(self.getTransmittance(solidLabel, surfaceLabel))
         return stats
 
-    def getTransmittance(self, solidLabel: str, surfaceLabel: str = None, useTotalEnergy=False):
+    def getTransmittance(self, solidLabel: str, surfaceLabel: str = None, useTotalEnergy=False, entering=False) -> float:
         """ Uses local energy input for the desired solid by default. Specify 'useTotalEnergy' = True
         to compare instead with total input energy of the scene. """
         if self._extractFromViews:
-            return self._getTransmittanceFromViews(solidLabel, surfaceLabel, useTotalEnergy)
+            return self._getTransmittanceFromViews(solidLabel, surfaceLabel, useTotalEnergy, entering)
 
         if surfaceLabel is None:
-            points = self._getPointCloudOfSurfaces(solidLabel).leavingSurfacePoints
+            points = self._getPointCloudOfSurfaces(solidLabel)
         else:
-            points = self._getPointCloud(solidLabel, surfaceLabel).leavingSurfacePoints
+            points = self._getPointCloud(solidLabel, surfaceLabel)
+        if entering:
+            points = points.enteringSurfacePoints
+        else:
+            points = points.leavingSurfacePoints
 
         energyInput = self.getEnergyInput(solidLabel) if not useTotalEnergy else self.getPhotonCount()
         return 100 * self._sumEnergy(points) / energyInput
 
-    def _getTransmittanceFromViews(self, solidLabel: str, surfaceLabel: str = None, useTotalEnergy=False):
+    def _getTransmittanceFromViews(self, solidLabel: str, surfaceLabel: str = None, useTotalEnergy=False, entering=False) -> float:
         if surfaceLabel is None:
-            energyLeaving = self._getEnergyLeavingFromViews(solidLabel)
+            energyLeaving = self._getEnergyLeavingFromViews(solidLabel) if not entering \
+                else self._getEnergyInputFromViews(solidLabel)
         else:
-            energyLeaving = self._getSurfaceEnergyFromViews(solidLabel, surfaceLabel, leaving=True)
+            energyLeaving = self._getSurfaceEnergyFromViews(solidLabel, surfaceLabel, leaving=False if entering else True)
 
         energyInput = self.getEnergyInput(solidLabel) if not useTotalEnergy else self.getPhotonCount()
         return 100 * energyLeaving / energyInput

@@ -1,7 +1,7 @@
 __constant float EPS = 0.00001f;
-__constant float EPS_CORRECTION = 0.0005f;
+__constant float EPS_CORRECTION = 0.00005f;
 __constant float EPS_PARALLEL = 0.00001f;
-__constant float EPS_SIDE = 0.000001f;
+__constant float EPS_SIDE = 0.000001f; // does nothing
 
 struct Intersection {
     uint exists;
