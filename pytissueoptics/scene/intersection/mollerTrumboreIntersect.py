@@ -38,12 +38,17 @@ class MollerTrumboreIntersect:
 
         rayIsParallel = abs(determinant) < self.EPS_PARALLEL
         if rayIsParallel:
+            # TODO: Whats up with this case? Maybe we can remove it with new implementation.
+            #  Or maybe we need to handle (~)infinite inv-det case and check how far ray is from triangle
+            #  (returning intersection if under epsilon).
             return None
 
         inverseDeterminant = 1. / determinant
         tVector = ray.origin - v1
         u = tVector.dot(pVector) * inverseDeterminant
         if u < -self.EPS_SIDE or u > 1.:
+            # EPS_SIDE is used to make the triangle a bit larger than it is
+            # to be sure a ray could not sneak between two triangles.
             return None
 
         qVector = tVector.cross(edgeA)
@@ -51,21 +56,34 @@ class MollerTrumboreIntersect:
         if v < -self.EPS_SIDE or u + v > 1.:
             return None
 
+        # Distance to intersection point
         t = edgeB.dot(qVector) * inverseDeterminant
-        if t < 0.:
-            return None
 
-        if ray.length is None:
+        if t > 0 and (ray.length > t or ray.length is None):
+            # Case 1: Trivial case. Intersects.
+            # print("!!! Case 1: Intersects")
+            # print(f"Case 1. t={t}, ray.length={ray.length}")
             return ray.origin + ray.direction * t
 
-        if t > (ray.length + self.EPS):
-            # No intersection, it's too far away
-            return None
-        elif t > ray.length:
-            # Just a bit too far away. There is no intersection, but we cannot accept ray to land here.
-            ray.isTooClose = True
+        # Next we need to check if the intersection is inside the epsilon catch zone (forward or backward).
+        # Note that this mechanic only works when same-solid intersections are ignored before calling this function.
+        dt = t - ray.length
+        dt_T = abs(triangle.normal.dot(ray.direction) * dt)
+        EPS = 0.000001
+        if t > ray.length and dt_T < EPS:
+            print("!!! Case 2: Forward catch")
+            # Case 2: Forward epsilon catch. Ray ends close to the triangle, so we intersect at the ray's end.
+            return ray.origin + ray.direction * ray.length
+        if t < 0 and dt_T < EPS:
+            print("!!! Case 3: Backward catch")
+            # Case 3: Backward epsilon catch. Ray starts close to the triangle, so we intersect at the origin.
+            # This requires the intersector to always test triangles (or at least, close ones) of the origin solid.
+            # TODO: is that possible? do BBox candidates support this? Implemented change for SimpleIntersector.
+            #  Need to check required changes to FastIntersector (if any).
+            return ray.origin
 
-        return ray.origin + ray.direction * t
+        # Case 4: No intersection.
+        return None
 
     def _getQuadIntersection(self, ray: Ray, quad: Quad) -> Optional[Vector]:
         v1, v2, v3, v4 = quad.vertices
