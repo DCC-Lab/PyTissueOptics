@@ -1,5 +1,4 @@
-__constant float EPS = 0.00001f;
-__constant float EPS_CORRECTION = 0.0005f;
+__constant float EPS_CATCH = 0.000001f;
 __constant float EPS_PARALLEL = 0.00001f;
 __constant float EPS_SIDE = 0.000001f;
 
@@ -113,11 +112,17 @@ GemsBoxIntersection _getBBoxIntersection(Ray ray, float3 minCornerVector, float3
     return intersection;
 }
 
-void _findBBoxIntersectingSolids(Ray ray, Scene *scene, uint gid){
+void _findBBoxIntersectingSolids(Ray ray, Scene *scene, uint gid, uint photonSolidID) {
 
     for (uint i = 0; i < scene->nSolids; i++) {
         uint boxGID = gid * scene->nSolids + i;
-        scene->solidCandidates[boxGID].solidID = i + 1;
+        uint solidID = i + 1;
+        scene->solidCandidates[boxGID].solidID = solidID;
+
+        if (solidID == photonSolidID) {
+            scene->solidCandidates[boxGID].distance = 0;
+            continue;
+        }
 
         GemsBoxIntersection gemsIntersection = _getBBoxIntersection(ray, scene->solids[i].bbox_min, scene->solids[i].bbox_max);
         if (gemsIntersection.rayIsInside) {
@@ -155,7 +160,7 @@ struct HitPoint {
 
 typedef struct HitPoint HitPoint;
 
-HitPoint _getTriangleIntersection(Ray ray, float3 v1, float3 v2, float3 v3) {
+HitPoint _getTriangleIntersection(Ray ray, float3 v1, float3 v2, float3 v3, float3 normal) {
     HitPoint hitPoint;
     hitPoint.exists = false;
     hitPoint.isTooClose = false;
@@ -185,35 +190,46 @@ HitPoint _getTriangleIntersection(Ray ray, float3 v1, float3 v2, float3 v3) {
 
     float t = dot(edgeB, qVector) * invDet;
 
-    if (t < 0.0f) {
+    if (t > 0 && ray.length > t){
+        hitPoint.exists = true;
+        hitPoint.position = ray.origin + t * ray.direction;
         return hitPoint;
     }
 
-    if (t > (ray.length + EPS)) {
-        // No Intersection, it's too far away
+    float dt = t - ray.length;
+    float dt_T = fabs(dot(normal, ray.direction) * dt);
+    if (t > ray.length && dt_T < EPS_CATCH) {
+        hitPoint.exists = true;
+        hitPoint.position = ray.origin + ray.length * ray.direction;
         return hitPoint;
-    } else if (t > ray.length) {
-        // Just a bit too far away. There is no intersection, but we cannot accept photon to land here.
-        // hitPoint will also be returned with exists = true in order to consider this event and possibly process it if it was the closest "hit".
-        hitPoint.isTooClose = true;
+    }
+    if (t < 0 && dt_T < EPS_CATCH) {
+        hitPoint.exists = true;
+        hitPoint.position = ray.origin;
+        return hitPoint;
     }
 
-    hitPoint.exists = true;
-    hitPoint.position = ray.origin + t * ray.direction;
     return hitPoint;
 }
 
 Intersection _findClosestPolygonIntersection(Ray ray, uint solidID,
                                             __global Solid *solids, __global Surface *surfaces,
-                                            __global Triangle *triangles, __global Vertex *vertices) {
+                                            __global Triangle *triangles, __global Vertex *vertices,
+                                            uint photonSolidID) {
     Intersection intersection;
     intersection.exists = false;
     intersection.isTooClose = false;
     intersection.distance = INFINITY;
     for (uint s = solids[solidID-1].firstSurfaceID; s <= solids[solidID-1].lastSurfaceID; s++) {
         for (uint p = surfaces[s].firstPolygonID; p <= surfaces[s].lastPolygonID; p++) {
+            bool isGoingInside = dot(ray.direction, triangles[p].normal) < 0;
+            uint nextSolidID = isGoingInside ? surfaces[s].insideSolidID : surfaces[s].outsideSolidID;
+            if (nextSolidID == photonSolidID) {
+                continue;
+            }
+
             uint vertexIDs[3] = {triangles[p].vertexIDs[0], triangles[p].vertexIDs[1], triangles[p].vertexIDs[2]};
-            HitPoint hitPoint = _getTriangleIntersection(ray, vertices[vertexIDs[0]].position, vertices[vertexIDs[1]].position, vertices[vertexIDs[2]].position);
+            HitPoint hitPoint = _getTriangleIntersection(ray, vertices[vertexIDs[0]].position, vertices[vertexIDs[1]].position, vertices[vertexIDs[2]].position, triangles[p].normal);
             if (!hitPoint.exists) {
                 continue;
             }
@@ -302,12 +318,12 @@ void _composeIntersection(Intersection *intersection, Ray *ray, Scene *scene) {
     intersection->distanceLeft = ray->length - intersection->distance;
 }
 
-Intersection findIntersection(Ray ray, Scene *scene, uint gid) {
+Intersection findIntersection(Ray ray, Scene *scene, uint gid, uint photonSolidID) {
     /*
     OpenCL implementation of the Python module SimpleIntersectionFinder
     See the Python module documentation for more details.
     */
-    _findBBoxIntersectingSolids(ray, scene, gid);
+    _findBBoxIntersectingSolids(ray, scene, gid, photonSolidID);
     _sortSolidCandidates(scene, gid);
 
     Intersection closestIntersection;
@@ -330,7 +346,7 @@ Intersection findIntersection(Ray ray, Scene *scene, uint gid) {
         }
 
         uint solidID = scene->solidCandidates[boxGID].solidID;
-        Intersection intersection = _findClosestPolygonIntersection(ray, solidID, scene->solids, scene->surfaces, scene->triangles, scene->vertices);
+        Intersection intersection = _findClosestPolygonIntersection(ray, solidID, scene->solids, scene->surfaces, scene->triangles, scene->vertices, photonSolidID);
         if (intersection.exists  && intersection.distance < closestIntersection.distance) {
             closestIntersection = intersection;
         }
@@ -346,7 +362,7 @@ __kernel void findIntersections(__global Ray *rays, uint nSolids, __global Solid
         __global Triangle *triangles, __global Vertex *vertices, __global SolidCandidate *solidCandidates, __global Intersection *intersections) {
     uint gid = get_global_id(0);
     Scene scene = {nSolids, solids, surfaces, triangles, vertices, solidCandidates};
-    intersections[gid] = findIntersection(rays[gid], &scene, gid);
+    intersections[gid] = findIntersection(rays[gid], &scene, gid, 0);
 }
 
 
