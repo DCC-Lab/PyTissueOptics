@@ -1,4 +1,5 @@
 import math
+import random
 
 import numpy as np
 
@@ -28,16 +29,16 @@ class ScatteringMaterial(RefractiveMaterial):
 
         rnd = 0
         while rnd == 0:
-            rnd = np.random.random()
+            rnd = random.random()
         return -np.log(rnd) / self.mu_t
 
     def getScatteringAngles(self):
-        phi = np.random.random() * 2 * np.pi
+        phi = random.random() * 2 * np.pi
         g = self.g
         if g == 0:
-            cost = 2 * np.random.random() - 1
+            cost = 2 * random.random() - 1
         else:
-            temp = (1 - g * g) / (1 - g + 2 * g * np.random.random())
+            temp = (1 - g * g) / (1 - g + 2 * g * random.random())
             cost = (1 + g * g - temp * temp) / (2 * g)
         return np.arccos(cost), phi
 
