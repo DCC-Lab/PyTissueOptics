@@ -20,7 +20,7 @@ class ValidationStack(ScatteringScene):
         mu_s = [1.0, 5.0, 50]
         mu_a = [0.5, 0.8, 2.5]
         g = [0.7, 0.8, 0.9]
-        w = 10
+        w = 30
         t = [1, 1, 1]
 
         frontLayer = Cuboid(w, w, t[0], material=ScatteringMaterial(mu_s[0], mu_a[0], g[0], n[0]), label="frontLayer")

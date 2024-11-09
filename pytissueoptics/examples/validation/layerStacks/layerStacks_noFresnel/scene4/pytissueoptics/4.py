@@ -17,11 +17,11 @@ class ValidationStack(ScatteringScene):
 
     def _create(self):
         n = [1.0, 1.0, 1.0]
-        mu_s = [10, 1, 1]
-        mu_a = [0.1, 10, 0.2]
+        mu_s = [100, 10, 10]
+        mu_a = [1, 100, 2]
         g = [0.9, 0.9, 0.9]
         w = 100
-        t = [1, 0.1, 1]
+        t = [0.1, 0.01, 0.1]
 
         frontLayer = Cuboid(w, w, t[0], material=ScatteringMaterial(mu_s[0], mu_a[0], g[0], n[0]), label="frontLayer")
         middleLayer = Cuboid(w, w, t[1], material=ScatteringMaterial(mu_s[1], mu_a[1], g[1], n[1]), label="middleLayer")

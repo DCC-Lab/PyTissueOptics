@@ -36,7 +36,7 @@ def exampleCode():
     N = 1000000 if hardwareAccelerationIsAvailable() else 1000
     layerStack = ValidationStack()
     logger = EnergyLogger(layerStack)
-    source = PencilPointSource(position=Vector(0, 0, 0.01), direction=Vector(0, 0, 1), N=N)
+    source = PencilPointSource(position=Vector(0, 0, -0.01), direction=Vector(0, 0, 1), N=N)
 
     #layerStack.show(source=source)
 
