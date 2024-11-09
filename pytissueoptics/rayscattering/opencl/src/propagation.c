@@ -125,14 +125,6 @@ float reflectOrRefract(Intersection *intersection, __global Photon *photons, __c
         photons[photonID].solidID = fresnelIntersection.nextSolidID;
     }
 
-    float3 stepCorrection = stepSign * intersection->normal * EPS_CORRECTION;
-    photons[photonID].position += stepCorrection;
-
-    intersection->distanceLeft -= EPS_CORRECTION;
-    if (intersection->distanceLeft < 0) {
-        intersection->distanceLeft = 0;
-    }
-
     return intersection->distanceLeft;
 }
 
@@ -146,11 +138,11 @@ float propagateStep(float distance, __global Photon *photons, __constant Materia
     }
 
     Ray stepRay = {photons[photonID].position, photons[photonID].direction, distance};
-    Intersection intersection = findIntersection(stepRay, scene, gid);
+    Intersection intersection = findIntersection(stepRay, scene, gid, photons[photonID].solidID);
 
     float distanceLeft = 0;
 
-    if (intersection.exists && !intersection.isTooClose){
+    if (intersection.exists){
         moveBy(intersection.distance, photons, photonID);
         distanceLeft = reflectOrRefract(&intersection, photons, materials, scene->surfaces, logger, logIndex, seeds, gid, photonID);
     } else {
@@ -160,16 +152,6 @@ float propagateStep(float distance, __global Photon *photons, __constant Materia
         }
 
         moveBy(distance, photons, photonID);
-
-        if (intersection.isTooClose){
-            int stepSign = 1;
-            int solidIDTowardsNormal = scene->surfaces[intersection.surfaceID].outsideSolidID;
-            if (solidIDTowardsNormal != photons[photonID].solidID) {
-                stepSign = -1;
-            }
-            float3 stepCorrection = stepSign * intersection.normal * EPS_CORRECTION;
-            photons[photonID].position += stepCorrection;
-        }
 
         scatter(photons, materials, seeds, logger, logIndex, gid, photonID);
     }
