@@ -40,7 +40,7 @@ float _getReflectionCoefficient(float n1, float n2, float thetaIn) {
 bool _getIsReflected(float nIn, float nOut, float thetaIn, __global uint *seeds, uint gid) {
     float R = _getReflectionCoefficient(nIn, nOut, thetaIn);
     float randomFloat = getRandomFloatValue(seeds, gid);
-    if (R > randomFloat) {
+    if (R >= randomFloat) {
         return true;
     }
     return false;
