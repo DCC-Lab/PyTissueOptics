@@ -17,7 +17,7 @@ from pytissueoptics.scene.logger import InteractionKey
 from pytissueoptics.scene.solids import Solid
 
 
-EPS = MollerTrumboreIntersect.EPS
+EPS = MollerTrumboreIntersect.EPS_CATCH
 
 
 class TestPhoton(unittest.TestCase):
@@ -230,7 +230,7 @@ class TestPhoton(unittest.TestCase):
 
         distanceLeft = self.photon.step(totalDistance)
 
-        expectedDistanceLeft = totalDistance - intersectionDistance - EPS_CORRECTION
+        expectedDistanceLeft = totalDistance - intersectionDistance
         self.assertAlmostEqual(expectedDistanceLeft, distanceLeft)
 
     def testWhenStepWithRefractingIntersection_shouldUpdatePhotonMaterialToNextMaterial(self):
@@ -267,7 +267,6 @@ class TestPhoton(unittest.TestCase):
         distanceLeft = self.photon.step(scatteringDistance)
 
         expectedDistanceLeft = (scatteringDistance - intersectionDistance) * material.mu_t / nextMaterial.mu_t
-        expectedDistanceLeft -= EPS_CORRECTION
         self.assertAlmostEqual(expectedDistanceLeft, distanceLeft)
 
     def testWhenStepWithRefractingIntersectionToVacuum_shouldReturnInfiniteDistanceLeft(self):
