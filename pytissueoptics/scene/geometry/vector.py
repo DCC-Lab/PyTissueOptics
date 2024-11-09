@@ -1,5 +1,7 @@
 import math
 
+COS_ZERO = 1 - 1e-12
+
 
 class Vector:
     """
@@ -98,22 +100,34 @@ class Vector:
     def copy(self) -> 'Vector':
         return Vector(self._x, self._y, self._z)
 
+    def spin(self, theta: float, phi: float):
+        """ In spherical coordinates. Taken directly from MCML code. """
+        cosp = math.cos(phi)
+        if phi < math.pi:
+            sinp = math.sqrt(1 - cosp*cosp)
+        else:
+            sinp = -math.sqrt(1 - cosp*cosp)
+
+        cost = math.cos(theta)
+        sint = math.sqrt(1 - cost*cost)
+
+        if abs(self._z) > COS_ZERO:
+            ux = sint*cosp
+            uy = sint*sinp
+            uz = cost * (1 if self._z >= 0 else -1)
+        else:
+            temp = math.sqrt(1 - self._z*self._z)
+            ux = sint*(self._x*self._z*cosp - self._y*sinp) / temp + self._x*cost
+            uy = sint*(self._y*self._z*cosp + self._x*sinp) / temp + self._y*cost
+            uz = -sint*cosp*temp + self._z*cost
+
+        self.update(ux, uy, uz)
+
     def rotateAround(self, unitAxis: 'Vector', theta: float):
         """
         Rotate the vector around `unitAxis` by `theta` radians. Assumes the axis to be a unit vector.
+        Uses Rodrigues' rotation formula.
         """
-        # This is the most expensive (and most common)
-        # operation when performing Monte Carlo in tissue
-        # (15% of time spent here). It is difficult to optimize without
-        # making it even less readable than it currently is
-        # http://en.wikipedia.org/wiki/Rotation_matrix
-        #
-        # Several options were tried in the past such as
-        # external not-so-portable C library, unreadable
-        # shortcuts, sine and cosine lookup tables, etc...
-        # and the performance gain was minimal (<20%).
-        # For now, this is the best, most readable solution.
-
         cost = math.cos(theta)
         sint = math.sin(theta)
         one_cost = 1 - cost

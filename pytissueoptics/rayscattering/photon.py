@@ -168,8 +168,7 @@ class Photon:
         self.interact()
 
     def scatterBy(self, theta, phi):
-        self._er.rotateAround(self._direction, phi)
-        self._direction.rotateAround(self._er, theta)
+        self._direction.spin(theta, phi)
 
     def interact(self):
         delta = self._weight * self.material.getAlbedo()
