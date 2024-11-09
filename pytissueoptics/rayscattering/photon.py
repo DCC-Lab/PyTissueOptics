@@ -7,7 +7,6 @@ from pytissueoptics.rayscattering.materials import ScatteringMaterial
 from pytissueoptics.scene.geometry import Environment, Vector
 from pytissueoptics.scene.intersection import Ray
 from pytissueoptics.scene.intersection.intersectionFinder import IntersectionFinder, Intersection
-from pytissueoptics.scene.intersection.mollerTrumboreIntersect import EPS_CORRECTION
 from pytissueoptics.scene.logger import Logger, InteractionKey
 
 WORLD_LABEL = "world"
@@ -78,7 +77,7 @@ class Photon:
 
         intersection = self._getIntersection(distance)
 
-        if intersection and not intersection.isTooClose:
+        if intersection:
             self.moveBy(intersection.distance)
             distanceLeft = self.reflectOrRefract(intersection)
         else:
@@ -89,15 +88,6 @@ class Photon:
             self.moveBy(distance)
             distanceLeft = 0
 
-            if intersection and intersection.isTooClose:
-                # Photon will land too close to the surface, so we need to move it away from the surface.
-                stepSign = 1
-                solidTowardsNormal = intersection.outsideEnvironment.solid
-                if solidTowardsNormal != self._environment.solid:
-                    stepSign = -1
-                stepCorrection = intersection.normal * stepSign * EPS_CORRECTION
-                self._position += stepCorrection
-
             self.scatter()
 
         return distanceLeft
@@ -107,7 +97,7 @@ class Photon:
             return None
 
         stepRay = Ray(self._position, self._direction, distance)
-        return self._intersectionFinder.findIntersection(stepRay)
+        return self._intersectionFinder.findIntersection(stepRay, self.solidLabel)
 
     def reflectOrRefract(self, intersection: Intersection):
         fresnelIntersection = self._getFresnelIntersection(intersection)
@@ -136,15 +126,6 @@ class Photon:
                 intersection.distanceLeft = math.inf
 
             self._environment = fresnelIntersection.nextEnvironment
-
-        # Move away from intersecting surface by a small amount
-        stepCorrection = intersection.normal * stepSign * EPS_CORRECTION
-        self._position += stepCorrection
-
-        # Remove this distance correction from the distance left, but set to zero if the result is negative.
-        intersection.distanceLeft -= EPS_CORRECTION
-        if intersection.distanceLeft < 0:
-            intersection.distanceLeft = 0
 
         return intersection.distanceLeft
 

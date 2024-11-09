@@ -75,7 +75,7 @@ class TestAnyPolygonIntersect(unittest.TestCase):
         rayOrigin = Vector(0.25, 0.25, 2)
         rayDirection = Vector(0, 0, -1)
         rayDirection.normalize()
-        ray = Ray(rayOrigin, rayDirection, length=2 - MollerTrumboreIntersect.EPS / 2)
+        ray = Ray(rayOrigin, rayDirection, length=2 - MollerTrumboreIntersect.EPS_CATCH / 2)
 
         for poly in ([self.triangle, self.quad, self.polygon]):
             intersection = self.intersectStrategy.getIntersection(ray, poly)
@@ -89,7 +89,7 @@ class TestAnyPolygonIntersect(unittest.TestCase):
         rayOrigin = Vector(0.25, 0.25, 2)
         rayDirection = Vector(0, 0, -1)
         rayDirection.normalize()
-        ray = Ray(rayOrigin, rayDirection, length=2 - MollerTrumboreIntersect.EPS * 0.9)
+        ray = Ray(rayOrigin, rayDirection, length=2 - MollerTrumboreIntersect.EPS_CATCH * 0.9)
 
         for poly in ([self.triangle, self.quad, self.polygon]):
             _ = self.intersectStrategy.getIntersection(ray, poly)
@@ -99,7 +99,7 @@ class TestAnyPolygonIntersect(unittest.TestCase):
         rayOrigin = Vector(0.25, 0.25, 2)
         rayDirection = Vector(0, 0, -1)
         rayDirection.normalize()
-        ray = Ray(rayOrigin, rayDirection, length=2 - MollerTrumboreIntersect.EPS * 1.1)
+        ray = Ray(rayOrigin, rayDirection, length=2 - MollerTrumboreIntersect.EPS_CATCH * 1.1)
 
         for poly in ([self.triangle, self.quad, self.polygon]):
             intersection = self.intersectStrategy.getIntersection(ray, poly)
