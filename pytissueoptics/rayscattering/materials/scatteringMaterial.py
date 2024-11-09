@@ -2,6 +2,7 @@ import math
 
 import numpy as np
 
+from pytissueoptics.rayscattering.utils import getRandomNum
 from pytissueoptics.scene.material import RefractiveMaterial
 
 
@@ -32,17 +33,19 @@ class ScatteringMaterial(RefractiveMaterial):
 
         rnd = 0
         while rnd == 0:
-            rnd = np.random.random()
+            rnd = getRandomNum()
         return -np.log(rnd) / self.mu_t
 
     def getScatteringAngles(self):
-        phi = np.random.random() * 2 * np.pi
+        phi = getRandomNum() * 2 * np.pi
         g = self.g
         if g == 0:
-            cost = 2 * np.random.random() - 1
+            cost = 2 * getRandomNum() - 1
         else:
-            temp = (1 - g * g) / (1 - g + 2 * g * np.random.random())
+            temp = (1 - g * g) / (1 - g + 2 * g * getRandomNum())
             cost = (1 + g * g - temp * temp) / (2 * g)
+
+        # print(f"Scattering angles: {cost}, {phi}")
         return np.arccos(cost), phi
 
     def __hash__(self):

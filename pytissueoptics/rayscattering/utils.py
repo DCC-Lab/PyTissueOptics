@@ -27,3 +27,8 @@ def labelContained(label: str, labels: List[str]) -> bool:
     if label is None:
         return False
     return any(labelsEqual(label, l) for l in labels)
+
+
+def getRandomNum() -> float:
+    # return 0.9
+    return np.random.random()

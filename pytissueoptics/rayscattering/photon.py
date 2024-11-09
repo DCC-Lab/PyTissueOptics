@@ -1,9 +1,9 @@
 import math
-import random
 from typing import Optional
 
 from pytissueoptics.rayscattering.fresnel import FresnelIntersect, FresnelIntersection
 from pytissueoptics.rayscattering.materials import ScatteringMaterial
+from pytissueoptics.rayscattering.utils import getRandomNum
 from pytissueoptics.scene.geometry import Environment, Vector
 from pytissueoptics.scene.intersection import Ray
 from pytissueoptics.scene.intersection.intersectionFinder import IntersectionFinder, Intersection
@@ -74,11 +74,12 @@ class Photon:
     def step(self, distance=0) -> float:
         if distance == 0:
             distance = self.material.getScatteringDistance()
-
+        # print(f"Photon weight: {self.weight} // Step distance: {distance}")
         intersection = self._getIntersection(distance)
 
         if intersection:
             self.moveBy(intersection.distance)
+            # print(f"Photon hit at: {self.position}")
             distanceLeft = self.reflectOrRefract(intersection)
         else:
             if math.isinf(distance):
@@ -145,12 +146,16 @@ class Photon:
 
     def scatter(self):
         theta, phi = self.material.getScatteringAngles()
-        self.scatterBy(theta, phi)
+        # self.scatterBy(theta, phi)
+        self.mcmlScatterBy(theta, phi)
         self.interact()
 
     def scatterBy(self, theta, phi):
         self._er.rotateAround(self._direction, phi)
-        self._direction.rotateAround(self._er, theta)
+        self._direction.rotateAround(self._er, -theta)  # Quite closer to MCML with -theta
+
+    def mcmlScatterBy(self, theta, phi):
+        self._direction.rotateMCML(phi, theta)
 
     def interact(self):
         delta = self._weight * self.material.getAlbedo()
@@ -164,7 +169,7 @@ class Photon:
         chance = 0.1
         if self._weight >= WEIGHT_THRESHOLD or self._weight == 0:
             return
-        elif random.random() < chance:
+        elif getRandomNum() < chance:
             self._weight /= chance
         else:
             self._weight = 0

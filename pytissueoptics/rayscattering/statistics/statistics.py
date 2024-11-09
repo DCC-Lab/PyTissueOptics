@@ -187,16 +187,20 @@ class Stats:
             stats[surfaceLabel] = SurfaceStats(self.getTransmittance(solidLabel, surfaceLabel))
         return stats
 
-    def getTransmittance(self, solidLabel: str, surfaceLabel: str = None, useTotalEnergy=False):
+    def getTransmittance(self, solidLabel: str, surfaceLabel: str = None, useTotalEnergy=False, entering=False):
         """ Uses local energy input for the desired solid by default. Specify 'useTotalEnergy' = True
         to compare instead with total input energy of the scene. """
         if self._extractFromViews:
             return self._getTransmittanceFromViews(solidLabel, surfaceLabel, useTotalEnergy)
 
         if surfaceLabel is None:
-            points = self._getPointCloudOfSurfaces(solidLabel).leavingSurfacePoints
+            points = self._getPointCloudOfSurfaces(solidLabel)
         else:
-            points = self._getPointCloud(solidLabel, surfaceLabel).leavingSurfacePoints
+            points = self._getPointCloud(solidLabel, surfaceLabel)
+        if entering:
+            points = points.enteringSurfacePoints
+        else:
+            points = points.leavingSurfacePoints
 
         energyInput = self.getEnergyInput(solidLabel) if not useTotalEnergy else self.getPhotonCount()
         return 100 * self._sumEnergy(points) / energyInput

@@ -96,22 +96,34 @@ class Vector:
     def copy(self) -> 'Vector':
         return Vector(self._x, self._y, self._z)
 
+    def rotateMCML(self, phi: float, theta: float):
+        cosp = math.cos(phi)
+        if phi < math.pi:
+            sinp = math.sqrt(1 - cosp*cosp)
+        else:
+            sinp = -math.sqrt(1 - cosp*cosp)
+
+        cost = math.cos(theta)
+        sint = math.sqrt(1 - cost*cost)
+
+        coszero = 1 - 1e-12
+        if abs(self._z) > coszero:
+            ux = sint*cosp
+            uy = sint*sinp
+            uz = cost * (1 if self._z >= 0 else -1)
+        else:
+            temp = math.sqrt(1 - self._z*self._z)
+            ux = sint*(self._x*self._z*cosp - self._y*sinp) / temp + self._x*cost
+            uy = sint*(self._y*self._z*cosp + self._x*sinp) / temp + self._y*cost
+            uz = -sint*cosp*temp + self._z*cost
+        self._x = ux
+        self._y = uy
+        self._z = uz
+
     def rotateAround(self, unitAxis: 'Vector', theta: float):
         """
         Rotate the vector around `unitAxis` by `theta` radians. Assumes the axis to be a unit vector.
         """
-        # This is the most expensive (and most common)
-        # operation when performing Monte Carlo in tissue
-        # (15% of time spent here). It is difficult to optimize without
-        # making it even less readable than it currently is
-        # http://en.wikipedia.org/wiki/Rotation_matrix
-        #
-        # Several options were tried in the past such as
-        # external not-so-portable C library, unreadable
-        # shortcuts, sine and cosine lookup tables, etc...
-        # and the performance gain was minimal (<20%).
-        # For now, this is the best, most readable solution.
-
         cost = math.cos(theta)
         sint = math.sin(theta)
         one_cost = 1 - cost
@@ -134,7 +146,9 @@ class Vector:
             + (uz * uy * one_cost + ux * sint) * Y \
             + (cost + uz * uz * one_cost) * Z
 
-        self.update(x, y, z)
+        self._x = x
+        self._y = y
+        self._z = z
 
     def getAnyOrthogonal(self) -> 'Vector':
         if abs(self._z) < abs(self._x):

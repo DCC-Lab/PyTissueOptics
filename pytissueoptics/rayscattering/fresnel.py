@@ -1,7 +1,7 @@
 import math
-import random
 from dataclasses import dataclass
 
+from pytissueoptics.rayscattering.utils import getRandomNum
 from pytissueoptics.scene.geometry import Environment, Vector
 from pytissueoptics.scene.intersection.intersectionFinder import Intersection
 
@@ -56,7 +56,7 @@ class FresnelIntersect:
 
     def _getIsReflected(self) -> bool:
         R = self._getReflectionCoefficient()
-        if random.random() < R:
+        if getRandomNum() <= R:  # MCML uses <=
             return True
         return False
 
