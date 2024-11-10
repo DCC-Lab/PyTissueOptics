@@ -88,6 +88,7 @@ void spin(__global float3 *mainVector, float theta, float phi){
     mainVector->x = ux;
     mainVector->y = uy;
     mainVector->z = uz;
+    normalizeVectorGlobal(mainVector);
 }
 
 float3 getAnyOrthogonalGlobal(__global float3 *vector){

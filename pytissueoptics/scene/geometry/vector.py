@@ -120,6 +120,7 @@ class Vector:
             uz = -sint*cosp*temp + self._z*cost
 
         self.update(ux, uy, uz)
+        self.normalize()
 
     def rotateAround(self, unitAxis: 'Vector', theta: float):
         """

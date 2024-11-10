@@ -190,7 +190,7 @@ HitPoint _getTriangleIntersection(Ray ray, float3 v1, float3 v2, float3 v3, floa
 
     float t = dot(edgeB, qVector) * invDet;
 
-    if (t > 0 && ray.length > t){
+    if (t > 0 && ray.length >= t){
         hitPoint.exists = true;
         hitPoint.position = ray.origin + t * ray.direction;
         return hitPoint;
@@ -346,7 +346,7 @@ Intersection findIntersection(Ray ray, Scene *scene, uint gid, uint photonSolidI
 
         uint solidID = scene->solidCandidates[boxGID].solidID;
         Intersection intersection = _findClosestPolygonIntersection(ray, solidID, scene->solids, scene->surfaces, scene->triangles, scene->vertices, photonSolidID);
-        if (intersection.exists  && intersection.distance < closestIntersection.distance) {
+        if (intersection.exists && intersection.distance < closestIntersection.distance) {
             closestIntersection = intersection;
         }
     }
