@@ -55,7 +55,7 @@ class MollerTrumboreIntersect:
 
         # Distance to intersection point
         t = edgeB.dot(qVector) * inverseDeterminant
-        if t > 0 and (ray.length > t or ray.length is None):
+        if t > 0 and (ray.length >= t or ray.length is None):
             # Case 1: Trivial case. Intersects.
             return ray.origin + ray.direction * t
 
