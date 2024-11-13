@@ -40,7 +40,7 @@
 		"MinIntensity":	0,
 		"SliceTime":	0,
 		"TimeOffset":	0,
-		"Description":	"MCX volumetric output: Energy density (J/mm^3)",
+		"Description":	"MCX volumetric output: Fluence rate (W/mm^2)",
 		"AuxFile":	"",
 		"QForm":	0,
 		"SForm":	1,
@@ -55,7 +55,7 @@
 			"z":	0
 		},
 		"Affine":	[[1, 0, 0, 0], [0, 1, 0, 0], [0, 0, 1, 0]],
-		"Name":	"cube60_g_sweep",
+		"Name":	"mcx",
 		"NIIFormat":	"JNIfTI v0.4"
 	},
 	"NIFTIData":	{
@@ -63,6 +63,6 @@
 		"_ArraySize_":	[9, 9, 9],
 		"_ArrayZipType_":	"zlib",
 		"_ArrayZipSize_":	729,
-		"_ArrayZipData_":	"eAHtyzENADAIADBETM8Uog89aOAiJO3fCAAueJV/FABY07/TAbU="
+		"_ArrayZipData_":	"eAHtzjERADAIBLB33krDGejgyJA9SXUAWOC/XV+AuwYsT/hk"
 	}
 }

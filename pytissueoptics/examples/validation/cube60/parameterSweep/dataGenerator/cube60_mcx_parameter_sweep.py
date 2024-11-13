@@ -54,7 +54,7 @@ def mcx_cube60_sweep_simulator(u_a_values: List[float], u_s_values: List[float],
     lock = Lock()
     os.makedirs("../temp/jsonTestFiles", exist_ok=True)
 
-    base_json_path = "cube60custom_mcxInput.json"
+    base_json_path = "cube60customFresnel_mcxInput.json"
 
     with ThreadPoolExecutor() as executor:
         futures = []
@@ -72,5 +72,5 @@ def mcx_cube60_sweep_simulator(u_a_values: List[float], u_s_values: List[float],
 
 
 if __name__ == "__main__":
-    results = mcx_cube60_sweep_simulator(mu_a_values, mu_s_values, g_values)
-    SweepSimResult.save_to_json(results, '../cube60_sweep_results.json')
+    results = mcx_cube60_sweep_simulator([0.3], [20], [0.7])
+    SweepSimResult.save_to_json(results, '../cube60_mcx_n=1.0_results.json')

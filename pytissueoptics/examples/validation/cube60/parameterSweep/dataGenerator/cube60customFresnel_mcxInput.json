@@ -1,0 +1,106 @@
+{
+  "Session": {
+    "ID": "cube60_g_sweep",
+    "Photons": 1000000,
+    "DoMismatch": true,
+    "DoAutoThread": true,
+    "DoSaveVolume": true,
+    "DoPartialPath": true,
+    "DoNormalize": true,
+    "DoSaveRef": false,
+    "DoSaveExit": false,
+    "DoSaveSeed": false,
+    "DoDCS": false,
+    "DoSpecular": true,
+    "DebugFlag": 0,
+    "SaveDataMask": 5,
+    "OutputFormat": "jnii",
+    "OutputType": "e",
+    "RNGSeed": 1648335518
+  },
+  "Forward": {
+    "T0": 0,
+    "T1": 5e-9,
+    "Dt": 5e-9
+  },
+  "Optode": {
+    "Source": {
+      "Type": "pencil",
+      "Pos": [
+        4.5,
+        4.5,
+        1
+      ],
+      "Dir": [
+        0,
+        0,
+        1
+      ]
+    }
+  },
+  "Shapes": [
+    {
+      "Grid": {
+        "Tag": 0,
+        "Size": [
+          9,
+          9,
+          9
+        ]
+      }
+    },
+    {
+      "Box": {
+        "Tag": 0,
+        "Size": [
+          9,
+          9,
+          9
+        ],
+        "O": [
+          0,
+          0,
+          0
+        ]
+      }
+    },
+    {
+      "Box": {
+        "Tag": 1,
+        "Size": [
+          1,
+          1,
+          1
+        ],
+        "O": [
+          4,
+          4,
+          4
+        ]
+      }
+    }
+
+  ],
+  "Domain": {
+    "OriginType": true,
+    "Dim": [
+      9,
+      9,
+      9
+    ],
+    "Media": [
+      {
+        "mua": 0,
+        "mus": 0,
+        "g": 1,
+        "n": 1
+      },
+      {
+        "mua": 0.3,
+        "mus": 20,
+        "g": 0.7,
+        "n": 1
+      }
+    ]
+  }
+}

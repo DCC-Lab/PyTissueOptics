@@ -22,7 +22,6 @@ class SweepSimResult:
         """
         Saves a list of SweepSimResult instances to a JSON file in a hierarchical format.
         If the file already exists, it appends the new data under the software key.
-
         :param results: List of SweepSimResult instances to save.
         :param filename: Filename to save the JSON data.
         :param software: The simulation software name to use as a key in the JSON file.

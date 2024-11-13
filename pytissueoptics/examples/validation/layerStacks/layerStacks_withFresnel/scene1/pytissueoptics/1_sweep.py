@@ -11,11 +11,11 @@ class ValidationStack(ScatteringScene):
         super().__init__(self.TISSUE, worldMaterial)
 
     def _create(self, n1, n2):
-        mu_s = [20, 2]
+        mu_s = [20, 0]
         mu_a = [0.1, 10]
-        g = [0.7, 0.9]
+        g = [0.7, 1]
         w = 50
-        t = [1, 0.5]
+        t = [1, 10]
         firstLayer = Cuboid(w, w, t[0], material=ScatteringMaterial(mu_s[0], mu_a[0], g[0], n1), label="firstLayer")
         secondLayer = Cuboid(w, w, t[1], material=ScatteringMaterial(mu_s[1], mu_a[1], g[1], n2), label="secondLayer")
         layerStack = secondLayer.stack(firstLayer, 'front')
@@ -24,9 +24,10 @@ class ValidationStack(ScatteringScene):
 
 
 def exampleCode():
-    N = 100000 if hardwareAccelerationIsAvailable() else 1000
+    N = 1000000 if hardwareAccelerationIsAvailable() else 1000
 
-    n1n2 = [(1.3, 1.4), (1.4, 1.5)]
+    n1n2 = [(1, 1.0), (1, 1.1), (1, 1.2), (1, 1.3), (1, 1.4), (1, 1.5), (1, 1.6), (1, 1.7), (1, 1.8), (1, 1.9), (1, 2)]
+    results = []
     for n1, n2 in n1n2:
         layerStack = ValidationStack(n1, n2)
         logger = EnergyLogger(layerStack)
@@ -35,7 +36,10 @@ def exampleCode():
         viewer = Viewer(layerStack, source, logger)
         viewer.reportStats("firstLayer")
         viewer.reportStats("secondLayer")
+        stats = Stats(logger)
 
+        results.append((stats.getAbsorbance("firstLayer", useTotalEnergy=True), stats.getAbsorbance("secondLayer", useTotalEnergy=True)))
+    print(results)
 
 if __name__ == "__main__":
     exampleCode()

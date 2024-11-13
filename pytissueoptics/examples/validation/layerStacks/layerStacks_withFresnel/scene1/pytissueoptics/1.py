@@ -33,10 +33,10 @@ class ValidationStack(ScatteringScene):
 
 
 def exampleCode():
-    N = 1000000 if hardwareAccelerationIsAvailable() else 1000
+    N = 10000 if hardwareAccelerationIsAvailable() else 10000
     layerStack = ValidationStack()
     logger = EnergyLogger(layerStack)
-    source = PencilPointSource(position=Vector(0, 0, -0.01), direction=Vector(0, 0, 1), N=N)
+    source = PencilPointSource(position=Vector(0, 0, -0.01), direction=Vector(0, 0, 1), N=N, useHardwareAcceleration=False)
 
     #layerStack.show(source=source)
 
