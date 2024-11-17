@@ -23,7 +23,8 @@ class Intersection:
     outsideEnvironment: Environment = None
     surfaceLabel: str = None
     distanceLeft: float = None
-    isTooClose: bool = False
+    isSmooth: bool = False
+    rawNormal: Vector = None
 
 
 class IntersectionFinder:
@@ -64,20 +65,24 @@ class IntersectionFinder:
         if not intersection:
             return None
 
-        smoothNormal = shader.getSmoothNormal(intersection.polygon, intersection.position)
-
-        # If the resulting smooth normal changes the sign of the dot product with the ray direction, do not smooth.
-        if smoothNormal.dot(ray.direction) * intersection.polygon.normal.dot(ray.direction) < 0:
-            smoothNormal = intersection.polygon.normal
-
-        intersection.normal = smoothNormal
         intersection.insideEnvironment = intersection.polygon.insideEnvironment
         intersection.outsideEnvironment = intersection.polygon.outsideEnvironment
         intersection.surfaceLabel = intersection.polygon.surfaceLabel
+        intersection.rawNormal = intersection.polygon.normal
 
         if ray.length is not None:
             intersection.distanceLeft = ray.length - intersection.distance
 
+        smoothNormal = shader.getSmoothNormal(intersection.polygon, intersection.position)
+
+        # If the resulting smooth normal changes the sign of the dot product with the ray direction, do not smooth.
+        if smoothNormal.dot(ray.direction) * intersection.polygon.normal.dot(ray.direction) < 0:
+            intersection.normal = intersection.polygon.normal
+            intersection.isSmooth = False
+            return intersection
+
+        intersection.normal = smoothNormal
+        intersection.isSmooth = True
         return intersection
 
 
