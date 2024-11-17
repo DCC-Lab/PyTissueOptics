@@ -4,12 +4,12 @@ from pytissueoptics.scene.geometry import Vector, Triangle, Quad, Polygon
 from pytissueoptics.scene.intersection import Ray
 
 
-EPS_CORRECTION = 0.0005
+EPS_CORRECTION = 0.0  # TODO: remove
 
 
 class MollerTrumboreIntersect:
-    EPS_CATCH = 0.000001
-    EPS_PARALLEL = 0.00001
+    EPS_CATCH = 0.00001
+    EPS_PARALLEL = 0.000001
     EPS_SIDE = 0.000001
 
     def getIntersection(self, ray: Ray, polygon: Union[Triangle, Quad, Polygon]) -> Optional[Vector]:
@@ -61,7 +61,10 @@ class MollerTrumboreIntersect:
 
         # Next we need to check if the intersection is inside the epsilon catch zone (forward or backward).
         # Note that this mechanic only works when same-solid intersections are ignored before calling this function.
-        dt = t - ray.length
+        if t <= 0:
+            dt = t
+        else:
+            dt = t - ray.length
         dt_T = abs(triangle.normal.dot(ray.direction) * dt)
         if t > ray.length and dt_T < self.EPS_CATCH:
             # Case 2: Forward epsilon catch. Ray ends close to the triangle, so we intersect at the ray's end.

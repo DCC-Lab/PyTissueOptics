@@ -1,10 +1,9 @@
-__constant float EPS_CATCH = 0.000001f;
-__constant float EPS_PARALLEL = 0.00001f;
+__constant float EPS_CATCH = 0.00001f;
+__constant float EPS_PARALLEL = 0.000001f;
 __constant float EPS_SIDE = 0.000001f;
 
 struct Intersection {
     uint exists;
-    uint isTooClose;
     float distance;
     float3 position;
     float3 normal;
@@ -154,7 +153,7 @@ void _sortSolidCandidates(Scene *scene, uint gid) {
 
 struct HitPoint {
     bool exists;
-    bool isTooClose;
+    float distance;
     float3 position;
 };
 
@@ -192,19 +191,27 @@ HitPoint _getTriangleIntersection(Ray ray, float3 v1, float3 v2, float3 v3, floa
 
     if (t > 0 && ray.length >= t){
         hitPoint.exists = true;
+        hitPoint.distance = t;
         hitPoint.position = ray.origin + t * ray.direction;
         return hitPoint;
     }
 
-    float dt = t - ray.length;
+    float dt;
+    if (t <= 0) {
+        dt = t;
+    } else {
+        dt = t - ray.length;
+    }
     float dt_T = fabs(dot(normal, ray.direction) * dt);
     if (t > ray.length && dt_T < EPS_CATCH) {
         hitPoint.exists = true;
+        hitPoint.distance = ray.length;
         hitPoint.position = ray.origin + ray.length * ray.direction;
         return hitPoint;
     }
     if (t < 0 && dt_T < EPS_CATCH) {
         hitPoint.exists = true;
+        hitPoint.distance = 0;
         hitPoint.position = ray.origin;
         return hitPoint;
     }
@@ -233,11 +240,9 @@ Intersection _findClosestPolygonIntersection(Ray ray, uint solidID,
             if (!hitPoint.exists) {
                 continue;
             }
-            float distance = length(hitPoint.position - ray.origin);
-            if (distance < intersection.distance) {
+            if (hitPoint.distance < intersection.distance) {
                 intersection.exists = true;
-                intersection.isTooClose = hitPoint.isTooClose;
-                intersection.distance = distance;
+                intersection.distance = hitPoint.distance;
                 intersection.position = hitPoint.position;
                 intersection.normal = triangles[p].normal;
                 intersection.surfaceID = s;
