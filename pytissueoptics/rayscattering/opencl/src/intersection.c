@@ -10,6 +10,8 @@ struct Intersection {
     uint surfaceID;
     uint polygonID;
     float distanceLeft;
+    bool isSmooth;
+    float3 rawNormal;
 };
 
 typedef struct Intersection Intersection;
@@ -306,10 +308,13 @@ void setSmoothNormal(Intersection *intersection, __global Triangle *triangles, _
     // Not accounting for this can lead to a photon slightly going inside another solid mesh, but being considered as leaving the other solid (during FresnelIntersection calculations).
     // Which would result in the wrong next environment being set as well as the wrong step correction being applied after refraction.
     if (dot(newNormal, ray->direction) * dot(intersection->normal, ray->direction) < 0) {
+        intersection->isSmooth = false;
         return;
     }
-    intersection->normal = newNormal;
-    intersection->normal = normalize(intersection->normal);
+    intersection->normal = normalize(newNormal);
+
+    intersection->isSmooth = true;
+    intersection->rawNormal = triangles[intersection->polygonID].normal;
 }
 
 void _composeIntersection(Intersection *intersection, Ray *ray, Scene *scene) {
@@ -317,6 +322,7 @@ void _composeIntersection(Intersection *intersection, Ray *ray, Scene *scene) {
         return;
     }
 
+    intersection->isSmooth = false;
     if (scene->surfaces[intersection->surfaceID].toSmooth) {
         setSmoothNormal(intersection, scene->triangles, scene->vertices, ray);
     }

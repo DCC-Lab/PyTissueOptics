@@ -6,6 +6,7 @@
 
 __constant int NO_SOLID_ID = -1;
 __constant int NO_SURFACE_ID = -1;
+__constant float MIN_ANGLE = 0.0001f;
 
 void moveBy(float distance, __global Photon *photons, uint photonID){
     photons[photonID].position += (distance * photons[photonID].direction);
@@ -96,20 +97,27 @@ float reflectOrRefract(Intersection *intersection, __global Photon *photons, __c
         __global Surface *surfaces, __global DataPoint *logger, uint *logIndex, __global uint *seeds, uint gid, uint photonID){
     FresnelIntersection fresnelIntersection = computeFresnelIntersection(photons[photonID].direction, intersection,
                                                                          materials, surfaces, seeds, gid);
-    int stepSign = 1;
-    int solidIDTowardsNormal = surfaces[intersection->surfaceID].outsideSolidID;
-    if (solidIDTowardsNormal != photons[photonID].solidID) {
-        stepSign = -1;
-    }
-    if (!fresnelIntersection.isReflected) {
-        stepSign *= -1;
-    }
 
     if (fresnelIntersection.isReflected) {
+        if (intersection->isSmooth) {
+            // Prevent reflection from crossing the raw surface.
+            float smoothAngle = acos(dot(intersection->normal, intersection->rawNormal));
+            float minDeflectionAngle = smoothAngle + fabs(fresnelIntersection.angleDeflection) / 2 + MIN_ANGLE;
+            if (fabs(fresnelIntersection.angleDeflection) < minDeflectionAngle) {
+                fresnelIntersection.angleDeflection = sign(fresnelIntersection.angleDeflection) * minDeflectionAngle;
+            }
+        }
         reflect(&fresnelIntersection, photons, photonID);
     }
     else {
         logIntersection(intersection, photons, surfaces, logger, logIndex, photonID);
+        if (intersection->isSmooth) {
+            // Prevent refraction from not crossing the raw surface.
+            float maxDeflectionAngle = fabs(M_PI_F / 2 - acos(dot(intersection->rawNormal, photons[photonID].direction))) - MIN_ANGLE;
+            if (fabs(fresnelIntersection.angleDeflection) > maxDeflectionAngle) {
+                fresnelIntersection.angleDeflection = sign(fresnelIntersection.angleDeflection) * maxDeflectionAngle;
+            }
+        }
         refract(&fresnelIntersection, photons, photonID);
 
         float mut1 = materials[photons[photonID].materialID].mu_t;

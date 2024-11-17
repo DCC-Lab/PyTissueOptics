@@ -2,6 +2,8 @@ import math
 import random
 from typing import Optional
 
+import numpy as np
+
 from pytissueoptics.rayscattering.fresnel import FresnelIntersect, FresnelIntersection
 from pytissueoptics.rayscattering.materials import ScatteringMaterial
 from pytissueoptics.scene.geometry import Environment, Vector
@@ -11,6 +13,7 @@ from pytissueoptics.scene.logger import Logger, InteractionKey
 
 WORLD_LABEL = "world"
 WEIGHT_THRESHOLD = 1e-4
+MIN_ANGLE = 0.0001
 
 
 class Photon:
@@ -102,18 +105,24 @@ class Photon:
     def reflectOrRefract(self, intersection: Intersection):
         fresnelIntersection = self._getFresnelIntersection(intersection)
 
-        # Determine required step sign to move away from intersecting surface
-        stepSign = 1
-        solidTowardsNormal = intersection.outsideEnvironment.solid
-        if solidTowardsNormal != self._environment.solid:
-            stepSign = -1
-        if not fresnelIntersection.isReflected:
-            stepSign *= -1
-
         if fresnelIntersection.isReflected:
+            if intersection.isSmooth:
+                # Prevent reflection from crossing the raw surface.
+                smoothAngle = math.acos(intersection.normal.dot(intersection.polygon.normal))
+                minDeflectionAngle = smoothAngle + abs(fresnelIntersection.angleDeflection) / 2 + MIN_ANGLE
+                if abs(fresnelIntersection.angleDeflection) < minDeflectionAngle:
+                    fresnelIntersection.angleDeflection = minDeflectionAngle * np.sign(fresnelIntersection.angleDeflection)
+
             self.reflect(fresnelIntersection)
         else:
             self._logIntersection(intersection)
+
+            if intersection.isSmooth:
+                # Prevent refraction from not crossing the raw surface.
+                maxDeflectionAngle = abs(np.pi / 2 - math.acos(intersection.polygon.normal.dot(self._direction))) - MIN_ANGLE
+                if abs(fresnelIntersection.angleDeflection) > maxDeflectionAngle:
+                    fresnelIntersection.angleDeflection = maxDeflectionAngle * np.sign(fresnelIntersection.angleDeflection)
+
             self.refract(fresnelIntersection)
 
             mut1 = self.material.mu_t
