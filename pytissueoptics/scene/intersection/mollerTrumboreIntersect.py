@@ -24,11 +24,13 @@ class MollerTrumboreIntersect:
         """ Möller–Trumbore ray-triangle 3D intersection algorithm.
         Added epsilon zones to avoid numerical errors in the OpenCL implementation.
         Modified to support rays with finite length:
-            A. If the intersection is too far away, return None.
-            B. If the intersection is just a bit too far away, there is no intersection, but we cannot accept
-                the ray to land there (it would be too close to the surface and might yield intersection errors
-                later on). Therefore, we tag the intersection as 'tooClose' and use that later to move the ray's
-                landing position a bit away from this surface.
+            A. If the intersection is too far away, do not intersect.
+            B. (Forward catch) If the intersection is just a bit too far away, such that the resulting shortest distance
+                to surface is under epsilon, we must intersect already to prevent floating point errors in the next
+                intersection search.
+            C. (Backward catch) If, after a forward catch, the photon attempts to scatter back (inside epsilon region)
+                before actually crossing the surface, we must trigger an intersection event (at the origin). Ignore if
+                the origin does not lie over the triangle (meaning that the photon already crossed another surface).
         """
         v1, v2, v3 = triangle.vertices
         edgeA = v2 - v1
@@ -69,9 +71,21 @@ class MollerTrumboreIntersect:
         if t > ray.length and dt_T < self.EPS_CATCH:
             # Case 2: Forward epsilon catch. Ray ends close to the triangle, so we intersect at the ray's end.
             return ray.origin + ray.direction * ray.length
-        if t < 0 and dt_T < self.EPS_CATCH:
+        if t <= 0 and dt_T < self.EPS_CATCH:
             # Case 3: Backward epsilon catch. Ray starts close to the triangle, so we intersect at the origin.
             # This requires the intersector to always test triangles (or at least, close ones) of the origin solid.
+
+            # Do not catch if the origin lies outside the triangle (intersection test using triangle normal).
+            pVector = triangle.normal.cross(edgeB)
+            determinant = edgeA.dot(pVector)
+            inverseDeterminant = 1. / determinant
+            u = tVector.dot(pVector) * inverseDeterminant
+            if u < 0 or u > 1:
+                return None
+            v = triangle.normal.dot(qVector) * inverseDeterminant
+            if v < 0 or u + v > 1:
+                return None
+
             return ray.origin
 
         # Case 4: No intersection.

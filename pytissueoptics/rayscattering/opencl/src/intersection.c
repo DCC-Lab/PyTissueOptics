@@ -211,7 +211,20 @@ HitPoint _getTriangleIntersection(Ray ray, float3 v1, float3 v2, float3 v3, floa
         hitPoint.position = ray.origin + ray.length * ray.direction;
         return hitPoint;
     }
-    if (t < 0 && dt_T < EPS_CATCH) {
+    if (t <= 0 && dt_T < EPS_CATCH) {
+        // Create a test ray to compute if the origin lies inside the triangle (from the normal).
+        pVector = cross(normal, edgeB);
+        det = dot(edgeA, pVector);
+        invDet = 1.0f / det;
+        u = dot(tVector, pVector) * invDet;
+        if (u < 0.0f || u > 1.0f) {
+            return hitPoint;
+        }
+
+        v = dot(normal, qVector) * invDet;
+        if (v < 0.0f || u + v > 1.0f) {
+            return hitPoint;
+        }
         hitPoint.exists = true;
         hitPoint.distance = 0;
         hitPoint.position = ray.origin;
