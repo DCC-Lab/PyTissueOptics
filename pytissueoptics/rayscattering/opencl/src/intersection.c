@@ -164,7 +164,6 @@ typedef struct HitPoint HitPoint;
 HitPoint _getTriangleIntersection(Ray ray, float3 v1, float3 v2, float3 v3, float3 normal) {
     HitPoint hitPoint;
     hitPoint.exists = false;
-    hitPoint.isTooClose = false;
 
     float3 edgeA = v2 - v1;
     float3 edgeB = v3 - v1;
@@ -240,7 +239,6 @@ Intersection _findClosestPolygonIntersection(Ray ray, uint solidID,
                                             uint photonSolidID) {
     Intersection intersection;
     intersection.exists = false;
-    intersection.isTooClose = false;
     intersection.distance = INFINITY;
     for (uint s = solids[solidID-1].firstSurfaceID; s <= solids[solidID-1].lastSurfaceID; s++) {
         for (uint p = surfaces[s].firstPolygonID; p <= surfaces[s].lastPolygonID; p++) {
@@ -351,7 +349,6 @@ Intersection findIntersection(Ray ray, Scene *scene, uint gid, uint photonSolidI
 
     Intersection closestIntersection;
     closestIntersection.exists = false;
-    closestIntersection.isTooClose = false;
     closestIntersection.distance = INFINITY;
     if (scene->nSolids == 0) {
         return closestIntersection;

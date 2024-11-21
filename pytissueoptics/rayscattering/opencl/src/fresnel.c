@@ -107,7 +107,6 @@ FresnelIntersection computeFresnelIntersection(float3 rayDirection, Intersection
 Intersection getLocalIntersection(__global Intersection *intersections, uint gid) {
     Intersection intersection;
     intersection.exists = intersections[gid].exists;
-    intersection.isTooClose = intersections[gid].isTooClose;
     intersection.distance = intersections[gid].distance;
     intersection.position = intersections[gid].position;
     intersection.normal = intersections[gid].normal;
