@@ -15,6 +15,7 @@ void moveBy(float distance, __global Photon *photons, uint photonID){
 void scatterBy(float phi, float theta, __global Photon *photons, uint photonID){
     rotateAroundAxisGlobal(&photons[photonID].er, &photons[photonID].direction, phi);
     rotateAroundAxisGlobal(&photons[photonID].direction, &photons[photonID].er, theta);
+    photons[photonID].er = getAnyOrthogonalGlobal(&photons[photonID].direction);
 }
 
 void decreaseWeightBy(float delta_weight, __global Photon *photons, uint photonID){
