@@ -24,7 +24,6 @@ class Photon:
         self._environment: Environment = None
 
         self._er = self._direction.getAnyOrthogonal()
-        self._er.normalize()
         self._hasContext = False
         self._fresnelIntersect: FresnelIntersect = None
 
@@ -160,6 +159,7 @@ class Photon:
     def scatterBy(self, theta, phi):
         self._er.rotateAround(self._direction, phi)
         self._direction.rotateAround(self._er, theta)
+        self._er = self._direction.getAnyOrthogonal()
 
     def interact(self):
         delta = self._weight * self.material.getAlbedo()
