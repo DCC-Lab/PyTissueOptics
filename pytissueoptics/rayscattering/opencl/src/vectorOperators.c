@@ -1,4 +1,3 @@
-__constant float COS_ZERO = 0.999999f;
 
 void normalizeVectorLocal(float3 *vector){
     float length = sqrt(vector->x * vector->x + vector->y * vector->y + vector->z * vector->z);
@@ -66,29 +65,6 @@ void rotateAround(__global float3 *mainVector, float3 *axisVector, float theta){
     mainVector->x = x;
     mainVector->y = y;
     mainVector->z = z;
-}
-
-void spin(__global float3 *mainVector, float theta, float phi){
-    float cosp = cos(phi);
-    float sinp = phi < M_PI ? sqrt(1 - cosp*cosp) : -sqrt(1 - cosp*cosp);
-    float cost = cos(theta);
-    float sint = sqrt(1 - cost*cost);
-    float ux, uy, uz;
-    if (fabs(mainVector->z) > COS_ZERO){
-        ux = sint*cosp;
-        uy = sint*sinp;
-        uz = cost * (mainVector->z >= 0 ? 1 : -1);
-    }
-    else{
-        float temp = sqrt(1 - mainVector->z*mainVector->z);
-        ux = sint*(mainVector->x*mainVector->z*cosp - mainVector->y*sinp) / temp + mainVector->x*cost;
-        uy = sint*(mainVector->y*mainVector->z*cosp + mainVector->x*sinp) / temp + mainVector->y*cost;
-        uz = -sint*cosp*temp + mainVector->z*cost;
-    }
-    mainVector->x = ux;
-    mainVector->y = uy;
-    mainVector->z = uz;
-    normalizeVectorGlobal(mainVector);
 }
 
 float3 getAnyOrthogonalGlobal(__global float3 *vector){
