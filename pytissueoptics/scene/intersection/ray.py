@@ -8,8 +8,6 @@ class Ray:
         self._direction.normalize()
         self._length = length
 
-        self.isTooClose = False
-
     @property
     def origin(self):
         return self._origin
