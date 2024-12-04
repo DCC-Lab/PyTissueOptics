@@ -41,7 +41,8 @@ class Source(Displayable):
         if self._useHardwareAcceleration:
             IPP = self._getAverageInteractionsPerPhoton(scene)
             self._propagateOpenCL(IPP, scene, logger, showProgress)
-            self._updateIPP(scene, logger)
+            # TODO: dont update IPP once debug photon found
+            # self._updateIPP(scene, logger)
         else:
             self._propagateCPU(scene, logger, showProgress)
 

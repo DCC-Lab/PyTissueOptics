@@ -37,6 +37,7 @@ class Solid:
         self._resetPolygonsCentroids()
 
         self._smoothing = False
+        self._setVertexNormals()
         if smooth:
             self.smooth()
 
@@ -281,7 +282,10 @@ class Solid:
         be changed by overwriting the signature with a specific surfaceLabel in
         another solid implementation and calling super().smooth(surfaceLabel).
         """
-        self._smoothing = True
+        self._setVertexNormals(surfaceLabel, smooth=True, reset=reset)
+
+    def _setVertexNormals(self, surfaceLabel: str = None, smooth=False, reset=True):
+        self._smoothing = smooth
         if reset:
             for vertex in self.vertices:
                 vertex.normal = None
@@ -289,7 +293,7 @@ class Solid:
         polygons = self.getPolygons(surfaceLabel)
 
         for polygon in polygons:
-            polygon.toSmooth = True
+            polygon.toSmooth = smooth
             for vertex in polygon.vertices:
                 if vertex.normal:
                     vertex.normal += polygon.normal

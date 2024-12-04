@@ -10,6 +10,7 @@ to simulate skin/vessel measurements. This benchmark was first constructed by Dr
 
 def exampleCode():
     N = 1000000 if hardwareAccelerationIsAvailable() else 100
+    # FIXME: many infinite loop.
 
     # Units in mm and mm-1
     waterLayer = Cuboid(1, 0.1, 1, material=ScatteringMaterial(mu_a=0.00004, mu_s=1, g=1, n=1.33), label="water")

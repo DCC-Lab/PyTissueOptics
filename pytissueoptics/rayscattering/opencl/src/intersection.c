@@ -1,6 +1,10 @@
-__constant float EPS_CATCH = 0.00001f;
-__constant float EPS_PARALLEL = 0.000001f;
-__constant float EPS_SIDE = 0.000001f;
+__constant float EPS_CATCH = 1e-7f; // TODO: create proper test scenes to optimize these value.
+__constant float BACK_EPS_CATCH = 2e-6f;  // FIXME: not a fan. risk stuck with small angle corners.
+__constant float EPS_PARALLEL = 1e-6f;
+__constant float EPS_SIDE = 3e-6f;
+__constant float EPS = 1e-7;
+
+__constant float3 debugDirection = (float3)(-10.974320, -0.040761, -0.221448);
 
 struct Intersection {
     uint exists;
@@ -157,6 +161,7 @@ struct HitPoint {
     bool exists;
     float distance;
     float3 position;
+    uint vertexIndex;
 };
 
 typedef struct HitPoint HitPoint;
@@ -170,8 +175,17 @@ HitPoint _getTriangleIntersection(Ray ray, float3 v1, float3 v2, float3 v3, floa
     float3 pVector = cross(ray.direction, edgeB);
     float det = dot(edgeA, pVector);
 
+    bool debug = false;
+    if (length(ray.direction - debugDirection) < 0.0001f){
+        debug = true;
+        printf("======= DEBUG (NORMAL: %f %f %f) =======\n", normal.x, normal.y, normal.z);
+    }
+
     bool rayIsParallel = fabs(det) < EPS_PARALLEL;
     if (rayIsParallel) {
+        if (debug){
+            printf("---> Parallel\n");
+        }
         return hitPoint;
     }
 
@@ -179,21 +193,66 @@ HitPoint _getTriangleIntersection(Ray ray, float3 v1, float3 v2, float3 v3, floa
     float3 tVector = ray.origin - v1;
     float u = dot(tVector, pVector) * invDet;
     if (u < -EPS_SIDE || u > 1.0f) {
+        if (debug){
+            printf("---> No hit\n");
+            printf("\t u: %.7f\n", u);
+        }
         return hitPoint;
     }
 
     float3 qVector = cross(tVector, edgeA);
     float v = dot(ray.direction, qVector) * invDet;
-    if (v < -EPS_SIDE || u + v > 1.0f) {
+    if (v < -EPS_SIDE || u + v > 1.0f + EPS_SIDE) {  // TODO: doc bugfix
+        // Found edge case where u+v condition must accept 1+1e-6
+        if (debug){
+            printf("---> No hit\n");
+            printf("\t v: %.7f\n", v);
+            printf("\t u+v: %.7f\n", u+v);
+        }
         return hitPoint;
     }
 
     float t = dot(edgeB, qVector) * invDet;
+    hitPoint.distance = t;
+    hitPoint.position = ray.origin + t * ray.direction;
 
-    if (t > 0 && ray.length >= t){
+    // If the intersection is slightly outside the triangle.
+    float error = 0;
+    if (u < -EPS){
+        error -= u;
+    }
+    if (v < -EPS){
+        error -= v;
+    }
+    if (u + v > 1.0 + EPS){
+        error += u + v - 1.0;
+    }
+    if (error > 0){
+        // Move the hit point towards the triangle center by this error factor.
+        float3 correction = v1 + v2 + v3 - hitPoint.position * 3;
+        hitPoint.position += 2.0f * error * correction;
+
+        if (debug){
+            printf("Intersects outside triangle. corr dir.: %f %f %f\n", correction.x, correction.y, correction.z);
+            printf("u: %.7f, v: %.7f, u+v: %.7f\n", u, v, u+v);
+            printf("Error: %.7f\n", error);
+        }
+    }
+
+    if (t >= 0 && ray.length >= t){
         hitPoint.exists = true;
-        hitPoint.distance = t;
-        hitPoint.position = ray.origin + t * ray.direction;
+//        hitPoint.distance = t;
+//        hitPoint.position = ray.origin + t * ray.direction;
+        if (debug){
+            printf("---> Hit\n");
+            printf("\t t: %.7f\n", t);
+            printf("\t u: %.7f\n", u);
+            printf("\t v: %.7f\n", v);
+            printf("\t u+v: %.7f\n", u+v);
+            printf("\t triangle normal: %f %f %f\n", normal.x, normal.y, normal.z);
+            printf("\t ray.direction: %f %f %f\n", ray.direction.x, ray.direction.y, ray.direction.z);
+            printf("\t dot(normal, ray.direction): %f\n", dot(normal, ray.direction));
+        }
         return hitPoint;
     }
 
@@ -204,31 +263,94 @@ HitPoint _getTriangleIntersection(Ray ray, float3 v1, float3 v2, float3 v3, floa
         dt = t - ray.length;
     }
     float dt_T = fabs(dot(normal, ray.direction) * dt);
+
+    if (debug){
+        printf("---> No hit\n");
+        printf("\t t with 7 decimals: %.7f\n", t);
+        printf("\t hasHit Right: %d\n", ray.length >= t);
+        printf("\t t: %f\n", t);
+        printf("\t ray.length: %f\n", ray.length);
+        printf("\t dt: %f\n", dt);
+        printf("\t dt_T: %.7f\n", dt_T);
+        printf("\t triangle normal: %f %f %f\n", normal.x, normal.y, normal.z);
+        printf("\t u: %.7f\n", u);
+        printf("\t v: %.7f\n", v);
+        printf("\t u+v: %.7f\n", u+v);
+//        printf("\t v1: %f %f %f\n", v1.x, v1.y, v1.z);
+//        printf("\t v2: %f %f %f\n", v2.x, v2.y, v2.z);
+//        printf("\t v3: %f %f %f\n", v3.x, v3.y, v3.z);
+    }
+
     if (t > ray.length && dt_T < EPS_CATCH) {
         hitPoint.exists = true;
-        hitPoint.distance = ray.length;
-        hitPoint.position = ray.origin + ray.length * ray.direction;
+//        hitPoint.distance = ray.length;
+//        hitPoint.position = ray.origin + ray.length * ray.direction;
+        // TEST new beta: move photon to surface.
+        //  subtract distance from next scattering distance.
+//        hitPoint.distance = t;
+//        hitPoint.position = ray.origin + t * ray.direction;
+//        printf("Forward eps catch\n");
+        float relativeDistance = (t - ray.length) / ray.length;
+        if (dt > 0.0002f){
+            printf("\t -> Large FW CATCH. (Rel. dist.: %f, dt: %f)\n", relativeDistance, dt);
+        }
+//        else {
+//            printf(".. small fw catch (dist: %f)\n", t);
+//        }
         return hitPoint;
     }
-    if (t <= 0 && dt_T < EPS_CATCH) {
-        // Create a test ray to compute if the origin lies inside the triangle (from the normal).
-        pVector = cross(normal, edgeB);
-        det = dot(edgeA, pVector);
-        invDet = 1.0f / det;
-        u = dot(tVector, pVector) * invDet;
-        if (u < 0.0f || u > 1.0f) {
-            return hitPoint;
-        }
 
-        v = dot(normal, qVector) * invDet;
-        if (v < 0.0f || u + v > 1.0f) {
-            return hitPoint;
+    if (t < 0 && (t > -BACK_EPS_CATCH || dt_T < EPS_CATCH)) {    // TODO: doc bugfix
+        // Document why this is necessary...
+        // Found case where t around 1e-5, but dt_T at 0e-7
+        // Might force use ==0 or < 1e-7 instead of link to EPS_CATCH
+        if (debug){
+            printf("~~ BACKWARDS epsilon catch\n");
         }
+        if (dt_T < EPS_CATCH) {  // TODO: doc bugfix (priority over min-same-solid back cancel)
+            hitPoint.distance = 0;
+            // TODO: review this as well.
+        }
+//        } else {
+//            hitPoint.distance = t;
+//        }
         hitPoint.exists = true;
-        hitPoint.distance = 0;
-        hitPoint.position = ray.origin;
+//        hitPoint.position = ray.origin + t * ray.direction;
         return hitPoint;
     }
+
+//    if (t <= 0 && dt_T < EPS_CATCH) {
+//        // Create a test ray to compute if the origin lies inside the triangle (from the normal).
+//        pVector = cross(normal, edgeB);
+//        det = dot(edgeA, pVector);
+//        invDet = 1.0f / det;
+//        u = dot(tVector, pVector) * invDet;
+//        if (u < 0.0f || u > 1.0f) {
+//            return hitPoint;
+//        }
+//
+//        v = dot(normal, qVector) * invDet;
+//        if (v < 0.0f || u + v > 1.0f) {
+//            return hitPoint;
+//        }
+//        hitPoint.exists = true;
+//        hitPoint.distance = 0;
+//        hitPoint.position = ray.origin;
+//        printf("Backward eps catch\n");
+//        printf("\t ray.origin: %f %f %f\n", ray.origin.x, ray.origin.y, ray.origin.z);
+//        printf("\t ray.direction: %f %f %f\n", ray.direction.x, ray.direction.y, ray.direction.z);
+//        printf("\t t: %f\n", t);
+//        printf("\t dt: %f\n", dt);
+//        printf("\t dt_T: %f\n", dt_T);
+//        printf("\t triangle normal: %f %f %f\n", normal.x, normal.y, normal.z);
+//        printf("\t u: %f\n", u);
+//        printf("\t v: %f\n", v);
+//        printf("\t dot(normal, ray.direction): %f\n", dot(normal, ray.direction));
+//        printf("\t v1: %f %f %f\n", v1.x, v1.y, v1.z);
+//        printf("\t v2: %f %f %f\n", v2.x, v2.y, v2.z);
+//        printf("\t v3: %f %f %f\n", v3.x, v3.y, v3.z);
+//        return hitPoint;
+//    }
 
     return hitPoint;
 }
@@ -240,20 +362,41 @@ Intersection _findClosestPolygonIntersection(Ray ray, uint solidID,
     Intersection intersection;
     intersection.exists = false;
     intersection.distance = INFINITY;
+
+    float minSameSolid = -INFINITY;
+
     for (uint s = solids[solidID-1].firstSurfaceID; s <= solids[solidID-1].lastSurfaceID; s++) {
+        // When an interface joins a side surface, an outside photon could try to intersect with the interface
+        //  while this is not allowed. So we skip these tests (where surface environments dont match the photon).
+        if (photonSolidID != surfaces[s].insideSolidID && photonSolidID != surfaces[s].outsideSolidID) {
+            continue;
+        }
+
         for (uint p = surfaces[s].firstPolygonID; p <= surfaces[s].lastPolygonID; p++) {
+
             bool isGoingInside = dot(ray.direction, triangles[p].normal) < 0;
+//            printf("Test with insideSolid: %d\n", surfaces[s].insideSolidID);
             uint nextSolidID = isGoingInside ? surfaces[s].insideSolidID : surfaces[s].outsideSolidID;
-            if (nextSolidID == photonSolidID) {
-                continue;
-            }
 
             uint vertexIDs[3] = {triangles[p].vertexIDs[0], triangles[p].vertexIDs[1], triangles[p].vertexIDs[2]};
             HitPoint hitPoint = _getTriangleIntersection(ray, vertices[vertexIDs[0]].position, vertices[vertexIDs[1]].position, vertices[vertexIDs[2]].position, triangles[p].normal);
+
+            if (nextSolidID == photonSolidID) {
+//                if (hitPoint.exists){
+                if (length(ray.direction - debugDirection) < 0.000001f){
+                    printf("Ignore, going inside same solid (dist: %.7f)\n", hitPoint.distance);
+                }
+//                }
+                if (hitPoint.exists && hitPoint.distance > minSameSolid) {
+                    minSameSolid = hitPoint.distance;
+                }
+                continue;
+            }
+
             if (!hitPoint.exists) {
                 continue;
             }
-            if (hitPoint.distance < intersection.distance) {
+            if (fabs(hitPoint.distance) < fabs(intersection.distance)) {
                 intersection.exists = true;
                 intersection.distance = hitPoint.distance;
                 intersection.position = hitPoint.position;
@@ -263,6 +406,36 @@ Intersection _findClosestPolygonIntersection(Ray ray, uint solidID,
             }
         }
     }
+
+    if (length(ray.direction - debugDirection) < 0.000001f){
+        printf("minSameSolid: %.7f\n", minSameSolid);
+        printf("intersection.distance: %.7f\n", intersection.distance);
+    }
+    // if resulting distance is negative, reset to no intersection if the sameSolid distance is greater.
+    if (intersection.distance == 0 && minSameSolid == 0){
+        printf("Cancel back catch, surface overlap\n");
+        printf("\t minSameSolid: %.7f\n", minSameSolid);
+        printf("\t intersection.distance: %.7f\n", intersection.distance);
+        // TODO fallback to next (positive) intersection?
+        intersection.exists = false;
+    }
+
+    if (intersection.distance < 0) {
+        if (minSameSolid > intersection.distance + 1e-7) {// or 1e-6?
+        // TODO: do not cancel if t == 0?
+        // TODO: maybe cancel if t == 0 == minSameSolid?
+            // Do not cancel back catch if dt_T is zero.
+            if (length(ray.direction - debugDirection) < 0.000001f){
+                printf("Cancel back catch. minSameSolid: %.7f, t: %.7f\n", minSameSolid, intersection.distance);
+            }
+//            printf("Cancel back catch\n");
+            intersection.exists = false;
+        } else {
+//            printf("TRUE BACKWARD CATCH distance: %.7f\n", intersection.distance);
+//            printf("\t minSameSolid: %.7f\n", minSameSolid);
+        }
+    }
+
     return intersection;
 }
 
@@ -337,6 +510,7 @@ void _composeIntersection(Intersection *intersection, Ray *ray, Scene *scene) {
     if (scene->surfaces[intersection->surfaceID].toSmooth) {
         setSmoothNormal(intersection, scene->triangles, scene->vertices, ray);
     }
+    // Allows for negative distanceLeft, for energy conservation.
     intersection->distanceLeft = ray->length - intersection->distance;
 }
 
@@ -354,20 +528,41 @@ Intersection findIntersection(Ray ray, Scene *scene, uint gid, uint photonSolidI
     if (scene->nSolids == 0) {
         return closestIntersection;
     }
+    float3 debugPosition = (float3)(0, 0, -0.5);
+    bool debug = false;
+//    if (length(ray.origin - debugPosition) < 0.000001f){
+//        debug = true;
+//        printf("======= DEBUG =======\n");
+//    }
+
+    if (debug){
+        printf("Test ray\n");
+        printf("\t Ray origin: %f %f %f\n", ray.origin.x, ray.origin.y, ray.origin.z);
+        printf("\t nSolids: %d\n", scene->nSolids);
+    }
 
     for (uint i = 0; i < scene->nSolids; i++) {
         uint boxGID = gid * scene->nSolids + i;
+//        printf("Test solid #%d, (solidID: %d)\n", i, scene->solidCandidates[boxGID].solidID);
         if (scene->solidCandidates[boxGID].distance == -1) {
+//            printf("No intersection with solid %d\n", scene->solidCandidates[boxGID].solidID);
             // Default buffer value -1 means that there is no intersection with this solid
             continue;
         }
+//        printf("Intersection with solid BBOX at distance: %.7f\n", scene->solidCandidates[boxGID].distance);
         bool contained = scene->solidCandidates[boxGID].distance == 0;
-        if (!contained && closestIntersection.exists) {
-            break;
-        }
+        // FIXME: this seems to behave badly.
+        // TODO: figure out why it was there in the first place and fix it.
+//        if (!contained && closestIntersection.exists) {
+//            printf("! Contained. No intersection with solid %d\n", scene->solidCandidates[boxGID].solidID);
+//            break;
+//        }
 
         uint solidID = scene->solidCandidates[boxGID].solidID;
+//        printf("Test solid %d POLYGONS\n", solidID);
         Intersection intersection = _findClosestPolygonIntersection(ray, solidID, scene->solids, scene->surfaces, scene->triangles, scene->vertices, photonSolidID);
+//        printf("Intersection with solid %d at distance: %.7f\n", solidID, intersection.distance);
+
         if (intersection.exists && intersection.distance < closestIntersection.distance) {
             closestIntersection = intersection;
         }

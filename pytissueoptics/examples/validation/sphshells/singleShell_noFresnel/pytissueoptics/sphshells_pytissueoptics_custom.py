@@ -7,7 +7,7 @@ low-scattering/low absorption material to simulate CSF-like tissue in the brain.
 
 
 def exampleCode():
-    N = 1000000 if hardwareAccelerationIsAvailable() else 100
+    N = 1_000000 if hardwareAccelerationIsAvailable() else 100
     n = [1, 1, 1]
     mu_s = [0.1, 2, 1]
     mu_a = [0.01, 0.2, 0.01]
@@ -28,8 +28,8 @@ def exampleCode():
 
     viewer.show2D(View2DProjectionX())
     viewer.show2D(View2DProjectionZ())
-    viewer.show2D(View2DProjectionX(solidLabel="outer"))
-    viewer.show2D(View2DProjectionX(solidLabel="inner"))
+    viewer.show2D(View2DProjectionX(solidLabel="medium"))
+    viewer.show2D(View2DProjectionX(solidLabel="shell"))
     viewer.show2D(View2DProjectionX(solidLabel="core"))
 
 

@@ -57,7 +57,7 @@ class CLPhotons:
         if verbose:
             timing = BatchTiming(self._N)
 
-        while photonCount < self._N:
+        while photonCount < self._N: # and batchCount < 2:
             t1 = time.time_ns()
             program.launchKernel(kernelName="propagate", N=np.int32(params.workItemAmount),
                                  arguments=[np.int32(params.photonsPerWorkItem),

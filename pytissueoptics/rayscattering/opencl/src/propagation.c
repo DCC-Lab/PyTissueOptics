@@ -7,9 +7,15 @@
 __constant int NO_SOLID_ID = -1;
 __constant int NO_SURFACE_ID = -1;
 __constant float MIN_ANGLE = 0.0001f;
+__constant float MAX_RADIUS = 1.001f;
+__constant int DEBUG_ID = -201400;
 
 void moveBy(float distance, __global Photon *photons, uint photonID){
     photons[photonID].position += (distance * photons[photonID].direction);
+}
+
+void moveTo(float3 position, __global Photon *photons, uint photonID){
+    photons[photonID].position = position;
 }
 
 void scatterBy(float phi, float theta, __global Photon *photons, uint photonID){
@@ -26,9 +32,27 @@ void interact(__global Photon *photons, __constant Material *materials, __global
               uint logIndex, uint photonID){
     float delta_weight = photons[photonID].weight * materials[photons[photonID].materialID].albedo;
     decreaseWeightBy(delta_weight, photons, photonID);
+//    if (photonID != DEBUG_ID){
+//        return;
+//    }
+        // Print if position outside radius of 0.9
+//    if (length(photons[photonID].position) > 0.901 && photons[photonID].solidID == 1){
+//        printf("LOG photon out MIN RADIUS: %f\n", length(photons[photonID].position));
+//        printf("\t ID: %d\n", photonID);
+//        printf("\t POSITION: (%f, %f, %f)\n", photons[photonID].position.x, photons[photonID].position.y, photons[photonID].position.z);
+//        photons[photonID].weight -= 0.1;
+//    }
+
     logger[logIndex].x = photons[photonID].position.x;
     logger[logIndex].y = photons[photonID].position.y;
     logger[logIndex].z = photons[photonID].position.z;
+    // Print if position radius is greater than MAX_RADIUS
+    if (length(photons[photonID].position) > MAX_RADIUS){
+        printf("LOG PHOTON OUTSIDE SOLID: %f\n", length(photons[photonID].position));
+        printf("\t ID: %d\n", photonID);
+        printf("\t POSITION: (%f, %f, %f)\n", photons[photonID].position.x, photons[photonID].position.y, photons[photonID].position.z);
+        photons[photonID].weight -= 0.1;
+    }
     logger[logIndex].delta_weight = delta_weight;
     logger[logIndex].solidID = photons[photonID].solidID;
     logger[logIndex].surfaceID = NO_SURFACE_ID;
@@ -99,6 +123,19 @@ float reflectOrRefract(Intersection *intersection, __global Photon *photons, __c
         __global Surface *surfaces, __global DataPoint *logger, uint *logIndex, __global uint *seeds, uint gid, uint photonID){
     FresnelIntersection fresnelIntersection = computeFresnelIntersection(photons[photonID].direction, intersection,
                                                                          materials, surfaces, seeds, gid);
+    if (photonID == DEBUG_ID) {
+        printf("*Debug Fresnel - photonID: %d\n", photonID);
+        printf("\t isReflected: %d\n", fresnelIntersection.isReflected);
+        printf("\t isSmooth: %d\n", intersection->isSmooth);
+        printf("\t smooth normal: %f %f %f\n", intersection->normal.x, intersection->normal.y, intersection->normal.z);
+        printf("\t raw normal: %f %f %f\n", intersection->rawNormal.x, intersection->rawNormal.y, intersection->rawNormal.z);
+        printf("\t dot(normal, direction): %f\n", dot(intersection->normal, photons[photonID].direction));
+        printf("\t dot(rawNormal, direction): %f\n", dot(intersection->rawNormal, photons[photonID].direction));
+        printf("\t angleDeflection: %f\n", fresnelIntersection.angleDeflection);
+    }
+
+    // If out angle is close to minAngle used, assert next distance is greater than some epsilon based on direction (so the resulting
+    //  distance from triangle is greater than EPS_CATCH)...
 
     if (fresnelIntersection.isReflected) {
         if (intersection->isSmooth) {
@@ -106,6 +143,10 @@ float reflectOrRefract(Intersection *intersection, __global Photon *photons, __c
             float smoothAngle = acos(dot(intersection->normal, intersection->rawNormal));
             float minDeflectionAngle = smoothAngle + fabs(fresnelIntersection.angleDeflection) / 2 + MIN_ANGLE;
             if (fabs(fresnelIntersection.angleDeflection) < minDeflectionAngle) {
+                if (photonID == DEBUG_ID) {
+                    printf("Deflection angle: %f\n", fresnelIntersection.angleDeflection);
+                    printf("\t minDeflectionAngle: %f\n", minDeflectionAngle);
+                }
                 fresnelIntersection.angleDeflection = sign(fresnelIntersection.angleDeflection) * minDeflectionAngle;
             }
         }
@@ -124,6 +165,9 @@ float reflectOrRefract(Intersection *intersection, __global Photon *photons, __c
 
         float mut1 = materials[photons[photonID].materialID].mu_t;
         float mut2 = materials[fresnelIntersection.nextMaterialID].mu_t;
+//        printf("Refracting with mut1: %f, mut2: %f\n", mut1, mut2);
+//        printf("\t current material ID: %d\n", photons[photonID].materialID);
+//        printf("\t next material ID: %d\n", fresnelIntersection.nextMaterialID);
         if (mut1 == 0) {
             intersection->distanceLeft = 0;
         } else if (mut2 != 0) {
@@ -135,26 +179,87 @@ float reflectOrRefract(Intersection *intersection, __global Photon *photons, __c
         photons[photonID].solidID = fresnelIntersection.nextSolidID;
     }
 
+    // TODO: if distanceLeft < some threshold around 1e-6, move the photon out of the surface by eps?
+    //  ...This risks the photon from crossing another surface.
+    // Or reconsider back epsilon catch
+
     return intersection->distanceLeft;
 }
 
 float propagateStep(float distance, __global Photon *photons, __constant Material *materials, Scene *scene,
                     __global uint *seeds, __global DataPoint *logger, uint *logIndex, uint gid, uint photonID){
 
-    if (distance == 0) {
+    if (distance <= 0) {
         float mu_t = materials[photons[photonID].materialID].mu_t;
         float randomNumber = getRandomFloatValue(seeds, gid);
-        distance = getScatteringDistance(mu_t, randomNumber);
+//        printf("++ New step (previous: %f)\n", distance);
+        distance += getScatteringDistance(mu_t, randomNumber);
+//        printf("\t New distance: %f\n", distance);
+        if (distance < 0){
+            // Not really possible until mu_t if very high (> 1000) and intense smoothing is applied (order 1 spheres).
+            printf("! Distance still negative: %f\n", distance);
+            distance = 0;
+        }
     }
 
     Ray stepRay = {photons[photonID].position, photons[photonID].direction, distance};
     Intersection intersection = findIntersection(stepRay, scene, gid, photons[photonID].solidID);
 
+//    float3 debugDirection = (float3)(-0.717926, -0.693910, 0.055414);
+//    if (length(photons[photonID].direction - debugDirection) < 0.000001f){
+//        float3 debugPosition = (float3)(-0.172085, 0.106354, -0.784270);
+//        if (length(photons[photonID].position - debugPosition) < 0.000001f){
+//            printf("Debugging photon %d\n", photonID);
+//            printf("\t Distance: %f\n", distance);
+//            printf("\t Solid ID: %d\n", photons[photonID].solidID);
+//            printf("\t Intersection exists: %d\n", intersection.exists);
+//            printf("\t Intersection distance: %f\n", intersection.distance);
+//        }
+//    }
+
+    if (photonID == DEBUG_ID) {
+        printf("Debug step\n");
+        printf("\t Position: %f, %f, %f\n", photons[photonID].position.x, photons[photonID].position.y, photons[photonID].position.z);
+        printf("\t Direction: %f, %f, %f\n", photons[photonID].direction.x, photons[photonID].direction.y, photons[photonID].direction.z);
+        printf("\t Distance: %f\n", distance);
+        printf("\t Solid ID: %d\n", photons[photonID].solidID);
+        printf("\t Intersection exists: %d\n", intersection.exists);
+        printf("\t Intersection distance: %f\n", intersection.distance);
+    }
+
     float distanceLeft = 0;
 
     if (intersection.exists){
-        moveBy(intersection.distance, photons, photonID);
+        moveTo(intersection.position, photons, photonID);
         distanceLeft = reflectOrRefract(&intersection, photons, materials, scene->surfaces, logger, logIndex, seeds, gid, photonID);
+        if (photonID == DEBUG_ID){
+            printf("[%d] Intersecting with polygon %d\n", photonID, intersection.polygonID);
+            printf("\t Distance left: %f\n", distanceLeft);
+        }
+
+        // Check if intersection lies too close to a vertex.
+        int closeToVertexID = -1;
+        for (uint i = 0; i < 3; i++) {
+            uint vertexID = scene->triangles[intersection.polygonID].vertexIDs[i];
+            if (length(intersection.position - scene->vertices[vertexID].position) < 3e-7) {
+                closeToVertexID = vertexID;
+                break;
+            }
+        }
+
+        // If too close to a vertex, move photon away slightly.
+        if (closeToVertexID != -1) {
+            int stepSign = 1;
+            int solidIDTowardsNormal = scene->surfaces[intersection.surfaceID].outsideSolidID;
+            if (solidIDTowardsNormal != photons[photonID].solidID) {
+                stepSign = -1;
+            }
+            float3 stepCorrection = stepSign * scene->vertices[closeToVertexID].normal * EPS_CATCH;
+            photons[photonID].position += stepCorrection;
+            // TODO: force def of vertex normals in unsmoothed scenes.
+//            printf("Photon too close to vertex ID %d.", closeToVertexID);
+        }
+
     } else {
         if (distance == INFINITY){
             photons[photonID].weight = 0;
@@ -184,12 +289,15 @@ __kernel void propagate(uint maxPhotons, uint maxInteractions, float weightThres
     uint maxLogIndex = logIndex + maxInteractions;
 
     uint photonCount = 0;
+    uint maxSteps = 0;
 
     while (photonCount < maxPhotons){
         uint currentPhotonIndex = gid + (photonCount * workUnitsAmount);
         photons[currentPhotonIndex].er = getAnyOrthogonalGlobal(&photons[currentPhotonIndex].direction);
 
         float distance = 0;
+        int nSteps = 0;
+        float lastWeight = photons[currentPhotonIndex].weight;
         while (photons[currentPhotonIndex].weight != 0){
             if (logIndex >= (maxLogIndex -1)){  // Added -1 to avoid potential overflow when intersection logs twice
                 return;
@@ -197,8 +305,32 @@ __kernel void propagate(uint maxPhotons, uint maxInteractions, float weightThres
             distance = propagateStep(distance, photons, materials, &scene,
                                      seeds, logger, &logIndex, gid, currentPhotonIndex);
             roulette(weightThreshold, photons, seeds, gid, currentPhotonIndex);
+
+//             Safety check for stuck photons.
+            // wont work for TIR without scattering
+            if (lastWeight == photons[currentPhotonIndex].weight){
+                nSteps++;
+            } else {
+                if (nSteps > maxSteps){
+                    maxSteps = nSteps;
+                }
+                nSteps = 0;
+                lastWeight = photons[currentPhotonIndex].weight;
             }
+
+            if (nSteps > 1000){
+                printf("!!!!!!! Discarding stuck photon %d\n", currentPhotonIndex);
+                printf("\t Position: %f %f %f\n", photons[currentPhotonIndex].position.x, photons[currentPhotonIndex].position.y, photons[currentPhotonIndex].position.z);
+                printf("\t Direction: %f %f %f\n", photons[currentPhotonIndex].direction.x, photons[currentPhotonIndex].direction.y, photons[currentPhotonIndex].direction.z);
+                photons[currentPhotonIndex].weight = 0;
+                break;
+            }
+        }
         photonCount++;
+    }
+
+    if (maxSteps > 10) {
+        printf("Max steps: %d\n", maxSteps);
     }
 }
 

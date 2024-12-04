@@ -80,7 +80,7 @@ class Stats:
     def _reportWorld(self, worldLabel: str):
         totalSolidEnergy = sum([solidStats.totalAbsorbance for solidStats in self._solidStatsMap.values()])
         reportString = "Report of '{}'\n".format(worldLabel)
-        reportString += "  Absorbed {:.2f}% of total power\n".format(100 - totalSolidEnergy)
+        reportString += "  Absorbed {:.3f}% of total power\n".format(100 - totalSolidEnergy)
         return reportString
 
     def _reportSolid(self, solidLabel: str):
@@ -88,16 +88,16 @@ class Stats:
         reportString = "Report of solid '{}'\n".format(solidLabel)
 
         if solidStats.absorbance is None:
-            reportString += ("  Absorbance: N/A ({:.2f}% of total power)\n".format(solidStats.totalAbsorbance))
+            reportString += ("  Absorbance: N/A ({:.3f}% of total power)\n".format(solidStats.totalAbsorbance))
             reportString += "  Absorbance + Transmittance: N/A\n"
             return reportString
 
         reportString += (
-            "  Absorbance: {:.2f}% ({:.2f}% of total power)\n".format(solidStats.absorbance, solidStats.totalAbsorbance))
-        reportString += ("  Absorbance + Transmittance: {:.1f}%\n".format(solidStats.absorbance + solidStats.transmittance))
+            "  Absorbance: {:.3f}% ({:.3f}% of total power)\n".format(solidStats.absorbance, solidStats.totalAbsorbance))
+        reportString += ("  Absorbance + Transmittance: {:.3}%\n".format(solidStats.absorbance + solidStats.transmittance))
 
         for surfaceLabel, surfaceStats in solidStats.surfaces.items():
-            reportString += "    Transmittance at '{}': {:.1f}%\n".format(surfaceLabel, surfaceStats.transmittance)
+            reportString += "    Transmittance at '{}': {:.3}%\n".format(surfaceLabel, surfaceStats.transmittance)
 
         return reportString
 
