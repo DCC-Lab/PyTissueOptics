@@ -255,6 +255,12 @@ Intersection _findClosestPolygonIntersection(Ray ray, uint solidID,
     float minSameSolidDistance = -INFINITY;
 
     for (uint s = solids[solidID-1].firstSurfaceID; s <= solids[solidID-1].lastSurfaceID; s++) {
+        // When an interface joins a side surface, an outside photon could try to intersect with the interface
+        //  while this is not allowed. So we skip these tests (where surface environments dont match the photon).
+        if (photonSolidID != surfaces[s].insideSolidID && photonSolidID != surfaces[s].outsideSolidID) {
+            continue;
+        }
+
         for (uint p = surfaces[s].firstPolygonID; p <= surfaces[s].lastPolygonID; p++) {
             uint vertexIDs[3] = {triangles[p].vertexIDs[0], triangles[p].vertexIDs[1], triangles[p].vertexIDs[2]};
             HitPoint hitPoint = _getTriangleIntersection(ray, vertices[vertexIDs[0]].position, vertices[vertexIDs[1]].position, vertices[vertexIDs[2]].position, triangles[p].normal);
