@@ -1,6 +1,7 @@
-__constant float EPS_CATCH = 0.00001f;
-__constant float EPS_PARALLEL = 0.000001f;
-__constant float EPS_SIDE = 0.000001f;
+__constant float EPS_CATCH = 1e-7f;
+__constant float EPS_PARALLEL = 1e-6f;
+__constant float EPS_SIDE = 3e-6f;
+__constant float EPS = 1e-7;
 
 struct Intersection {
     uint exists;
@@ -184,7 +185,7 @@ HitPoint _getTriangleIntersection(Ray ray, float3 v1, float3 v2, float3 v3, floa
 
     float3 qVector = cross(tVector, edgeA);
     float v = dot(ray.direction, qVector) * invDet;
-    if (v < -EPS_SIDE || u + v > 1.0f) {
+    if (v < -EPS_SIDE || u + v > 1.0f + EPS_SIDE) {
         return hitPoint;
     }
 
@@ -192,7 +193,24 @@ HitPoint _getTriangleIntersection(Ray ray, float3 v1, float3 v2, float3 v3, floa
     hitPoint.distance = t;
     hitPoint.position = ray.origin + t * ray.direction;
 
-    if (t > 0 && ray.length >= t){
+    // Check if the intersection is slightly outside the triangle.
+    float error = 0;
+    if (u < -EPS){
+        error -= u;
+    }
+    if (v < -EPS){
+        error -= v;
+    }
+    if (u + v > 1.0 + EPS){
+        error += u + v - 1.0;
+    }
+    if (error > 0){
+        // Move the hit point towards the triangle center by this error factor.
+        float3 correction = v1 + v2 + v3 - hitPoint.position * 3;
+        hitPoint.position += 2.0f * error * correction;
+    }
+
+    if (t >= 0 && ray.length >= t){
         hitPoint.exists = true;
         return hitPoint;
     }

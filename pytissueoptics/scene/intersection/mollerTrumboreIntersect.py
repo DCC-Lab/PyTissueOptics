@@ -4,13 +4,11 @@ from pytissueoptics.scene.geometry import Vector, Triangle, Quad, Polygon
 from pytissueoptics.scene.intersection import Ray
 
 
-EPS_CORRECTION = 0.0  # TODO: remove
-
-
 class MollerTrumboreIntersect:
-    EPS_CATCH = 0.00001
-    EPS_PARALLEL = 0.000001
-    EPS_SIDE = 0.000001
+    EPS_CATCH = 1e-7
+    EPS_PARALLEL = 1e-6
+    EPS_SIDE = 3e-6
+    EPS = 1e-7
 
     def getIntersection(self, ray: Ray, polygon: Union[Triangle, Quad, Polygon]) -> Optional[Vector]:
         if isinstance(polygon, Triangle):
@@ -52,14 +50,27 @@ class MollerTrumboreIntersect:
 
         qVector = tVector.cross(edgeA)
         v = ray.direction.dot(qVector) * inverseDeterminant
-        if v < -self.EPS_SIDE or u + v > 1.:
+        if v < -self.EPS_SIDE or u + v > 1. + self.EPS_SIDE:
             return None
 
         # Distance to intersection point
         t = edgeB.dot(qVector) * inverseDeterminant
         hitPoint = ray.origin + ray.direction * t
 
-        if t > 0 and (ray.length >= t or ray.length is None):
+        # Check if the intersection is slightly outside the true triangle surface.
+        error = 0
+        if u < -self.EPS:
+            error -= u
+        if v < -self.EPS:
+            error -= v
+        if u + v > 1. + self.EPS:
+            error += u + v - 1.
+        if error > 0:
+            # Move the hit point towards the triangle center by this error factor.
+            correctionDirection = v1 + v2 + v3 - hitPoint * 3
+            hitPoint += correctionDirection * 2 * error
+
+        if t >= 0 and (ray.length >= t or ray.length is None):
             # Case 1: Trivial case. Intersects.
             return hitPoint
 
