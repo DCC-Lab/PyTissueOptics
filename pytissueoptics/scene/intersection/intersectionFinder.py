@@ -40,24 +40,36 @@ class IntersectionFinder:
         self, ray: Ray, polygons: List[Polygon], currentSolidLabel: str
     ) -> Optional[Intersection]:
         closestIntersection = Intersection(sys.maxsize)
+        minSameSolidDistance = -sys.maxsize
+
         for polygon in polygons:
-            # Skip intersection test if the ray is heading towards its current solid
+            intersectionPoint = self._polygonIntersect.getIntersection(ray, polygon)
+            if not intersectionPoint:
+                continue
+            distance = (intersectionPoint - ray.origin).getNorm()
+
+            # Discard intersection result if the ray is heading towards its current solid
             # (possible because of the epsilon catch zone in our Moller Trumbore intersect).
             isGoingInside = ray.direction.dot(polygon.normal) < 0
             nextSolid = polygon.insideEnvironment.solid if isGoingInside else polygon.outsideEnvironment.solid
             nextLabel = 'world' if nextSolid is None else nextSolid.getLabel()
             if nextLabel == currentSolidLabel:
+                minSameSolidDistance = max(minSameSolidDistance, distance)
                 continue
 
-            intersectionPoint = self._polygonIntersect.getIntersection(ray, polygon)
-            if not intersectionPoint:
-                continue
-            distance = (intersectionPoint - ray.origin).getNorm()
-            if distance < closestIntersection.distance:
+            if abs(distance) < abs(closestIntersection.distance):
                 closestIntersection = Intersection(distance, intersectionPoint, polygon)
 
         if closestIntersection.distance == sys.maxsize:
             return None
+
+        if closestIntersection.distance == 0 and minSameSolidDistance == 0:
+            # Cancel back catch. Surface overlap.
+            return None
+        if closestIntersection.distance < 0 and minSameSolidDistance > closestIntersection.distance + 1e-7:
+            # Cancel back catch if the same-solid intersect distance is greater.
+            return None
+
         return closestIntersection
 
     @staticmethod
