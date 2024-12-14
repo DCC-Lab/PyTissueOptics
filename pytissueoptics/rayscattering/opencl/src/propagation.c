@@ -163,6 +163,28 @@ float propagateStep(float distance, __global Photon *photons, __constant Materia
     if (intersection.exists){
         moveTo(intersection.position, photons, photonID);
         distanceLeft = reflectOrRefract(&intersection, photons, materials, scene->surfaces, logger, logIndex, seeds, gid, photonID);
+
+        // Check if intersection lies too close to a vertex.
+        int closeToVertexID = -1;
+        for (uint i = 0; i < 3; i++) {
+            uint vertexID = scene->triangles[intersection.polygonID].vertexIDs[i];
+            if (length(intersection.position - scene->vertices[vertexID].position) < 3e-7) {
+                closeToVertexID = vertexID;
+                break;
+            }
+        }
+
+        // If too close to a vertex, move photon away slightly.
+        if (closeToVertexID != -1) {
+            int stepSign = 1;
+            int solidIDTowardsNormal = scene->surfaces[intersection.surfaceID].outsideSolidID;
+            if (solidIDTowardsNormal != photons[photonID].solidID) {
+                stepSign = -1;
+            }
+            float3 stepCorrection = stepSign * scene->vertices[closeToVertexID].normal * EPS_CATCH;
+            photons[photonID].position += stepCorrection;
+        }
+
     } else {
         if (distance == INFINITY){
             photons[photonID].weight = 0;

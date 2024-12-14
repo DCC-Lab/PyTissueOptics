@@ -82,6 +82,20 @@ class Photon:
         if intersection:
             self.moveTo(intersection.position)
             distanceLeft = self.reflectOrRefract(intersection)
+
+            # Check if intersection lies too close to a vertex.
+            for vertex in intersection.polygon.vertices:
+                if (intersection.position - vertex).getNorm() > 3e-7:
+                    continue
+                # If too close to a vertex, move photon away slightly.
+                stepSign = 1
+                solidLabelTowardsNormal = intersection.outsideEnvironment.solidLabel
+                if solidLabelTowardsNormal != self.solidLabel:
+                    stepSign = -1
+                stepCorrection = vertex.normal * stepSign * 1e-7
+                self._position += stepCorrection
+                break
+
         else:
             if math.isinf(distance):
                 self._weight = 0
