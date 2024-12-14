@@ -360,8 +360,10 @@ Intersection findIntersection(Ray ray, Scene *scene, uint gid, uint photonSolidI
             // Default buffer value -1 means that there is no intersection with this solid
             continue;
         }
-        bool contained = scene->solidCandidates[boxGID].distance == 0;
-        if (!contained && closestIntersection.exists) {
+
+        if (scene->solidCandidates[boxGID].distance > closestIntersection.distance) {
+            // The solid candidates are sorted by distance, so we can break early if the BBox distance
+            // is greater than the closest intersection found so far.
             break;
         }
 
