@@ -11,7 +11,6 @@ from pytissueoptics.scene.intersection import Ray
 from pytissueoptics.scene.intersection.intersectionFinder import IntersectionFinder, Intersection
 from pytissueoptics.scene.logger import Logger, InteractionKey
 
-WORLD_LABEL = "world"
 WEIGHT_THRESHOLD = 1e-4
 MIN_ANGLE = 0.0001
 
@@ -52,9 +51,7 @@ class Photon:
 
     @property
     def solidLabel(self):
-        if not self._environment.solid:
-            return WORLD_LABEL
-        return self._environment.solid.getLabel()
+        return self._environment.solidLabel
 
     def setContext(self, environment: Environment, intersectionFinder: IntersectionFinder = None, logger: Logger = None,
                    fresnelIntersect=FresnelIntersect()):

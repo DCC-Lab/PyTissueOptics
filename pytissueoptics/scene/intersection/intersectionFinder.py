@@ -43,17 +43,23 @@ class IntersectionFinder:
         minSameSolidDistance = -sys.maxsize
 
         for polygon in polygons:
+            # When an interface joins a side surface, an outside photon could try to intersect with the interface.
+            #  This is not allowed, so we skip these tests (where surface environments dont match the photon).
+            insideLabel = polygon.insideEnvironment.solidLabel
+            outsideLabel = polygon.outsideEnvironment.solidLabel
+            if insideLabel != currentSolidLabel and outsideLabel != currentSolidLabel:
+                continue
+
             intersectionPoint = self._polygonIntersect.getIntersection(ray, polygon)
             if not intersectionPoint:
                 continue
             distance = (intersectionPoint - ray.origin).getNorm()
 
             # Discard intersection result if the ray is heading towards its current solid
-            # (possible because of the epsilon catch zone in our Moller Trumbore intersect).
+            # (possible because of the epsilon catch zone in our Moller-Trumbore intersect).
             isGoingInside = ray.direction.dot(polygon.normal) < 0
-            nextSolid = polygon.insideEnvironment.solid if isGoingInside else polygon.outsideEnvironment.solid
-            nextLabel = 'world' if nextSolid is None else nextSolid.getLabel()
-            if nextLabel == currentSolidLabel:
+            nextSolidLabel = insideLabel if isGoingInside else outsideLabel
+            if nextSolidLabel == currentSolidLabel:
                 minSameSolidDistance = max(minSameSolidDistance, distance)
                 continue
 

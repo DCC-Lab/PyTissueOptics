@@ -25,11 +25,9 @@ class MollerTrumboreIntersect:
         Modified to support rays with finite length:
             A. If the intersection is too far away, do not intersect.
             B. (Forward catch) If the intersection is just a bit too far away, such that the resulting shortest distance
-                to surface is under epsilon, we must intersect already to prevent floating point errors in the next
+                to surface is under epsilon, we must intersect to prevent floating point errors in the next
                 intersection search.
-            C. (Backward catch) If, after a forward catch, the photon attempts to scatter back (inside epsilon region)
-                before actually crossing the surface, we must trigger an intersection event (at the origin). Ignore if
-                the origin does not lie over the triangle (meaning that the photon already crossed another surface).
+            C. (Backward catch) If the photon attempts to scatter back before actually crossing the surface, we must trigger an intersection event.
         """
         v1, v2, v3 = triangle.vertices
         edgeA = v2 - v1
