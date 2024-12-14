@@ -6,6 +6,7 @@ from pytissueoptics.scene.intersection import Ray
 
 class MollerTrumboreIntersect:
     EPS_CATCH = 1e-7
+    EPS_BACK_CATCH = 2e-6
     EPS_PARALLEL = 1e-6
     EPS_SIDE = 3e-6
     EPS = 1e-7
@@ -81,25 +82,15 @@ class MollerTrumboreIntersect:
         else:
             dt = t - ray.length
         dt_T = abs(triangle.normal.dot(ray.direction) * dt)
+
         if t > ray.length and dt_T < self.EPS_CATCH:
             # Case 2: Forward epsilon catch. Ray ends too close to the triangle, so we intersect.
             return hitPoint
-        if t <= 0 and dt_T < self.EPS_CATCH:
-            # Case 3: Backward epsilon catch. Ray starts close to the triangle, so we intersect at the origin.
+
+        if t < 0 and (t > -self.EPS_BACK_CATCH or dt_T < self.EPS_CATCH):
+            # Case 3: Backward epsilon catch. Ray starts too close to the triangle, so we intersect.
             # This requires the intersector to always test triangles (or at least, close ones) of the origin solid.
-
-            # Do not catch if the origin lies outside the triangle (intersection test using triangle normal).
-            pVector = triangle.normal.cross(edgeB)
-            determinant = edgeA.dot(pVector)
-            inverseDeterminant = 1. / determinant
-            u = tVector.dot(pVector) * inverseDeterminant
-            if u < 0 or u > 1:
-                return None
-            v = triangle.normal.dot(qVector) * inverseDeterminant
-            if v < 0 or u + v > 1:
-                return None
-
-            return ray.origin
+            return hitPoint
 
         # Case 4: No intersection.
         return None

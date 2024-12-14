@@ -1,4 +1,5 @@
 __constant float EPS_CATCH = 1e-7f;
+__constant float EPS_BACK_CATCH = 2e-6f;
 __constant float EPS_PARALLEL = 1e-6f;
 __constant float EPS_SIDE = 3e-6f;
 __constant float EPS = 1e-7;
@@ -228,23 +229,10 @@ HitPoint _getTriangleIntersection(Ray ray, float3 v1, float3 v2, float3 v3, floa
         hitPoint.exists = true;
         return hitPoint;
     }
-    if (t <= 0 && dt_T < EPS_CATCH) {
-        // Create a test ray to compute if the origin lies inside the triangle (from the normal).
-        pVector = cross(normal, edgeB);
-        det = dot(edgeA, pVector);
-        invDet = 1.0f / det;
-        u = dot(tVector, pVector) * invDet;
-        if (u < 0.0f || u > 1.0f) {
-            return hitPoint;
-        }
 
-        v = dot(normal, qVector) * invDet;
-        if (v < 0.0f || u + v > 1.0f) {
-            return hitPoint;
-        }
+    if (t < 0 && (t > -EPS_BACK_CATCH || dt_T < EPS_CATCH)) {
+        // Backward catch.
         hitPoint.exists = true;
-        hitPoint.distance = 0;
-        hitPoint.position = ray.origin;
         return hitPoint;
     }
 
@@ -258,20 +246,28 @@ Intersection _findClosestPolygonIntersection(Ray ray, uint solidID,
     Intersection intersection;
     intersection.exists = false;
     intersection.distance = INFINITY;
+
+    float minSameSolidDistance = -INFINITY;
+
     for (uint s = solids[solidID-1].firstSurfaceID; s <= solids[solidID-1].lastSurfaceID; s++) {
         for (uint p = surfaces[s].firstPolygonID; p <= surfaces[s].lastPolygonID; p++) {
-            bool isGoingInside = dot(ray.direction, triangles[p].normal) < 0;
-            uint nextSolidID = isGoingInside ? surfaces[s].insideSolidID : surfaces[s].outsideSolidID;
-            if (nextSolidID == photonSolidID) {
-                continue;
-            }
-
             uint vertexIDs[3] = {triangles[p].vertexIDs[0], triangles[p].vertexIDs[1], triangles[p].vertexIDs[2]};
             HitPoint hitPoint = _getTriangleIntersection(ray, vertices[vertexIDs[0]].position, vertices[vertexIDs[1]].position, vertices[vertexIDs[2]].position, triangles[p].normal);
+
             if (!hitPoint.exists) {
                 continue;
             }
-            if (hitPoint.distance < intersection.distance) {
+
+            bool isGoingInside = dot(ray.direction, triangles[p].normal) < 0;
+            uint nextSolidID = isGoingInside ? surfaces[s].insideSolidID : surfaces[s].outsideSolidID;
+            if (nextSolidID == photonSolidID) {
+                if (hitPoint.distance > minSameSolidDistance) {
+                    minSameSolidDistance = hitPoint.distance;
+                }
+                continue;
+            }
+
+            if (fabs(hitPoint.distance) < fabs(intersection.distance)) {
                 intersection.exists = true;
                 intersection.distance = hitPoint.distance;
                 intersection.position = hitPoint.position;
@@ -281,6 +277,17 @@ Intersection _findClosestPolygonIntersection(Ray ray, uint solidID,
             }
         }
     }
+
+    if (intersection.distance == 0 && minSameSolidDistance == 0){
+        // Cancel back catch. Surface overlap.
+        intersection.exists = false;
+    } else if (intersection.distance < 0) {
+        // Cancel backward catch if the same-solid intersect distance is greater.
+        if (minSameSolidDistance > intersection.distance + 1e-7) {
+            intersection.exists = false;
+        }
+    }
+
     return intersection;
 }
 
