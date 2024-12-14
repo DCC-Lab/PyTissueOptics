@@ -96,11 +96,8 @@ class SimpleIntersectionFinder(IntersectionFinder):
                 possible, and we simply set the bbox intersection distance to zero.
         2. Sort these solid candidates by bbox intersection distance.
         3. For each solid, find the closest polygon intersection.
-            3.1 If a polygon intersection is found for a given solid candidate, then we return this intersection point
-            without testing the other solid candidates since they are ordered by distance.
-            N.B.: Except for the case of multiple contained solids where it is not possible to order them in a
-            meaningful way, so in this case we need to test all of them (candidate distance is zero) before
-            returning the closest intersection found.
+            If the solid bbox distance is greater than the closest intersection distance, then we can stop testing since
+            they are ordered by distance. Note that bbox distance is zero if the ray starts inside.
         """
         bboxIntersections = self._findBBoxIntersectingSolids(ray, currentSolidLabel)
         bboxIntersections.sort(key=lambda x: x[0])
@@ -108,8 +105,7 @@ class SimpleIntersectionFinder(IntersectionFinder):
         closestDistance = sys.maxsize
         closestIntersection = None
         for i, (distance, solid) in enumerate(bboxIntersections):
-            contained = distance == 0
-            if not contained and closestIntersection:
+            if distance > closestDistance:
                 break
             intersection = self._findClosestPolygonIntersection(ray, solid.getPolygons(), currentSolidLabel)
             if intersection and intersection.distance < closestDistance:
