@@ -233,6 +233,11 @@ HitPoint _getTriangleIntersection(Ray ray, float3 v1, float3 v2, float3 v3, floa
     if (t < 0 && (t > -EPS_BACK_CATCH || dt_T < EPS_CATCH)) {
         // Backward catch.
         hitPoint.exists = true;
+
+        // If ray lies on the triangle, return a distance of 0 to prioritize this intersection.
+        if (dt_T < EPS) {
+            hitPoint.distance = 0;
+        }
         return hitPoint;
     }
 
