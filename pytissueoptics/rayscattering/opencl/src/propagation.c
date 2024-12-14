@@ -12,6 +12,10 @@ void moveBy(float distance, __global Photon *photons, uint photonID){
     photons[photonID].position += (distance * photons[photonID].direction);
 }
 
+void moveTo(float3 position, __global Photon *photons, uint photonID){
+    photons[photonID].position = position;
+}
+
 void scatterBy(float phi, float theta, __global Photon *photons, uint photonID){
     rotateAroundAxisGlobal(&photons[photonID].er, &photons[photonID].direction, phi);
     rotateAroundAxisGlobal(&photons[photonID].direction, &photons[photonID].er, theta);
@@ -141,10 +145,14 @@ float reflectOrRefract(Intersection *intersection, __global Photon *photons, __c
 float propagateStep(float distance, __global Photon *photons, __constant Material *materials, Scene *scene,
                     __global uint *seeds, __global DataPoint *logger, uint *logIndex, uint gid, uint photonID){
 
-    if (distance == 0) {
+    if (distance <= 0) {
         float mu_t = materials[photons[photonID].materialID].mu_t;
         float randomNumber = getRandomFloatValue(seeds, gid);
-        distance = getScatteringDistance(mu_t, randomNumber);
+        distance += getScatteringDistance(mu_t, randomNumber);
+        if (distance < 0){
+            // Not really possible until mu_t is very high (> 1000) and intense smoothing is applied (order-1 spheres).
+            distance = 0;
+        }
     }
 
     Ray stepRay = {photons[photonID].position, photons[photonID].direction, distance};
@@ -153,7 +161,7 @@ float propagateStep(float distance, __global Photon *photons, __constant Materia
     float distanceLeft = 0;
 
     if (intersection.exists){
-        moveBy(intersection.distance, photons, photonID);
+        moveTo(intersection.position, photons, photonID);
         distanceLeft = reflectOrRefract(&intersection, photons, materials, scene->surfaces, logger, logIndex, seeds, gid, photonID);
     } else {
         if (distance == INFINITY){
@@ -197,7 +205,7 @@ __kernel void propagate(uint maxPhotons, uint maxInteractions, float weightThres
             distance = propagateStep(distance, photons, materials, &scene,
                                      seeds, logger, &logIndex, gid, currentPhotonIndex);
             roulette(weightThreshold, photons, seeds, gid, currentPhotonIndex);
-            }
+        }
         photonCount++;
     }
 }

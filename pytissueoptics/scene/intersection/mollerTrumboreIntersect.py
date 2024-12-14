@@ -57,9 +57,11 @@ class MollerTrumboreIntersect:
 
         # Distance to intersection point
         t = edgeB.dot(qVector) * inverseDeterminant
+        hitPoint = ray.origin + ray.direction * t
+
         if t > 0 and (ray.length >= t or ray.length is None):
             # Case 1: Trivial case. Intersects.
-            return ray.origin + ray.direction * t
+            return hitPoint
 
         # Next we need to check if the intersection is inside the epsilon catch zone (forward or backward).
         # Note that this mechanic only works when same-solid intersections are ignored before calling this function.
@@ -69,8 +71,8 @@ class MollerTrumboreIntersect:
             dt = t - ray.length
         dt_T = abs(triangle.normal.dot(ray.direction) * dt)
         if t > ray.length and dt_T < self.EPS_CATCH:
-            # Case 2: Forward epsilon catch. Ray ends close to the triangle, so we intersect at the ray's end.
-            return ray.origin + ray.direction * ray.length
+            # Case 2: Forward epsilon catch. Ray ends too close to the triangle, so we intersect.
+            return hitPoint
         if t <= 0 and dt_T < self.EPS_CATCH:
             # Case 3: Backward epsilon catch. Ray starts close to the triangle, so we intersect at the origin.
             # This requires the intersector to always test triangles (or at least, close ones) of the origin solid.
