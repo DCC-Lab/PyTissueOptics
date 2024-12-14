@@ -74,13 +74,16 @@ class Photon:
             self.roulette()
 
     def step(self, distance=0) -> float:
-        if distance == 0:
-            distance = self.material.getScatteringDistance()
+        if distance <= 0:
+            distance += self.material.getScatteringDistance()
+            if distance < 0:
+                # Not really possible until mu_t is very high (> 1000) and intense smoothing is applied (order-1 spheres).
+                distance = 0
 
         intersection = self._getIntersection(distance)
 
         if intersection:
-            self.moveBy(intersection.distance)
+            self.moveTo(intersection.position)
             distanceLeft = self.reflectOrRefract(intersection)
         else:
             if math.isinf(distance):
@@ -142,6 +145,9 @@ class Photon:
 
     def moveBy(self, distance):
         self._position += self._direction * distance
+
+    def moveTo(self, position: Vector):
+        self._position = position
 
     def reflect(self, fresnelIntersection: FresnelIntersection):
         self._direction.rotateAround(fresnelIntersection.incidencePlane,

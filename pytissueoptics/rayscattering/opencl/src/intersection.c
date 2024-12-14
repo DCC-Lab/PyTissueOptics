@@ -189,11 +189,11 @@ HitPoint _getTriangleIntersection(Ray ray, float3 v1, float3 v2, float3 v3, floa
     }
 
     float t = dot(edgeB, qVector) * invDet;
+    hitPoint.distance = t;
+    hitPoint.position = ray.origin + t * ray.direction;
 
     if (t > 0 && ray.length >= t){
         hitPoint.exists = true;
-        hitPoint.distance = t;
-        hitPoint.position = ray.origin + t * ray.direction;
         return hitPoint;
     }
 
@@ -204,10 +204,10 @@ HitPoint _getTriangleIntersection(Ray ray, float3 v1, float3 v2, float3 v3, floa
         dt = t - ray.length;
     }
     float dt_T = fabs(dot(normal, ray.direction) * dt);
+
     if (t > ray.length && dt_T < EPS_CATCH) {
+        // Forward catch.
         hitPoint.exists = true;
-        hitPoint.distance = ray.length;
-        hitPoint.position = ray.origin + ray.length * ray.direction;
         return hitPoint;
     }
     if (t <= 0 && dt_T < EPS_CATCH) {
