@@ -24,6 +24,17 @@ jobs:
           sudo apt-get install -y pocl-opencl-icd ocl-icd-opencl-dev gcc clinfo
           clinfo
 
+      - name: Install OpenGL, EGL, and OSMesa
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y \
+            libegl1-mesa-dev \
+            libosmesa6-dev \
+            libgl1-mesa-dev \
+            libglu1-mesa-dev \
+            freeglut3-dev \
+            xvfb
+
       - name: Install tox
         run: pip install tox
 
