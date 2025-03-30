@@ -11,8 +11,7 @@ from pytissueoptics.rayscattering.opencl.config.CLConfig import OPENCL_SOURCE_DI
 from pytissueoptics.rayscattering.opencl.CLProgram import CLProgram
 from pytissueoptics.rayscattering.opencl.CLScene import NO_SURFACE_ID, NO_LOG_ID, NO_SOLID_ID, CLScene
 from pytissueoptics.rayscattering.opencl.buffers import *
-from pytissueoptics.scene.intersection.mollerTrumboreIntersect import EPS_CORRECTION
-
+from pytissueoptics.scene.geometry import Vertex
 
 if OPENCL_AVAILABLE:
     import pyopencl as cl
@@ -64,23 +63,23 @@ class TestCLPhoton(unittest.TestCase):
 
         expectedDirection = self.INITIAL_DIRECTION.copy()
         expectedDirection.multiply(-1)
-        self._assertVectorAlmostEqual(expectedDirection, photonResult.direction)
+        self._assertVectorAlmostEqual(expectedDirection, photonResult.direction, places=6)
 
-    def testWhenScatterByPhi0_shouldNotChangePhotonEr(self):
+    def testWhenScatterByPhi0_shouldStillResetPhotonEr(self):
         photonResult = self._photonFunc("scatterBy", 0, 0)
         initialEr = photonResult.er
 
         phi, theta = 0, np.pi/4
         photonResult = self._photonFunc("scatterBy", phi, theta)
-        self._assertVectorAlmostEqual(initialEr, photonResult.er)
+        self._assertVectorNotAlmostEqual(initialEr, photonResult.er)
 
-    def testWhenScatterByPhi2Pi_shouldNotChangePhotonEr(self):
+    def testWhenScatterByPhi2Pi_shouldStillResetPhotonEr(self):
         photonResult = self._photonFunc("scatterBy", 0, 0)
         initialEr = photonResult.er
 
         phi, theta = 2*np.pi, np.pi/4
         photonResult = self._photonFunc("scatterBy", phi, theta)
-        self._assertVectorAlmostEqual(initialEr, photonResult.er)
+        self._assertVectorNotAlmostEqual(initialEr, photonResult.er)
 
     def testWhenScatterBy_shouldChangePhotonErAndDirection(self):
         photonResult = self._photonFunc("scatterBy", 0, 0)
@@ -105,7 +104,7 @@ class TestCLPhoton(unittest.TestCase):
 
         expectedDirection = Vector(1, 1, 0)
         expectedDirection.normalize()
-        self._assertVectorAlmostEqual(expectedDirection, photonResult.direction)
+        self._assertVectorAlmostEqual(expectedDirection, photonResult.direction, places=6)
 
     def testWhenRefract_shouldRefractPhoton(self):
         self.INITIAL_DIRECTION = Vector(1, -1, 0)
@@ -237,7 +236,7 @@ class TestCLPhoton(unittest.TestCase):
         self.assertEqual(self.INITIAL_SOLID_ID, dataPoint.solidID)
         self.assertEqual(NO_SURFACE_ID, dataPoint.surfaceID)
 
-    def testWhenReflectOrRefractWithReflectingIntersection_shouldReflectPhotonAndMoveItBackABit(self):
+    def testWhenReflectOrRefractWithReflectingIntersection_shouldReflectPhoton(self):
         # => Photon is trying to enter solid
         intersectionNormal = Vector(0, 1, 0)
         self.INITIAL_SOLID_ID = NO_SOLID_ID
@@ -253,15 +252,15 @@ class TestCLPhoton(unittest.TestCase):
 
         expectedDirection = Vector(1, 1, 0)
         expectedDirection.normalize()
-        self._assertVectorAlmostEqual(expectedDirection, photonResult.direction)
-        expectedPosition = self.INITIAL_POSITION + intersectionNormal * EPS_CORRECTION
+        self._assertVectorAlmostEqual(expectedDirection, photonResult.direction, places=6)
+        expectedPosition = self.INITIAL_POSITION
         self._assertVectorAlmostEqual(expectedPosition, photonResult.position)
         self.assertEqual(NO_SOLID_ID, photonResult.solidID)
 
         dataPoint = self._getDataPointResult(logger)
         self.assertEqual(NO_LOG_ID, dataPoint.solidID)
 
-    def testWhenReflectOrRefractWithRefractingIntersection_shouldRefractPhotonAndMoveABitAfterSurface(self):
+    def testWhenReflectOrRefractWithRefractingIntersection_shouldRefractPhoton(self):
         # => Photon enters solid
         intersectionNormal = Vector(0, 1, 0)
         self.INITIAL_SOLID_ID = NO_SOLID_ID
@@ -280,8 +279,8 @@ class TestCLPhoton(unittest.TestCase):
 
         expectedDirection = Vector(0, -1, 0)
         expectedDirection.normalize()
-        self._assertVectorAlmostEqual(expectedDirection, photonResult.direction)
-        expectedPosition = self.INITIAL_POSITION - intersectionNormal * EPS_CORRECTION
+        self._assertVectorAlmostEqual(expectedDirection, photonResult.direction, places=6)
+        expectedPosition = self.INITIAL_POSITION
         self._assertVectorAlmostEqual(expectedPosition, photonResult.position)
         self.assertEqual(insideSolidID, photonResult.solidID)
         self.assertEqual(insideMaterialID, photonResult.materialID)
@@ -300,7 +299,7 @@ class TestCLPhoton(unittest.TestCase):
         logger = DataPointCL(2)
         surfaces = SurfaceCL([SurfaceCLInfo(0, 0, 0, 0, insideSolidID=9, outsideSolidID=10, toSmooth=False)])
         photonResult = self._photonFunc("propagateStep", stepDistance,
-                                        MaterialCL([ScatteringMaterial()]), surfaces, SeedCL(1), logger, 0)
+                                        MaterialCL([ScatteringMaterial()]), surfaces, TriangleCL([]),  VertexCL([]), SeedCL(1), logger, 0)
 
         self.assertEqual(0, photonResult.weight)
 
@@ -311,45 +310,34 @@ class TestCLPhoton(unittest.TestCase):
         logger = DataPointCL(2)
         surfaces = SurfaceCL([SurfaceCLInfo(0, 0, 0, 0, insideSolidID=9, outsideSolidID=10, toSmooth=False)])
         photonResult = self._photonFunc("propagateStep", stepDistance,
-                                        MaterialCL([ScatteringMaterial()]), surfaces, SeedCL(1), logger, 0)
+                                        MaterialCL([ScatteringMaterial()]), surfaces, TriangleCL([]),  VertexCL([]), SeedCL(1), logger, 0)
 
         expectedPosition = self.INITIAL_POSITION + self.INITIAL_DIRECTION * stepDistance
         self._assertVectorAlmostEqual(expectedPosition, photonResult.position)
         interaction = self._getDataPointResult(logger)
         self.assertEqual(self.INITIAL_SOLID_ID, interaction.solidID)
 
-    def testWhenStepTooCloseToIntersectionFromOutside_shouldMovePhotonBackABitAndScatter(self):
-        stepDistance = 10
-        self.INITIAL_SOLID_ID = NO_SOLID_ID
+    def testWhenStepWithIntersectionTooCloseToVertex_shouldMovePhotonAwayABitAndScatter(self):
+        stepDistance = 10.0
+        nextSolidID = self.INITIAL_SOLID_ID + 1
         self.INITIAL_DIRECTION = Vector(0, 0, -1)
-        self._mockFindIntersection(exists=True, isTooClose=True, normal=Vector(0, 0, 1))
+        normal = Vector(0, 0, 1)
+        self._mockFindIntersection(exists=True, distance=stepDistance, normal=normal)
+        intersectionPosition = self.INITIAL_POSITION + self.INITIAL_DIRECTION * stepDistance
 
         logger = DataPointCL(2)
-        surfaces = SurfaceCL([SurfaceCLInfo(0, 0, 0, 0, insideSolidID=9, outsideSolidID=NO_SOLID_ID, toSmooth=False)])
+        surfaces = SurfaceCL([SurfaceCLInfo(0, 0, 0, 0, insideSolidID=nextSolidID, outsideSolidID=self.INITIAL_SOLID_ID, toSmooth=False)])
+        triangles = TriangleCL([TriangleCLInfo([0, 1, 2], normal)])
+        # Put vertex slightly after the intersection point
+        vertex = Vertex(intersectionPosition.x, intersectionPosition.y, intersectionPosition.z - 2e-7)
+        vertex.normal = normal
         photonResult = self._photonFunc("propagateStep", stepDistance,
-                                        MaterialCL([ScatteringMaterial()]), surfaces, SeedCL(1), logger, 0)
+                                        MaterialCL([ScatteringMaterial()]), surfaces, triangles, VertexCL([vertex]), SeedCL(1), logger, 0)
 
-        expectedPosition = self.INITIAL_POSITION + self.INITIAL_DIRECTION * (stepDistance - EPS_CORRECTION)
-        self._assertVectorAlmostEqual(expectedPosition, photonResult.position)
+        # Due to the correction being under floating point rounding error, we cannot measure it.
+        self._assertVectorAlmostEqual(intersectionPosition, photonResult.position)
         interaction = self._getDataPointResult(logger)
-        self.assertEqual(self.INITIAL_SOLID_ID, interaction.solidID)
-
-    def testWhenStepTooCloseToIntersectionFromInside_shouldMovePhotonBackABitAndScatter(self):
-        stepDistance = 10
-        self.INITIAL_SOLID_ID = 9
-        self.INITIAL_DIRECTION = Vector(0, 0, 1)
-        self._mockFindIntersection(exists=True, isTooClose=True, normal=Vector(0, 0, 1))
-
-        logger = DataPointCL(2)
-        surfaces = SurfaceCL([SurfaceCLInfo(0, 0, 0, 0, insideSolidID=self.INITIAL_SOLID_ID,
-                                            outsideSolidID=NO_SOLID_ID, toSmooth=False)])
-        photonResult = self._photonFunc("propagateStep", stepDistance,
-                                        MaterialCL([ScatteringMaterial()]), surfaces, SeedCL(1), logger, 0)
-
-        expectedPosition = self.INITIAL_POSITION + self.INITIAL_DIRECTION * (stepDistance - EPS_CORRECTION)
-        self._assertVectorAlmostEqual(expectedPosition, photonResult.position)
-        interaction = self._getDataPointResult(logger)
-        self.assertEqual(self.INITIAL_SOLID_ID, interaction.solidID)
+        self.assertEqual(nextSolidID, interaction.solidID)
 
     def testWhenStepWithNoDistance_shouldStepWithANewScatteringDistance(self):
         stepDistance = 0
@@ -358,44 +346,43 @@ class TestCLPhoton(unittest.TestCase):
         logger = DataPointCL(2)
         surfaces = SurfaceCL([SurfaceCLInfo(0, 0, 0, 0, insideSolidID=9, outsideSolidID=10, toSmooth=False)])
         photonResult = self._photonFunc("propagateStep", stepDistance,
-                                        MaterialCL([ScatteringMaterial(5, 2)]), surfaces, SeedCL(1), logger, 0)
+                                        MaterialCL([ScatteringMaterial(5, 2)]), surfaces, TriangleCL([]),  VertexCL([]), SeedCL(1), logger, 0)
 
         self._assertVectorNotAlmostEqual(self.INITIAL_POSITION, photonResult.position)
 
-    def testWhenStepWithIntersectionReflecting_shouldMovePhotonToIntersectionAndBackABit(self):
+    def testWhenStepWithIntersectionReflecting_shouldMovePhotonToIntersection(self):
         stepDistance = 10
         intersectionDistance = 5
         self._mockFindIntersection(exists=True, distance=intersectionDistance)
         self._mockFresnelIntersection(isReflected=True)
 
         logger = DataPointCL(2)
-        surfaces = SurfaceCL([SurfaceCLInfo(0, 0, 0, 0, insideSolidID=9,
-                                            outsideSolidID=self.INITIAL_SOLID_ID, toSmooth=False)])
-        photonResult = self._photonFunc("propagateStep", stepDistance,
-                                        MaterialCL([ScatteringMaterial()]), surfaces, SeedCL(1), logger, 0)
+        surfaces = SurfaceCL([SurfaceCLInfo(0, 0, 0, 0, insideSolidID=9, outsideSolidID=10, toSmooth=False)])
+        triangles = TriangleCL([TriangleCLInfo([0, 1, 2], Vector(0, 0, 1))])
+        photonResult = self._photonFunc(
+            "propagateStep", stepDistance, MaterialCL([ScatteringMaterial()]),
+            surfaces, triangles,  VertexCL([]), SeedCL(1), logger, 0
+        )
 
-        expectedPosition = self.INITIAL_POSITION + self.INITIAL_DIRECTION * (intersectionDistance - EPS_CORRECTION)
+        expectedPosition = self.INITIAL_POSITION + self.INITIAL_DIRECTION * intersectionDistance
         self._assertVectorAlmostEqual(expectedPosition, photonResult.position)
 
-    def testWhenStepWithIntersectionRefracting_shouldMovePhotonToIntersectionAndForwardABit(self):
+    def testWhenStepWithIntersectionRefracting_shouldMovePhotonToIntersection(self):
         stepDistance = 10
         intersectionDistance = 5
         self._mockFindIntersection(exists=True, distance=intersectionDistance)
         self._mockFresnelIntersection(isReflected=False)
 
         logger = DataPointCL(2)
-        surfaces = SurfaceCL([SurfaceCLInfo(0, 0, 0, 0, insideSolidID=9,
-                                            outsideSolidID=self.INITIAL_SOLID_ID, toSmooth=False)])
-        photonResult = self._photonFunc("propagateStep", stepDistance,
-                                        MaterialCL([ScatteringMaterial()]), surfaces, SeedCL(1), logger, 0)
+        surfaces = SurfaceCL([SurfaceCLInfo(0, 0, 0, 0, insideSolidID=9, outsideSolidID=10, toSmooth=False)])
+        triangles = TriangleCL([TriangleCLInfo([0, 1, 2], Vector(0, 0, 1))])
+        photonResult = self._photonFunc(
+            "propagateStep", stepDistance, MaterialCL([ScatteringMaterial()]),
+            surfaces, triangles,  VertexCL([]), SeedCL(1), logger, 0
+        )
 
-        expectedPosition = self.INITIAL_POSITION + self.INITIAL_DIRECTION * (intersectionDistance + EPS_CORRECTION)
+        expectedPosition = self.INITIAL_POSITION + self.INITIAL_DIRECTION * intersectionDistance
         self._assertVectorAlmostEqual(expectedPosition, photonResult.position)
-
-    # TODO
-    # missing some tests regarding returned value (I failed to inject a distanceBuffer in the kernel for now):
-    #  - testWhenReflectOrRefract..._shouldReturnCorrectDistanceLeft
-    #  - testWhenStep..._shouldReturnCorrectDistanceLeft
 
     def testWhenPropagateInInfiniteMedium_shouldPropagateUntilItHasNoMoreEnergy(self):
         self._mockFindIntersection(exists=False)
@@ -477,12 +464,12 @@ class TestCLPhoton(unittest.TestCase):
         data = self.program.getData(dataPointBuffer)[i]
         return DataPointResult(deltaWeight=data[0], position=Vector(*data[1:4]), solidID=data[4], surfaceID=data[5])
 
-    def _assertVectorAlmostEqual(self, v1: Vector, v2: Vector, places=6):
+    def _assertVectorAlmostEqual(self, v1: Vector, v2: Vector, places=7):
         self.assertAlmostEqual(v1.x, v2.x, places=places)
         self.assertAlmostEqual(v1.y, v2.y, places=places)
         self.assertAlmostEqual(v1.z, v2.z, places=places)
 
-    def _assertVectorNotAlmostEqual(self, v1: Vector, v2: Vector, places=6):
+    def _assertVectorNotAlmostEqual(self, v1: Vector, v2: Vector, places=7):
         try:
             self._assertVectorAlmostEqual(v1, v2, places=places)
         except AssertionError:
@@ -519,15 +506,17 @@ class TestCLPhoton(unittest.TestCase):
         """ % (str(isReflected).lower(), x, y, z, angleDeflection, nextMaterialID, nextSolidID)
         self.program.mock(fresnelCall, mockCall)
 
-    def _mockFindIntersection(self, exists=True, distance=8, normal=Vector(0, 0, 1), surfaceID=0, distanceLeft=2, isTooClose=False):
-        intersectionCall = """Intersection intersection = findIntersection(stepRay, scene, gid);"""
-        x, y, z = normal.array
+    def _mockFindIntersection(self, exists=True, distance=8.0, normal=Vector(0, 0, 1), surfaceID=0, distanceLeft=2):
+        expectedPosition = self.INITIAL_POSITION + self.INITIAL_DIRECTION * distance
+        intersectionCall = """Intersection intersection = findIntersection(stepRay, scene, gid, photons[photonID].solidID);"""
+        px, py, pz = expectedPosition.array
+        nx, ny, nz = normal.array
         mockCall = """Intersection intersection;
         intersection.exists = %s;
-        intersection.distance = %f;
-        intersection.normal = (float3)(%f, %f, %f);
+        intersection.distance = %.7f;
+        intersection.position = (float3)(%.7f, %.7f, %.7f);
+        intersection.normal = (float3)(%.f, %f, %f);
         intersection.surfaceID = %d;
         intersection.distanceLeft = %f;
-        intersection.isTooClose = %s;
-        """ % (str(exists).lower(), distance, x, y, z, surfaceID, distanceLeft, str(isTooClose).lower())
+        """ % (str(exists).lower(), distance, px, py, pz, nx, ny, nz, surfaceID, distanceLeft)
         self.program.mock(intersectionCall, mockCall)

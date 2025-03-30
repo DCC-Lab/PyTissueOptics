@@ -4,13 +4,12 @@ import unittest
 from dataclasses import dataclass
 
 import numpy as np
-from numpy.lib import recfunctions as rfn
 
 from pytissueoptics import Vector, ScatteringMaterial
 from pytissueoptics.rayscattering.opencl import OPENCL_AVAILABLE
 from pytissueoptics.rayscattering.opencl.config.CLConfig import OPENCL_SOURCE_DIR
 from pytissueoptics.rayscattering.opencl.buffers import MaterialCL, SurfaceCL, SurfaceCLInfo, SeedCL
-
+from pytissueoptics.rayscattering.tests.opencl.src.CLObjects import IntersectionCL
 
 if OPENCL_AVAILABLE:
     import pyopencl as cl
@@ -165,7 +164,7 @@ class TestCLFresnel(unittest.TestCase):
         isReflectedFunction = """bool _getIsReflected(float nIn, float nOut, float thetaIn, __global uint *seeds, uint gid) {
     float R = _getReflectionCoefficient(nIn, nOut, thetaIn);
     float randomFloat = getRandomFloatValue(seeds, gid);
-    if (R > randomFloat) {
+    if (R >= randomFloat) {
         return true;
     }
     return false;
@@ -174,44 +173,6 @@ class TestCLFresnel(unittest.TestCase):
         return %s;
         }""" % str(isReflected).lower()
         self.program.mock(isReflectedFunction, mockFunction)
-
-
-class IntersectionCL(CLObject):
-    STRUCT_NAME = "Intersection"
-    STRUCT_DTYPE = np.dtype([("exists", cl.cltypes.uint),
-                             ("isTooClose", cl.cltypes.uint),
-                             ("distance", cl.cltypes.float),
-                             ("position", cl.cltypes.float3),
-                             ("normal", cl.cltypes.float3),
-                             ("surfaceID", cl.cltypes.uint),
-                             ("polygonID", cl.cltypes.uint),
-                             ("distanceLeft", cl.cltypes.float)])
-
-    def __init__(self, distance: float = 10, position=Vector(0, 0, 0), normal=Vector(0, 0, 1),
-                 surfaceID=0, polygonID=0, distanceLeft: float = 0, isTooClose: bool = False):
-        self._distance = distance
-        self._position = position
-        self._normal = normal
-        self._surfaceID = surfaceID
-        self._polygonID = polygonID
-        self._distanceLeft = distanceLeft
-        self._isTooClose = isTooClose
-
-        super().__init__(skipDeclaration=False)
-
-    def _getInitialHostBuffer(self) -> np.ndarray:
-        buffer = np.empty(1, dtype=self._dtype)
-        buffer[0]["exists"] = np.uint32(True)
-        buffer[0]["isTooClose"] = np.uint32(self._isTooClose)
-        buffer[0]["distance"] = np.float32(self._distance)
-        buffer = rfn.structured_to_unstructured(buffer)
-        buffer[0, 3:6] = self._position.array
-        buffer[0, 7:10] = self._normal.array
-        buffer = rfn.unstructured_to_structured(buffer, self._dtype)
-        buffer[0]["surfaceID"] = np.uint32(self._surfaceID)
-        buffer[0]["polygonID"] = np.uint32(self._polygonID)
-        buffer[0]["distanceLeft"] = np.float32(self._distanceLeft)
-        return buffer
 
 
 class FresnelIntersectionCL(CLObject):

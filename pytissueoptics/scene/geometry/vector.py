@@ -27,6 +27,9 @@ class Vector:
     def __repr__(self):
         return f"<Vector>:({self._x}, {self._y}, {self._z})"
 
+    def __iter__(self):
+        return iter((self._x, self._y, self._z))
+
     def __eq__(self, other: 'Vector'):
         tol = 1e-5
         if math.isclose(other._x, self._x, abs_tol=tol) and math.isclose(other._y, self._y, abs_tol=tol) and math.isclose(other._z, self._z, abs_tol=tol):
@@ -99,6 +102,7 @@ class Vector:
     def rotateAround(self, unitAxis: 'Vector', theta: float):
         """
         Rotate the vector around `unitAxis` by `theta` radians. Assumes the axis to be a unit vector.
+        Uses Rodrigues' rotation formula.
         """
         # This is the most expensive (and most common)
         # operation when performing Monte Carlo in tissue

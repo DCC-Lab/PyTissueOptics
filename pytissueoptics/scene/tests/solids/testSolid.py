@@ -218,6 +218,7 @@ class TestSolid(unittest.TestCase):
     @staticmethod
     def createPolygonMock() -> Polygon:
         polygon = mock(Polygon)
+        polygon.vertices = []
         when(polygon).resetNormal().thenReturn()
         when(polygon).resetBoundingBox().thenReturn()
         when(polygon).resetCentroid().thenReturn()

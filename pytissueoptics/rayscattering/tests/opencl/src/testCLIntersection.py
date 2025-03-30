@@ -3,21 +3,14 @@ import traceback
 import unittest
 
 import numpy as np
-from numpy.lib import recfunctions as rfn
 
 from pytissueoptics import *
 from pytissueoptics.rayscattering.opencl import OPENCL_AVAILABLE
-from pytissueoptics.rayscattering.opencl.buffers import *
-from pytissueoptics.rayscattering.opencl.config.CLConfig import OPENCL_SOURCE_DIR
 from pytissueoptics.rayscattering.opencl.CLPhotons import CLScene
-
-if OPENCL_AVAILABLE:
-    import pyopencl as cl
-else:
-    cl = None
-
 from pytissueoptics.rayscattering.opencl.CLProgram import CLProgram
-from pytissueoptics.rayscattering.opencl.buffers import CLObject
+from pytissueoptics.rayscattering.opencl.config.CLConfig import OPENCL_SOURCE_DIR
+from pytissueoptics.rayscattering.tests.opencl.src.CLObjects import RayCL
+from pytissueoptics.rayscattering.tests.opencl.src.testCLFresnel import IntersectionCL
 
 
 @unittest.skipIf(not OPENCL_AVAILABLE, 'Requires PyOpenCL.')
@@ -29,14 +22,14 @@ class TestCLIntersection(unittest.TestCase):
     def testRayIntersection(self):
         N = 1
         _scene = self._getTestScene()
-        clScene = CLScene(_scene, N)
+        clScene = CLScene(_scene, nWorkUnits=1)
 
         rayLength = 10
         rayOrigin = [0, 0, -7]
         rays = RayCL(origins=np.full((N, 3), rayOrigin),
                      directions=np.full((N, 3), [0, 0, 1]),
                      lengths=np.full(N, rayLength))
-        intersections = IntersectionCL(N)
+        intersections = IntersectionCL(skipDeclaration=True)
 
         try:
             self.program.launchKernel("findIntersections", N=N, arguments=[rays, clScene.nSolids,
@@ -78,60 +71,3 @@ class TestCLIntersection(unittest.TestCase):
         solid2 = Cuboid(2, 2, 2, position=Vector(10, 0, 0), material=material3)
         scene = ScatteringScene([tissue, solid2], worldMaterial=ScatteringMaterial())
         return scene
-
-
-class RayCL(CLObject):
-    STRUCT_NAME = "Ray"
-    STRUCT_DTYPE = np.dtype([("origin", cl.cltypes.float4),
-                             ("direction", cl.cltypes.float4),
-                             ("length", cl.cltypes.float)])
-
-    def __init__(self, origins: np.ndarray, directions: np.ndarray, lengths: np.ndarray):
-        self._origins = origins
-        self._directions = directions
-        self._lengths = lengths
-        self._N = origins.shape[0]
-
-        super().__init__(skipDeclaration=True)
-
-    def _getInitialHostBuffer(self) -> np.ndarray:
-        buffer = np.zeros(self._N, dtype=self._dtype)
-        buffer = rfn.structured_to_unstructured(buffer)
-        buffer[:, 0:3] = self._origins
-        buffer[:, 4:7] = self._directions
-        buffer[:, 8] = self._lengths
-        buffer = rfn.unstructured_to_structured(buffer, self._dtype)
-        return buffer
-
-
-class IntersectionCL(CLObject):
-    STRUCT_NAME = "Intersection"
-    STRUCT_DTYPE = np.dtype([("exists", cl.cltypes.uint),
-                             ("isTooClose", cl.cltypes.uint),
-                             ("distance", cl.cltypes.float),
-                             ("position", cl.cltypes.float3),
-                             ("normal", cl.cltypes.float3),
-                             ("surfaceID", cl.cltypes.uint),
-                             ("polygonID", cl.cltypes.uint),
-                             ("distanceLeft", cl.cltypes.float)])
-
-    def __init__(self, N: int):
-        self._N = N
-        self._polygonIDs = np.zeros(N, dtype=cl.cltypes.uint)
-        self._positions = np.zeros((N, 3), dtype=cl.cltypes.float)
-        self._normals = np.zeros((N, 3), dtype=cl.cltypes.float)
-        super().__init__(skipDeclaration=True)
-
-    def setResults(self, polygonIDs: np.ndarray, positions: np.ndarray, normals: np.ndarray):
-        self._polygonIDs = polygonIDs
-        self._positions = positions
-        self._normals = normals
-
-    def _getInitialHostBuffer(self) -> np.ndarray:
-        buffer = np.empty(self._N, dtype=self._dtype)
-        buffer = rfn.structured_to_unstructured(buffer)
-        buffer[:, 3:6] = self._positions
-        buffer[:, 7:10] = self._normals
-        buffer[:, 12] = self._polygonIDs
-        buffer = rfn.unstructured_to_structured(buffer, self._dtype)
-        return buffer

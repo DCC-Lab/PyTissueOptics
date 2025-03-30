@@ -36,7 +36,8 @@ class TestCLPhotons(unittest.TestCase):
 
         dataPoints = logger.getDataPoints()
         totalWeightScattered = float(np.sum(dataPoints[:, 0]))
-        self.assertAlmostEqual(N, totalWeightScattered, places=2)
+        # Roulette effect will result in total weight slightly different from N.
+        self.assertAlmostEqual(N, totalWeightScattered, places=1)
 
     def testWhenPropagateInSolids_shouldLogEnergyWithCorrectInteractionKeys(self):
         N = 100

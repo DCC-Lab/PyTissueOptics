@@ -2,16 +2,17 @@ import math
 import random
 from typing import Optional
 
+import numpy as np
+
 from pytissueoptics.rayscattering.fresnel import FresnelIntersect, FresnelIntersection
 from pytissueoptics.rayscattering.materials import ScatteringMaterial
 from pytissueoptics.scene.geometry import Environment, Vector
 from pytissueoptics.scene.intersection import Ray
 from pytissueoptics.scene.intersection.intersectionFinder import IntersectionFinder, Intersection
-from pytissueoptics.scene.intersection.mollerTrumboreIntersect import EPS_CORRECTION
 from pytissueoptics.scene.logger import Logger, InteractionKey
 
-WORLD_LABEL = "world"
 WEIGHT_THRESHOLD = 1e-4
+MIN_ANGLE = 0.0001
 
 
 class Photon:
@@ -22,7 +23,6 @@ class Photon:
         self._environment: Environment = None
 
         self._er = self._direction.getAnyOrthogonal()
-        self._er.normalize()
         self._hasContext = False
         self._fresnelIntersect: FresnelIntersect = None
 
@@ -51,9 +51,7 @@ class Photon:
 
     @property
     def solidLabel(self):
-        if not self._environment.solid:
-            return WORLD_LABEL
-        return self._environment.solid.getLabel()
+        return self._environment.solidLabel
 
     def setContext(self, environment: Environment, intersectionFinder: IntersectionFinder = None, logger: Logger = None,
                    fresnelIntersect=FresnelIntersect()):
@@ -73,14 +71,31 @@ class Photon:
             self.roulette()
 
     def step(self, distance=0) -> float:
-        if distance == 0:
-            distance = self.material.getScatteringDistance()
+        if distance <= 0:
+            distance += self.material.getScatteringDistance()
+            if distance < 0:
+                # Not really possible until mu_t is very high (> 1000) and intense smoothing is applied (order-1 spheres).
+                distance = 0
 
         intersection = self._getIntersection(distance)
 
-        if intersection and not intersection.isTooClose:
-            self.moveBy(intersection.distance)
+        if intersection:
+            self.moveTo(intersection.position)
             distanceLeft = self.reflectOrRefract(intersection)
+
+            # Check if intersection lies too close to a vertex.
+            for vertex in intersection.polygon.vertices:
+                if (intersection.position - vertex).getNorm() > 3e-7:
+                    continue
+                # If too close to a vertex, move photon away slightly.
+                stepSign = 1
+                solidLabelTowardsNormal = intersection.outsideEnvironment.solidLabel
+                if solidLabelTowardsNormal != self.solidLabel:
+                    stepSign = -1
+                stepCorrection = vertex.normal * stepSign * 1e-7
+                self._position += stepCorrection
+                break
+
         else:
             if math.isinf(distance):
                 self._weight = 0
@@ -88,15 +103,6 @@ class Photon:
 
             self.moveBy(distance)
             distanceLeft = 0
-
-            if intersection and intersection.isTooClose:
-                # Photon will land too close to the surface, so we need to move it away from the surface.
-                stepSign = 1
-                solidTowardsNormal = intersection.outsideEnvironment.solid
-                if solidTowardsNormal != self._environment.solid:
-                    stepSign = -1
-                stepCorrection = intersection.normal * stepSign * EPS_CORRECTION
-                self._position += stepCorrection
 
             self.scatter()
 
@@ -107,23 +113,29 @@ class Photon:
             return None
 
         stepRay = Ray(self._position, self._direction, distance)
-        return self._intersectionFinder.findIntersection(stepRay)
+        return self._intersectionFinder.findIntersection(stepRay, self.solidLabel)
 
     def reflectOrRefract(self, intersection: Intersection):
         fresnelIntersection = self._getFresnelIntersection(intersection)
 
-        # Determine required step sign to move away from intersecting surface
-        stepSign = 1
-        solidTowardsNormal = intersection.outsideEnvironment.solid
-        if solidTowardsNormal != self._environment.solid:
-            stepSign = -1
-        if not fresnelIntersection.isReflected:
-            stepSign *= -1
-
         if fresnelIntersection.isReflected:
+            if intersection.isSmooth:
+                # Prevent reflection from crossing the raw surface.
+                smoothAngle = math.acos(intersection.normal.dot(intersection.polygon.normal))
+                minDeflectionAngle = smoothAngle + abs(fresnelIntersection.angleDeflection) / 2 + MIN_ANGLE
+                if abs(fresnelIntersection.angleDeflection) < minDeflectionAngle:
+                    fresnelIntersection.angleDeflection = minDeflectionAngle * np.sign(fresnelIntersection.angleDeflection)
+
             self.reflect(fresnelIntersection)
         else:
             self._logIntersection(intersection)
+
+            if intersection.isSmooth:
+                # Prevent refraction from not crossing the raw surface.
+                maxDeflectionAngle = abs(np.pi / 2 - math.acos(intersection.polygon.normal.dot(self._direction))) - MIN_ANGLE
+                if abs(fresnelIntersection.angleDeflection) > maxDeflectionAngle:
+                    fresnelIntersection.angleDeflection = maxDeflectionAngle * np.sign(fresnelIntersection.angleDeflection)
+
             self.refract(fresnelIntersection)
 
             mut1 = self.material.mu_t
@@ -137,15 +149,6 @@ class Photon:
 
             self._environment = fresnelIntersection.nextEnvironment
 
-        # Move away from intersecting surface by a small amount
-        stepCorrection = intersection.normal * stepSign * EPS_CORRECTION
-        self._position += stepCorrection
-
-        # Remove this distance correction from the distance left, but set to zero if the result is negative.
-        intersection.distanceLeft -= EPS_CORRECTION
-        if intersection.distanceLeft < 0:
-            intersection.distanceLeft = 0
-
         return intersection.distanceLeft
 
     def _getFresnelIntersection(self, intersection: Intersection) -> FresnelIntersection:
@@ -153,6 +156,9 @@ class Photon:
 
     def moveBy(self, distance):
         self._position += self._direction * distance
+
+    def moveTo(self, position: Vector):
+        self._position = position
 
     def reflect(self, fresnelIntersection: FresnelIntersection):
         self._direction.rotateAround(fresnelIntersection.incidencePlane,
@@ -170,6 +176,7 @@ class Photon:
     def scatterBy(self, theta, phi):
         self._er.rotateAround(self._direction, phi)
         self._direction.rotateAround(self._er, theta)
+        self._er = self._direction.getAnyOrthogonal()
 
     def interact(self):
         delta = self._weight * self.material.getAlbedo()

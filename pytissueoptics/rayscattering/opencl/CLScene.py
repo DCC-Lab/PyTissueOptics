@@ -124,7 +124,7 @@ class CLScene:
 
         lastSolid = None
         for i, triangle in enumerate(polygons):
-            # todo: do this polygon processing only if it's a stack ?
+            # todo: consider skipping this step if the solid is not a stack.
             currentSolid = triangle.insideEnvironment.solid
             if lastSolid and lastSolid != currentSolid:
                 self._compileSurface(polygonRef=polygons[i - 1],

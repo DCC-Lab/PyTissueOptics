@@ -6,18 +6,19 @@ from unittest.mock import patch
 from mockito import mock, when, verify
 
 from pytissueoptics.rayscattering import Photon
-from pytissueoptics.rayscattering.photon import WORLD_LABEL, WEIGHT_THRESHOLD
+from pytissueoptics.rayscattering.photon import WEIGHT_THRESHOLD
 from pytissueoptics.rayscattering.fresnel import FresnelIntersection, FresnelIntersect
 from pytissueoptics.rayscattering.materials import ScatteringMaterial
 from pytissueoptics.scene import Vector, Logger
-from pytissueoptics.scene.geometry import Environment
+from pytissueoptics.scene.geometry import Environment, Triangle, Polygon
+from pytissueoptics.scene.geometry.polygon import WORLD_LABEL
 from pytissueoptics.scene.intersection.intersectionFinder import Intersection, IntersectionFinder
-from pytissueoptics.scene.intersection.mollerTrumboreIntersect import MollerTrumboreIntersect, EPS_CORRECTION
+from pytissueoptics.scene.intersection.mollerTrumboreIntersect import MollerTrumboreIntersect
 from pytissueoptics.scene.logger import InteractionKey
 from pytissueoptics.scene.solids import Solid
 
 
-EPS = MollerTrumboreIntersect.EPS
+EPS = MollerTrumboreIntersect.EPS_CATCH
 
 
 class TestPhoton(unittest.TestCase):
@@ -124,27 +125,19 @@ class TestPhoton(unittest.TestCase):
         self.photon.step()
         self.assertFalse(self.photon.isAlive)
 
-    def testWhenStepWithIntersection_shouldMovePhotonABitPastIntersection(self):
-        """
-        The photon starts at z=0, and is moving in the -z direction. The intersection is at z=-8.
-        The intersection normal is in the +z direction, so the photon initially lies outside the
-        object to intersect. Therefore, we set the photon's context to be in solidOutside.
-        We expect photon to intersect at -8 and continue for a distance of EPS_CORRECTION in the
-        direction opposite to the intersection normal. In this case since the intersection normal
-        is simply +z, we expect the photon to continue towards -z and land at z = -8 - EPS_CORRECTION.
-        """
+    def testWhenStepWithIntersection_shouldMovePhotonToIntersection(self):
         distance = 8
+        intersectionPosition = self.INITIAL_POSITION + self.INITIAL_DIRECTION * distance
         intersectionFinder = self._createIntersectionFinder(distance)
-        self.photon.setContext(Environment(ScatteringMaterial(), self.solidOutside),
-                               intersectionFinder=intersectionFinder)
+        self.photon.setContext(
+            Environment(ScatteringMaterial(), self.solidOutside), intersectionFinder=intersectionFinder
+        )
 
         self.photon.step(distance + 2)
 
-        expectedDistance = distance + EPS_CORRECTION
-        self.assertVectorEqual(self.INITIAL_POSITION + self.photon.direction * expectedDistance,
-                               self.photon.position)
+        self.assertVectorEqual(intersectionPosition, self.photon.position)
 
-    def testWhenStepTooCloseToIntersectionFromOutside_shouldMovePhotonBackABitAndScatter(self):
+    def testWhenStepTooCloseToIntersection_shouldMovePhotonToIntersection(self):
         distance = 8
         rayLength = distance - 0.5 * EPS
         intersectionFinder = self._createIntersectionFinder(distance, rayLength=rayLength)
@@ -153,23 +146,8 @@ class TestPhoton(unittest.TestCase):
 
         self.photon.step(rayLength)
 
-        self.assertVectorEqual(self.INITIAL_POSITION + self.INITIAL_DIRECTION * (rayLength - EPS_CORRECTION),
-                               self.photon.position)
-        self.assertVectorNotEqual(self.INITIAL_DIRECTION, self.photon.direction)
-
-    def testWhenStepTooCloseToIntersectionFromInside_shouldMovePhotonBackABitAndScatter(self):
-        distance = 8
-        rayLength = distance - 0.5 * EPS
-        intersectionFinder = self._createIntersectionFinder(distance, rayLength=rayLength,
-                                                            normal=Vector(0, 0, -1))
-        self.photon.setContext(Environment(ScatteringMaterial(), self.solidInside),
-                               intersectionFinder=intersectionFinder)
-
-        self.photon.step(rayLength)
-
-        self.assertVectorEqual(self.INITIAL_POSITION + self.INITIAL_DIRECTION * (rayLength - EPS_CORRECTION),
-                               self.photon.position)
-        self.assertVectorNotEqual(self.INITIAL_DIRECTION, self.photon.direction)
+        self.assertVectorEqual(self.INITIAL_POSITION + self.INITIAL_DIRECTION * rayLength, self.photon.position)
+        self.assertVectorEqual(self.INITIAL_DIRECTION, self.photon.direction)
 
     def testWhenStepWithNoIntersection_shouldMovePhotonAcrossStepDistanceAndScatter(self):
         noIntersectionFinder = mock(IntersectionFinder)
@@ -205,7 +183,7 @@ class TestPhoton(unittest.TestCase):
         expectedPosition = self.INITIAL_POSITION + self.INITIAL_DIRECTION * newScatteringDistance
         self.assertVectorEqual(expectedPosition, self.photon.position)
 
-    def testWhenStepWithReflectingIntersection_shouldMovePhotonABitBackFromIntersection(self):
+    def testWhenStepWithReflectingIntersection_shouldMovePhotonToIntersection(self):
         totalDistance = 10
         intersectionDistance = 8
         intersectionFinder = self._createIntersectionFinder(intersectionDistance, rayLength=totalDistance)
@@ -216,7 +194,7 @@ class TestPhoton(unittest.TestCase):
 
         self.photon.step(totalDistance)
 
-        expectedPosition = self.INITIAL_POSITION + self.INITIAL_DIRECTION * (intersectionDistance - EPS_CORRECTION)
+        expectedPosition = self.INITIAL_POSITION + self.INITIAL_DIRECTION * intersectionDistance
         self.assertVectorEqual(expectedPosition, self.photon.position)
 
     def testWhenStepWithReflectingIntersection_shouldReturnDistanceLeft(self):
@@ -230,7 +208,7 @@ class TestPhoton(unittest.TestCase):
 
         distanceLeft = self.photon.step(totalDistance)
 
-        expectedDistanceLeft = totalDistance - intersectionDistance - EPS_CORRECTION
+        expectedDistanceLeft = totalDistance - intersectionDistance
         self.assertAlmostEqual(expectedDistanceLeft, distanceLeft)
 
     def testWhenStepWithRefractingIntersection_shouldUpdatePhotonMaterialToNextMaterial(self):
@@ -242,7 +220,7 @@ class TestPhoton(unittest.TestCase):
 
         self.assertEqual(nextMaterial, self.photon.material)
 
-    def testWhenStepWithRefractingIntersection_shouldMovePhotonABitAfterIntersection(self):
+    def testWhenStepWithRefractingIntersection_shouldMovePhotonToIntersection(self):
         scatteringDistance = 10
         intersectionDistance = 8
         material = ScatteringMaterial(mu_s=2, mu_a=1, g=0.8)
@@ -253,7 +231,7 @@ class TestPhoton(unittest.TestCase):
 
         self.photon.step(scatteringDistance)
 
-        expectedPosition = self.INITIAL_POSITION + self.INITIAL_DIRECTION * (intersectionDistance + EPS_CORRECTION)
+        expectedPosition = self.INITIAL_POSITION + self.INITIAL_DIRECTION * intersectionDistance
         self.assertVectorEqual(expectedPosition, self.photon.position)
 
     def testWhenStepWithRefractingIntersection_shouldReturnDistanceLeftInNextMaterial(self):
@@ -267,7 +245,6 @@ class TestPhoton(unittest.TestCase):
         distanceLeft = self.photon.step(scatteringDistance)
 
         expectedDistanceLeft = (scatteringDistance - intersectionDistance) * material.mu_t / nextMaterial.mu_t
-        expectedDistanceLeft -= EPS_CORRECTION
         self.assertAlmostEqual(expectedDistanceLeft, distanceLeft)
 
     def testWhenStepWithRefractingIntersectionToVacuum_shouldReturnInfiniteDistanceLeft(self):
@@ -428,17 +405,15 @@ class TestPhoton(unittest.TestCase):
         self.assertNotAlmostEqual(v1.z, v2.z)
 
     def _createIntersectionFinder(self, intersectionDistance=10, rayLength=None, normal=Vector(0, 0, 1)):
-        isTooClose = False
         if rayLength is None:
             rayLength = intersectionDistance + 2
-        if intersectionDistance and rayLength:
-            if abs(intersectionDistance - rayLength) < EPS:
-                isTooClose = True
-        intersection = Intersection(intersectionDistance, position=Vector(), normal=normal,
+        position = self.INITIAL_POSITION + self.INITIAL_DIRECTION * intersectionDistance
+        polygon = mock(Polygon)
+        polygon.vertices = []
+        intersection = Intersection(intersectionDistance, position=position, polygon=polygon, normal=normal,
                                     insideEnvironment=Environment(ScatteringMaterial(), self.solidInside),
                                     outsideEnvironment=Environment(ScatteringMaterial(), self.solidOutside),
-                                    surfaceLabel=self.SURFACE_LABEL, distanceLeft=rayLength-intersectionDistance,
-                                    isTooClose=isTooClose)
+                                    surfaceLabel=self.SURFACE_LABEL, distanceLeft=rayLength-intersectionDistance)
         intersectionFinder = mock(IntersectionFinder)
         when(intersectionFinder).findIntersection(...).thenReturn(intersection)
         return intersectionFinder

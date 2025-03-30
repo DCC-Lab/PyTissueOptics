@@ -19,9 +19,6 @@ class MaterialCL(CLObject):
         super().__init__(buildOnce=True)
 
     def _getInitialHostBuffer(self) -> np.ndarray:
-        # todo: there might be a way to abstract both struct and buffer under a single def (DRY, PO)
-        #  the cl.types above are actually np types. so we could extract clTypeX and do clTypeX(mat.propertyX) ...
-        #  except the float3 thing maybe...
         buffer = np.empty(len(self._materials), dtype=self._dtype)
         for i, material in enumerate(self._materials):
             buffer[i]["mu_s"] = np.float32(material.mu_s)

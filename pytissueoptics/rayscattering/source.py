@@ -1,4 +1,5 @@
 import hashlib
+import random
 import time
 from typing import List, Union, Optional, Tuple
 import numpy as np
@@ -21,9 +22,14 @@ from pytissueoptics.scene.viewer import Displayable
 
 
 class Source(Displayable):
-    def __init__(self, position: Vector, N: int, useHardwareAcceleration: bool = True, displaySize: float = 0.1):
+    def __init__(self, position: Vector, N: int, useHardwareAcceleration: bool = True, displaySize: float = 0.1, seed: Optional[int] = None):
         self._position = position
         self._N = N
+        self._seed = seed
+        if seed is not None:
+            np.random.seed(seed)
+            random.seed(seed)
+
         self._photons: Union[List[Photon], CLPhotons] = []
         self._environment = None
         self.displaySize = displaySize
@@ -41,7 +47,9 @@ class Source(Displayable):
         if self._useHardwareAcceleration:
             IPP = self._getAverageInteractionsPerPhoton(scene)
             self._propagateOpenCL(IPP, scene, logger, showProgress)
-            self._updateIPP(scene, logger)
+            if self._seed is None:
+                # Do not update IPP if the seed is set, since it will alter batch statistics.
+                self._updateIPP(scene, logger)
         else:
             self._propagateCPU(scene, logger, showProgress)
 
@@ -182,7 +190,7 @@ class Source(Displayable):
 
 class DirectionalSource(Source):
     def __init__(self, position: Vector, direction: Vector, diameter: float, N: int,
-                 useHardwareAcceleration: bool = True, displaySize: float = 0.1):
+                 useHardwareAcceleration: bool = True, displaySize: float = 0.1, seed: Optional[int] = None):
         self._diameter = diameter
         self._direction = direction
         self._direction.normalize()
@@ -190,7 +198,7 @@ class DirectionalSource(Source):
         self._xAxis.normalize()
         self._yAxis = self._direction.cross(self._xAxis)
         self._yAxis.normalize()
-        super().__init__(position=position, N=N, useHardwareAcceleration=useHardwareAcceleration, displaySize=displaySize)
+        super().__init__(position=position, N=N, useHardwareAcceleration=useHardwareAcceleration, displaySize=displaySize, seed=seed)
 
     def getInitialPositionsAndDirections(self) -> Tuple[np.ndarray, np.ndarray]:
         positions = self._getInitialPositions()
@@ -239,9 +247,9 @@ class DirectionalSource(Source):
 
 
 class PencilPointSource(DirectionalSource):
-    def __init__(self, position: Vector, direction: Vector, N: int, useHardwareAcceleration: bool = True, displaySize: float = 0.1):
+    def __init__(self, position: Vector, direction: Vector, N: int, useHardwareAcceleration: bool = True, displaySize: float = 0.1, seed: Optional[int] = None):
         super().__init__(position=position, direction=direction, diameter=0, N=N,
-                         useHardwareAcceleration=useHardwareAcceleration, displaySize=displaySize)
+                         useHardwareAcceleration=useHardwareAcceleration, displaySize=displaySize, seed=seed)
 
 
 class IsotropicPointSource(Source):
@@ -258,11 +266,11 @@ class IsotropicPointSource(Source):
 
 class DivergentSource(DirectionalSource):
     def __init__(self, position: Vector, direction: Vector, diameter: float, divergence: float, N: int,
-                 useHardwareAcceleration: bool = True, displaySize: float = 0.1):
+                 useHardwareAcceleration: bool = True, displaySize: float = 0.1, seed: Optional[int] = None):
         self._divergence = divergence
 
         super().__init__(position=position, direction=direction, diameter=diameter, N=N,
-                         useHardwareAcceleration=useHardwareAcceleration, displaySize=displaySize)
+                         useHardwareAcceleration=useHardwareAcceleration, displaySize=displaySize, seed=seed)
 
     def _getInitialDirections(self):
         thetaDiameter = np.tan(self._divergence/2) * 2

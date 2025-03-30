@@ -6,14 +6,20 @@
 
 __constant int NO_SOLID_ID = -1;
 __constant int NO_SURFACE_ID = -1;
+__constant float MIN_ANGLE = 0.0001f;
 
 void moveBy(float distance, __global Photon *photons, uint photonID){
     photons[photonID].position += (distance * photons[photonID].direction);
 }
 
+void moveTo(float3 position, __global Photon *photons, uint photonID){
+    photons[photonID].position = position;
+}
+
 void scatterBy(float phi, float theta, __global Photon *photons, uint photonID){
     rotateAroundAxisGlobal(&photons[photonID].er, &photons[photonID].direction, phi);
     rotateAroundAxisGlobal(&photons[photonID].direction, &photons[photonID].er, theta);
+    photons[photonID].er = getAnyOrthogonalGlobal(&photons[photonID].direction);
 }
 
 void decreaseWeightBy(float delta_weight, __global Photon *photons, uint photonID){
@@ -97,20 +103,27 @@ float reflectOrRefract(Intersection *intersection, __global Photon *photons, __c
         __global Surface *surfaces, __global DataPoint *logger, uint *logIndex, __global uint *seeds, uint gid, uint photonID){
     FresnelIntersection fresnelIntersection = computeFresnelIntersection(photons[photonID].direction, intersection,
                                                                          materials, surfaces, seeds, gid);
-    int stepSign = 1;
-    int solidIDTowardsNormal = surfaces[intersection->surfaceID].outsideSolidID;
-    if (solidIDTowardsNormal != photons[photonID].solidID) {
-        stepSign = -1;
-    }
-    if (!fresnelIntersection.isReflected) {
-        stepSign *= -1;
-    }
 
     if (fresnelIntersection.isReflected) {
+        if (intersection->isSmooth) {
+            // Prevent reflection from crossing the raw surface.
+            float smoothAngle = acos(dot(intersection->normal, intersection->rawNormal));
+            float minDeflectionAngle = smoothAngle + fabs(fresnelIntersection.angleDeflection) / 2 + MIN_ANGLE;
+            if (fabs(fresnelIntersection.angleDeflection) < minDeflectionAngle) {
+                fresnelIntersection.angleDeflection = sign(fresnelIntersection.angleDeflection) * minDeflectionAngle;
+            }
+        }
         reflect(&fresnelIntersection, photons, photonID);
     }
     else {
         logIntersection(intersection, photons, surfaces, logger, logIndex, photonID);
+        if (intersection->isSmooth) {
+            // Prevent refraction from not crossing the raw surface.
+            float maxDeflectionAngle = fabs(M_PI_F / 2 - acos(dot(intersection->rawNormal, photons[photonID].direction))) - MIN_ANGLE;
+            if (fabs(fresnelIntersection.angleDeflection) > maxDeflectionAngle) {
+                fresnelIntersection.angleDeflection = sign(fresnelIntersection.angleDeflection) * maxDeflectionAngle;
+            }
+        }
         refract(&fresnelIntersection, photons, photonID);
 
         float mut1 = materials[photons[photonID].materialID].mu_t;
@@ -126,34 +139,52 @@ float reflectOrRefract(Intersection *intersection, __global Photon *photons, __c
         photons[photonID].solidID = fresnelIntersection.nextSolidID;
     }
 
-    float3 stepCorrection = stepSign * intersection->normal * EPS_CORRECTION;
-    photons[photonID].position += stepCorrection;
-
-    intersection->distanceLeft -= EPS_CORRECTION;
-    if (intersection->distanceLeft < 0) {
-        intersection->distanceLeft = 0;
-    }
-
     return intersection->distanceLeft;
 }
 
 float propagateStep(float distance, __global Photon *photons, __constant Material *materials, Scene *scene,
                     __global uint *seeds, __global DataPoint *logger, uint *logIndex, uint gid, uint photonID){
 
-    if (distance == 0) {
+    if (distance <= 0) {
         float mu_t = materials[photons[photonID].materialID].mu_t;
         float randomNumber = getRandomFloatValue(seeds, gid);
-        distance = getScatteringDistance(mu_t, randomNumber);
+        distance += getScatteringDistance(mu_t, randomNumber);
+        if (distance < 0){
+            // Not really possible until mu_t is very high (> 1000) and intense smoothing is applied (order-1 spheres).
+            distance = 0;
+        }
     }
 
     Ray stepRay = {photons[photonID].position, photons[photonID].direction, distance};
-    Intersection intersection = findIntersection(stepRay, scene, gid);
+    Intersection intersection = findIntersection(stepRay, scene, gid, photons[photonID].solidID);
 
     float distanceLeft = 0;
 
-    if (intersection.exists && !intersection.isTooClose){
-        moveBy(intersection.distance, photons, photonID);
+    if (intersection.exists){
+        moveTo(intersection.position, photons, photonID);
         distanceLeft = reflectOrRefract(&intersection, photons, materials, scene->surfaces, logger, logIndex, seeds, gid, photonID);
+
+        // Check if intersection lies too close to a vertex.
+        int closeToVertexID = -1;
+        for (uint i = 0; i < 3; i++) {
+            uint vertexID = scene->triangles[intersection.polygonID].vertexIDs[i];
+            if (length(intersection.position - scene->vertices[vertexID].position) < 3e-7) {
+                closeToVertexID = vertexID;
+                break;
+            }
+        }
+
+        // If too close to a vertex, move photon away slightly.
+        if (closeToVertexID != -1) {
+            int stepSign = 1;
+            int solidIDTowardsNormal = scene->surfaces[intersection.surfaceID].outsideSolidID;
+            if (solidIDTowardsNormal != photons[photonID].solidID) {
+                stepSign = -1;
+            }
+            float3 stepCorrection = stepSign * scene->vertices[closeToVertexID].normal * EPS_CATCH;
+            photons[photonID].position += stepCorrection;
+        }
+
     } else {
         if (distance == INFINITY){
             photons[photonID].weight = 0;
@@ -161,16 +192,6 @@ float propagateStep(float distance, __global Photon *photons, __constant Materia
         }
 
         moveBy(distance, photons, photonID);
-
-        if (intersection.isTooClose){
-            int stepSign = 1;
-            int solidIDTowardsNormal = scene->surfaces[intersection.surfaceID].outsideSolidID;
-            if (solidIDTowardsNormal != photons[photonID].solidID) {
-                stepSign = -1;
-            }
-            float3 stepCorrection = stepSign * intersection.normal * EPS_CORRECTION;
-            photons[photonID].position += stepCorrection;
-        }
 
         scatter(photons, materials, seeds, logger, logIndex, gid, photonID);
     }
@@ -206,7 +227,7 @@ __kernel void propagate(uint maxPhotons, uint maxInteractions, float weightThres
             distance = propagateStep(distance, photons, materials, &scene,
                                      seeds, logger, &logIndex, gid, currentPhotonIndex);
             roulette(weightThreshold, photons, seeds, gid, currentPhotonIndex);
-            }
+        }
         photonCount++;
     }
 }
@@ -271,10 +292,12 @@ __kernel void reflectOrRefractKernel(float3 normal, int surfaceID, float distanc
 }
 
 __kernel void propagateStepKernel(float distance, __constant Material *materials, __global Surface *surfaces,
-                    __global uint *seeds, __global DataPoint *logger, uint logIndex,
+                    __global Triangle *triangles, __global Vertex *vertices, __global uint *seeds, __global DataPoint *logger, uint logIndex,
                     __global Photon *photons, uint photonID){
     Scene scene;
     scene.surfaces = surfaces;
+    scene.triangles = triangles;
+    scene.vertices = vertices;
     uint gid = photonID;
     propagateStep(distance, photons, materials, &scene, seeds, logger, &logIndex, gid, photonID);
 }

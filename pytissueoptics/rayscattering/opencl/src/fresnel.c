@@ -40,7 +40,7 @@ float _getReflectionCoefficient(float n1, float n2, float thetaIn) {
 bool _getIsReflected(float nIn, float nOut, float thetaIn, __global uint *seeds, uint gid) {
     float R = _getReflectionCoefficient(nIn, nOut, thetaIn);
     float randomFloat = getRandomFloatValue(seeds, gid);
-    if (R > randomFloat) {
+    if (R >= randomFloat) {
         return true;
     }
     return false;
@@ -107,7 +107,6 @@ FresnelIntersection computeFresnelIntersection(float3 rayDirection, Intersection
 Intersection getLocalIntersection(__global Intersection *intersections, uint gid) {
     Intersection intersection;
     intersection.exists = intersections[gid].exists;
-    intersection.isTooClose = intersections[gid].isTooClose;
     intersection.distance = intersections[gid].distance;
     intersection.position = intersections[gid].position;
     intersection.normal = intersections[gid].normal;

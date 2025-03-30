@@ -56,7 +56,7 @@ class FresnelIntersect:
 
     def _getIsReflected(self) -> bool:
         R = self._getReflectionCoefficient()
-        if random.random() < R:
+        if random.random() <= R:
             return True
         return False
 

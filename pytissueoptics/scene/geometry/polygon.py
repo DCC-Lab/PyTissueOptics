@@ -4,11 +4,19 @@ from typing import List
 from pytissueoptics.scene.geometry import Vector, Vertex
 from pytissueoptics.scene.geometry import BoundingBox
 
+WORLD_LABEL = "world"
+
 
 @dataclass
 class Environment:
     material: ...
     solid: 'Solid' = None
+
+    @property
+    def solidLabel(self) -> str:
+        if self.solid:
+            return self.solid.getLabel()
+        return WORLD_LABEL
 
 
 class Polygon:
