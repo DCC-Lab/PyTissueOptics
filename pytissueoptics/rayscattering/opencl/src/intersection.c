@@ -426,5 +426,11 @@ __kernel void findIntersections(__global Ray *rays, uint nSolids, __global Solid
 
 __kernel void setSmoothNormals(__global Intersection *intersections, __global Triangle *triangles, __global Vertex *vertices, __global Ray *rays) {
     uint gid = get_global_id(0);
-    setSmoothNormal(&intersections[gid], triangles, vertices, &rays[gid]);
+    Intersection intersection = intersections[gid];
+    Ray ray = rays[gid];
+
+    setSmoothNormal(&intersection, triangles, vertices, &ray);
+
+    intersections[gid] = intersection;
+    rays[gid] = ray;
 }
