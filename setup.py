@@ -34,6 +34,7 @@ setuptools.setup(
         'vtk>=9.2.2',
         'mayavi>=4.8.2',
         'Pygments',
+        'siphash24',
     ],
     python_requires='>=3.6',
     package_data={'pytissueoptics': ['rayscattering/opencl/src/*.c', '**/*.obj', 'examples/*.py']},
