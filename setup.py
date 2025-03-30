@@ -31,7 +31,7 @@ setuptools.setup(
         'pyqt5',
         'configobj',
         'traitsui',
-        'vtk>=9.2.2',
+        'vtk>=9.2.2,<9.4',
         'mayavi>=4.8.2',
         'Pygments',
         'siphash24',
