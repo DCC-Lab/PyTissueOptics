@@ -27,6 +27,9 @@ class Vector:
     def __repr__(self):
         return f"<Vector>:({self._x}, {self._y}, {self._z})"
 
+    def __iter__(self):
+        return iter((self._x, self._y, self._z))
+
     def __eq__(self, other: 'Vector'):
         tol = 1e-5
         if math.isclose(other._x, self._x, abs_tol=tol) and math.isclose(other._y, self._y, abs_tol=tol) and math.isclose(other._z, self._z, abs_tol=tol):

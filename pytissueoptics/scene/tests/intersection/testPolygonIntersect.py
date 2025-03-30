@@ -25,7 +25,6 @@ class TestAnyPolygonIntersect(unittest.TestCase):
             self.assertEqual(0.45, intersection.x)
             self.assertEqual(0.25, intersection.y)
             self.assertEqual(0.0, intersection.z)
-            self.assertFalse(ray.isTooClose)
 
     def testGivenNonIntersectingRayAndPolygon_shouldReturnNone(self):
         rayOrigin = Vector(0.25, 0.25, 1)
@@ -85,16 +84,6 @@ class TestAnyPolygonIntersect(unittest.TestCase):
             self.assertEqual(0.25, intersection.y)
             self.assertEqual(0.0, intersection.z)
 
-    def testGivenRayLandsInEpsilonRegionBeforePolygon_shouldLabelTheRayAsTooCloseForFurtherProcessing(self):
-        rayOrigin = Vector(0.25, 0.25, 2)
-        rayDirection = Vector(0, 0, -1)
-        rayDirection.normalize()
-        ray = Ray(rayOrigin, rayDirection, length=2 - MollerTrumboreIntersect.EPS_CATCH * 0.9)
-
-        for poly in ([self.triangle, self.quad, self.polygon]):
-            _ = self.intersectStrategy.getIntersection(ray, poly)
-            self.assertTrue(ray.isTooClose)
-
     def testGivenRayLandsBeforeEpsilonRegionOfPolygon_shouldReturnNone(self):
         rayOrigin = Vector(0.25, 0.25, 2)
         rayDirection = Vector(0, 0, -1)
@@ -103,6 +92,4 @@ class TestAnyPolygonIntersect(unittest.TestCase):
 
         for poly in ([self.triangle, self.quad, self.polygon]):
             intersection = self.intersectStrategy.getIntersection(ray, poly)
-
             self.assertIsNone(intersection)
-            self.assertFalse(ray.isTooClose)

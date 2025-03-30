@@ -1,8 +1,7 @@
 from typing import List, NamedTuple
 
-from pytissueoptics.scene.geometry import Vector
 from pytissueoptics.rayscattering.opencl.buffers.CLObject import *
-
+from pytissueoptics.scene.geometry import Vector
 
 TriangleCLInfo = NamedTuple("TriangleInfo", [("vertexIDs", list), ("normal", Vector)])
 
@@ -10,8 +9,9 @@ TriangleCLInfo = NamedTuple("TriangleInfo", [("vertexIDs", list), ("normal", Vec
 class TriangleCL(CLObject):
     STRUCT_NAME = "Triangle"
     STRUCT_DTYPE = np.dtype(
-            [("vertexIDs", cl.cltypes.uint, 3),
-             ("normal", cl.cltypes.float3)])  # todo: if too heavy, remove and compute on the fly with vertice
+        [("vertexIDs", cl.cltypes.uint, 3),
+         ("normal", cl.cltypes.float3)]
+    )
 
     def __init__(self, trianglesInfo: List[TriangleCLInfo]):
         self._trianglesInfo = trianglesInfo

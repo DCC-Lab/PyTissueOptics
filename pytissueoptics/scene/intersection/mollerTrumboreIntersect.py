@@ -69,7 +69,7 @@ class MollerTrumboreIntersect:
             correctionDirection = v1 + v2 + v3 - hitPoint * 3
             hitPoint += correctionDirection * 2 * error
 
-        if t >= 0 and (ray.length >= t or ray.length is None):
+        if t >= 0 and (ray.length is None or ray.length >= t):
             # Case 1: Trivial case. Intersects.
             return hitPoint
 
@@ -81,7 +81,7 @@ class MollerTrumboreIntersect:
             dt = t - ray.length
         dt_T = abs(triangle.normal.dot(ray.direction) * dt)
 
-        if t > ray.length and dt_T < self.EPS_CATCH:
+        if ray.length and t > ray.length and dt_T < self.EPS_CATCH:
             # Case 2: Forward epsilon catch. Ray ends too close to the triangle, so we intersect.
             return hitPoint
 

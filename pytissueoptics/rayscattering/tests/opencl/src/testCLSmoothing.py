@@ -8,7 +8,7 @@ from pytissueoptics import *
 from pytissueoptics.rayscattering.opencl import OPENCL_AVAILABLE
 from pytissueoptics.rayscattering.opencl.buffers import *
 from pytissueoptics.rayscattering.opencl.config.CLConfig import OPENCL_SOURCE_DIR
-from pytissueoptics.rayscattering.tests.opencl.src.testCLIntersection import RayCL, IntersectionCL
+from pytissueoptics.rayscattering.tests.opencl.src.CLObjects import IntersectionCL, RayCL
 from pytissueoptics.scene.geometry.triangle import Triangle
 from pytissueoptics.scene.geometry.vertex import Vertex
 from pytissueoptics.rayscattering.opencl.CLProgram import CLProgram
@@ -67,8 +67,7 @@ class TestCLNormalSmoothing(unittest.TestCase):
         triangleInfo = TriangleCLInfo([0, 1, 2], self.TRIANGLE.normal)
         triangleCL = TriangleCL([triangleInfo])
         N = 1
-        intersectionCL = IntersectionCL(N)
-        intersectionCL.setResults(np.full(N, 0), np.full((N, 3), atPosition.array), np.full((N, 3), self.TRIANGLE.normal.array))
+        intersectionCL = IntersectionCL(polygonID=0, position=atPosition, normal=self.TRIANGLE.normal, skipDeclaration=True)
         rayCL = RayCL(origins=np.full((N, 3), [0, 0, 0]),
                       directions=np.full((N, 3), rayDirection.array),
                       lengths=np.full(N, 10))

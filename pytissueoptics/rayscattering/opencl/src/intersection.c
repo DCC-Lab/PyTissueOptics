@@ -420,7 +420,7 @@ __kernel void findIntersections(__global Ray *rays, uint nSolids, __global Solid
         __global Triangle *triangles, __global Vertex *vertices, __global SolidCandidate *solidCandidates, __global Intersection *intersections) {
     uint gid = get_global_id(0);
     Scene scene = {nSolids, solids, surfaces, triangles, vertices, solidCandidates};
-    intersections[gid] = findIntersection(rays[gid], &scene, gid, 0);
+    intersections[gid] = findIntersection(rays[gid], &scene, gid, -1);
 }
 
 

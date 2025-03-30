@@ -4,6 +4,7 @@ from typing import List, Tuple, Optional
 
 from pytissueoptics.scene import shader
 from pytissueoptics.scene.geometry import Vector, Polygon, Environment
+from pytissueoptics.scene.geometry.polygon import WORLD_LABEL
 from pytissueoptics.scene.intersection import Ray
 from pytissueoptics.scene.tree import SpacePartition, Node
 from pytissueoptics.scene.tree.treeConstructor.binary import NoSplitThreeAxesConstructor
@@ -33,7 +34,7 @@ class IntersectionFinder:
         self._polygonIntersect = MollerTrumboreIntersect()
         self._boxIntersect = GemsBoxIntersect()
 
-    def findIntersection(self, ray: Ray, currentSolidLabel: str) -> Optional[Intersection]:
+    def findIntersection(self, ray: Ray, currentSolidLabel: Optional[str]) -> Optional[Intersection]:
         raise NotImplementedError
 
     def _findClosestPolygonIntersection(
@@ -46,7 +47,7 @@ class IntersectionFinder:
             # When an interface joins a side surface, an outside photon could try to intersect with the interface.
             #  This is not allowed, so we skip these tests (where surface environments dont match the photon).
             insideLabel = polygon.insideEnvironment.solidLabel
-            outsideLabel = polygon.outsideEnvironment.solidLabel
+            outsideLabel = polygon.outsideEnvironment.solidLabel if polygon.outsideEnvironment else WORLD_LABEL
             if insideLabel != currentSolidLabel and outsideLabel != currentSolidLabel:
                 continue
 
@@ -161,7 +162,8 @@ class FastIntersectionFinder(IntersectionFinder):
         return self._composeIntersection(ray, intersection)
 
     def _findIntersection(self, ray: Ray, node: Node, closestDistance=sys.maxsize) -> Optional[Intersection]:
-        # TODO: implement a way to test triangles that are close behind the ray origin.
+        # todo: test if this node search is still compatible with the new core intersection logic
+        #  which can now require testing a polygon slightly behind the ray origin.
         if node.isLeaf:
             intersection = self._findClosestPolygonIntersection(ray, node.polygons, self._currentSolidLabel)
             return intersection

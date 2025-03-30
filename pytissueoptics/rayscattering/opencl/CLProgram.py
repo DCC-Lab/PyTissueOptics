@@ -1,6 +1,6 @@
 import os
 import time
-from typing import List
+from typing import List, Optional
 
 import numpy as np
 
@@ -22,9 +22,16 @@ class CLProgram:
         self._device = CONFIG.device
 
         self._mainQueue = cl.CommandQueue(self._context)
-        self._program = None
+        self._program: Optional[cl.Program] = None
         self._include = ''
         self._mocks = []
+
+    def release(self):
+        self._mainQueue.finish()
+        self._mainQueue.flush()
+        self._mainQueue = None
+        self._context = None
+        self._device = None
 
     def launchKernel(self, kernelName: str, N: int, arguments: list, verbose: bool = False):
         t0 = time.time()
@@ -59,6 +66,8 @@ class CLProgram:
         sourceCode = self._include + typeDeclarations + self._makeSource(self._sourcePath)
 
         for code, mock in self._mocks:
+            if code not in sourceCode:
+                raise ValueError(f"Invalid mock. Code block not found in source code: {code}")
             sourceCode = sourceCode.replace(code, mock)
 
         self._program = cl.Program(self._context, sourceCode).build()
