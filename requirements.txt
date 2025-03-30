@@ -1,1 +1,2 @@
+git+https://github.com/enthought/mayavi.git@main
 .

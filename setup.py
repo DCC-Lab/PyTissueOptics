@@ -32,7 +32,6 @@ setuptools.setup(
         'configobj',
         'traitsui',
         'vtk>=9.2.2',
-        # 'mayavi>=4.8.2',
         'Pygments',
         'siphash24',
     ],
