@@ -174,6 +174,26 @@ class CLConfig:
         with open(OPENCL_CONFIG_PATH, "r") as f:
             self._config = json.load(f)
 
+        if os.getenv("PTO_DEVICE_INDEX") is not None:
+            try:
+                self.DEVICE_INDEX = int(os.getenv("PTO_DEVICE_INDEX"))
+            except ValueError:
+                raise ValueError(f"Invalid value for PTO_DEVICE_INDEX: {os.getenv('PTO_DEVICE_INDEX')}. Must be an "
+                                 f"integer.")
+        if os.getenv("PTO_N_WORK_UNITS") is not None:
+            try:
+                self.N_WORK_UNITS = int(os.getenv("PTO_N_WORK_UNITS"))
+            except ValueError:
+                raise ValueError(f"Invalid value for PTO_N_WORK_UNITS: {os.getenv('PTO_N_WORK_UNITS')}. Must be an "
+                                    f"integer.")
+
+        if os.getenv("PTO_MAX_MEMORY_MB") is not None:
+            try:
+                self.MAX_MEMORY_MB = int(os.getenv("PTO_MAX_MEMORY_MB"))
+            except ValueError:
+                raise ValueError(f"Invalid value for PTO_MAX_MEMORY_MB: {os.getenv('PTO_MAX_MEMORY_MB')}. Must be an "
+                                 f"integer.")
+
     def _assertExists(self):
         if not os.path.exists(OPENCL_CONFIG_PATH):
             warnings.warn("No OpenCL config file found. Creating a new one.")
@@ -183,6 +203,8 @@ class CLConfig:
     def save(self):
         if not self.AUTO_SAVE:
             return
+
+        os.makedirs(os.path.dirname(OPENCL_CONFIG_PATH), exist_ok=True)
         with open(OPENCL_CONFIG_PATH, "w") as f:
             json.dump(self._config, f, indent=4)
 
