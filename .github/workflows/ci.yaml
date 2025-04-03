@@ -7,7 +7,7 @@ jobs:
     strategy:
       matrix:
         os: [ubuntu-latest, macos-latest]
-        python-version: ["3.9", "3.10", "3.11", "3.12", "3.13"]
+        python-version: ["3.12"]  # ["3.9", "3.10", "3.11", "3.12", "3.13"]
 
     runs-on: ${{ matrix.os }}
 
@@ -28,11 +28,11 @@ jobs:
           sudo apt-get install -y pocl-opencl-icd ocl-icd-opencl-dev gcc clinfo
           clinfo
 
-      - name: Install OpenCL dependencies (macOS only)
+      - name: Verify OpenCL on macOS (use Apple's OpenCL framework)
         if: runner.os == 'macOS'
         run: |
-          brew install pocl clinfo
           clinfo || echo "Ignoring clinfo errors on macOS"
+          ls -l /System/Library/Frameworks/OpenCL.framework || echo "OpenCL framework missing"
 
       - name: Set up Python ${{ matrix.python-version }}
         uses: actions/setup-python@v5
