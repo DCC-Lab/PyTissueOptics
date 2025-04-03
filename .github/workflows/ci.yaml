@@ -13,10 +13,10 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v4
 
-      - name: Set up Python ${{ matrix.python-version }}
-        uses: actions/setup-python@v5
+      - name: Install Linux packages for Qt5/Qt6 support and start Xvfb
+        uses: pyvista/setup-headless-display-action@v3
         with:
-          python-version: ${{ matrix.python-version }}
+          qt: true
 
       - name: Install OpenCL dependencies
         run: |
@@ -24,16 +24,10 @@ jobs:
           sudo apt-get install -y pocl-opencl-icd ocl-icd-opencl-dev gcc clinfo
           clinfo
 
-      - name: Install OpenGL, EGL, and OSMesa
-        run: |
-          sudo apt-get update
-          sudo apt-get install -y \
-            libegl1-mesa-dev \
-            libosmesa6-dev \
-            libgl1-mesa-dev \
-            libglu1-mesa-dev \
-            freeglut3-dev \
-            xvfb
+      - name: Set up Python ${{ matrix.python-version }}
+        uses: actions/setup-python@v5
+        with:
+          python-version: ${{ matrix.python-version }}
 
       - name: Install tox
         run: pip install tox
