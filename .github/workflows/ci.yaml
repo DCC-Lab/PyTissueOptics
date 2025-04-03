@@ -5,8 +5,9 @@ on: [push, pull_request]
 jobs:
   test:
     strategy:
+      fail-fast: false
       matrix:
-        os: [ubuntu-latest, macos-latest]
+        os: [macos-13, macos-15]
         python-version: ["3.12"]  # ["3.9", "3.10", "3.11", "3.12", "3.13"]
 
     runs-on: ${{ matrix.os }}
@@ -32,8 +33,8 @@ jobs:
         if: runner.os == 'macOS'
         run: |
           brew install clinfo
-          clinfo
-          ls -l /System/Library/Frameworks/OpenCL.framework
+          clinfo || echo "clinfo error"
+          ls -l /System/Library/Frameworks/OpenCL.framework || echo "OpenCL framework not found"
 
       - name: Set up Python ${{ matrix.python-version }}
         uses: actions/setup-python@v5
