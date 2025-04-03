@@ -36,7 +36,7 @@ setuptools.setup(
         'Pygments',
         # 'siphash24',
     ],
-    python_requires='>=3.6',
+    python_requires='>=3.9',
     package_data={'pytissueoptics': ['rayscattering/opencl/src/*.c', '**/*.obj', 'examples/*.py']},
     classifiers=[
         'Development Status :: 5 - Production/Stable',
