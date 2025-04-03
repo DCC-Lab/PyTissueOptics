@@ -28,11 +28,12 @@ jobs:
           sudo apt-get install -y pocl-opencl-icd ocl-icd-opencl-dev gcc clinfo
           clinfo
 
-      - name: Verify OpenCL on macOS (use Apple's OpenCL framework)
+      - name: Verify OpenCL on macOS
         if: runner.os == 'macOS'
         run: |
-          clinfo || echo "Ignoring clinfo errors on macOS"
-          ls -l /System/Library/Frameworks/OpenCL.framework || echo "OpenCL framework missing"
+          brew install clinfo
+          clinfo
+          ls -l /System/Library/Frameworks/OpenCL.framework
 
       - name: Set up Python ${{ matrix.python-version }}
         uses: actions/setup-python@v5
