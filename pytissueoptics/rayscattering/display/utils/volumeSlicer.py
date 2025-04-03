@@ -16,6 +16,36 @@ from mayavi.core.api import PipelineBase, Source
 from mayavi.core.ui.api import SceneEditor, MayaviScene, \
                                 MlabSceneModel
 
+try:
+    #---------------------------------------------------------------------------
+    # The layout of the dialog created
+    #---------------------------------------------------------------------------
+    VIEW = View(HGroup(
+        Group(
+            Item('scene_y',
+                 editor=SceneEditor(scene_class=Scene),
+                 height=250, width=300),
+            Item('scene_z',
+                 editor=SceneEditor(scene_class=Scene),
+                 height=250, width=300),
+            show_labels=False,
+        ),
+        Group(
+            Item('scene_x',
+                 editor=SceneEditor(scene_class=Scene),
+                 height=250, width=300),
+            Item('scene3d',
+                 editor=SceneEditor(scene_class=MayaviScene),
+                 height=250, width=300),
+            show_labels=False,
+        ),
+    ),
+        resizable=True,
+        title='Volume Slicer',
+    )
+except Exception as e:
+    VIEW = e
+
 
 class VolumeSlicer(HasTraits):
     # The data to plot
@@ -37,12 +67,17 @@ class VolumeSlicer(HasTraits):
 
     _axis_names = dict(x=0, y=1, z=2)
 
+    view = VIEW
+
     #---------------------------------------------------------------------------
     def __init__(self, hist3D: np.ndarray, colormap: str = 'viridis', interpolate=False, **traits):
         self._colormap = colormap
         self._cameraView = {"azimuth": -30, "zenith": 215, "distance": None, "pointingTowards": None, "roll": -0}
         self._cameraPitch = -3
         self._interpolate = interpolate
+
+        if isinstance(VIEW, Exception):
+            raise VIEW
 
         super(VolumeSlicer, self).__init__(data=hist3D, **traits)
 
@@ -174,38 +209,10 @@ class VolumeSlicer(HasTraits):
         return self.make_side_view('z')
 
 
-    #---------------------------------------------------------------------------
-    # The layout of the dialog created
-    #---------------------------------------------------------------------------
-    view = View(HGroup(
-                  Group(
-                       Item('scene_y',
-                            editor=SceneEditor(scene_class=Scene),
-                            height=250, width=300),
-                       Item('scene_z',
-                            editor=SceneEditor(scene_class=Scene),
-                            height=250, width=300),
-                       show_labels=False,
-                  ),
-                  Group(
-                       Item('scene_x',
-                            editor=SceneEditor(scene_class=Scene),
-                            height=250, width=300),
-                       Item('scene3d',
-                            editor=SceneEditor(scene_class=MayaviScene),
-                            height=250, width=300),
-                       show_labels=False,
-                  ),
-                ),
-                resizable=True,
-                title='Volume Slicer',
-                )
-
-
 if __name__ == '__main__':
     # Volume Slicer example with some data
     x, y, z = np.ogrid[-5:5:64j, -5:5:64j, -5:5:64j]
     data = np.sin(3 * x) / x + 0.05 * z ** 2 + np.cos(3 * y)
 
-    m = VolumeSlicer(data=data)
+    m = VolumeSlicer(data)
     m.show()
