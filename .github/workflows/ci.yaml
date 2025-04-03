@@ -4,24 +4,34 @@ on: [push, pull_request]
 
 jobs:
   test:
-    runs-on: ubuntu-latest
     strategy:
       matrix:
+        os: [ubuntu-latest, macos-latest]
         python-version: ["3.9", "3.10", "3.11", "3.12", "3.13"]
+
+    runs-on: ${{ matrix.os }}
 
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
 
-      - name: Install Linux packages for Qt5/Qt6 support and start Xvfb
+      - name: Install Linux packages for Qt5/Qt6 support and start Xvfb (Linux only)
+        if: runner.os == 'Linux'
         uses: pyvista/setup-headless-display-action@v3
         with:
           qt: true
 
-      - name: Install OpenCL dependencies
+      - name: Install OpenCL dependencies (Linux only)
+        if: runner.os == 'Linux'
         run: |
           sudo apt-get update
           sudo apt-get install -y pocl-opencl-icd ocl-icd-opencl-dev gcc clinfo
+          clinfo
+
+      - name: Install OpenCL dependencies (macOS only)
+        if: runner.os == 'macOS'
+        run: |
+          brew install pocl ocl-icd clinfo
           clinfo
 
       - name: Set up Python ${{ matrix.python-version }}
