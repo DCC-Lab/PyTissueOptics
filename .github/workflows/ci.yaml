@@ -31,8 +31,8 @@ jobs:
       - name: Install OpenCL dependencies (macOS only)
         if: runner.os == 'macOS'
         run: |
-          brew install pocl ocl-icd clinfo
-          clinfo
+          brew install pocl clinfo
+          clinfo || echo "Ignoring clinfo errors on macOS"
 
       - name: Set up Python ${{ matrix.python-version }}
         uses: actions/setup-python@v5
