@@ -22,6 +22,7 @@ setuptools.setup(
     keywords='tissue, optics, monte carlo, light propagation, simulation, scattering, ray tracing, 3D',
     packages=setuptools.find_packages(),
     install_requires=[
+        'mayavi-dev>=4.8.3.dev0',
         'numpy',
         'matplotlib',
         'tqdm',
@@ -33,7 +34,7 @@ setuptools.setup(
         'traitsui',
         'vtk>=9.2.2',
         'Pygments',
-        'siphash24',
+        # 'siphash24',
     ],
     python_requires='>=3.6',
     package_data={'pytissueoptics': ['rayscattering/opencl/src/*.c', '**/*.obj', 'examples/*.py']},
