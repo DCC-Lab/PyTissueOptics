@@ -29,6 +29,7 @@ setuptools.setup(
         'psutil',
         'configobj',
         'Pygments',
+        'siphash24; python_version < "3.13"',
         'pyopencl',
         'traitsui',
         'vtk>=9.4',
