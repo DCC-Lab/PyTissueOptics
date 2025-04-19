@@ -13,7 +13,7 @@ from pytissueoptics.scene.tree.treeConstructor.binary import (
 )
 
 
-class TestAnyIntersectionFinder:
+class BaseTestAnyIntersectionFinder:
     def getIntersectionFinder(self, solids) -> IntersectionFinder:
         raise NotImplementedError
 
@@ -227,13 +227,13 @@ class TestAnyIntersectionFinder:
         self.assertEqual(expected.z, actual.z)
 
 
-class TestSimpleIntersectionFinder(TestAnyIntersectionFinder, unittest.TestCase):
+class TestSimpleIntersectionFinder(BaseTestAnyIntersectionFinder, unittest.TestCase):
     def getIntersectionFinder(self, solids) -> IntersectionFinder:
         scene = Scene(solids)
         return SimpleIntersectionFinder(scene)
 
 
-class TestFastIntersectionFinder(TestAnyIntersectionFinder, unittest.TestCase):
+class TestFastIntersectionFinder(BaseTestAnyIntersectionFinder, unittest.TestCase):
     def getIntersectionFinder(self, solids) -> IntersectionFinder:
         scene = Scene(solids)
         return FastIntersectionFinder(scene)

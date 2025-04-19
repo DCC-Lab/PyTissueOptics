@@ -5,7 +5,7 @@ from pytissueoptics.scene.intersection import Ray
 from pytissueoptics.scene.intersection.bboxIntersect import BoxIntersectStrategy, GemsBoxIntersect, ZacharBoxIntersect
 
 
-class TestAnyBoxIntersect:
+class BaseTestAnyBoxIntersect:
     @property
     def intersectStrategy(self) -> BoxIntersectStrategy:
         raise NotImplementedError
@@ -83,7 +83,7 @@ class TestAnyBoxIntersect:
         self.assertEqual(0.0, intersection.z)
 
 
-class TestGemsBoxIntersect(TestAnyBoxIntersect, unittest.TestCase):
+class TestGemsBoxIntersect(BaseTestAnyBoxIntersect, unittest.TestCase):
     def testGivenLineIntersectingRayAndBox_shouldReturnClosestIntersectionPoint(self):
         box = BoundingBox([1, 2], [1, 2], [-1, 0])
         rayOrigin = Vector(-1, -1, 0)
@@ -103,7 +103,7 @@ class TestGemsBoxIntersect(TestAnyBoxIntersect, unittest.TestCase):
         return GemsBoxIntersect()
 
 
-class TestZacharBoxIntersect(TestAnyBoxIntersect, unittest.TestCase):
+class TestZacharBoxIntersect(BaseTestAnyBoxIntersect, unittest.TestCase):
     def testGivenLineIntersectingRayAndBox_shouldReturnNone(self):
         box = BoundingBox([0, 1], [0, 1], [-1, 0])
         rayOrigin = Vector(-1, -1, 0)
