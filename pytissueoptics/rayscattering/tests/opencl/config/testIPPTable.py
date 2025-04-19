@@ -3,7 +3,7 @@ import os
 import tempfile
 import unittest
 
-from pytissueoptics.rayscattering.opencl.config.IPPTable import IPPTable, DEFAULT_IPP
+from pytissueoptics.rayscattering.opencl.config.IPPTable import DEFAULT_IPP, IPPTable
 
 
 def tempTablePath(func):

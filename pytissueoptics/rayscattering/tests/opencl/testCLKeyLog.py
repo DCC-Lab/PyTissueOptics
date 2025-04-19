@@ -1,12 +1,12 @@
 import unittest
 
 import numpy as np
-from mockito import mock, when, verify, arg_that
+from mockito import arg_that, mock, verify, when
 
-from pytissueoptics import Cube, ScatteringMaterial, Sphere, ScatteringScene, EnergyLogger
-from pytissueoptics.rayscattering.opencl.utils import CLKeyLog
+from pytissueoptics import Cube, EnergyLogger, ScatteringMaterial, ScatteringScene, Sphere
 from pytissueoptics.rayscattering.opencl import OPENCL_OK
-from pytissueoptics.rayscattering.opencl.CLScene import CLScene, NO_LOG_ID, NO_SOLID_ID, NO_SURFACE_ID, NO_SOLID_LABEL
+from pytissueoptics.rayscattering.opencl.CLScene import NO_LOG_ID, NO_SOLID_ID, NO_SOLID_LABEL, NO_SURFACE_ID, CLScene
+from pytissueoptics.rayscattering.opencl.utils import CLKeyLog
 from pytissueoptics.scene.logger import InteractionKey
 
 

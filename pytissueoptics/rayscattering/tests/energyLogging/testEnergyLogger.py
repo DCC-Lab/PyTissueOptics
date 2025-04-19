@@ -2,18 +2,18 @@ import io
 import os
 import tempfile
 import unittest
-from unittest.mock import patch, MagicMock
+from unittest.mock import MagicMock, patch
 
 import numpy as np
 
-from pytissueoptics.rayscattering.materials import ScatteringMaterial
-from pytissueoptics.rayscattering.scatteringScene import ScatteringScene
-from pytissueoptics.rayscattering.energyLogging import EnergyLogger
 from pytissueoptics.rayscattering.display.utils import Direction
 from pytissueoptics.rayscattering.display.views import *
-from pytissueoptics.scene.solids import Cube
+from pytissueoptics.rayscattering.energyLogging import EnergyLogger
+from pytissueoptics.rayscattering.materials import ScatteringMaterial
+from pytissueoptics.rayscattering.scatteringScene import ScatteringScene
 from pytissueoptics.scene.geometry import Vector
 from pytissueoptics.scene.logger import InteractionKey
+from pytissueoptics.scene.solids import Cube
 
 
 class TestEnergyLogger(unittest.TestCase):

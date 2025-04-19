@@ -1,11 +1,11 @@
 import unittest
 
-from mockito import mock, when, verify
+from mockito import mock, verify, when
 
-from pytissueoptics.scene.solids import Sphere, Cube
+from pytissueoptics.rayscattering.display.views import *
 from pytissueoptics.rayscattering.materials import ScatteringMaterial
 from pytissueoptics.rayscattering.scatteringScene import ScatteringScene
-from pytissueoptics.rayscattering.display.views import *
+from pytissueoptics.scene.solids import Cube, Sphere
 
 
 class TestViewFactory(unittest.TestCase):

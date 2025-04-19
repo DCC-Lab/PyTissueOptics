@@ -1,17 +1,17 @@
 import sys
 from dataclasses import dataclass
-from typing import List, Tuple, Optional
+from typing import List, Optional, Tuple
 
 from pytissueoptics.scene import shader
-from pytissueoptics.scene.geometry import Vector, Polygon, Environment
+from pytissueoptics.scene.geometry import Environment, Polygon, Vector
 from pytissueoptics.scene.geometry.polygon import WORLD_LABEL
 from pytissueoptics.scene.intersection import Ray
-from pytissueoptics.scene.tree import SpacePartition, Node
-from pytissueoptics.scene.tree.treeConstructor.binary import NoSplitThreeAxesConstructor
-from pytissueoptics.scene.scene import Scene
 from pytissueoptics.scene.intersection.bboxIntersect import GemsBoxIntersect
 from pytissueoptics.scene.intersection.mollerTrumboreIntersect import MollerTrumboreIntersect
+from pytissueoptics.scene.scene import Scene
 from pytissueoptics.scene.solids import Solid
+from pytissueoptics.scene.tree import Node, SpacePartition
+from pytissueoptics.scene.tree.treeConstructor.binary import NoSplitThreeAxesConstructor
 
 
 @dataclass

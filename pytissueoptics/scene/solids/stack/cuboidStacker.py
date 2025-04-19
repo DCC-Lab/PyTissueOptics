@@ -1,6 +1,6 @@
-from typing import List, Dict
+from typing import Dict, List
 
-from pytissueoptics.scene.geometry import Vector, SurfaceCollection, INTERFACE_KEY
+from pytissueoptics.scene.geometry import INTERFACE_KEY, SurfaceCollection, Vector
 from pytissueoptics.scene.solids.stack.stackResult import StackResult
 
 

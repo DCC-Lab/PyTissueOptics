@@ -2,8 +2,7 @@ import unittest
 
 import numpy as np
 
-from pytissueoptics.rayscattering.utils import logNorm, labelsEqual, \
-    labelContained
+from pytissueoptics.rayscattering.utils import labelContained, labelsEqual, logNorm
 
 
 class TestLogNorm(unittest.TestCase):

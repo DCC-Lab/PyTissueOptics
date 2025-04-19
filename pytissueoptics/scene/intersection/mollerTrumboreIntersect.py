@@ -1,6 +1,6 @@
-from typing import Union, Optional
+from typing import Optional, Union
 
-from pytissueoptics.scene.geometry import Vector, Triangle, Quad, Polygon
+from pytissueoptics.scene.geometry import Polygon, Quad, Triangle, Vector
 from pytissueoptics.scene.intersection import Ray
 
 

@@ -1,5 +1,5 @@
-import unittest
 import math
+import unittest
 
 from pytissueoptics.scene.geometry import Vector, Vertex, primitives
 from pytissueoptics.scene.solids import Sphere

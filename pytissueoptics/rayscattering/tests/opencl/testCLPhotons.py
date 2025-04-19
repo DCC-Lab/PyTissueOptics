@@ -2,10 +2,10 @@ import unittest
 
 import numpy as np
 
-from pytissueoptics import ScatteringScene, ScatteringMaterial, EnergyLogger, Cube
+from pytissueoptics import Cube, EnergyLogger, ScatteringMaterial, ScatteringScene
+from pytissueoptics.rayscattering.opencl import OPENCL_OK, WEIGHT_THRESHOLD
 from pytissueoptics.rayscattering.opencl.CLPhotons import CLPhotons
 from pytissueoptics.scene.geometry import Environment
-from pytissueoptics.rayscattering.opencl import WEIGHT_THRESHOLD, OPENCL_OK
 from pytissueoptics.scene.logger import InteractionKey
 
 

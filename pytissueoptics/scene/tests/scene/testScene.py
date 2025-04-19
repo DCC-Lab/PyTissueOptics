@@ -3,8 +3,8 @@ import unittest
 from mockito import mock, verify, when
 
 from pytissueoptics.scene import Cuboid
+from pytissueoptics.scene.geometry import INTERFACE_KEY, BoundingBox, Environment, Vector
 from pytissueoptics.scene.scene import Scene
-from pytissueoptics.scene.geometry import Vector, BoundingBox, Environment, INTERFACE_KEY
 from pytissueoptics.scene.solids import Solid
 
 

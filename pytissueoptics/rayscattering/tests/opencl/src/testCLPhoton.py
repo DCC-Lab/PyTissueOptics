@@ -5,12 +5,12 @@ from dataclasses import dataclass
 
 import numpy as np
 
-from pytissueoptics import Vector, ScatteringMaterial, ScatteringScene
+from pytissueoptics import ScatteringMaterial, ScatteringScene, Vector
 from pytissueoptics.rayscattering.opencl import OPENCL_AVAILABLE, OPENCL_OK
-from pytissueoptics.rayscattering.opencl.config.CLConfig import OPENCL_SOURCE_DIR
-from pytissueoptics.rayscattering.opencl.CLProgram import CLProgram
-from pytissueoptics.rayscattering.opencl.CLScene import NO_SURFACE_ID, NO_LOG_ID, NO_SOLID_ID, CLScene
 from pytissueoptics.rayscattering.opencl.buffers import *
+from pytissueoptics.rayscattering.opencl.CLProgram import CLProgram
+from pytissueoptics.rayscattering.opencl.CLScene import NO_LOG_ID, NO_SOLID_ID, NO_SURFACE_ID, CLScene
+from pytissueoptics.rayscattering.opencl.config.CLConfig import OPENCL_SOURCE_DIR
 from pytissueoptics.scene.geometry import Vertex
 
 if OPENCL_AVAILABLE:

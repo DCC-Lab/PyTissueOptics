@@ -8,7 +8,7 @@ import numpy as np
 from pytissueoptics import Logger
 from pytissueoptics.scene.geometry import Vector
 from pytissueoptics.scene.scene import Scene
-from pytissueoptics.scene.solids import Cuboid, Sphere, Ellipsoid
+from pytissueoptics.scene.solids import Cuboid, Ellipsoid, Sphere
 from pytissueoptics.scene.tests import SHOW_VISUAL_TESTS, compareVisuals
 from pytissueoptics.scene.viewer.mayavi import MayaviViewer, ViewPointStyle
 

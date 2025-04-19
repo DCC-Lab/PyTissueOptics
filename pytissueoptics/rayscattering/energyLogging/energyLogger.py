@@ -1,15 +1,15 @@
 import os
 import pickle
-from typing import Union, List
+from typing import List, Union
 
 import numpy as np
 
 from pytissueoptics.rayscattering import utils
-from pytissueoptics.rayscattering.scatteringScene import ScatteringScene
-from pytissueoptics.rayscattering.display.views.view2D import ViewGroup, View2D
+from pytissueoptics.rayscattering.display.views.view2D import View2D, ViewGroup
 from pytissueoptics.rayscattering.display.views.viewFactory import ViewFactory
-from pytissueoptics.scene.logger.logger import Logger, InteractionKey
+from pytissueoptics.rayscattering.scatteringScene import ScatteringScene
 from pytissueoptics.scene.geometry import Vector
+from pytissueoptics.scene.logger.logger import InteractionKey, Logger
 
 
 class EnergyLogger(Logger):

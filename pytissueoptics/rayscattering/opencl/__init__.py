@@ -1,4 +1,4 @@
-from pytissueoptics.rayscattering.opencl.config.CLConfig import warnings, CLConfig, OPENCL_AVAILABLE, WEIGHT_THRESHOLD
+from pytissueoptics.rayscattering.opencl.config.CLConfig import OPENCL_AVAILABLE, WEIGHT_THRESHOLD, CLConfig, warnings
 from pytissueoptics.rayscattering.opencl.config.IPPTable import IPPTable
 
 OPENCL_OK = True

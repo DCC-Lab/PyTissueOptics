@@ -3,10 +3,17 @@ import unittest
 
 from mockito import mock, verify, when
 
-from pytissueoptics.scene.geometry import Vector, Quad, Polygon, Vertex, Environment
-from pytissueoptics.scene.geometry import primitives
+from pytissueoptics.scene.geometry import (
+    INTERFACE_KEY,
+    Environment,
+    Polygon,
+    Quad,
+    SurfaceCollection,
+    Vector,
+    Vertex,
+    primitives,
+)
 from pytissueoptics.scene.solids import Solid
-from pytissueoptics.scene.geometry import SurfaceCollection, INTERFACE_KEY
 
 
 class TestSolid(unittest.TestCase):

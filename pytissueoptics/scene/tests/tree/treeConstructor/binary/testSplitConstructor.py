@@ -1,10 +1,10 @@
 import unittest
 from math import sqrt
 
-from pytissueoptics.scene.geometry import Triangle, Vector, BoundingBox, Environment, Vertex
+from pytissueoptics.scene.geometry import BoundingBox, Environment, Triangle, Vector, Vertex
 from pytissueoptics.scene.intersection import Ray
 from pytissueoptics.scene.tree import Node
-from pytissueoptics.scene.tree.treeConstructor.binary import SplitThreeAxesConstructor, SAHSearchResult
+from pytissueoptics.scene.tree.treeConstructor.binary import SAHSearchResult, SplitThreeAxesConstructor
 
 
 class TestSplitConstructor(unittest.TestCase):

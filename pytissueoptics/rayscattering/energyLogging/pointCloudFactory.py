@@ -1,7 +1,7 @@
 import numpy as np
 
-from pytissueoptics.scene.logger import Logger, InteractionKey
 from pytissueoptics.rayscattering.energyLogging import PointCloud
+from pytissueoptics.scene.logger import InteractionKey, Logger
 
 
 class PointCloudFactory:

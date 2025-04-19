@@ -1,12 +1,12 @@
+import itertools
 import math
 from typing import List
-import itertools
 
 import numpy as np
 
-from pytissueoptics.scene.geometry import Vector, primitives, Vertex
-from pytissueoptics.scene.solids import Cylinder
+from pytissueoptics.scene.geometry import Vector, Vertex, primitives
 from pytissueoptics.scene.material import RefractiveMaterial
+from pytissueoptics.scene.solids import Cylinder
 
 
 class ThickLens(Cylinder):

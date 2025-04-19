@@ -1,10 +1,10 @@
-from dataclasses import dataclass
 import unittest
+from dataclasses import dataclass
 
 import numpy as np
 
 from pytissueoptics.scene.geometry import Rotation
-from pytissueoptics.scene.geometry.utils import eulerRotationMatrix, rotateVerticesArray, getAxisAngleBetween
+from pytissueoptics.scene.geometry.utils import eulerRotationMatrix, getAxisAngleBetween, rotateVerticesArray
 from pytissueoptics.scene.geometry.vector import Vector
 
 

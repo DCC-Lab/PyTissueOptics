@@ -2,9 +2,17 @@ from typing import List
 
 import numpy as np
 
-from pytissueoptics.scene.geometry import Vector, Quad, Triangle, Vertex, BoundingBox, Polygon, primitives
+from pytissueoptics.scene.geometry import (
+    BoundingBox,
+    Polygon,
+    Quad,
+    SurfaceCollection,
+    Triangle,
+    Vector,
+    Vertex,
+    primitives,
+)
 from pytissueoptics.scene.solids import Solid
-from pytissueoptics.scene.geometry import SurfaceCollection
 from pytissueoptics.scene.solids.stack.cuboidStacker import CuboidStacker
 from pytissueoptics.scene.solids.stack.stackResult import StackResult
 

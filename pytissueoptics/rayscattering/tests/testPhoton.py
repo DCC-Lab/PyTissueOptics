@@ -3,20 +3,19 @@ import sys
 import unittest
 from unittest.mock import patch
 
-from mockito import mock, when, verify
+from mockito import mock, verify, when
 
 from pytissueoptics.rayscattering import Photon
-from pytissueoptics.rayscattering.photon import WEIGHT_THRESHOLD
-from pytissueoptics.rayscattering.fresnel import FresnelIntersection, FresnelIntersect
+from pytissueoptics.rayscattering.fresnel import FresnelIntersect, FresnelIntersection
 from pytissueoptics.rayscattering.materials import ScatteringMaterial
-from pytissueoptics.scene import Vector, Logger
-from pytissueoptics.scene.geometry import Environment, Triangle, Polygon
+from pytissueoptics.rayscattering.photon import WEIGHT_THRESHOLD
+from pytissueoptics.scene import Logger, Vector
+from pytissueoptics.scene.geometry import Environment, Polygon, Triangle
 from pytissueoptics.scene.geometry.polygon import WORLD_LABEL
 from pytissueoptics.scene.intersection.intersectionFinder import Intersection, IntersectionFinder
 from pytissueoptics.scene.intersection.mollerTrumboreIntersect import MollerTrumboreIntersect
 from pytissueoptics.scene.logger import InteractionKey
 from pytissueoptics.scene.solids import Solid
-
 
 EPS = MollerTrumboreIntersect.EPS_CATCH
 

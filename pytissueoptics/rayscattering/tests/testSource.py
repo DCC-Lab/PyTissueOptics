@@ -3,15 +3,15 @@ import tempfile
 import unittest
 
 import numpy as np
-from mockito import mock, when, verify
+from mockito import mock, verify, when
 
-from pytissueoptics.rayscattering import PencilPointSource, Photon, EnergyLogger
+from pytissueoptics.rayscattering import EnergyLogger, PencilPointSource, Photon
 from pytissueoptics.rayscattering.materials import ScatteringMaterial
-from pytissueoptics.rayscattering.source import Source, IsotropicPointSource, DirectionalSource, DivergentSource
 from pytissueoptics.rayscattering.scatteringScene import ScatteringScene
+from pytissueoptics.rayscattering.source import DirectionalSource, DivergentSource, IsotropicPointSource, Source
 from pytissueoptics.scene.geometry import Environment, Vector
-from pytissueoptics.scene.solids import Solid
 from pytissueoptics.scene.logger import Logger
+from pytissueoptics.scene.solids import Solid
 
 
 class TestSource(unittest.TestCase):

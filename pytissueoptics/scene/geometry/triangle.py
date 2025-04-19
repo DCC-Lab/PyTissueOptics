@@ -1,4 +1,4 @@
-from pytissueoptics.scene.geometry import Polygon, Vector, Environment, Vertex
+from pytissueoptics.scene.geometry import Environment, Polygon, Vector, Vertex
 
 
 class Triangle(Polygon):

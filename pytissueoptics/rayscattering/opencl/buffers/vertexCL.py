@@ -1,7 +1,7 @@
 from typing import List
 
-from pytissueoptics.scene.geometry import Vertex
 from pytissueoptics.rayscattering.opencl.buffers.CLObject import *
+from pytissueoptics.scene.geometry import Vertex
 
 
 class VertexCL(CLObject):

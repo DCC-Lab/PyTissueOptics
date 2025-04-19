@@ -1,6 +1,5 @@
 from matplotlib import pyplot as plt
 
-
 SHOW_VISUAL_TESTS = False
 
 

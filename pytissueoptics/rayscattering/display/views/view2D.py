@@ -1,6 +1,6 @@
 import copy
 from enum import Flag
-from typing import Tuple, Union, Optional, List
+from typing import List, Optional, Tuple, Union
 
 import matplotlib
 import numpy as np

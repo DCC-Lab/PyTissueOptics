@@ -1,13 +1,25 @@
-from .photon import Photon
-from .materials import ScatteringMaterial
+from .display.viewer import Direction, PointCloudStyle, Viewer, ViewGroup, Visibility
+from .display.views import (
+           View2DProjection,
+           View2DProjectionX,
+           View2DProjectionY,
+           View2DProjectionZ,
+           View2DSlice,
+           View2DSliceX,
+           View2DSliceY,
+           View2DSliceZ,
+           View2DSurface,
+           View2DSurfaceX,
+           View2DSurfaceY,
+           View2DSurfaceZ,
+)
 from .energyLogging import EnergyLogger
-from .source import PencilPointSource, IsotropicPointSource, DirectionalSource, DivergentSource
+from .materials import ScatteringMaterial
+from .opencl import CONFIG, hardwareAccelerationIsAvailable
+from .photon import Photon
 from .scatteringScene import ScatteringScene
+from .source import DirectionalSource, DivergentSource, IsotropicPointSource, PencilPointSource
 from .statistics import Stats
-from .display.viewer import Viewer, PointCloudStyle, Visibility, ViewGroup, Direction
-from .display.views import View2DProjection, View2DProjectionX, View2DProjectionY, View2DProjectionZ, \
-    View2DSurface, View2DSurfaceX, View2DSurfaceY, View2DSurfaceZ, View2DSlice, View2DSliceX, View2DSliceY, View2DSliceZ
-from .opencl import hardwareAccelerationIsAvailable, CONFIG
 
 __all__ = ["Photon", "ScatteringMaterial", "PencilPointSource", "IsotropicPointSource", "DirectionalSource",
            "DivergentSource", "EnergyLogger", "ScatteringScene", "Viewer", "PointCloudStyle", "Visibility", "ViewGroup",

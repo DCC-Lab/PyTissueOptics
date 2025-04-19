@@ -5,11 +5,11 @@ from typing import List
 import numpy as np
 from numpy.lib import recfunctions as rfn
 
-from pytissueoptics.scene.geometry import Vector
 from pytissueoptics.rayscattering.opencl import OPENCL_AVAILABLE, OPENCL_OK
-from pytissueoptics.rayscattering.opencl.config.CLConfig import OPENCL_SOURCE_DIR
-from pytissueoptics.rayscattering.opencl.CLProgram import CLProgram
 from pytissueoptics.rayscattering.opencl.buffers import BufferOf
+from pytissueoptics.rayscattering.opencl.CLProgram import CLProgram
+from pytissueoptics.rayscattering.opencl.config.CLConfig import OPENCL_SOURCE_DIR
+from pytissueoptics.scene.geometry import Vector
 
 if OPENCL_AVAILABLE:
     import pyopencl as cl

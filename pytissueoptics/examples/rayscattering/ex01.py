@@ -1,5 +1,5 @@
 import env
-from pytissueoptics import *    
+from pytissueoptics import *
 
 TITLE = "Divergent source propagation through a multi-layered tissue"
 

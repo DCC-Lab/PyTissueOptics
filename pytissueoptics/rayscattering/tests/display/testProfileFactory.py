@@ -4,13 +4,13 @@ import numpy as np
 from mockito import mock, when
 
 from pytissueoptics import View2DProjectionX
-from pytissueoptics.scene.solids import Cube, Sphere
-from pytissueoptics.rayscattering.materials import ScatteringMaterial
-from pytissueoptics.rayscattering.display.profiles import ProfileFactory, Profile1D
+from pytissueoptics.rayscattering.display.profiles import Profile1D, ProfileFactory
 from pytissueoptics.rayscattering.display.utils import Direction
 from pytissueoptics.rayscattering.energyLogging import EnergyLogger
+from pytissueoptics.rayscattering.materials import ScatteringMaterial
 from pytissueoptics.rayscattering.scatteringScene import ScatteringScene
 from pytissueoptics.scene.logger import InteractionKey
+from pytissueoptics.scene.solids import Cube, Sphere
 
 
 class TestProfileFactory(unittest.TestCase):

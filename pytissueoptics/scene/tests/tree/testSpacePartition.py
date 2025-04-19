@@ -1,10 +1,10 @@
 import unittest
 
-from mockito import verifyNoUnwantedInteractions, expect
+from mockito import expect, verifyNoUnwantedInteractions
 
-from pytissueoptics.scene.geometry import Polygon, BoundingBox, Vertex, Vector
+from pytissueoptics.scene.geometry import BoundingBox, Polygon, Vector, Vertex
 from pytissueoptics.scene.tree import Node, SpacePartition
-from pytissueoptics.scene.tree.treeConstructor import TreeConstructor, SplitNodeResult
+from pytissueoptics.scene.tree.treeConstructor import SplitNodeResult, TreeConstructor
 
 
 class TestSpacePartition(unittest.TestCase):

@@ -2,8 +2,8 @@ import unittest
 
 import numpy as np
 
-from pytissueoptics.scene.geometry import Vector, primitives, Vertex, INTERFACE_KEY
-from pytissueoptics.scene.solids import Cuboid, Cube
+from pytissueoptics.scene.geometry import INTERFACE_KEY, Vector, Vertex, primitives
+from pytissueoptics.scene.solids import Cube, Cuboid
 
 
 class TestCuboid(unittest.TestCase):

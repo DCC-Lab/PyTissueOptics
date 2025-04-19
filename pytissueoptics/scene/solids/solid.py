@@ -1,10 +1,20 @@
 import warnings
-from typing import Callable, List, Dict
+from typing import Callable, Dict, List
 
 import numpy as np
 
-from pytissueoptics.scene.geometry import Vector, utils, Polygon, Rotation, BoundingBox, Vertex
-from pytissueoptics.scene.geometry import primitives, Environment, SurfaceCollection, INTERFACE_KEY
+from pytissueoptics.scene.geometry import (
+    INTERFACE_KEY,
+    BoundingBox,
+    Environment,
+    Polygon,
+    Rotation,
+    SurfaceCollection,
+    Vector,
+    Vertex,
+    primitives,
+    utils,
+)
 
 INITIAL_SOLID_ORIENTATION = Vector(0, 0, 1)
 

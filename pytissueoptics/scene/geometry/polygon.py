@@ -1,8 +1,7 @@
 from dataclasses import dataclass
 from typing import List
 
-from pytissueoptics.scene.geometry import Vector, Vertex
-from pytissueoptics.scene.geometry import BoundingBox
+from pytissueoptics.scene.geometry import BoundingBox, Vector, Vertex
 
 WORLD_LABEL = "world"
 

@@ -1,13 +1,13 @@
+import importlib
 import os
 import re
 import sys
-import importlib
 from dataclasses import dataclass
 from typing import List
 
 from pygments import highlight
-from pygments.lexers import PythonLexer
 from pygments.formatters import TerminalFormatter
+from pygments.lexers import PythonLexer
 
 EXAMPLE_MODULE = "rayscattering"
 EXAMPLE_FILE_PATTERN = r"^(ex\d+)\.py$"

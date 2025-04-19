@@ -6,12 +6,11 @@ from unittest.mock import patch
 import numpy as np
 from mockito import mock, verify, when
 
-from pytissueoptics import Vector, ScatteringScene, ScatteringMaterial, EnergyLogger, Logger
-from pytissueoptics.rayscattering.opencl import CONFIG, OPENCL_OK
-from pytissueoptics.rayscattering.source import Source
+from pytissueoptics import EnergyLogger, Logger, ScatteringMaterial, ScatteringScene, Vector
+from pytissueoptics.rayscattering.opencl import CONFIG, OPENCL_OK, IPPTable
 from pytissueoptics.rayscattering.opencl.CLPhotons import CLPhotons
+from pytissueoptics.rayscattering.source import Source
 from pytissueoptics.scene.geometry import Environment
-from pytissueoptics.rayscattering.opencl import IPPTable
 
 
 def tempTablePath(func):

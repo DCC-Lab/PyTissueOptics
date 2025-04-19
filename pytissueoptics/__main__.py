@@ -1,6 +1,6 @@
+import argparse
 import os
 import sys
-import argparse
 
 from pytissueoptics import __version__
 from pytissueoptics.examples import loadExamples

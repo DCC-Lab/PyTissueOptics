@@ -1,8 +1,7 @@
-from typing import List, Dict
 from logging import getLogger
+from typing import Dict, List
 
-from pytissueoptics.scene.geometry import Environment
-from pytissueoptics.scene.geometry import Polygon
+from pytissueoptics.scene.geometry import Environment, Polygon
 
 logger = getLogger(__name__)
 

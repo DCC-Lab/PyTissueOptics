@@ -1,6 +1,6 @@
 import unittest
 
-from pytissueoptics.scene.geometry import Triangle, Vector, Quad, Polygon, Vertex
+from pytissueoptics.scene.geometry import Polygon, Quad, Triangle, Vector, Vertex
 from pytissueoptics.scene.intersection import Ray
 from pytissueoptics.scene.intersection.mollerTrumboreIntersect import MollerTrumboreIntersect
 

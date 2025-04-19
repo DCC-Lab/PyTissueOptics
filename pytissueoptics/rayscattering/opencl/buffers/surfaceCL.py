@@ -2,7 +2,6 @@ from typing import List, NamedTuple
 
 from pytissueoptics.rayscattering.opencl.buffers.CLObject import *
 
-
 SurfaceCLInfo = NamedTuple("SurfaceInfo", [("firstPolygonID", int), ("lastPolygonID", int),
                                            ("insideMaterialID", int), ("outsideMaterialID", int),
                                            ("insideSolidID", int), ("outsideSolidID", int),

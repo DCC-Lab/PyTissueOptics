@@ -3,18 +3,17 @@ import unittest
 from unittest.mock import patch
 
 import numpy as np
-from mockito import mock, when, verify, ANY
+from mockito import ANY, mock, verify, when
 
 from pytissueoptics import Direction, View2DProjectionX, ViewGroup
-from pytissueoptics.scene.logger import Logger
-from pytissueoptics.scene.geometry import BoundingBox
-from pytissueoptics.rayscattering.energyLogging import EnergyLogger
+from pytissueoptics.rayscattering.display.profiles import Profile1D, ProfileFactory
+from pytissueoptics.rayscattering.display.viewer import PointCloudStyle, Viewer, Visibility
+from pytissueoptics.rayscattering.display.views import View2D
+from pytissueoptics.rayscattering.energyLogging import EnergyLogger, PointCloud, PointCloudFactory
 from pytissueoptics.rayscattering.scatteringScene import ScatteringScene
 from pytissueoptics.rayscattering.source import Source
-from pytissueoptics.rayscattering.display.viewer import Viewer, Visibility, PointCloudStyle
-from pytissueoptics.rayscattering.display.profiles import ProfileFactory, Profile1D
-from pytissueoptics.rayscattering.display.views import View2D
-from pytissueoptics.rayscattering.energyLogging import PointCloudFactory, PointCloud
+from pytissueoptics.scene.geometry import BoundingBox
+from pytissueoptics.scene.logger import Logger
 
 
 def patchMayaviRender(func):

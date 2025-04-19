@@ -1,4 +1,4 @@
-from .SAHSearchResult import SAHSearchResult
 from .noSplitOneAxisConstructor import NoSplitOneAxisConstructor
 from .noSplitThreeAxesConstructor import NoSplitThreeAxesConstructor
+from .SAHSearchResult import SAHSearchResult
 from .splitTreeAxesConstructor import SplitThreeAxesConstructor

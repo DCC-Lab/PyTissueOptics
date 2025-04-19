@@ -1,6 +1,6 @@
 from typing import List
 
-from pytissueoptics.scene.geometry import Vector, Vertex, SurfaceCollection, primitives
+from pytissueoptics.scene.geometry import SurfaceCollection, Vector, Vertex, primitives
 from pytissueoptics.scene.solids import Solid
 
 

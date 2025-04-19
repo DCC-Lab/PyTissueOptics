@@ -4,15 +4,15 @@ import time
 import numpy as np
 
 from pytissueoptics.rayscattering.opencl import WEIGHT_THRESHOLD
-from pytissueoptics.rayscattering.opencl.utils import CLKeyLog, CLParameters, BatchTiming
-from pytissueoptics.rayscattering.opencl.CLScene import CLScene
-from pytissueoptics.rayscattering.opencl.CLProgram import CLProgram
-from pytissueoptics.rayscattering.opencl.buffers.seedCL import SeedCL
 from pytissueoptics.rayscattering.opencl.buffers.dataPointCL import DataPointCL
 from pytissueoptics.rayscattering.opencl.buffers.photonCL import PhotonCL
+from pytissueoptics.rayscattering.opencl.buffers.seedCL import SeedCL
+from pytissueoptics.rayscattering.opencl.CLProgram import CLProgram
+from pytissueoptics.rayscattering.opencl.CLScene import CLScene
+from pytissueoptics.rayscattering.opencl.utils import BatchTiming, CLKeyLog, CLParameters
 from pytissueoptics.rayscattering.scatteringScene import ScatteringScene
-from pytissueoptics.scene.logger.logger import Logger
 from pytissueoptics.scene.geometry import Environment
+from pytissueoptics.scene.logger.logger import Logger
 
 PROPAGATION_SOURCE_PATH = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'src', 'propagation.c')
 

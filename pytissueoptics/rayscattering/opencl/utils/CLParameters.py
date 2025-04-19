@@ -1,9 +1,8 @@
-import psutil
 import numpy as np
+import psutil
 
-from pytissueoptics.rayscattering.opencl.buffers import DataPointCL
 from pytissueoptics.rayscattering.opencl import CONFIG, warnings
-
+from pytissueoptics.rayscattering.opencl.buffers import DataPointCL
 
 DATAPOINT_SIZE = DataPointCL.getItemSize()
 

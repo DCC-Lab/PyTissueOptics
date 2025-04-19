@@ -1,24 +1,24 @@
 import hashlib
 import random
 import time
-from typing import List, Union, Optional, Tuple
+from typing import List, Optional, Tuple, Union
+
 import numpy as np
 
 from pytissueoptics.rayscattering import utils
 from pytissueoptics.rayscattering.energyLogging import EnergyLogger
+from pytissueoptics.rayscattering.opencl import CONFIG, IPPTable, validateOpenCL, warnings
 from pytissueoptics.rayscattering.opencl.CLPhotons import CLPhotons
-from pytissueoptics.rayscattering.scatteringScene import ScatteringScene
 from pytissueoptics.rayscattering.photon import Photon
-from pytissueoptics.rayscattering.opencl import IPPTable, CONFIG, validateOpenCL, warnings
-from pytissueoptics.scene.solids import Sphere
-from pytissueoptics.scene.geometry import Vector, Environment
+from pytissueoptics.rayscattering.scatteringScene import ScatteringScene
+from pytissueoptics.scene.geometry import Environment, Vector
 from pytissueoptics.scene.intersection import FastIntersectionFinder
 from pytissueoptics.scene.logger import Logger
+from pytissueoptics.scene.solids import Sphere
 from pytissueoptics.scene.solids.cone import Cone
 from pytissueoptics.scene.solids.cylinder import Cylinder
 from pytissueoptics.scene.utils import progressBar
-from pytissueoptics.scene.viewer import MayaviViewer
-from pytissueoptics.scene.viewer import Displayable
+from pytissueoptics.scene.viewer import Displayable, MayaviViewer
 
 
 class Source(Displayable):

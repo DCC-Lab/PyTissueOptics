@@ -1,10 +1,10 @@
 import pathlib
 from typing import List
 
+from pytissueoptics.scene.geometry import SurfaceCollection, Triangle, Vector, Vertex, primitives
 from pytissueoptics.scene.loader.parsers import OBJParser
 from pytissueoptics.scene.loader.parsers.parsedSurface import ParsedSurface
 from pytissueoptics.scene.solids import Solid
-from pytissueoptics.scene.geometry import Vector, Triangle, SurfaceCollection, Vertex, primitives
 from pytissueoptics.scene.utils.progressBar import progressBar
 
 

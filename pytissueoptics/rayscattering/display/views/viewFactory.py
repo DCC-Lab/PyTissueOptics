@@ -1,12 +1,18 @@
-from typing import Union, List, Tuple
+from typing import List, Tuple, Union
 
 import numpy as np
 
-from pytissueoptics.rayscattering.scatteringScene import ScatteringScene
-from pytissueoptics.rayscattering.display.views.view2D import ViewGroup, View2D
-from pytissueoptics.rayscattering.display.views.defaultViews import View2DProjectionX, View2DProjectionY, View2DProjectionZ, \
-    View2DSurfaceX, View2DSurfaceY, View2DSurfaceZ
 from pytissueoptics.rayscattering import utils
+from pytissueoptics.rayscattering.display.views.defaultViews import (
+    View2DProjectionX,
+    View2DProjectionY,
+    View2DProjectionZ,
+    View2DSurfaceX,
+    View2DSurfaceY,
+    View2DSurfaceZ,
+)
+from pytissueoptics.rayscattering.display.views.view2D import View2D, ViewGroup
+from pytissueoptics.rayscattering.scatteringScene import ScatteringScene
 
 
 class ViewFactory:

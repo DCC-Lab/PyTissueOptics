@@ -1,8 +1,7 @@
 from typing import List, NamedTuple
 
-from pytissueoptics.scene.geometry import BoundingBox
 from pytissueoptics.rayscattering.opencl.buffers.CLObject import *
-
+from pytissueoptics.scene.geometry import BoundingBox
 
 SolidCLInfo = NamedTuple("SolidInfo", [("bbox", BoundingBox),
                                        ("firstSurfaceID", int), ("lastSurfaceID", int)])

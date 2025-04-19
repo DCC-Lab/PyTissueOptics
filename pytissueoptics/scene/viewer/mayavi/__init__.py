@@ -1,4 +1,4 @@
+from .MayaviSolid import MayaviObject, MayaviSolid
 from .MayaviTriangleMesh import MayaviTriangleMesh
-from .MayaviSolid import MayaviSolid, MayaviObject
-from .MayaviViewer import MayaviViewer, MAYAVI_AVAILABLE
+from .MayaviViewer import MAYAVI_AVAILABLE, MayaviViewer
 from .viewPoint import ViewPointStyle

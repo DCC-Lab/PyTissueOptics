@@ -1,4 +1,4 @@
-from pytissueoptics.scene.geometry import primitives, Vector
+from pytissueoptics.scene.geometry import Vector, primitives
 from pytissueoptics.scene.solids import Cylinder
 
 

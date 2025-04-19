@@ -1,26 +1,39 @@
+import time
 from typing import List
 
 import numpy as np
+import pandas
 
-from pytissueoptics.scene.geometry import Vector, BoundingBox
-from pytissueoptics.scene.solids import Cuboid
-from pytissueoptics.scene.scene import Scene
-from pytissueoptics.scene.logger import Logger
+from pytissueoptics.scene.geometry import BoundingBox, Vector
+from pytissueoptics.scene.intersection import (
+    FastIntersectionFinder,
+    Ray,
+    RaySource,
+    SimpleIntersectionFinder,
+    UniformRaySource,
+)
 from pytissueoptics.scene.intersection.intersectionFinder import Intersection
+from pytissueoptics.scene.logger import Logger
+from pytissueoptics.scene.scene import Scene
+from pytissueoptics.scene.solids import Cuboid
+from pytissueoptics.scene.tests.scene.benchmarkScenes import (
+    AAxisAlignedPolygonScene,
+    ACubeScene,
+    APolygonScene,
+    ASphereScene,
+    DiagonallyAlignedSpheres,
+    PhantomScene,
+    RandomShapesScene,
+    TwoCubesScene,
+    TwoSpheresScene,
+    XAlignedSpheres,
+    ZAlignedSpheres,
+)
 from pytissueoptics.scene.tree import TreeConstructor
-from pytissueoptics.scene.tree.treeConstructor.binary.splitTreeAxesConstructor import SplitThreeAxesConstructor
 from pytissueoptics.scene.tree.treeConstructor.binary.noSplitOneAxisConstructor import NoSplitOneAxisConstructor
 from pytissueoptics.scene.tree.treeConstructor.binary.noSplitThreeAxesConstructor import NoSplitThreeAxesConstructor
-from pytissueoptics.scene.intersection import FastIntersectionFinder, SimpleIntersectionFinder, \
-    UniformRaySource, RaySource, Ray
-from pytissueoptics.scene.tests.scene.benchmarkScenes import AAxisAlignedPolygonScene, APolygonScene, ACubeScene, \
-    ASphereScene, TwoCubesScene, TwoSpheresScene, RandomShapesScene, XAlignedSpheres, ZAlignedSpheres, \
-    DiagonallyAlignedSpheres, PhantomScene
+from pytissueoptics.scene.tree.treeConstructor.binary.splitTreeAxesConstructor import SplitThreeAxesConstructor
 from pytissueoptics.scene.viewer import MayaviViewer
-
-import pandas
-import time
-
 
 pandas.set_option('display.max_columns', 20)
 pandas.set_option('display.width', 1200)

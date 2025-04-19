@@ -3,7 +3,7 @@ import unittest
 import numpy as np
 
 from pytissueoptics.rayscattering.energyLogging import PointCloudFactory
-from pytissueoptics.scene.logger import Logger, InteractionKey
+from pytissueoptics.scene.logger import InteractionKey, Logger
 
 
 class TestPointCloudFactory(unittest.TestCase):

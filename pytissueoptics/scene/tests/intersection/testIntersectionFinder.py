@@ -3,13 +3,15 @@ import unittest
 
 from pytissueoptics.scene.geometry import Vector, primitives
 from pytissueoptics.scene.geometry.polygon import WORLD_LABEL
-from pytissueoptics.scene.intersection import SimpleIntersectionFinder, FastIntersectionFinder, Ray, UniformRaySource
+from pytissueoptics.scene.intersection import FastIntersectionFinder, Ray, SimpleIntersectionFinder, UniformRaySource
 from pytissueoptics.scene.intersection.intersectionFinder import IntersectionFinder
 from pytissueoptics.scene.scene import Scene
-from pytissueoptics.scene.solids import Sphere, Cube
+from pytissueoptics.scene.solids import Cube, Sphere
 from pytissueoptics.scene.tests.scene.benchmarkScenes import PhantomScene
 from pytissueoptics.scene.tree.treeConstructor.binary import (
-    NoSplitOneAxisConstructor, NoSplitThreeAxesConstructor, SplitThreeAxesConstructor
+    NoSplitOneAxisConstructor,
+    NoSplitThreeAxesConstructor,
+    SplitThreeAxesConstructor,
 )
 
 

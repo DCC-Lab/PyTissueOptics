@@ -4,15 +4,14 @@ from typing import List, Tuple, Union
 import numpy as np
 
 from pytissueoptics.rayscattering import utils
-from pytissueoptics.rayscattering.energyLogging import EnergyLogger
-from pytissueoptics.rayscattering.energyLogging.pointCloud import PointCloud
-from pytissueoptics.rayscattering.energyLogging import PointCloudFactory
-from pytissueoptics.rayscattering.source import Source
-from pytissueoptics.rayscattering.scatteringScene import ScatteringScene
-from pytissueoptics.rayscattering.statistics import Stats
-from pytissueoptics.rayscattering.display.utils import Direction
-from pytissueoptics.rayscattering.display.views import ViewGroup, View2D
 from pytissueoptics.rayscattering.display.profiles import ProfileFactory
+from pytissueoptics.rayscattering.display.utils import Direction
+from pytissueoptics.rayscattering.display.views import View2D, ViewGroup
+from pytissueoptics.rayscattering.energyLogging import EnergyLogger, PointCloudFactory
+from pytissueoptics.rayscattering.energyLogging.pointCloud import PointCloud
+from pytissueoptics.rayscattering.scatteringScene import ScatteringScene
+from pytissueoptics.rayscattering.source import Source
+from pytissueoptics.rayscattering.statistics import Stats
 from pytissueoptics.scene import MAYAVI_AVAILABLE, MayaviViewer, ViewPointStyle
 
 

@@ -3,18 +3,13 @@
 # License: BSD Style.
 
 import numpy as np
-
-from traits.api import HasTraits, Instance, Array, \
-    on_trait_change
-from traitsui.api import View, Item, HGroup, Group
-
-from tvtk.api import tvtk
-from tvtk.pyface.scene import Scene
-
 from mayavi import mlab
 from mayavi.core.api import PipelineBase, Source
-from mayavi.core.ui.api import SceneEditor, MayaviScene, \
-                                MlabSceneModel
+from mayavi.core.ui.api import MayaviScene, MlabSceneModel, SceneEditor
+from traits.api import Array, HasTraits, Instance, on_trait_change
+from traitsui.api import Group, HGroup, Item, View
+from tvtk.api import tvtk
+from tvtk.pyface.scene import Scene
 
 try:
     #---------------------------------------------------------------------------

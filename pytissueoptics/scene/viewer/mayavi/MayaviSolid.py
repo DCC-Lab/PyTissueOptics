@@ -1,6 +1,6 @@
 from typing import List, Tuple
 
-from pytissueoptics.scene.geometry import primitives, Vertex, Polygon
+from pytissueoptics.scene.geometry import Polygon, Vertex, primitives
 from pytissueoptics.scene.solids import Solid
 from pytissueoptics.scene.viewer.mayavi import MayaviTriangleMesh
 from pytissueoptics.scene.viewer.mayavi.MayaviNormals import MayaviNormals

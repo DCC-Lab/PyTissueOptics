@@ -2,7 +2,7 @@ import math
 import warnings
 from typing import List
 
-from pytissueoptics.scene.geometry import Vector, Triangle, primitives, Vertex
+from pytissueoptics.scene.geometry import Triangle, Vector, Vertex, primitives
 from pytissueoptics.scene.solids import Solid
 
 

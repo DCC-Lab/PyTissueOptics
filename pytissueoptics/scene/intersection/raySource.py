@@ -1,6 +1,8 @@
 import math
 from typing import List
+
 import numpy as np
+
 from pytissueoptics.scene import Vector
 from pytissueoptics.scene.intersection import Ray
 

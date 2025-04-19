@@ -8,8 +8,8 @@ from pytissueoptics.rayscattering.fresnel import FresnelIntersect, FresnelInters
 from pytissueoptics.rayscattering.materials import ScatteringMaterial
 from pytissueoptics.scene.geometry import Environment, Vector
 from pytissueoptics.scene.intersection import Ray
-from pytissueoptics.scene.intersection.intersectionFinder import IntersectionFinder, Intersection
-from pytissueoptics.scene.logger import Logger, InteractionKey
+from pytissueoptics.scene.intersection.intersectionFinder import Intersection, IntersectionFinder
+from pytissueoptics.scene.logger import InteractionKey, Logger
 
 WEIGHT_THRESHOLD = 1e-4
 MIN_ANGLE = 0.0001

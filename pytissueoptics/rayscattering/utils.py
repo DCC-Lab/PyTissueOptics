@@ -1,8 +1,8 @@
+import warnings
 from typing import List
 
 import numpy as np
 
-import warnings
 warnings.formatwarning = lambda msg, *args, **kwargs: f'{msg}\n'
 warn = warnings.warn
 

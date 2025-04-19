@@ -1,9 +1,8 @@
 import unittest
 
 from pytissueoptics.scene import Vector
-from pytissueoptics.scene.geometry import Triangle, primitives, Quad, Polygon
+from pytissueoptics.scene.geometry import Polygon, Quad, SurfaceCollection, Triangle, primitives
 from pytissueoptics.scene.solids import Solid
-from pytissueoptics.scene.geometry import SurfaceCollection
 from pytissueoptics.scene.viewer.mayavi import MayaviSolid
 
 

@@ -5,10 +5,10 @@ from dataclasses import dataclass
 
 import numpy as np
 
-from pytissueoptics import Vector, ScatteringMaterial
+from pytissueoptics import ScatteringMaterial, Vector
 from pytissueoptics.rayscattering.opencl import OPENCL_AVAILABLE, OPENCL_OK
+from pytissueoptics.rayscattering.opencl.buffers import MaterialCL, SeedCL, SurfaceCL, SurfaceCLInfo
 from pytissueoptics.rayscattering.opencl.config.CLConfig import OPENCL_SOURCE_DIR
-from pytissueoptics.rayscattering.opencl.buffers import MaterialCL, SurfaceCL, SurfaceCLInfo, SeedCL
 from pytissueoptics.rayscattering.tests.opencl.src.CLObjects import IntersectionCL
 
 if OPENCL_AVAILABLE:
@@ -16,8 +16,8 @@ if OPENCL_AVAILABLE:
 else:
     cl = None
 
-from pytissueoptics.rayscattering.opencl.CLProgram import CLProgram
 from pytissueoptics.rayscattering.opencl.buffers import CLObject
+from pytissueoptics.rayscattering.opencl.CLProgram import CLProgram
 
 
 @dataclass

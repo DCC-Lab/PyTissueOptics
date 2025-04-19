@@ -2,15 +2,14 @@ from typing import List
 
 import numpy as np
 
-from pytissueoptics.rayscattering.scatteringScene import ScatteringScene
-from pytissueoptics.rayscattering.opencl.buffers import SolidCLInfo, \
-    SurfaceCLInfo, TriangleCLInfo
-from pytissueoptics.rayscattering.opencl.buffers.solidCandidateCL import SolidCandidateCL
-from pytissueoptics.rayscattering.opencl.buffers.vertexCL import VertexCL
-from pytissueoptics.rayscattering.opencl.buffers.triangleCL import TriangleCL
-from pytissueoptics.rayscattering.opencl.buffers.surfaceCL import SurfaceCL
-from pytissueoptics.rayscattering.opencl.buffers.solidCL import SolidCL
+from pytissueoptics.rayscattering.opencl.buffers import SolidCLInfo, SurfaceCLInfo, TriangleCLInfo
 from pytissueoptics.rayscattering.opencl.buffers.materialCL import MaterialCL
+from pytissueoptics.rayscattering.opencl.buffers.solidCandidateCL import SolidCandidateCL
+from pytissueoptics.rayscattering.opencl.buffers.solidCL import SolidCL
+from pytissueoptics.rayscattering.opencl.buffers.surfaceCL import SurfaceCL
+from pytissueoptics.rayscattering.opencl.buffers.triangleCL import TriangleCL
+from pytissueoptics.rayscattering.opencl.buffers.vertexCL import VertexCL
+from pytissueoptics.rayscattering.scatteringScene import ScatteringScene
 
 NO_LOG_ID = 0
 NO_SOLID_ID = -1

@@ -6,7 +6,7 @@ DESCRIPTION = """ """
 
 
 def exampleCode():
-    from pytissueoptics.scene import loadSolid, MayaviViewer
+    from pytissueoptics.scene import MayaviViewer, loadSolid
 
     solid = loadSolid("pytissueoptics/examples/scene/droid.obj")
 

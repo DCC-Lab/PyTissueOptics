@@ -1,9 +1,9 @@
-import unittest
 import math
+import unittest
 
-from pytissueoptics.scene.solids import ThickLens, SymmetricLens, PlanoConvexLens, PlanoConcaveLens
 from pytissueoptics.scene.geometry import Vector
 from pytissueoptics.scene.material import RefractiveMaterial
+from pytissueoptics.scene.solids import PlanoConcaveLens, PlanoConvexLens, SymmetricLens, ThickLens
 
 
 class TestThickLens(unittest.TestCase):

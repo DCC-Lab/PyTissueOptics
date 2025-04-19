@@ -1,6 +1,6 @@
 import unittest
 
-from pytissueoptics.scene.geometry import BoundingBox, Vector, Polygon, Vertex
+from pytissueoptics.scene.geometry import BoundingBox, Polygon, Vector, Vertex
 
 
 class TestBoundingBox(unittest.TestCase):

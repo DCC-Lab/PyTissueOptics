@@ -1,11 +1,9 @@
 import sys
 import warnings
-from typing import List, Optional, Dict
+from typing import Dict, List, Optional
 
-from pytissueoptics.scene.geometry import Environment
-from pytissueoptics.scene.geometry import Vector
+from pytissueoptics.scene.geometry import INTERFACE_KEY, BoundingBox, Environment, Polygon, Vector
 from pytissueoptics.scene.solids import Solid
-from pytissueoptics.scene.geometry import Polygon, BoundingBox, INTERFACE_KEY
 from pytissueoptics.scene.viewer.displayable import Displayable
 from pytissueoptics.scene.viewer.mayavi import MayaviViewer
 

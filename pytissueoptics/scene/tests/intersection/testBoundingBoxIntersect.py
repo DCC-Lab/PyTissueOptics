@@ -1,6 +1,6 @@
 import unittest
 
-from pytissueoptics.scene.geometry import Vector, BoundingBox
+from pytissueoptics.scene.geometry import BoundingBox, Vector
 from pytissueoptics.scene.intersection import Ray
 from pytissueoptics.scene.intersection.bboxIntersect import BoxIntersectStrategy, GemsBoxIntersect, ZacharBoxIntersect
 

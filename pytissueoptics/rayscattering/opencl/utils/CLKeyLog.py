@@ -3,9 +3,8 @@ from typing import List
 
 import numpy as np
 
-from pytissueoptics.rayscattering.opencl.CLScene import CLScene, NO_LOG_ID, NO_SOLID_LABEL
+from pytissueoptics.rayscattering.opencl.CLScene import NO_LOG_ID, NO_SOLID_LABEL, CLScene
 from pytissueoptics.scene.logger import InteractionKey, Logger
-
 
 SOLID_ID_COL = 4
 SURFACE_ID_COL = 5

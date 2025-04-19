@@ -2,13 +2,13 @@ import os
 import pickle
 import warnings
 from dataclasses import dataclass
-from typing import List, Dict, Optional, Union
 from enum import Enum
+from typing import Dict, List, Optional, Union
 
 import numpy as np
 
-from pytissueoptics.scene.logger.listArrayContainer import ListArrayContainer
 from pytissueoptics.scene.geometry import Vector
+from pytissueoptics.scene.logger.listArrayContainer import ListArrayContainer
 
 
 @dataclass(frozen=True)

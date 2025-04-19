@@ -2,8 +2,7 @@ import numpy as np
 
 from pytissueoptics.scene.geometry import BoundingBox
 from pytissueoptics.scene.logger import Logger
-from pytissueoptics.scene.viewer.mayavi.viewPoint import ViewPointStyle, ViewPointFactory
-
+from pytissueoptics.scene.viewer.mayavi.viewPoint import ViewPointFactory, ViewPointStyle
 
 try:
     from mayavi import mlab
@@ -11,8 +10,8 @@ try:
 except ImportError:
     MAYAVI_AVAILABLE = False
 
-from pytissueoptics.scene.viewer.mayavi import MayaviSolid
 from pytissueoptics.scene.solids import Solid
+from pytissueoptics.scene.viewer.mayavi import MayaviSolid
 
 
 class MayaviViewer:

@@ -7,11 +7,11 @@ import numpy as np
 from pytissueoptics import *
 from pytissueoptics.rayscattering.opencl import OPENCL_OK
 from pytissueoptics.rayscattering.opencl.buffers import *
+from pytissueoptics.rayscattering.opencl.CLProgram import CLProgram
 from pytissueoptics.rayscattering.opencl.config.CLConfig import OPENCL_SOURCE_DIR
 from pytissueoptics.rayscattering.tests.opencl.src.CLObjects import IntersectionCL, RayCL
 from pytissueoptics.scene.geometry.triangle import Triangle
 from pytissueoptics.scene.geometry.vertex import Vertex
-from pytissueoptics.rayscattering.opencl.CLProgram import CLProgram
 
 
 @unittest.skipIf(not OPENCL_OK, 'OpenCL device not available.')
