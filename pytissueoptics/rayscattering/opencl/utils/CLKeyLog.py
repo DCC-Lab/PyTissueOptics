@@ -49,13 +49,15 @@ class CLKeyLog:
         and for each local batch, it also extracts start and end indices for each key. """
 
         pool = ThreadPool(8)
-        results = []
-        for batchStartIdx in range(0, self._log.shape[0], self._batchSize):
-            res = pool.apply_async(self._sortBatch, args=(batchStartIdx,))
-            results.append(res)
-        pool.close()
-        pool.join()
-        self._keyIndices = [res.get() for res in results]
+        try:
+            results = [
+                pool.apply_async(self._sortBatch, args=(batchStartIdx,))
+                for batchStartIdx in range(0, self._log.shape[0], self._batchSize)
+            ]
+            self._keyIndices = [res.get() for res in results]
+        finally:
+            pool.close()
+            pool.join()
 
     def _sortBatch(self, startIdx: int):
         ba, bb = startIdx, startIdx + self._batchSize
