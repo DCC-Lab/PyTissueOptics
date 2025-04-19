@@ -5,7 +5,7 @@ import unittest
 import numpy as np
 
 from pytissueoptics import *
-from pytissueoptics.rayscattering.opencl import OPENCL_AVAILABLE
+from pytissueoptics.rayscattering.opencl import OPENCL_OK
 from pytissueoptics.rayscattering.opencl.CLPhotons import CLScene
 from pytissueoptics.rayscattering.opencl.CLProgram import CLProgram
 from pytissueoptics.rayscattering.opencl.config.CLConfig import OPENCL_SOURCE_DIR
@@ -13,7 +13,7 @@ from pytissueoptics.rayscattering.tests.opencl.src.CLObjects import RayCL
 from pytissueoptics.rayscattering.tests.opencl.src.testCLFresnel import IntersectionCL
 
 
-@unittest.skipIf(not OPENCL_AVAILABLE, 'Requires PyOpenCL.')
+@unittest.skipIf(not OPENCL_OK, 'OpenCL device not available.')
 class TestCLIntersection(unittest.TestCase):
     def setUp(self):
         sourcePath = os.path.join(OPENCL_SOURCE_DIR, "intersection.c")

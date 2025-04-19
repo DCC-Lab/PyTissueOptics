@@ -5,12 +5,12 @@ from mockito import mock, when, verify, arg_that
 
 from pytissueoptics import Cube, ScatteringMaterial, Sphere, ScatteringScene, EnergyLogger
 from pytissueoptics.rayscattering.opencl.utils import CLKeyLog
-from pytissueoptics.rayscattering.opencl import OPENCL_AVAILABLE
+from pytissueoptics.rayscattering.opencl import OPENCL_OK
 from pytissueoptics.rayscattering.opencl.CLScene import CLScene, NO_LOG_ID, NO_SOLID_ID, NO_SURFACE_ID, NO_SOLID_LABEL
 from pytissueoptics.scene.logger import InteractionKey
 
 
-@unittest.skipIf(not OPENCL_AVAILABLE, 'Requires PyOpenCL.')
+@unittest.skipIf(not OPENCL_OK, 'OpenCL device not available.')
 class TestCLKeyLog(unittest.TestCase):
     def setUp(self):
         material1 = ScatteringMaterial(2, 0.8, 0.8, 1.4)

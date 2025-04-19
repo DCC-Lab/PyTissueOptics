@@ -5,7 +5,7 @@ import unittest
 import numpy as np
 
 from pytissueoptics import *
-from pytissueoptics.rayscattering.opencl import OPENCL_AVAILABLE
+from pytissueoptics.rayscattering.opencl import OPENCL_OK
 from pytissueoptics.rayscattering.opencl.buffers import *
 from pytissueoptics.rayscattering.opencl.config.CLConfig import OPENCL_SOURCE_DIR
 from pytissueoptics.rayscattering.tests.opencl.src.CLObjects import IntersectionCL, RayCL
@@ -14,7 +14,7 @@ from pytissueoptics.scene.geometry.vertex import Vertex
 from pytissueoptics.rayscattering.opencl.CLProgram import CLProgram
 
 
-@unittest.skipIf(not OPENCL_AVAILABLE, 'Requires PyOpenCL.')
+@unittest.skipIf(not OPENCL_OK, 'OpenCL device not available.')
 class TestCLNormalSmoothing(unittest.TestCase):
     def setUp(self):
         sourcePath = os.path.join(OPENCL_SOURCE_DIR, "intersection.c")

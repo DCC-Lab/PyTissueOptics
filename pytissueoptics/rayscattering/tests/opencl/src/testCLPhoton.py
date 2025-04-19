@@ -6,7 +6,7 @@ from dataclasses import dataclass
 import numpy as np
 
 from pytissueoptics import Vector, ScatteringMaterial, ScatteringScene
-from pytissueoptics.rayscattering.opencl import OPENCL_AVAILABLE
+from pytissueoptics.rayscattering.opencl import OPENCL_AVAILABLE, OPENCL_OK
 from pytissueoptics.rayscattering.opencl.config.CLConfig import OPENCL_SOURCE_DIR
 from pytissueoptics.rayscattering.opencl.CLProgram import CLProgram
 from pytissueoptics.rayscattering.opencl.CLScene import NO_SURFACE_ID, NO_LOG_ID, NO_SOLID_ID, CLScene
@@ -37,7 +37,7 @@ class DataPointResult:
     surfaceID: int
 
 
-@unittest.skipIf(not OPENCL_AVAILABLE, 'Requires PyOpenCL.')
+@unittest.skipIf(not OPENCL_OK, 'OpenCL device not available.')
 class TestCLPhoton(unittest.TestCase):
     def setUp(self):
         self.INITIAL_POSITION = Vector(2, 2, 0)
