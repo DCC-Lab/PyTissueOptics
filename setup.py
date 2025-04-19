@@ -23,7 +23,7 @@ setuptools.setup(
     packages=setuptools.find_packages(),
     install_requires=[
         'numpy',
-        'matplotlib<3.8.0',
+        'matplotlib',
         'tqdm',
         'mockito',
         'psutil',
@@ -35,7 +35,7 @@ setuptools.setup(
         'mayavi>=4.8.2',
         'Pygments',
     ],
-    python_requires='>=3.6',
+    python_requires='>=3.9',
     package_data={'pytissueoptics': ['rayscattering/opencl/src/*.c', '**/*.obj', 'examples/*.py']},
     classifiers=[
         'Development Status :: 5 - Production/Stable',
@@ -46,12 +46,11 @@ setuptools.setup(
         'Topic :: Education',
         'License :: OSI Approved :: MIT License',
         'Programming Language :: Python :: 3',
-        'Programming Language :: Python :: 3.6',
-        'Programming Language :: Python :: 3.7',
-        'Programming Language :: Python :: 3.8',
         'Programming Language :: Python :: 3.9',
         'Programming Language :: Python :: 3.10',
         'Programming Language :: Python :: 3.11',
+        'Programming Language :: Python :: 3.12',
+        'Programming Language :: Python :: 3.13',
         'Operating System :: OS Independent'
     ],
 )
