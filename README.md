@@ -3,7 +3,7 @@
 
 <p align="center"><i>Monte Carlo simulations of light transport made easy.</i></p>
 <p align="center">
-<img src="./docs/README.assets/pytissue-demo-banenr.jpg">
+<img src="https://raw.githubusercontent.com/DCC-Lab/PyTissueOptics/main/docs/README.assets/pytissue-demo-banenr.jpg" />
 </p>
 
 This python package is an object-oriented implementation of Monte Carlo modeling for light transport in diffuse media. 
