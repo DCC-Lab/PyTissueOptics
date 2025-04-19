@@ -1,6 +1,7 @@
 import os
 import tempfile
 import unittest
+from unittest.mock import patch
 
 from pytissueoptics.rayscattering.opencl import OPENCL_OK
 from pytissueoptics.rayscattering.opencl.config import CLConfig as clc
@@ -25,11 +26,17 @@ class TestCLConfig(unittest.TestCase):
         self.assertTrue(os.path.exists(clc.OPENCL_CONFIG_PATH))
 
     @tempConfigPath
-    def testGivenNewConfigFile_shouldHaveDefaultValues(self):
+    def testGivenNewConfigFile_shouldHaveDefaultsFromEnvironment(self):
         with self.assertWarns(UserWarning):
             config = clc.CLConfig()
-        self.assertEqual(None, config.N_WORK_UNITS)
-        self.assertEqual(None, config.MAX_MEMORY_MB)
+        if os.getenv("PTO_CI_MODE", "0") == "1":
+            self.assertEqual(0, config.DEVICE_INDEX)
+            self.assertEqual(128, config.N_WORK_UNITS)
+            self.assertEqual(1024, config.MAX_MEMORY_MB)
+        else:
+            self.assertEqual(None, config.DEVICE_INDEX)
+            self.assertEqual(None, config.N_WORK_UNITS)
+            self.assertEqual(None, config.MAX_MEMORY_MB)
         self.assertEqual(1000, config.IPP_TEST_N_PHOTONS)
         self.assertEqual(0.20, config.BATCH_LOAD_FACTOR)
 
@@ -46,7 +53,8 @@ class TestCLConfig(unittest.TestCase):
         with open(clc.OPENCL_CONFIG_PATH, "w") as f:
             f.write('{"DEVICE_INDEX": 0, "N_WORK_UNITS": 100, "MAX_MEMORY_MB": null, '
                     '"IPP_TEST_N_PHOTONS": 1000, "BATCH_LOAD_FACTOR": 0.2}')
-        config = clc.CLConfig()
+        with patch("os.getenv", return_value=None):
+            config = clc.CLConfig()
         with self.assertWarns(UserWarning):
             config.validate()
         self.assertIsNotNone(config.MAX_MEMORY_MB)
@@ -68,8 +76,10 @@ class TestCLConfig(unittest.TestCase):
         with open(clc.OPENCL_CONFIG_PATH, "w") as f:
             f.write('{"DEVICE_INDEX": 0, "N_WORK_UNITS": 100, "MAX_MEMORY_MB": 0, '
                     '"IPP_TEST_N_PHOTONS": 1000, "BATCH_LOAD_FACTOR": 0.2}')
-        config = clc.CLConfig()
-        with self.assertRaises(ValueError):
-            config.validate()
-        config = clc.CLConfig()
-        self.assertIsNone(config.MAX_MEMORY_MB)
+
+        with patch("os.getenv", return_value=None):
+            config = clc.CLConfig()
+            with self.assertRaises(ValueError):
+                config.validate()
+            config = clc.CLConfig()
+            self.assertIsNone(config.MAX_MEMORY_MB)
