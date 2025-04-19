@@ -288,6 +288,7 @@ __kernel void reflectOrRefractKernel(float3 normal, int surfaceID, float distanc
     intersection.normal = normal;
     intersection.surfaceID = surfaceID;
     intersection.distanceLeft = distanceLeft;
+    intersection.isSmooth = surfaces[surfaceID].toSmooth;
     reflectOrRefract(&intersection, photons, materials, surfaces, logger, &logIndex, seeds, photonID, photonID);
 }
 

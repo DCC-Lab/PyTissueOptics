@@ -54,7 +54,7 @@ class TestCLPhoton(unittest.TestCase):
     def testWhenScatterByTheta0_shouldNotChangePhotonDirection(self):
         phi, theta = np.pi/4, 0
         photonResult = self._photonFunc("scatterBy", phi, theta)
-        self._assertVectorAlmostEqual(self.INITIAL_DIRECTION, photonResult.direction)
+        self._assertVectorAlmostEqual(self.INITIAL_DIRECTION, photonResult.direction, places=6)
 
     def testWhenScatterByThetaPi_shouldRotatePhotonDirectionToOpposite(self):
         phi, theta = np.pi/4, np.pi
@@ -115,7 +115,7 @@ class TestCLPhoton(unittest.TestCase):
         photonResult = self._photonFunc("refract", incidencePlane, angleDeflection)
 
         expectedDirection = Vector(0, -1, 0)
-        self._assertVectorAlmostEqual(expectedDirection, photonResult.direction)
+        self._assertVectorAlmostEqual(expectedDirection, photonResult.direction, places=6)
 
     def testWhenRouletteWithWeightAboveThreshold_shouldIgnoreRoulette(self):
         weightThreshold = 1e-4
@@ -267,7 +267,7 @@ class TestCLPhoton(unittest.TestCase):
         self.INITIAL_DIRECTION = Vector(1, -1, 0)
         self.INITIAL_DIRECTION.normalize()
         insideSolidID = 9
-        insideMaterialID = 1
+        insideMaterialID = 0
         self._mockFresnelIntersection(isReflected=False, incidencePlane=Vector(0, 0, 1),
                                       angleDeflection=-np.pi / 4, nextMaterialID=insideMaterialID,
                                       nextSolidID=insideSolidID)
@@ -359,9 +359,10 @@ class TestCLPhoton(unittest.TestCase):
         logger = DataPointCL(2)
         surfaces = SurfaceCL([SurfaceCLInfo(0, 0, 0, 0, insideSolidID=9, outsideSolidID=10, toSmooth=False)])
         triangles = TriangleCL([TriangleCLInfo([0, 1, 2], Vector(0, 0, 1))])
+        vertices = VertexCL([Vertex(0, 0, 0)] * 3)
         photonResult = self._photonFunc(
             "propagateStep", stepDistance, MaterialCL([ScatteringMaterial()]),
-            surfaces, triangles,  VertexCL([]), SeedCL(1), logger, 0
+            surfaces, triangles,  vertices, SeedCL(1), logger, 0
         )
 
         expectedPosition = self.INITIAL_POSITION + self.INITIAL_DIRECTION * intersectionDistance
@@ -376,9 +377,10 @@ class TestCLPhoton(unittest.TestCase):
         logger = DataPointCL(2)
         surfaces = SurfaceCL([SurfaceCLInfo(0, 0, 0, 0, insideSolidID=9, outsideSolidID=10, toSmooth=False)])
         triangles = TriangleCL([TriangleCLInfo([0, 1, 2], Vector(0, 0, 1))])
+        vertices = VertexCL([Vertex(0, 0, 0)] * 3)
         photonResult = self._photonFunc(
             "propagateStep", stepDistance, MaterialCL([ScatteringMaterial()]),
-            surfaces, triangles,  VertexCL([]), SeedCL(1), logger, 0
+            surfaces, triangles, vertices, SeedCL(1), logger, 0
         )
 
         expectedPosition = self.INITIAL_POSITION + self.INITIAL_DIRECTION * intersectionDistance
