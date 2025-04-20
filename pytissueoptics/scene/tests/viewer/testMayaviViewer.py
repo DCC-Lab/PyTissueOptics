@@ -1,17 +1,16 @@
+import os
+import tempfile
 import unittest
 from unittest.mock import patch
-import tempfile
-import os
 
 import numpy as np
-from matplotlib import pyplot as plt
 
 from pytissueoptics import Logger
-from pytissueoptics.scene.solids import Cuboid, Sphere, Ellipsoid
-from pytissueoptics.scene.scene import Scene
 from pytissueoptics.scene.geometry import Vector
-from pytissueoptics.scene.viewer.mayavi import MayaviViewer, ViewPointStyle
+from pytissueoptics.scene.scene import Scene
+from pytissueoptics.scene.solids import Cuboid, Sphere, Ellipsoid
 from pytissueoptics.scene.tests import SHOW_VISUAL_TESTS, compareVisuals
+from pytissueoptics.scene.viewer.mayavi import MayaviViewer, ViewPointStyle
 
 TEST_IMAGES_DIR = os.path.join(os.path.dirname(__file__), 'testImages')
 
@@ -24,6 +23,10 @@ def patchMayaviShow(func):
     return func
 
 
+@unittest.skipIf(
+    not SHOW_VISUAL_TESTS,
+    "Visual tests are disabled. Set scene.tests.SHOW_VISUAL_TESTS to True to enable them."
+)
 class TestMayaviViewer(unittest.TestCase):
     def setUp(self):
         self.viewer = MayaviViewer()
@@ -78,9 +81,6 @@ class TestMayaviViewer(unittest.TestCase):
             self.viewer.save(expectedImageFile)
             self.skipTest("Cannot test when saving test images.")
 
-        if not SHOW_VISUAL_TESTS:
-            self.skipTest("Visual tests are disabled. Set scene.tests.SHOW_VISUAL_TESTS to True to enable them.")
-
         with tempfile.TemporaryDirectory() as tmpdir:
             currentImageFile = os.path.join(tmpdir, 'currentViewer.png')
             self.viewer.save(currentImageFile)
@@ -96,8 +96,8 @@ class TestMayaviViewer(unittest.TestCase):
     def _getTestLogger():
         logger = Logger()
         for i in range(3):
-            logger.logPoint(Vector(0, i/3, 0))
-            logger.logDataPoint(i/20, Vector(1, i/3, 0), None)
+            logger.logPoint(Vector(0, i / 3, 0))
+            logger.logDataPoint(i / 20, Vector(1, i / 3, 0), None)
         logger.logSegment(Vector(0, 1, 0), Vector(1, 0, 0))
         return logger
 

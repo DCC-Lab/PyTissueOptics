@@ -7,6 +7,7 @@ if OPENCL_AVAILABLE:
     try:
         CONFIG = CLConfig()
     except Exception as e:
+        warnings.warn("Error creating OpenCL config: " + str(e))
         OPENCL_OK = False
         CONFIG = None
 else:

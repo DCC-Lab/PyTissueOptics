@@ -2,6 +2,7 @@ import os
 import tempfile
 import unittest
 
+from pytissueoptics.rayscattering.opencl import OPENCL_OK
 from pytissueoptics.rayscattering.opencl.config import CLConfig as clc
 
 
@@ -15,6 +16,7 @@ def tempConfigPath(func):
     return wrapper
 
 
+@unittest.skipIf(not OPENCL_OK, 'OpenCL device not available.')
 class TestCLConfig(unittest.TestCase):
     @tempConfigPath
     def testGivenNoConfigFile_shouldWarnAndCreateANewOne(self):

@@ -6,7 +6,7 @@ from dataclasses import dataclass
 import numpy as np
 
 from pytissueoptics import Vector, ScatteringMaterial
-from pytissueoptics.rayscattering.opencl import OPENCL_AVAILABLE
+from pytissueoptics.rayscattering.opencl import OPENCL_AVAILABLE, OPENCL_OK
 from pytissueoptics.rayscattering.opencl.config.CLConfig import OPENCL_SOURCE_DIR
 from pytissueoptics.rayscattering.opencl.buffers import MaterialCL, SurfaceCL, SurfaceCLInfo, SeedCL
 from pytissueoptics.rayscattering.tests.opencl.src.CLObjects import IntersectionCL
@@ -29,7 +29,7 @@ class FresnelResult:
     nextSolidID: int
 
 
-@unittest.skipIf(not OPENCL_AVAILABLE, 'Requires PyOpenCL.')
+@unittest.skipIf(not OPENCL_OK, 'OpenCL device not available.')
 class TestCLFresnel(unittest.TestCase):
     OUTSIDE_SOLID_ID = 0
     INSIDE_SOLID_ID = 1

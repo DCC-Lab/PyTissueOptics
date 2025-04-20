@@ -1,16 +1,19 @@
-import os
 import json
+import os
 import time
 import warnings
 from typing import List
 
 try:
     import pyopencl as cl
+
     OPENCL_AVAILABLE = True
 except ImportError:
     class DummyCL:
         def __getattr__(self, item):
             return None
+
+
     cl = DummyCL()
     OPENCL_AVAILABLE = False
 
@@ -135,9 +138,10 @@ class CLConfig:
             self.AUTO_SAVE = True
             self._config["N_WORK_UNITS"] = None
             self.save()
-            raise ValueError(f"The automatic test for optimal N_WORK_UNITS failed. Please retry after adressing the error "
-                             f"or manually set N_WORK_UNITS in the config file at "
-                             f"'{OPENCL_CONFIG_RELPATH}'. \n... Error message: {e}")
+            raise ValueError(
+                f"The automatic test for optimal N_WORK_UNITS failed. Please retry after adressing the error "
+                f"or manually set N_WORK_UNITS in the config file at "
+                f"'{OPENCL_CONFIG_RELPATH}'. \n... Error message: {e}")
         self._processOptimalNWorkUnits(optimalNWorkUnits)
         self.save()
 
@@ -183,6 +187,8 @@ class CLConfig:
     def save(self):
         if not self.AUTO_SAVE:
             return
+
+        os.makedirs(os.path.dirname(OPENCL_CONFIG_PATH), exist_ok=True)
         with open(OPENCL_CONFIG_PATH, "w") as f:
             json.dump(self._config, f, indent=4)
 

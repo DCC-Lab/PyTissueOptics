@@ -7,7 +7,7 @@ import numpy as np
 from mockito import mock, verify, when
 
 from pytissueoptics import Vector, ScatteringScene, ScatteringMaterial, EnergyLogger, Logger
-from pytissueoptics.rayscattering.opencl import OPENCL_AVAILABLE, CONFIG
+from pytissueoptics.rayscattering.opencl import CONFIG, OPENCL_OK
 from pytissueoptics.rayscattering.source import Source
 from pytissueoptics.rayscattering.opencl.CLPhotons import CLPhotons
 from pytissueoptics.scene.geometry import Environment
@@ -22,7 +22,7 @@ def tempTablePath(func):
     return wrapper
 
 
-@unittest.skipIf(not OPENCL_AVAILABLE, "Requires OpenCL to be available")
+@unittest.skipIf(not OPENCL_OK, "OpenCL device not available.")
 class TestSourceAccelerated(unittest.TestCase):
     SOURCE_ENV = Environment(ScatteringMaterial())
     SOURCE_POSITION = Vector(0, 0, 0)

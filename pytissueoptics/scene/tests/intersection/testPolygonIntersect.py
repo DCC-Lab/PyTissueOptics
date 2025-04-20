@@ -5,7 +5,7 @@ from pytissueoptics.scene.intersection import Ray
 from pytissueoptics.scene.intersection.mollerTrumboreIntersect import MollerTrumboreIntersect
 
 
-class TestAnyPolygonIntersect(unittest.TestCase):
+class BaseTestAnyPolygonIntersect(unittest.TestCase):
     vertices = [Vertex(0, 0, 0), Vertex(1, 0, 0), Vertex(1, 1, 0), Vertex(0, 1, 0)]
     triangle = Triangle(vertices[0], vertices[1], vertices[3])
     quad = Quad(vertices[0], vertices[1], vertices[2], vertices[3])

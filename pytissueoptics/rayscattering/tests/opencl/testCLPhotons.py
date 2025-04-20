@@ -5,10 +5,11 @@ import numpy as np
 from pytissueoptics import ScatteringScene, ScatteringMaterial, EnergyLogger, Cube
 from pytissueoptics.rayscattering.opencl.CLPhotons import CLPhotons
 from pytissueoptics.scene.geometry import Environment
-from pytissueoptics.rayscattering.opencl import WEIGHT_THRESHOLD
+from pytissueoptics.rayscattering.opencl import WEIGHT_THRESHOLD, OPENCL_OK
 from pytissueoptics.scene.logger import InteractionKey
 
 
+@unittest.skipIf(not OPENCL_OK, 'OpenCL device not available.')
 class TestCLPhotons(unittest.TestCase):
     def testWhenPropagateWithoutContext_shouldNotPropagate(self):
         positions = np.array([[0, 0, 0], [0, 0, 0]])
