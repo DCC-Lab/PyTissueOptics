@@ -1,4 +1,4 @@
-from pytissueoptics.rayscattering.opencl.config.CLConfig import warnings, CLConfig, OPENCL_AVAILABLE, WEIGHT_THRESHOLD
+from pytissueoptics.rayscattering.opencl.config.CLConfig import OPENCL_AVAILABLE, WEIGHT_THRESHOLD, CLConfig, warnings
 from pytissueoptics.rayscattering.opencl.config.IPPTable import IPPTable
 
 OPENCL_OK = True
@@ -29,3 +29,6 @@ def validateOpenCL() -> bool:
 
 def hardwareAccelerationIsAvailable() -> bool:
     return OPENCL_AVAILABLE and OPENCL_OK
+
+
+__all__ = ["IPPTable", "WEIGHT_THRESHOLD"]

@@ -1,6 +1,8 @@
 import math
 from typing import List
+
 import numpy as np
+
 from pytissueoptics.scene import Vector
 from pytissueoptics.scene.intersection import Ray
 
@@ -19,7 +21,9 @@ class RaySource:
 
 
 class UniformRaySource(RaySource):
-    def __init__(self, position: Vector, direction: Vector, xTheta: float, yTheta: float, xResolution: int, yResolution: int):
+    def __init__(
+        self, position: Vector, direction: Vector, xTheta: float, yTheta: float, xResolution: int, yResolution: int
+    ):
         self._position = position
         self._direction = direction
         self._direction.normalize()
@@ -51,5 +55,7 @@ class UniformRaySource(RaySource):
         """
         xTheta += math.atan(self._direction.x / self._direction.z)
         yTheta += math.asin(self._direction.y)
-        rayDirection = Vector(-math.sin(xTheta)*math.cos(yTheta), math.sin(yTheta), -math.cos(xTheta)*math.cos(yTheta))
+        rayDirection = Vector(
+            -math.sin(xTheta) * math.cos(yTheta), math.sin(yTheta), -math.cos(xTheta) * math.cos(yTheta)
+        )
         return rayDirection

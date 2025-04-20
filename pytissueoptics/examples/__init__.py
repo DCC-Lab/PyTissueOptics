@@ -1,13 +1,13 @@
+import importlib
 import os
 import re
 import sys
-import importlib
 from dataclasses import dataclass
 from typing import List
 
 from pygments import highlight
-from pygments.lexers import PythonLexer
 from pygments.formatters import TerminalFormatter
+from pygments.lexers import PythonLexer
 
 EXAMPLE_MODULE = "rayscattering"
 EXAMPLE_FILE_PATTERN = r"^(ex\d+)\.py$"
@@ -32,7 +32,7 @@ def loadExamples() -> List[Example]:
     for file in EXAMPLE_FILES:
         name = re.match(EXAMPLE_FILE_PATTERN, file).group(1)
         module = importlib.import_module(f"pytissueoptics.examples.{EXAMPLE_MODULE}.{name}")
-        with open(os.path.join(EXAMPLE_DIR, file), 'r') as f:
+        with open(os.path.join(EXAMPLE_DIR, file), "r") as f:
             srcCode = f.read()
         pattern = r"def exampleCode\(\):\s*(.*?)\s*if __name__ == \"__main__\":"
         srcCode = re.search(pattern, srcCode, re.DOTALL).group(1)

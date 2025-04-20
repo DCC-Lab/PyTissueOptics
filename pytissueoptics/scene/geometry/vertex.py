@@ -1,4 +1,4 @@
-from pytissueoptics.scene.geometry import Vector
+from .vector import Vector
 
 
 class Vertex(Vector):

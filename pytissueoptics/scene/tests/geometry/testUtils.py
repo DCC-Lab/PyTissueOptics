@@ -1,10 +1,10 @@
-from dataclasses import dataclass
 import unittest
+from dataclasses import dataclass
 
 import numpy as np
 
 from pytissueoptics.scene.geometry import Rotation
-from pytissueoptics.scene.geometry.utils import eulerRotationMatrix, rotateVerticesArray, getAxisAngleBetween
+from pytissueoptics.scene.geometry.utils import eulerRotationMatrix, getAxisAngleBetween, rotateVerticesArray
 from pytissueoptics.scene.geometry.vector import Vector
 
 
@@ -105,7 +105,9 @@ class TestGetAxisAngleBetween(unittest.TestCase):
     def _generateAxisAlignedTestCases(self):
         testCases = []
         for axis in [Vector(1, 0, 0), Vector(0, 1, 0), Vector(0, 0, 1)]:
-            for (rotationAxis, rotationAxisKey) in zip([Vector(1, 0, 0), Vector(0, 1, 0), Vector(0, 0, 1)], ['xTheta', 'yTheta', 'zTheta']):
+            for rotationAxis, rotationAxisKey in zip(
+                [Vector(1, 0, 0), Vector(0, 1, 0), Vector(0, 0, 1)], ["xTheta", "yTheta", "zTheta"]
+            ):
                 if axis == rotationAxis:
                     continue
                 for angle in [-180, -150, -70, -10, 10, 70, 150, 180]:

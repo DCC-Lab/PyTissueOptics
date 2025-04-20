@@ -11,7 +11,7 @@ class TestScatteringMaterial(unittest.TestCase):
         expectedAlbedo = 2 / (2 + 8)
         self.assertEqual(expectedAlbedo, material.getAlbedo())
 
-    @patch('random.random')
+    @patch("random.random")
     def testShouldHaveScatteringDistance(self, mockRandom):
         randomDistanceRatio = 0.5
         mockRandom.return_value = randomDistanceRatio
@@ -30,7 +30,7 @@ class TestScatteringMaterial(unittest.TestCase):
         theta, phi = material.getScatteringAngles()
         self.assertEqual(0, theta)
 
-    @patch('random.random')
+    @patch("random.random")
     def testShouldHaveThetaScatteringAngleBetween0AndPi(self, mockRandom):
         mockRandom.return_value = 0
         material = ScatteringMaterial(mu_s=8, mu_a=2, g=0, n=1.4)
@@ -45,7 +45,7 @@ class TestScatteringMaterial(unittest.TestCase):
         theta, _ = material.getScatteringAngles()
         self.assertEqual(0, theta)
 
-    @patch('random.random')
+    @patch("random.random")
     def testShouldHavePhiScatteringAngleBetween0And2Pi(self, mockRandom):
         mockRandom.return_value = 0
         material = ScatteringMaterial(mu_s=8, mu_a=2, g=0, n=1.4)

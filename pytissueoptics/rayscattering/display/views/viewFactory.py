@@ -1,17 +1,24 @@
-from typing import Union, List, Tuple
+from typing import List, Tuple, Union
 
 import numpy as np
 
-from pytissueoptics.rayscattering.scatteringScene import ScatteringScene
-from pytissueoptics.rayscattering.display.views.view2D import ViewGroup, View2D
-from pytissueoptics.rayscattering.display.views.defaultViews import View2DProjectionX, View2DProjectionY, View2DProjectionZ, \
-    View2DSurfaceX, View2DSurfaceY, View2DSurfaceZ
 from pytissueoptics.rayscattering import utils
+from pytissueoptics.rayscattering.display.views.defaultViews import (
+    View2DProjectionX,
+    View2DProjectionY,
+    View2DProjectionZ,
+    View2DSurfaceX,
+    View2DSurfaceY,
+    View2DSurfaceZ,
+)
+from pytissueoptics.rayscattering.display.views.view2D import View2D, ViewGroup
+from pytissueoptics.rayscattering.scatteringScene import ScatteringScene
 
 
 class ViewFactory:
-    def __init__(self, scene: ScatteringScene, defaultBinSize: Union[float, Tuple[float, float, float]],
-                 infiniteLimits: tuple):
+    def __init__(
+        self, scene: ScatteringScene, defaultBinSize: Union[float, Tuple[float, float, float]], infiniteLimits: tuple
+    ):
         self._scene = scene
 
         self._defaultBinSize3D = defaultBinSize
@@ -49,8 +56,14 @@ class ViewFactory:
 
         return views
 
-    def _getDefaultSurfaceViews(self, solidLabel: str, surfaceLabel: str,
-                                includeLeaving: bool, includeEntering: bool, takenFromSolid: str = None) -> List[View2D]:
+    def _getDefaultSurfaceViews(
+        self,
+        solidLabel: str,
+        surfaceLabel: str,
+        includeLeaving: bool,
+        includeEntering: bool,
+        takenFromSolid: str = None,
+    ) -> List[View2D]:
         if takenFromSolid is None:
             takenFromSolid = solidLabel
         surfaceNormal = self._getSurfaceNormal(takenFromSolid, surfaceLabel)
@@ -79,12 +92,15 @@ class ViewFactory:
 
         return surfaceNormal
 
-    def _getDefaultContainedSurfacesViews(self, solidLabel: str, includeLeaving: bool, includeEntering: bool) -> List[View2D]:
+    def _getDefaultContainedSurfacesViews(
+        self, solidLabel: str, includeLeaving: bool, includeEntering: bool
+    ) -> List[View2D]:
         views = []
         for containedSolidLabel in self._scene.getContainedSolidLabels(solidLabel):
             for surfaceLabel in self._scene.getSurfaceLabels(containedSolidLabel):
-                views += self._getDefaultSurfaceViews(solidLabel, surfaceLabel, includeLeaving, includeEntering,
-                                                      takenFromSolid=containedSolidLabel)
+                views += self._getDefaultSurfaceViews(
+                    solidLabel, surfaceLabel, includeLeaving, includeEntering, takenFromSolid=containedSolidLabel
+                )
         return views
 
     def _setContext(self, view: View2D):
@@ -92,8 +108,11 @@ class ViewFactory:
             solid = self._scene.getSolid(view.solidLabel)
             limits3D = solid.getBoundingBox().xyzLimits
             if not self._viewHasValidSurfaceLabel(view):
-                utils.warn("Surface label '{}' not found in solid '{}'. Available surface labels: {}".format(
-                    view.surfaceLabel, view.solidLabel, solid.surfaceLabels))
+                utils.warn(
+                    "Surface label '{}' not found in solid '{}'. Available surface labels: {}".format(
+                        view.surfaceLabel, view.solidLabel, solid.surfaceLabels
+                    )
+                )
         else:
             sceneBoundingBox = self._scene.getBoundingBox()
             if sceneBoundingBox is None:
@@ -120,6 +139,8 @@ class ViewFactory:
 
     @staticmethod
     def _getDefaultViewsXYZ(solidLabel: str = None) -> List[View2D]:
-        return [View2DProjectionX(solidLabel=solidLabel),
-                View2DProjectionY(solidLabel=solidLabel),
-                View2DProjectionZ(solidLabel=solidLabel)]
+        return [
+            View2DProjectionX(solidLabel=solidLabel),
+            View2DProjectionY(solidLabel=solidLabel),
+            View2DProjectionZ(solidLabel=solidLabel),
+        ]

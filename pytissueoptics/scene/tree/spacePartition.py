@@ -1,8 +1,9 @@
 from typing import List, Optional
 
-from pytissueoptics.scene.geometry import BoundingBox, Vector, Polygon
-from pytissueoptics.scene.tree import TreeConstructor
-from pytissueoptics.scene.tree import Node
+from pytissueoptics.scene.geometry import BoundingBox, Polygon, Vector
+
+from .node import Node
+from .treeConstructor import TreeConstructor
 
 
 class SpacePartition:
@@ -22,8 +23,9 @@ class SpacePartition:
     internally for benchmarking purposes.
     """
 
-    def __init__(self, bbox: BoundingBox, polygons: List[Polygon], constructor: TreeConstructor, maxDepth=6,
-                 minLeafSize=2):
+    def __init__(
+        self, bbox: BoundingBox, polygons: List[Polygon], constructor: TreeConstructor, maxDepth=6, minLeafSize=2
+    ):
         self._maxDepth = maxDepth
         self._minLeafSize = minLeafSize
         self._polygons = polygons

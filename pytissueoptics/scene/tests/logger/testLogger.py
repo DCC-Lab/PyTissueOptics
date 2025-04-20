@@ -1,11 +1,11 @@
 import os
-import unittest
 import tempfile
+import unittest
 
 import numpy as np
 
 from pytissueoptics.scene.geometry import Vector
-from pytissueoptics.scene.logger import Logger, InteractionKey
+from pytissueoptics.scene.logger import InteractionKey, Logger
 
 
 class TestLogger(unittest.TestCase):

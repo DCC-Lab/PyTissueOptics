@@ -1,1 +1,1 @@
-from .utils import getSmoothNormal
+from .utils import getSmoothNormal as getSmoothNormal

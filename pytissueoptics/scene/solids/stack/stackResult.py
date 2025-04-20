@@ -1,11 +1,13 @@
-from typing import List, Dict
 from dataclasses import dataclass
-from pytissueoptics.scene.geometry import Vector, SurfaceCollection, Vertex
+from typing import Dict, List
+
+from pytissueoptics.scene.geometry import SurfaceCollection, Vector, Vertex
 
 
 @dataclass
 class StackResult:
-    """ Domain DTO to help creation of cuboid stacks. """
+    """Domain DTO to help creation of cuboid stacks."""
+
     shape: List[float]
     position: Vector
     vertices: List[Vertex]

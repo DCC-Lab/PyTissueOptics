@@ -1,23 +1,20 @@
 import sys
 import warnings
-from typing import List, Optional, Dict
+from typing import Dict, List, Optional
 
-from pytissueoptics.scene.geometry import Environment
-from pytissueoptics.scene.geometry import Vector
+from pytissueoptics.scene.geometry import INTERFACE_KEY, BoundingBox, Environment, Polygon, Vector
 from pytissueoptics.scene.solids import Solid
-from pytissueoptics.scene.geometry import Polygon, BoundingBox, INTERFACE_KEY
 from pytissueoptics.scene.viewer.displayable import Displayable
 from pytissueoptics.scene.viewer.mayavi import MayaviViewer
 
 
 class Scene(Displayable):
-    def __init__(self, solids: List[Solid] = None, ignoreIntersections=False,
-                 worldMaterial=None):
+    def __init__(self, solids: List[Solid] = None, ignoreIntersections=False, worldMaterial=None):
         self._solids: List[Solid] = []
         self._ignoreIntersections = ignoreIntersections
         self._solidsContainedIn: Dict[str, List[str]] = {}
         self._worldMaterial = worldMaterial
-        
+
         if solids:
             for solid in solids:
                 self.add(solid)
@@ -36,15 +33,15 @@ class Scene(Displayable):
     def solids(self):
         return self._solids
 
-    def addToViewer(self, viewer: MayaviViewer, representation='surface', colormap='bone', opacity=0.1, **kwargs):
+    def addToViewer(self, viewer: MayaviViewer, representation="surface", colormap="bone", opacity=0.1, **kwargs):
         viewer.add(*self.solids, representation=representation, colormap=colormap, opacity=opacity, **kwargs)
 
     def getWorldEnvironment(self) -> Environment:
         return Environment(self._worldMaterial)
 
     def _validatePosition(self, newSolid: Solid):
-        """ Assert newSolid position is valid and make proper adjustments so that the
-        material at each solid interface is well-defined. """
+        """Assert newSolid position is valid and make proper adjustments so that the
+        material at each solid interface is well-defined."""
         if len(self._solids) == 0:
             return
 
@@ -61,11 +58,13 @@ class Scene(Displayable):
             elif otherSolid.contains(*newSolid.getVertices()):
                 self._processContainedSolid(newSolid, container=otherSolid)
             else:
-                raise NotImplementedError("Cannot place a solid that partially intersects with an existing solid. "
-                                          "Since this might be underestimating containment, you can also create a "
-                                          "scene with 'ignoreIntersections=True' to ignore this error and manually "
-                                          "handle environments of contained solids with "
-                                          "containedSolid.setOutsideEnvironment(containerSolid.getEnvironment()).")
+                raise NotImplementedError(
+                    "Cannot place a solid that partially intersects with an existing solid. "
+                    "Since this might be underestimating containment, you can also create a "
+                    "scene with 'ignoreIntersections=True' to ignore this error and manually "
+                    "handle environments of contained solids with "
+                    "containedSolid.setOutsideEnvironment(containerSolid.getEnvironment())."
+                )
 
     def _processContainedSolid(self, solid: Solid, container: Solid):
         if container.isStack():
@@ -87,8 +86,10 @@ class Scene(Displayable):
         idx = 2
         while f"{solid.getLabel()}_{idx}" in labelSet:
             idx += 1
-        warnings.warn(f"A solid with label '{solid.getLabel()}' already exists in the scene. "
-                      f"Renaming to '{solid.getLabel()}_{idx}'.")
+        warnings.warn(
+            f"A solid with label '{solid.getLabel()}' already exists in the scene. "
+            f"Renaming to '{solid.getLabel()}_{idx}'."
+        )
         solid.setLabel(f"{solid.getLabel()}_{idx}")
 
     def _findIntersectingSuspectsFor(self, solid) -> List[Solid]:
@@ -199,7 +200,7 @@ class Scene(Displayable):
 
     @staticmethod
     def _getEnvironmentOfStackAt(position: Vector, stack: Solid) -> Environment:
-        """ Returns the environment of the stack at the given position.
+        """Returns the environment of the stack at the given position.
 
         To do that we first find the interface in the stack that is closest to the given position.
         At the same time we find on which side of the interface we are and return the environment

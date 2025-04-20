@@ -50,4 +50,3 @@ class TestPointCloud(unittest.TestCase):
         solidPoints = np.array([[0.5, 1, 0, 0], [0.5, 1, 0, 0.1], [0.5, 1, 0, -0.1]])
         surfacePoints = np.array([[1, 1, 0, 0.1], [-1, 1, 0, -0.1]])
         return PointCloud(solidPoints, surfacePoints)
-

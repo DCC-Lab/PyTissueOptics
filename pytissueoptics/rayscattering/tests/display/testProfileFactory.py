@@ -4,13 +4,13 @@ import numpy as np
 from mockito import mock, when
 
 from pytissueoptics import View2DProjectionX
-from pytissueoptics.scene.solids import Cube, Sphere
-from pytissueoptics.rayscattering.materials import ScatteringMaterial
-from pytissueoptics.rayscattering.display.profiles import ProfileFactory, Profile1D
+from pytissueoptics.rayscattering.display.profiles import Profile1D, ProfileFactory
 from pytissueoptics.rayscattering.display.utils import Direction
 from pytissueoptics.rayscattering.energyLogging import EnergyLogger
+from pytissueoptics.rayscattering.materials import ScatteringMaterial
 from pytissueoptics.rayscattering.scatteringScene import ScatteringScene
 from pytissueoptics.scene.logger import InteractionKey
+from pytissueoptics.scene.solids import Cube, Sphere
 
 
 class TestProfileFactory(unittest.TestCase):
@@ -97,8 +97,9 @@ class TestProfileFactory(unittest.TestCase):
         surfaceData = np.array([[1, 1.5, 1.5, 1.5], [-1, -1.5, -1.5, -1.5]])
         self.TEST_LOGGER.logDataPointArray(surfaceData, InteractionKey("cube", "top"))
 
-        profile = self.profileFactory.create(Direction.Z_POS, solidLabel="cube", surfaceLabel="top",
-                                             surfaceEnergyLeaving=True, binSize=1)
+        profile = self.profileFactory.create(
+            Direction.Z_POS, solidLabel="cube", surfaceLabel="top", surfaceEnergyLeaving=True, binSize=1
+        )
 
         expectedData = np.array([0, 0, 0, 1])
         self.assertTrue(np.array_equal(expectedData, profile.data))
@@ -107,22 +108,25 @@ class TestProfileFactory(unittest.TestCase):
         surfaceData = np.array([[1, 1.5, 1.5, 1.5], [-1, -1.5, -1.5, -1.5]])
         self.TEST_LOGGER.logDataPointArray(surfaceData, InteractionKey("cube", "top"))
 
-        profile = self.profileFactory.create(Direction.Z_POS, solidLabel="cube", surfaceLabel="top",
-                                             surfaceEnergyLeaving=False, binSize=1)
+        profile = self.profileFactory.create(
+            Direction.Z_POS, solidLabel="cube", surfaceLabel="top", surfaceEnergyLeaving=False, binSize=1
+        )
 
         expectedData = np.array([1, 0, 0, 0])
         self.assertTrue(np.array_equal(expectedData, profile.data))
 
     def testWhenCreateProfileWithBadLabelCapitalization_shouldCorrectLabels(self):
         self.TEST_LOGGER.logDataPointArray(np.array([[1, 0, 0, 0]]), InteractionKey("cube", "top"))
-        profile = self.profileFactory.create(Direction.Z_POS, solidLabel="Cube", surfaceLabel="Top",
-                                             surfaceEnergyLeaving=True)
+        profile = self.profileFactory.create(
+            Direction.Z_POS, solidLabel="Cube", surfaceLabel="Top", surfaceEnergyLeaving=True
+        )
         self.assertEqual(1, profile.data.sum())
 
     def testWhenCreateProfile_shouldSetProperName(self):
         self.TEST_LOGGER.logDataPointArray(np.array([[1, 0, 0, 0]]), InteractionKey("cube", "top"))
-        profile = self.profileFactory.create(Direction.Z_POS, solidLabel="cube", surfaceLabel="top",
-                                             surfaceEnergyLeaving=True)
+        profile = self.profileFactory.create(
+            Direction.Z_POS, solidLabel="cube", surfaceLabel="top", surfaceEnergyLeaving=True
+        )
         self.assertEqual("Energy profile along z of cube surface top (leaving)", profile.name)
 
     def testGivenEmptyLogger_whenCreateProfile_shouldReturnEmptyProfile(self):
@@ -167,11 +171,13 @@ class TestProfileFactory(unittest.TestCase):
         expectedSurfaceDataEntering = np.array([1, 0, 0, 0])
 
         profileDirection = Direction.Z_POS  # All directions are allowed except for surface axis (Y)
-        profile = self.profileFactory.create(profileDirection, binSize=1, solidLabel="cube", surfaceLabel="top",
-                                             surfaceEnergyLeaving=True)
+        profile = self.profileFactory.create(
+            profileDirection, binSize=1, solidLabel="cube", surfaceLabel="top", surfaceEnergyLeaving=True
+        )
         self.assertTrue(np.array_equal(expectedSurfaceDataLeaving, profile.data))
-        profile = self.profileFactory.create(profileDirection, binSize=1, solidLabel="cube", surfaceLabel="top",
-                                             surfaceEnergyLeaving=False)
+        profile = self.profileFactory.create(
+            profileDirection, binSize=1, solidLabel="cube", surfaceLabel="top", surfaceEnergyLeaving=False
+        )
         self.assertTrue(np.array_equal(expectedSurfaceDataEntering, profile.data))
 
     def testGiven2DLoggerWithASingleView_whenCreateProfileAlongThisViewWithSameProperties_shouldExtractProfile(self):

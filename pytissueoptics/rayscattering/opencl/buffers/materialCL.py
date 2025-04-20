@@ -1,18 +1,24 @@
 from typing import List
 
+import numpy as np
+
 from pytissueoptics.rayscattering.materials.scatteringMaterial import ScatteringMaterial
-from pytissueoptics.rayscattering.opencl.buffers.CLObject import *
+
+from .CLObject import CLObject, cl
 
 
 class MaterialCL(CLObject):
     STRUCT_NAME = "Material"
     STRUCT_DTYPE = np.dtype(
-            [("mu_s", cl.cltypes.float),
-             ("mu_a", cl.cltypes.float),
-             ("mu_t", cl.cltypes.float),
-             ("g", cl.cltypes.float),
-             ("n", cl.cltypes.float),
-             ("albedo", cl.cltypes.float)])
+        [
+            ("mu_s", cl.cltypes.float),
+            ("mu_a", cl.cltypes.float),
+            ("mu_t", cl.cltypes.float),
+            ("g", cl.cltypes.float),
+            ("n", cl.cltypes.float),
+            ("albedo", cl.cltypes.float),
+        ]
+    )
 
     def __init__(self, materials: List[ScatteringMaterial]):
         self._materials = materials

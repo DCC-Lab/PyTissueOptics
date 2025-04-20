@@ -1,5 +1,5 @@
-import unittest
 import math
+import unittest
 
 from pytissueoptics.scene.geometry import Vector, Vertex, primitives
 from pytissueoptics.scene.solids import Cylinder
@@ -56,7 +56,7 @@ class TestCylinder(unittest.TestCase):
     def testWhenContainsWithVerticesThatAreAllInsideTheCylinder_shouldReturnTrue(self):
         cylinder = Cylinder(radius=1, length=3, u=32, v=2, position=Vector(2, 2, 0))
         cylinder.rotate(0, 45, 0)
-        vertices = [Vertex(2+1, 2, 1), Vertex(2, 2, 0.5)]
+        vertices = [Vertex(2 + 1, 2, 1), Vertex(2, 2, 0.5)]
 
         self.assertTrue(cylinder.contains(*vertices))
 
@@ -64,7 +64,7 @@ class TestCylinder(unittest.TestCase):
         cylinder = Cylinder(radius=1, length=3, u=32, v=2, position=Vector(2, 2, 0))
         cylinder.rotate(0, 30, 0)
         vertices = [Vertex(3.51, 2, 2.6), Vertex(2, 2, 0.5)]
-                
+
         self.assertFalse(cylinder.contains(*vertices))
 
     def testWhenContainsWithVerticesOutsideMinRadius_shouldReturnFalse(self):
@@ -73,10 +73,16 @@ class TestCylinder(unittest.TestCase):
         minRadiusWith6Divisions = 0.866
         f = minRadiusWith6Divisions * 1.01
         cylinder = Cylinder(radius=r, length=h, u=6, position=Vector(0, 0, 0))
-        
-        vertices = [Vertex(f * r, 0, 0), Vertex(0, f * r, 0), Vertex(0, 0, h * 0.51),
-                    Vertex(-f * r, 0, 0), Vertex(0, -f * r, 0), Vertex(0, 0, -h * 0.51)]
-        
+
+        vertices = [
+            Vertex(f * r, 0, 0),
+            Vertex(0, f * r, 0),
+            Vertex(0, 0, h * 0.51),
+            Vertex(-f * r, 0, 0),
+            Vertex(0, -f * r, 0),
+            Vertex(0, 0, -h * 0.51),
+        ]
+
         for vertex in vertices:
             self.assertFalse(cylinder.contains(vertex))
 
@@ -86,9 +92,15 @@ class TestCylinder(unittest.TestCase):
         minRadiusWith6Divisions = 0.866
         f = minRadiusWith6Divisions * 0.99
         cylinder = Cylinder(radius=r, length=h, u=6, position=Vector(0, 0, 0))
-        
-        vertices = [Vertex(f * r, 0, 0), Vertex(0, f * r, 0), Vertex(0, 0, h * 0.49),
-                    Vertex(-f * r, 0, 0), Vertex(0, -f * r, 0), Vertex(0, 0, -h * 0.49)]
+
+        vertices = [
+            Vertex(f * r, 0, 0),
+            Vertex(0, f * r, 0),
+            Vertex(0, 0, h * 0.49),
+            Vertex(-f * r, 0, 0),
+            Vertex(0, -f * r, 0),
+            Vertex(0, 0, -h * 0.49),
+        ]
 
         self.assertTrue(cylinder.contains(*vertices))
 

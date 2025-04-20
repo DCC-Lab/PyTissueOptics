@@ -2,9 +2,8 @@ from typing import List
 
 import numpy as np
 
-from pytissueoptics import Vector
 from pytissueoptics.rayscattering.materials import ScatteringMaterial
-from pytissueoptics.scene import MayaviViewer, Scene
+from pytissueoptics.scene import MayaviViewer, Scene, Vector
 from pytissueoptics.scene.solids import Solid
 from pytissueoptics.scene.viewer.displayable import Displayable
 
@@ -16,8 +15,10 @@ class ScatteringScene(Scene):
     def add(self, solid: Solid, position: Vector = None):
         polygonSample = solid.getPolygons()[0]
         if not isinstance(polygonSample.insideEnvironment.material, ScatteringMaterial):
-            raise Exception(f"Solid '{solid.getLabel()}' has no ScatteringMaterial defined. "
-                            f"This is required for any RayScatteringScene. ")
+            raise Exception(
+                f"Solid '{solid.getLabel()}' has no ScatteringMaterial defined. "
+                f"This is required for any RayScatteringScene. "
+            )
         super().add(solid, position)
 
     def show(self, source: Displayable = None, opacity=0.8, colormap="cool", **kwargs):

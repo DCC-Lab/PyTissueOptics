@@ -1,17 +1,22 @@
-from typing import List, Tuple
 import sys
+from typing import List, Tuple
 
 from pytissueoptics.scene.geometry import BoundingBox
 from pytissueoptics.scene.tree import Node
-from pytissueoptics.scene.tree.treeConstructor import SplitNodeResult
-from pytissueoptics.scene.tree.treeConstructor import TreeConstructor
-from pytissueoptics.scene.tree.treeConstructor.binary import SAHSearchResult
+from pytissueoptics.scene.tree.treeConstructor import SplitNodeResult, TreeConstructor
+
+from .sahSearchResult import SAHSearchResult
 
 
 class NoSplitOneAxisConstructor(TreeConstructor):
-
-    def __init__(self, nbOfSplitPlanes: int = 20, intersectionCost: float = 0.5, traversalCost: float = 1,
-                 noSharedBonus: float = 2, emptySpaceBonus: float = 2):
+    def __init__(
+        self,
+        nbOfSplitPlanes: int = 20,
+        intersectionCost: float = 0.5,
+        traversalCost: float = 1,
+        noSharedBonus: float = 2,
+        emptySpaceBonus: float = 2,
+    ):
         super().__init__()
         self._nbOfSplitPlanes = nbOfSplitPlanes
         self._noSharedBonus = noSharedBonus
@@ -30,8 +35,11 @@ class NoSplitOneAxisConstructor(TreeConstructor):
         self.result.rightPolygons.extend(self.result.splitPolygons)
         self._trimChildrenBbox()
         stopCondition = self._checkStopCondition()
-        newNodeResult = SplitNodeResult(stopCondition, [self.result.leftBbox, self.result.rightBbox],
-                                        [self.result.leftPolygons, self.result.rightPolygons])
+        newNodeResult = SplitNodeResult(
+            stopCondition,
+            [self.result.leftBbox, self.result.rightBbox],
+            [self.result.leftPolygons, self.result.rightPolygons],
+        )
         return newNodeResult
 
     def _checkStopCondition(self):

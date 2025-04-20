@@ -1,22 +1,24 @@
 from typing import Union
 
 from pytissueoptics.scene.geometry import BoundingBox, Vector
-from pytissueoptics.scene.intersection import Ray
+
+from .ray import Ray
 
 
 class BoxIntersectStrategy:
     # fixme(?) LSP violation. Current implementations behave differently when the ray lies on a box plane.
     def getIntersection(self, ray: Ray, bbox: BoundingBox) -> Union[Vector, None]:
-        raise NotImplemented
+        raise NotImplementedError
 
 
 class GemsBoxIntersect(BoxIntersectStrategy):
-    """ Graphics Gems Fast Ray-Box Intersection.
+    """Graphics Gems Fast Ray-Box Intersection.
     https://github.com/erich666/GraphicsGems/blob/master/gems/RayBox.c
 
     If a ray lies on a box plane, it will consider this an intersection.
     If ray origin is inside box, it cannot compute intersection and will return ray.origin.
     """
+
     LEFT = 0
     RIGHT = 1
     MIDDLE = 2
@@ -75,10 +77,11 @@ class GemsBoxIntersect(BoxIntersectStrategy):
 
 
 class ZacharBoxIntersect(BoxIntersectStrategy):
-    """ https://gamedev.stackexchange.com/a/18459
+    """https://gamedev.stackexchange.com/a/18459
     If a ray lies on a box plane, it will NOT consider this an intersection.
     If ray origin is inside box, it cannot compute intersection and will return ray.origin.
     """
+
     def getIntersection(self, ray: Ray, bbox: BoundingBox) -> Union[Vector, None]:
         inverseDirection = self._safeInverse(ray.direction)
         minCorner = Vector(bbox.xMin, bbox.yMin, bbox.zMin)
@@ -119,4 +122,4 @@ class ZacharBoxIntersect(BoxIntersectStrategy):
             y += epsilon
         if z == 0.0:
             z += epsilon
-        return Vector(1.0/x, 1.0/y, 1.0/z)
+        return Vector(1.0 / x, 1.0 / y, 1.0 / z)

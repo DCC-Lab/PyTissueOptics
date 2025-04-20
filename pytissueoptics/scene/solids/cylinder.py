@@ -2,14 +2,24 @@ import math
 import warnings
 from typing import List
 
-from pytissueoptics.scene.geometry import Vector, Triangle, primitives, Vertex
-from pytissueoptics.scene.solids import Solid
+from ..geometry import Triangle, Vector, Vertex, primitives
+from .solid import Solid
 
 
 class Cylinder(Solid):
-    def __init__(self, radius: float = 1, length: float = 1, u: int = 32, v: int = 3, s: int = 2,
-                 position: Vector = Vector(0, 0, 0), material=None,
-                 primitive: str = primitives.DEFAULT, label: str = "cylinder", smooth=True):
+    def __init__(
+        self,
+        radius: float = 1,
+        length: float = 1,
+        u: int = 32,
+        v: int = 3,
+        s: int = 2,
+        position: Vector = Vector(0, 0, 0),
+        material=None,
+        primitive: str = primitives.DEFAULT,
+        label: str = "cylinder",
+        smooth=True,
+    ):
         """
         Default cylinder orientation will be along the z axis. The front face towards the negative z axis and the back
         face towards the positive z axis. Position refers to its centroid. Available surfaces are "front", "lateral" and
@@ -32,8 +42,9 @@ class Cylinder(Solid):
         self._lateralStep = self._length / self._v
         self._radialStep = self._radius / self._s
 
-        super().__init__(position=position, material=material, primitive=primitive,
-                         vertices=[], smooth=smooth, label=label)
+        super().__init__(
+            position=position, material=material, primitive=primitive, vertices=[], smooth=smooth, label=label
+        )
         self.translateBy(Vector(0, 0, -length / 2))
         self._position += Vector(0, 0, length / 2)
 
@@ -60,7 +71,7 @@ class Cylinder(Solid):
         v = self._v if self._length != 0 else 0
         frontLayers = self._computeSectionVertices(lateralSteps=[0], radialSteps=list(range(1, self._s)))
         lateralLayers = self._computeSectionVertices(lateralSteps=list(range(v + 1)), radialSteps=[self._s])
-        backLayers = self._computeSectionVertices(lateralSteps=[v], radialSteps=list(range(self._s-1, 0, -1)))
+        backLayers = self._computeSectionVertices(lateralSteps=[v], radialSteps=list(range(self._s - 1, 0, -1)))
         return frontLayers, lateralLayers, backLayers
 
     def _computeSectionVertices(self, lateralSteps: List[int], radialSteps: List[int]):
@@ -83,7 +94,7 @@ class Cylinder(Solid):
             # For lenses, we usually want a uniform mesh after the curve transform, but this transform tends to push
             # vertices outwards (particularly at low radius). To prevent a low mesh resolution in the center, we need
             # to increase the sampling around the center beforehand by forcing smaller radiusFactor values.
-            radiusFactor = radiusFactor ** 2
+            radiusFactor = radiusFactor**2
         r = self._radius * radiusFactor * shrinkFactor
         x = r * math.cos(i * self._angularStep)
         y = r * math.sin(i * self._angularStep)

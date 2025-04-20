@@ -5,12 +5,24 @@ from dataclasses import dataclass
 
 import numpy as np
 
-from pytissueoptics import Vector, ScatteringMaterial, ScatteringScene
+from pytissueoptics import ScatteringMaterial, ScatteringScene, Vector
 from pytissueoptics.rayscattering.opencl import OPENCL_AVAILABLE, OPENCL_OK
-from pytissueoptics.rayscattering.opencl.config.CLConfig import OPENCL_SOURCE_DIR
+from pytissueoptics.rayscattering.opencl.buffers import (
+    DataPointCL,
+    MaterialCL,
+    PhotonCL,
+    SeedCL,
+    SolidCandidateCL,
+    SolidCL,
+    SurfaceCL,
+    SurfaceCLInfo,
+    TriangleCL,
+    TriangleCLInfo,
+    VertexCL,
+)
 from pytissueoptics.rayscattering.opencl.CLProgram import CLProgram
-from pytissueoptics.rayscattering.opencl.CLScene import NO_SURFACE_ID, NO_LOG_ID, NO_SOLID_ID, CLScene
-from pytissueoptics.rayscattering.opencl.buffers import *
+from pytissueoptics.rayscattering.opencl.CLScene import NO_LOG_ID, NO_SOLID_ID, NO_SURFACE_ID, CLScene
+from pytissueoptics.rayscattering.opencl.config.CLConfig import OPENCL_SOURCE_DIR
 from pytissueoptics.scene.geometry import Vertex
 
 if OPENCL_AVAILABLE:
@@ -37,7 +49,7 @@ class DataPointResult:
     surfaceID: int
 
 
-@unittest.skipIf(not OPENCL_OK, 'OpenCL device not available.')
+@unittest.skipIf(not OPENCL_OK, "OpenCL device not available.")
 class TestCLPhoton(unittest.TestCase):
     def setUp(self):
         self.INITIAL_POSITION = Vector(2, 2, 0)
@@ -52,12 +64,12 @@ class TestCLPhoton(unittest.TestCase):
         self.assertEqual(self.INITIAL_POSITION + self.INITIAL_DIRECTION * 10, photonResult.position)
 
     def testWhenScatterByTheta0_shouldNotChangePhotonDirection(self):
-        phi, theta = np.pi/4, 0
+        phi, theta = np.pi / 4, 0
         photonResult = self._photonFunc("scatterBy", phi, theta)
         self._assertVectorAlmostEqual(self.INITIAL_DIRECTION, photonResult.direction, places=6)
 
     def testWhenScatterByThetaPi_shouldRotatePhotonDirectionToOpposite(self):
-        phi, theta = np.pi/4, np.pi
+        phi, theta = np.pi / 4, np.pi
 
         photonResult = self._photonFunc("scatterBy", phi, theta)
 
@@ -69,7 +81,7 @@ class TestCLPhoton(unittest.TestCase):
         photonResult = self._photonFunc("scatterBy", 0, 0)
         initialEr = photonResult.er
 
-        phi, theta = 0, np.pi/4
+        phi, theta = 0, np.pi / 4
         photonResult = self._photonFunc("scatterBy", phi, theta)
         self._assertVectorNotAlmostEqual(initialEr, photonResult.er)
 
@@ -77,7 +89,7 @@ class TestCLPhoton(unittest.TestCase):
         photonResult = self._photonFunc("scatterBy", 0, 0)
         initialEr = photonResult.er
 
-        phi, theta = 2*np.pi, np.pi/4
+        phi, theta = 2 * np.pi, np.pi / 4
         photonResult = self._photonFunc("scatterBy", phi, theta)
         self._assertVectorNotAlmostEqual(initialEr, photonResult.er)
 
@@ -85,7 +97,7 @@ class TestCLPhoton(unittest.TestCase):
         photonResult = self._photonFunc("scatterBy", 0, 0)
         initialEr = photonResult.er
 
-        phi, theta = np.pi/4, np.pi/4
+        phi, theta = np.pi / 4, np.pi / 4
         photonResult = self._photonFunc("scatterBy", phi, theta)
         self._assertVectorNotAlmostEqual(initialEr, photonResult.er)
         self._assertVectorNotAlmostEqual(self.INITIAL_DIRECTION, photonResult.direction)
@@ -98,7 +110,7 @@ class TestCLPhoton(unittest.TestCase):
         self.INITIAL_DIRECTION = Vector(1, -1, 0)
         self.INITIAL_DIRECTION.normalize()
         incidencePlane = Vector(0, 0, 1)
-        angleDeflection = np.pi/2
+        angleDeflection = np.pi / 2
 
         photonResult = self._photonFunc("reflect", incidencePlane, angleDeflection)
 
@@ -110,7 +122,7 @@ class TestCLPhoton(unittest.TestCase):
         self.INITIAL_DIRECTION = Vector(1, -1, 0)
         self.INITIAL_DIRECTION.normalize()
         incidencePlane = Vector(0, 0, 1)
-        angleDeflection = -np.pi/4
+        angleDeflection = -np.pi / 4
 
         photonResult = self._photonFunc("refract", incidencePlane, angleDeflection)
 
@@ -153,7 +165,9 @@ class TestCLPhoton(unittest.TestCase):
         expectedWeightLoss = self.INITIAL_WEIGHT * material.getAlbedo()
         self.assertAlmostEqual(self.INITIAL_WEIGHT - expectedWeightLoss, photonResult.weight)
 
-    def testWhenLogIntersectionWithPhotonLeavingIntoWorld_shouldLogOnlyOneIntersectionOnPreviousSolidWithPositiveWeightCrossing(self):
+    def testWhenLogIntersectionWithPhotonLeavingIntoWorld_shouldLogOnlyOneIntersectionOnPreviousSolidWithPositiveWeightCrossing(
+        self,
+    ):
         self.INITIAL_DIRECTION = Vector(0, 1, 1)
         self.INITIAL_DIRECTION.normalize()
         intersectionNormal = Vector(0, 0, 1)
@@ -177,7 +191,9 @@ class TestCLPhoton(unittest.TestCase):
         self.assertAlmostEqual(0, dataPoint2.deltaWeight)
         self.assertAlmostEqual(NO_LOG_ID, dataPoint2.solidID)
 
-    def testWhenLogIntersectionWithPhotonEnteringFromWorld_shouldLogOnlyOneIntersectionOnSolidInsideWithNegativeWeightCrossing(self):
+    def testWhenLogIntersectionWithPhotonEnteringFromWorld_shouldLogOnlyOneIntersectionOnSolidInsideWithNegativeWeightCrossing(
+        self,
+    ):
         self.INITIAL_DIRECTION = Vector(0, 1, -1)
         self.INITIAL_DIRECTION.normalize()
         self.INITIAL_SOLID_ID = NO_SOLID_ID
@@ -242,13 +258,21 @@ class TestCLPhoton(unittest.TestCase):
         self.INITIAL_SOLID_ID = NO_SOLID_ID
         self.INITIAL_DIRECTION = Vector(1, -1, 0)
         self.INITIAL_DIRECTION.normalize()
-        self._mockFresnelIntersection(isReflected=True, incidencePlane=Vector(0, 0, 1),
-                                      angleDeflection=np.pi / 2)
+        self._mockFresnelIntersection(isReflected=True, incidencePlane=Vector(0, 0, 1), angleDeflection=np.pi / 2)
 
         logger = DataPointCL(2)
         surfaces = SurfaceCL([SurfaceCLInfo(0, 0, 0, 0, insideSolidID=9, outsideSolidID=NO_SOLID_ID, toSmooth=False)])
-        photonResult = self._photonFunc("reflectOrRefract", intersectionNormal, 0, 10,
-                                        MaterialCL([ScatteringMaterial()]), surfaces, logger, 0, SeedCL(1))
+        photonResult = self._photonFunc(
+            "reflectOrRefract",
+            intersectionNormal,
+            0,
+            10,
+            MaterialCL([ScatteringMaterial()]),
+            surfaces,
+            logger,
+            0,
+            SeedCL(1),
+        )
 
         expectedDirection = Vector(1, 1, 0)
         expectedDirection.normalize()
@@ -268,14 +292,27 @@ class TestCLPhoton(unittest.TestCase):
         self.INITIAL_DIRECTION.normalize()
         insideSolidID = 9
         insideMaterialID = 0
-        self._mockFresnelIntersection(isReflected=False, incidencePlane=Vector(0, 0, 1),
-                                      angleDeflection=-np.pi / 4, nextMaterialID=insideMaterialID,
-                                      nextSolidID=insideSolidID)
+        self._mockFresnelIntersection(
+            isReflected=False,
+            incidencePlane=Vector(0, 0, 1),
+            angleDeflection=-np.pi / 4,
+            nextMaterialID=insideMaterialID,
+            nextSolidID=insideSolidID,
+        )
 
         logger = DataPointCL(2)
         surfaces = SurfaceCL([SurfaceCLInfo(0, 0, 0, 0, insideSolidID, outsideSolidID=NO_SOLID_ID, toSmooth=False)])
-        photonResult = self._photonFunc("reflectOrRefract", intersectionNormal, 0, 10,
-                                        MaterialCL([ScatteringMaterial()]), surfaces, logger, 0, SeedCL(1))
+        photonResult = self._photonFunc(
+            "reflectOrRefract",
+            intersectionNormal,
+            0,
+            10,
+            MaterialCL([ScatteringMaterial()]),
+            surfaces,
+            logger,
+            0,
+            SeedCL(1),
+        )
 
         expectedDirection = Vector(0, -1, 0)
         expectedDirection.normalize()
@@ -298,8 +335,17 @@ class TestCLPhoton(unittest.TestCase):
 
         logger = DataPointCL(2)
         surfaces = SurfaceCL([SurfaceCLInfo(0, 0, 0, 0, insideSolidID=9, outsideSolidID=10, toSmooth=False)])
-        photonResult = self._photonFunc("propagateStep", stepDistance,
-                                        MaterialCL([ScatteringMaterial()]), surfaces, TriangleCL([]),  VertexCL([]), SeedCL(1), logger, 0)
+        photonResult = self._photonFunc(
+            "propagateStep",
+            stepDistance,
+            MaterialCL([ScatteringMaterial()]),
+            surfaces,
+            TriangleCL([]),
+            VertexCL([]),
+            SeedCL(1),
+            logger,
+            0,
+        )
 
         self.assertEqual(0, photonResult.weight)
 
@@ -309,8 +355,17 @@ class TestCLPhoton(unittest.TestCase):
 
         logger = DataPointCL(2)
         surfaces = SurfaceCL([SurfaceCLInfo(0, 0, 0, 0, insideSolidID=9, outsideSolidID=10, toSmooth=False)])
-        photonResult = self._photonFunc("propagateStep", stepDistance,
-                                        MaterialCL([ScatteringMaterial()]), surfaces, TriangleCL([]),  VertexCL([]), SeedCL(1), logger, 0)
+        photonResult = self._photonFunc(
+            "propagateStep",
+            stepDistance,
+            MaterialCL([ScatteringMaterial()]),
+            surfaces,
+            TriangleCL([]),
+            VertexCL([]),
+            SeedCL(1),
+            logger,
+            0,
+        )
 
         expectedPosition = self.INITIAL_POSITION + self.INITIAL_DIRECTION * stepDistance
         self._assertVectorAlmostEqual(expectedPosition, photonResult.position)
@@ -326,13 +381,24 @@ class TestCLPhoton(unittest.TestCase):
         intersectionPosition = self.INITIAL_POSITION + self.INITIAL_DIRECTION * stepDistance
 
         logger = DataPointCL(2)
-        surfaces = SurfaceCL([SurfaceCLInfo(0, 0, 0, 0, insideSolidID=nextSolidID, outsideSolidID=self.INITIAL_SOLID_ID, toSmooth=False)])
+        surfaces = SurfaceCL(
+            [SurfaceCLInfo(0, 0, 0, 0, insideSolidID=nextSolidID, outsideSolidID=self.INITIAL_SOLID_ID, toSmooth=False)]
+        )
         triangles = TriangleCL([TriangleCLInfo([0, 1, 2], normal)])
         # Put vertex slightly after the intersection point
         vertex = Vertex(intersectionPosition.x, intersectionPosition.y, intersectionPosition.z - 2e-7)
         vertex.normal = normal
-        photonResult = self._photonFunc("propagateStep", stepDistance,
-                                        MaterialCL([ScatteringMaterial()]), surfaces, triangles, VertexCL([vertex]), SeedCL(1), logger, 0)
+        photonResult = self._photonFunc(
+            "propagateStep",
+            stepDistance,
+            MaterialCL([ScatteringMaterial()]),
+            surfaces,
+            triangles,
+            VertexCL([vertex]),
+            SeedCL(1),
+            logger,
+            0,
+        )
 
         # Due to the correction being under floating point rounding error, we cannot measure it.
         self._assertVectorAlmostEqual(intersectionPosition, photonResult.position)
@@ -345,8 +411,17 @@ class TestCLPhoton(unittest.TestCase):
 
         logger = DataPointCL(2)
         surfaces = SurfaceCL([SurfaceCLInfo(0, 0, 0, 0, insideSolidID=9, outsideSolidID=10, toSmooth=False)])
-        photonResult = self._photonFunc("propagateStep", stepDistance,
-                                        MaterialCL([ScatteringMaterial(5, 2)]), surfaces, TriangleCL([]),  VertexCL([]), SeedCL(1), logger, 0)
+        photonResult = self._photonFunc(
+            "propagateStep",
+            stepDistance,
+            MaterialCL([ScatteringMaterial(5, 2)]),
+            surfaces,
+            TriangleCL([]),
+            VertexCL([]),
+            SeedCL(1),
+            logger,
+            0,
+        )
 
         self._assertVectorNotAlmostEqual(self.INITIAL_POSITION, photonResult.position)
 
@@ -361,8 +436,15 @@ class TestCLPhoton(unittest.TestCase):
         triangles = TriangleCL([TriangleCLInfo([0, 1, 2], Vector(0, 0, 1))])
         vertices = VertexCL([Vertex(0, 0, 0)] * 3)
         photonResult = self._photonFunc(
-            "propagateStep", stepDistance, MaterialCL([ScatteringMaterial()]),
-            surfaces, triangles,  vertices, SeedCL(1), logger, 0
+            "propagateStep",
+            stepDistance,
+            MaterialCL([ScatteringMaterial()]),
+            surfaces,
+            triangles,
+            vertices,
+            SeedCL(1),
+            logger,
+            0,
         )
 
         expectedPosition = self.INITIAL_POSITION + self.INITIAL_DIRECTION * intersectionDistance
@@ -379,8 +461,15 @@ class TestCLPhoton(unittest.TestCase):
         triangles = TriangleCL([TriangleCLInfo([0, 1, 2], Vector(0, 0, 1))])
         vertices = VertexCL([Vertex(0, 0, 0)] * 3)
         photonResult = self._photonFunc(
-            "propagateStep", stepDistance, MaterialCL([ScatteringMaterial()]),
-            surfaces, triangles, vertices, SeedCL(1), logger, 0
+            "propagateStep",
+            stepDistance,
+            MaterialCL([ScatteringMaterial()]),
+            surfaces,
+            triangles,
+            vertices,
+            SeedCL(1),
+            logger,
+            0,
         )
 
         expectedPosition = self.INITIAL_POSITION + self.INITIAL_DIRECTION * intersectionDistance
@@ -409,13 +498,16 @@ class TestCLPhoton(unittest.TestCase):
     def _photonFunc(self, funcName: str, *args) -> PhotonResult:
         self._addMissingDeclarations(args)
 
-        photonBuffer = PhotonCL(positions=np.array([self.INITIAL_POSITION.array]),
-                                directions=np.array([self.INITIAL_DIRECTION.array]),
-                                materialID=0, solidID=self.INITIAL_SOLID_ID, weight=self.INITIAL_WEIGHT)
+        photonBuffer = PhotonCL(
+            positions=np.array([self.INITIAL_POSITION.array]),
+            directions=np.array([self.INITIAL_DIRECTION.array]),
+            materialID=0,
+            solidID=self.INITIAL_SOLID_ID,
+            weight=self.INITIAL_WEIGHT,
+        )
         npArgs = [np.float32(arg) if isinstance(arg, (float, int)) else arg for arg in args]
         npArgs = [cl.cltypes.make_float3(*arg.array) if isinstance(arg, Vector) else arg for arg in npArgs]
-        self.program.launchKernel(kernelName=funcName + "Kernel", N=1,
-                                  arguments=npArgs + [photonBuffer, np.int32(0)])
+        self.program.launchKernel(kernelName=funcName + "Kernel", N=1, arguments=npArgs + [photonBuffer, np.int32(0)])
         photonResult = self._getPhotonResult(photonBuffer)
         return photonResult
 
@@ -428,13 +520,33 @@ class TestCLPhoton(unittest.TestCase):
 
         s = self._getCLSceneOfInfiniteMedium(material)
         logger = DataPointCL(maxInteractions)
-        photonBuffer = PhotonCL(positions=np.array([self.INITIAL_POSITION.array]),
-                                directions=np.array([self.INITIAL_DIRECTION.array]),
-                                materialID=0, solidID=self.INITIAL_SOLID_ID, weight=self.INITIAL_WEIGHT)
-        self.program.launchKernel(kernelName="propagate", N=1,
-                                  arguments=[np.int32(1), np.int32(maxInteractions), np.float32(WEIGHT_THRESHOLD), np.int32(1),
-                                             photonBuffer, s.materials, s.nSolids, s.solids, s.surfaces, s.triangles,
-                                             s.vertices, s.solidCandidates, SeedCL(1), logger])
+        photonBuffer = PhotonCL(
+            positions=np.array([self.INITIAL_POSITION.array]),
+            directions=np.array([self.INITIAL_DIRECTION.array]),
+            materialID=0,
+            solidID=self.INITIAL_SOLID_ID,
+            weight=self.INITIAL_WEIGHT,
+        )
+        self.program.launchKernel(
+            kernelName="propagate",
+            N=1,
+            arguments=[
+                np.int32(1),
+                np.int32(maxInteractions),
+                np.float32(WEIGHT_THRESHOLD),
+                np.int32(1),
+                photonBuffer,
+                s.materials,
+                s.nSolids,
+                s.solids,
+                s.surfaces,
+                s.triangles,
+                s.vertices,
+                s.solidCandidates,
+                SeedCL(1),
+                logger,
+            ],
+        )
         return self._getPhotonResult(photonBuffer)
 
     @staticmethod
@@ -444,9 +556,17 @@ class TestCLPhoton(unittest.TestCase):
         return sceneCL
 
     def _addMissingDeclarations(self, kernelArguments):
-        self.program._include = ''
-        requiredObjects = [MaterialCL([ScatteringMaterial()]), SurfaceCL([]), SeedCL(1), VertexCL([]),
-                           DataPointCL(1), SolidCandidateCL(1, 1), TriangleCL([]), SolidCL([])]
+        self.program._include = ""
+        requiredObjects = [
+            MaterialCL([ScatteringMaterial()]),
+            SurfaceCL([]),
+            SeedCL(1),
+            VertexCL([]),
+            DataPointCL(1),
+            SolidCandidateCL(1, 1),
+            TriangleCL([]),
+            SolidCL([]),
+        ]
         missingObjects = []
         for obj in requiredObjects:
             if any(isinstance(arg, type(obj)) for arg in kernelArguments):
@@ -459,8 +579,14 @@ class TestCLPhoton(unittest.TestCase):
 
     def _getPhotonResult(self, photonBuffer: PhotonCL):
         data = self.program.getData(photonBuffer)[0]
-        return PhotonResult(position=Vector(*data[:3]), direction=Vector(*data[4:7]), er=Vector(*data[8:11]),
-                            weight=data[12], materialID=data[13], solidID=data[14])
+        return PhotonResult(
+            position=Vector(*data[:3]),
+            direction=Vector(*data[4:7]),
+            er=Vector(*data[8:11]),
+            weight=data[12],
+            materialID=data[13],
+            solidID=data[14],
+        )
 
     def _getDataPointResult(self, dataPointBuffer: DataPointCL, i=0):
         data = self.program.getData(dataPointBuffer)[i]
@@ -488,14 +614,22 @@ class TestCLPhoton(unittest.TestCase):
      }
      return result;
 }"""
-        mockFunction = """float getRandomFloatValue(__global unsigned int *seeds, unsigned int id){
+        mockFunction = (
+            """float getRandomFloatValue(__global unsigned int *seeds, unsigned int id){
         return %f;
-    }""" % value
+    }"""
+            % value
+        )
         self.program.mock(getRandomFloatValueFunction, mockFunction)
 
-    def _mockFresnelIntersection(self, isReflected: bool,
-                                 incidencePlane: Vector = Vector(0, 1, 0), angleDeflection: float = np.pi / 2,
-                                 nextMaterialID=0, nextSolidID=0):
+    def _mockFresnelIntersection(
+        self,
+        isReflected: bool,
+        incidencePlane: Vector = Vector(0, 1, 0),
+        angleDeflection: float = np.pi / 2,
+        nextMaterialID=0,
+        nextSolidID=0,
+    ):
         fresnelCall = """FresnelIntersection fresnelIntersection = computeFresnelIntersection(photons[photonID].direction, intersection,
                                                                          materials, surfaces, seeds, gid);"""
         x, y, z = incidencePlane.array
@@ -510,7 +644,9 @@ class TestCLPhoton(unittest.TestCase):
 
     def _mockFindIntersection(self, exists=True, distance=8.0, normal=Vector(0, 0, 1), surfaceID=0, distanceLeft=2):
         expectedPosition = self.INITIAL_POSITION + self.INITIAL_DIRECTION * distance
-        intersectionCall = """Intersection intersection = findIntersection(stepRay, scene, gid, photons[photonID].solidID);"""
+        intersectionCall = (
+            """Intersection intersection = findIntersection(stepRay, scene, gid, photons[photonID].solidID);"""
+        )
         px, py, pz = expectedPosition.array
         nx, ny, nz = normal.array
         mockCall = """Intersection intersection;

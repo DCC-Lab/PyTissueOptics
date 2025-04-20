@@ -5,10 +5,10 @@ from dataclasses import dataclass
 
 import numpy as np
 
-from pytissueoptics import Vector, ScatteringMaterial
+from pytissueoptics import ScatteringMaterial, Vector
 from pytissueoptics.rayscattering.opencl import OPENCL_AVAILABLE, OPENCL_OK
+from pytissueoptics.rayscattering.opencl.buffers import MaterialCL, SeedCL, SurfaceCL, SurfaceCLInfo
 from pytissueoptics.rayscattering.opencl.config.CLConfig import OPENCL_SOURCE_DIR
-from pytissueoptics.rayscattering.opencl.buffers import MaterialCL, SurfaceCL, SurfaceCLInfo, SeedCL
 from pytissueoptics.rayscattering.tests.opencl.src.CLObjects import IntersectionCL
 
 if OPENCL_AVAILABLE:
@@ -16,8 +16,8 @@ if OPENCL_AVAILABLE:
 else:
     cl = None
 
-from pytissueoptics.rayscattering.opencl.CLProgram import CLProgram
 from pytissueoptics.rayscattering.opencl.buffers import CLObject
+from pytissueoptics.rayscattering.opencl.CLProgram import CLProgram
 
 
 @dataclass
@@ -29,7 +29,7 @@ class FresnelResult:
     nextSolidID: int
 
 
-@unittest.skipIf(not OPENCL_OK, 'OpenCL device not available.')
+@unittest.skipIf(not OPENCL_OK, "OpenCL device not available.")
 class TestCLFresnel(unittest.TestCase):
     OUTSIDE_SOLID_ID = 0
     INSIDE_SOLID_ID = 1
@@ -45,8 +45,19 @@ class TestCLFresnel(unittest.TestCase):
         outsideMaterial = ScatteringMaterial(0.8, 0.2, 0.9, n1)
         insideMaterial = ScatteringMaterial(0.8, 0.2, 0.9, n2)
         self.materials = MaterialCL([outsideMaterial, insideMaterial])
-        self.surfaces = SurfaceCL([SurfaceCLInfo(0, 1, self.INSIDE_MATERIAL_ID, self.OUTSIDE_MATERIAL_ID,
-                                                 self.INSIDE_SOLID_ID, self.OUTSIDE_SOLID_ID, False)])
+        self.surfaces = SurfaceCL(
+            [
+                SurfaceCLInfo(
+                    0,
+                    1,
+                    self.INSIDE_MATERIAL_ID,
+                    self.OUTSIDE_MATERIAL_ID,
+                    self.INSIDE_SOLID_ID,
+                    self.OUTSIDE_SOLID_ID,
+                    False,
+                )
+            ]
+        )
         self.normal = normal
         self.n1 = n1
         self.n2 = n2
@@ -123,9 +134,18 @@ class TestCLFresnel(unittest.TestCase):
         singleRayDirectionBuffer = cl.cltypes.make_float3(*rayDirection.array)
         seeds = SeedCL(N)
         fresnelBuffer = FresnelIntersectionCL(N)
-        self.program.launchKernel("computeFresnelIntersectionKernel", N=N,
-                                  arguments=[singleRayDirectionBuffer, self.intersection,
-                                             self.materials, self.surfaces, seeds, fresnelBuffer])
+        self.program.launchKernel(
+            "computeFresnelIntersectionKernel",
+            N=N,
+            arguments=[
+                singleRayDirectionBuffer,
+                self.intersection,
+                self.materials,
+                self.surfaces,
+                seeds,
+                fresnelBuffer,
+            ],
+        )
 
         return self._getFresnelResult(fresnelBuffer)
 
@@ -142,9 +162,11 @@ class TestCLFresnel(unittest.TestCase):
         self.program._build([self.materials, self.surfaces, self.intersection])
         self.program.include(self.materials.declaration + self.surfaces.declaration + self.intersection.declaration)
 
-        self.program.launchKernel("getReflectionCoefficientKernel", N=N,
-                                  arguments=[np.float32(self.n1), np.float32(self.n2),
-                                             np.float32(thetaIn), coefficientBuffer])
+        self.program.launchKernel(
+            "getReflectionCoefficientKernel",
+            N=N,
+            arguments=[np.float32(self.n1), np.float32(self.n2), np.float32(thetaIn), coefficientBuffer],
+        )
         return float(self.program.getData(coefficientBuffer)[0])
 
     def _getFresnelResult(self, fresnelBuffer) -> FresnelResult:
@@ -177,11 +199,15 @@ class TestCLFresnel(unittest.TestCase):
 
 class FresnelIntersectionCL(CLObject):
     STRUCT_NAME = "FresnelIntersection"
-    STRUCT_DTYPE = np.dtype([("incidencePlane", cl.cltypes.float3),
-                             ("isReflected", cl.cltypes.uint),
-                             ("angleDeflection", cl.cltypes.float),
-                             ("nextMaterialID", cl.cltypes.uint),
-                             ("nextSolidID", cl.cltypes.int)])
+    STRUCT_DTYPE = np.dtype(
+        [
+            ("incidencePlane", cl.cltypes.float3),
+            ("isReflected", cl.cltypes.uint),
+            ("angleDeflection", cl.cltypes.float),
+            ("nextMaterialID", cl.cltypes.uint),
+            ("nextSolidID", cl.cltypes.int),
+        ]
+    )
 
     def __init__(self, N: int):
         self._N = N

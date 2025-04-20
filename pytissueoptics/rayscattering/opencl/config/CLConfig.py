@@ -9,15 +9,15 @@ try:
 
     OPENCL_AVAILABLE = True
 except ImportError:
+
     class DummyCL:
         def __getattr__(self, item):
             return None
 
-
     cl = DummyCL()
     OPENCL_AVAILABLE = False
 
-warnings.formatwarning = lambda msg, *args, **kwargs: f'{msg}\n'
+warnings.formatwarning = lambda msg, *args, **kwargs: f"{msg}\n"
 
 OPENCL_PATH = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 MODULE_PATH = os.path.dirname(os.path.dirname(OPENCL_PATH))
@@ -31,7 +31,7 @@ DEFAULT_CONFIG = {
     "N_WORK_UNITS": None,
     "MAX_MEMORY_MB": None,
     "IPP_TEST_N_PHOTONS": 1000,
-    "BATCH_LOAD_FACTOR": 0.20
+    "BATCH_LOAD_FACTOR": 0.20,
 }
 
 DEFAULT_MAX_MEMORY_MB = 1024
@@ -59,8 +59,9 @@ class CLConfig:
             if key not in self._config:
                 self._config[key] = DEFAULT_CONFIG[key]
                 self.save()
-                raise ValueError(errorMessage + "The parameter '{}' is missing. Resetting to default "
-                                                "value...".format(key))
+                raise ValueError(
+                    errorMessage + "The parameter '{}' is missing. Resetting to default value...".format(key)
+                )
 
         self._validateDeviceIndex()
         self._validateMaxMemory()
@@ -73,34 +74,42 @@ class CLConfig:
             if not self._config[key] > 0:
                 self._config[key] = DEFAULT_CONFIG[key]
                 self.save()
-                raise ValueError(errorMessage + "The parameter '{}' must be greater than 0. Resetting to default "
-                                                "value...".format(key))
+                raise ValueError(
+                    errorMessage
+                    + "The parameter '{}' must be greater than 0. Resetting to default value...".format(key)
+                )
 
     def _validateDeviceIndex(self):
         numberOfDevices = len(self._devices)
         if self.DEVICE_INDEX is not None:
             if self.DEVICE_INDEX not in range(numberOfDevices):
-                warnings.warn(
-                    f"Invalid device index {self.DEVICE_INDEX}. Resetting to 'null' for automatic selection.")
+                warnings.warn(f"Invalid device index {self.DEVICE_INDEX}. Resetting to 'null' for automatic selection.")
                 self._config["DEVICE_INDEX"] = None
                 return self._validateDeviceIndex()
         elif numberOfDevices == 0:
-            raise ValueError("No OpenCL devices found. Please install the OpenCL drivers for your hardware or "
-                             "disable hardware acceleration by creating a light source with the argument "
-                             "`useHardwareAcceleration=False`.")
+            raise ValueError(
+                "No OpenCL devices found. Please install the OpenCL drivers for your hardware or "
+                "disable hardware acceleration by creating a light source with the argument "
+                "`useHardwareAcceleration=False`."
+            )
         elif numberOfDevices == 1:
             self.showAvailableDevices()
             warnings.warn(
                 f"Using the only available OpenCL device 0 ({self._devices[0].name}). \n\tIf your desired device "
                 f"doesn't show, it may be because its OpenCL drivers are not installed. \n\tTo reset device selection, "
-                f"reset global CONFIG.DEVICE_INDEX parameter to 'None'.")
+                f"reset global CONFIG.DEVICE_INDEX parameter to 'None'."
+            )
             self._config["DEVICE_INDEX"] = 0
         else:
             self.showAvailableDevices()
-            deviceIndex = int(input(f"Please select your device by entering the corresponding index between "
-                                    f"[0-{numberOfDevices - 1}]: "))
-            assert deviceIndex in range(numberOfDevices), f"Invalid device index '{deviceIndex}'. Not in " \
-                                                          f"range [0-{numberOfDevices - 1}]. "
+            deviceIndex = int(
+                input(
+                    f"Please select your device by entering the corresponding index between [0-{numberOfDevices - 1}]: "
+                )
+            )
+            assert deviceIndex in range(numberOfDevices), (
+                f"Invalid device index '{deviceIndex}'. Not in range [0-{numberOfDevices - 1}]. "
+            )
             self._config["DEVICE_INDEX"] = deviceIndex
         self.save()
 
@@ -111,27 +120,33 @@ class CLConfig:
         as OpenCL device (which has a max memory equal to the RAM).
         """
         if self._config["MAX_MEMORY_MB"] is None:
-            maxDeviceMemoryMB = self.device.global_mem_size // 1024 ** 2
+            maxDeviceMemoryMB = self.device.global_mem_size // 1024**2
             if maxDeviceMemoryMB * 0.75 < DEFAULT_MAX_MEMORY_MB:
                 self._config["MAX_MEMORY_MB"] = maxDeviceMemoryMB * 0.75
-                warnings.warn(f"Setting MAX_MEMORY_MB to {self._config['MAX_MEMORY_MB']} MB, which corresponds to 75% "
-                              f"of your device's memory.")
+                warnings.warn(
+                    f"Setting MAX_MEMORY_MB to {self._config['MAX_MEMORY_MB']} MB, which corresponds to 75% "
+                    f"of your device's memory."
+                )
             else:
                 self._config["MAX_MEMORY_MB"] = DEFAULT_MAX_MEMORY_MB
-                warnings.warn(f"Setting MAX_MEMORY_MB to {self._config['MAX_MEMORY_MB']} MB to limit out-of-memory "
-                              f"errors even though your device has a capacity of {maxDeviceMemoryMB} MB. \n\tYou can "
-                              f"change this global parameter under `CONFIG.MAX_MEMORY_MB`.")
+                warnings.warn(
+                    f"Setting MAX_MEMORY_MB to {self._config['MAX_MEMORY_MB']} MB to limit out-of-memory "
+                    f"errors even though your device has a capacity of {maxDeviceMemoryMB} MB. \n\tYou can "
+                    f"change this global parameter under `CONFIG.MAX_MEMORY_MB`."
+                )
             self.save()
 
     def _autoSetNWorkUnits(self):
         if not self._needToRunTest():
             return
 
-        warnings.warn("... Running a test to find optimal N_WORK_UNITS between 128 and 32768. This may take a few "
-                      "minutes. ")
+        warnings.warn(
+            "... Running a test to find optimal N_WORK_UNITS between 128 and 32768. This may take a few minutes. "
+        )
         self.AUTO_SAVE = False
         try:
             from pytissueoptics.rayscattering.opencl.utils.optimalWorkUnits import computeOptimalNWorkUnits
+
             optimalNWorkUnits = computeOptimalNWorkUnits()
             self.AUTO_SAVE = True
         except Exception as e:
@@ -141,15 +156,18 @@ class CLConfig:
             raise ValueError(
                 f"The automatic test for optimal N_WORK_UNITS failed. Please retry after adressing the error "
                 f"or manually set N_WORK_UNITS in the config file at "
-                f"'{OPENCL_CONFIG_RELPATH}'. \n... Error message: {e}")
+                f"'{OPENCL_CONFIG_RELPATH}'. \n... Error message: {e}"
+            )
         self._processOptimalNWorkUnits(optimalNWorkUnits)
         self.save()
 
     def _needToRunTest(self) -> bool:
         warnings.warn("The parameter N_WORK_UNITS is not set.")
         time.sleep(0.1)  # Used to make sure previous warnings are printed before the following input prompt
-        answer = input("Press enter to run the test to find the optimal value for N_WORK_UNITS, or enter it manually "
-                       "if you already know it: ")
+        answer = input(
+            "Press enter to run the test to find the optimal value for N_WORK_UNITS, or enter it manually "
+            "if you already know it: "
+        )
         if answer == "":
             return True
         elif answer.isnumeric():
@@ -264,5 +282,7 @@ class CLConfig:
     def showAvailableDevices(self):
         print("Available devices:")
         for i, device in enumerate(self._devices):
-            print(f"... Device [{i}]: {device.name} ({device.global_mem_size // 1024 ** 2} MB "
-                  f"| {device.max_clock_frequency} MHz)")
+            print(
+                f"... Device [{i}]: {device.name} ({device.global_mem_size // 1024**2} MB "
+                f"| {device.max_clock_frequency} MHz)"
+            )

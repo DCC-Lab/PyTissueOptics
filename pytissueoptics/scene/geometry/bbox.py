@@ -1,10 +1,15 @@
-from typing import List
-from pytissueoptics.scene.geometry import Vector, Vertex
+from typing import TYPE_CHECKING, List
+
+from .vector import Vector
+from .vertex import Vertex
+
+if TYPE_CHECKING:
+    from pytissueoptics.scene.geometry.polygon import Polygon
 
 
 class BoundingBox:
-    _AXIS_KEYS = ['x', 'y', 'z']
-    _LIMIT_KEYS = ['min', 'max']
+    _AXIS_KEYS = ["x", "y", "z"]
+    _LIMIT_KEYS = ["min", "max"]
 
     def __init__(self, xLim: List[float], yLim: List[float], zLim: List[float], validate=True):
         self._xLim = xLim
@@ -17,21 +22,23 @@ class BoundingBox:
     def __repr__(self) -> str:
         return f"<BoundingBox>:(xLim={self._xLim}, yLim={self._yLim}, zLim={self._zLim})"
 
-    def __eq__(self, other: 'BoundingBox') -> bool:
+    def __eq__(self, other: "BoundingBox") -> bool:
         if self._xLim == other._xLim and self._yLim == other._yLim and self._zLim == other._zLim:
             return True
         else:
             return False
 
     def copy(self):
-        return BoundingBox([self._xLim[0], self._xLim[1]], [self._yLim[0], self._yLim[1]], [self._zLim[0], self._zLim[1]])
+        return BoundingBox(
+            [self._xLim[0], self._xLim[1]], [self._yLim[0], self._yLim[1]], [self._zLim[0], self._zLim[1]]
+        )
 
     def _checkIfCoherent(self):
         if not (self.xMax >= self.xMin and self.yMax >= self.yMin and self.zMax >= self.zMin):
             raise ValueError("Maximum limit value cannot be lower than minimum limit value.")
 
     @classmethod
-    def fromVertices(cls, vertices: List[Vertex]) -> 'BoundingBox':
+    def fromVertices(cls, vertices: List[Vertex]) -> "BoundingBox":
         vertexIter = range(len(vertices))
         x = sorted([vertices[i].x for i in vertexIter])
         y = sorted([vertices[i].y for i in vertexIter])
@@ -42,7 +49,7 @@ class BoundingBox:
         return BoundingBox(xLim, yLim, zLim, validate=False)
 
     @classmethod
-    def fromPolygons(cls, polygons: List['Polygon']) -> 'BoundingBox':
+    def fromPolygons(cls, polygons: List["Polygon"]) -> "BoundingBox":
         bbox = None
         for polygon in polygons:
             if bbox is not None:
@@ -77,8 +84,11 @@ class BoundingBox:
 
     @property
     def center(self) -> Vector:
-        return Vector(self.xMin + (self.xMax - self.xMin) / 2, self.yMin + (self.yMax - self.yMin) / 2,
-                      self.zMin + (self.zMax - self.zMin) / 2)
+        return Vector(
+            self.xMin + (self.xMax - self.xMin) / 2,
+            self.yMin + (self.yMax - self.yMin) / 2,
+            self.zMin + (self.zMax - self.zMin) / 2,
+        )
 
     @property
     def xLim(self) -> List[float]:
@@ -141,7 +151,7 @@ class BoundingBox:
         else:
             return False
 
-    def extendTo(self, other: 'BoundingBox'):
+    def extendTo(self, other: "BoundingBox"):
         if other.xMin < self.xMin:
             self._xLim[0] = other.xMin
         if other.xMax > self.xMax:
@@ -155,7 +165,7 @@ class BoundingBox:
         if other.zMax > self.zMax:
             self._zLim[1] = other.zMax
 
-    def shrinkTo(self, other: 'BoundingBox'):
+    def shrinkTo(self, other: "BoundingBox"):
         if other.xMin > self.xMin:
             self._xLim[0] = other.xMin
         if other.xMax < self.xMax:
@@ -169,7 +179,7 @@ class BoundingBox:
         if other.zMax < self.zMax:
             self._zLim[1] = other.zMax
 
-    def exclude(self, other: 'BoundingBox'):
+    def exclude(self, other: "BoundingBox"):
         if not self.intersects(other):
             return
 
@@ -196,7 +206,7 @@ class BoundingBox:
     def __getitem__(self, index: int) -> List[float]:
         return self._xyzLimits[index]
 
-    def intersects(self, other: 'BoundingBox') -> bool:
+    def intersects(self, other: "BoundingBox") -> bool:
         for axis in range(3):
             if other[axis][0] > self[axis][1] or other[axis][1] < self[axis][0]:
                 return False

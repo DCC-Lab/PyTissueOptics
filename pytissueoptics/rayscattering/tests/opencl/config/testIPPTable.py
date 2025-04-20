@@ -3,7 +3,7 @@ import os
 import tempfile
 import unittest
 
-from pytissueoptics.rayscattering.opencl.config.IPPTable import IPPTable, DEFAULT_IPP
+from pytissueoptics.rayscattering.opencl.config.IPPTable import DEFAULT_IPP, IPPTable
 
 
 def tempTablePath(func):
@@ -11,6 +11,7 @@ def tempTablePath(func):
         with tempfile.TemporaryDirectory() as tempDir:
             IPPTable.TABLE_PATH = os.path.join(tempDir, "ipp.json")
             func(*args, **kwargs)
+
     return wrapper
 
 

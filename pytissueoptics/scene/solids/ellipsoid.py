@@ -4,8 +4,8 @@ import pickle
 
 import numpy as np
 
-from pytissueoptics.scene.geometry import Vector, Triangle, primitives, Vertex
-from pytissueoptics.scene.solids import Solid
+from pytissueoptics.scene.geometry import Triangle, Vector, Vertex, primitives
+from pytissueoptics.scene.solids.solid import Solid
 
 
 def hash2(obj):
@@ -14,23 +14,32 @@ def hash2(obj):
 
 class Ellipsoid(Solid):
     """
-        We take the unit sphere, then calculate the theta, phi position of each vertex (with ISO mathematical
-        convention). Then we apply the ellipsoid formula in the spherical coordinate to isolate the component R.
-        We then calculate the difference the ellipsoid would with the unit sphere for this theta,phi and
-        then .add() or .subtract() the corresponding vector.
+    We take the unit sphere, then calculate the theta, phi position of each vertex (with ISO mathematical
+    convention). Then we apply the ellipsoid formula in the spherical coordinate to isolate the component R.
+    We then calculate the difference the ellipsoid would with the unit sphere for this theta,phi and
+    then .add() or .subtract() the corresponding vector.
     """
 
-    def __init__(self, a: float = 1, b: float = 1, c: float = 1, order: int = 3,
-                 position: Vector = Vector(0, 0, 0), material=None,
-                 label: str = "ellipsoid", primitive: str = primitives.DEFAULT, smooth: bool = True):
-
+    def __init__(
+        self,
+        a: float = 1,
+        b: float = 1,
+        c: float = 1,
+        order: int = 3,
+        position: Vector = Vector(0, 0, 0),
+        material=None,
+        label: str = "ellipsoid",
+        primitive: str = primitives.DEFAULT,
+        smooth: bool = True,
+    ):
         self._a = a
         self._b = b
         self._c = c
         self._order = order
 
-        super().__init__(position=position, material=material, label=label, primitive=primitive,
-                         vertices=[], smooth=smooth)
+        super().__init__(
+            position=position, material=material, label=label, primitive=primitive, vertices=[], smooth=smooth
+        )
 
     def _computeTriangleMesh(self):
         """
@@ -63,16 +72,31 @@ class Ellipsoid(Solid):
         self._vertices = [*xyPlaneVertices, *yzPlaneVertices, *xzPlaneVertices]
         V = self._vertices
 
-        self._surfaces.add("ellipsoid", [Triangle(V[0], V[11], V[5]), Triangle(V[0], V[5], V[1]),
-                                         Triangle(V[0], V[1], V[7]), Triangle(V[0], V[7], V[10]),
-                                         Triangle(V[0], V[10], V[11]), Triangle(V[1], V[5], V[9]),
-                                         Triangle(V[5], V[11], V[4]), Triangle(V[11], V[10], V[2]),
-                                         Triangle(V[10], V[7], V[6]), Triangle(V[7], V[1], V[8]),
-                                         Triangle(V[3], V[9], V[4]), Triangle(V[3], V[4], V[2]),
-                                         Triangle(V[3], V[2], V[6]), Triangle(V[3], V[6], V[8]),
-                                         Triangle(V[3], V[8], V[9]), Triangle(V[4], V[9], V[5]),
-                                         Triangle(V[2], V[4], V[11]), Triangle(V[6], V[2], V[10]),
-                                         Triangle(V[8], V[6], V[7]), Triangle(V[9], V[8], V[1])])
+        self._surfaces.add(
+            "ellipsoid",
+            [
+                Triangle(V[0], V[11], V[5]),
+                Triangle(V[0], V[5], V[1]),
+                Triangle(V[0], V[1], V[7]),
+                Triangle(V[0], V[7], V[10]),
+                Triangle(V[0], V[10], V[11]),
+                Triangle(V[1], V[5], V[9]),
+                Triangle(V[5], V[11], V[4]),
+                Triangle(V[11], V[10], V[2]),
+                Triangle(V[10], V[7], V[6]),
+                Triangle(V[7], V[1], V[8]),
+                Triangle(V[3], V[9], V[4]),
+                Triangle(V[3], V[4], V[2]),
+                Triangle(V[3], V[2], V[6]),
+                Triangle(V[3], V[6], V[8]),
+                Triangle(V[3], V[8], V[9]),
+                Triangle(V[4], V[9], V[5]),
+                Triangle(V[2], V[4], V[11]),
+                Triangle(V[6], V[2], V[10]),
+                Triangle(V[8], V[6], V[7]),
+                Triangle(V[9], V[8], V[1]),
+            ],
+        )
 
     def _computeNextOrderTriangleMesh(self):
         newPolygons = []
@@ -115,13 +139,13 @@ class Ellipsoid(Solid):
         for vertex in self._vertices:
             vertex.normalize()
             r = self._radiusTowards(vertex)
-            distanceFromUnitSphere = (r - 1.0)
+            distanceFromUnitSphere = r - 1.0
             vertex.add(vertex * distanceFromUnitSphere)
         self.surfaces.resetNormals()
 
     @staticmethod
     def _findThetaPhi(vertex: Vertex):
-        phi = math.acos(vertex.z / (vertex.x ** 2 + vertex.y ** 2 + vertex.z ** 2))
+        phi = math.acos(vertex.z / (vertex.x**2 + vertex.y**2 + vertex.z**2))
         theta = 0
         if vertex.x == 0.0:
             if vertex.y > 0.0:
@@ -144,15 +168,21 @@ class Ellipsoid(Solid):
 
     def _radiusTowards(self, vertex):
         theta, phi = self._findThetaPhi(vertex)
-        return math.sqrt(1 / ((math.cos(theta) ** 2 * math.sin(phi) ** 2) / self._a ** 2 + (
-                math.sin(theta) ** 2 * math.sin(phi) ** 2) / self._b ** 2 + math.cos(phi) ** 2 / self._c ** 2))
+        return math.sqrt(
+            1
+            / (
+                (math.cos(theta) ** 2 * math.sin(phi) ** 2) / self._a**2
+                + (math.sin(theta) ** 2 * math.sin(phi) ** 2) / self._b**2
+                + math.cos(phi) ** 2 / self._c**2
+            )
+        )
 
     def _computeQuadMesh(self):
         raise NotImplementedError
 
     def contains(self, *vertices: Vector) -> bool:
-        """ Only returns true if all vertices are inside the minimum radius of the ellipsoid
-        towards each vertex direction (more restrictive with low order ellipsoids). """
+        """Only returns true if all vertices are inside the minimum radius of the ellipsoid
+        towards each vertex direction (more restrictive with low order ellipsoids)."""
         relativeVertices = [vertex - self.position for vertex in vertices]
         relativeVertices = self._applyInverseRotation(relativeVertices)
         relativeVerticesArray = np.asarray([vertex.array for vertex in relativeVertices])

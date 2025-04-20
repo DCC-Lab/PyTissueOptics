@@ -1,4 +1,4 @@
-import env
+import env  # noqa: F401
 
 TITLE = "Load a .obj wavefront file"
 
@@ -6,7 +6,7 @@ DESCRIPTION = """ """
 
 
 def exampleCode():
-    from pytissueoptics.scene import loadSolid, MayaviViewer
+    from pytissueoptics.scene import MayaviViewer, loadSolid
 
     solid = loadSolid("pytissueoptics/examples/scene/droid.obj")
 

@@ -1,6 +1,6 @@
 import unittest
 
-from pytissueoptics.scene.geometry import Vector, BoundingBox
+from pytissueoptics.scene.geometry import BoundingBox, Vector
 from pytissueoptics.scene.intersection import Ray
 from pytissueoptics.scene.intersection.bboxIntersect import BoxIntersectStrategy, GemsBoxIntersect, ZacharBoxIntersect
 
@@ -54,7 +54,7 @@ class BaseTestAnyBoxIntersect:
         ray = Ray(rayOrigin, rayDirection)
 
         intersection = self.intersectStrategy.getIntersection(ray, box)
-        
+
         self.assertEqual(ray.origin, intersection)
 
     def testGivenRayLengthShorterThanBoxIntersection_shouldReturnNone(self):

@@ -14,18 +14,30 @@ from pytissueoptics.rayscattering.opencl.buffers import CLObject
 
 class IntersectionCL(CLObject):
     STRUCT_NAME = "Intersection"
-    STRUCT_DTYPE = np.dtype([("exists", cl.cltypes.uint),
-                             ("distance", cl.cltypes.float),
-                             ("position", cl.cltypes.float3),
-                             ("normal", cl.cltypes.float3),
-                             ("surfaceID", cl.cltypes.uint),
-                             ("polygonID", cl.cltypes.uint),
-                             ("distanceLeft", cl.cltypes.float),
-                             ("isSmooth", cl.cltypes.uint),
-                             ("rawNormal", cl.cltypes.float3)])
+    STRUCT_DTYPE = np.dtype(
+        [
+            ("exists", cl.cltypes.uint),
+            ("distance", cl.cltypes.float),
+            ("position", cl.cltypes.float3),
+            ("normal", cl.cltypes.float3),
+            ("surfaceID", cl.cltypes.uint),
+            ("polygonID", cl.cltypes.uint),
+            ("distanceLeft", cl.cltypes.float),
+            ("isSmooth", cl.cltypes.uint),
+            ("rawNormal", cl.cltypes.float3),
+        ]
+    )
 
-    def __init__(self, distance: float = 10, position=Vector(0, 0, 0), normal=Vector(0, 0, 1),
-                 surfaceID=0, polygonID=0, distanceLeft: float = 0, **kwargs):
+    def __init__(
+        self,
+        distance: float = 10,
+        position=Vector(0, 0, 0),
+        normal=Vector(0, 0, 1),
+        surfaceID=0,
+        polygonID=0,
+        distanceLeft: float = 0,
+        **kwargs,
+    ):
         self._distance = distance
         self._position = position
         self._normal = normal
@@ -51,9 +63,9 @@ class IntersectionCL(CLObject):
 
 class RayCL(CLObject):
     STRUCT_NAME = "Ray"
-    STRUCT_DTYPE = np.dtype([("origin", cl.cltypes.float4),
-                             ("direction", cl.cltypes.float4),
-                             ("length", cl.cltypes.float)])
+    STRUCT_DTYPE = np.dtype(
+        [("origin", cl.cltypes.float4), ("direction", cl.cltypes.float4), ("length", cl.cltypes.float)]
+    )
 
     def __init__(self, origins: np.ndarray, directions: np.ndarray, lengths: np.ndarray):
         self._origins = origins

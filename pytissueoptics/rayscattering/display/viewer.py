@@ -4,15 +4,14 @@ from typing import List, Tuple, Union
 import numpy as np
 
 from pytissueoptics.rayscattering import utils
-from pytissueoptics.rayscattering.energyLogging import EnergyLogger
-from pytissueoptics.rayscattering.energyLogging.pointCloud import PointCloud
-from pytissueoptics.rayscattering.energyLogging import PointCloudFactory
-from pytissueoptics.rayscattering.source import Source
-from pytissueoptics.rayscattering.scatteringScene import ScatteringScene
-from pytissueoptics.rayscattering.statistics import Stats
-from pytissueoptics.rayscattering.display.utils import Direction
-from pytissueoptics.rayscattering.display.views import ViewGroup, View2D
 from pytissueoptics.rayscattering.display.profiles import ProfileFactory
+from pytissueoptics.rayscattering.display.utils import Direction
+from pytissueoptics.rayscattering.display.views import View2D, ViewGroup
+from pytissueoptics.rayscattering.energyLogging import EnergyLogger, PointCloudFactory
+from pytissueoptics.rayscattering.energyLogging.pointCloud import PointCloud
+from pytissueoptics.rayscattering.scatteringScene import ScatteringScene
+from pytissueoptics.rayscattering.source import Source
+from pytissueoptics.rayscattering.statistics import Stats
 from pytissueoptics.scene import MAYAVI_AVAILABLE, MayaviViewer, ViewPointStyle
 
 
@@ -21,6 +20,7 @@ class Visibility(Flag):
     A Visibility is a bit Flag representing what to show inside a 3D visualization. They can be combined with the `|`
     operator (bitwise OR). `AUTO` will automatically switch to DEFAULT_3D if 3D data is present, else DEFAULT_2D.
     """
+
     SCENE = 1
     SOURCE = 2
     POINT_CLOUD = 4
@@ -53,11 +53,23 @@ class PointCloudStyle:
         surfaceReverseColormap (bool): Same as `reverseColormap` but for the surface points.
     """
 
-    def __init__(self, solidLabel: str = None, surfaceLabel: str = None, showSolidPoints: bool = True,
-                 showSurfacePointsLeaving: bool = True, showSurfacePointsEntering: bool = False,
-                 showPointsAsSpheres: bool = False, pointSize: float = 0.15, scaleWithValue: bool = True,
-                 colormap: str = "rainbow", reverseColormap: bool = False, surfacePointSize: float = 0.01,
-                 surfaceScaleWithValue: bool = False, surfaceColormap: str = None, surfaceReverseColormap: bool = None):
+    def __init__(
+        self,
+        solidLabel: str = None,
+        surfaceLabel: str = None,
+        showSolidPoints: bool = True,
+        showSurfacePointsLeaving: bool = True,
+        showSurfacePointsEntering: bool = False,
+        showPointsAsSpheres: bool = False,
+        pointSize: float = 0.15,
+        scaleWithValue: bool = True,
+        colormap: str = "rainbow",
+        reverseColormap: bool = False,
+        surfacePointSize: float = 0.01,
+        surfaceScaleWithValue: bool = False,
+        surfaceColormap: str = None,
+        surfaceReverseColormap: bool = None,
+    ):
         self.solidLabel = solidLabel
         self.surfaceLabel = surfaceLabel
         self.showSolidPoints = showSolidPoints
@@ -90,9 +102,16 @@ class Viewer:
     def listViews(self):
         return self._logger.listViews()
 
-    def show3D(self, visibility=Visibility.AUTO, viewsVisibility: Union[ViewGroup, List[int]] = ViewGroup.SCENE,
-               pointCloudStyle=PointCloudStyle(), viewsSolidLabels: List[str] = None, viewsSurfaceLabels: List[str] = None,
-               viewsLogScale: bool = True, viewsColormap: str = "viridis"):
+    def show3D(
+        self,
+        visibility=Visibility.AUTO,
+        viewsVisibility: Union[ViewGroup, List[int]] = ViewGroup.SCENE,
+        pointCloudStyle=PointCloudStyle(),
+        viewsSolidLabels: List[str] = None,
+        viewsSurfaceLabels: List[str] = None,
+        viewsLogScale: bool = True,
+        viewsColormap: str = "viridis",
+    ):
         if not MAYAVI_AVAILABLE:
             utils.warn("Package 'mayavi' is not available. Please install it to use 3D visualizations.")
             return
@@ -120,8 +139,13 @@ class Viewer:
 
         self._viewer3D.show()
 
-    def show3DVolumeSlicer(self, binSize: float = None, logScale: bool = True, interpolate: bool = False,
-                           limits: Tuple[tuple, tuple, tuple]=None):
+    def show3DVolumeSlicer(
+        self,
+        binSize: float = None,
+        logScale: bool = True,
+        interpolate: bool = False,
+        limits: Tuple[tuple, tuple, tuple] = None,
+    ):
         if not MAYAVI_AVAILABLE:
             utils.warn("ERROR: Package 'mayavi' is not available. Please install it to use 3D visualizations.")
             return
@@ -139,15 +163,19 @@ class Viewer:
         # np.histogramdd only works in float64 and requires around 3 times the final memory.
         requiredMemoryInGB = 3 * 8 * bins[0] * bins[1] * bins[2] / 1024**3
         if requiredMemoryInGB > 4:
-            utils.warn(f"WARNING: The volume slicer will require a lot of memory ({round(requiredMemoryInGB, 2)} GB). "
-                       f"Consider using a larger binSize or tighter limits.")
+            utils.warn(
+                f"WARNING: The volume slicer will require a lot of memory ({round(requiredMemoryInGB, 2)} GB). "
+                f"Consider using a larger binSize or tighter limits."
+            )
 
         points = self._pointCloudFactory.getPointCloudOfSolids().solidPoints
         try:
             hist, _ = np.histogramdd(points[:, 1:], bins=bins, weights=points[:, 0], range=limits)
         except MemoryError:
-            utils.warn("ERROR: Not enough memory to create the volume slicer. "
-                       "Consider using a larger binSize or tighter limits.")
+            utils.warn(
+                "ERROR: Not enough memory to create the volume slicer. "
+                "Consider using a larger binSize or tighter limits."
+            )
             return
         hist = hist.astype(np.float32)
 
@@ -155,6 +183,7 @@ class Viewer:
             hist = utils.logNorm(hist)
 
         from pytissueoptics.rayscattering.display.utils.volumeSlicer import VolumeSlicer
+
         slicer = VolumeSlicer(hist, interpolate=interpolate)
         slicer.show()
 
@@ -167,9 +196,16 @@ class Viewer:
                 continue
             self.show2D(viewIndex=i)
 
-    def show1D(self, along: Direction, logScale: bool = True,
-               solidLabel: str = None, surfaceLabel: str = None, surfaceEnergyLeaving: bool = True,
-               limits: Tuple[float, float] = None, binSize: float = None):
+    def show1D(
+        self,
+        along: Direction,
+        logScale: bool = True,
+        solidLabel: str = None,
+        surfaceLabel: str = None,
+        surfaceEnergyLeaving: bool = True,
+        limits: Tuple[float, float] = None,
+        binSize: float = None,
+    ):
         profile = self._profileFactory.create(along, solidLabel, surfaceLabel, surfaceEnergyLeaving, limits, binSize)
         profile.show(logScale=logScale)
 
@@ -189,9 +225,14 @@ class Viewer:
         if not style.showSolidPoints:
             return
 
-        self._viewer3D.addDataPoints(pointCloud.solidPoints, scale=style.pointSize,
-                                     scaleWithValue=style.scaleWithValue, colormap=style.colormap,
-                                     reverseColormap=style.reverseColormap, asSpheres=style.showPointsAsSpheres)
+        self._viewer3D.addDataPoints(
+            pointCloud.solidPoints,
+            scale=style.pointSize,
+            scaleWithValue=style.scaleWithValue,
+            colormap=style.colormap,
+            reverseColormap=style.reverseColormap,
+            asSpheres=style.showPointsAsSpheres,
+        )
 
     def _drawPointCloudOfSurfaces(self, pointCloud: PointCloud, style: PointCloudStyle):
         if pointCloud.surfacePoints is None:
@@ -206,13 +247,23 @@ class Viewer:
         if len(surfacePoints) == 0:
             return
 
-        self._viewer3D.addDataPoints(surfacePoints, scale=style.surfacePointSize,
-                                     scaleWithValue=style.surfaceScaleWithValue, colormap=style.surfaceColormap,
-                                     reverseColormap=style.surfaceReverseColormap,
-                                     asSpheres=style.showPointsAsSpheres)
+        self._viewer3D.addDataPoints(
+            surfacePoints,
+            scale=style.surfacePointSize,
+            scaleWithValue=style.surfaceScaleWithValue,
+            colormap=style.surfaceColormap,
+            reverseColormap=style.surfaceReverseColormap,
+            asSpheres=style.showPointsAsSpheres,
+        )
 
-    def _addViews(self, viewsVisibility: Union[ViewGroup, List[int]], solidLabels: List[str] = None,
-                  surfaceLabels: List[str] = None, logScale: bool = True, colormap: str = "viridis"):
+    def _addViews(
+        self,
+        viewsVisibility: Union[ViewGroup, List[int]],
+        solidLabels: List[str] = None,
+        surfaceLabels: List[str] = None,
+        logScale: bool = True,
+        colormap: str = "viridis",
+    ):
         if isinstance(viewsVisibility, list):
             for viewIndex in viewsVisibility:
                 self._addView(self._logger.getView(viewIndex), logScale, colormap)
@@ -221,8 +272,11 @@ class Viewer:
         for view in self._logger.views:
             correctGroup = view.group in viewsVisibility
             correctSolidLabel = solidLabels is None or utils.labelContained(view.solidLabel, solidLabels)
-            correctSurfaceLabel = surfaceLabels is None or view.surfaceLabel is None or \
-                                  utils.labelContained(view.surfaceLabel, surfaceLabels)
+            correctSurfaceLabel = (
+                surfaceLabels is None
+                or view.surfaceLabel is None
+                or utils.labelContained(view.surfaceLabel, surfaceLabels)
+            )
             if correctGroup and correctSolidLabel and correctSurfaceLabel:
                 self._addView(view, logScale, colormap)
 

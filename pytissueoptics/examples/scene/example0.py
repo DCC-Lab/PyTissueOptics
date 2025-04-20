@@ -1,4 +1,4 @@
-import env
+import env  # noqa: F401
 
 TITLE = "Explore different Shapes"
 
@@ -10,7 +10,7 @@ A Mayavi Viewer allows for the display of those solids."""
 
 
 def exampleCode():
-    from pytissueoptics.scene import Vector, Cuboid, Sphere, Ellipsoid, MayaviViewer
+    from pytissueoptics.scene import Cuboid, Ellipsoid, MayaviViewer, Sphere, Vector
 
     cuboid = Cuboid(a=1, b=3, c=1, position=Vector(1, 0, 0))
     sphere = Sphere(radius=0.5, position=Vector(0, 0, 0))

@@ -1,6 +1,6 @@
 import unittest
 
-from pytissueoptics.scene.geometry import Triangle, Vector, Quad, Polygon, Vertex
+from pytissueoptics.scene.geometry import Polygon, Quad, Triangle, Vector, Vertex
 from pytissueoptics.scene.intersection import Ray
 from pytissueoptics.scene.intersection.mollerTrumboreIntersect import MollerTrumboreIntersect
 
@@ -20,7 +20,7 @@ class BaseTestAnyPolygonIntersect(unittest.TestCase):
         rayDirection.normalize()
         ray = Ray(rayOrigin, rayDirection)
 
-        for poly in ([self.triangle, self.quad, self.polygon]):
+        for poly in [self.triangle, self.quad, self.polygon]:
             intersection = self.intersectStrategy.getIntersection(ray, poly)
             self.assertEqual(0.45, intersection.x)
             self.assertEqual(0.25, intersection.y)
@@ -32,7 +32,7 @@ class BaseTestAnyPolygonIntersect(unittest.TestCase):
         rayDirection.normalize()
         ray = Ray(rayOrigin, rayDirection)
 
-        for poly in ([self.triangle, self.quad, self.polygon]):
+        for poly in [self.triangle, self.quad, self.polygon]:
             intersection = self.intersectStrategy.getIntersection(ray, poly)
             self.assertIsNone(intersection)
 
@@ -42,7 +42,7 @@ class BaseTestAnyPolygonIntersect(unittest.TestCase):
         rayDirection.normalize()
         ray = Ray(rayOrigin, rayDirection)
 
-        for poly in ([self.triangle, self.quad, self.polygon]):
+        for poly in [self.triangle, self.quad, self.polygon]:
             intersection = self.intersectStrategy.getIntersection(ray, poly)
             self.assertIsNone(intersection)
 
@@ -52,7 +52,7 @@ class BaseTestAnyPolygonIntersect(unittest.TestCase):
         rayDirection.normalize()
         ray = Ray(rayOrigin, rayDirection, length=1.8)
 
-        for poly in ([self.triangle, self.quad, self.polygon]):
+        for poly in [self.triangle, self.quad, self.polygon]:
             intersection = self.intersectStrategy.getIntersection(ray, poly)
             self.assertIsNone(intersection)
 
@@ -62,7 +62,7 @@ class BaseTestAnyPolygonIntersect(unittest.TestCase):
         rayDirection.normalize()
         ray = Ray(rayOrigin, rayDirection, length=2.2)
 
-        for poly in ([self.triangle, self.quad, self.polygon]):
+        for poly in [self.triangle, self.quad, self.polygon]:
             intersection = self.intersectStrategy.getIntersection(ray, poly)
 
             self.assertIsNotNone(intersection)
@@ -76,7 +76,7 @@ class BaseTestAnyPolygonIntersect(unittest.TestCase):
         rayDirection.normalize()
         ray = Ray(rayOrigin, rayDirection, length=2 - MollerTrumboreIntersect.EPS_CATCH / 2)
 
-        for poly in ([self.triangle, self.quad, self.polygon]):
+        for poly in [self.triangle, self.quad, self.polygon]:
             intersection = self.intersectStrategy.getIntersection(ray, poly)
 
             self.assertIsNotNone(intersection)
@@ -90,6 +90,6 @@ class BaseTestAnyPolygonIntersect(unittest.TestCase):
         rayDirection.normalize()
         ray = Ray(rayOrigin, rayDirection, length=2 - MollerTrumboreIntersect.EPS_CATCH * 1.1)
 
-        for poly in ([self.triangle, self.quad, self.polygon]):
+        for poly in [self.triangle, self.quad, self.polygon]:
             intersection = self.intersectStrategy.getIntersection(ray, poly)
             self.assertIsNone(intersection)

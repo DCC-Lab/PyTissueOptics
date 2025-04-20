@@ -4,7 +4,7 @@ import unittest
 
 import numpy as np
 
-from pytissueoptics import *
+from pytissueoptics import Cuboid, ScatteringMaterial, ScatteringScene, Vector
 from pytissueoptics.rayscattering.opencl import OPENCL_OK
 from pytissueoptics.rayscattering.opencl.CLPhotons import CLScene
 from pytissueoptics.rayscattering.opencl.CLProgram import CLProgram
@@ -13,7 +13,7 @@ from pytissueoptics.rayscattering.tests.opencl.src.CLObjects import RayCL
 from pytissueoptics.rayscattering.tests.opencl.src.testCLFresnel import IntersectionCL
 
 
-@unittest.skipIf(not OPENCL_OK, 'OpenCL device not available.')
+@unittest.skipIf(not OPENCL_OK, "OpenCL device not available.")
 class TestCLIntersection(unittest.TestCase):
     def setUp(self):
         sourcePath = os.path.join(OPENCL_SOURCE_DIR, "intersection.c")
@@ -26,17 +26,27 @@ class TestCLIntersection(unittest.TestCase):
 
         rayLength = 10
         rayOrigin = [0, 0, -7]
-        rays = RayCL(origins=np.full((N, 3), rayOrigin),
-                     directions=np.full((N, 3), [0, 0, 1]),
-                     lengths=np.full(N, rayLength))
+        rays = RayCL(
+            origins=np.full((N, 3), rayOrigin), directions=np.full((N, 3), [0, 0, 1]), lengths=np.full(N, rayLength)
+        )
         intersections = IntersectionCL(skipDeclaration=True)
 
         try:
-            self.program.launchKernel("findIntersections", N=N, arguments=[rays, clScene.nSolids,
-                                                                           clScene.solids, clScene.surfaces,
-                                                                           clScene.triangles, clScene.vertices,
-                                                                           clScene.solidCandidates, intersections])
-        except Exception as e:
+            self.program.launchKernel(
+                "findIntersections",
+                N=N,
+                arguments=[
+                    rays,
+                    clScene.nSolids,
+                    clScene.solids,
+                    clScene.surfaces,
+                    clScene.triangles,
+                    clScene.vertices,
+                    clScene.solidCandidates,
+                    intersections,
+                ],
+            )
+        except Exception:
             traceback.print_exc(0)
 
         self.program.getData(clScene.solidCandidates)

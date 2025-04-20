@@ -27,8 +27,16 @@ class TestOBJParser(unittest.TestCase):
 
     def testWithTestCube_shouldGiveCorrectVertices(self):
         parser = OBJParser(self._filepath("testCubeQuads.obj"), showProgress=False)
-        vertices = [[-0.5, -0.5, -0.5], [0.5, -0.5, -0.5], [0.5, 0.5, -0.5], [-0.5, 0.5, -0.5], [-0.5, -0.5, 0.5],
-                    [0.5, -0.5, 0.5], [0.5, 0.5, 0.5], [-0.5, 0.5, 0.5]]
+        vertices = [
+            [-0.5, -0.5, -0.5],
+            [0.5, -0.5, -0.5],
+            [0.5, 0.5, -0.5],
+            [-0.5, 0.5, -0.5],
+            [-0.5, -0.5, 0.5],
+            [0.5, -0.5, 0.5],
+            [0.5, 0.5, 0.5],
+            [-0.5, 0.5, 0.5],
+        ]
         self.assertCountEqual(vertices, parser.vertices)
 
     def testWithTestCube_shouldGiveCorrectAmountOfNormals(self):

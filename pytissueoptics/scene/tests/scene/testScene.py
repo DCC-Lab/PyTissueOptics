@@ -3,8 +3,8 @@ import unittest
 from mockito import mock, verify, when
 
 from pytissueoptics.scene import Cuboid
+from pytissueoptics.scene.geometry import INTERFACE_KEY, BoundingBox, Environment, Vector
 from pytissueoptics.scene.scene import Scene
-from pytissueoptics.scene.geometry import Vector, BoundingBox, Environment, INTERFACE_KEY
 from pytissueoptics.scene.solids import Solid
 
 
@@ -65,8 +65,9 @@ class TestScene(unittest.TestCase):
         OUTSIDE_SOLID = self.makeSolidWith(BoundingBox([1, 4], [1, 4], [1, 4]), name="Outside-solid")
         self.scene.add(OUTSIDE_SOLID)
 
-        TOPMOST_OUTSIDE_SOLID = self.makeSolidWith(BoundingBox([0, 5], [0, 5], [0, 5]),
-                                                   contains=True, name="Topmost-outside-solid")
+        TOPMOST_OUTSIDE_SOLID = self.makeSolidWith(
+            BoundingBox([0, 5], [0, 5], [0, 5]), contains=True, name="Topmost-outside-solid"
+        )
         self.scene.add(TOPMOST_OUTSIDE_SOLID)
 
         SOLID = self.makeSolidWith(BoundingBox([2, 3], [2, 3], [2, 3]))
@@ -77,8 +78,9 @@ class TestScene(unittest.TestCase):
         verify(SOLID).setOutsideEnvironment(OUTSIDE_SOLID.getEnvironment())
 
     def testWhenAddingASolidOverMultipleOtherSolids_shouldUpdateOutsideMaterialOfTheTopMostSolid(self):
-        TOPMOST_INSIDE_SOLID = self.makeSolidWith(BoundingBox([0, 5], [0, 5], [0, 5]), contains=True,
-                                                  name="Topmost-inside-solid")
+        TOPMOST_INSIDE_SOLID = self.makeSolidWith(
+            BoundingBox([0, 5], [0, 5], [0, 5]), contains=True, name="Topmost-inside-solid"
+        )
         self.scene.add(TOPMOST_INSIDE_SOLID)
 
         INSIDE_SOLID = self.makeSolidWith(BoundingBox([1, 4], [1, 4], [1, 4]), name="Inside-solid")
@@ -89,7 +91,9 @@ class TestScene(unittest.TestCase):
 
         verify(TOPMOST_INSIDE_SOLID).setOutsideEnvironment(SOLID.getEnvironment())
 
-    def testWhenAddingASolidThatFitsInsideOneButAlsoContainsOne_shouldUpdateOutsideMaterialOfThisSolidAndTheOneInside(self):
+    def testWhenAddingASolidThatFitsInsideOneButAlsoContainsOne_shouldUpdateOutsideMaterialOfThisSolidAndTheOneInside(
+        self,
+    ):
         INSIDE_SOLID = self.makeSolidWith(BoundingBox([2, 3], [2, 3], [2, 3]), name="Inside-solid")
         self.scene.add(INSIDE_SOLID)
 
@@ -108,7 +112,7 @@ class TestScene(unittest.TestCase):
         frontLayer = Cuboid(1, 1, 1, material="frontMaterial", label="frontLayer")
         middleLayer = Cuboid(1, 1, 1, material="middleMaterial", label="middleLayer")
         backLayer = Cuboid(1, 1, 1, material="backMaterial", label="backLayer")
-        CUBOID_STACK = backLayer.stack(middleLayer, 'front').stack(frontLayer, 'front')
+        CUBOID_STACK = backLayer.stack(middleLayer, "front").stack(frontLayer, "front")
         self.scene.add(CUBOID_STACK, position=Vector(0, 0, 0))
 
         SOLID_INSIDE_MIDDLE_LAYER = Cuboid(0.9, 0.9, 0.9, material="insideMaterial", label="insideSolid")
@@ -118,13 +122,15 @@ class TestScene(unittest.TestCase):
         anyPolygonOfSolidInside = SOLID_INSIDE_MIDDLE_LAYER.getPolygons()[0]
         self.assertEqual(anyPolygonOfSolidInside.outsideEnvironment, middleLayer.getEnvironment())
 
-    def testWhenAddingASolidInsideASolidStackThatWasMovedAndRotated_shouldStillUpdateOutsideMaterialOfThisSolidToTheProperStackLayer(self):
+    def testWhenAddingASolidInsideASolidStackThatWasMovedAndRotated_shouldStillUpdateOutsideMaterialOfThisSolidToTheProperStackLayer(
+        self,
+    ):
         positionOffset = Vector(0, 10, 0)
-        rotations = {'yTheta': 35}
+        rotations = {"yTheta": 35}
         frontLayer = Cuboid(1, 1, 1, material="frontMaterial", label="frontLayer")
         middleLayer = Cuboid(1, 1, 1, material="middleMaterial", label="middleLayer")
         backLayer = Cuboid(1, 1, 1, material="backMaterial", label="backLayer")
-        CUBOID_STACK = backLayer.stack(middleLayer, 'front').stack(frontLayer, 'front')
+        CUBOID_STACK = backLayer.stack(middleLayer, "front").stack(frontLayer, "front")
         CUBOID_STACK.translateTo(positionOffset)
         CUBOID_STACK.rotate(**rotations)
         self.scene.add(CUBOID_STACK)
@@ -145,7 +151,7 @@ class TestScene(unittest.TestCase):
         frontLayer = Cuboid(1, 1, 1, material="frontMaterial", label="frontLayer")
         middleLayer = Cuboid(1, 1, 1, material="middleMaterial", label="middleLayer")
         backLayer = Cuboid(1, 1, 1, material="backMaterial", label="backLayer")
-        CUBOID_STACK = backLayer.stack(middleLayer, 'front').stack(frontLayer, 'front')
+        CUBOID_STACK = backLayer.stack(middleLayer, "front").stack(frontLayer, "front")
         self.scene.add(CUBOID_STACK, position=Vector(0, 0, 0))
 
         anyPolygonOfSolidInside = SOLID_INSIDE_FRONT_LAYER.getPolygons()[0]
@@ -155,7 +161,7 @@ class TestScene(unittest.TestCase):
         frontLayer = Cuboid(1, 1, 1, material="frontMaterial", label="frontLayer")
         middleLayer = Cuboid(1, 1, 1, material="middleMaterial", label="middleLayer")
         backLayer = Cuboid(1, 1, 1, material="backMaterial", label="backLayer")
-        CUBOID_STACK = backLayer.stack(middleLayer, 'front').stack(frontLayer, 'front')
+        CUBOID_STACK = backLayer.stack(middleLayer, "front").stack(frontLayer, "front")
         self.scene.add(CUBOID_STACK, position=Vector(0, 0, 0))
 
         SOLID = Cuboid(0.9, 1.1, 0.9, material="outsideMaterial", label="outsideSolid")
@@ -242,7 +248,7 @@ class TestScene(unittest.TestCase):
         frontLayer = Cuboid(1, 1, 1, material="frontMaterial", label="frontLayer")
         middleLayer = Cuboid(1, 1, 1, material="middleMaterial", label="middleLayer")
         backLayer = Cuboid(1, 1, 1, material="backMaterial", label="backLayer")
-        stack = backLayer.stack(middleLayer, 'front').stack(frontLayer, 'front')
+        stack = backLayer.stack(middleLayer, "front").stack(frontLayer, "front")
         self.scene.add(stack, position=Vector(0, 0, 0))
 
         frontEnv = self.scene.getEnvironmentAt(Vector(0, 0, -1))
@@ -294,7 +300,7 @@ class TestScene(unittest.TestCase):
         frontLayer = Cuboid(1, 1, 1, material="frontMaterial", label="frontLayer")
         middleLayer = Cuboid(1, 1, 1, material="middleMaterial", label="middleLayer")
         backLayer = Cuboid(1, 1, 1, material="backMaterial", label="backLayer")
-        stack = backLayer.stack(middleLayer, 'front').stack(frontLayer, 'front')
+        stack = backLayer.stack(middleLayer, "front").stack(frontLayer, "front")
         self.scene.add(stack)
 
         returnedSolid = self.scene.getSolid("frontLayer")
@@ -317,7 +323,7 @@ class TestScene(unittest.TestCase):
         internalLayers = ["Layer1", "Layer2"]
         layer1 = Cuboid(1, 1, 1, label=internalLayers[0])
         layer2 = Cuboid(1, 1, 1, label=internalLayers[1])
-        stack = layer1.stack(layer2, 'front')
+        stack = layer1.stack(layer2, "front")
         self.scene.add(stack)
 
         labels = self.scene.getSolidLabels()
@@ -351,7 +357,7 @@ class TestScene(unittest.TestCase):
         internalLayers = ["Layer1", "Layer2"]
         layer1 = Cuboid(1, 1, 1, label=internalLayers[0])
         layer2 = Cuboid(1, 1, 1, label=internalLayers[1])
-        stack = layer1.stack(layer2, 'front', stackLabel=STACK_LABEL)
+        stack = layer1.stack(layer2, "front", stackLabel=STACK_LABEL)
         self.scene.add(stack)
 
         labels = self.scene.getSurfaceLabels(STACK_LABEL)
@@ -362,13 +368,13 @@ class TestScene(unittest.TestCase):
         internalLayers = ["Layer1", "Layer2"]
         layer1 = Cuboid(1, 1, 1, label=internalLayers[0])
         layer2 = Cuboid(1, 1, 1, label=internalLayers[1])
-        stack = layer1.stack(layer2, 'front')
+        stack = layer1.stack(layer2, "front")
         self.scene.add(stack)
 
         labels = self.scene.getSurfaceLabels(internalLayers[0])
 
         self.assertEqual(6, len(labels))
-        self.assertTrue(INTERFACE_KEY+"0" in labels)
+        self.assertTrue(INTERFACE_KEY + "0" in labels)
 
     def testGivenNoContainedSolids_shouldHaveNoContainedLabels(self):
         labels = self.scene.getContainedSolidLabels("Solid")
@@ -393,7 +399,7 @@ class TestScene(unittest.TestCase):
         layerMaterials = ["Material1", "Material2"]
         frontLayer = Cuboid(1, 1, 1, material=layerMaterials[0], label="Front Layer")
         middleLayer = Cuboid(1, 1, 1, material=layerMaterials[1], label="Middle Layer")
-        stack = middleLayer.stack(frontLayer, 'front')
+        stack = middleLayer.stack(frontLayer, "front")
         self.scene.add(stack)
 
         materials = self.scene.getMaterials()

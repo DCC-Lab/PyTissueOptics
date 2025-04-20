@@ -1,1 +1,1 @@
-from .objParser import OBJParser
+from .objParser import OBJParser as OBJParser

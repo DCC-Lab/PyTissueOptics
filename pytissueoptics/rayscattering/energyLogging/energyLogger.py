@@ -1,21 +1,27 @@
 import os
 import pickle
-from typing import Union, List
+from typing import List, Union
 
 import numpy as np
 
 from pytissueoptics.rayscattering import utils
-from pytissueoptics.rayscattering.scatteringScene import ScatteringScene
-from pytissueoptics.rayscattering.display.views.view2D import ViewGroup, View2D
+from pytissueoptics.rayscattering.display.views.view2D import View2D, ViewGroup
 from pytissueoptics.rayscattering.display.views.viewFactory import ViewFactory
-from pytissueoptics.scene.logger.logger import Logger, InteractionKey
+from pytissueoptics.rayscattering.scatteringScene import ScatteringScene
 from pytissueoptics.scene.geometry import Vector
+from pytissueoptics.scene.logger.logger import InteractionKey, Logger
 
 
 class EnergyLogger(Logger):
-    def __init__(self, scene: ScatteringScene, filepath: str = None, keep3D: bool = True,
-                 views: Union[ViewGroup, List[View2D]] = ViewGroup.ALL, defaultBinSize: Union[float, tuple] = 0.01,
-                 infiniteLimits=((-5, 5), (-5, 5), (-5, 5))):
+    def __init__(
+        self,
+        scene: ScatteringScene,
+        filepath: str = None,
+        keep3D: bool = True,
+        views: Union[ViewGroup, List[View2D]] = ViewGroup.ALL,
+        defaultBinSize: Union[float, tuple] = 0.01,
+        infiniteLimits=((-5, 5), (-5, 5), (-5, 5)),
+    ):
         """
         Log the energy deposited by scattering photons as well as the energy that crossed surfaces. Every interaction
         is linked to a specific solid and surface of the scene when applicable. This `EnergyLogger` has to be given to
@@ -74,16 +80,17 @@ class EnergyLogger(Logger):
                 self._views.append(view)
                 return True
 
-        utils.warn(f"ERROR: Cannot create view {view.name}. The 3D data was discarded and the required data was not "
-                   f"found in existing views.")
+        utils.warn(
+            f"ERROR: Cannot create view {view.name}. The 3D data was discarded and the required data was not "
+            f"found in existing views."
+        )
         return False
 
     def updateView(self, view: View2D):
         if view in self._outdatedViews:
             self._compileViews([view])
 
-    def showView(self, view: View2D = None, viewIndex: int = None,
-                 logScale: bool = True, colormap: str = 'viridis'):
+    def showView(self, view: View2D = None, viewIndex: int = None, logScale: bool = True, colormap: str = "viridis"):
         assert viewIndex is not None or view is not None, "Either `viewIndex` or `view` must be specified."
 
         if viewIndex is None:
@@ -111,33 +118,64 @@ class EnergyLogger(Logger):
             filepath = self._filepath
 
         with open(filepath, "wb") as file:
-            pickle.dump((self._data, self.info, self._labels, self._views, self._defaultViews, self._outdatedViews,
-                         self._nDataPointsRemoved, self._sceneHash, self.has3D), file)
+            pickle.dump(
+                (
+                    self._data,
+                    self.info,
+                    self._labels,
+                    self._views,
+                    self._defaultViews,
+                    self._outdatedViews,
+                    self._nDataPointsRemoved,
+                    self._sceneHash,
+                    self.has3D,
+                ),
+                file,
+            )
 
     def load(self, filepath: str):
         self._filepath = filepath
 
         if not os.path.exists(filepath):
-            utils.warn("No logger file found at '{}'. No data loaded, but it will create a new file "
-                       "at this location if the logger is saved later on.".format(filepath))
+            utils.warn(
+                "No logger file found at '{}'. No data loaded, but it will create a new file "
+                "at this location if the logger is saved later on.".format(filepath)
+            )
             return
 
         with open(filepath, "rb") as file:
-            self._data, self.info, self._labels, self._views, oldDefaultViews, self._outdatedViews, \
-                self._nDataPointsRemoved, oldSceneHash, oldHas3D = pickle.load(file)
+            (
+                self._data,
+                self.info,
+                self._labels,
+                self._views,
+                oldDefaultViews,
+                self._outdatedViews,
+                self._nDataPointsRemoved,
+                oldSceneHash,
+                oldHas3D,
+            ) = pickle.load(file)
 
         if oldSceneHash != self._sceneHash:
-            utils.warn("WARNING: The scene used to create the logger at '{}' is different from the current "
-                       "scene. This may corrupt statistics and visualization. Proceed at your own risk.".format(filepath))
+            utils.warn(
+                "WARNING: The scene used to create the logger at '{}' is different from the current "
+                "scene. This may corrupt statistics and visualization. Proceed at your own risk.".format(filepath)
+            )
         if oldHas3D and not self._keep3D:
-            utils.warn("WARNING: The logger at '{}' use to store 3D data, but it was reloaded with keep3D=False. "
-                       "The 3D data will be compiled to 2D views and discarded.".format(filepath))
+            utils.warn(
+                "WARNING: The logger at '{}' use to store 3D data, but it was reloaded with keep3D=False. "
+                "The 3D data will be compiled to 2D views and discarded.".format(filepath)
+            )
         if not oldHas3D and self._keep3D:
-            utils.warn("WARNING: The logger at '{}' use to discard 3D data, but it was reloaded with keep3D=True. "
-                       "This may corrupt the statistics and the 3D visualization. Proceed at your own risk.".format(filepath))
+            utils.warn(
+                "WARNING: The logger at '{}' use to discard 3D data, but it was reloaded with keep3D=True. "
+                "This may corrupt the statistics and the 3D visualization. Proceed at your own risk.".format(filepath)
+            )
         if self._defaultViews != oldDefaultViews:
-            utils.warn("WARNING: Cannot provide new default views to a loaded logger. "
-                       "Using only the views from the file.".format(filepath))
+            utils.warn(
+                "WARNING: Cannot provide new default views to a loaded logger from '{}'."
+                "Using only the views from the file.".format(filepath)
+            )
 
     @property
     def views(self) -> List[View2D]:
@@ -145,8 +183,10 @@ class EnergyLogger(Logger):
 
     def getView(self, index: int) -> View2D:
         if index < 0 or index >= len(self._views):
-            raise IndexError(f"View index {index} is out of range [0, {len(self._views)}]. Use `.listViews()` to see "
-                             f"available views.")
+            raise IndexError(
+                f"View index {index} is out of range [0, {len(self._views)}]. Use `.listViews()` to see "
+                f"available views."
+            )
         return self._views[index]
 
     def _getViewIndex(self, view: View2D) -> int:

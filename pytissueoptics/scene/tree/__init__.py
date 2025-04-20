@@ -1,3 +1,5 @@
 from .node import Node
-from .treeConstructor.treeConstructor import TreeConstructor
 from .spacePartition import SpacePartition
+from .treeConstructor.treeConstructor import TreeConstructor
+
+__all__ = ["Node", "SpacePartition", "TreeConstructor"]

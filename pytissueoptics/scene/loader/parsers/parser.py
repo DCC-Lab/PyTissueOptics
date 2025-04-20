@@ -1,4 +1,4 @@
-from typing import List, Dict
+from typing import Dict, List
 
 from pytissueoptics.scene.loader.parsers.parsedObject import ParsedObject
 
@@ -21,6 +21,7 @@ class Parser:
     The reason is that it is a global entity that has no complexity and is always needed
     for the conversion later down the line.
     """
+
     NO_OBJECT = "noObject"
     NO_SURFACE = "noSurface"
 

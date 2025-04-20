@@ -1,17 +1,18 @@
 import sys
 from dataclasses import dataclass
-from typing import List, Tuple, Optional
+from typing import List, Optional, Tuple
 
 from pytissueoptics.scene import shader
-from pytissueoptics.scene.geometry import Vector, Polygon, Environment
+from pytissueoptics.scene.geometry import Environment, Polygon, Vector
 from pytissueoptics.scene.geometry.polygon import WORLD_LABEL
-from pytissueoptics.scene.intersection import Ray
-from pytissueoptics.scene.tree import SpacePartition, Node
-from pytissueoptics.scene.tree.treeConstructor.binary import NoSplitThreeAxesConstructor
 from pytissueoptics.scene.scene import Scene
-from pytissueoptics.scene.intersection.bboxIntersect import GemsBoxIntersect
-from pytissueoptics.scene.intersection.mollerTrumboreIntersect import MollerTrumboreIntersect
 from pytissueoptics.scene.solids import Solid
+from pytissueoptics.scene.tree import Node, SpacePartition
+from pytissueoptics.scene.tree.treeConstructor.binary import NoSplitThreeAxesConstructor
+
+from .bboxIntersect import GemsBoxIntersect
+from .mollerTrumboreIntersect import MollerTrumboreIntersect
+from .ray import Ray
 
 
 @dataclass
@@ -134,9 +135,9 @@ class SimpleIntersectionFinder(IntersectionFinder):
         return self._composeIntersection(ray, closestIntersection)
 
     def _findBBoxIntersectingSolids(self, ray: Ray, currentSolidLabel: str) -> Optional[List[Tuple[float, Solid]]]:
-        """ We need to handle the special case where ray starts inside bbox. The Box Intersect will not compute
+        """We need to handle the special case where ray starts inside bbox. The Box Intersect will not compute
         the intersection for this case and will instead return ray.origin. When that happens, distance will be 0,
-        and we continue to check for possibly other contained solids. """
+        and we continue to check for possibly other contained solids."""
         solidCandidates = []
         for solid in self._scene.solids:
             if solid.getLabel() == currentSolidLabel:
@@ -153,8 +154,9 @@ class SimpleIntersectionFinder(IntersectionFinder):
 class FastIntersectionFinder(IntersectionFinder):
     def __init__(self, scene: Scene, constructor=NoSplitThreeAxesConstructor(), maxDepth=20, minLeafSize=6):
         super(FastIntersectionFinder, self).__init__(scene)
-        self._partition = SpacePartition(self._scene.getBoundingBox(), self._scene.getPolygons(), constructor,
-                                         maxDepth, minLeafSize)
+        self._partition = SpacePartition(
+            self._scene.getBoundingBox(), self._scene.getPolygons(), constructor, maxDepth, minLeafSize
+        )
 
     def findIntersection(self, ray: Ray, currentSolidLabel: str) -> Optional[Intersection]:
         self._currentSolidLabel = currentSolidLabel

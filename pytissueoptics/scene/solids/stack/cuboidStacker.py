@@ -1,13 +1,17 @@
-from typing import List, Dict
+from typing import TYPE_CHECKING, Dict, List
 
-from pytissueoptics.scene.geometry import Vector, SurfaceCollection, INTERFACE_KEY
+from pytissueoptics.scene.geometry import INTERFACE_KEY, SurfaceCollection, Vector
 from pytissueoptics.scene.solids.stack.stackResult import StackResult
+
+if TYPE_CHECKING:
+    from pytissueoptics.scene.solids.cuboid import Cuboid
 
 
 class CuboidStacker:
-    """ Internal helper class to prepare and assemble a cuboid stack from 2 cuboids. """
-    SURFACE_KEYS = ['left', 'right', 'bottom', 'top', 'front', 'back']
-    SURFACE_PAIRS = [('left', 'right'), ('bottom', 'top'), ('front', 'back')]
+    """Internal helper class to prepare and assemble a cuboid stack from 2 cuboids."""
+
+    SURFACE_KEYS = ["left", "right", "bottom", "top", "front", "back"]
+    SURFACE_PAIRS = [("left", "right"), ("bottom", "top"), ("front", "back")]
 
     def __init__(self):
         self._onCuboid = None
@@ -17,13 +21,13 @@ class CuboidStacker:
         self._newInterfaceIndex = None
         self._stackAxis = None
 
-    def stack(self, onCuboid: 'Cuboid', otherCuboid: 'Cuboid', onSurface: str = 'top') -> StackResult:
+    def stack(self, onCuboid: "Cuboid", otherCuboid: "Cuboid", onSurface: str = "top") -> StackResult:
         self._initStacking(onCuboid, otherCuboid, onSurface)
         self._translateOtherCuboid()
         self._configureInterfaceMaterial()
         return self._assemble()
 
-    def _initStacking(self, onCuboid: 'Cuboid', otherCuboid: 'Cuboid', onSurfaceLabel: str):
+    def _initStacking(self, onCuboid: "Cuboid", otherCuboid: "Cuboid", onSurfaceLabel: str):
         assert onSurfaceLabel in self.SURFACE_KEYS, f"Available surfaces to stack on are: {self.SURFACE_KEYS}"
         self._onCuboid = onCuboid
         self._otherCuboid = otherCuboid
@@ -46,8 +50,9 @@ class CuboidStacker:
             otherCuboidLayerLabels = [self._otherCuboid.getLabel()]
 
         for label in onCuboidLayerLabels:
-            assert label not in otherCuboidLayerLabels, f"Found duplicate layer label in stack: {label}. " \
-                                                        f"Please rename one of the layers."
+            assert label not in otherCuboidLayerLabels, (
+                f"Found duplicate layer label in stack: {label}. Please rename one of the layers."
+            )
 
     def _getSurfaceAxis(self, surfaceLabel: str) -> int:
         return max(axis if surfaceLabel in surfacePair else -1 for axis, surfacePair in enumerate(self.SURFACE_PAIRS))
@@ -64,13 +69,15 @@ class CuboidStacker:
         fixedAxes = [0, 1, 2]
         fixedAxes.remove(self._stackAxis)
         for fixedAxis in fixedAxes:
-            assert self._onCuboid.shape[fixedAxis] == self._otherCuboid.shape[fixedAxis], \
-                f"Stacking of mismatched surfaces is not supported."
+            assert self._onCuboid.shape[fixedAxis] == self._otherCuboid.shape[fixedAxis], (
+                "Stacking of mismatched surfaces is not supported."
+            )
 
     def _translateOtherCuboid(self):
         relativePosition = [0, 0, 0]
-        relativePosition[self._stackAxis] = self._onCuboid.shape[self._stackAxis] / 2 + \
-                                            self._otherCuboid.shape[self._stackAxis] / 2
+        relativePosition[self._stackAxis] = (
+            self._onCuboid.shape[self._stackAxis] / 2 + self._otherCuboid.shape[self._stackAxis] / 2
+        )
         relativePosition = Vector(*relativePosition)
 
         if not self._stackingTowardsPositive:
@@ -79,7 +86,7 @@ class CuboidStacker:
         self._otherCuboid.translateTo(self._onCuboid.position + relativePosition)
 
     def _configureInterfaceMaterial(self):
-        """ Set new interface material and remove duplicate surfaces. """
+        """Set new interface material and remove duplicate surfaces."""
         oppositeSurfaceLabels = self._getAllSpecificLabels(self._otherCuboid, self._otherSurfaceLabel)
         if len(oppositeSurfaceLabels) > 1:
             raise Exception("Ill-defined interface material: Can only stack another stack along its stacked axis.")
@@ -90,13 +97,19 @@ class CuboidStacker:
             self._onCuboid.setOutsideEnvironment(oppositeEnvironment, surfaceLabel)
             interfacePolygons.extend(self._onCuboid.getPolygons(surfaceLabel))
 
-        self._otherCuboid.setPolygons(surfaceLabel=self._getSpecificLabel(self._otherCuboid, self._otherSurfaceLabel),
-                                      polygons=interfacePolygons)
+        self._otherCuboid.setPolygons(
+            surfaceLabel=self._getSpecificLabel(self._otherCuboid, self._otherSurfaceLabel), polygons=interfacePolygons
+        )
 
     def _assemble(self) -> StackResult:
-        return StackResult(shape=self._getStackShape(), position=self._getStackPosition(),
-                           vertices=self._getStackVertices(), surfaces=self._getStackSurfaces(),
-                           primitive=self._onCuboid.primitive, layerLabels=self._getLayerLabels())
+        return StackResult(
+            shape=self._getStackShape(),
+            position=self._getStackPosition(),
+            vertices=self._getStackVertices(),
+            surfaces=self._getStackSurfaces(),
+            primitive=self._onCuboid.primitive,
+            layerLabels=self._getLayerLabels(),
+        )
 
     def _getStackShape(self) -> List[float]:
         stackShape = self._onCuboid.shape.copy()
@@ -163,7 +176,7 @@ class CuboidStacker:
                     oldInterfaceIndex = int(surfaceLabel.split(INTERFACE_KEY)[1])
                     surfaceLabels[i] = f"{INTERFACE_KEY}{oldInterfaceIndex + self._newInterfaceIndex + 1}"
 
-    def _getUpdatedLayerLabelsOf(self, cuboid: 'Cuboid') -> Dict[str, List[str]]:
+    def _getUpdatedLayerLabelsOf(self, cuboid: "Cuboid") -> Dict[str, List[str]]:
         newInterfaceLabel = f"{INTERFACE_KEY}{self._newInterfaceIndex}"
 
         onCuboidLayerLabels = cuboid.getLayerLabelMap()
@@ -173,7 +186,7 @@ class CuboidStacker:
         stackedSurfaceLabel = self._onSurfaceLabel if cuboid is self._onCuboid else self._otherSurfaceLabel
         for layerLabel, surfaceLabels in onCuboidLayerLabels.items():
             for surfaceLabel in surfaceLabels:
-                labelComponents = surfaceLabel.split('_')
+                labelComponents = surfaceLabel.split("_")
                 if stackedSurfaceLabel in labelComponents[-1]:
                     surfaceLabels.remove(surfaceLabel)
                     surfaceLabels.append(newInterfaceLabel)
@@ -186,7 +199,7 @@ class CuboidStacker:
     def _getAllSpecificLabels(self, cuboid, generalSurfaceLabel):
         labels = []
         for surfaceLabel in cuboid.surfaceLabels:
-            labelComponents = surfaceLabel.split('_')
+            labelComponents = surfaceLabel.split("_")
             if generalSurfaceLabel in labelComponents[-1]:
                 labels.append(surfaceLabel)
         return labels

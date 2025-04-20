@@ -4,10 +4,9 @@ import numpy as np
 
 
 class PointCloud:
-    """ Each point is an array of the form (weight, x, y, z) and the resulting point cloud array is of shape (n, 4). """
+    """Each point is an array of the form (weight, x, y, z) and the resulting point cloud array is of shape (n, 4)."""
 
-    def __init__(self, solidPoints: Optional[np.ndarray] = None,
-                 surfacePoints: Optional[np.ndarray] = None):
+    def __init__(self, solidPoints: Optional[np.ndarray] = None, surfacePoints: Optional[np.ndarray] = None):
         self.solidPoints = solidPoints
         self.surfacePoints = surfacePoints
 

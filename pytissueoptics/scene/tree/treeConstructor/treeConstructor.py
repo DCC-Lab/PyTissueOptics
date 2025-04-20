@@ -1,4 +1,3 @@
-from pytissueoptics.scene.geometry import BoundingBox
 from pytissueoptics.scene.tree import Node
 from pytissueoptics.scene.tree.treeConstructor import SplitNodeResult
 
@@ -20,7 +19,8 @@ class TreeConstructor:
         for i, polygonGroup in enumerate(splitNodeResult.polygonGroups):
             if len(polygonGroup) <= 0:
                 continue
-            childNode = Node(parent=node, polygons=polygonGroup, bbox=splitNodeResult.groupsBbox[i],
-                             depth=node.depth + 1)
+            childNode = Node(
+                parent=node, polygons=polygonGroup, bbox=splitNodeResult.groupsBbox[i], depth=node.depth + 1
+            )
             node.children.append(childNode)
             self.constructTree(childNode, maxDepth, minLeafSize)

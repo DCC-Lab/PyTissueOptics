@@ -8,8 +8,8 @@ from pytissueoptics.rayscattering.fresnel import FresnelIntersect, FresnelInters
 from pytissueoptics.rayscattering.materials import ScatteringMaterial
 from pytissueoptics.scene.geometry import Environment, Vector
 from pytissueoptics.scene.intersection import Ray
-from pytissueoptics.scene.intersection.intersectionFinder import IntersectionFinder, Intersection
-from pytissueoptics.scene.logger import Logger, InteractionKey
+from pytissueoptics.scene.intersection.intersectionFinder import Intersection, IntersectionFinder
+from pytissueoptics.scene.logger import InteractionKey, Logger
 
 WEIGHT_THRESHOLD = 1e-4
 MIN_ANGLE = 0.0001
@@ -53,8 +53,13 @@ class Photon:
     def solidLabel(self):
         return self._environment.solidLabel
 
-    def setContext(self, environment: Environment, intersectionFinder: IntersectionFinder = None, logger: Logger = None,
-                   fresnelIntersect=FresnelIntersect()):
+    def setContext(
+        self,
+        environment: Environment,
+        intersectionFinder: IntersectionFinder = None,
+        logger: Logger = None,
+        fresnelIntersect=FresnelIntersect(),
+    ):
         self._environment: Environment = environment
         self._intersectionFinder = intersectionFinder
         self._logger = logger
@@ -124,7 +129,9 @@ class Photon:
                 smoothAngle = math.acos(intersection.normal.dot(intersection.polygon.normal))
                 minDeflectionAngle = smoothAngle + abs(fresnelIntersection.angleDeflection) / 2 + MIN_ANGLE
                 if abs(fresnelIntersection.angleDeflection) < minDeflectionAngle:
-                    fresnelIntersection.angleDeflection = minDeflectionAngle * np.sign(fresnelIntersection.angleDeflection)
+                    fresnelIntersection.angleDeflection = minDeflectionAngle * np.sign(
+                        fresnelIntersection.angleDeflection
+                    )
 
             self.reflect(fresnelIntersection)
         else:
@@ -132,9 +139,13 @@ class Photon:
 
             if intersection.isSmooth:
                 # Prevent refraction from not crossing the raw surface.
-                maxDeflectionAngle = abs(np.pi / 2 - math.acos(intersection.polygon.normal.dot(self._direction))) - MIN_ANGLE
+                maxDeflectionAngle = (
+                    abs(np.pi / 2 - math.acos(intersection.polygon.normal.dot(self._direction))) - MIN_ANGLE
+                )
                 if abs(fresnelIntersection.angleDeflection) > maxDeflectionAngle:
-                    fresnelIntersection.angleDeflection = maxDeflectionAngle * np.sign(fresnelIntersection.angleDeflection)
+                    fresnelIntersection.angleDeflection = maxDeflectionAngle * np.sign(
+                        fresnelIntersection.angleDeflection
+                    )
 
             self.refract(fresnelIntersection)
 
@@ -143,7 +154,7 @@ class Photon:
             if mut1 == 0:
                 intersection.distanceLeft = 0
             elif mut2 != 0:
-                intersection.distanceLeft *= mut1/mut2
+                intersection.distanceLeft *= mut1 / mut2
             else:
                 intersection.distanceLeft = math.inf
 
@@ -161,12 +172,10 @@ class Photon:
         self._position = position
 
     def reflect(self, fresnelIntersection: FresnelIntersection):
-        self._direction.rotateAround(fresnelIntersection.incidencePlane,
-                                     fresnelIntersection.angleDeflection)
+        self._direction.rotateAround(fresnelIntersection.incidencePlane, fresnelIntersection.angleDeflection)
 
     def refract(self, fresnelIntersection: FresnelIntersection):
-        self._direction.rotateAround(fresnelIntersection.incidencePlane,
-                                     fresnelIntersection.angleDeflection)
+        self._direction.rotateAround(fresnelIntersection.incidencePlane, fresnelIntersection.angleDeflection)
 
     def scatter(self):
         theta, phi = self.material.getScatteringAngles()

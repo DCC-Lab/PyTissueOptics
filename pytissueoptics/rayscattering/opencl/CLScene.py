@@ -2,15 +2,14 @@ from typing import List
 
 import numpy as np
 
-from pytissueoptics.rayscattering.scatteringScene import ScatteringScene
-from pytissueoptics.rayscattering.opencl.buffers import SolidCLInfo, \
-    SurfaceCLInfo, TriangleCLInfo
-from pytissueoptics.rayscattering.opencl.buffers.solidCandidateCL import SolidCandidateCL
-from pytissueoptics.rayscattering.opencl.buffers.vertexCL import VertexCL
-from pytissueoptics.rayscattering.opencl.buffers.triangleCL import TriangleCL
-from pytissueoptics.rayscattering.opencl.buffers.surfaceCL import SurfaceCL
-from pytissueoptics.rayscattering.opencl.buffers.solidCL import SolidCL
+from pytissueoptics.rayscattering.opencl.buffers import SolidCLInfo, SurfaceCLInfo, TriangleCLInfo
 from pytissueoptics.rayscattering.opencl.buffers.materialCL import MaterialCL
+from pytissueoptics.rayscattering.opencl.buffers.solidCandidateCL import SolidCandidateCL
+from pytissueoptics.rayscattering.opencl.buffers.solidCL import SolidCL
+from pytissueoptics.rayscattering.opencl.buffers.surfaceCL import SurfaceCL
+from pytissueoptics.rayscattering.opencl.buffers.triangleCL import TriangleCL
+from pytissueoptics.rayscattering.opencl.buffers.vertexCL import VertexCL
+from pytissueoptics.rayscattering.scatteringScene import ScatteringScene
 
 NO_LOG_ID = 0
 NO_SOLID_ID = -1
@@ -102,9 +101,17 @@ class CLScene:
         outsideSolidID = self.getSolidID(outsideEnvironment.solid)
         toSmooth = polygonRef.toSmooth
 
-        self._surfacesInfo.append(SurfaceCLInfo(firstPolygonID, lastPolygonID,
-                                                insideMaterialID, outsideMaterialID,
-                                                insideSolidID, outsideSolidID, toSmooth))
+        self._surfacesInfo.append(
+            SurfaceCLInfo(
+                firstPolygonID,
+                lastPolygonID,
+                insideMaterialID,
+                outsideMaterialID,
+                insideSolidID,
+                outsideSolidID,
+                toSmooth,
+            )
+        )
 
     def _processSolid(self, solid):
         solidVertices = solid.getVertices()
@@ -127,8 +134,11 @@ class CLScene:
             # todo: consider skipping this step if the solid is not a stack.
             currentSolid = triangle.insideEnvironment.solid
             if lastSolid and lastSolid != currentSolid:
-                self._compileSurface(polygonRef=polygons[i - 1],
-                                     firstPolygonID=firstPolygonID, lastPolygonID=len(self._trianglesInfo) - 1)
+                self._compileSurface(
+                    polygonRef=polygons[i - 1],
+                    firstPolygonID=firstPolygonID,
+                    lastPolygonID=len(self._trianglesInfo) - 1,
+                )
                 firstPolygonID = len(self._trianglesInfo)
 
             vertexIDs = [vertexToID[id(v)] for v in triangle.vertices]
@@ -137,5 +147,6 @@ class CLScene:
             self._processPolygon(triangle, surfaceLabel, surfaceID=newSurfaceID)
             lastSolid = currentSolid
 
-        self._compileSurface(polygonRef=polygons[-1],
-                             firstPolygonID=firstPolygonID, lastPolygonID=len(self._trianglesInfo) - 1)
+        self._compileSurface(
+            polygonRef=polygons[-1], firstPolygonID=firstPolygonID, lastPolygonID=len(self._trianglesInfo) - 1
+        )

@@ -1,1 +1,3 @@
-from .logger import Logger, InteractionKey
+from .logger import InteractionKey, Logger
+
+__all__ = ["InteractionKey", "Logger"]

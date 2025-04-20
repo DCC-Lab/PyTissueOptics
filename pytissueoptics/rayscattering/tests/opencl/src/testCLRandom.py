@@ -4,12 +4,12 @@ import unittest
 import numpy as np
 
 from pytissueoptics.rayscattering.opencl import OPENCL_OK
-from pytissueoptics.rayscattering.opencl.config.CLConfig import OPENCL_SOURCE_DIR
-from pytissueoptics.rayscattering.opencl.buffers import SeedCL, EmptyBuffer
+from pytissueoptics.rayscattering.opencl.buffers import EmptyBuffer, SeedCL
 from pytissueoptics.rayscattering.opencl.CLProgram import CLProgram
+from pytissueoptics.rayscattering.opencl.config.CLConfig import OPENCL_SOURCE_DIR
 
 
-@unittest.skipIf(not OPENCL_OK, 'OpenCL device not available.')
+@unittest.skipIf(not OPENCL_OK, "OpenCL device not available.")
 class TestCLRandom(unittest.TestCase):
     def setUp(self):
         sourcePath = os.path.join(OPENCL_SOURCE_DIR, "random.c")

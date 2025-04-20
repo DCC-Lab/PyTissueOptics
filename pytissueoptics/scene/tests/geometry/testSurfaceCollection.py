@@ -2,8 +2,7 @@ import unittest
 
 from mockito import mock, verify, when
 
-from pytissueoptics.scene.geometry import Polygon, Environment
-from pytissueoptics.scene.geometry import SurfaceCollection, INTERFACE_KEY
+from pytissueoptics.scene.geometry import INTERFACE_KEY, Environment, Polygon, SurfaceCollection
 
 
 class TestSurfaceCollection(unittest.TestCase):

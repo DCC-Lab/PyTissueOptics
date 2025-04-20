@@ -1,8 +1,7 @@
-from typing import List, Dict
 from logging import getLogger
+from typing import Dict, List
 
-from pytissueoptics.scene.geometry import Environment
-from pytissueoptics.scene.geometry import Polygon
+from pytissueoptics.scene.geometry import Environment, Polygon
 
 logger = getLogger(__name__)
 
@@ -77,13 +76,14 @@ class SurfaceCollection:
         for polygon in self.getPolygons():
             polygon.resetCentroid()
 
-    def extend(self, other: 'SurfaceCollection'):
+    def extend(self, other: "SurfaceCollection"):
         assert not any(self._contains(surface) for surface in other.surfaceLabels)
         self._surfaces.update(other._surfaces)
 
     def _assertContains(self, surfaceLabel: str):
-        assert self._contains(surfaceLabel), f"Surface labeled {surfaceLabel} not found in available surfaces: " \
-                                             f"{self.surfaceLabels}. "
+        assert self._contains(surfaceLabel), (
+            f"Surface labeled {surfaceLabel} not found in available surfaces: {self.surfaceLabels}. "
+        )
 
     def _contains(self, surfaceLabel: str) -> bool:
         return surfaceLabel in self.surfaceLabels

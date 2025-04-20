@@ -3,11 +3,10 @@ from typing import Tuple
 import numpy as np
 
 from pytissueoptics.rayscattering import utils
-from pytissueoptics.rayscattering.energyLogging import EnergyLogger
-from pytissueoptics.rayscattering.energyLogging import PointCloudFactory
-from pytissueoptics.rayscattering.scatteringScene import ScatteringScene
 from pytissueoptics.rayscattering.display.profiles import Profile1D
 from pytissueoptics.rayscattering.display.utils import Direction
+from pytissueoptics.rayscattering.energyLogging import EnergyLogger, PointCloudFactory
+from pytissueoptics.rayscattering.scatteringScene import ScatteringScene
 
 
 class ProfileFactory:
@@ -21,9 +20,15 @@ class ProfileFactory:
             self._defaultBinSize3D = [logger.defaultBinSize] * 3
         self._infiniteLimits = logger.infiniteLimits
 
-    def create(self, horizontalDirection: Direction, solidLabel: str = None, surfaceLabel: str = None,
-               surfaceEnergyLeaving: bool = True, limits: Tuple[float, float] = None,
-               binSize: float = None) -> Profile1D:
+    def create(
+        self,
+        horizontalDirection: Direction,
+        solidLabel: str = None,
+        surfaceLabel: str = None,
+        surfaceEnergyLeaving: bool = True,
+        limits: Tuple[float, float] = None,
+        binSize: float = None,
+    ) -> Profile1D:
         solidLabel, surfaceLabel = self._correctCapitalization(solidLabel, surfaceLabel)
         if binSize is None:
             binSize = self._defaultBinSize3D[horizontalDirection.axis]
@@ -33,11 +38,13 @@ class ProfileFactory:
         bins = int((limits[1] - limits[0]) / binSize)
 
         if self._logger.has3D:
-            histogram = self._extractHistogramFrom3D(horizontalDirection, solidLabel, surfaceLabel,
-                                                     surfaceEnergyLeaving, limits, bins)
+            histogram = self._extractHistogramFrom3D(
+                horizontalDirection, solidLabel, surfaceLabel, surfaceEnergyLeaving, limits, bins
+            )
         else:
-            histogram = self._extractHistogramFromViews(horizontalDirection, solidLabel, surfaceLabel,
-                                                        surfaceEnergyLeaving, limits, bins)
+            histogram = self._extractHistogramFromViews(
+                horizontalDirection, solidLabel, surfaceLabel, surfaceEnergyLeaving, limits, bins
+            )
 
         name = self._createName(horizontalDirection, solidLabel, surfaceLabel, surfaceEnergyLeaving)
         return Profile1D(histogram, horizontalDirection, limits, name)
@@ -55,8 +62,15 @@ class ProfileFactory:
         limits3D = [(d[0], d[1]) for d in limits3D]
         return limits3D[horizontalDirection.axis]
 
-    def _extractHistogramFrom3D(self, horizontalDirection: Direction, solidLabel: str, surfaceLabel: str,
-                                surfaceEnergyLeaving: bool, limits: Tuple[float, float], bins: int):
+    def _extractHistogramFrom3D(
+        self,
+        horizontalDirection: Direction,
+        solidLabel: str,
+        surfaceLabel: str,
+        surfaceEnergyLeaving: bool,
+        limits: Tuple[float, float],
+        bins: int,
+    ):
         pointCloud = self._pointCloudFactory.getPointCloud(solidLabel, surfaceLabel)
 
         if surfaceLabel:
@@ -73,8 +87,15 @@ class ProfileFactory:
         histogram, _ = np.histogram(x, bins=bins, range=limits, weights=w)
         return histogram
 
-    def _extractHistogramFromViews(self, horizontalDirection: Direction, solidLabel: str, surfaceLabel: str,
-                                   surfaceEnergyLeaving: bool, limits: Tuple[float, float], bins: int):
+    def _extractHistogramFromViews(
+        self,
+        horizontalDirection: Direction,
+        solidLabel: str,
+        surfaceLabel: str,
+        surfaceEnergyLeaving: bool,
+        limits: Tuple[float, float],
+        bins: int,
+    ):
         for view in self._logger.views:
             if view.axis == horizontalDirection.axis:
                 continue
@@ -118,7 +139,7 @@ class ProfileFactory:
         if solidLabel is None:
             return None, None
         originalSolidLabels = self._logger.getSeenSolidLabels()
-        lowerCaseSolidLabels = [l.lower() for l in originalSolidLabels]
+        lowerCaseSolidLabels = [label.lower() for label in originalSolidLabels]
         if solidLabel.lower() in lowerCaseSolidLabels:
             labelIndex = lowerCaseSolidLabels.index(solidLabel.lower())
             solidLabel = originalSolidLabels[labelIndex]
@@ -127,9 +148,9 @@ class ProfileFactory:
             return solidLabel, None
 
         originalSurfaceLabels = self._logger.getSeenSurfaceLabels(solidLabel)
-        lowerCaseSurfaceLabels = [l.lower() for l in originalSurfaceLabels]
+        lowerCaseSurfaceLabels = [label.lower() for label in originalSurfaceLabels]
 
-        altLabel = f'{solidLabel}_{surfaceLabel}'
+        altLabel = f"{solidLabel}_{surfaceLabel}"
         if altLabel.lower() in lowerCaseSurfaceLabels:
             surfaceLabel = altLabel
 
@@ -138,15 +159,16 @@ class ProfileFactory:
             surfaceLabel = originalSurfaceLabels[labelIndex]
         return solidLabel, surfaceLabel
 
-    def _createName(self, horizontalDirection: Direction, solidLabel: str, surfaceLabel: str,
-                    surfaceEnergyLeaving: bool) -> str:
-        name = 'Energy profile along ' + 'xyz'[horizontalDirection.axis]
+    def _createName(
+        self, horizontalDirection: Direction, solidLabel: str, surfaceLabel: str, surfaceEnergyLeaving: bool
+    ) -> str:
+        name = "Energy profile along " + "xyz"[horizontalDirection.axis]
         if solidLabel:
-            name += ' of ' + solidLabel
+            name += " of " + solidLabel
         if surfaceLabel:
-            name += ' surface ' + surfaceLabel
+            name += " surface " + surfaceLabel
             if surfaceEnergyLeaving:
-                name += ' (leaving)'
+                name += " (leaving)"
             else:
-                name += ' (entering)'
+                name += " (entering)"
         return name

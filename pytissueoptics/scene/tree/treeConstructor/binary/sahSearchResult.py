@@ -1,7 +1,7 @@
 from dataclasses import dataclass
 from typing import List
 
-from pytissueoptics.scene.geometry import Polygon, BoundingBox
+from pytissueoptics.scene.geometry import BoundingBox, Polygon
 
 
 @dataclass

@@ -1,4 +1,4 @@
-import env
+import env  # noqa: F401
 
 TITLE = "Transforms on a Solid"
 
@@ -8,7 +8,7 @@ Here a cube is translated, another is rotated."""
 
 
 def exampleCode():
-    from pytissueoptics.scene import Vector, Cuboid, MayaviViewer
+    from pytissueoptics.scene import Cuboid, MayaviViewer, Vector
 
     centerCube = Cuboid(a=1, b=1, c=1, position=Vector(0, 0, 0))
     topCube = Cuboid(a=1, b=1, c=1, position=Vector(0, 2, 0))

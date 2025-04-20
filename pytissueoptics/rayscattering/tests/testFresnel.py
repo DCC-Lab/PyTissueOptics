@@ -66,8 +66,8 @@ class TestFresnelIntersect(unittest.TestCase):
 
         self.fresnelIntersect.compute(rayPerpendicular, intersection)
 
-        R = (n2-n1)/(n2+n1)
-        self.assertEqual(R ** 2, self.fresnelIntersect._getReflectionCoefficient())
+        R = (n2 - n1) / (n2 + n1)
+        self.assertEqual(R**2, self.fresnelIntersect._getReflectionCoefficient())
 
     def testIfGoingInside_shouldSetNextMaterialAsMaterialInsideSurface(self):
         n1, n2 = 1.0, 1.5
@@ -90,5 +90,4 @@ class TestFresnelIntersect(unittest.TestCase):
     def _createIntersection(n1=1.0, n2=1.5, normal=Vector(0, 0, 1)):
         insideEnvironment = Environment(ScatteringMaterial(n=n2))
         outsideEnvironment = Environment(ScatteringMaterial(n=n1))
-        return Intersection(10, Vector(0, 0, 0), None, normal,
-                            insideEnvironment, outsideEnvironment, distanceLeft=2)
+        return Intersection(10, Vector(0, 0, 0), None, normal, insideEnvironment, outsideEnvironment, distanceLeft=2)

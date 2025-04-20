@@ -1,9 +1,9 @@
-from typing import List, Tuple, Optional
 import sys
+from typing import List, Optional, Tuple
 
 from pytissueoptics.scene import Vector
-from pytissueoptics.scene.intersection import Ray
 from pytissueoptics.scene.geometry import Polygon, Triangle
+from pytissueoptics.scene.intersection.ray import Ray
 from pytissueoptics.scene.tree import Node
 from pytissueoptics.scene.tree.treeConstructor import SplitNodeResult
 from pytissueoptics.scene.tree.treeConstructor.binary import NoSplitOneAxisConstructor
@@ -11,29 +11,35 @@ from pytissueoptics.scene.tree.treeConstructor.binary import NoSplitOneAxisConst
 
 class SplitThreeAxesConstructor(NoSplitOneAxisConstructor):
     """
-        This is an implementation of the proposed algorithms found in
+    This is an implementation of the proposed algorithms found in
 
-        Wald, Ingo, and Vlastimil Havran. 2006. “On Building Fast Kd-Trees for Ray Tracing, and on Doing That in O(N Log N).
-        ” In 2006 IEEE Symposium on Interactive Ray Tracing, 61–69.
+    Wald, Ingo, and Vlastimil Havran. 2006. “On Building Fast Kd-Trees for Ray Tracing, and on Doing That in O(N Log N).
+    ” In 2006 IEEE Symposium on Interactive Ray Tracing, 61–69.
 
-        Soupikov, Alexei, Maxim Shevtsov, and Alexander Kapustin. 2008. “Improving Kd-Tree Quality at a Reasonable
-        Construction Cost.” In Interactive Ray Tracing, 2008. RT 2008. IEEE Symposium on, 67–72. unknown.
-        -
-        This algorithm uses a
-        1. Surface Area Heuristic (SAH) search on 3 axis
-        2. Perfect Splits
-        3. On-the-fly pruning
-        When the minimum SAH axis and value are found, a split cost is calculated.
-        If the children's cost is lower than the parent, splitting is allowed, else, no splitting occurs.
+    Soupikov, Alexei, Maxim Shevtsov, and Alexander Kapustin. 2008. “Improving Kd-Tree Quality at a Reasonable
+    Construction Cost.” In Interactive Ray Tracing, 2008. RT 2008. IEEE Symposium on, 67–72. unknown.
+    -
+    This algorithm uses a
+    1. Surface Area Heuristic (SAH) search on 3 axis
+    2. Perfect Splits
+    3. On-the-fly pruning
+    When the minimum SAH axis and value are found, a split cost is calculated.
+    If the children's cost is lower than the parent, splitting is allowed, else, no splitting occurs.
 
-        Contrary to belief, the current implementation is not faster than non-split SAH-based tree construction. A split
-        results in 3 triangles, whereas a non-split results in a shared triangle, the equivalent of 2 distinct triangles.
-        It seems no matter the parameters of the tree, the intersection cost brought by the extra triangles is too high.
+    Contrary to belief, the current implementation is not faster than non-split SAH-based tree construction. A split
+    results in 3 triangles, whereas a non-split results in a shared triangle, the equivalent of 2 distinct triangles.
+    It seems no matter the parameters of the tree, the intersection cost brought by the extra triangles is too high.
 
-        """
+    """
 
-    def __init__(self, nbOfSplitPlanes: int = 20, intersectionCost: float = 3, traversalCost: float = 6,
-                 noSharedBonus: float = 2, emptySpaceBonus: float = 2):
+    def __init__(
+        self,
+        nbOfSplitPlanes: int = 20,
+        intersectionCost: float = 3,
+        traversalCost: float = 6,
+        noSharedBonus: float = 2,
+        emptySpaceBonus: float = 2,
+    ):
         super().__init__(nbOfSplitPlanes, intersectionCost, traversalCost, noSharedBonus, emptySpaceBonus)
 
     def _splitNode(self, node: Node) -> SplitNodeResult:
@@ -50,22 +56,29 @@ class SplitThreeAxesConstructor(NoSplitOneAxisConstructor):
         self.result.rightPolygons.extend(right)
         self._trimChildrenBbox()
         stopCondition = self._checkStopCondition()
-        newNodeResult = SplitNodeResult(stopCondition, [self.result.leftBbox, self.result.rightBbox],
-                                        [self.result.leftPolygons, self.result.rightPolygons])
+        newNodeResult = SplitNodeResult(
+            stopCondition,
+            [self.result.leftBbox, self.result.rightBbox],
+            [self.result.leftPolygons, self.result.rightPolygons],
+        )
         return newNodeResult
 
     def _splitTriangles(self, planeNormal: Vector, planePoint: Vector) -> Tuple[List[Polygon], List[Polygon]]:
         goingLeft, goingRight = [], []
         if self.result.splitPolygons:
             for polygon in self.result.splitPolygons:
-                left, right, = self._splitTriangle(polygon, planeNormal, planePoint)
+                (
+                    left,
+                    right,
+                ) = self._splitTriangle(polygon, planeNormal, planePoint)
                 goingLeft.extend(left)
                 goingRight.extend(right)
 
         return goingLeft, goingRight
 
-    def _splitTriangle(self, polygon: Polygon, planeNormal: Vector, planePoint: Vector) -> Tuple[
-        List[Polygon], List[Polygon]]:
+    def _splitTriangle(
+        self, polygon: Polygon, planeNormal: Vector, planePoint: Vector
+    ) -> Tuple[List[Polygon], List[Polygon]]:
         goingLeft, goingRight = [], []
         leftVertices, rightVertices, contained = self._checkVerticesPlaneSide(polygon.vertices, planeNormal, planePoint)
         nLeft = len(leftVertices)
@@ -82,8 +95,9 @@ class SplitThreeAxesConstructor(NoSplitOneAxisConstructor):
             goingRight.append(polygon)
 
         elif nContained != 0:
-            left, right = self._splitFromMiddleContained(leftVertices, rightVertices, contained, polygon, planeNormal,
-                                                         planePoint)
+            left, right = self._splitFromMiddleContained(
+                leftVertices, rightVertices, contained, polygon, planeNormal, planePoint
+            )
             goingLeft.extend(left)
             goingRight.extend(right)
 
@@ -94,9 +108,18 @@ class SplitThreeAxesConstructor(NoSplitOneAxisConstructor):
 
         return goingLeft, goingRight
 
-    def _splitFromNotContained(self, leftVertices: List[Vector], rightVertices: List[Vector], polygon: Polygon,
-                               planeNormal: Vector, planePoint: Vector) -> Tuple[List[Polygon], List[Polygon]]:
-        left, right, = [], []
+    def _splitFromNotContained(
+        self,
+        leftVertices: List[Vector],
+        rightVertices: List[Vector],
+        polygon: Polygon,
+        planeNormal: Vector,
+        planePoint: Vector,
+    ) -> Tuple[List[Polygon], List[Polygon]]:
+        (
+            left,
+            right,
+        ) = [], []
         if len(leftVertices) == 1:
             direction = rightVertices[0] - leftVertices[0]
             ray = Ray(leftVertices[0], direction, direction.getNorm())
@@ -105,11 +128,14 @@ class SplitThreeAxesConstructor(NoSplitOneAxisConstructor):
             ray = Ray(leftVertices[0], direction, direction.getNorm())
             intersectionPoint2 = self._intersectPlaneWithRay(planeNormal, planePoint, ray)
             left.append(
-                self._makeTriangleFromVertices(polygon, [intersectionPoint1, intersectionPoint2, leftVertices[0]]))
+                self._makeTriangleFromVertices(polygon, [intersectionPoint1, intersectionPoint2, leftVertices[0]])
+            )
             right.append(
-                self._makeTriangleFromVertices(polygon, [intersectionPoint1, rightVertices[0], intersectionPoint2]))
+                self._makeTriangleFromVertices(polygon, [intersectionPoint1, rightVertices[0], intersectionPoint2])
+            )
             right.append(
-                self._makeTriangleFromVertices(polygon, [intersectionPoint2, rightVertices[0], rightVertices[1]]))
+                self._makeTriangleFromVertices(polygon, [intersectionPoint2, rightVertices[0], rightVertices[1]])
+            )
         else:
             direction = leftVertices[0] - rightVertices[0]
             ray = Ray(rightVertices[0], direction, direction.getNorm())
@@ -118,16 +144,24 @@ class SplitThreeAxesConstructor(NoSplitOneAxisConstructor):
             ray = Ray(rightVertices[0], direction, direction.getNorm())
             intersectionPoint2 = self._intersectPlaneWithRay(planeNormal, planePoint, ray)
             right.append(
-                self._makeTriangleFromVertices(polygon, [intersectionPoint1, intersectionPoint2, rightVertices[0]]))
+                self._makeTriangleFromVertices(polygon, [intersectionPoint1, intersectionPoint2, rightVertices[0]])
+            )
             left.append(
-                self._makeTriangleFromVertices(polygon, [intersectionPoint1, leftVertices[0], intersectionPoint2]))
+                self._makeTriangleFromVertices(polygon, [intersectionPoint1, leftVertices[0], intersectionPoint2])
+            )
             left.append(self._makeTriangleFromVertices(polygon, [intersectionPoint2, leftVertices[0], leftVertices[1]]))
 
         return left, right
 
-    def _splitFromMiddleContained(self, leftVertices: List[Vector], rightVertices: List[Vector],
-                                  contained: List[Vector], polygon: Polygon, planeNormal: Vector, planePoint: Vector) -> \
-    Tuple[List[Polygon], List[Polygon]]:
+    def _splitFromMiddleContained(
+        self,
+        leftVertices: List[Vector],
+        rightVertices: List[Vector],
+        contained: List[Vector],
+        polygon: Polygon,
+        planeNormal: Vector,
+        planePoint: Vector,
+    ) -> Tuple[List[Polygon], List[Polygon]]:
         right, left = [], []
         direction = leftVertices[0] - rightVertices[0]
         ray = Ray(leftVertices[0], direction, direction.getNorm())
@@ -147,12 +181,17 @@ class SplitThreeAxesConstructor(NoSplitOneAxisConstructor):
     @staticmethod
     def _makeTriangleFromVertices(parent: Polygon, vertices: List[Vector]) -> Polygon:
         if len(vertices) == 3:
-            return Triangle(*vertices, normal=parent.normal, insideEnvironment=parent.insideEnvironment,
-                            outsideEnvironment=parent.outsideEnvironment)
+            return Triangle(
+                *vertices,
+                normal=parent.normal,
+                insideEnvironment=parent.insideEnvironment,
+                outsideEnvironment=parent.outsideEnvironment,
+            )
 
     @staticmethod
-    def _checkVerticesPlaneSide(vertices: List[Vector], planeNormal: Vector, planePoint: Vector, tol=1e-6) -> Tuple[
-        List[Vector], List[Vector], List[Vector]]:
+    def _checkVerticesPlaneSide(
+        vertices: List[Vector], planeNormal: Vector, planePoint: Vector, tol=1e-6
+    ) -> Tuple[List[Vector], List[Vector], List[Vector]]:
         """Based on the fact that the plane normal will always point towards the positive axis, and that we search our
          min(SAH) in that order as well, we can conclude that if diff is negative, the point is on the right side
         of the plane, and if diff is positive, the point is on the left side of the plane."""

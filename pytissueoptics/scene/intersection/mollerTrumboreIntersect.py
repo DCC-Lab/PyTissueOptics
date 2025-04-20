@@ -1,7 +1,8 @@
-from typing import Union, Optional
+from typing import Optional, Union
 
-from pytissueoptics.scene.geometry import Vector, Triangle, Quad, Polygon
-from pytissueoptics.scene.intersection import Ray
+from pytissueoptics.scene.geometry import Polygon, Quad, Triangle, Vector
+
+from .ray import Ray
 
 
 class MollerTrumboreIntersect:
@@ -20,7 +21,7 @@ class MollerTrumboreIntersect:
             return self._getPolygonIntersection(ray, polygon)
 
     def _getTriangleIntersection(self, ray: Ray, triangle: Triangle) -> Optional[Vector]:
-        """ Möller–Trumbore ray-triangle 3D intersection algorithm.
+        """Möller–Trumbore ray-triangle 3D intersection algorithm.
         Added epsilon zones to avoid numerical errors in the OpenCL implementation.
         Modified to support rays with finite length:
             A. If the intersection is too far away, do not intersect.
@@ -39,17 +40,17 @@ class MollerTrumboreIntersect:
         if rayIsParallel:
             return None
 
-        inverseDeterminant = 1. / determinant
+        inverseDeterminant = 1.0 / determinant
         tVector = ray.origin - v1
         u = tVector.dot(pVector) * inverseDeterminant
-        if u < -self.EPS_SIDE or u > 1.:
+        if u < -self.EPS_SIDE or u > 1.0:
             # EPS_SIDE is used to make the triangle a bit larger than it is
             # to be sure a ray could not sneak between two triangles.
             return None
 
         qVector = tVector.cross(edgeA)
         v = ray.direction.dot(qVector) * inverseDeterminant
-        if v < -self.EPS_SIDE or u + v > 1. + self.EPS_SIDE:
+        if v < -self.EPS_SIDE or u + v > 1.0 + self.EPS_SIDE:
             return None
 
         # Distance to intersection point
@@ -62,8 +63,8 @@ class MollerTrumboreIntersect:
             error -= u
         if v < -self.EPS:
             error -= v
-        if u + v > 1. + self.EPS:
-            error += u + v - 1.
+        if u + v > 1.0 + self.EPS:
+            error += u + v - 1.0
         if error > 0:
             # Move the hit point towards the triangle center by this error factor.
             correctionDirection = v1 + v2 + v3 - hitPoint * 3

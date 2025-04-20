@@ -1,12 +1,12 @@
+import itertools
 import math
 from typing import List
-import itertools
 
 import numpy as np
 
-from pytissueoptics.scene.geometry import Vector, primitives, Vertex
-from pytissueoptics.scene.solids import Cylinder
+from pytissueoptics.scene.geometry import Vector, Vertex, primitives
 from pytissueoptics.scene.material import RefractiveMaterial
+from pytissueoptics.scene.solids import Cylinder
 
 
 class ThickLens(Cylinder):
@@ -18,25 +18,52 @@ class ThickLens(Cylinder):
     The generated mesh will be divided into the following subgroups: Front, Side and Back.
     By default, front will point towards the negative z-axis.
     """
-    def __init__(self, frontRadius: float, backRadius: float, diameter: float, thickness: float,
-                 position: Vector = Vector(0, 0, 0), material=None, label: str = "thick lens",
-                 primitive: str = primitives.DEFAULT, smooth: bool = True, u: int = 24, v: int = 2, s: int = 24):
+
+    def __init__(
+        self,
+        frontRadius: float,
+        backRadius: float,
+        diameter: float,
+        thickness: float,
+        position: Vector = Vector(0, 0, 0),
+        material=None,
+        label: str = "thick lens",
+        primitive: str = primitives.DEFAULT,
+        smooth: bool = True,
+        u: int = 24,
+        v: int = 2,
+        s: int = 24,
+    ):
         frontRadius = frontRadius if frontRadius != 0 else math.inf
         backRadius = backRadius if backRadius != 0 else math.inf
         if abs(frontRadius) <= diameter / 2:
-            raise ValueError(f"Front radius must be greater than the lens radius. Front radius: {frontRadius}, "
-                             f"lens radius: {diameter / 2}")
+            raise ValueError(
+                f"Front radius must be greater than the lens radius. Front radius: {frontRadius}, "
+                f"lens radius: {diameter / 2}"
+            )
         if abs(backRadius) <= diameter / 2:
-            raise ValueError(f"Back radius must be greater than the lens radius. Back radius: {backRadius}, "
-                             f"lens radius: {diameter / 2}")
+            raise ValueError(
+                f"Back radius must be greater than the lens radius. Back radius: {backRadius}, "
+                f"lens radius: {diameter / 2}"
+            )
 
         self._diameter = diameter
         self._frontRadius = frontRadius
         self._backRadius = backRadius
 
         length = self._computeEdgeThickness(thickness)
-        super().__init__(radius=diameter / 2, length=length, u=u, v=v, s=s, position=position,
-                         material=material, label=label, primitive=primitive, smooth=smooth)
+        super().__init__(
+            radius=diameter / 2,
+            length=length,
+            u=u,
+            v=v,
+            s=s,
+            position=position,
+            material=material,
+            label=label,
+            primitive=primitive,
+            smooth=smooth,
+        )
 
     @property
     def _hasFrontCurvature(self) -> bool:
@@ -47,18 +74,18 @@ class ThickLens(Cylinder):
         return self._backRadius != 0 and self._backRadius != math.inf
 
     def _computeEdgeThickness(self, centerThickness) -> float:
-        """ Returns the thickness of the lens on its side. This is the length required to build the base cylinder
-        before applying surface curvature. """
+        """Returns the thickness of the lens on its side. This is the length required to build the base cylinder
+        before applying surface curvature."""
         dt1, dt2 = 0, 0
         if self._hasFrontCurvature:
-            dt1 = abs(self._frontRadius) - math.sqrt(self._frontRadius**2 - self._diameter**2/4)
+            dt1 = abs(self._frontRadius) - math.sqrt(self._frontRadius**2 - self._diameter**2 / 4)
             dt1 *= np.sign(self._frontRadius)
         if self._hasBackCurvature:
-            dt2 = abs(self._backRadius) - math.sqrt(self._backRadius**2 - self._diameter**2/4)
+            dt2 = abs(self._backRadius) - math.sqrt(self._backRadius**2 - self._diameter**2 / 4)
             dt2 *= -np.sign(self._backRadius)
         edgeThickness = centerThickness - dt1 - dt2
         if edgeThickness < 0:
-            raise ValueError(f"Desired center thickness is too small for the given radii and diameter.")
+            raise ValueError("Desired center thickness is too small for the given radii and diameter.")
         return edgeThickness
 
     @property
@@ -79,7 +106,7 @@ class ThickLens(Cylinder):
 
     @property
     def focalLength(self) -> float:
-        """ Returns the focal length of the lens in air. Requires a refractive material to be defined."""
+        """Returns the focal length of the lens in air. Requires a refractive material to be defined."""
         if self._material is None or not issubclass(type(self._material), RefractiveMaterial):
             raise ValueError("Cannot compute focal length without refractive material defined.")
         # For thick lenses, the focal length is given by the lensmaker's equation:
@@ -131,10 +158,22 @@ class ThickLens(Cylinder):
 
 
 class SymmetricLens(ThickLens):
-    """ A symmetrical thick lens of focal length `f` in air. """
-    def __init__(self, f: float, diameter: float, thickness: float, material: RefractiveMaterial,
-                 position: Vector = Vector(0, 0, 0), label: str = "lens", primitive: str = primitives.DEFAULT,
-                 smooth: bool = True, u: int = 24, v: int = 2, s: int = 24):
+    """A symmetrical thick lens of focal length `f` in air."""
+
+    def __init__(
+        self,
+        f: float,
+        diameter: float,
+        thickness: float,
+        material: RefractiveMaterial,
+        position: Vector = Vector(0, 0, 0),
+        label: str = "lens",
+        primitive: str = primitives.DEFAULT,
+        smooth: bool = True,
+        u: int = 24,
+        v: int = 2,
+        s: int = 24,
+    ):
         # For thick lenses, the focal length is given by the lensmaker's equation:
         # 1/f = (n - 1) * (1/R1 - 1/R2 + (n - 1) * d / (n * R1 * R2))
         # with R2 = -R1, we get the following quadratic equation to solve:
@@ -146,9 +185,20 @@ class SymmetricLens(ThickLens):
 
 
 class PlanoConvexLens(ThickLens):
-    def __init__(self, f: float, diameter: float, thickness: float, material: RefractiveMaterial,
-                 position: Vector = Vector(0, 0, 0), label: str = "lens", primitive: str = primitives.DEFAULT,
-                 smooth: bool = True, u: int = 24, v: int = 2, s: int = 24):
+    def __init__(
+        self,
+        f: float,
+        diameter: float,
+        thickness: float,
+        material: RefractiveMaterial,
+        position: Vector = Vector(0, 0, 0),
+        label: str = "lens",
+        primitive: str = primitives.DEFAULT,
+        smooth: bool = True,
+        u: int = 24,
+        v: int = 2,
+        s: int = 24,
+    ):
         R1 = f * (material.n - 1)
         R2 = math.inf
         if f < 0:
@@ -157,9 +207,20 @@ class PlanoConvexLens(ThickLens):
 
 
 class PlanoConcaveLens(ThickLens):
-    def __init__(self, f: float, diameter: float, thickness: float, material: RefractiveMaterial,
-                 position: Vector = Vector(0, 0, 0), label: str = "lens", primitive: str = primitives.DEFAULT,
-                 smooth: bool = True, u: int = 24, v: int = 2, s: int = 24):
+    def __init__(
+        self,
+        f: float,
+        diameter: float,
+        thickness: float,
+        material: RefractiveMaterial,
+        position: Vector = Vector(0, 0, 0),
+        label: str = "lens",
+        primitive: str = primitives.DEFAULT,
+        smooth: bool = True,
+        u: int = 24,
+        v: int = 2,
+        s: int = 24,
+    ):
         R1 = math.inf
         R2 = f * (material.n - 1)
         if f < 0:

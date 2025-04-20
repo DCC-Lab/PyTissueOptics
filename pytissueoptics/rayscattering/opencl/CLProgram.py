@@ -23,7 +23,7 @@ class CLProgram:
 
         self._mainQueue = cl.CommandQueue(self._context)
         self._program: Optional[cl.Program] = None
-        self._include = ''
+        self._include = ""
         self._mocks = []
 
     def release(self):
@@ -50,8 +50,7 @@ class CLProgram:
         try:
             kernel(self._mainQueue, (N,), None, *buffers)
         except cl.MemoryError:
-            raise MemoryError(f"Cannot allocate {sizeOnDevice//1024**2} MB on the device;"
-                              f"the buffers are too large.")
+            raise MemoryError(f"Cannot allocate {sizeOnDevice // 1024**2} MB on the device;the buffers are too large.")
         self._mainQueue.finish()
         t2 = time.time()
 
@@ -62,7 +61,7 @@ class CLProgram:
         for _object in objects:
             _object.build(self._device, self._context)
 
-        typeDeclarations = ''.join([_object.declaration for _object in objects])
+        typeDeclarations = "".join([_object.declaration for _object in objects])
         sourceCode = self._include + typeDeclarations + self._makeSource(self._sourcePath)
 
         for code, mock in self._mocks:
@@ -87,12 +86,12 @@ class CLProgram:
     @staticmethod
     def _makeSource(sourcePath) -> str:
         includeDir = os.path.dirname(sourcePath)
-        sourceCode = ''
-        with open(sourcePath, 'r') as f:
+        sourceCode = ""
+        with open(sourcePath, "r") as f:
             line = f.readline()
             while line.startswith("#include"):
                 libFileName = line.split('"')[1]
-                with open(os.path.join(includeDir, libFileName), 'r') as libFile:
+                with open(os.path.join(includeDir, libFileName), "r") as libFile:
                     sourceCode += libFile.read()
                 line = f.readline()
             sourceCode += line

@@ -8,7 +8,7 @@ from pytissueoptics.scene.geometry.vector import Vector
 
 def rotateVerticesArray(verticesArray: np.ndarray, r: Rotation, inverse=False) -> np.ndarray:
     rotationMatrix = eulerRotationMatrix(r.xTheta, r.yTheta, r.zTheta, inverse=inverse)
-    return np.einsum('ij, kj->ki', rotationMatrix, verticesArray)
+    return np.einsum("ij, kj->ki", rotationMatrix, verticesArray)
 
 
 def eulerRotationMatrix(xTheta=0, yTheta=0, zTheta=0, inverse=False) -> np.ndarray:
@@ -34,25 +34,19 @@ def eulerRotationMatrix(xTheta=0, yTheta=0, zTheta=0, inverse=False) -> np.ndarr
 def _zRotationMatrix(theta) -> np.ndarray:
     cosTheta = np.cos(theta * np.pi / 180)
     sinTheta = np.sin(theta * np.pi / 180)
-    return np.asarray([[cosTheta, -sinTheta, 0],
-                       [sinTheta, cosTheta, 0],
-                       [0, 0, 1]])
+    return np.asarray([[cosTheta, -sinTheta, 0], [sinTheta, cosTheta, 0], [0, 0, 1]])
 
 
 def _yRotationMatrix(theta) -> np.ndarray:
     cosTheta = np.cos(theta * np.pi / 180)
     sinTheta = np.sin(theta * np.pi / 180)
-    return np.asarray([[cosTheta, 0, sinTheta],
-                       [0, 1, 0],
-                       [-sinTheta, 0, cosTheta]])
+    return np.asarray([[cosTheta, 0, sinTheta], [0, 1, 0], [-sinTheta, 0, cosTheta]])
 
 
 def _xRotationMatrix(theta) -> np.ndarray:
     cosTheta = np.cos(theta * np.pi / 180)
     sinTheta = np.sin(theta * np.pi / 180)
-    return np.asarray([[1, 0, 0],
-                       [0, cosTheta, -sinTheta],
-                       [0, sinTheta, cosTheta]])
+    return np.asarray([[1, 0, 0], [0, cosTheta, -sinTheta], [0, sinTheta, cosTheta]])
 
 
 def getAxisAngleBetween(fromDirection: Vector, toDirection: Vector) -> Tuple[Vector, float]:

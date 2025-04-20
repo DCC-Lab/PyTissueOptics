@@ -1,13 +1,18 @@
 import copy
 from enum import Flag
-from typing import Tuple, Union, Optional, List
+from typing import List, Optional, Tuple, Union
 
 import matplotlib
 import numpy as np
 from matplotlib import pyplot as plt
 
 from pytissueoptics.rayscattering import utils
-from pytissueoptics.rayscattering.display.utils.direction import *
+from pytissueoptics.rayscattering.display.utils import (
+    DEFAULT_X_VIEW_DIRECTIONS,
+    DEFAULT_Y_VIEW_DIRECTIONS,
+    DEFAULT_Z_VIEW_DIRECTIONS,
+    Direction,
+)
 
 
 class ViewGroup(Flag):
@@ -22,6 +27,7 @@ class ViewGroup(Flag):
      Except for surface groups, where the default views created include a single 2D projection in the direction of the surface normal.
      `SURFACES_ENTERING` specifies the energy that entered the surface (energy direction opposite to the surface normal).
     """
+
     SCENE = 1
     SOLIDS = 2
     SURFACES_ENTERING = 4
@@ -31,11 +37,18 @@ class ViewGroup(Flag):
 
 
 class View2D:
-    def __init__(self, projectionDirection: Direction, horizontalDirection: Direction,
-                 solidLabel: str = None, surfaceLabel: str = None, surfaceEnergyLeaving: bool = True,
-                 position: float = None, thickness: float = None,
-                 limits: Tuple[Tuple[float, float], Tuple[float, float]] = None,
-                 binSize: Union[float, Tuple[int, int]] = None):
+    def __init__(
+        self,
+        projectionDirection: Direction,
+        horizontalDirection: Direction,
+        solidLabel: str = None,
+        surfaceLabel: str = None,
+        surfaceEnergyLeaving: bool = True,
+        position: float = None,
+        thickness: float = None,
+        limits: Tuple[Tuple[float, float], Tuple[float, float]] = None,
+        binSize: Union[float, Tuple[int, int]] = None,
+    ):
         """
         The 2D view plane is obtained by looking towards the 'projectionDirection'. The 'horizontalDirection'
         represents which axis to use as the horizontal axis in the resulting 2D view. If the 'horizontalDirection' is
@@ -53,8 +66,9 @@ class View2D:
         """
         self._projectionDirection = projectionDirection
         self._horizontalDirection = horizontalDirection
-        assert not self._projectionDirection.isSameAxisAs(self._horizontalDirection), "Projection and horizontal " \
-                                                                                      "directions must be orthogonal."
+        assert not self._projectionDirection.isSameAxisAs(self._horizontalDirection), (
+            "Projection and horizontal directions must be orthogonal."
+        )
 
         self._solidLabel = solidLabel
         self._surfaceLabel = surfaceLabel
@@ -62,7 +76,7 @@ class View2D:
         self._position = position
         self._thickness = thickness
 
-        limits = [sorted(l) for l in limits] if limits else [None, None]
+        limits = [sorted(limit) for limit in limits] if limits else [None, None]
         self._limitsU, self._limitsV = limits
         self._binSize = (binSize, binSize) if isinstance(binSize, (int, float)) else binSize
         self._binsU, self._binsV = None, None
@@ -85,7 +99,7 @@ class View2D:
             self._binSize = (binSize3D[self.axisU], binSize3D[self.axisV])
 
         limits = [self._limitsU, self._limitsV]
-        self._binsU, self._binsV = [int((l[1] - l[0]) / b) for l, b in zip(limits, self._binSize)]
+        self._binsU, self._binsV = [int((limit[1] - limit[0]) / bin_) for limit, bin_ in zip(limits, self._binSize)]
 
         if self._verticalIsNegative:
             self._limitsV = self._limitsV[::-1]
@@ -96,8 +110,9 @@ class View2D:
         try:
             self._dataUV = np.zeros((self._binsU, self._binsV), dtype=np.float32)
         except MemoryError:
-            raise MemoryError(f"Cannot allocate memory for 2D view. "
-                              f"Consider increasing `defaultBinSize` of EnergyLogger.")
+            raise MemoryError(
+                "Cannot allocate memory for 2D view. Consider increasing `defaultBinSize` of EnergyLogger."
+            )
 
     def extractData(self, dataPoints: np.ndarray):
         """
@@ -112,8 +127,9 @@ class View2D:
             return
 
         u, v, w = dataPoints[:, 1 + self.axisU], dataPoints[:, 1 + self.axisV], dataPoints[:, 0]
-        sumUVProjection = np.histogram2d(u, v, weights=w, bins=(self._binsU, self._binsV),
-                                          range=(sorted(self._limitsU), sorted(self._limitsV)))[0]
+        sumUVProjection = np.histogram2d(
+            u, v, weights=w, bins=(self._binsU, self._binsV), range=(sorted(self._limitsU), sorted(self._limitsV))
+        )[0]
         self._dataUV += np.flip(sumUVProjection, axis=1)
         self._hasData = True
 
@@ -125,7 +141,7 @@ class View2D:
         raise NotImplementedError()
 
     def flip(self):
-        """ Flips the view as if it was seen from behind. """
+        """Flips the view as if it was seen from behind."""
         self._projectionDirection = Direction((self._projectionDirection.value + 3) % 6)
         self._horizontalDirection = Direction((self._horizontalDirection.value + 3) % 6)
 
@@ -183,7 +199,7 @@ class View2D:
 
         return image
 
-    def show(self, logScale: bool = True, colormap: str = 'viridis'):
+    def show(self, logScale: bool = True, colormap: str = "viridis"):
         cmap = copy.copy(matplotlib.cm.get_cmap(colormap))
         cmap.set_bad(cmap.colors[0])
 
@@ -192,12 +208,12 @@ class View2D:
         # N.B.: imshow() expects the data to be (y, x), so we need to transpose the array.
         plt.imshow(image.T, cmap=cmap, extent=self._limitsU + self._limitsV)
         plt.title(self.name)
-        plt.xlabel('xyz'[self.axisU])
-        plt.ylabel('xyz'[self.axisV])
+        plt.xlabel("xyz"[self.axisU])
+        plt.ylabel("xyz"[self.axisV])
         plt.show()
 
-    def initDataFrom(self, source: 'View2D'):
-        """ Extract data from one view to another when there is only a difference in orientation. """
+    def initDataFrom(self, source: "View2D"):
+        """Extract data from one view to another when there is only a difference in orientation."""
         assert self.isContainedBy(source), "Cannot extract data from views that are not equivalent."
 
         dataUV = source._dataUV.copy()
@@ -207,7 +223,7 @@ class View2D:
             self._dataUV = np.flip(dataUV.T, axis=(0, 1))
         self._hasData = source._hasData
 
-    def isEqualTo(self, other: 'View2D') -> bool:
+    def isEqualTo(self, other: "View2D") -> bool:
         if not self.isContainedBy(other):
             return False
         if self._projectionDirection != other._projectionDirection:
@@ -222,7 +238,7 @@ class View2D:
             return False
         return True
 
-    def isContainedBy(self, other: 'View2D') -> bool:
+    def isContainedBy(self, other: "View2D") -> bool:
         if self._projectionDirection.axis != other._projectionDirection.axis:
             return False
         if not utils.labelsEqual(self._solidLabel, other._solidLabel):
@@ -296,22 +312,22 @@ class View2D:
 
     @property
     def axis(self) -> int:
-        """ The axis that represents the plane of the 2D view. """
+        """The axis that represents the plane of the 2D view."""
         return self._projectionDirection.axis
 
     @property
     def axisU(self) -> int:
-        """ The horizontal axis of the 2D view. Could also be referred to as the 'x' axis. """
+        """The horizontal axis of the 2D view. Could also be referred to as the 'x' axis."""
         return self._horizontalDirection.axis
 
     @property
     def axisV(self) -> int:
-        """ The vertical axis of the 2D view. Could also be referred to as the 'y' axis. """
+        """The vertical axis of the 2D view. Could also be referred to as the 'y' axis."""
         return 3 - self.axis - self.axisU
 
     @property
     def _verticalIsNegative(self) -> bool:
-        """ Algorithm for cartesian axes to know if the resulting vertical axis is negative (the axis unit vector
+        """Algorithm for cartesian axes to know if the resulting vertical axis is negative (the axis unit vector
         goes down from the viewer's point of view).
         """
         horizontalAxisForNegativeVertical = (self._projectionDirection.axis + self._projectionDirection.sign) % 3
@@ -335,8 +351,7 @@ class View2D:
 
     @property
     def description(self) -> str:
-        return f"{self.name} towards {self._projectionDirection.name} " \
-               f"with {self._horizontalDirection.name} horizontal."
+        return f"{self.name} towards {self._projectionDirection.name} with {self._horizontalDirection.name} horizontal."
 
     @property
     def group(self) -> ViewGroup:

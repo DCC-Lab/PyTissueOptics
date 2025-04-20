@@ -1,4 +1,4 @@
-import env
+import env  # noqa: F401
 
 TITLE = "Lenses"
 
@@ -6,7 +6,15 @@ DESCRIPTION = """Explore different types of lens-shaped solids."""
 
 
 def exampleCode():
-    from pytissueoptics.scene import Vector, MayaviViewer, RefractiveMaterial, ThickLens, SymmetricLens, PlanoConvexLens, PlanoConcaveLens
+    from pytissueoptics.scene import (
+        MayaviViewer,
+        PlanoConcaveLens,
+        PlanoConvexLens,
+        RefractiveMaterial,
+        SymmetricLens,
+        ThickLens,
+        Vector,
+    )
 
     material = RefractiveMaterial(refractiveIndex=1.44)
     lens1 = ThickLens(30, 60, diameter=25.4, thickness=4, material=material, position=Vector(0, 0, 0))

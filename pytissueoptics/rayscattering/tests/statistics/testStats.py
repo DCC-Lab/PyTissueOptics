@@ -1,13 +1,12 @@
 import io
 import os
-import sys
 import tempfile
 import unittest
 from unittest.mock import patch
 
 from pytissueoptics.rayscattering.energyLogging import EnergyLogger
-from pytissueoptics.rayscattering.scatteringScene import ScatteringScene
 from pytissueoptics.rayscattering.materials import ScatteringMaterial
+from pytissueoptics.rayscattering.scatteringScene import ScatteringScene
 from pytissueoptics.rayscattering.statistics import Stats
 from pytissueoptics.scene.geometry import Vector
 from pytissueoptics.scene.logger import InteractionKey
@@ -15,15 +14,19 @@ from pytissueoptics.scene.solids import Cube
 
 
 class TestStats(unittest.TestCase):
-    EXPECTED_SOLID_REPORT_LINES = ["Report of solid 'cube'",
-                                   "  Absorbance: 80.00% (80.00% of total power)",
-                                   "  Absorbance + Transmittance: 100.0%",
-                                   "    Transmittance at 'cube_front': 0.0%",
-                                   "    Transmittance at 'cube_back': 20.0%",
-                                   '']
-    EXPECTED_REPORT_LINES = EXPECTED_SOLID_REPORT_LINES[:-1] + ["Report of 'world'",
-                                                                "  Absorbed 20.00% of total power",
-                                                                '']
+    EXPECTED_SOLID_REPORT_LINES = [
+        "Report of solid 'cube'",
+        "  Absorbance: 80.00% (80.00% of total power)",
+        "  Absorbance + Transmittance: 100.0%",
+        "    Transmittance at 'cube_front': 0.0%",
+        "    Transmittance at 'cube_back': 20.0%",
+        "",
+    ]
+    EXPECTED_REPORT_LINES = EXPECTED_SOLID_REPORT_LINES[:-1] + [
+        "Report of 'world'",
+        "  Absorbed 20.00% of total power",
+        "",
+    ]
 
     def _setUp(self, keep3D=True, sourceSolidLabel=None, noViews=False):
         logger = self.makeTestCubeLogger(keep3D=keep3D, sourceSolidLabel=sourceSolidLabel, noViews=noViews)
@@ -89,7 +92,7 @@ class TestStats(unittest.TestCase):
             with self.subTest(["using2DLogger", "using3DLogger"][keep3D]):
                 self._setUp(keep3D=keep3D)
 
-                with patch('sys.stdout', new_callable=io.StringIO) as mock_stdout:
+                with patch("sys.stdout", new_callable=io.StringIO) as mock_stdout:
                     self.stats.report(solidLabel="cube")
                     reportLines = mock_stdout.getvalue().splitlines()
 
@@ -100,7 +103,7 @@ class TestStats(unittest.TestCase):
             with self.subTest(["using2DLogger", "using3DLogger"][keep3D]):
                 self._setUp(keep3D=keep3D)
 
-                with patch('sys.stdout', new_callable=io.StringIO) as mock_stdout:
+                with patch("sys.stdout", new_callable=io.StringIO) as mock_stdout:
                     self.stats.report()
                     reportLines = mock_stdout.getvalue().splitlines()
 
@@ -125,7 +128,7 @@ class TestStats(unittest.TestCase):
 
     @staticmethod
     def makeTestCubeLogger(keep3D=True, sourceSolidLabel=None, noViews=False) -> EnergyLogger:
-        """ We log a few points taken from a unit cube centered at the origin where a single photon
+        """We log a few points taken from a unit cube centered at the origin where a single photon
         was propagated. We log one point entering front surface at z=0 with weight=1, then 8 points
         of weight 0.1 centered from z=0.1 to z=0.8, and one point exiting back surface at z=1 with
         a remaining weight of 0.2, so it correctly adds up to 1.
@@ -139,7 +142,7 @@ class TestStats(unittest.TestCase):
         frontInteraction = InteractionKey("cube", "cube_front")
         backInteraction = InteractionKey("cube", "cube_back")
         for i in range(1, 9):
-            logger.logDataPoint(0.1, Vector(0, 0, 0.1*i), solidInteraction)
+            logger.logDataPoint(0.1, Vector(0, 0, 0.1 * i), solidInteraction)
         logger.logDataPoint(-1, Vector(0, 0, 0), frontInteraction)
         logger.logDataPoint(0.2, Vector(0, 0, 1), backInteraction)
         logger.info["photonCount"] = 1

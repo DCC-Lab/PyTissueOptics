@@ -1,20 +1,24 @@
 from typing import List, NamedTuple
 
+import numpy as np
+
 from pytissueoptics.scene.geometry import BoundingBox
-from pytissueoptics.rayscattering.opencl.buffers.CLObject import *
 
+from .CLObject import CLObject, cl
 
-SolidCLInfo = NamedTuple("SolidInfo", [("bbox", BoundingBox),
-                                       ("firstSurfaceID", int), ("lastSurfaceID", int)])
+SolidCLInfo = NamedTuple("SolidInfo", [("bbox", BoundingBox), ("firstSurfaceID", int), ("lastSurfaceID", int)])
 
 
 class SolidCL(CLObject):
     STRUCT_NAME = "Solid"
     STRUCT_DTYPE = np.dtype(
-            [("bbox_min", cl.cltypes.float3),
-             ("bbox_max", cl.cltypes.float3),
-             ("firstSurfaceID", cl.cltypes.uint),
-             ("lastSurfaceID", cl.cltypes.uint)])
+        [
+            ("bbox_min", cl.cltypes.float3),
+            ("bbox_max", cl.cltypes.float3),
+            ("firstSurfaceID", cl.cltypes.uint),
+            ("lastSurfaceID", cl.cltypes.uint),
+        ]
+    )
 
     def __init__(self, solidsInfo: List[SolidCLInfo]):
         self._solidsInfo = solidsInfo

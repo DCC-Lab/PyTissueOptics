@@ -14,10 +14,11 @@ def tempConfigPath(func):
             clc.OPENCL_CONFIG_PATH = os.path.join(tempDir, "config.json")
             func(*args, **kwargs)
         clc.OPENCL_CONFIG_PATH = previousPath
+
     return wrapper
 
 
-@unittest.skipIf(not OPENCL_OK, 'OpenCL device not available.')
+@unittest.skipIf(not OPENCL_OK, "OpenCL device not available.")
 class TestCLConfig(unittest.TestCase):
     @tempConfigPath
     def testGivenNoConfigFile_shouldWarnAndCreateANewOne(self):
@@ -43,16 +44,20 @@ class TestCLConfig(unittest.TestCase):
     @tempConfigPath
     def testGivenCompleteConfigFile_shouldBeValid(self):
         with open(clc.OPENCL_CONFIG_PATH, "w") as f:
-            f.write('{"DEVICE_INDEX": 0, "N_WORK_UNITS": 100, "MAX_MEMORY_MB": 1000, '
-                    '"IPP_TEST_N_PHOTONS": 1000, "BATCH_LOAD_FACTOR": 0.2}')
+            f.write(
+                '{"DEVICE_INDEX": 0, "N_WORK_UNITS": 100, "MAX_MEMORY_MB": 1000, '
+                '"IPP_TEST_N_PHOTONS": 1000, "BATCH_LOAD_FACTOR": 0.2}'
+            )
         config = clc.CLConfig()
         config.validate()
 
     @tempConfigPath
     def testGivenMaxMemoryNotSet_whenValidate_shouldWarnAndSetMaxMemory(self):
         with open(clc.OPENCL_CONFIG_PATH, "w") as f:
-            f.write('{"DEVICE_INDEX": 0, "N_WORK_UNITS": 100, "MAX_MEMORY_MB": null, '
-                    '"IPP_TEST_N_PHOTONS": 1000, "BATCH_LOAD_FACTOR": 0.2}')
+            f.write(
+                '{"DEVICE_INDEX": 0, "N_WORK_UNITS": 100, "MAX_MEMORY_MB": null, '
+                '"IPP_TEST_N_PHOTONS": 1000, "BATCH_LOAD_FACTOR": 0.2}'
+            )
         with patch("os.getenv", return_value=None):
             config = clc.CLConfig()
         with self.assertWarns(UserWarning):
@@ -63,8 +68,7 @@ class TestCLConfig(unittest.TestCase):
     @tempConfigPath
     def testGivenFileIsMissingParameter_whenValidate_shouldResetDefaultValueAndRaise(self):
         with open(clc.OPENCL_CONFIG_PATH, "w") as f:
-            f.write('{"DEVICE_INDEX": 0, "N_WORK_UNITS": 100, "MAX_MEMORY_MB": 1000, '
-                    '"IPP_TEST_N_PHOTONS": 1000}')
+            f.write('{"DEVICE_INDEX": 0, "N_WORK_UNITS": 100, "MAX_MEMORY_MB": 1000, "IPP_TEST_N_PHOTONS": 1000}')
         config = clc.CLConfig()
         with self.assertRaises(ValueError):
             config.validate()
@@ -74,8 +78,10 @@ class TestCLConfig(unittest.TestCase):
     @tempConfigPath
     def testGivenFileWithAParameterBelowOrEqualToZero_whenValidate_shouldResetDefaultValueAndRaise(self):
         with open(clc.OPENCL_CONFIG_PATH, "w") as f:
-            f.write('{"DEVICE_INDEX": 0, "N_WORK_UNITS": 100, "MAX_MEMORY_MB": 0, '
-                    '"IPP_TEST_N_PHOTONS": 1000, "BATCH_LOAD_FACTOR": 0.2}')
+            f.write(
+                '{"DEVICE_INDEX": 0, "N_WORK_UNITS": 100, "MAX_MEMORY_MB": 0, '
+                '"IPP_TEST_N_PHOTONS": 1000, "BATCH_LOAD_FACTOR": 0.2}'
+            )
 
         with patch("os.getenv", return_value=None):
             config = clc.CLConfig()

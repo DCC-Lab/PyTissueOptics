@@ -1,6 +1,6 @@
+from pytissueoptics.scene.geometry import BoundingBox, Polygon, SurfaceCollection, Vector, Vertex
 from pytissueoptics.scene.scene import Scene
-from pytissueoptics.scene.geometry import Vector, Polygon, SurfaceCollection, BoundingBox, Vertex
-from pytissueoptics.scene.solids import Cuboid, Sphere, Cube, Ellipsoid, Solid
+from pytissueoptics.scene.solids import Cube, Cuboid, Ellipsoid, Solid, Sphere
 
 
 class AAxisAlignedPolygonScene(Scene):

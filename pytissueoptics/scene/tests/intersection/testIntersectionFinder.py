@@ -3,13 +3,15 @@ import unittest
 
 from pytissueoptics.scene.geometry import Vector, primitives
 from pytissueoptics.scene.geometry.polygon import WORLD_LABEL
-from pytissueoptics.scene.intersection import SimpleIntersectionFinder, FastIntersectionFinder, Ray, UniformRaySource
+from pytissueoptics.scene.intersection import FastIntersectionFinder, Ray, SimpleIntersectionFinder, UniformRaySource
 from pytissueoptics.scene.intersection.intersectionFinder import IntersectionFinder
 from pytissueoptics.scene.scene import Scene
-from pytissueoptics.scene.solids import Sphere, Cube
+from pytissueoptics.scene.solids import Cube, Sphere
 from pytissueoptics.scene.tests.scene.benchmarkScenes import PhantomScene
 from pytissueoptics.scene.tree.treeConstructor.binary import (
-    NoSplitOneAxisConstructor, NoSplitThreeAxesConstructor, SplitThreeAxesConstructor
+    NoSplitOneAxisConstructor,
+    NoSplitThreeAxesConstructor,
+    SplitThreeAxesConstructor,
 )
 
 
@@ -88,7 +90,9 @@ class BaseTestAnyIntersectionFinder:
         self.assertEqual(0.5, intersection.position.y)
         self.assertAlmostEqual(4, intersection.position.z)
 
-    def testGivenRayThatFirstOnlyIntersectsWithAnotherSolidBoundingBoxBeforeIntersectingASolid_shouldFindIntersection(self):
+    def testGivenRayThatFirstOnlyIntersectsWithAnotherSolidBoundingBoxBeforeIntersectingASolid_shouldFindIntersection(
+        self,
+    ):
         direction = Vector(0, 0.9, 1)
         ray = Ray(origin=Vector(0, 0, 0), direction=direction)
         solidMissed = Sphere(radius=1, order=1, position=Vector(0, 0, 1.9))
@@ -210,7 +214,9 @@ class BaseTestAnyIntersectionFinder:
         self.assertIsNotNone(intersection)
         self.assertEqual(expectedNormal, intersection.normal)
 
-    def testGivenSmoothSolid_shouldNotSmoothTheIntersectionNormalIfItChangesTheSignOfTheDotProductWithTheRayDirection(self):
+    def testGivenSmoothSolid_shouldNotSmoothTheIntersectionNormalIfItChangesTheSignOfTheDotProductWithTheRayDirection(
+        self,
+    ):
         ray = Ray(origin=Vector(0, 0.955, -2), direction=Vector(0, 0.02, 1))
         solid = Sphere(radius=1, order=1)
 
@@ -246,7 +252,7 @@ class TestEndToEndIntersection(unittest.TestCase):
             SimpleIntersectionFinder(scene),
             FastIntersectionFinder(scene, constructor=NoSplitOneAxisConstructor(), maxDepth=3),
             FastIntersectionFinder(scene, constructor=NoSplitThreeAxesConstructor(), maxDepth=3),
-            FastIntersectionFinder(scene, constructor=SplitThreeAxesConstructor(), maxDepth=3)
+            FastIntersectionFinder(scene, constructor=SplitThreeAxesConstructor(), maxDepth=3),
         ]
 
     def _getSubTestTag(self, intersectionFinder: IntersectionFinder):

@@ -4,17 +4,26 @@ import unittest
 
 import numpy as np
 
-from pytissueoptics import *
+from pytissueoptics.rayscattering.materials import ScatteringMaterial
 from pytissueoptics.rayscattering.opencl import OPENCL_OK
-from pytissueoptics.rayscattering.opencl.buffers import *
+from pytissueoptics.rayscattering.opencl.buffers import (
+    DataPointCL,
+    MaterialCL,
+    SeedCL,
+    SolidCandidateCL,
+    SolidCL,
+    SurfaceCL,
+    TriangleCL,
+    TriangleCLInfo,
+    VertexCL,
+)
+from pytissueoptics.rayscattering.opencl.CLProgram import CLProgram
 from pytissueoptics.rayscattering.opencl.config.CLConfig import OPENCL_SOURCE_DIR
 from pytissueoptics.rayscattering.tests.opencl.src.CLObjects import IntersectionCL, RayCL
-from pytissueoptics.scene.geometry.triangle import Triangle
-from pytissueoptics.scene.geometry.vertex import Vertex
-from pytissueoptics.rayscattering.opencl.CLProgram import CLProgram
+from pytissueoptics.scene.geometry import Triangle, Vector, Vertex
 
 
-@unittest.skipIf(not OPENCL_OK, 'OpenCL device not available.')
+@unittest.skipIf(not OPENCL_OK, "OpenCL device not available.")
 class TestCLNormalSmoothing(unittest.TestCase):
     def setUp(self):
         sourcePath = os.path.join(OPENCL_SOURCE_DIR, "intersection.c")
@@ -67,14 +76,18 @@ class TestCLNormalSmoothing(unittest.TestCase):
         triangleInfo = TriangleCLInfo([0, 1, 2], self.TRIANGLE.normal)
         triangleCL = TriangleCL([triangleInfo])
         N = 1
-        intersectionCL = IntersectionCL(polygonID=0, position=atPosition, normal=self.TRIANGLE.normal, skipDeclaration=True)
-        rayCL = RayCL(origins=np.full((N, 3), [0, 0, 0]),
-                      directions=np.full((N, 3), rayDirection.array),
-                      lengths=np.full(N, 10))
+        intersectionCL = IntersectionCL(
+            polygonID=0, position=atPosition, normal=self.TRIANGLE.normal, skipDeclaration=True
+        )
+        rayCL = RayCL(
+            origins=np.full((N, 3), [0, 0, 0]), directions=np.full((N, 3), rayDirection.array), lengths=np.full(N, 10)
+        )
 
         try:
-            self.program.launchKernel("setSmoothNormals", N=N, arguments=[intersectionCL, triangleCL, verticesCL, rayCL])
-        except Exception as e:
+            self.program.launchKernel(
+                "setSmoothNormals", N=N, arguments=[intersectionCL, triangleCL, verticesCL, rayCL]
+            )
+        except Exception:
             traceback.print_exc(0)
 
         self.program.getData(intersectionCL)
@@ -82,9 +95,15 @@ class TestCLNormalSmoothing(unittest.TestCase):
         return Vector(smoothNormal["x"], smoothNormal["y"], smoothNormal["z"])
 
     def _addMissingDeclarations(self):
-        self.program._include = ''
-        missingObjects = [MaterialCL([ScatteringMaterial()]), SurfaceCL([]), SeedCL(1),
-                           DataPointCL(1), SolidCandidateCL(1, 1), SolidCL([])]
+        self.program._include = ""
+        missingObjects = [
+            MaterialCL([ScatteringMaterial()]),
+            SurfaceCL([]),
+            SeedCL(1),
+            DataPointCL(1),
+            SolidCandidateCL(1, 1),
+            SolidCL([]),
+        ]
 
         for clObject in missingObjects:
             clObject.make(self.program.device)

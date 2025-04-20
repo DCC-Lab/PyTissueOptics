@@ -1,7 +1,7 @@
 import numpy as np
 
-from pytissueoptics.scene.logger import Logger, InteractionKey
 from pytissueoptics.rayscattering.energyLogging import PointCloud
+from pytissueoptics.scene.logger import InteractionKey, Logger
 
 
 class PointCloudFactory:
@@ -10,8 +10,7 @@ class PointCloudFactory:
 
     def getPointCloud(self, solidLabel: str = None, surfaceLabel: str = None) -> PointCloud:
         if not solidLabel and not surfaceLabel:
-            return PointCloud(self.getPointCloudOfSolids().solidPoints,
-                              self.getPointCloudOfSurfaces().surfacePoints)
+            return PointCloud(self.getPointCloudOfSolids().solidPoints, self.getPointCloudOfSurfaces().surfacePoints)
         points = self._logger.getDataPoints(InteractionKey(solidLabel, surfaceLabel))
         if surfaceLabel:
             return PointCloud(None, points)
@@ -29,7 +28,9 @@ class PointCloudFactory:
 
     def getPointCloudOfSurfaces(self, solidLabel: str = None) -> PointCloud:
         points = []
-        solidLabels = [solidLabel] if solidLabel else [_solidLabel for _solidLabel in self._logger.getStoredSolidLabels()]
+        solidLabels = (
+            [solidLabel] if solidLabel else [_solidLabel for _solidLabel in self._logger.getStoredSolidLabels()]
+        )
         for _solidLabel in solidLabels:
             for surfaceLabel in self._logger.getStoredSurfaceLabels(_solidLabel):
                 points.append(self.getPointCloud(_solidLabel, surfaceLabel).surfacePoints)

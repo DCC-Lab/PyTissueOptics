@@ -18,6 +18,9 @@ class NoSplitThreeAxesConstructor(NoSplitOneAxisConstructor):
         self.result.rightPolygons.extend(self.result.splitPolygons)
         self._trimChildrenBbox()
         stopCondition = self._checkStopCondition()
-        newNodeResult = SplitNodeResult(stopCondition, [self.result.leftBbox, self.result.rightBbox],
-                                        [self.result.leftPolygons, self.result.rightPolygons])
+        newNodeResult = SplitNodeResult(
+            stopCondition,
+            [self.result.leftBbox, self.result.rightBbox],
+            [self.result.leftPolygons, self.result.rightPolygons],
+        )
         return newNodeResult

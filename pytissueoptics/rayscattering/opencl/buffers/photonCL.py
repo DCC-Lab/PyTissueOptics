@@ -1,20 +1,23 @@
+import numpy as np
 from numpy.lib import recfunctions as rfn
 
-from pytissueoptics.rayscattering.opencl.buffers.CLObject import *
+from .CLObject import CLObject, cl
 
 
 class PhotonCL(CLObject):
     STRUCT_NAME = "Photon"
     STRUCT_DTYPE = np.dtype(
-            [("position", cl.cltypes.float3),
-             ("direction", cl.cltypes.float3),
-             ("er", cl.cltypes.float3),
-             ("weight", cl.cltypes.float),
-             ("materialID", cl.cltypes.uint),
-             ("solidID", cl.cltypes.int)])
+        [
+            ("position", cl.cltypes.float3),
+            ("direction", cl.cltypes.float3),
+            ("er", cl.cltypes.float3),
+            ("weight", cl.cltypes.float),
+            ("materialID", cl.cltypes.uint),
+            ("solidID", cl.cltypes.int),
+        ]
+    )
 
-    def __init__(self, positions: np.ndarray, directions: np.ndarray,
-                 materialID: int, solidID: int, weight=1.0):
+    def __init__(self, positions: np.ndarray, directions: np.ndarray, materialID: int, solidID: int, weight=1.0):
         self._positions = positions
         self._directions = directions
         self._N = positions.shape[0]
