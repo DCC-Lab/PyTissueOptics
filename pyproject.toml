@@ -1,5 +1,5 @@
 [build-system]
-requires = ["setuptools>=77.0"]
+requires = ["setuptools>=77.0","setuptools_scm>=7"]
 build-backend = "setuptools.build_meta"
 
 [project.urls]
@@ -7,7 +7,6 @@ GitHub = "https://github.com/DCC-Lab/PyTissueOptics"
 
 [project]
 name = "pytissueoptics"
-version = "2.0.0b1"
 description = "Python module for 3D Monte Carlo Simulation of Light Propagation"
 readme = "README.md"
 authors = [
@@ -18,6 +17,7 @@ authors = [
 license = "MIT"
 license-files = ["LICENSE"]
 requires-python = ">=3.9"
+dynamic = ["version"]
 dependencies = [
   "numpy>=2.0.0",
   "matplotlib",
@@ -45,6 +45,10 @@ packages = ["pytissueoptics"]
 
 [tool.setuptools.package-data]
 "pytissueoptics" = ["rayscattering/opencl/src/*.c", "**/*.obj", "examples/*.py"]
+
+[tool.setuptools_scm]
+version_scheme = "guess-next-dev"
+local_scheme = "node-and-date"
 
 [tool.pytest.ini_options]
 testpaths = ["pytissueoptics"]

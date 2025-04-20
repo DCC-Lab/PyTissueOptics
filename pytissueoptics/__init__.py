@@ -1,4 +1,5 @@
-from .rayscattering import *  # noqa: F403
+from importlib.metadata import version
 from .scene import *  # noqa: F403
+from .rayscattering import *  # noqa: F403
 
-__version__ = "2.0.0b1"
+__version__ = version("pytissueoptics")
