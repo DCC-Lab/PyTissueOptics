@@ -35,7 +35,7 @@ jobs:
         env:
           PTO_CI_MODE: 1
         run: |
-          coverage run -m pytest -v --cov=pytissueoptics --cov-report=xml --cov-report=html
+          pytest -v --cov=pytissueoptics --cov-report=xml --cov-report=html
 
       - name: Upload coverage report
         uses: codecov/codecov-action@v4

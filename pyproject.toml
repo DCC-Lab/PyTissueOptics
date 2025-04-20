@@ -35,8 +35,8 @@ dependencies = [
 [project.optional-dependencies]
 dev = [
   "mockito",
-  "coverage",
   "pytest",
+  "pytest-cov",
   "ruff",
 ]
 
