@@ -23,8 +23,9 @@ class SpacePartition:
     internally for benchmarking purposes.
     """
 
-    def __init__(self, bbox: BoundingBox, polygons: List[Polygon], constructor: TreeConstructor, maxDepth=6,
-                 minLeafSize=2):
+    def __init__(
+        self, bbox: BoundingBox, polygons: List[Polygon], constructor: TreeConstructor, maxDepth=6, minLeafSize=2
+    ):
         self._maxDepth = maxDepth
         self._minLeafSize = minLeafSize
         self._polygons = polygons

@@ -35,16 +35,19 @@ from pytissueoptics.scene.tree.treeConstructor.binary.noSplitThreeAxesConstructo
 from pytissueoptics.scene.tree.treeConstructor.binary.splitTreeAxesConstructor import SplitThreeAxesConstructor
 from pytissueoptics.scene.viewer import MayaviViewer
 
-pandas.set_option('display.max_columns', 20)
-pandas.set_option('display.width', 1200)
+pandas.set_option("display.max_columns", 20)
+pandas.set_option("display.width", 1200)
 
 
 class IntersectionFinderBenchmark:
     def __init__(self, rayAmount=10000, maxDepth=100, minLeafSize=0, factor=10, constructors=None, displayViewer=False):
         self.scenes = self._getScenes()
         if constructors is None:
-            self.constructors = [NoSplitOneAxisConstructor(), NoSplitThreeAxesConstructor(),
-                                 SplitThreeAxesConstructor()]
+            self.constructors = [
+                NoSplitOneAxisConstructor(),
+                NoSplitThreeAxesConstructor(),
+                SplitThreeAxesConstructor(),
+            ]
         else:
             self.constructors = constructors
         self.rayAmount = rayAmount
@@ -56,8 +59,21 @@ class IntersectionFinderBenchmark:
         self.simpleTraversalTime = []
         self.count = 0
         self.stats = pandas.DataFrame(
-            columns=["scene", "polygon count", "finder polycount", "algo name", "build time", "fast time", "total time",
-                     "node count", "leaf count", "avg leaf depth", "avg leaf size", "improvement"])
+            columns=[
+                "scene",
+                "polygon count",
+                "finder polycount",
+                "algo name",
+                "build time",
+                "fast time",
+                "total time",
+                "node count",
+                "leaf count",
+                "avg leaf depth",
+                "avg leaf size",
+                "improvement",
+            ]
+        )
 
     @staticmethod
     def _getScenes():
@@ -74,8 +90,9 @@ class IntersectionFinderBenchmark:
         scene4 = DiagonallyAlignedSpheres()
         return [scene00, scene01, scene02, scene03, scene04, scene05, scene06, scene1, scene2, scene3, scene4]
 
-    def runValidation(self, resolution: int = 100, constructors: List[TreeConstructor] = None,
-                      displayFailed: bool = True):
+    def runValidation(
+        self, resolution: int = 100, constructors: List[TreeConstructor] = None, displayFailed: bool = True
+    ):
         print(f"{('=' * 125):^125}")
         print(
             f"{str('name'):^20}"
@@ -86,18 +103,29 @@ class IntersectionFinderBenchmark:
             f" - {str('leaves'):^10}"
             f" - {str('depth'):^10}"
             f" - {str('missed'):^10}"
-            f" - {str('validated'):^10}")
+            f" - {str('validated'):^10}"
+        )
         print(f"{('=' * 125):^125}")
         if constructors is not None:
             self.constructors = constructors
 
-        source = UniformRaySource(position=Vector(0, 4, 0), direction=Vector(0, 0, -1), xTheta=360, yTheta=90,
-                                  xResolution=int(5.12 * resolution), yResolution=int(2.56 * resolution))
+        source = UniformRaySource(
+            position=Vector(0, 4, 0),
+            direction=Vector(0, 0, -1),
+            xTheta=360,
+            yTheta=90,
+            xResolution=int(5.12 * resolution),
+            yResolution=int(2.56 * resolution),
+        )
         referenceMissedRays = self._runValidationReference(source, display=displayFailed)
         for constructor in self.constructors:
             self._runValidationForConstructor(constructor, referenceMissedRays, source, display=displayFailed)
 
-    def _runValidationReference(self, source: RaySource, display: bool = True, ):
+    def _runValidationReference(
+        self,
+        source: RaySource,
+        display: bool = True,
+    ):
         logger = Logger()
         scene = self.scenes[7]
         intersectionFinder = SimpleIntersectionFinder(scene)
@@ -122,20 +150,23 @@ class IntersectionFinderBenchmark:
             f" - {str(' '):^10}"
             f" - {str(' '):^10}"
             f" - {missedRays:^10}"
-            f" - {str('REFERENCE'):^10}")
+            f" - {str('REFERENCE'):^10}"
+        )
         if display:
             viewer = MayaviViewer()
             viewer.addLogger(logger)
             viewer.show()
         return missedRays
 
-    def _runValidationForConstructor(self, constructor: TreeConstructor, referenceMissed: int, source: RaySource,
-                                     display: bool = True):
+    def _runValidationForConstructor(
+        self, constructor: TreeConstructor, referenceMissed: int, source: RaySource, display: bool = True
+    ):
         logger = Logger()
         scene = self.scenes[7]
         t0 = time.time()
-        intersectionFinder = FastIntersectionFinder(scene, constructor=constructor, maxDepth=self.maxDepth,
-                                                    minLeafSize=self.minLeafSize)
+        intersectionFinder = FastIntersectionFinder(
+            scene, constructor=constructor, maxDepth=self.maxDepth, minLeafSize=self.minLeafSize
+        )
         t1 = time.time()
         constructionTime = t1 - t0
 
@@ -158,9 +189,8 @@ class IntersectionFinderBenchmark:
             f" - {len(partition.getLeafPolygons()):^10}"
             f" - {partition.getNodeCount():^10}"
             f" - {partition.getLeafCount():^10}",
-            f" - {partition.getAverageDepth():^10.2f}"
-            f" - {missedRays:^10}"
-            f" - {missedRays == referenceMissed:^10}")
+            f" - {partition.getAverageDepth():^10.2f} - {missedRays:^10} - {missedRays == referenceMissed:^10}",
+        )
         if display and missedRays != referenceMissed:
             viewer = MayaviViewer()
             viewer.addLogger(logger)
@@ -182,8 +212,9 @@ class IntersectionFinderBenchmark:
 
     def runReferenceBenchmarkForScene(self, scene: Scene):
         self.count += 1
-        source = RandomPositionAndOrientationRaySource(int(self.rayAmount / self.factor),
-                                                       scene.getBoundingBox().xyzLimits, position=Vector(0, 0, 0))
+        source = RandomPositionAndOrientationRaySource(
+            int(self.rayAmount / self.factor), scene.getBoundingBox().xyzLimits, position=Vector(0, 0, 0)
+        )
         intersectionFinder = SimpleIntersectionFinder(scene)
         startTime = time.time()
         for ray in source.rays:
@@ -194,16 +225,19 @@ class IntersectionFinderBenchmark:
         print(
             f"{(self.count * 100) / (len(self.scenes) * (len(self.constructors) + 1)):.2f}% - {intersectionFinder.__class__.__name__:^12.15s}"
             f" - {traversalTime * self.factor:.2f}s"
-            f" - Improvement 1.00x")
+            f" - Improvement 1.00x"
+        )
         self._saveSimpleStats(scene, intersectionFinder, traversalTime * self.factor)
 
     def runBenchmarkForSceneWithConstructor(self, scene: Scene, constructor: TreeConstructor):
-        source = RandomPositionAndOrientationRaySource(self.rayAmount, scene.getBoundingBox().xyzLimits,
-                                                       position=Vector(0,0,0))
+        source = RandomPositionAndOrientationRaySource(
+            self.rayAmount, scene.getBoundingBox().xyzLimits, position=Vector(0, 0, 0)
+        )
         self.runBenchmarkForSceneWithConstructorAndSource(scene, constructor, source)
 
-    def runBenchmarkForSceneWithConstructorAndSource(self, scene: Scene, constructor: TreeConstructor,
-                                                     source: RaySource):
+    def runBenchmarkForSceneWithConstructorAndSource(
+        self, scene: Scene, constructor: TreeConstructor, source: RaySource
+    ):
         self.count += 1
         startTime = time.time()
         intersectionFinder = FastIntersectionFinder(scene, constructor, self.maxDepth, self.minLeafSize)
@@ -217,43 +251,52 @@ class IntersectionFinderBenchmark:
         print(
             f"{(self.count * 100) / (len(self.scenes) * (len(self.constructors) + 1)):.2f}% - {constructor.__class__.__name__:^12.15s}"
             f" - {traversalTime:.2f}s"
-            f" - Improvement {((self.simpleTraversalTime[-1]) / traversalTime):.2f}x")
+            f" - Improvement {((self.simpleTraversalTime[-1]) / traversalTime):.2f}x"
+        )
         self._saveFastStats(scene, intersectionFinder, traversalTime, buildTime)
 
     def _saveSimpleStats(self, scene: Scene, intersectionFinder: SimpleIntersectionFinder, traversalTime: float):
-        self.stats.loc[self.stats.shape[0]] = [f"{scene.__class__.__name__}", f"{len(scene.getPolygons()):^12}",
-                                               "-",
-                                               f"{intersectionFinder.__class__.__name__:^12.15s}",
-                                               "-",
-                                               f"{traversalTime:^12.2f}",
-                                               f"{traversalTime:^12.2f}",
-                                               "-",
-                                               "-",
-                                               "-",
-                                               "-",
-                                               "-"]
+        self.stats.loc[self.stats.shape[0]] = [
+            f"{scene.__class__.__name__}",
+            f"{len(scene.getPolygons()):^12}",
+            "-",
+            f"{intersectionFinder.__class__.__name__:^12.15s}",
+            "-",
+            f"{traversalTime:^12.2f}",
+            f"{traversalTime:^12.2f}",
+            "-",
+            "-",
+            "-",
+            "-",
+            "-",
+        ]
 
-    def _saveFastStats(self, scene: Scene, intersectionFinder: FastIntersectionFinder, traversalTime: float,
-                       buildTime: float):
+    def _saveFastStats(
+        self, scene: Scene, intersectionFinder: FastIntersectionFinder, traversalTime: float, buildTime: float
+    ):
         partition = intersectionFinder._partition
         self.partitions[-1].append(partition)
-        self.stats.loc[self.stats.shape[0]] = [f"{scene.__class__.__name__}", f"{len(scene.getPolygons()):^12}",
-                                               f"{len(partition.getLeafPolygons()):^12}",
-                                               f"{partition._constructor.__class__.__name__:^12.15s}",
-                                               f"{buildTime:^12.2f}",
-                                               f"{traversalTime:^12.2f}",
-                                               f"{buildTime + traversalTime:^12.2f}",
-                                               f"{partition.getNodeCount():^12}",
-                                               f"{partition.getLeafCount():^12}",
-                                               f"{partition.getAverageDepth():^12.2f}",
-                                               f"{partition.getAverageLeafSize():^12.2f}",
-                                               f"{((self.simpleTraversalTime[-1]) / traversalTime):.1f}"]
+        self.stats.loc[self.stats.shape[0]] = [
+            f"{scene.__class__.__name__}",
+            f"{len(scene.getPolygons()):^12}",
+            f"{len(partition.getLeafPolygons()):^12}",
+            f"{partition._constructor.__class__.__name__:^12.15s}",
+            f"{buildTime:^12.2f}",
+            f"{traversalTime:^12.2f}",
+            f"{buildTime + traversalTime:^12.2f}",
+            f"{partition.getNodeCount():^12}",
+            f"{partition.getLeafCount():^12}",
+            f"{partition.getAverageDepth():^12.2f}",
+            f"{partition.getAverageLeafSize():^12.2f}",
+            f"{((self.simpleTraversalTime[-1]) / traversalTime):.1f}",
+        ]
 
     def displayStats(self):
         print(self.stats)
 
-    def displayBenchmarkTreeResults(self, objectsDisplay: bool = True, scenes: List[Scene] = None,
-                                    objectsOpacity: float = 0.5):
+    def displayBenchmarkTreeResults(
+        self, objectsDisplay: bool = True, scenes: List[Scene] = None, objectsOpacity: float = 0.5
+    ):
         viewer = MayaviViewer()
         if scenes is None:
             scenes = self.scenes
@@ -261,8 +304,7 @@ class IntersectionFinderBenchmark:
             for partition in self.partitions[j]:
                 bBoxes = self._getCuboidsFromBBoxes(partition.getLeafBoundingBoxes())
                 if objectsDisplay:
-                    viewer.add(*scene.getSolids(), representation="surface", lineWidth=0.05,
-                               opacity=objectsOpacity)
+                    viewer.add(*scene.getSolids(), representation="surface", lineWidth=0.05, opacity=objectsOpacity)
                 viewer.add(*bBoxes, representation="wireframe", lineWidth=3, color=(1, 0, 0), opacity=0.7)
                 viewer.show()
                 viewer.clear()
@@ -305,10 +347,15 @@ class RandomPositionAndOrientationRaySource(RaySource):
         direction_ys = np.random.uniform(-1, 1, self._amount)
         direction_zs = np.random.uniform(-1, 1, self._amount)
         for i in range(self._amount):
-            self._rays.append(Ray(Vector(origin_xs[i], origin_ys[i], origin_zs[i]), Vector(direction_xs[i], direction_ys[i], direction_zs[i])))
+            self._rays.append(
+                Ray(
+                    Vector(origin_xs[i], origin_ys[i], origin_zs[i]),
+                    Vector(direction_xs[i], direction_ys[i], direction_zs[i]),
+                )
+            )
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     benchmark = IntersectionFinderBenchmark(rayAmount=10, maxDepth=25, minLeafSize=6, factor=10)
     benchmark.constructors = [NoSplitThreeAxesConstructor()]
     # benchmark.runBenchmark()

@@ -9,7 +9,7 @@ from pytissueoptics.scene.geometry import Environment
 from pytissueoptics.scene.logger import InteractionKey
 
 
-@unittest.skipIf(not OPENCL_OK, 'OpenCL device not available.')
+@unittest.skipIf(not OPENCL_OK, "OpenCL device not available.")
 class TestCLPhotons(unittest.TestCase):
     def testWhenPropagateWithoutContext_shouldNotPropagate(self):
         positions = np.array([[0, 0, 0], [0, 0, 0]])

@@ -11,10 +11,16 @@ class TestCone(unittest.TestCase):
         midRadius = r * 0.5
         f = 0.9
         cylinder = Cone(radius=r, length=h, u=32, v=2, position=Vector(0, 0, 0))
-        
-        vertices = [Vertex(f*midRadius, 0, 0), Vertex(0, f*midRadius, 0), Vertex(-f*midRadius, 0, 0), Vertex(0, -f*midRadius, 0), 
-                    Vertex(0, 0, f*h*0.5), Vertex(0, 0, -f*h*0.5)]
-        
+
+        vertices = [
+            Vertex(f * midRadius, 0, 0),
+            Vertex(0, f * midRadius, 0),
+            Vertex(-f * midRadius, 0, 0),
+            Vertex(0, -f * midRadius, 0),
+            Vertex(0, 0, f * h * 0.5),
+            Vertex(0, 0, -f * h * 0.5),
+        ]
+
         self.assertTrue(cylinder.contains(*vertices))
 
     def testWhenContainsWithVerticesThatAreNotInsideTheCone_shouldReturnFalse(self):
@@ -23,10 +29,16 @@ class TestCone(unittest.TestCase):
         midRadius = r * 0.5
         f = 1.1
         cylinder = Cone(radius=r, length=h, u=32, v=2, position=Vector(0, 0, 0))
-        
-        vertices = [Vertex(f*midRadius, 0, 0), Vertex(0, f*midRadius, 0), Vertex(-f*midRadius, 0, 0), Vertex(0, -f*midRadius, 0), 
-                    Vertex(0, 0, f*h*0.5), Vertex(0, 0, -f*h*0.5)]
-        
+
+        vertices = [
+            Vertex(f * midRadius, 0, 0),
+            Vertex(0, f * midRadius, 0),
+            Vertex(-f * midRadius, 0, 0),
+            Vertex(0, -f * midRadius, 0),
+            Vertex(0, 0, f * h * 0.5),
+            Vertex(0, 0, -f * h * 0.5),
+        ]
+
         for vertex in vertices:
             self.assertFalse(cylinder.contains(vertex))
 

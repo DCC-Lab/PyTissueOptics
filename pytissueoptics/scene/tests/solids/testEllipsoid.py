@@ -59,7 +59,7 @@ class TestEllipsoid(unittest.TestCase):
         a = ellipsoid._a
         b = ellipsoid._b
         c = ellipsoid._c
-        return 4 * math.pi * ((a ** p * b ** p + a ** p * c ** p + b ** p * c ** p) / 3) ** (1 / p)
+        return 4 * math.pi * ((a**p * b**p + a**p * c**p + b**p * c**p) / 3) ** (1 / p)
 
     def testWhenContainsWithVerticesThatAreAllInsideTheEllipsoid_shouldReturnTrue(self):
         ellipsoid = Ellipsoid(3, 1, 1, position=Vector(2, 2, 0))
@@ -75,7 +75,7 @@ class TestEllipsoid(unittest.TestCase):
         self.assertFalse(ellipsoid.contains(*vertices))
 
     def testWhenContainsWithVertexCloseToCenter_shouldReturnTrue(self):
-        """ Testing a special case that used to fail because relative vertex radius is smaller than 1."""
+        """Testing a special case that used to fail because relative vertex radius is smaller than 1."""
         ellipsoid = Ellipsoid(1, 1, 1)
         self.assertTrue(ellipsoid.contains(Vertex(0, 0, 0.2)))
 

@@ -11,7 +11,7 @@ class OBJParser(Parser):
         super().__init__(filepath, showProgress)
 
     def _checkFileExtension(self):
-        if self._filepath.endswith('.obj'):
+        if self._filepath.endswith(".obj"):
             return
         else:
             raise TypeError
@@ -25,24 +25,30 @@ class OBJParser(Parser):
         - Groups start with 'g'
         - New objects will start with 'o'
         """
-        self._PARSE_MAP = {'v': self._parseVertices,
-                           'vt': self._parseTexCoords,
-                           'vn': self._parseNormals,
-                           'usemtl': self._parseMaterial,
-                           'usemat': self._parseMaterial,
-                           'f': self._parseFace,
-                           'g': self._parseGroup,
-                           'o': self._parseObject}
+        self._PARSE_MAP = {
+            "v": self._parseVertices,
+            "vt": self._parseTexCoords,
+            "vn": self._parseNormals,
+            "usemtl": self._parseMaterial,
+            "usemat": self._parseMaterial,
+            "f": self._parseFace,
+            "g": self._parseGroup,
+            "o": self._parseObject,
+        }
 
         with open(self._filepath, "r") as file:
-            lines = [line.strip('\n') for line in file.readlines() if line != "\n"]
+            lines = [line.strip("\n") for line in file.readlines() if line != "\n"]
 
-        for i in progressBar(range(len(lines)), desc="Parsing File '{}'".format(self._filepath.split('/')[-1]),
-                             unit=" lines", disable=not showProgress):
+        for i in progressBar(
+            range(len(lines)),
+            desc="Parsing File '{}'".format(self._filepath.split("/")[-1]),
+            unit=" lines",
+            disable=not showProgress,
+        ):
             self._parseLine(lines[i])
 
     def _parseLine(self, line: str):
-        if line.startswith('#'):
+        if line.startswith("#"):
             return
 
         values = line.split()
@@ -76,7 +82,7 @@ class OBJParser(Parser):
         normalIndices = []
 
         for verticesIndices in values[1:]:
-            vertexIndices = verticesIndices.split('/')
+            vertexIndices = verticesIndices.split("/")
             faceIndices.append(int(vertexIndices[0]) - 1)
 
             if len(vertexIndices) >= 2 and len(vertexIndices[1]) > 0:
@@ -110,16 +116,16 @@ class OBJParser(Parser):
             self._currentSurfaceLabel = self.NO_SURFACE
         self._checkForNoObject()
         self._validateSurfaceLabel()
-        self._objects[self._currentObjectName].surfaces[self._currentSurfaceLabel] = ParsedSurface(polygons=[],
-                                                                                                   normals=[],
-                                                                                                   texCoords=[])
+        self._objects[self._currentObjectName].surfaces[self._currentSurfaceLabel] = ParsedSurface(
+            polygons=[], normals=[], texCoords=[]
+        )
 
     def _checkForNoObject(self):
         if len(self._objects) == 0 and self._currentObjectName == self.NO_OBJECT:
-            self._objects = {
-                self.NO_OBJECT: ParsedObject(material="", surfaces={})}
+            self._objects = {self.NO_OBJECT: ParsedObject(material="", surfaces={})}
 
     def _checkForNoSurface(self):
         if len(self._objects[self._currentObjectName].surfaces) == 0 and self._currentSurfaceLabel == self.NO_SURFACE:
-            self._objects[self._currentObjectName].surfaces[self.NO_SURFACE] = ParsedSurface(polygons=[], normals=[],
-                                                                                             texCoords=[])
+            self._objects[self._currentObjectName].surfaces[self.NO_SURFACE] = ParsedSurface(
+                polygons=[], normals=[], texCoords=[]
+            )

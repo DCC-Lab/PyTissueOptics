@@ -14,7 +14,7 @@ class Direction(Enum):
 
     @property
     def axis(self) -> int:
-        """ Returns an integer between 0 and 2 representing the x, y, or z axis, ignoring direction sign. """
+        """Returns an integer between 0 and 2 representing the x, y, or z axis, ignoring direction sign."""
         return self.value % 3
 
     @property

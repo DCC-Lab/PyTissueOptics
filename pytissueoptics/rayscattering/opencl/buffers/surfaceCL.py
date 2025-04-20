@@ -4,22 +4,33 @@ import numpy as np
 
 from .CLObject import CLObject, cl
 
-SurfaceCLInfo = NamedTuple("SurfaceInfo", [("firstPolygonID", int), ("lastPolygonID", int),
-                                           ("insideMaterialID", int), ("outsideMaterialID", int),
-                                           ("insideSolidID", int), ("outsideSolidID", int),
-                                           ("toSmooth", bool)])
+SurfaceCLInfo = NamedTuple(
+    "SurfaceInfo",
+    [
+        ("firstPolygonID", int),
+        ("lastPolygonID", int),
+        ("insideMaterialID", int),
+        ("outsideMaterialID", int),
+        ("insideSolidID", int),
+        ("outsideSolidID", int),
+        ("toSmooth", bool),
+    ],
+)
 
 
 class SurfaceCL(CLObject):
     STRUCT_NAME = "Surface"
     STRUCT_DTYPE = np.dtype(
-            [("firstPolygonID", cl.cltypes.uint),
-             ("lastPolygonID", cl.cltypes.uint),
-             ("insideMaterialID", cl.cltypes.uint),
-             ("outsideMaterialID", cl.cltypes.uint),
-             ("insideSolidID", cl.cltypes.int),
-             ("outsideSolidID", cl.cltypes.int),
-             ("toSmooth", cl.cltypes.uint)])
+        [
+            ("firstPolygonID", cl.cltypes.uint),
+            ("lastPolygonID", cl.cltypes.uint),
+            ("insideMaterialID", cl.cltypes.uint),
+            ("outsideMaterialID", cl.cltypes.uint),
+            ("insideSolidID", cl.cltypes.int),
+            ("outsideSolidID", cl.cltypes.int),
+            ("toSmooth", cl.cltypes.uint),
+        ]
+    )
 
     def __init__(self, surfacesInfo: List[SurfaceCLInfo]):
         self._surfacesInfo = surfacesInfo

@@ -10,13 +10,14 @@ class TestPolygon(unittest.TestCase):
 
     def testGivenANewPolygonWithNormal_shouldUseProvidedNormalWithoutNormalizing(self):
         forcedNormal = Vector(7, 5, 3)
-        polygon = Polygon(vertices=[Vertex(0, 0, 0), Vertex(2, 0, 0), Vertex(2, 2, 0), Vertex(1, 1, 0)],
-                          normal=forcedNormal)
+        polygon = Polygon(
+            vertices=[Vertex(0, 0, 0), Vertex(2, 0, 0), Vertex(2, 2, 0), Vertex(1, 1, 0)], normal=forcedNormal
+        )
         self.assertEqual(forcedNormal, polygon.normal)
 
     def testGivenANewPolygon_shouldDefineItsCentroid(self):
         polygon = Polygon(vertices=[Vertex(0, 0, 1), Vertex(2, 0, 0), Vertex(2, 2, 0), Vertex(1, 1, 0)])
-        self.assertEqual(Vector(5/4, 3/4, 1/4), polygon.centroid)
+        self.assertEqual(Vector(5 / 4, 3 / 4, 1 / 4), polygon.centroid)
 
     def testGivenANewPolygon_whenModifyingVertexAndResetBoundingBox_shouldChangeBbox(self):
         triangle = Polygon(vertices=[Vertex(0, 0, 0), Vertex(2, 0, 0), Vertex(2, 2, 0), Vertex(1, 4, 2)])

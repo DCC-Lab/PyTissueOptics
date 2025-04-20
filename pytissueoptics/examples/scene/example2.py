@@ -26,4 +26,4 @@ def exampleCode():
 
 
 if __name__ == "__main__":
-    exampleCode() 
+    exampleCode()

@@ -39,8 +39,10 @@ class TestBoundingBox(unittest.TestCase):
         self.assertEqual(bbox.zLim, [0, 3.001])
 
     def testGivenNewBBoxFromPolygons_shouldDefineBoundingBoxAroundPolygons(self):
-        polygons = [Polygon(vertices=[Vertex(0, 0, 0), Vertex(1, 2, 1), Vertex(1, -1, 1)]),
-                    Polygon(vertices=[Vertex(0, 0, 0), Vertex(-1, -1, -1), Vertex(-2, -2, -3)])]
+        polygons = [
+            Polygon(vertices=[Vertex(0, 0, 0), Vertex(1, 2, 1), Vertex(1, -1, 1)]),
+            Polygon(vertices=[Vertex(0, 0, 0), Vertex(-1, -1, -1), Vertex(-2, -2, -3)]),
+        ]
         bbox = BoundingBox.fromPolygons(polygons)
 
         self.assertEqual(bbox.xLim, [-2, 1])

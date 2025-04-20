@@ -18,23 +18,34 @@ from pytissueoptics.scene.solids import Solid
 
 class TestSolid(unittest.TestCase):
     def setUp(self):
-        self.CUBOID_VERTICES = [Vertex(-1, -1, -1), Vertex(1, -1, -1),
-                                Vertex(1, 1, -1), Vertex(-1, 1, -1),
-                                Vertex(-1, -1, 1), Vertex(1, -1, 1),
-                                Vertex(1, 1, 1), Vertex(-1, 1, 1)]
+        self.CUBOID_VERTICES = [
+            Vertex(-1, -1, -1),
+            Vertex(1, -1, -1),
+            Vertex(1, 1, -1),
+            Vertex(-1, 1, -1),
+            Vertex(-1, -1, 1),
+            Vertex(1, -1, 1),
+            Vertex(1, 1, 1),
+            Vertex(-1, 1, 1),
+        ]
         V = self.CUBOID_VERTICES
         self.CUBOID_SURFACES = SurfaceCollection()
-        self.CUBOID_SURFACES.add('front', [Quad(V[0], V[1], V[2], V[3])])
-        self.CUBOID_SURFACES.add('back', [Quad(V[5], V[4], V[7], V[6])])
-        self.CUBOID_SURFACES.add('left', [Quad(V[4], V[0], V[3], V[7])])
-        self.CUBOID_SURFACES.add('right', [Quad(V[1], V[5], V[6], V[2])])
-        self.CUBOID_SURFACES.add('top', [Quad(V[3], V[2], V[6], V[7])])
-        self.CUBOID_SURFACES.add('bottom', [Quad(V[4], V[5], V[1], V[0])])
+        self.CUBOID_SURFACES.add("front", [Quad(V[0], V[1], V[2], V[3])])
+        self.CUBOID_SURFACES.add("back", [Quad(V[5], V[4], V[7], V[6])])
+        self.CUBOID_SURFACES.add("left", [Quad(V[4], V[0], V[3], V[7])])
+        self.CUBOID_SURFACES.add("right", [Quad(V[1], V[5], V[6], V[2])])
+        self.CUBOID_SURFACES.add("top", [Quad(V[3], V[2], V[6], V[7])])
+        self.CUBOID_SURFACES.add("bottom", [Quad(V[4], V[5], V[1], V[0])])
 
         self.material = "A Material"
         self.position = Vector(2, 2, 0)
-        self.solid = Solid(position=self.position, material=self.material, vertices=self.CUBOID_VERTICES,
-                           surfaces=self.CUBOID_SURFACES, primitive=primitives.TRIANGLE)
+        self.solid = Solid(
+            position=self.position,
+            material=self.material,
+            vertices=self.CUBOID_VERTICES,
+            surfaces=self.CUBOID_SURFACES,
+            primitive=primitives.TRIANGLE,
+        )
 
     def testShouldBeAtDesiredPosition(self):
         self.assertEqual(self.position, self.solid.position)
@@ -92,9 +103,14 @@ class TestSolid(unittest.TestCase):
 
     def testWhenRotateOrOrient_shouldRotateItsPolygons(self):
         polygon = self.createPolygonMock()
-        self.CUBOID_SURFACES.setPolygons('front', [polygon])
-        solid = Solid(position=self.position, material=self.material, vertices=self.CUBOID_VERTICES,
-                      surfaces=self.CUBOID_SURFACES, primitive=primitives.TRIANGLE)
+        self.CUBOID_SURFACES.setPolygons("front", [polygon])
+        solid = Solid(
+            position=self.position,
+            material=self.material,
+            vertices=self.CUBOID_VERTICES,
+            surfaces=self.CUBOID_SURFACES,
+            primitive=primitives.TRIANGLE,
+        )
 
         solid.rotate(xTheta=90, yTheta=90, zTheta=90)
         verify(polygon, times=1).resetNormal()
@@ -104,9 +120,14 @@ class TestSolid(unittest.TestCase):
 
     def testWhenRotateOrOrient_shouldRotateBBoxOfSolidAndPolygons(self):
         polygon = self.createPolygonMock()
-        self.CUBOID_SURFACES.setPolygons('front', [polygon])
-        solid = Solid(position=self.position, material=self.material, vertices=self.CUBOID_VERTICES,
-                      surfaces=self.CUBOID_SURFACES, primitive=primitives.TRIANGLE)
+        self.CUBOID_SURFACES.setPolygons("front", [polygon])
+        solid = Solid(
+            position=self.position,
+            material=self.material,
+            vertices=self.CUBOID_VERTICES,
+            surfaces=self.CUBOID_SURFACES,
+            primitive=primitives.TRIANGLE,
+        )
         oldBbox = solid.bbox
 
         solid.rotate(xTheta=90, yTheta=90, zTheta=90)
@@ -153,9 +174,14 @@ class TestSolid(unittest.TestCase):
 
     def testWhenTranslate_shouldTranslateBBoxOfSolidAndPolygons(self):
         polygon = self.createPolygonMock()
-        self.CUBOID_SURFACES.setPolygons('front', [polygon])
-        solid = Solid(position=self.position, material=self.material, vertices=self.CUBOID_VERTICES,
-                      surfaces=self.CUBOID_SURFACES, primitive=primitives.TRIANGLE)
+        self.CUBOID_SURFACES.setPolygons("front", [polygon])
+        solid = Solid(
+            position=self.position,
+            material=self.material,
+            vertices=self.CUBOID_VERTICES,
+            surfaces=self.CUBOID_SURFACES,
+            primitive=primitives.TRIANGLE,
+        )
         oldBbox = solid.bbox
 
         solid.translateTo(Vector(1, -1, -1))
@@ -175,9 +201,9 @@ class TestSolid(unittest.TestCase):
         self.solid.smooth()
 
         frontVertex = self.solid.vertices[0]
-        self.assertAlmostEqual(1/math.sqrt(3), frontVertex.normal.x)
-        self.assertAlmostEqual(1/math.sqrt(3), frontVertex.normal.y)
-        self.assertAlmostEqual(1/math.sqrt(3), frontVertex.normal.z)
+        self.assertAlmostEqual(1 / math.sqrt(3), frontVertex.normal.x)
+        self.assertAlmostEqual(1 / math.sqrt(3), frontVertex.normal.y)
+        self.assertAlmostEqual(1 / math.sqrt(3), frontVertex.normal.z)
 
     def testWhenSmoothWithSurfaceLabel_shouldOnlySmoothPolygonsFromThisSurface(self):
         self.solid.smooth("front")
@@ -194,8 +220,13 @@ class TestSolid(unittest.TestCase):
 
     def _testGivenNoSurfaces_whenCreateSolidWithAnyPrimitive_shouldRaiseException(self, anyPrimitive):
         with self.assertRaises(NotImplementedError):
-            Solid(position=self.position, material=self.material, vertices=self.CUBOID_VERTICES,
-                  surfaces=None, primitive=anyPrimitive)
+            Solid(
+                position=self.position,
+                material=self.material,
+                vertices=self.CUBOID_VERTICES,
+                surfaces=None,
+                primitive=anyPrimitive,
+            )
 
     def testGivenNoSurfaces_whenCreateSolidWithTrianglePrimitive_shouldRaiseException(self):
         self._testGivenNoSurfaces_whenCreateSolidWithAnyPrimitive_shouldRaiseException(primitives.TRIANGLE)
@@ -215,9 +246,13 @@ class TestSolid(unittest.TestCase):
     def testWhenCheckIfContainsAVertexPartiallyInside_shouldWarnAndReturnFalse(self):
         otherVertices = [Vertex(1, 1, -0.5), Vertex(3, 1, -0.5), Vertex(3, 3, -0.5), Vertex(1, 3, -0.5)]
         self.CUBOID_VERTICES.extend(otherVertices)
-        self.CUBOID_SURFACES.add('other', [Quad(*otherVertices)])
-        self.solid = Solid(material=self.material, vertices=self.CUBOID_VERTICES,
-                           surfaces=self.CUBOID_SURFACES, primitive=primitives.TRIANGLE)
+        self.CUBOID_SURFACES.add("other", [Quad(*otherVertices)])
+        self.solid = Solid(
+            material=self.material,
+            vertices=self.CUBOID_VERTICES,
+            surfaces=self.CUBOID_SURFACES,
+            primitive=primitives.TRIANGLE,
+        )
 
         with self.assertWarns(RuntimeWarning):
             self.assertFalse(self.solid.contains(Vertex(2, 2, -0.75)))

@@ -2,6 +2,7 @@ class BatchTiming:
     """
     Used to record and display the progress of a batched photon propagation.
     """
+
     def __init__(self, totalPhotons: int):
         self._photonCount = 0
         self._totalPhotons = totalPhotons
@@ -22,12 +23,19 @@ class BatchTiming:
 
         self._printHeader()
 
-    def recordBatch(self, photonCount: int, propagationTime: float, dataTransferTime: float, dataConversionTime: float, totalTime: float):
+    def recordBatch(
+        self,
+        photonCount: int,
+        propagationTime: float,
+        dataTransferTime: float,
+        dataConversionTime: float,
+        totalTime: float,
+    ):
         """
         Photon count is the number of photons that were propagated in the batch. The other times are in nanoseconds.
         Propagation time is the time it took to run the propagation kernel. Data transfer time is the time it took to
-        transfer the raw 3D data from the GPU. Data conversion time is the time it took to sort and convert the 
-        interactions IDs into proper InteractionKey points. 
+        transfer the raw 3D data from the GPU. Data conversion time is the time it took to sort and convert the
+        interactions IDs into proper InteractionKey points.
         """
         self._photonCount += photonCount
         self._propagationTime += propagationTime
@@ -57,14 +65,21 @@ class BatchTiming:
         timeElapsedString = f"{timeElapsed:.2f} s"
         timeLeftString = f"{timeLeft:.2f} s"
 
-        formatted_values = [f" {value} ".center(width) for value, width in
-                            zip([self._batchCount, progressString, speedString, timeElapsedString, timeLeftString], self._columnWidths)]
+        formatted_values = [
+            f" {value} ".center(width)
+            for value, width in zip(
+                [self._batchCount, progressString, speedString, timeElapsedString, timeLeftString], self._columnWidths
+            )
+        ]
         print(":: ".join(formatted_values))
 
     def _printFooter(self):
         print("\nComputation splits:")
-        splits = {"Propagation": self._propagationTime, "Data transfer": self._dataTransferTime,
-                  "Data conversion": self._dataConversionTime}
+        splits = {
+            "Propagation": self._propagationTime,
+            "Data transfer": self._dataTransferTime,
+            "Data conversion": self._dataConversionTime,
+        }
         for key, value in splits.items():
             print(f"\t{key}: {value / self._totalTime * 100:.1f}%")
         print("".join(["=" * self._width]) + "\n")

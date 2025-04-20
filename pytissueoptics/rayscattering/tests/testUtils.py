@@ -21,17 +21,17 @@ class TestLogNorm(unittest.TestCase):
 
 class TestLabelsEqual(unittest.TestCase):
     def testGivenEqualLabels_shouldReturnTrue(self):
-        self.assertTrue(labelsEqual('a', 'a'))
+        self.assertTrue(labelsEqual("a", "a"))
 
     def testGivenDifferentLabels_shouldReturnFalse(self):
-        self.assertFalse(labelsEqual('a', 'b'))
+        self.assertFalse(labelsEqual("a", "b"))
 
     def testGivenDifferentCaseLabels_shouldReturnTrue(self):
-        self.assertTrue(labelsEqual('a', 'A'))
+        self.assertTrue(labelsEqual("a", "A"))
 
     def testGivenOneLabelNone_shouldReturnFalse(self):
-        self.assertFalse(labelsEqual('a', None))
-        self.assertFalse(labelsEqual(None, 'a'))
+        self.assertFalse(labelsEqual("a", None))
+        self.assertFalse(labelsEqual(None, "a"))
 
     def testGivenBothLabelsNone_shouldReturnTrue(self):
         self.assertTrue(labelsEqual(None, None))
@@ -39,13 +39,13 @@ class TestLabelsEqual(unittest.TestCase):
 
 class TestLabelContained(unittest.TestCase):
     def testGivenLabelContained_shouldReturnTrue(self):
-        self.assertTrue(labelContained('a', ['a', 'b', 'c']))
+        self.assertTrue(labelContained("a", ["a", "b", "c"]))
 
     def testGivenLabelContainedDifferentCase_shouldReturnTrue(self):
-        self.assertTrue(labelContained('a', ['A', 'b', 'c']))
+        self.assertTrue(labelContained("a", ["A", "b", "c"]))
 
     def testGivenLabelNotContained_shouldReturnFalse(self):
-        self.assertFalse(labelContained('a', ['b', 'c']))
+        self.assertFalse(labelContained("a", ["b", "c"]))
 
     def testGivenLabelNone_shouldReturnFalse(self):
-        self.assertFalse(labelContained(None, ['a', 'b', 'c']))
+        self.assertFalse(labelContained(None, ["a", "b", "c"]))

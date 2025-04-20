@@ -20,5 +20,5 @@ __all__ = [
     "PlanoConvexLens",
     "PlanoConcaveLens",
     "ThickLens",
-    "SymmetricLens"
+    "SymmetricLens",
 ]

@@ -11,10 +11,7 @@ TriangleCLInfo = NamedTuple("TriangleInfo", [("vertexIDs", list), ("normal", Vec
 
 class TriangleCL(CLObject):
     STRUCT_NAME = "Triangle"
-    STRUCT_DTYPE = np.dtype(
-        [("vertexIDs", cl.cltypes.uint, 3),
-         ("normal", cl.cltypes.float3)]
-    )
+    STRUCT_DTYPE = np.dtype([("vertexIDs", cl.cltypes.uint, 3), ("normal", cl.cltypes.float3)])
 
     def __init__(self, trianglesInfo: List[TriangleCLInfo]):
         self._trianglesInfo = trianglesInfo

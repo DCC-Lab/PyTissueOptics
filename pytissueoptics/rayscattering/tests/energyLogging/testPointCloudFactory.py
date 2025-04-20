@@ -7,10 +7,10 @@ from pytissueoptics.scene.logger import InteractionKey, Logger
 
 
 class TestPointCloudFactory(unittest.TestCase):
-    SOLID_LABEL_A = 'solidA'
-    SOLID_LABEL_B = 'solidB'
-    SOLID_A_SURFACE = 'surfaceA'
-    SOLID_B_SURFACE = 'surfaceB'
+    SOLID_LABEL_A = "solidA"
+    SOLID_LABEL_B = "solidB"
+    SOLID_A_SURFACE = "surfaceA"
+    SOLID_B_SURFACE = "surfaceB"
     N_POINTS_PER_SOLID = 3
     N_POINTS_PER_SURFACE = 2
 

@@ -33,14 +33,14 @@ class TestSource(unittest.TestCase):
     def testWhenPropagate_shouldUpdatePhotonCountInLogger(self):
         logger = EnergyLogger(mock(ScatteringScene), views=[])
         self.source.propagate(self._createTissue(), logger=logger, showProgress=False)
-        self.assertEqual(logger.info['photonCount'], 1)
+        self.assertEqual(logger.info["photonCount"], 1)
 
-        logger.info['photonCount'] = 10
+        logger.info["photonCount"] = 10
         self.source.propagate(self._createTissue(), logger=logger, showProgress=False)
-        self.assertEqual(logger.info['photonCount'], 10+1)
+        self.assertEqual(logger.info["photonCount"], 10 + 1)
 
     def testWhenPropagate_shouldSetSourceSolidLabelInLogger(self):
-        sourceSolidLabel = 'the source solid'
+        sourceSolidLabel = "the source solid"
         solid = mock(Solid)
         when(solid).getLabel().thenReturn(sourceSolidLabel)
         self.SOURCE_ENV = Environment(ScatteringMaterial(), solid)
@@ -48,21 +48,21 @@ class TestSource(unittest.TestCase):
 
         self.source.propagate(self._createTissue(), logger=logger, showProgress=False)
 
-        self.assertEqual(logger.info['sourceSolidLabel'], sourceSolidLabel)
+        self.assertEqual(logger.info["sourceSolidLabel"], sourceSolidLabel)
 
     def testGivenSourceNotInASolid_whenPropagate_shouldSetSourceSolidLabelInLoggerAsNone(self):
         logger = EnergyLogger(mock(ScatteringScene), views=[])
         self.source.propagate(self._createTissue(), logger=logger, showProgress=False)
-        self.assertEqual(logger.info['sourceSolidLabel'], None)
+        self.assertEqual(logger.info["sourceSolidLabel"], None)
 
     def testWhenPropagate_shouldSetSourceHashInLogger(self):
         logger = EnergyLogger(mock(ScatteringScene), views=[])
         self.source.propagate(self._createTissue(), logger=logger, showProgress=False)
-        self.assertEqual(logger.info['sourceHash'], hash(self.source))
+        self.assertEqual(logger.info["sourceHash"], hash(self.source))
 
     def testGivenLoggerWithFilePath_whenPropagate_shouldSaveLogger(self):
         with tempfile.TemporaryDirectory() as tempdir:
-            filepath = os.path.join(tempdir, 'test.log')
+            filepath = os.path.join(tempdir, "test.log")
             with self.assertWarns(UserWarning):
                 logger = EnergyLogger(mock(ScatteringScene), views=[], filepath=filepath)
 
@@ -72,7 +72,7 @@ class TestSource(unittest.TestCase):
 
     def testGivenLoggerUsedOnADifferentSource_whenPropagate_shouldWarn(self):
         logger = EnergyLogger(mock(ScatteringScene), views=[])
-        logger.info['sourceHash'] = 1234
+        logger.info["sourceHash"] = 1234
         with self.assertWarns(UserWarning):
             self.source.propagate(self._createTissue(), logger=logger, showProgress=False)
 
@@ -108,21 +108,23 @@ class SinglePhotonSource(Source):
 
     @property
     def _hashComponents(self) -> tuple:
-        return self._position,
+        return (self._position,)
 
 
 class TestPencilSource(unittest.TestCase):
     def testShouldHavePhotonsAllPointingInTheSourceDirection(self):
         sourceDirection = Vector(1, 0, 0)
-        pencilSource = PencilPointSource(position=Vector(), direction=sourceDirection, N=10,
-                                         useHardwareAcceleration=False)
+        pencilSource = PencilPointSource(
+            position=Vector(), direction=sourceDirection, N=10, useHardwareAcceleration=False
+        )
         for photon in pencilSource.photons:
             self.assertEqual(sourceDirection, photon.direction)
 
     def testShouldHavePhotonsAllPositionedAtTheSourcePosition(self):
         sourcePosition = Vector(3, 3, 0)
-        pencilSource = PencilPointSource(position=sourcePosition, direction=Vector(0, 0, 1), N=10,
-                                         useHardwareAcceleration=False)
+        pencilSource = PencilPointSource(
+            position=sourcePosition, direction=Vector(0, 0, 1), N=10, useHardwareAcceleration=False
+        )
         for photon in pencilSource.photons:
             self.assertEqual(sourcePosition, photon.position)
 
@@ -148,8 +150,9 @@ class TestIsotropicPointSource(unittest.TestCase):
 class TestDirectionalSource(unittest.TestCase):
     def testShouldHavePhotonsAllPointingInTheSourceDirection(self):
         sourceDirection = Vector(1, 0, 0)
-        directionalSource = DirectionalSource(position=Vector(), direction=sourceDirection, diameter=1, N=10,
-                                              useHardwareAcceleration=False)
+        directionalSource = DirectionalSource(
+            position=Vector(), direction=sourceDirection, diameter=1, N=10, useHardwareAcceleration=False
+        )
         for photon in directionalSource.photons:
             self.assertEqual(sourceDirection, photon.direction)
 
@@ -157,8 +160,13 @@ class TestDirectionalSource(unittest.TestCase):
         np.random.seed(0)
         sourcePosition = Vector(3, 3, 0)
         sourceDiameter = 2
-        directionalSourceTowardsY = DirectionalSource(position=sourcePosition, direction=Vector(0, 1, 0),
-                                                      diameter=sourceDiameter, N=10, useHardwareAcceleration=False)
+        directionalSourceTowardsY = DirectionalSource(
+            position=sourcePosition,
+            direction=Vector(0, 1, 0),
+            diameter=sourceDiameter,
+            N=10,
+            useHardwareAcceleration=False,
+        )
         for photon in directionalSourceTowardsY.photons:
             self.assertTrue(np.isclose(photon.position.y, sourcePosition.y))
             self.assertTrue(photon.position.x <= sourcePosition.x + sourceDiameter / 2)
@@ -185,8 +193,9 @@ class TestDivergentSource(unittest.TestCase):
         np.random.seed(0)
         sourcePosition = Vector(3, 3, 0)
         sourceDiameter = 2
-        divergentSourceTowardsY = DivergentSource(sourcePosition, Vector(0, 1, 0), sourceDiameter,
-                                                  divergence=0.2, N=10, useHardwareAcceleration=False)
+        divergentSourceTowardsY = DivergentSource(
+            sourcePosition, Vector(0, 1, 0), sourceDiameter, divergence=0.2, N=10, useHardwareAcceleration=False
+        )
         for photon in divergentSourceTowardsY.photons:
             self.assertTrue(np.isclose(photon.position.y, sourcePosition.y))
             self.assertTrue(photon.position.x <= sourcePosition.x + sourceDiameter / 2)
@@ -199,36 +208,47 @@ class TestDivergentSource(unittest.TestCase):
 
     def testGivenNoDivergence_shouldHavePhotonsAllPointingInTheSourceDirection(self):
         sourceDirection = Vector(1, 0, 0)
-        divergentSource = DivergentSource(position=Vector(), direction=sourceDirection, diameter=1, divergence=0, N=10,
-                                          useHardwareAcceleration=False)
+        divergentSource = DivergentSource(
+            position=Vector(), direction=sourceDirection, diameter=1, divergence=0, N=10, useHardwareAcceleration=False
+        )
         for photon in divergentSource.photons:
             self.assertEqual(sourceDirection, photon.direction)
 
     def testGivenDivergence_shouldHavePhotonsPointingInDifferentDirectionsAroundTheSourceDirection(self):
         sourceDirection = Vector(1, 0, 0)
-        divergence = np.pi/4
-        divergentSource = DivergentSource(position=Vector(), direction=sourceDirection, diameter=1,
-                                          divergence=divergence, N=10, useHardwareAcceleration=False)
-        minDot = np.cos(divergence/2)
+        divergence = np.pi / 4
+        divergentSource = DivergentSource(
+            position=Vector(),
+            direction=sourceDirection,
+            diameter=1,
+            divergence=divergence,
+            N=10,
+            useHardwareAcceleration=False,
+        )
+        minDot = np.cos(divergence / 2)
         for photon in divergentSource.photons:
             dot = photon.direction.dot(sourceDirection)
             self.assertTrue(dot >= minDot)
 
     def testGivenTwoDivergentSourcesWithSamePropertiesExceptPhotonCount_shouldHaveSameHash(self):
         sourceDirection = Vector(1, 0, 0)
-        divergence = np.pi/4
-        divergentSource1 = DivergentSource(position=Vector(), direction=sourceDirection, diameter=1,
-                                           divergence=divergence, N=1)
-        divergentSource2 = DivergentSource(position=Vector(), direction=sourceDirection, diameter=1,
-                                           divergence=divergence, N=2)
+        divergence = np.pi / 4
+        divergentSource1 = DivergentSource(
+            position=Vector(), direction=sourceDirection, diameter=1, divergence=divergence, N=1
+        )
+        divergentSource2 = DivergentSource(
+            position=Vector(), direction=sourceDirection, diameter=1, divergence=divergence, N=2
+        )
         self.assertEqual(hash(divergentSource1), hash(divergentSource2))
 
     def testGivenTwoDivergentSourcesThatDifferInDivergence_shouldNotHaveSameHash(self):
         sourceDirection = Vector(1, 0, 0)
-        divergence1 = np.pi/4
-        divergence2 = np.pi/2
-        divergentSource1 = DivergentSource(position=Vector(), direction=sourceDirection, diameter=1,
-                                           divergence=divergence1, N=1)
-        divergentSource2 = DivergentSource(position=Vector(), direction=sourceDirection, diameter=1,
-                                           divergence=divergence2, N=1)
+        divergence1 = np.pi / 4
+        divergence2 = np.pi / 2
+        divergentSource1 = DivergentSource(
+            position=Vector(), direction=sourceDirection, diameter=1, divergence=divergence1, N=1
+        )
+        divergentSource2 = DivergentSource(
+            position=Vector(), direction=sourceDirection, diameter=1, divergence=divergence2, N=1
+        )
         self.assertNotEqual(hash(divergentSource1), hash(divergentSource2))

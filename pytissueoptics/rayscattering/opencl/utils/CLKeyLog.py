@@ -11,10 +11,11 @@ SURFACE_ID_COL = 5
 
 
 class CLKeyLog:
-    """ Parses a DataPointCL array of shape (N, 6) where each point is of the form
+    """Parses a DataPointCL array of shape (N, 6) where each point is of the form
     (weight, x, y, z, solidID, surfaceID) to extract a dictionary of InteractionKey
     and their corresponding datapoint array of the form (weight, x, y, z). The
-    translation from IDs to their corresponding labels is done using the given CLScene. """
+    translation from IDs to their corresponding labels is done using the given CLScene."""
+
     def __init__(self, log: np.ndarray, sceneCL: CLScene):
         self._log = log
         self._sceneCL = sceneCL
@@ -27,7 +28,7 @@ class CLKeyLog:
         self._extractKeyLog()
 
     def toSceneLogger(self, sceneLogger: Logger):
-        """ Writes the extracted key-based log to the given scene logger."""
+        """Writes the extracted key-based log to the given scene logger."""
         for key, points in self._keyLog.items():
             sceneLogger.logDataPointArray(points, key)
 
@@ -44,8 +45,8 @@ class CLKeyLog:
         self._keyLog[InteractionKey(NO_SOLID_LABEL, None)] = self._log
 
     def _sortLocal(self):
-        """ Sorts the log locally by solidID and surfaceID,
-        and for each local batch, it also extracts start and end indices for each key. """
+        """Sorts the log locally by solidID and surfaceID,
+        and for each local batch, it also extracts start and end indices for each key."""
 
         pool = ThreadPool(8)
         try:
@@ -84,7 +85,7 @@ class CLKeyLog:
 
     @staticmethod
     def _getValueChangeIndices(log: np.ndarray, column: int):
-        """ Returns the indices where there is a change in the value of the given column. """
+        """Returns the indices where there is a change in the value of the given column."""
         indices = np.where(log[:-1, column] != log[1:, column])[0] + 1
         return np.concatenate(([0], indices, [log.shape[0]]))
 
@@ -93,7 +94,7 @@ class CLKeyLog:
         return log[np.lexsort([log[:, i] for i in columns])]
 
     def _merge(self):
-        """ Merges the local batches into a single key log with unique interaction keys. """
+        """Merges the local batches into a single key log with unique interaction keys."""
         self._log = self._log[:, :4]
 
         for i, batchKeyIndices in enumerate(self._keyIndices):
@@ -102,7 +103,7 @@ class CLKeyLog:
                 if len(indices) == 0:
                     continue
                 a, b = batchStartIndex + indices[0], batchStartIndex + indices[1]
-                points = self._log[a: b]
+                points = self._log[a:b]
                 key = self._getInteractionKey(*keyIDs)
                 if key not in self._keyLog:
                     self._keyLog[key] = [points]

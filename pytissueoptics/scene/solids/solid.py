@@ -21,9 +21,17 @@ INITIAL_SOLID_ORIENTATION = Vector(0, 0, 1)
 
 
 class Solid:
-    def __init__(self, vertices: List[Vertex], position: Vector = Vector(0, 0, 0),
-                 surfaces: SurfaceCollection = None, material=None,
-                 label: str = "solid", primitive: str = primitives.DEFAULT, smooth: bool = False, labelOverride=True):
+    def __init__(
+        self,
+        vertices: List[Vertex],
+        position: Vector = Vector(0, 0, 0),
+        surfaces: SurfaceCollection = None,
+        material=None,
+        label: str = "solid",
+        primitive: str = primitives.DEFAULT,
+        smooth: bool = False,
+        labelOverride=True,
+    ):
         self._vertices = vertices
         self._surfaces = surfaces
         self._material = material
@@ -130,8 +138,8 @@ class Solid:
         self._rotation.add(rotation)
 
     def orient(self, towards: Vector):
-        """ Rotate the solid so that its direction is aligned with the given vector "towards". 
-        Note that the original solid orientation is set to (0, 0, 1). """
+        """Rotate the solid so that its direction is aligned with the given vector "towards".
+        Note that the original solid orientation is set to (0, 0, 1)."""
         initialOrientation = self._orientation
         axis, angle = utils.getAxisAngleBetween(initialOrientation, towards)
         rotationFunction = partial(self._rotateWithAxisAngle, axis=axis, angle=angle)
@@ -149,7 +157,7 @@ class Solid:
 
         rotatedVertices = [vertex + rotationCenter for vertex in rotatedVerticesAtOrigin]
 
-        for (vertex, rotatedVertex) in zip(self._vertices, rotatedVertices):
+        for vertex, rotatedVertex in zip(self._vertices, rotatedVertices):
             vertex.update(*rotatedVertex.array)
 
         self._position = rotatedVertices[-1]
@@ -232,8 +240,8 @@ class Solid:
     def contains(self, *vertices: Vector) -> bool:
         """
         Provides a simple implementation, which should be overwritten by subclasses to provide more accuracy.
-        This implementation will only check the outer bounding box of the solid to check if the vertices are outside. 
-        Similarly, it will create a max internal bounding box and check if the vertices are inside. 
+        This implementation will only check the outer bounding box of the solid to check if the vertices are outside.
+        Similarly, it will create a max internal bounding box and check if the vertices are inside.
         """
         for vertex in vertices:
             if not self._bbox.contains(vertex):
@@ -241,9 +249,12 @@ class Solid:
         internalBBox = self._getInternalBBox()
         for vertex in vertices:
             if not internalBBox.contains(vertex):
-                warnings.warn(f"Method contains(Vertex) is not implemented for Solids of type {type(self).__name__}. "
-                              "Returning False since Vertex does not lie in the internal bounding box "
-                              "(underestimating containment). ", RuntimeWarning)
+                warnings.warn(
+                    f"Method contains(Vertex) is not implemented for Solids of type {type(self).__name__}. "
+                    "Returning False since Vertex does not lie in the internal bounding box "
+                    "(underestimating containment). ",
+                    RuntimeWarning,
+                )
                 return False
         return True
 
@@ -255,9 +266,11 @@ class Solid:
 
     def _applyInverseRotation(self, vertices: List[Vector]) -> List[Vector]:
         if self._rotation and self._orientation != INITIAL_SOLID_ORIENTATION:
-            raise Exception("Rotation correction (often used for solid containment checks) "
-                            "is not implemented for solids that underwent rotations "
-                            "with both the Euler rotate() and the axis-angle orient() methods.")
+            raise Exception(
+                "Rotation correction (often used for solid containment checks) "
+                "is not implemented for solids that underwent rotations "
+                "with both the Euler rotate() and the axis-angle orient() methods."
+            )
         if self._rotation:
             return self._rotateWithEuler(vertices, self._rotation, inverse=True)
         if self._orientation != INITIAL_SOLID_ORIENTATION:
@@ -284,7 +297,7 @@ class Solid:
         return self._surfaces.processLabel(surfaceLabel)
 
     def smooth(self, surfaceLabel: str = None, reset: bool = True):
-        """ Prepare smoothing by calculating vertex normals. This is not done
+        """Prepare smoothing by calculating vertex normals. This is not done
         by default. The vertex normals are used during ray-polygon intersection
         to return an interpolated (smooth) normal. A vertex normal is defined
         by taking the average normal of all adjacent polygons.

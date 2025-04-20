@@ -12,15 +12,14 @@ class TestExamples(unittest.TestCase):
         for file in EXAMPLE_FILES:
             name = re.match(EXAMPLE_FILE_PATTERN, file).group(1)
             module = importlib.import_module(f"pytissueoptics.examples.{EXAMPLE_MODULE}.{name}")
-            with open(os.path.join(EXAMPLE_DIR, file), 'r') as f:
+            with open(os.path.join(EXAMPLE_DIR, file), "r") as f:
                 srcCode = f.read()
             with self.subTest(name):
                 self.assertTrue(hasattr(module, "TITLE"))
                 self.assertTrue(hasattr(module, "DESCRIPTION"))
                 self.assertTrue(hasattr(module, "exampleCode"))
                 self.assertTrue(srcCode.startswith("import env"))
-                self.assertTrue(srcCode.endswith("if __name__ == \"__main__\":\n" +
-                                                 "    exampleCode()\n"))
+                self.assertTrue(srcCode.endswith('if __name__ == "__main__":\n' + "    exampleCode()\n"))
 
     def testLoadExamples(self):
         allExamples = loadExamples()

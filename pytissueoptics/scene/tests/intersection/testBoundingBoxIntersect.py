@@ -54,7 +54,7 @@ class BaseTestAnyBoxIntersect:
         ray = Ray(rayOrigin, rayDirection)
 
         intersection = self.intersectStrategy.getIntersection(ray, box)
-        
+
         self.assertEqual(ray.origin, intersection)
 
     def testGivenRayLengthShorterThanBoxIntersection_shouldReturnNone(self):

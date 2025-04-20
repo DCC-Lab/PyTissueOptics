@@ -8,15 +8,28 @@ class SolidFactory:
     _vertices: List[Vertex]
     _surfaces: SurfaceCollection
 
-    def fromSolids(self, solids: List[Solid], position: Vector = Vector(0, 0, 0), material=None,
-                   label: str = "solidGroup", smooth=False) -> Solid:
+    def fromSolids(
+        self,
+        solids: List[Solid],
+        position: Vector = Vector(0, 0, 0),
+        material=None,
+        label: str = "solidGroup",
+        smooth=False,
+    ) -> Solid:
         self._vertices = []
         self._surfaces = SurfaceCollection()
         self._validateLabels(solids)
         self._fillSurfacesAndVertices(solids)
 
-        solid = Solid(vertices=self._vertices, surfaces=self._surfaces, material=material, label=label,
-                      primitive=primitives.POLYGON, smooth=smooth, labelOverride=False)
+        solid = Solid(
+            vertices=self._vertices,
+            surfaces=self._surfaces,
+            material=material,
+            label=label,
+            primitive=primitives.POLYGON,
+            smooth=smooth,
+            labelOverride=False,
+        )
         solid._position = self._getCentroid(solids)
         solid.translateTo(position)
         return solid
@@ -55,7 +68,9 @@ class SolidFactory:
         if solidLabel not in surfaceLabelsSolidNames:
             return solidLabel
         idx = 2
-        solidLabelsWithNumbers = ["_".join(surfaceLabel.split("_")[0:2]) for surfaceLabel in self._surfaces.surfaceLabels]
+        solidLabelsWithNumbers = [
+            "_".join(surfaceLabel.split("_")[0:2]) for surfaceLabel in self._surfaces.surfaceLabels
+        ]
         while f"{solidLabel}_{idx}" in solidLabelsWithNumbers:
             idx += 1
         return f"{solidLabel}_{idx}"

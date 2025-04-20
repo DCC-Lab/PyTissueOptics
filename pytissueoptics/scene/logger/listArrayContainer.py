@@ -47,7 +47,7 @@ class ListArrayContainer:
             else:
                 self._array = np.concatenate((self._array, item), axis=0)
 
-    def extend(self, other: 'ListArrayContainer'):
+    def extend(self, other: "ListArrayContainer"):
         if self._list is None:
             self._list = copy.deepcopy(other._list)
         elif other._list is not None:

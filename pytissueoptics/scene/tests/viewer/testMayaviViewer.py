@@ -12,20 +12,19 @@ from pytissueoptics.scene.solids import Cuboid, Ellipsoid, Sphere
 from pytissueoptics.scene.tests import SHOW_VISUAL_TESTS, compareVisuals
 from pytissueoptics.scene.viewer.mayavi import MayaviViewer, ViewPointStyle
 
-TEST_IMAGES_DIR = os.path.join(os.path.dirname(__file__), 'testImages')
+TEST_IMAGES_DIR = os.path.join(os.path.dirname(__file__), "testImages")
 
 OVERWRITE_TEST_IMAGES = False
 
 
 def patchMayaviShow(func):
-    for module in ['show', 'gcf', 'figure', 'clf', 'triangular_mesh']:
-        func = patch('mayavi.mlab.' + module)(func)
+    for module in ["show", "gcf", "figure", "clf", "triangular_mesh"]:
+        func = patch("mayavi.mlab." + module)(func)
     return func
 
 
 @unittest.skipIf(
-    not SHOW_VISUAL_TESTS,
-    "Visual tests are disabled. Set scene.tests.SHOW_VISUAL_TESTS to True to enable them."
+    not SHOW_VISUAL_TESTS, "Visual tests are disabled. Set scene.tests.SHOW_VISUAL_TESTS to True to enable them."
 )
 class TestMayaviViewer(unittest.TestCase):
     def setUp(self):
@@ -82,12 +81,11 @@ class TestMayaviViewer(unittest.TestCase):
             self.skipTest("Cannot test when saving test images.")
 
         with tempfile.TemporaryDirectory() as tmpdir:
-            currentImageFile = os.path.join(tmpdir, 'currentViewer.png')
+            currentImageFile = os.path.join(tmpdir, "currentViewer.png")
             self.viewer.save(currentImageFile)
             self.viewer.close()
 
-            isOK = compareVisuals(expectedImageFile, currentImageFile,
-                                  title=f"TestMayaviViewer: {displayName}")
+            isOK = compareVisuals(expectedImageFile, currentImageFile, title=f"TestMayaviViewer: {displayName}")
 
             if not isOK:
                 self.fail("Visual test failed.")

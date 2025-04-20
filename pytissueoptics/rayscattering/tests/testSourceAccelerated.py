@@ -18,6 +18,7 @@ def tempTablePath(func):
         with tempfile.TemporaryDirectory() as tempDir:
             IPPTable.TABLE_PATH = os.path.join(tempDir, "ipp.json")
             func(*args, **kwargs)
+
     return wrapper
 
 
@@ -31,14 +32,14 @@ class TestSourceAccelerated(unittest.TestCase):
         when(self.photons).setContext(...).thenReturn()
         when(self.photons).propagate(...).thenReturn()
 
-    @patch('pytissueoptics.rayscattering.source.CLPhotons')
+    @patch("pytissueoptics.rayscattering.source.CLPhotons")
     def testShouldLoadPhotons(self, _CLPhotonsClassMock):
         _CLPhotonsClassMock.return_value = self.photons
         source = SinglePhotonSourceAccelerated()
         self.assertIsNotNone(source.photons)
 
     @tempTablePath
-    @patch('pytissueoptics.rayscattering.source.CLPhotons')
+    @patch("pytissueoptics.rayscattering.source.CLPhotons")
     def testWhenPropagateNewExperiment_shouldWarnThatIPPWillBeEstimated(self, _CLPhotonsClassMock):
         _CLPhotonsClassMock.return_value = self.photons
         scene = self._createMockScene()
@@ -49,7 +50,7 @@ class TestSourceAccelerated(unittest.TestCase):
             source.propagate(scene, logger, showProgress=False)
 
     @tempTablePath
-    @patch('pytissueoptics.rayscattering.source.CLPhotons')
+    @patch("pytissueoptics.rayscattering.source.CLPhotons")
     def testWhenPropagate_shouldSetCorrectPhotonContext(self, _CLPhotonsClassMock):
         _CLPhotonsClassMock.return_value = self.photons
         scene = self._createMockScene()
@@ -62,7 +63,7 @@ class TestSourceAccelerated(unittest.TestCase):
         verify(self.photons).setContext(scene, self.SOURCE_ENV, logger=logger)
 
     @tempTablePath
-    @patch('pytissueoptics.rayscattering.source.CLPhotons')
+    @patch("pytissueoptics.rayscattering.source.CLPhotons")
     def testGivenExperimentInIPPTable_whenPropagate_shouldUseIPPFromTable(self, _CLPhotonsClassMock):
         _CLPhotonsClassMock.return_value = self.photons
         scene = self._createMockScene()
@@ -78,8 +79,8 @@ class TestSourceAccelerated(unittest.TestCase):
         verify(self.photons).propagate(IPP=IPP, verbose=False)
 
     @tempTablePath
-    @patch('pytissueoptics.rayscattering.source.CLPhotons')
-    @patch('pytissueoptics.rayscattering.source.Logger')
+    @patch("pytissueoptics.rayscattering.source.CLPhotons")
+    @patch("pytissueoptics.rayscattering.source.Logger")
     def testGivenExperimentNotInIPPTable_whenPropagate_shouldEstimateIPP(self, _LoggerClassMock, _CLPhotonsClassMock):
         _CLPhotonsClassMock.return_value = self.photons
         source = SinglePhotonSourceAccelerated()
@@ -127,4 +128,4 @@ class SinglePhotonSourceAccelerated(Source):
 
     @property
     def _hashComponents(self) -> tuple:
-        return self._position,
+        return (self._position,)

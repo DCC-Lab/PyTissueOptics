@@ -3,9 +3,11 @@ import numpy as np
 try:
     import pyopencl as cl
 except ImportError:
+
     class DummyType:
         def __getattr__(self, item):
             return None
+
     cl = DummyType()
     cl.cltypes = DummyType()
 
@@ -28,8 +30,9 @@ class CLObject:
             if self._buildOnce:
                 return
         self.make(device)
-        self._DEVICE_buffer = cl.Buffer(context, cl.mem_flags.READ_WRITE | cl.mem_flags.USE_HOST_PTR,
-                                        hostbuf=self.hostBuffer)
+        self._DEVICE_buffer = cl.Buffer(
+            context, cl.mem_flags.READ_WRITE | cl.mem_flags.USE_HOST_PTR, hostbuf=self.hostBuffer
+        )
 
     def make(self, device):
         if self.STRUCT_DTYPE:
@@ -49,7 +52,7 @@ class CLObject:
     @property
     def declaration(self) -> str:
         if not self._declaration or self._skipDeclaration:
-            return ''
+            return ""
         return self._declaration
 
     @property
@@ -86,7 +89,7 @@ class CLObject:
 
     @classmethod
     def getItemSize(cls) -> int:
-        """ Returns the size of a single item in bytes aligned with the next power of 2. """
+        """Returns the size of a single item in bytes aligned with the next power of 2."""
         if cls.STRUCT_DTYPE is None:
             raise NotImplementedError()
 

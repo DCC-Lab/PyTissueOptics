@@ -6,5 +6,5 @@ __all__ = [
     "DEFAULT_Y_VIEW_DIRECTIONS",
     "DEFAULT_Z_VIEW_DIRECTIONS",
     "Direction",
-    "VolumeSlicer"
+    "VolumeSlicer",
 ]

@@ -43,23 +43,26 @@ class Logger:
             self.load(fromFilepath)
 
     def getSeenSolidLabels(self) -> List[str]:
-        """ Returns a list of all solid labels that have been logged in the past
-        even if the data was discarded. """
+        """Returns a list of all solid labels that have been logged in the past
+        even if the data was discarded."""
         return list(self._labels.keys())
 
     def getSeenSurfaceLabels(self, solidLabel: str) -> List[str]:
-        """ Returns a list of all surface labels that have been logged in the past
-        for the given solid even if the data was discarded. """
+        """Returns a list of all surface labels that have been logged in the past
+        for the given solid even if the data was discarded."""
         return self._labels[solidLabel]
 
     def getStoredSolidLabels(self) -> List[str]:
-        """ Returns a list of all solid labels that are currently stored in the logger. """
+        """Returns a list of all solid labels that are currently stored in the logger."""
         return list(set(key.solidLabel for key in self._data.keys()))
 
     def getStoredSurfaceLabels(self, solidLabel: str) -> List[str]:
-        """ Returns a list of all surface labels that are currently stored in the logger. """
-        return [key.surfaceLabel for key in self._data.keys() if key.solidLabel == solidLabel
-                and key.surfaceLabel is not None]
+        """Returns a list of all surface labels that are currently stored in the logger."""
+        return [
+            key.surfaceLabel
+            for key in self._data.keys()
+            if key.solidLabel == solidLabel and key.surfaceLabel is not None
+        ]
 
     def logPoint(self, point: Vector, key: InteractionKey = None):
         self._appendData([point.x, point.y, point.z], DataType.POINT, key)
@@ -71,17 +74,17 @@ class Logger:
         self._appendData([start.x, start.y, start.z, end.x, end.y, end.z], DataType.SEGMENT, key)
 
     def logPointArray(self, array: np.ndarray, key: InteractionKey = None):
-        """ 'array' must be of shape (n, 3) where second axis is (x, y, z) """
+        """'array' must be of shape (n, 3) where second axis is (x, y, z)"""
         assert array.shape[1] == 3 and array.ndim == 2, "Point array must be of shape (n, 3)"
         self._appendData(array, DataType.POINT, key)
 
     def logDataPointArray(self, array: np.ndarray, key: InteractionKey):
-        """ 'array' must be of shape (n, 4) where second axis is (value, x, y, z) """
+        """'array' must be of shape (n, 4) where second axis is (value, x, y, z)"""
         assert array.shape[1] == 4 and array.ndim == 2, "Data point array must be of shape (n, 4)"
         self._appendData(array, DataType.DATA_POINT, key)
 
     def logSegmentArray(self, array: np.ndarray, key: InteractionKey = None):
-        """ 'array' must be of shape (n, 6) where second axis is (x1, y1, z1, x2, y2, z2) """
+        """'array' must be of shape (n, 6) where second axis is (x1, y1, z1, x2, y2, z2)"""
         assert array.shape[1] == 6 and array.ndim == 2, "Segment array must be of shape (n, 6)"
         self._appendData(array, DataType.SEGMENT, key)
 
@@ -137,10 +140,14 @@ class Logger:
 
     def _keyExists(self, key: InteractionKey) -> bool:
         if key.solidLabel not in self.getStoredSolidLabels():
-            warnings.warn(f"No data stored for solid labeled '{key.solidLabel}'. Available: {self.getStoredSolidLabels()}. ")
+            warnings.warn(
+                f"No data stored for solid labeled '{key.solidLabel}'. Available: {self.getStoredSolidLabels()}. "
+            )
         elif key.surfaceLabel and key.surfaceLabel not in self.getStoredSurfaceLabels(key.solidLabel):
-            warnings.warn(f"No data stored for surface labeled '{key.surfaceLabel}' for solid '{key.solidLabel}'. "
-                          f"Available: {self.getStoredSurfaceLabels(key.solidLabel)}. ")
+            warnings.warn(
+                f"No data stored for surface labeled '{key.surfaceLabel}' for solid '{key.solidLabel}'. "
+                f"Available: {self.getStoredSurfaceLabels(key.solidLabel)}. "
+            )
         if key in self._data:
             return True
         return False
@@ -159,8 +166,10 @@ class Logger:
         self._filepath = filepath
 
         if not os.path.exists(filepath):
-            warnings.warn("No logger file found at '{}'. No data loaded, but it will create a new file "
-                          "at this location if the logger is saved later on.".format(filepath))
+            warnings.warn(
+                "No logger file found at '{}'. No data loaded, but it will create a new file "
+                "at this location if the logger is saved later on.".format(filepath)
+            )
             return
 
         with open(filepath, "rb") as file:

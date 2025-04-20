@@ -10,14 +10,16 @@ binning as this generates a lot of data. """
 
 def exampleCode():
     import math
+
     N = 10000 if hardwareAccelerationIsAvailable() else 25
 
     myMaterial = ScatteringMaterial(mu_s=30.0, mu_a=0.1, g=0.9)
     tissue = samples.InfiniteTissue(myMaterial)
 
     logger = EnergyLogger(tissue)
-    source = DivergentSource(position=Vector(0, 0, 0), direction=Vector(0, 0, 1), N=N,
-                             diameter=0.2, divergence=math.pi/4)
+    source = DivergentSource(
+        position=Vector(0, 0, 0), direction=Vector(0, 0, 1), N=N, diameter=0.2, divergence=math.pi / 4
+    )
 
     source.propagate(tissue, logger=logger)
 

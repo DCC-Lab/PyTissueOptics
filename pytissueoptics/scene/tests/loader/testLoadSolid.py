@@ -1,4 +1,3 @@
-
 import os
 import unittest
 
@@ -13,8 +12,9 @@ class TestLoadSolid(unittest.TestCase):
         self.assertIsNotNone(solid)
 
         self.assertEqual(13, len(solid.getPolygons()))
-        self.assertEqual(["cube_front", "cube_back", "cube_left", "cube_right", "cube_top", "cube_bottom"],
-                         solid.surfaceLabels)
+        self.assertEqual(
+            ["cube_front", "cube_back", "cube_left", "cube_right", "cube_top", "cube_bottom"], solid.surfaceLabels
+        )
 
     def _filepath(self, fileName) -> str:
         return os.path.join(self.TEST_DIRECTORY, "parsers", "objFiles", fileName)

@@ -11,6 +11,7 @@ def tempTablePath(func):
         with tempfile.TemporaryDirectory() as tempDir:
             IPPTable.TABLE_PATH = os.path.join(tempDir, "ipp.json")
             func(*args, **kwargs)
+
     return wrapper
 
 

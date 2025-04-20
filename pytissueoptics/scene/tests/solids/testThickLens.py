@@ -8,8 +8,7 @@ from pytissueoptics.scene.solids import PlanoConcaveLens, PlanoConvexLens, Symme
 
 class TestThickLens(unittest.TestCase):
     def testGivenAFlatLens_shouldHaveInfiniteFocalLength(self):
-        lens = ThickLens(frontRadius=0, backRadius=0, diameter=1, thickness=1,
-                         material=RefractiveMaterial(1.5))
+        lens = ThickLens(frontRadius=0, backRadius=0, diameter=1, thickness=1, material=RefractiveMaterial(1.5))
         self.assertEqual(math.inf, lens.focalLength)
 
     def testGivenAFlatLens_shouldHaveCenterThicknessEqualToEdgeThickness(self):
@@ -68,7 +67,7 @@ class TestThickLens(unittest.TestCase):
     def testGivenALensWithSurfaceRadiusEqualToLensRadius_shouldRaiseError(self):
         R = 3
         with self.assertRaises(ValueError):
-            ThickLens(frontRadius=R, backRadius=-R, diameter=R*2, thickness=R*2)
+            ThickLens(frontRadius=R, backRadius=-R, diameter=R * 2, thickness=R * 2)
 
     def testShouldOnlySmoothFrontAndBackSurfaces(self):
         lens = ThickLens(frontRadius=3, backRadius=-3, diameter=1, thickness=1)
@@ -105,7 +104,7 @@ class TestThickLens(unittest.TestCase):
     def testShouldHaveLateralSurfaceVerticesLyingOnACylinderOfRadiusEqualToLensRadiusWithNormalsPointingOutward(self):
         r = 1
         t = 1
-        lens = ThickLens(frontRadius=3, backRadius=-3, diameter=r*2, thickness=t)
+        lens = ThickLens(frontRadius=3, backRadius=-3, diameter=r * 2, thickness=t)
         lateralPolygons = lens.getPolygons("lateral")
         for polygon in lateralPolygons:
             self.assertTrue(polygon.normal.dot(lens.direction) == 0)

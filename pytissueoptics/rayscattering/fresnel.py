@@ -61,7 +61,7 @@ class FresnelIntersect:
         return False
 
     def _getReflectionCoefficient(self) -> float:
-        """ Fresnel reflection coefficient, directly from MCML code in
+        """Fresnel reflection coefficient, directly from MCML code in
         Wang, L-H, S.L. Jacques, L-Q Zheng:
         MCML - Monte Carlo modeling of photon transport in multi-layered
         tissues. Computer Methods and Programs in Biomedicine 47:131-146, 1995.
@@ -74,8 +74,8 @@ class FresnelIntersect:
             return 0
 
         if self._thetaIn == 0:
-            R = (n2-n1)/(n2+n1)
-            return R*R
+            R = (n2 - n1) / (n2 + n1)
+            return R * R
 
         sa1 = math.sin(self._thetaIn)
 
@@ -83,14 +83,14 @@ class FresnelIntersect:
         if sa2 >= 1:
             return 1
 
-        ca1 = math.sqrt(1-sa1*sa1)
-        ca2 = math.sqrt(1-sa2*sa2)
+        ca1 = math.sqrt(1 - sa1 * sa1)
+        ca2 = math.sqrt(1 - sa2 * sa2)
 
-        cap = ca1*ca2 - sa1*sa2  # c+ = cc - ss.
-        cam = ca1*ca2 + sa1*sa2  # c- = cc + ss.
-        sap = sa1*ca2 + ca1*sa2  # s+ = sc + cs.
-        sam = sa1*ca2 - ca1*sa2  # s- = sc - cs.
-        r = 0.5*sam*sam*(cam*cam+cap*cap)/(sap*sap*cam*cam)
+        cap = ca1 * ca2 - sa1 * sa2  # c+ = cc - ss.
+        cam = ca1 * ca2 + sa1 * sa2  # c- = cc + ss.
+        sap = sa1 * ca2 + ca1 * sa2  # s+ = sc + cs.
+        sam = sa1 * ca2 - ca1 * sa2  # s- = sc - cs.
+        r = 0.5 * sam * sam * (cam * cam + cap * cap) / (sap * sap * cam * cam)
         return r
 
     def _getReflectionDeflection(self) -> float:

@@ -5,9 +5,7 @@ from .CLObject import CLObject, cl
 
 class SolidCandidateCL(CLObject):
     STRUCT_NAME = "SolidCandidate"
-    STRUCT_DTYPE = np.dtype(
-            [("distance", cl.cltypes.float),
-             ("solidID", cl.cltypes.uint)])
+    STRUCT_DTYPE = np.dtype([("distance", cl.cltypes.float), ("solidID", cl.cltypes.uint)])
 
     def __init__(self, nWorkUnits: int, nSolids: int):
         self._size = nWorkUnits * nSolids

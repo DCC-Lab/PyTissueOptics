@@ -60,10 +60,12 @@ class Stats:
             except ZeroDivisionError:
                 utils.warn("WARNING: No energy input for solid '{}'".format(solidLabel))
                 absorbance = None
-            self._solidStatsMap[solidLabel] = SolidStats(absorbance,
-                                                         self.getAbsorbance(solidLabel, useTotalEnergy=True),
-                                                         self.getTransmittance(solidLabel),
-                                                         self._getSurfaceStats(solidLabel))
+            self._solidStatsMap[solidLabel] = SolidStats(
+                absorbance,
+                self.getAbsorbance(solidLabel, useTotalEnergy=True),
+                self.getTransmittance(solidLabel),
+                self._getSurfaceStats(solidLabel),
+            )
 
     def _makeReport(self, solidLabel: str = None, reportString: str = ""):
         if solidLabel:
@@ -87,13 +89,16 @@ class Stats:
         reportString = "Report of solid '{}'\n".format(solidLabel)
 
         if solidStats.absorbance is None:
-            reportString += ("  Absorbance: N/A ({:.2f}% of total power)\n".format(solidStats.totalAbsorbance))
+            reportString += "  Absorbance: N/A ({:.2f}% of total power)\n".format(solidStats.totalAbsorbance)
             reportString += "  Absorbance + Transmittance: N/A\n"
             return reportString
 
-        reportString += (
-            "  Absorbance: {:.2f}% ({:.2f}% of total power)\n".format(solidStats.absorbance, solidStats.totalAbsorbance))
-        reportString += ("  Absorbance + Transmittance: {:.1f}%\n".format(solidStats.absorbance + solidStats.transmittance))
+        reportString += "  Absorbance: {:.2f}% ({:.2f}% of total power)\n".format(
+            solidStats.absorbance, solidStats.totalAbsorbance
+        )
+        reportString += "  Absorbance + Transmittance: {:.1f}%\n".format(
+            solidStats.absorbance + solidStats.transmittance
+        )
 
         for surfaceLabel, surfaceStats in solidStats.surfaces.items():
             reportString += "    Transmittance at '{}': {:.1f}%\n".format(surfaceLabel, surfaceStats.transmittance)
@@ -122,8 +127,10 @@ class Stats:
                 continue
             return view.getSum()
 
-        raise Exception(f"Could not extract absorbance for solid '{solidLabel}'. The 3D data was discarded and "
-                        f"no stored 2D view corresponds to this solid.")
+        raise Exception(
+            f"Could not extract absorbance for solid '{solidLabel}'. The 3D data was discarded and "
+            f"no stored 2D view corresponds to this solid."
+        )
 
     def _viewContainsSolid(self, view, solidLabel: str) -> bool:
         solidLimits = self._logger.getSolidLimits(solidLabel)
@@ -176,9 +183,11 @@ class Stats:
             if not self._viewContainsSolid(view, solidLabel):
                 continue
             return view.getSum()
-        raise Exception(f"Could not extract energy {['entering', 'leaving'][leaving]} surface '{surfaceLabel}' "
-                        f"of solid '{solidLabel}'. The 3D data was discarded and no stored 2D view corresponds "
-                        f"to this surface.")
+        raise Exception(
+            f"Could not extract energy {['entering', 'leaving'][leaving]} surface '{surfaceLabel}' "
+            f"of solid '{solidLabel}'. The 3D data was discarded and no stored 2D view corresponds "
+            f"to this surface."
+        )
 
     def _getSurfaceStats(self, solidLabel: str) -> Dict[str, SurfaceStats]:
         stats = {}
@@ -187,8 +196,8 @@ class Stats:
         return stats
 
     def getTransmittance(self, solidLabel: str, surfaceLabel: str = None, useTotalEnergy=False):
-        """ Uses local energy input for the desired solid by default. Specify 'useTotalEnergy' = True
-        to compare instead with total input energy of the scene. """
+        """Uses local energy input for the desired solid by default. Specify 'useTotalEnergy' = True
+        to compare instead with total input energy of the scene."""
         if self._extractFromViews:
             return self._getTransmittanceFromViews(solidLabel, surfaceLabel, useTotalEnergy)
 

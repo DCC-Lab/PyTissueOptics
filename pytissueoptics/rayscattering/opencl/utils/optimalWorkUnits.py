@@ -22,8 +22,7 @@ def computeOptimalNWorkUnits() -> int:
     material1 = ScatteringMaterial(mu_s=5, mu_a=0.8, g=0.9, n=1.4)
     material2 = ScatteringMaterial(mu_s=10, mu_a=0.8, g=0.9, n=1.7)
     cube = Cuboid(a=3, b=3, c=3, position=Vector(0, 0, 0), material=material1, label="Cube")
-    sphere = Sphere(radius=1, order=2, position=Vector(0, 0, 0), material=material2, label="Sphere",
-                    smooth=True)
+    sphere = Sphere(radius=1, order=2, position=Vector(0, 0, 0), material=material2, label="Sphere", smooth=True)
     scene = ScatteringScene([cube, sphere])
 
     arr_workUnits, arr_speed = [], []
@@ -38,8 +37,9 @@ def computeOptimalNWorkUnits() -> int:
         totalTime = 0
         timedOut = False
         for _ in range(AVERAGING):
-            source = DirectionalSource(position=Vector(0, 0, -2), direction=Vector(0, 0, 1), N=N,
-                                       useHardwareAcceleration=True, diameter=0.5)
+            source = DirectionalSource(
+                position=Vector(0, 0, -2), direction=Vector(0, 0, 1), N=N, useHardwareAcceleration=True, diameter=0.5
+            )
             logger = EnergyLogger(scene)
 
             t0 = time.time()
@@ -47,8 +47,10 @@ def computeOptimalNWorkUnits() -> int:
             elapsedTime = time.time() - t0
 
             if elapsedTime > MAX_SECONDS_PER_TEST:
-                print(f"... [{i + 1 - MIN_bits}/{MAX_bits + 1 - MIN_bits}] {CONFIG.N_WORK_UNITS} \t units : "
-                      f"Test is getting too slow on this hardware. Aborting.")
+                print(
+                    f"... [{i + 1 - MIN_bits}/{MAX_bits + 1 - MIN_bits}] {CONFIG.N_WORK_UNITS} \t units : "
+                    f"Test is getting too slow on this hardware. Aborting."
+                )
                 timedOut = True
                 break
 
@@ -59,20 +61,24 @@ def computeOptimalNWorkUnits() -> int:
             break
         timePerPhoton /= AVERAGING
         totalTime /= AVERAGING
-        print(f"... [{i+1-MIN_bits}/{MAX_bits+1-MIN_bits}] {CONFIG.N_WORK_UNITS} \t units : {timePerPhoton:.6f} s/p [{AVERAGING}x {totalTime:.2f}s]")
+        print(
+            f"... [{i + 1 - MIN_bits}/{MAX_bits + 1 - MIN_bits}] {CONFIG.N_WORK_UNITS} \t units : {timePerPhoton:.6f} s/p [{AVERAGING}x {totalTime:.2f}s]"
+        )
 
         arr_workUnits.append(CONFIG.N_WORK_UNITS)
         arr_speed.append(timePerPhoton * 10**6)
 
     CONFIG.N_WORK_UNITS = None
 
-    plt.plot(arr_workUnits, arr_speed, 'o')
+    plt.plot(arr_workUnits, arr_speed, "o")
     plt.xlabel("N_WORK_UNITS")
     plt.ylabel("Time per photon (us)")
     plt.semilogy()
 
-    print(f"Found an optimal N_WORK_UNITS of {arr_workUnits[np.argmin(arr_speed)]}. \nPlease analyze and close the "
-          f"plot to continue.")
+    print(
+        f"Found an optimal N_WORK_UNITS of {arr_workUnits[np.argmin(arr_speed)]}. \nPlease analyze and close the "
+        f"plot to continue."
+    )
     plt.show()
 
     return arr_workUnits[np.argmin(arr_speed)]

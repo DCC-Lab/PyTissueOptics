@@ -17,7 +17,7 @@ else:
     cl = None
 
 
-@unittest.skipIf(not OPENCL_OK, 'OpenCL device not available.')
+@unittest.skipIf(not OPENCL_OK, "OpenCL device not available.")
 class TestCLVectorOperators(unittest.TestCase):
     def setUp(self):
         sourcePath = os.path.join(OPENCL_SOURCE_DIR, "vectorOperators.c")
@@ -45,7 +45,9 @@ class TestCLVectorOperators(unittest.TestCase):
         axisBuffer = self._vectorBuffer([axis])
         angleBuffer = BufferOf(np.array([angle], dtype=np.float32))
 
-        self.program.launchKernel("rotateAroundAxisGlobalKernel", N=N, arguments=[vectorBuffer, axisBuffer, angleBuffer])
+        self.program.launchKernel(
+            "rotateAroundAxisGlobalKernel", N=N, arguments=[vectorBuffer, axisBuffer, angleBuffer]
+        )
 
         rotatedVector = self._vectorsFromBuffer(vectorBuffer)[0]
         expectedVector = Vector(0, 1, 1)
@@ -63,9 +65,14 @@ class TestCLVectorOperators(unittest.TestCase):
             vectors.append(vector)
             expectedOrthogonalVectors.append(vector.getAnyOrthogonal())
 
-        edgeCaseVectors = [Vector(-1, 0, 0), Vector(1, 0, 0),
-                           Vector(0, 1, 0), Vector(0, -1, 0),
-                           Vector(0, 0, 1), Vector(0, 0, -1)]
+        edgeCaseVectors = [
+            Vector(-1, 0, 0),
+            Vector(1, 0, 0),
+            Vector(0, 1, 0),
+            Vector(0, -1, 0),
+            Vector(0, 0, 1),
+            Vector(0, 0, -1),
+        ]
         for vector in edgeCaseVectors:
             vectors.append(vector)
             expectedOrthogonalVectors.append(vector.getAnyOrthogonal())

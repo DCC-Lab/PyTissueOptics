@@ -8,8 +8,9 @@ from .mayaviTriangleMesh import MayaviTriangleMesh
 
 
 class MayaviObject:
-    def __init__(self, vertices: List[Vertex], polygons: List[Polygon],
-                 loadNormals=True, primitive=primitives.TRIANGLE):
+    def __init__(
+        self, vertices: List[Vertex], polygons: List[Polygon], loadNormals=True, primitive=primitives.TRIANGLE
+    ):
         self._vertices = vertices
         self._polygons = polygons
         self._primitive = primitive
@@ -63,9 +64,7 @@ class MayaviObject:
             trianglesIndices = []
             for polygonIndices in self._polygonsIndices:
                 for i in range(len(polygonIndices) - 2):
-                    trianglesIndices.append((polygonIndices[0],
-                                             polygonIndices[i + 1],
-                                             polygonIndices[i + 2]))
+                    trianglesIndices.append((polygonIndices[0], polygonIndices[i + 1], polygonIndices[i + 2]))
             return trianglesIndices
 
     @property

@@ -9,9 +9,7 @@ from .CLObject import CLObject, cl
 
 class VertexCL(CLObject):
     STRUCT_NAME = "Vertex"
-    STRUCT_DTYPE = np.dtype(
-            [("position", cl.cltypes.float3),
-             ("normal", cl.cltypes.float3)])
+    STRUCT_DTYPE = np.dtype([("position", cl.cltypes.float3), ("normal", cl.cltypes.float3)])
 
     def __init__(self, vertices: List[Vertex]):
         self._vertices = vertices

@@ -14,7 +14,7 @@ WORLD_LABEL = "world"
 @dataclass
 class Environment:
     material: ...
-    solid: 'Solid' = None
+    solid: "Solid" = None
 
     @property
     def solidLabel(self) -> str:
@@ -31,9 +31,14 @@ class Polygon:
      for the normal to point towards the viewer.
     """
 
-    def __init__(self, vertices: List[Vertex], normal: Vector = None,
-                 insideEnvironment: Environment = None, outsideEnvironment: Environment = None,
-                 surfaceLabel: str = None):
+    def __init__(
+        self,
+        vertices: List[Vertex],
+        normal: Vector = None,
+        insideEnvironment: Environment = None,
+        outsideEnvironment: Environment = None,
+        surfaceLabel: str = None,
+    ):
         self._vertices = vertices
         self._normal = normal
         self._insideEnvironment = insideEnvironment
@@ -48,7 +53,7 @@ class Polygon:
         self.resetBoundingBox()
         self.toSmooth = False
 
-    def __eq__(self, other: 'Polygon'):
+    def __eq__(self, other: "Polygon"):
         for vertex in self._vertices:
             if vertex not in other.vertices:
                 return False

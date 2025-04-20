@@ -14,12 +14,13 @@ def exampleCode():
     material2 = ScatteringMaterial(mu_s=30, mu_a=0.2, g=0.9, n=1.7)
 
     cube = Cuboid(a=3, b=3, c=3, position=Vector(0, 0, 0), material=material1, label="cube")
-    sphere = Sphere(radius=1, order=3, position=Vector(0, 0, 0), material=material2, label="sphere",
-                    smooth=True)
+    sphere = Sphere(radius=1, order=3, position=Vector(0, 0, 0), material=material2, label="sphere", smooth=True)
     scene = ScatteringScene([cube, sphere])
 
     logger = EnergyLogger(scene)
-    source = DirectionalSource(position=Vector(0, 0, -2), direction=Vector(0, 0, 1), N=N, diameter=0.5, displaySize=0.25)
+    source = DirectionalSource(
+        position=Vector(0, 0, -2), direction=Vector(0, 0, 1), N=N, diameter=0.5, displaySize=0.25
+    )
 
     source.propagate(scene, logger)
 

@@ -12,8 +12,9 @@ def exampleCode():
 
     tissue = samples.PhantomTissue()
     logger = EnergyLogger(tissue)
-    source = DivergentSource(position=Vector(0, 0, -0.2), direction=Vector(0, 0, 1), N=N,
-                             diameter=0.1, divergence=0.4, displaySize=0.2)
+    source = DivergentSource(
+        position=Vector(0, 0, -0.2), direction=Vector(0, 0, 1), N=N, diameter=0.1, divergence=0.4, displaySize=0.2
+    )
 
     tissue.show(source=source)
 

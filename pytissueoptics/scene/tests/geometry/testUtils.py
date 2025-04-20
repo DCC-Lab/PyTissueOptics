@@ -105,7 +105,9 @@ class TestGetAxisAngleBetween(unittest.TestCase):
     def _generateAxisAlignedTestCases(self):
         testCases = []
         for axis in [Vector(1, 0, 0), Vector(0, 1, 0), Vector(0, 0, 1)]:
-            for (rotationAxis, rotationAxisKey) in zip([Vector(1, 0, 0), Vector(0, 1, 0), Vector(0, 0, 1)], ['xTheta', 'yTheta', 'zTheta']):
+            for rotationAxis, rotationAxisKey in zip(
+                [Vector(1, 0, 0), Vector(0, 1, 0), Vector(0, 0, 1)], ["xTheta", "yTheta", "zTheta"]
+            ):
                 if axis == rotationAxis:
                     continue
                 for angle in [-180, -150, -70, -10, 10, 70, 150, 180]:

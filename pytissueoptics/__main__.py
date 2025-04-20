@@ -7,8 +7,9 @@ from pytissueoptics.examples import loadExamples
 
 ap = argparse.ArgumentParser(prog="python -m pytissueoptics", description="Run PyTissueOptics examples. ")
 ap.add_argument("-v", "--version", action="version", version=f"PyTissueOptics {__version__}")
-ap.add_argument("-e", "--examples", required=False, default="all",
-                help="Run specific examples by number, e.g. -e 1,2,3. ")
+ap.add_argument(
+    "-e", "--examples", required=False, default="all", help="Run specific examples by number, e.g. -e 1,2,3. "
+)
 ap.add_argument("-l", "--list", required=False, action="store_true", help="List available examples. ")
 ap.add_argument("-t", "--tests", required=False, action="store_true", help="Run unit tests. ")
 

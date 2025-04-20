@@ -14,9 +14,11 @@ class TestSplitConstructor(unittest.TestCase):
     def testGivenATriangleAndAPlane_whenPolygonAsRays_shouldReturnCorrectRays(self):
         triangle = Triangle(Vertex(0, 0, 0), Vertex(1, 0, 0), Vertex(1, 1, 0))
         triangleRays = self._fbtc._getPolygonAsRays(triangle)
-        expectedTriangleRays = [Ray(Vector(0, 0, 0), Vector(1, 0, 0), 1.0),
-                                Ray(Vector(1, 0, 0), Vector(0, 1, 0), 1.0),
-                                Ray(Vector(1, 1, 0), Vector(-sqrt(2) / 2, -sqrt(2) / 2, 0), sqrt(2))]
+        expectedTriangleRays = [
+            Ray(Vector(0, 0, 0), Vector(1, 0, 0), 1.0),
+            Ray(Vector(1, 0, 0), Vector(0, 1, 0), 1.0),
+            Ray(Vector(1, 1, 0), Vector(-sqrt(2) / 2, -sqrt(2) / 2, 0), sqrt(2)),
+        ]
 
         for i, tri in enumerate(triangleRays):
             self.assertEqual(tri.direction, expectedTriangleRays[i].direction, 2)
@@ -52,7 +54,9 @@ class TestSplitConstructor(unittest.TestCase):
 
         left, right = self._fbtc._splitTriangles(normal, dot)
 
-        expectedLeft = [Triangle(Vertex(0, 0, 0), Vertex(0, 0.5, 0), Vertex(0, 0.5, 0.5), insideEnvironment=myEnvironment)]
+        expectedLeft = [
+            Triangle(Vertex(0, 0, 0), Vertex(0, 0.5, 0), Vertex(0, 0.5, 0.5), insideEnvironment=myEnvironment)
+        ]
 
         self.assertEqual(left[0], expectedLeft[0])
         self.assertEqual(myEnvironment, left[0].insideEnvironment)
@@ -106,7 +110,7 @@ class TestSplitConstructor(unittest.TestCase):
         self.assertEqual(2, len(right))
 
     def testGivenAPolygonAndAPlane_whenBarelySplittingOnTwoVertices_shouldNotSplit(self):
-        tolerance = 0.000001/2
+        tolerance = 0.000001 / 2
         toBeSplit = [Triangle(Vertex(0, tolerance, 0), Vertex(1, 1, 0), Vertex(1, -tolerance, 0))]
         splitValue = 0
         splitAxis = "y"
@@ -179,9 +183,11 @@ class TestSplitConstructor(unittest.TestCase):
         self.assertEqual(right[0], toBeSplit[0])
 
     def testGivenUltraThinPolygon_whenSplitting_shouldStillReturn2Polygons(self):
-        vertices = [Vertex(8.860660171779822, 5.000000000000001, -4.9455),
-                    Vertex(8.856599089933916, 4.995938918154095, -4.9455),
-                    Vertex(8.856599089933916, 4.99986899735981, -4.9455)]
+        vertices = [
+            Vertex(8.860660171779822, 5.000000000000001, -4.9455),
+            Vertex(8.856599089933916, 4.995938918154095, -4.9455),
+            Vertex(8.856599089933916, 4.99986899735981, -4.9455),
+        ]
         toBeSplit = [Triangle(*vertices)]
         splitAxis = "y"
         splitValue = 4.999868997359811
@@ -195,11 +201,15 @@ class TestSplitConstructor(unittest.TestCase):
 
     def testGivenANodeWith2Polygon_whenSplitting_shouldSplitBetweenPolygons(self):
         """This type of test is extremely sensitive on initial parameters."""
-        expectedLeft = [Triangle(Vertex(0, 0, 0), Vertex(1, 1, 1), Vertex(1, -1, 1)),
-                        Triangle(Vertex(0, 0, 0), Vertex(-1, -1, -1), Vertex(-2, -2, -3))]
-        expectedRight = [Triangle(Vertex(2, 4, 4), Vertex(2, 2, 2), Vertex(2, 2, 3)),
-                         Triangle(Vertex(2, 5, 5), Vertex(2, 2, 2), Vertex(2, 2, 3)),
-                         Triangle(Vertex(2, 6, 6), Vertex(3, 3, 3), Vertex(2, 2, 3))]
+        expectedLeft = [
+            Triangle(Vertex(0, 0, 0), Vertex(1, 1, 1), Vertex(1, -1, 1)),
+            Triangle(Vertex(0, 0, 0), Vertex(-1, -1, -1), Vertex(-2, -2, -3)),
+        ]
+        expectedRight = [
+            Triangle(Vertex(2, 4, 4), Vertex(2, 2, 2), Vertex(2, 2, 3)),
+            Triangle(Vertex(2, 5, 5), Vertex(2, 2, 2), Vertex(2, 2, 3)),
+            Triangle(Vertex(2, 6, 6), Vertex(3, 3, 3), Vertex(2, 2, 3)),
+        ]
         polygons = []
         polygons.extend(expectedLeft)
         polygons.extend(expectedRight)

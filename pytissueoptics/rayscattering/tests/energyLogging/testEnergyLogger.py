@@ -24,7 +24,7 @@ from pytissueoptics.scene.solids import Cube
 
 class TestEnergyLogger(unittest.TestCase):
     CUBE_CENTER = Vector(0.5, 0.5, 0.5)
-    CUBE = Cube(1, position=CUBE_CENTER, material=ScatteringMaterial(), label='cube')
+    CUBE = Cube(1, position=CUBE_CENTER, material=ScatteringMaterial(), label="cube")
     TEST_SCENE = ScatteringScene([CUBE])
     INTERACTION_KEY = InteractionKey(CUBE.getLabel())
 
@@ -50,7 +50,7 @@ class TestEnergyLogger(unittest.TestCase):
         with self.assertRaises(IndexError):
             self.logger.getView(25)
 
-    @patch('sys.stdout', new_callable=io.StringIO)
+    @patch("sys.stdout", new_callable=io.StringIO)
     def testWhenListViews_shouldPrintListOfViews(self, mock_stdout):
         self.logger.listViews()
         self.assertEqual(len(self.logger.views) + 1, len(mock_stdout.getvalue().splitlines()))

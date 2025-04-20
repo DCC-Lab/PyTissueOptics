@@ -3,7 +3,7 @@ from typing import List
 
 import numpy as np
 
-warnings.formatwarning = lambda msg, *args, **kwargs: f'{msg}\n'
+warnings.formatwarning = lambda msg, *args, **kwargs: f"{msg}\n"
 warn = warnings.warn
 
 

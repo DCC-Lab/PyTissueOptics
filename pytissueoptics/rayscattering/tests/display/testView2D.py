@@ -119,9 +119,7 @@ class TestView2D(unittest.TestCase):
         view = View2DProjectionX()
         view.setContext([(2, 3), (2, 3), (2, 3)], (0.1, 0.1, 0.1))
         value = 0.5
-        dataPoints = np.array([[value, 0, 2.05, 2.05],
-                               [value, 5, 2.05, 2.05],
-                               [value, 0, 2.5, 2.95]])
+        dataPoints = np.array([[value, 0, 2.05, 2.05], [value, 5, 2.05, 2.05], [value, 0, 2.5, 2.95]])
 
         view.extractData(dataPoints)
 
@@ -138,9 +136,7 @@ class TestView2D(unittest.TestCase):
         view = View2DProjectionX()
         view.setContext([(2, 3), (2, 3), (2, 3)], (0.1, 0.1, 0.1))
         value = 0.5
-        dataPoints = np.array([[value, 0, 2.05, 2.05],
-                               [value, 5, 2.05, 2.05],
-                               [value, 0, 2.5, 2.95]])
+        dataPoints = np.array([[value, 0, 2.05, 2.05], [value, 5, 2.05, 2.05], [value, 0, 2.5, 2.95]])
         view.extractData(dataPoints)
 
         image = view.getImageData(logScale=False)
@@ -154,9 +150,7 @@ class TestView2D(unittest.TestCase):
         view = View2DProjectionX()
         view.setContext([(2, 3), (2, 3), (2, 3)], (0.1, 0.1, 0.1))
         value = 0.5
-        dataPoints = np.array([[value, 0, 2.05, 2.05],
-                               [value, 5, 2.05, 2.05],
-                               [value, 0, 2.5, 2.95]])
+        dataPoints = np.array([[value, 0, 2.05, 2.05], [value, 5, 2.05, 2.05], [value, 0, 2.5, 2.95]])
         view.extractData(dataPoints)
 
         image = view.getImageData(logScale=True)
@@ -168,9 +162,7 @@ class TestView2D(unittest.TestCase):
         view = View2DProjection(projectionDirection=Direction.Z_POS, horizontalDirection=Direction.Y_NEG)
         view.setContext([(2, 3), (2, 3), (2, 3)], (0.1, 0.1, 0.1))
         value = 0.5
-        dataPoints = np.array([[value, 2.05, 2.05, 0],
-                               [value, 2.05, 2.05, 5],
-                               [value, 2.5, 2.95, 0]])
+        dataPoints = np.array([[value, 2.05, 2.05, 0], [value, 2.05, 2.05, 5], [value, 2.5, 2.95, 0]])
         view.extractData(dataPoints)
 
         image = view.getImageData(logScale=False, autoFlip=False)
@@ -182,9 +174,7 @@ class TestView2D(unittest.TestCase):
         view = View2DProjection(projectionDirection=Direction.Z_POS, horizontalDirection=Direction.Y_NEG)
         view.setContext([(2, 3), (2, 3), (2, 3)], (0.1, 0.1, 0.1))
         value = 0.5
-        dataPoints = np.array([[value, 2.05, 2.05, 0],
-                               [value, 2.05, 2.05, 5],
-                               [value, 2.5, 2.95, 0]])
+        dataPoints = np.array([[value, 2.05, 2.05, 0], [value, 2.05, 2.05, 5], [value, 2.5, 2.95, 0]])
         view.extractData(dataPoints)
 
         image = view.getImageData(logScale=False)
@@ -203,7 +193,9 @@ class TestView2D(unittest.TestCase):
             with self.subTest(horizontalDirection=horizontalDirection.name):
                 self._shouldHaveImageDataWithDefaultAlignmentEqualToNaturalView(customView)
 
-    def testGivenXViewWithReverseProjectionAndAnyHorizontal_shouldHaveImageDataWithDefaultAlignmentEqualToNaturalView(self):
+    def testGivenXViewWithReverseProjectionAndAnyHorizontal_shouldHaveImageDataWithDefaultAlignmentEqualToNaturalView(
+        self,
+    ):
         for horizontalDirection in [Direction.Y_POS, Direction.Y_NEG, Direction.Z_POS, Direction.Z_NEG]:
             customView = View2DProjection(Direction.X_NEG, horizontalDirection=horizontalDirection)
             with self.subTest(horizontalDirection=horizontalDirection.name):
@@ -215,7 +207,9 @@ class TestView2D(unittest.TestCase):
             with self.subTest(horizontalDirection=horizontalDirection.name):
                 self._shouldHaveImageDataWithDefaultAlignmentEqualToNaturalView(customView)
 
-    def testGivenYViewWithReverseProjectionAndAnyHorizontal_shouldHaveImageDataWithDefaultAlignmentEqualToNaturalView(self):
+    def testGivenYViewWithReverseProjectionAndAnyHorizontal_shouldHaveImageDataWithDefaultAlignmentEqualToNaturalView(
+        self,
+    ):
         for horizontalDirection in [Direction.X_POS, Direction.X_NEG, Direction.Z_POS, Direction.Z_NEG]:
             customView = View2DProjection(Direction.Y_POS, horizontalDirection=horizontalDirection)
             with self.subTest(horizontalDirection=horizontalDirection.name):
@@ -227,7 +221,9 @@ class TestView2D(unittest.TestCase):
             with self.subTest(horizontalDirection=horizontalDirection.name):
                 self._shouldHaveImageDataWithDefaultAlignmentEqualToNaturalView(customView)
 
-    def testGivenZViewWithReverseProjectionAndAnyHorizontal_shouldHaveImageDataWithDefaultAlignmentEqualToNaturalView(self):
+    def testGivenZViewWithReverseProjectionAndAnyHorizontal_shouldHaveImageDataWithDefaultAlignmentEqualToNaturalView(
+        self,
+    ):
         for horizontalDirection in [Direction.X_POS, Direction.X_NEG, Direction.Y_POS, Direction.Y_NEG]:
             customView = View2DProjection(Direction.Z_NEG, horizontalDirection=horizontalDirection)
             with self.subTest(horizontalDirection=horizontalDirection.name):
@@ -240,9 +236,7 @@ class TestView2D(unittest.TestCase):
             naturalView = View2DProjectionY()
         else:
             naturalView = View2DProjectionZ()
-        dataPoints = np.array([[0.5, 2.05, 2.05, 2.05],
-                               [0.5, 2.05, 2.05, 2.05],
-                               [0.5, 2.95, 2.05, 2.5]])
+        dataPoints = np.array([[0.5, 2.05, 2.05, 2.05], [0.5, 2.05, 2.05, 2.05], [0.5, 2.95, 2.05, 2.5]])
         naturalView.setContext([(2, 3), (2, 3), (2, 3)], (0.1, 0.1, 0.1))
         customView.setContext([(2, 3), (2, 3), (2, 3)], (0.1, 0.1, 0.1))
         naturalView.extractData(dataPoints)
@@ -425,17 +419,17 @@ class TestView2D(unittest.TestCase):
 
     def testWhenFlip_shouldFlipViewToBeSeenFromBehind(self):
         defaultViews = [View2DProjectionX(), View2DProjectionY(), View2DProjectionZ()]
-        viewsFromBehind = [View2DProjection(Direction.X_NEG, Direction.Z_NEG),
-                           View2DProjection(Direction.Y_POS, Direction.Z_NEG),
-                           View2DProjection(Direction.Z_NEG, Direction.X_POS)]
+        viewsFromBehind = [
+            View2DProjection(Direction.X_NEG, Direction.Z_NEG),
+            View2DProjection(Direction.Y_POS, Direction.Z_NEG),
+            View2DProjection(Direction.Z_NEG, Direction.X_POS),
+        ]
         for view, viewFromBehind in zip(defaultViews, viewsFromBehind):
             with self.subTest(axis=view.axis):
                 self._whenFlip_shouldEqualOtherView(view, viewFromBehind)
 
     def _whenFlip_shouldEqualOtherView(self, view: View2D, otherView: View2D):
-        dataPoints = np.array([[0.5, 2.05, 2.05, 2.05],
-                               [0.5, 2.05, 2.05, 2.05],
-                               [0.5, 2.95, 2.05, 2.5]])
+        dataPoints = np.array([[0.5, 2.05, 2.05, 2.05], [0.5, 2.05, 2.05, 2.05], [0.5, 2.95, 2.05, 2.5]])
         view.setContext([(2, 4), (2, 4), (2, 4)], (0.1, 0.1, 0.1))
         otherView.setContext([(2, 4), (2, 4), (2, 4)], (0.1, 0.1, 0.1))
         view.extractData(dataPoints)
@@ -484,15 +478,14 @@ class TestView2D(unittest.TestCase):
             with self.subTest(projection=Direction.X_NEG.name, horizontal=horizontalDirection.name):
                 self._whenInitDataFromAnotherView_shouldExtractTheCorrectData(viewGiver, viewReceiver)
 
-    def _whenInitDataFromAnotherView_shouldExtractTheCorrectData(self, viewGiver: View2DProjection,
-                                                                 viewReceiver: View2DProjection):
+    def _whenInitDataFromAnotherView_shouldExtractTheCorrectData(
+        self, viewGiver: View2DProjection, viewReceiver: View2DProjection
+    ):
         viewExpected = View2DProjection(viewReceiver.projectionDirection, viewReceiver._horizontalDirection)
         viewGiver.setContext([(2, 3), (2, 3), (2, 3)], (0.2, 0.2, 0.2))
         viewReceiver.setContext([(2, 3), (2, 3), (2, 3)], (0.2, 0.2, 0.2))
         viewExpected.setContext([(2, 3), (2, 3), (2, 3)], (0.2, 0.2, 0.2))
-        dataPoints = np.array([[0.5, 2.05, 2.05, 2.05],
-                               [0.5, 2.05, 2.05, 2.05],
-                               [0.5, 2.95, 2.05, 2.5]])
+        dataPoints = np.array([[0.5, 2.05, 2.05, 2.05], [0.5, 2.05, 2.05, 2.05], [0.5, 2.95, 2.05, 2.5]])
         viewGiver.extractData(dataPoints)
         viewExpected.extractData(dataPoints)
 
@@ -513,9 +506,7 @@ class TestView2D(unittest.TestCase):
     def testGivenASurfaceViewOfEnergyLeaving_whenExtractSurfaceData_shouldOnlyStorePositiveEnergy(self):
         view = View2DSurfaceX(solidLabel="A", surfaceLabel="B", surfaceEnergyLeaving=True)
         view.setContext([(2, 4), (2, 4), (2, 4)], (0.1, 0.1, 0.1))
-        dataPoints = np.array([[-0.5, 2.05, 2.05, 2.05],
-                               [0.5, 2.05, 2.05, 2.05],
-                               [-0.5, 2.95, 2.05, 2.5]])
+        dataPoints = np.array([[-0.5, 2.05, 2.05, 2.05], [0.5, 2.05, 2.05, 2.05], [-0.5, 2.95, 2.05, 2.5]])
         view.extractData(dataPoints)
 
         self.assertEqual(0.5, view.getSum())
@@ -523,23 +514,21 @@ class TestView2D(unittest.TestCase):
     def testGivenASurfaceViewOfEnergyEntering_whenExtractSurfaceData_shouldOnlyStoreNegativeEnergyAsPositive(self):
         view = View2DSurfaceX(solidLabel="A", surfaceLabel="B", surfaceEnergyLeaving=False)
         view.setContext([(2, 4), (2, 4), (2, 4)], (0.1, 0.1, 0.1))
-        dataPoints = np.array([[-0.5, 2.05, 2.05, 2.05],
-                               [0.5, 2.05, 2.05, 2.05],
-                               [-0.5, 2.95, 2.05, 2.5]])
+        dataPoints = np.array([[-0.5, 2.05, 2.05, 2.05], [0.5, 2.05, 2.05, 2.05], [-0.5, 2.95, 2.05, 2.5]])
         view.extractData(dataPoints)
 
         self.assertEqual(1, view.getSum())
 
     def testGivenASliceView_whenExtractData_shouldOnlyProjectDataThatLiesInsideTheSlice(self):
-        sliceViews = [View2DSliceX(position=2, thickness=0.1),
-                      View2DSliceY(position=3, thickness=0.1),
-                      View2DSliceZ(position=4, thickness=0.1)]
+        sliceViews = [
+            View2DSliceX(position=2, thickness=0.1),
+            View2DSliceY(position=3, thickness=0.1),
+            View2DSliceZ(position=4, thickness=0.1),
+        ]
         for view in sliceViews:
             with self.subTest(axis=view.axis):
                 view.setContext([(2, 5), (2, 5), (2, 5)], (0.1, 0.1, 0.1))
-                dataPoints = np.array([[0.5, 2.00, 3.00, 4.00],
-                                       [1.0, 2.04, 3.04, 4.04],
-                                       [2.0, 2.10, 3.10, 4.10]])
+                dataPoints = np.array([[0.5, 2.00, 3.00, 4.00], [1.0, 2.04, 3.04, 4.04], [2.0, 2.10, 3.10, 4.10]])
                 view.extractData(dataPoints)
                 self.assertEqual(1.5, view.getSum())
 
@@ -551,17 +540,15 @@ class TestView2D(unittest.TestCase):
     def testWhenShow_shouldPlotTheViewWithCorrectDataAndAxes(self):
         view = View2DProjection(Direction.X_POS, Direction.Y_POS)
         view.setContext([(2, 4), (2, 4), (2, 4)], (0.1, 0.1, 0.1))
-        dataPoints = np.array([[0.5, 2.05, 2.05, 2.05],
-                               [0.5, 2.05, 2.05, 2.05],
-                               [0.5, 2.95, 2.05, 2.5]])
+        dataPoints = np.array([[0.5, 2.05, 2.05, 2.05], [0.5, 2.05, 2.05, 2.05], [0.5, 2.95, 2.05, 2.5]])
         view.extractData(dataPoints)
 
         with patch("matplotlib.pyplot.show") as mockShow:
             view.show()
             mockShow.assert_called_once()
 
-        TEST_IMAGES_DIR = os.path.join(os.path.dirname(__file__), 'testImages')
-        referenceImage = os.path.join(TEST_IMAGES_DIR, 'viewXPOS_uYPOS_vZNEG.png')
+        TEST_IMAGES_DIR = os.path.join(os.path.dirname(__file__), "testImages")
+        referenceImage = os.path.join(TEST_IMAGES_DIR, "viewXPOS_uYPOS_vZNEG.png")
 
         OVERWRITE_REFERENCE_IMAGES = False
         if OVERWRITE_REFERENCE_IMAGES:
@@ -569,14 +556,15 @@ class TestView2D(unittest.TestCase):
             self.skipTest("Overwriting reference image")
 
         if not SHOW_VISUAL_TESTS:
-            self.skipTest("Visual tests are disabled. Set rayscattering.tests.SHOW_VISUAL_TESTS to True to enable them.")
+            self.skipTest(
+                "Visual tests are disabled. Set rayscattering.tests.SHOW_VISUAL_TESTS to True to enable them."
+            )
 
         with tempfile.TemporaryDirectory() as tempdir:
-            currentImage = os.path.join(tempdir, 'test.png')
+            currentImage = os.path.join(tempdir, "test.png")
             plt.savefig(currentImage)
             plt.close()
 
-            isOK = compareVisuals(referenceImage, currentImage,
-                                  title="TestView2D: View2DProjectionX")
+            isOK = compareVisuals(referenceImage, currentImage, title="TestView2D: View2DProjectionX")
         if not isOK:
             self.fail("Visual test failed.")

@@ -135,9 +135,9 @@ class SimpleIntersectionFinder(IntersectionFinder):
         return self._composeIntersection(ray, closestIntersection)
 
     def _findBBoxIntersectingSolids(self, ray: Ray, currentSolidLabel: str) -> Optional[List[Tuple[float, Solid]]]:
-        """ We need to handle the special case where ray starts inside bbox. The Box Intersect will not compute
+        """We need to handle the special case where ray starts inside bbox. The Box Intersect will not compute
         the intersection for this case and will instead return ray.origin. When that happens, distance will be 0,
-        and we continue to check for possibly other contained solids. """
+        and we continue to check for possibly other contained solids."""
         solidCandidates = []
         for solid in self._scene.solids:
             if solid.getLabel() == currentSolidLabel:
@@ -154,8 +154,9 @@ class SimpleIntersectionFinder(IntersectionFinder):
 class FastIntersectionFinder(IntersectionFinder):
     def __init__(self, scene: Scene, constructor=NoSplitThreeAxesConstructor(), maxDepth=20, minLeafSize=6):
         super(FastIntersectionFinder, self).__init__(scene)
-        self._partition = SpacePartition(self._scene.getBoundingBox(), self._scene.getPolygons(), constructor,
-                                         maxDepth, minLeafSize)
+        self._partition = SpacePartition(
+            self._scene.getBoundingBox(), self._scene.getPolygons(), constructor, maxDepth, minLeafSize
+        )
 
     def findIntersection(self, ray: Ray, currentSolidLabel: str) -> Optional[Intersection]:
         self._currentSolidLabel = currentSolidLabel

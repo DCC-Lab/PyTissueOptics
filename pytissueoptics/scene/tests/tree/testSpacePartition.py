@@ -20,7 +20,9 @@ class TestSpacePartition(unittest.TestCase):
 
         self.root = Node(polygons=self.polyList, bbox=bbox1)
         self.treeConstructor = TreeConstructor()
-        expect(self.treeConstructor, times=3)._splitNode(...).thenReturn(result1).thenReturn(result2).thenReturn(result3)
+        expect(self.treeConstructor, times=3)._splitNode(...).thenReturn(result1).thenReturn(result2).thenReturn(
+            result3
+        )
         self.tree = SpacePartition(bbox1, self.polyList, self.treeConstructor, minLeafSize=1)
 
     def testShouldHaveNodeCount(self):

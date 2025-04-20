@@ -30,7 +30,7 @@ class TestSphere(unittest.TestCase):
     def testGivenALowOrderSphere_shouldNotApproachCorrectSphereArea(self):
         sphere = Sphere()
         icosphereArea = 0
-        perfectSphereArea = 4 * math.pi * sphere.radius ** 2
+        perfectSphereArea = 4 * math.pi * sphere.radius**2
 
         for polygon in sphere.getPolygons():
             icosphereArea += 0.5 * polygon.vertices[0].cross(polygon.vertices[1]).getNorm()
@@ -40,7 +40,7 @@ class TestSphere(unittest.TestCase):
     def testGivenAHighOrderSphere_shouldApproachCorrectSphereArea(self):
         sphere = Sphere(radius=1, order=4)
         icosphereArea = 0
-        perfectSphereArea = 4 * math.pi * sphere.radius ** 2
+        perfectSphereArea = 4 * math.pi * sphere.radius**2
         tolerance = 0.002
 
         for polygon in sphere.getPolygons():

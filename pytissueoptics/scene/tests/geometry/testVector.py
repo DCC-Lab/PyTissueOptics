@@ -6,7 +6,6 @@ from pytissueoptics.scene.geometry import Vector
 
 
 class TestVector(unittest.TestCase):
-
     def setUp(self):
         self.vector = Vector(x=1, y=2.4, z=0.5)
 
@@ -127,9 +126,14 @@ class TestVector(unittest.TestCase):
             self.assertEqual(0, vector.dot(orthogonalVector))
             self.assertNotEqual(0, orthogonalVector.getNorm())
 
-        edgeCaseVectors = [Vector(-1, 0, 0), Vector(1, 0, 0),
-                           Vector(0, 1, 0), Vector(0, -1, 0),
-                           Vector(0, 0, 1), Vector(0, 0, -1)]
+        edgeCaseVectors = [
+            Vector(-1, 0, 0),
+            Vector(1, 0, 0),
+            Vector(0, 1, 0),
+            Vector(0, -1, 0),
+            Vector(0, 0, 1),
+            Vector(0, 0, -1),
+        ]
         for vector in edgeCaseVectors:
             orthogonalVector = vector.getAnyOrthogonal()
             self.assertEqual(0, vector.dot(orthogonalVector))

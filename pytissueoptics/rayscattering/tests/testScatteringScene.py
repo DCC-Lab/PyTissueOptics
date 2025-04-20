@@ -11,8 +11,8 @@ from pytissueoptics.scene.viewer import MayaviViewer
 
 
 def patchMayaviShow(func):
-    for module in ['show', 'gcf', 'figure', 'clf', 'triangular_mesh']:
-        func = patch('mayavi.mlab.' + module)(func)
+    for module in ["show", "gcf", "figure", "clf", "triangular_mesh"]:
+        func = patch("mayavi.mlab." + module)(func)
     return func
 
 

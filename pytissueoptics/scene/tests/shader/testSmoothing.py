@@ -8,10 +8,8 @@ from pytissueoptics.scene.shader import getSmoothNormal
 class TestSmoothing(unittest.TestCase):
     def setUp(self):
         # Create a XY square polygon with normals pointing outwards along the Z axis.
-        vertices = [Vertex(0, 0, 0), Vertex(1, 0, 0),
-                    Vertex(1, 1, 0), Vertex(0, 1, 0)]
-        normals = [Vector(-1, -1, 1), Vector(1, -1, 1),
-                   Vector(1, 1, 1), Vector(-1, 1, 1)]
+        vertices = [Vertex(0, 0, 0), Vertex(1, 0, 0), Vertex(1, 1, 0), Vertex(0, 1, 0)]
+        normals = [Vector(-1, -1, 1), Vector(1, -1, 1), Vector(1, 1, 1), Vector(-1, 1, 1)]
         for i in range(4):
             normals[i].normalize()
             vertices[i].normal = normals[i]

@@ -4,8 +4,7 @@ from pytissueoptics.scene.geometry import BoundingBox, Polygon
 
 
 class Node:
-    def __init__(self, parent: 'Node' = None, polygons: List[Polygon] = None, bbox: BoundingBox = None, depth: int = 0):
-
+    def __init__(self, parent: "Node" = None, polygons: List[Polygon] = None, bbox: BoundingBox = None, depth: int = 0):
         self._parent = parent
         self._children = []
         self._polygons = polygons
@@ -13,7 +12,7 @@ class Node:
         self._depth = depth
 
     @property
-    def children(self) -> List['Node']:
+    def children(self) -> List["Node"]:
         return self._children
 
     @property

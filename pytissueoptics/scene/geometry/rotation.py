@@ -1,4 +1,3 @@
-
 class Rotation:
     def __init__(self, xTheta: float = 0, yTheta: float = 0, zTheta: float = 0):
         self._xTheta = xTheta
@@ -17,7 +16,7 @@ class Rotation:
     def zTheta(self):
         return self._zTheta
 
-    def add(self, other: 'Rotation'):
+    def add(self, other: "Rotation"):
         self._xTheta += other.xTheta
         self._yTheta += other.yTheta
         self._zTheta += other.zTheta
