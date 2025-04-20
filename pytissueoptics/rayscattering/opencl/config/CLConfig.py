@@ -178,6 +178,12 @@ class CLConfig:
         with open(OPENCL_CONFIG_PATH, "r") as f:
             self._config = json.load(f)
 
+        if os.getenv("PTO_CI_MODE", "0") == "1":
+            warnings.warn("Using default OpenCL configuration for CI mode.")
+            self.DEVICE_INDEX = 0
+            self.N_WORK_UNITS = 128
+            self.MAX_MEMORY_MB = 1024
+
     def _assertExists(self):
         if not os.path.exists(OPENCL_CONFIG_PATH):
             warnings.warn("No OpenCL config file found. Creating a new one.")
