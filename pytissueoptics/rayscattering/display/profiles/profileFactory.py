@@ -117,7 +117,7 @@ class ProfileFactory:
         if solidLabel is None:
             return None, None
         originalSolidLabels = self._logger.getSeenSolidLabels()
-        lowerCaseSolidLabels = [l.lower() for l in originalSolidLabels]
+        lowerCaseSolidLabels = [label.lower() for label in originalSolidLabels]
         if solidLabel.lower() in lowerCaseSolidLabels:
             labelIndex = lowerCaseSolidLabels.index(solidLabel.lower())
             solidLabel = originalSolidLabels[labelIndex]
@@ -126,7 +126,7 @@ class ProfileFactory:
             return solidLabel, None
 
         originalSurfaceLabels = self._logger.getSeenSurfaceLabels(solidLabel)
-        lowerCaseSurfaceLabels = [l.lower() for l in originalSurfaceLabels]
+        lowerCaseSurfaceLabels = [label.lower() for label in originalSurfaceLabels]
 
         altLabel = f'{solidLabel}_{surfaceLabel}'
         if altLabel.lower() in lowerCaseSurfaceLabels:

@@ -113,12 +113,7 @@ class VolumeSlicer(HasTraits):
     #---------------------------------------------------------------------------
     @on_trait_change('scene3d.activated')
     def display_scene3d(self):
-        outline = mlab.pipeline.outline(self.data_src3d,
-                        figure=self.scene3d.mayavi_scene,
-                                        colormap=self._colormap)
-        # self.scene3d.mlab.view(40, 50)
         self.scene3d.mlab.view(*self._cameraView.values())
-        # self.scene3d.mlab.pitch(self._cameraPitch)
 
         # Interaction properties can only be changed after the scene
         # has been created, and thus the interactor exists
@@ -174,13 +169,6 @@ class VolumeSlicer(HasTraits):
         # Center the image plane widget
         ipw.ipw.slice_position = 0.5*self.data.shape[
                     self._axis_names[axis_name]]
-
-        # Position the view for the scene
-        views = dict(x=( 0, 90),
-                     y=(90, 90),
-                     z=( 0,  0),
-                     )
-        # scene.mlab.view(*views[axis_name])
 
         scene.mlab.view(*self._cameraView.values())
         scene.mlab.pitch(self._cameraPitch)

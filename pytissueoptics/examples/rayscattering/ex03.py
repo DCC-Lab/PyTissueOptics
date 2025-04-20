@@ -1,5 +1,5 @@
-import env
-from pytissueoptics import *
+import env  # noqa: F401
+from pytissueoptics import *  # noqa: F403
 
 TITLE = "Propagate in a in a non-scattering custom scene with an optical lens." \
         "Learn to save and load your data so you don't have to simulate again."

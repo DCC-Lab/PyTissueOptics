@@ -1,4 +1,3 @@
-import filecmp
 import os
 import tempfile
 import unittest
@@ -7,8 +6,20 @@ from unittest.mock import patch
 import numpy as np
 from matplotlib import pyplot as plt
 
+from pytissueoptics import View2DSurface
 from pytissueoptics.rayscattering.display.utils import Direction
-from pytissueoptics.rayscattering.display.views import *
+from pytissueoptics.rayscattering.display.views import (
+    View2D,
+    View2DProjection,
+    View2DProjectionX,
+    View2DProjectionY,
+    View2DProjectionZ,
+    View2DSliceX,
+    View2DSliceY,
+    View2DSliceZ,
+    View2DSurfaceX,
+    ViewGroup,
+)
 from pytissueoptics.rayscattering.tests import SHOW_VISUAL_TESTS
 from pytissueoptics.scene.tests import compareVisuals
 

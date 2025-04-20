@@ -1,4 +1,4 @@
-import env
+import env  # noqa: F401
 
 TITLE = "Lenses"
 

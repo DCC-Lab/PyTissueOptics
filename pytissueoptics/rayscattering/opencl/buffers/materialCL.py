@@ -1,7 +1,10 @@
 from typing import List
 
+import numpy as np
+
 from pytissueoptics.rayscattering.materials.scatteringMaterial import ScatteringMaterial
-from pytissueoptics.rayscattering.opencl.buffers.CLObject import *
+
+from .CLObject import CLObject, cl
 
 
 class MaterialCL(CLObject):

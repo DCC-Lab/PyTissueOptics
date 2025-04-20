@@ -29,3 +29,9 @@ def validateOpenCL() -> bool:
 
 def hardwareAccelerationIsAvailable() -> bool:
     return OPENCL_AVAILABLE and OPENCL_OK
+
+
+__all__ = [
+    "IPPTable",
+    "WEIGHT_THRESHOLD"
+]

@@ -55,7 +55,10 @@ line-length = 120
 target-version = "py39"
 
 [tool.ruff.lint]
-select = ["ALL"]
+ignore = [
+  "PT009",  # unittest-style asserts
+  "F405",  # Name defined from star imports
+]
 
 [tool.ruff.format]
 quote-style = "double"

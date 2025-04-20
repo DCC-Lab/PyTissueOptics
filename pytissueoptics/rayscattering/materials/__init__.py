@@ -1,1 +1,1 @@
-from .scatteringMaterial import ScatteringMaterial
+from .scatteringMaterial import ScatteringMaterial as ScatteringMaterial

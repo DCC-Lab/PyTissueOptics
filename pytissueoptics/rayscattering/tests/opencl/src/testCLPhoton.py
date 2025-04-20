@@ -7,7 +7,19 @@ import numpy as np
 
 from pytissueoptics import ScatteringMaterial, ScatteringScene, Vector
 from pytissueoptics.rayscattering.opencl import OPENCL_AVAILABLE, OPENCL_OK
-from pytissueoptics.rayscattering.opencl.buffers import *
+from pytissueoptics.rayscattering.opencl.buffers import (
+    DataPointCL,
+    MaterialCL,
+    PhotonCL,
+    SeedCL,
+    SolidCandidateCL,
+    SolidCL,
+    SurfaceCL,
+    SurfaceCLInfo,
+    TriangleCL,
+    TriangleCLInfo,
+    VertexCL,
+)
 from pytissueoptics.rayscattering.opencl.CLProgram import CLProgram
 from pytissueoptics.rayscattering.opencl.CLScene import NO_LOG_ID, NO_SOLID_ID, NO_SURFACE_ID, CLScene
 from pytissueoptics.rayscattering.opencl.config.CLConfig import OPENCL_SOURCE_DIR

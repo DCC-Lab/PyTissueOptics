@@ -1,4 +1,5 @@
 import warnings
+from functools import partial
 from typing import Callable, Dict, List
 
 import numpy as np
@@ -123,7 +124,7 @@ class Solid:
         solid surface to compute its new normal.
         """
         rotation = Rotation(xTheta, yTheta, zTheta)
-        rotationFunction = lambda vertices: self._rotateWithEuler(vertices, rotation)
+        rotationFunction = partial(self._rotateWithEuler, rotation=rotation)
 
         self._rotateWith(rotationFunction, rotationCenter)
         self._rotation.add(rotation)
@@ -133,7 +134,7 @@ class Solid:
         Note that the original solid orientation is set to (0, 0, 1). """
         initialOrientation = self._orientation
         axis, angle = utils.getAxisAngleBetween(initialOrientation, towards)
-        rotationFunction = lambda vertices: self._rotateWithAxisAngle(vertices, axis, angle)
+        rotationFunction = partial(self._rotateWithAxisAngle, axis=axis, angle=angle)
 
         self._rotateWith(rotationFunction, None)
         self._orientation = towards

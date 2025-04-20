@@ -1,6 +1,6 @@
 import unittest
 
-from pytissueoptics.scene.utils.progressBar import noProgressBar
+from pytissueoptics.scene.utils import noProgressBar
 
 
 class TestNoProgressBar(unittest.TestCase):

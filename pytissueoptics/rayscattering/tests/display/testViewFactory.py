@@ -2,7 +2,17 @@ import unittest
 
 from mockito import mock, verify, when
 
-from pytissueoptics.rayscattering.display.views import *
+from pytissueoptics.rayscattering.display.views import (
+    View2D,
+    View2DProjectionX,
+    View2DProjectionY,
+    View2DProjectionZ,
+    View2DSurfaceX,
+    View2DSurfaceY,
+    View2DSurfaceZ,
+    ViewFactory,
+    ViewGroup,
+)
 from pytissueoptics.rayscattering.materials import ScatteringMaterial
 from pytissueoptics.rayscattering.scatteringScene import ScatteringScene
 from pytissueoptics.scene.solids import Cube, Sphere

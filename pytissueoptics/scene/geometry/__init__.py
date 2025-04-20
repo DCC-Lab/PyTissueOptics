@@ -6,3 +6,16 @@ from .surfaceCollection import INTERFACE_KEY, SurfaceCollection
 from .triangle import Triangle
 from .vector import Vector
 from .vertex import Vertex
+
+__all__ = [
+    "BoundingBox",
+    "Polygon",
+    "Quad",
+    "Rotation",
+    "SurfaceCollection",
+    "Triangle",
+    "Vector",
+    "Vertex",
+    "Environment",
+    INTERFACE_KEY,
+]

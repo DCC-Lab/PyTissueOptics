@@ -2,7 +2,6 @@ import numpy as np
 
 try:
     import pyopencl as cl
-    import pyopencl.tools
 except ImportError:
     class DummyType:
         def __getattr__(self, item):

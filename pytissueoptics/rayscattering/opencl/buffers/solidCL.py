@@ -1,7 +1,10 @@
 from typing import List, NamedTuple
 
-from pytissueoptics.rayscattering.opencl.buffers.CLObject import *
+import numpy as np
+
 from pytissueoptics.scene.geometry import BoundingBox
+
+from .CLObject import CLObject, cl
 
 SolidCLInfo = NamedTuple("SolidInfo", [("bbox", BoundingBox),
                                        ("firstSurfaceID", int), ("lastSurfaceID", int)])

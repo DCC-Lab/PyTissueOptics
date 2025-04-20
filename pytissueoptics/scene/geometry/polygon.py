@@ -1,9 +1,12 @@
 from dataclasses import dataclass
-from typing import List
+from typing import TYPE_CHECKING, List
 
 from .bbox import BoundingBox
 from .vector import Vector
 from .vertex import Vertex
+
+if TYPE_CHECKING:
+    from pytissueoptics.scene.solids.solid import Solid
 
 WORLD_LABEL = "world"
 

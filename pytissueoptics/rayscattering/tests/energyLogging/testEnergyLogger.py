@@ -7,7 +7,13 @@ from unittest.mock import MagicMock, patch
 import numpy as np
 
 from pytissueoptics.rayscattering.display.utils import Direction
-from pytissueoptics.rayscattering.display.views import *
+from pytissueoptics.rayscattering.display.views import (
+    View2DProjection,
+    View2DProjectionX,
+    View2DSliceX,
+    View2DSurfaceY,
+    ViewGroup,
+)
 from pytissueoptics.rayscattering.energyLogging import EnergyLogger
 from pytissueoptics.rayscattering.materials import ScatteringMaterial
 from pytissueoptics.rayscattering.scatteringScene import ScatteringScene

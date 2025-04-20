@@ -1,7 +1,10 @@
-from typing import List
+from typing import TYPE_CHECKING, List
 
 from .vector import Vector
 from .vertex import Vertex
+
+if TYPE_CHECKING:
+    from pytissueoptics.scene.geometry.polygon import Polygon
 
 
 class BoundingBox:

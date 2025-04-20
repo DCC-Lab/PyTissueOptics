@@ -58,7 +58,7 @@ class ThickLens(Cylinder):
             dt2 *= -np.sign(self._backRadius)
         edgeThickness = centerThickness - dt1 - dt2
         if edgeThickness < 0:
-            raise ValueError(f"Desired center thickness is too small for the given radii and diameter.")
+            raise ValueError("Desired center thickness is too small for the given radii and diameter.")
         return edgeThickness
 
     @property

@@ -23,7 +23,7 @@ def labelsEqual(label1: str, label2: str) -> bool:
     return label1.lower() == label2.lower()
 
 
-def labelContained(label: str, labels: List[str]) -> bool:
+def labelContained(label: str, inLabels: List[str]) -> bool:
     if label is None:
         return False
-    return any(labelsEqual(label, l) for l in labels)
+    return any(labelsEqual(label, inLabel) for inLabel in inLabels)

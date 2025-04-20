@@ -136,7 +136,7 @@ class EnergyLogger(Logger):
             utils.warn("WARNING: The logger at '{}' use to discard 3D data, but it was reloaded with keep3D=True. "
                        "This may corrupt the statistics and the 3D visualization. Proceed at your own risk.".format(filepath))
         if self._defaultViews != oldDefaultViews:
-            utils.warn("WARNING: Cannot provide new default views to a loaded logger. "
+            utils.warn("WARNING: Cannot provide new default views to a loaded logger from '{}'."
                        "Using only the views from the file.".format(filepath))
 
     @property

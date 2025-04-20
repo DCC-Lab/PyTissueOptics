@@ -3,7 +3,7 @@ from typing import List
 from pytissueoptics.scene.loader.parsers.parsedObject import ParsedObject
 from pytissueoptics.scene.loader.parsers.parsedSurface import ParsedSurface
 from pytissueoptics.scene.loader.parsers.parser import Parser
-from pytissueoptics.scene.utils.progressBar import progressBar
+from pytissueoptics.scene.utils import progressBar
 
 
 class OBJParser(Parser):

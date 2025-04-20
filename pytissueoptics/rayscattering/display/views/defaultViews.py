@@ -2,7 +2,12 @@ from typing import List, Tuple, Union
 
 import numpy as np
 
-from pytissueoptics.rayscattering.display.utils.direction import *
+from pytissueoptics.rayscattering.display.utils import (
+    DEFAULT_X_VIEW_DIRECTIONS,
+    DEFAULT_Y_VIEW_DIRECTIONS,
+    DEFAULT_Z_VIEW_DIRECTIONS,
+    Direction,
+)
 from pytissueoptics.rayscattering.display.views.view2D import View2D, ViewGroup
 
 

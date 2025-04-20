@@ -1,7 +1,10 @@
-from typing import Dict, List
+from typing import TYPE_CHECKING, Dict, List
 
 from pytissueoptics.scene.geometry import INTERFACE_KEY, SurfaceCollection, Vector
 from pytissueoptics.scene.solids.stack.stackResult import StackResult
+
+if TYPE_CHECKING:
+    from pytissueoptics.scene.solids.cuboid import Cuboid
 
 
 class CuboidStacker:
@@ -65,7 +68,7 @@ class CuboidStacker:
         fixedAxes.remove(self._stackAxis)
         for fixedAxis in fixedAxes:
             assert self._onCuboid.shape[fixedAxis] == self._otherCuboid.shape[fixedAxis], \
-                f"Stacking of mismatched surfaces is not supported."
+                "Stacking of mismatched surfaces is not supported."
 
     def _translateOtherCuboid(self):
         relativePosition = [0, 0, 0]

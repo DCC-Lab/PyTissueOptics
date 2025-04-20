@@ -1,1 +1,1 @@
-from .statistics import Stats
+from .statistics import Stats as Stats

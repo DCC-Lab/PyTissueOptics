@@ -7,7 +7,12 @@ import numpy as np
 from matplotlib import pyplot as plt
 
 from pytissueoptics.rayscattering import utils
-from pytissueoptics.rayscattering.display.utils.direction import *
+from pytissueoptics.rayscattering.display.utils import (
+    DEFAULT_X_VIEW_DIRECTIONS,
+    DEFAULT_Y_VIEW_DIRECTIONS,
+    DEFAULT_Z_VIEW_DIRECTIONS,
+    Direction,
+)
 
 
 class ViewGroup(Flag):
@@ -62,7 +67,7 @@ class View2D:
         self._position = position
         self._thickness = thickness
 
-        limits = [sorted(l) for l in limits] if limits else [None, None]
+        limits = [sorted(limit) for limit in limits] if limits else [None, None]
         self._limitsU, self._limitsV = limits
         self._binSize = (binSize, binSize) if isinstance(binSize, (int, float)) else binSize
         self._binsU, self._binsV = None, None
@@ -85,7 +90,7 @@ class View2D:
             self._binSize = (binSize3D[self.axisU], binSize3D[self.axisV])
 
         limits = [self._limitsU, self._limitsV]
-        self._binsU, self._binsV = [int((l[1] - l[0]) / b) for l, b in zip(limits, self._binSize)]
+        self._binsU, self._binsV = [int((limit[1] - limit[0]) / bin_) for limit, bin_ in zip(limits, self._binSize)]
 
         if self._verticalIsNegative:
             self._limitsV = self._limitsV[::-1]
@@ -96,8 +101,9 @@ class View2D:
         try:
             self._dataUV = np.zeros((self._binsU, self._binsV), dtype=np.float32)
         except MemoryError:
-            raise MemoryError(f"Cannot allocate memory for 2D view. "
-                              f"Consider increasing `defaultBinSize` of EnergyLogger.")
+            raise MemoryError(
+                "Cannot allocate memory for 2D view. Consider increasing `defaultBinSize` of EnergyLogger."
+            )
 
     def extractData(self, dataPoints: np.ndarray):
         """
@@ -113,7 +119,7 @@ class View2D:
 
         u, v, w = dataPoints[:, 1 + self.axisU], dataPoints[:, 1 + self.axisV], dataPoints[:, 0]
         sumUVProjection = np.histogram2d(u, v, weights=w, bins=(self._binsU, self._binsV),
-                                          range=(sorted(self._limitsU), sorted(self._limitsV)))[0]
+                                         range=(sorted(self._limitsU), sorted(self._limitsV)))[0]
         self._dataUV += np.flip(sumUVProjection, axis=1)
         self._hasData = True
 

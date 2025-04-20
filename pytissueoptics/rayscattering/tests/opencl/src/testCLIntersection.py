@@ -4,7 +4,7 @@ import unittest
 
 import numpy as np
 
-from pytissueoptics import *
+from pytissueoptics import Cuboid, ScatteringMaterial, ScatteringScene, Vector
 from pytissueoptics.rayscattering.opencl import OPENCL_OK
 from pytissueoptics.rayscattering.opencl.CLPhotons import CLScene
 from pytissueoptics.rayscattering.opencl.CLProgram import CLProgram
@@ -36,7 +36,7 @@ class TestCLIntersection(unittest.TestCase):
                                                                            clScene.solids, clScene.surfaces,
                                                                            clScene.triangles, clScene.vertices,
                                                                            clScene.solidCandidates, intersections])
-        except Exception as e:
+        except Exception:
             traceback.print_exc(0)
 
         self.program.getData(clScene.solidCandidates)

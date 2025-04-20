@@ -167,7 +167,7 @@ class IntersectionFinderBenchmark:
             viewer.show()
 
     def runBenchmark(self):
-        print(f"=================== BENCHMARK ====================")
+        print("=================== BENCHMARK ====================")
         for scene in self.scenes:
             self.runBenchmarkForScene(scene)
 
@@ -222,16 +222,16 @@ class IntersectionFinderBenchmark:
 
     def _saveSimpleStats(self, scene: Scene, intersectionFinder: SimpleIntersectionFinder, traversalTime: float):
         self.stats.loc[self.stats.shape[0]] = [f"{scene.__class__.__name__}", f"{len(scene.getPolygons()):^12}",
-                                               f"-",
+                                               "-",
                                                f"{intersectionFinder.__class__.__name__:^12.15s}",
-                                               f"-",
+                                               "-",
                                                f"{traversalTime:^12.2f}",
                                                f"{traversalTime:^12.2f}",
-                                               f"-",
-                                               f"-",
-                                               f"-",
-                                               f"-",
-                                               f"-"]
+                                               "-",
+                                               "-",
+                                               "-",
+                                               "-",
+                                               "-"]
 
     def _saveFastStats(self, scene: Scene, intersectionFinder: FastIntersectionFinder, traversalTime: float,
                        buildTime: float):

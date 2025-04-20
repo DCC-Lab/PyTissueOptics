@@ -4,7 +4,7 @@ import time
 import matplotlib.pyplot as plt
 import numpy as np
 
-from pytissueoptics import *
+from pytissueoptics import Cuboid, DirectionalSource, EnergyLogger, ScatteringMaterial, ScatteringScene, Sphere, Vector
 from pytissueoptics.rayscattering.opencl import CONFIG
 
 MAX_SECONDS_PER_TEST = 5

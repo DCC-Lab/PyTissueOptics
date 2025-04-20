@@ -1,6 +1,9 @@
+import importlib
+import os
+import re
 import unittest
 
-from pytissueoptics.examples import *
+from pytissueoptics.examples import EXAMPLE_DIR, EXAMPLE_FILE_PATTERN, EXAMPLE_FILES, EXAMPLE_MODULE, loadExamples
 
 
 class TestExamples(unittest.TestCase):
@@ -15,7 +18,7 @@ class TestExamples(unittest.TestCase):
                 self.assertTrue(hasattr(module, "TITLE"))
                 self.assertTrue(hasattr(module, "DESCRIPTION"))
                 self.assertTrue(hasattr(module, "exampleCode"))
-                self.assertTrue(srcCode.startswith("import env\nfrom pytissueoptics import *"))
+                self.assertTrue(srcCode.startswith("import env"))
                 self.assertTrue(srcCode.endswith("if __name__ == \"__main__\":\n" +
                                                  "    exampleCode()\n"))
 

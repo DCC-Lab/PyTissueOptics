@@ -10,7 +10,7 @@ from pytissueoptics.rayscattering.fresnel import FresnelIntersect, FresnelInters
 from pytissueoptics.rayscattering.materials import ScatteringMaterial
 from pytissueoptics.rayscattering.photon import WEIGHT_THRESHOLD
 from pytissueoptics.scene import Logger, Vector
-from pytissueoptics.scene.geometry import Environment, Polygon, Triangle
+from pytissueoptics.scene.geometry import Environment, Polygon
 from pytissueoptics.scene.geometry.polygon import WORLD_LABEL
 from pytissueoptics.scene.intersection.intersectionFinder import Intersection, IntersectionFinder
 from pytissueoptics.scene.intersection.mollerTrumboreIntersect import MollerTrumboreIntersect

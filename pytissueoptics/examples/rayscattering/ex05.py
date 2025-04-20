@@ -1,5 +1,5 @@
-import env
-from pytissueoptics import *
+import env  # noqa: F401
+from pytissueoptics import *  # noqa: F403
 
 TITLE = "Sphere inside a cube"
 

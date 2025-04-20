@@ -1,1 +1,3 @@
-from .progressBar import progressBar
+from .progressBar import noProgressBar, progressBar
+
+__all__ = ["noProgressBar", "progressBar"]

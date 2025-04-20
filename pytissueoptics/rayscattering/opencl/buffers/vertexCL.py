@@ -1,7 +1,10 @@
 from typing import List
 
-from pytissueoptics.rayscattering.opencl.buffers.CLObject import *
+import numpy as np
+
 from pytissueoptics.scene.geometry import Vertex
+
+from .CLObject import CLObject, cl
 
 
 class VertexCL(CLObject):

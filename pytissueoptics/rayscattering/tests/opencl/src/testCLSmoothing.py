@@ -4,14 +4,23 @@ import unittest
 
 import numpy as np
 
-from pytissueoptics import *
+from pytissueoptics.rayscattering.materials import ScatteringMaterial
 from pytissueoptics.rayscattering.opencl import OPENCL_OK
-from pytissueoptics.rayscattering.opencl.buffers import *
+from pytissueoptics.rayscattering.opencl.buffers import (
+    DataPointCL,
+    MaterialCL,
+    SeedCL,
+    SolidCandidateCL,
+    SolidCL,
+    SurfaceCL,
+    TriangleCL,
+    TriangleCLInfo,
+    VertexCL,
+)
 from pytissueoptics.rayscattering.opencl.CLProgram import CLProgram
 from pytissueoptics.rayscattering.opencl.config.CLConfig import OPENCL_SOURCE_DIR
 from pytissueoptics.rayscattering.tests.opencl.src.CLObjects import IntersectionCL, RayCL
-from pytissueoptics.scene.geometry.triangle import Triangle
-from pytissueoptics.scene.geometry.vertex import Vertex
+from pytissueoptics.scene.geometry import Triangle, Vector, Vertex
 
 
 @unittest.skipIf(not OPENCL_OK, 'OpenCL device not available.')
@@ -74,7 +83,7 @@ class TestCLNormalSmoothing(unittest.TestCase):
 
         try:
             self.program.launchKernel("setSmoothNormals", N=N, arguments=[intersectionCL, triangleCL, verticesCL, rayCL])
-        except Exception as e:
+        except Exception:
             traceback.print_exc(0)
 
         self.program.getData(intersectionCL)

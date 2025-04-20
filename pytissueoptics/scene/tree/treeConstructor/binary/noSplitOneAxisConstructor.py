@@ -4,6 +4,7 @@ from typing import List, Tuple
 from pytissueoptics.scene.geometry import BoundingBox
 from pytissueoptics.scene.tree import Node
 from pytissueoptics.scene.tree.treeConstructor import SplitNodeResult, TreeConstructor
+
 from .sahSearchResult import SAHSearchResult
 
 
