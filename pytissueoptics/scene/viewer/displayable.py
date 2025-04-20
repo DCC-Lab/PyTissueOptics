@@ -1,6 +1,6 @@
 from abc import abstractmethod
 
-from pytissueoptics.scene.viewer import MayaviViewer
+from pytissueoptics.scene.viewer.mayavi import MayaviViewer
 
 
 class Displayable:

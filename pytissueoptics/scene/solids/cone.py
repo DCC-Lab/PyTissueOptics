@@ -1,5 +1,5 @@
-from pytissueoptics.scene.geometry import Vector, primitives
-from pytissueoptics.scene.solids import Cylinder
+from ..geometry import Vector, primitives
+from .cylinder import Cylinder
 
 
 class Cone(Cylinder):

@@ -2,9 +2,8 @@ from typing import List
 
 import numpy as np
 
-from pytissueoptics import Vector
 from pytissueoptics.rayscattering.materials import ScatteringMaterial
-from pytissueoptics.scene import MayaviViewer, Scene
+from pytissueoptics.scene import MayaviViewer, Scene, Vector
 from pytissueoptics.scene.solids import Solid
 from pytissueoptics.scene.viewer.displayable import Displayable
 

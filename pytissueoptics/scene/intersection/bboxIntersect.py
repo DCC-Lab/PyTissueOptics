@@ -1,7 +1,8 @@
 from typing import Union
 
 from pytissueoptics.scene.geometry import BoundingBox, Vector
-from pytissueoptics.scene.intersection import Ray
+
+from .ray import Ray
 
 
 class BoxIntersectStrategy:

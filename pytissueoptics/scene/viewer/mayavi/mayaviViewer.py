@@ -11,7 +11,8 @@ except ImportError:
     MAYAVI_AVAILABLE = False
 
 from pytissueoptics.scene.solids import Solid
-from pytissueoptics.scene.viewer.mayavi import MayaviSolid
+
+from .mayaviSolid import MayaviSolid
 
 
 class MayaviViewer:

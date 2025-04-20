@@ -1,7 +1,9 @@
 from typing import List, Optional
 
 from pytissueoptics.scene.geometry import BoundingBox, Polygon, Vector
-from pytissueoptics.scene.tree import Node, TreeConstructor
+
+from .node import Node
+from .treeConstructor import TreeConstructor
 
 
 class SpacePartition:

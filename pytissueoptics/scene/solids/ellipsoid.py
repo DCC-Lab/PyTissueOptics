@@ -5,7 +5,7 @@ import pickle
 import numpy as np
 
 from pytissueoptics.scene.geometry import Triangle, Vector, Vertex, primitives
-from pytissueoptics.scene.solids import Solid
+from pytissueoptics.scene.solids.solid import Solid
 
 
 def hash2(obj):

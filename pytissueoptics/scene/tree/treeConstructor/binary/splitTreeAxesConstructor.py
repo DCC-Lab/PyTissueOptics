@@ -3,7 +3,7 @@ from typing import List, Optional, Tuple
 
 from pytissueoptics.scene import Vector
 from pytissueoptics.scene.geometry import Polygon, Triangle
-from pytissueoptics.scene.intersection import Ray
+from pytissueoptics.scene.intersection.ray import Ray
 from pytissueoptics.scene.tree import Node
 from pytissueoptics.scene.tree.treeConstructor import SplitNodeResult
 from pytissueoptics.scene.tree.treeConstructor.binary import NoSplitOneAxisConstructor

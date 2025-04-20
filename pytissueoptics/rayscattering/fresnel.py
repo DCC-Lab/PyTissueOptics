@@ -3,7 +3,7 @@ import random
 from dataclasses import dataclass
 
 from pytissueoptics.scene.geometry import Environment, Vector
-from pytissueoptics.scene.intersection.intersectionFinder import Intersection
+from pytissueoptics.scene.intersection import Intersection
 
 
 @dataclass

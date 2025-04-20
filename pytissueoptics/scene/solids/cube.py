@@ -1,5 +1,5 @@
-from pytissueoptics.scene.geometry import Vector, primitives
-from pytissueoptics.scene.solids import Cuboid
+from ..geometry import Vector, primitives
+from .cuboid import Cuboid
 
 
 class Cube(Cuboid):

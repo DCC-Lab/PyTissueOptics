@@ -2,8 +2,8 @@ import math
 import warnings
 from typing import List
 
-from pytissueoptics.scene.geometry import Triangle, Vector, Vertex, primitives
-from pytissueoptics.scene.solids import Solid
+from ..geometry import Triangle, Vector, Vertex, primitives
+from .solid import Solid
 
 
 class Cylinder(Solid):

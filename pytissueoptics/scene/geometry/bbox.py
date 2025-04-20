@@ -1,6 +1,7 @@
 from typing import List
 
-from pytissueoptics.scene.geometry import Vector, Vertex
+from .vector import Vector
+from .vertex import Vertex
 
 
 class BoundingBox:

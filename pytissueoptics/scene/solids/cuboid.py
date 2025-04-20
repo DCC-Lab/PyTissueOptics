@@ -12,7 +12,7 @@ from pytissueoptics.scene.geometry import (
     Vertex,
     primitives,
 )
-from pytissueoptics.scene.solids import Solid
+from pytissueoptics.scene.solids.solid import Solid
 from pytissueoptics.scene.solids.stack.cuboidStacker import CuboidStacker
 from pytissueoptics.scene.solids.stack.stackResult import StackResult
 
