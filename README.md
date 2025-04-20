@@ -3,7 +3,7 @@
 
 <p align="center"><i>Monte Carlo simulations of light transport made easy.</i></p>
 <p align="center">
-<img src="./docs/README.assets/pytissue-demo-banenr.jpg">
+<img src="https://raw.githubusercontent.com/DCC-Lab/PyTissueOptics/main/docs/README.assets/pytissue-demo-banenr.jpg" />
 </p>
 
 This python package is an object-oriented implementation of Monte Carlo modeling for light transport in diffuse media. 
@@ -30,7 +30,14 @@ As discussed in the [why use this package](#why-use-this-package) section, compu
 - [Examples](#examples)
 
 ## Installation
-Requires Python 3.6+ installed on the device.
+Requires Python >=3.9 installed on the device.
+
+### Installing the latest release
+> Currently, this `pip` version is outdated. We recommend installing the development version.
+```shell
+python -m pip install --upgrade pip
+python -m pip install --upgrade pytissueoptics
+```
 
 ### Installing the development version
 1. Clone the repository.
@@ -39,14 +46,7 @@ Requires Python 3.6+ installed on the device.
     - On MacOS/Linux: `source venv/bin/activate`.
     - On Windows: `venv\Scripts\activate.bat`.
 4. Upgrade `pip` with `pip install --upgrade pip`.
-5. Install the package requirements with `pip install -r requirements.txt`.
-
-### Installing the previous release
-> Currently, this `pip` version is outdated. We recommend installing the development version.
-```shell
-pip install --upgrade pip
-pip install --upgrade pytissueoptics
-```
+5. Install the package requirements with `python -m pip install -e .[dev]`.
 
 ## Getting started
 A command-line interface is available to help you run examples and tests.

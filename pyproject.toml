@@ -1,0 +1,66 @@
+[build-system]
+requires = ["setuptools>=77.0","setuptools_scm>=7"]
+build-backend = "setuptools.build_meta"
+
+[project.urls]
+GitHub = "https://github.com/DCC-Lab/PyTissueOptics"
+
+[project]
+name = "pytissueoptics"
+description = "Python module for 3D Monte Carlo Simulation of Light Propagation"
+readme = "README.md"
+authors = [
+  { name = "Ludovick Begin", email = "ludovick.begin@gmail.com" },
+  { name = "Marc-Andre Vigneault", email = "marc-andre.vigneault.2@ulaval.ca" },
+  { name = "Daniel Cote", email = "dccote@cervo.ulaval.ca" }
+]
+license = "MIT"
+license-files = ["LICENSE"]
+requires-python = ">=3.9"
+dynamic = ["version"]
+dependencies = [
+  "numpy>=2.0.0",
+  "matplotlib",
+  "tqdm",
+  "psutil",
+  "configobj",
+  "Pygments",
+  "siphash24; python_version < '3.13'",
+  "pyopencl",
+  "vtk>=9.4",
+  "mayavi-dev",
+  "pyqt5",
+]
+
+[project.optional-dependencies]
+dev = [
+  "mockito",
+  "coverage",
+  "pytest",
+  "ruff",
+]
+
+[tool.setuptools]
+packages = ["pytissueoptics"]
+
+[tool.setuptools.package-data]
+"pytissueoptics" = ["rayscattering/opencl/src/*.c", "**/*.obj", "examples/*.py"]
+
+[tool.setuptools_scm]
+version_scheme = "guess-next-dev"
+local_scheme = "node-and-date"
+
+[tool.pytest.ini_options]
+testpaths = ["pytissueoptics"]
+python_files = ["test*.py"]
+
+[tool.ruff]
+line-length = 120
+target-version = "py39"
+
+[tool.ruff.lint]
+select = ["ALL"]
+
+[tool.ruff.format]
+quote-style = "double"
+indent-style = "space"
