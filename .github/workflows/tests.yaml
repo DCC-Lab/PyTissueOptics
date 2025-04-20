@@ -1,0 +1,58 @@
+name: Test all platforms
+
+on: [ pull_request, workflow_dispatch ]
+
+jobs:
+  test:
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ ubuntu-latest, macos-13, macos-latest, windows-latest ]
+        python-version: [ "3.9", "3.10", "3.11", "3.12", "3.13" ]
+
+    runs-on: ${{ matrix.os }}
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Linux packages for Qt5/Qt6 support and start Xvfb
+        if: runner.os == 'Linux'
+        uses: pyvista/setup-headless-display-action@v3
+        with:
+          qt: true
+
+      - name: Linux OpenCL support
+        if: runner.os == 'Linux'
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y pocl-opencl-icd ocl-icd-opencl-dev gcc clinfo
+          clinfo
+
+      - name : Windows OpenCL support
+        if: runner.os == 'Windows'
+        run: |
+          choco install opencl-intel-cpu-runtime --no-progress --yes
+
+      - name: Set up Python ${{ matrix.python-version }}
+        uses: actions/setup-python@v5
+        with:
+          python-version: ${{ matrix.python-version }}
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          python -m pip install setuptools>=40.8.0 wheel pytest
+          python -m pip install .
+          python -m pip freeze --all
+
+      - name: Validate OpenCL
+        if: matrix.os != 'macos-latest'  # no OpenCL device in macOS runners since macos-14
+        run: |
+          python -c "from pytissueoptics.rayscattering.opencl import OPENCL_OK; assert OPENCL_OK"
+
+      - name: Run tests
+        env:
+          PTO_CI_MODE: 1
+        run: |
+          python -m pytest -v
