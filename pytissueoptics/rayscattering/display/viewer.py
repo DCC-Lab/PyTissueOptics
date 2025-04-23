@@ -12,7 +12,7 @@ from pytissueoptics.rayscattering.energyLogging.pointCloud import PointCloud
 from pytissueoptics.rayscattering.scatteringScene import ScatteringScene
 from pytissueoptics.rayscattering.source import Source
 from pytissueoptics.rayscattering.statistics import Stats
-from pytissueoptics.scene import MAYAVI_AVAILABLE, MayaviViewer, ViewPointStyle
+from pytissueoptics.scene import ViewPointStyle, get3DViewer
 
 
 class Visibility(Flag):
@@ -112,11 +112,7 @@ class Viewer:
         viewsLogScale: bool = True,
         viewsColormap: str = "viridis",
     ):
-        if not MAYAVI_AVAILABLE:
-            utils.warn("Package 'mayavi' is not available. Please install it to use 3D visualizations.")
-            return
-
-        self._viewer3D = MayaviViewer()
+        self._viewer3D = get3DViewer()
         self._viewer3D.setViewPointStyle(ViewPointStyle.OPTICS)
 
         if visibility == Visibility.AUTO:
@@ -147,10 +143,6 @@ class Viewer:
         interpolate: bool = False,
         limits: Tuple[tuple, tuple, tuple] = None,
     ):
-        if not MAYAVI_AVAILABLE:
-            utils.warn("ERROR: Package 'mayavi' is not available. Please install it to use 3D visualizations.")
-            return
-
         if not self._logger.has3D:
             utils.warn("ERROR: Cannot show 3D volume slicer without 3D data.")
             return
@@ -183,7 +175,7 @@ class Viewer:
         if logScale:
             hist = utils.logNorm(hist)
 
-        self._viewer3D.showVolumeSlicer(hist, interpolate=interpolate)
+        get3DViewer().showVolumeSlicer(hist, interpolate=interpolate)
 
     def show2D(self, view: View2D = None, viewIndex: int = None, logScale: bool = True, colormap: str = "viridis"):
         self._logger.showView(view=view, viewIndex=viewIndex, logScale=logScale, colormap=colormap)

@@ -1,24 +1,16 @@
 import numpy as np
+from mayavi import mlab
 
 from pytissueoptics.scene.geometry import BoundingBox
 from pytissueoptics.scene.logger import Logger
-
-from ..abstract3DViewer import Abstract3DViewer
-from ..viewPoint import ViewPointFactory, ViewPointStyle
-
-try:
-    from mayavi import mlab
-
-    MAYAVI_AVAILABLE = True
-except ImportError:
-    MAYAVI_AVAILABLE = False
-
 from pytissueoptics.scene.solids import Solid
+from pytissueoptics.scene.viewer import Abstract3DViewer, ViewPointStyle
+from pytissueoptics.scene.viewer.viewPoint import ViewPointFactory
 
 from .mayaviSolid import MayaviSolid
 
 
-class MayaviViewer(Abstract3DViewer):
+class Mayavi3DViewer(Abstract3DViewer):
     def __init__(self):
         self._scenes = {
             "DefaultScene": {

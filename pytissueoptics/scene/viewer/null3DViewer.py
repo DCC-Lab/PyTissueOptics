@@ -1,17 +1,16 @@
-from abc import abstractmethod
+import warnings
 
 import numpy as np
+from scene.solids import Solid
+from scene.viewer.abstract3DViewer import Abstract3DViewer
 
-from pytissueoptics.scene.solids import Solid
-
-from .viewPoint import ViewPointStyle
+from pytissueoptics import ViewPointStyle
 
 
-class Abstract3DViewer:
-    @abstractmethod
-    def setViewPointStyle(self, viewPointStyle: ViewPointStyle): ...
+class Null3DViewer(Abstract3DViewer):
+    def setViewPointStyle(self, viewPointStyle: ViewPointStyle):
+        pass
 
-    @abstractmethod
     def add(
         self,
         *solids: Solid,
@@ -24,9 +23,9 @@ class Abstract3DViewer:
         colorWithPosition=False,
         opacity=1,
         **kwargs,
-    ): ...
+    ):
+        pass
 
-    @abstractmethod
     def addDataPoints(
         self,
         dataPoints: np.ndarray,
@@ -36,10 +35,8 @@ class Abstract3DViewer:
         scaleWithValue=True,
         asSpheres=True,
     ):
-        """'dataPoints' has to be of shape (n, 4) where the second axis is (value, x, y, z)."""
-        ...
+        pass
 
-    @abstractmethod
     def addImage(
         self,
         image: np.ndarray,
@@ -48,11 +45,12 @@ class Abstract3DViewer:
         axis: int = 2,
         position: float = 0,
         colormap: str = "viridis",
-    ): ...
+    ):
+        pass
 
     @staticmethod
-    @abstractmethod
-    def showVolumeSlicer(hist3D: np.ndarray, colormap: str = "viridis", interpolate=False, **kwargs): ...
+    def showVolumeSlicer(hist3D: np.ndarray, colormap: str = "viridis", interpolate=False, **kwargs):
+        warnings.warn("Attempting to show a volume slicer with a Null3DViewer. No action will be taken.")
 
-    @abstractmethod
-    def show(self): ...
+    def show(self):
+        warnings.warn("Attempting to show a Null3DViewer. No action will be taken.")

@@ -3,7 +3,7 @@ from typing import List
 import numpy as np
 
 from pytissueoptics.rayscattering.materials import ScatteringMaterial
-from pytissueoptics.scene import MayaviViewer, Scene, Vector
+from pytissueoptics.scene import Scene, Vector, get3DViewer
 from pytissueoptics.scene.solids import Solid
 from pytissueoptics.scene.viewer.displayable import Displayable
 
@@ -22,7 +22,7 @@ class ScatteringScene(Scene):
         super().add(solid, position)
 
     def show(self, source: Displayable = None, opacity=0.8, colormap="cool", **kwargs):
-        viewer = MayaviViewer()
+        viewer = get3DViewer()
         self.addToViewer(viewer, opacity=opacity, colormap=colormap, **kwargs)
         if source:
             source.addToViewer(viewer)

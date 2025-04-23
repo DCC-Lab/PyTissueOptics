@@ -18,7 +18,7 @@ from pytissueoptics.scene.solids import Sphere
 from pytissueoptics.scene.solids.cone import Cone
 from pytissueoptics.scene.solids.cylinder import Cylinder
 from pytissueoptics.scene.utils import progressBar
-from pytissueoptics.scene.viewer import Displayable, MayaviViewer
+from pytissueoptics.scene.viewer import Abstract3DViewer, Displayable
 
 
 class Source(Displayable):
@@ -184,7 +184,7 @@ class Source(Displayable):
     def getPhotonCount(self) -> int:
         return self._N
 
-    def addToViewer(self, viewer: MayaviViewer, representation="surface", colormap="Wistia", opacity=1.0, **kwargs):
+    def addToViewer(self, viewer: Abstract3DViewer, representation="surface", colormap="Wistia", opacity=1.0, **kwargs):
         sphere = Sphere(radius=self.displaySize / 2, position=self._position)
         viewer.add(sphere, representation=representation, colormap=colormap, opacity=opacity, **kwargs)
 
@@ -227,7 +227,7 @@ class DirectionalSource(Source):
         directions = self._getInitialDirections()
         return positions, directions
 
-    def addToViewer(self, viewer: MayaviViewer, representation="surface", colormap="Wistia", opacity=1, **kwargs):
+    def addToViewer(self, viewer: Abstract3DViewer, representation="surface", colormap="Wistia", opacity=1, **kwargs):
         baseHeight = 0.5 * self.displaySize
         baseCenter = self._position + self._direction * baseHeight / 2
         base = Cylinder(radius=self.displaySize / 8, length=baseHeight, position=baseCenter)
