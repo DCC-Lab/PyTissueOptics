@@ -3,7 +3,6 @@ from unittest.mock import Mock, patch
 
 import numpy as np
 from mockito import ANY, mock, verify, when
-from scene.viewer import Abstract3DViewer
 
 from pytissueoptics import Direction, View2DProjectionX, ViewGroup
 from pytissueoptics.rayscattering.display.profiles import Profile1D, ProfileFactory
@@ -14,6 +13,7 @@ from pytissueoptics.rayscattering.scatteringScene import ScatteringScene
 from pytissueoptics.rayscattering.source import Source
 from pytissueoptics.scene.geometry import BoundingBox
 from pytissueoptics.scene.logger import Logger
+from pytissueoptics.scene.viewer import Abstract3DViewer
 
 
 class TestViewer(unittest.TestCase):

@@ -3,11 +3,11 @@ import unittest
 from unittest.mock import patch
 
 from mockito import mock, verify, when
-from scene.viewer import Abstract3DViewer
 
 from pytissueoptics.rayscattering.materials import ScatteringMaterial
 from pytissueoptics.rayscattering.scatteringScene import ScatteringScene
 from pytissueoptics.scene.solids import Cuboid
+from pytissueoptics.scene.viewer import Abstract3DViewer
 
 
 def patchMayaviShow(func):

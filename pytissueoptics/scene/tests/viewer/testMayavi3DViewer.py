@@ -27,7 +27,7 @@ def patchMayaviShow(func):
 )
 class TestMayavi3DViewer(unittest.TestCase):
     def setUp(self):
-        from scene.viewer.mayavi.mayavi3DViewer import Mayavi3DViewer
+        from pytissueoptics.scene.viewer.mayavi.mayavi3DViewer import Mayavi3DViewer
 
         self.viewer = Mayavi3DViewer()
 
