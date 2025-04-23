@@ -2,7 +2,9 @@ import numpy as np
 
 from pytissueoptics.scene.geometry import BoundingBox
 from pytissueoptics.scene.logger import Logger
-from pytissueoptics.scene.viewer.mayavi.viewPoint import ViewPointFactory, ViewPointStyle
+
+from ..abstract3DViewer import Abstract3DViewer
+from ..viewPoint import ViewPointFactory, ViewPointStyle
 
 try:
     from mayavi import mlab
@@ -16,16 +18,19 @@ from pytissueoptics.scene.solids import Solid
 from .mayaviSolid import MayaviSolid
 
 
-class MayaviViewer:
-    def __init__(self, viewPointStyle=ViewPointStyle.NATURAL):
+class MayaviViewer(Abstract3DViewer):
+    def __init__(self):
         self._scenes = {
             "DefaultScene": {
                 "figureParameters": {"bgColor": (0.11, 0.11, 0.11), "fgColor": (0.9, 0.9, 0.9)},
                 "Solids": [],
             }
         }
-        self._viewPoint = ViewPointFactory().create(viewPointStyle)
+        self._viewPoint = ViewPointFactory().create(ViewPointStyle.NATURAL)
         self.clear()
+
+    def setViewPointStyle(self, viewPointStyle: ViewPointStyle):
+        self._viewPoint = ViewPointFactory().create(viewPointStyle)
 
     def add(
         self,
@@ -88,8 +93,8 @@ class MayaviViewer:
         s = mlab.points3d(x, y, z, mode=mode, scale_factor=scale, scale_mode="none", colormap=colormap)
         s.module_manager.scalar_lut_manager.reverse_lut = reverseColormap
 
-    @staticmethod
     def addDataPoints(
+        self,
         dataPoints: np.ndarray,
         colormap="rainbow",
         reverseColormap=False,
@@ -118,8 +123,8 @@ class MayaviViewer:
             s = mlab.plot3d(x, y, z, tube_radius=None, line_width=1, colormap=colormap)
             s.module_manager.scalar_lut_manager.reverse_lut = reverseColormap
 
-    @staticmethod
     def addImage(
+        self,
         image: np.ndarray,
         size: tuple = None,
         minCorner: tuple = (0, 0),
@@ -203,3 +208,10 @@ class MayaviViewer:
             opacity=0,
         )
         mlab.outline(s, line_width=lineWidth, color=color, opacity=opacity, **kwargs)
+
+    @staticmethod
+    def showVolumeSlicer(hist3D: np.ndarray, colormap="viridis", interpolate=False, **kwargs):
+        from .mayaviVolumeSlicer import MayaviVolumeSlicer
+
+        slicer = MayaviVolumeSlicer(hist3D, colormap=colormap, interpolate=interpolate, **kwargs)
+        slicer.show()

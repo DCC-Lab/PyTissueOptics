@@ -116,7 +116,8 @@ class Viewer:
             utils.warn("Package 'mayavi' is not available. Please install it to use 3D visualizations.")
             return
 
-        self._viewer3D = MayaviViewer(viewPointStyle=ViewPointStyle.OPTICS)
+        self._viewer3D = MayaviViewer()
+        self._viewer3D.setViewPointStyle(ViewPointStyle.OPTICS)
 
         if visibility == Visibility.AUTO:
             visibility = Visibility.DEFAULT_3D if self._logger.has3D else Visibility.DEFAULT_2D
@@ -182,10 +183,7 @@ class Viewer:
         if logScale:
             hist = utils.logNorm(hist)
 
-        from pytissueoptics.rayscattering.display.utils.volumeSlicer import VolumeSlicer
-
-        slicer = VolumeSlicer(hist, interpolate=interpolate)
-        slicer.show()
+        self._viewer3D.showVolumeSlicer(hist, interpolate=interpolate)
 
     def show2D(self, view: View2D = None, viewIndex: int = None, logScale: bool = True, colormap: str = "viridis"):
         self._logger.showView(view=view, viewIndex=viewIndex, logScale=logScale, colormap=colormap)

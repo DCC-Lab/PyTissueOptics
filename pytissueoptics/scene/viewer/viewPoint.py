@@ -28,6 +28,8 @@ class ViewPointFactory:
             return self.getNaturalViewPoint()
         elif viewPointStyle == ViewPointStyle.NATURAL_FRONT:
             return self.getNaturalFrontViewPoint()
+        else:
+            raise ValueError(f"Invalid viewpoint style: {viewPointStyle}")
 
     @staticmethod
     def getOpticsViewPoint():
