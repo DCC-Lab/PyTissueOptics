@@ -3,7 +3,6 @@ from pytissueoptics.rayscattering.opencl.config.IPPTable import IPPTable
 import os
 
 OPENCL_OK = True
-OPENCL_DISABLED = os.environ.get("PTO_DISABLE_OPENCL", "0") == "1"
 
 if OPENCL_AVAILABLE:
     try:
@@ -39,6 +38,7 @@ def validateOpenCL() -> bool:
 
 
 def hardwareAccelerationIsAvailable() -> bool:
+    OPENCL_DISABLED = os.environ.get("PTO_DISABLE_OPENCL", "0") == "1"
     return OPENCL_AVAILABLE and OPENCL_OK and not OPENCL_DISABLED
 
 
