@@ -15,7 +15,7 @@ from .solids import (
     SymmetricLens,
     ThickLens,
 )
-from .viewer import MAYAVI_AVAILABLE, MayaviViewer, ViewPointStyle
+from .viewer import ViewPointStyle, get3DViewer
 
 __all__ = [
     "Cuboid",
@@ -28,8 +28,7 @@ __all__ = [
     "Scene",
     "Loader",
     "loadSolid",
-    "MayaviViewer",
-    "MAYAVI_AVAILABLE",
+    "get3DViewer",
     "ViewPointStyle",
     "Logger",
     "InteractionKey",

@@ -1,5 +1,5 @@
 import unittest
-from unittest.mock import patch
+from unittest.mock import Mock, patch
 
 import numpy as np
 from mockito import ANY, mock, verify, when
@@ -13,12 +13,7 @@ from pytissueoptics.rayscattering.scatteringScene import ScatteringScene
 from pytissueoptics.rayscattering.source import Source
 from pytissueoptics.scene.geometry import BoundingBox
 from pytissueoptics.scene.logger import Logger
-
-
-def patchMayaviRender(func):
-    for module in ["show", "gcf", "figure", "clf", "triangular_mesh", "points3d"]:
-        func = patch("mayavi.mlab." + module)(func)
-    return func
+from pytissueoptics.scene.viewer import Abstract3DViewer
 
 
 class TestViewer(unittest.TestCase):
@@ -33,6 +28,11 @@ class TestViewer(unittest.TestCase):
         self.logger.has3D = True
         self.logger.info = {"photonCount": 0, "sourceSolidLabel": None}
         self.viewer = Viewer(self.scene, self.source, self.logger)
+
+        self.mock3DViewer = Mock(spec=Abstract3DViewer)
+        p = patch("pytissueoptics.rayscattering.display.viewer.get3DViewer", return_value=self.mock3DViewer)
+        self.addCleanup(p.stop)
+        p.start()
 
     def testGivenViewerWithBaseLogger_shouldRaiseException(self):
         with self.assertRaises(AssertionError):
@@ -101,32 +101,17 @@ class TestViewer(unittest.TestCase):
         verify(self.logger, times=1).showView(view=None, viewIndex=1, logScale=True, colormap=ANY(str))
         verify(self.logger, times=0).showView(view=None, viewIndex=0, logScale=True, colormap=ANY(str))
 
-    def testWhenShow3DWithoutMayaviInstalled_shouldWarnAndIgnore(self):
-        from pytissueoptics.rayscattering.display import viewer
-
-        viewer.MAYAVI_AVAILABLE = False
-        with self.assertWarns(UserWarning):
-            self.viewer.show3D()
-
-    @patchMayaviRender
-    def testWhenShow3DWithScene_shouldDisplayScene(self, mockShow, *args):
+    def testWhenShow3DWithScene_shouldDisplayScene(self):
         self.viewer.show3D(visibility=Visibility.SCENE)
-
         verify(self.scene, times=1).addToViewer(...)
-        mockShow.assert_called_once()
+        self.mock3DViewer.show.assert_called_once()
 
-    @patchMayaviRender
-    def testWhenShow3DWithSource_shouldDisplaySource(self, mockShow, *args):
+    def testWhenShow3DWithSource_shouldDisplaySource(self):
         self.viewer.show3D(visibility=Visibility.SOURCE)
-
         verify(self.source, times=1).addToViewer(...)
-        mockShow.assert_called_once()
+        self.mock3DViewer.show.assert_called_once()
 
-    @patchMayaviRender
-    @patch("pytissueoptics.scene.viewer.MayaviViewer.addDataPoints")
-    def testWhenShow3DWithDefaultPointCloud_shouldDisplayPointCloudOfSolidsAndSurfaceLeaving(
-        self, mockAddDataPoints, mockShow, *args
-    ):
+    def testWhenShow3DWithDefaultPointCloud_shouldDisplayPointCloudOfSolidsAndSurfaceLeaving(self):
         mockPointCloudFactory = mock(PointCloudFactory)
         aPointCloud = PointCloud(
             solidPoints=np.array([[0.5, 0, 0, 0]]), surfacePoints=np.array([[1, 0, 0, 0], [-1, 0, 0, 0]])
@@ -136,17 +121,15 @@ class TestViewer(unittest.TestCase):
 
         self.viewer.show3D(visibility=Visibility.POINT_CLOUD)
 
-        mockAddDataPoints.assert_called()
-        addedSolidPoints = mockAddDataPoints.call_args_list[0][0][0]
-        addedSurfacePoints = mockAddDataPoints.call_args_list[1][0][0]
+        self.mock3DViewer.addDataPoints.assert_called()
+        addedSolidPoints = self.mock3DViewer.addDataPoints.call_args_list[0][0][0]
+        addedSurfacePoints = self.mock3DViewer.addDataPoints.call_args_list[1][0][0]
 
         self.assertTrue(np.array_equal(addedSolidPoints, aPointCloud.solidPoints))
         self.assertTrue(np.array_equal(addedSurfacePoints, aPointCloud.leavingSurfacePoints))
-        mockShow.assert_called_once()
+        self.mock3DViewer.show.assert_called_once()
 
-    @patchMayaviRender
-    @patch("pytissueoptics.scene.viewer.MayaviViewer.addDataPoints")
-    def testGivenNoData_whenShow3DWithPointCloud_shouldNotDisplayPointCloud(self, mockAddDataPoints, mockShow, *args):
+    def testGivenNoData_whenShow3DWithPointCloud_shouldNotDisplayPointCloud(self):
         mockPointCloudFactory = mock(PointCloudFactory)
         aPointCloud = PointCloud()
         when(mockPointCloudFactory).getPointCloud(...).thenReturn(aPointCloud)
@@ -154,12 +137,10 @@ class TestViewer(unittest.TestCase):
 
         self.viewer.show3D(visibility=Visibility.POINT_CLOUD)
 
-        mockAddDataPoints.assert_not_called()
-        mockShow.assert_called_once()
+        self.mock3DViewer.addDataPoints.assert_not_called()
+        self.mock3DViewer.show.assert_called_once()
 
-    @patchMayaviRender
-    @patch("pytissueoptics.scene.viewer.MayaviViewer.addDataPoints")
-    def testWhenShow3DWithSurfacePointCloud_shouldOnlyDisplaySurfacePoints(self, mockAddDataPoints, mockShow, *args):
+    def testWhenShow3DWithSurfacePointCloud_shouldOnlyDisplaySurfacePoints(self):
         mockPointCloudFactory = mock(PointCloudFactory)
         aPointCloud = PointCloud(
             solidPoints=np.array([[0.5, 0, 0, 0]]), surfacePoints=np.array([[1, 0, 0, 0], [-1, 0, 0, 0]])
@@ -169,15 +150,13 @@ class TestViewer(unittest.TestCase):
 
         self.viewer.show3D(visibility=Visibility.POINT_CLOUD, pointCloudStyle=PointCloudStyle(showSolidPoints=False))
 
-        mockAddDataPoints.assert_called_once()
-        self.assertTrue(np.array_equal(mockAddDataPoints.call_args[0][0], aPointCloud.leavingSurfacePoints))
-        mockShow.assert_called_once()
+        self.mock3DViewer.addDataPoints.assert_called_once()
+        self.assertTrue(
+            np.array_equal(self.mock3DViewer.addDataPoints.call_args[0][0], aPointCloud.leavingSurfacePoints)
+        )
+        self.mock3DViewer.show.assert_called_once()
 
-    @patchMayaviRender
-    @patch("pytissueoptics.scene.viewer.MayaviViewer.addDataPoints")
-    def testWhenShow3DWithEnteringSurfacePointCloud_shouldOnlyDisplayEnteringSurfacePoints(
-        self, mockAddDataPoints, mockShow, *args
-    ):
+    def testWhenShow3DWithEnteringSurfacePointCloud_shouldOnlyDisplayEnteringSurfacePoints(self):
         mockPointCloudFactory = mock(PointCloudFactory)
         aPointCloud = PointCloud(
             solidPoints=np.array([[0.5, 0, 0, 0]]), surfacePoints=np.array([[1, 0, 0, 0], [-1, 1, 1, 1]])
@@ -192,30 +171,26 @@ class TestViewer(unittest.TestCase):
             ),
         )
 
-        mockAddDataPoints.assert_called_once()
-        self.assertTrue(np.array_equal(mockAddDataPoints.call_args[0][0], aPointCloud.enteringSurfacePointsPositive))
-        mockShow.assert_called_once()
+        self.mock3DViewer.addDataPoints.assert_called_once()
+        self.assertTrue(
+            np.array_equal(self.mock3DViewer.addDataPoints.call_args[0][0], aPointCloud.enteringSurfacePointsPositive)
+        )
+        self.mock3DViewer.show.assert_called_once()
 
-    @patchMayaviRender
-    @patch("pytissueoptics.scene.viewer.MayaviViewer.addImage")
-    def testWhenShow3DWithViews_shouldAdd2DImageOfTheseViewsInThe3DDisplay(self, mockAddImage, mockShow, *args):
+    def testWhenShow3DWithViews_shouldAdd2DImageOfTheseViewsInThe3DDisplay(self):
         self._givenLoggerWithXSceneView()
         sceneView = self.logger.views[0]
 
         self.viewer.show3D(visibility=Visibility.VIEWS)
 
-        mockAddImage.assert_called_once()
-        addedImage = mockAddImage.call_args[0][0]
+        self.mock3DViewer.addImage.assert_called_once()
+        addedImage = self.mock3DViewer.addImage.call_args[0][0]
         self.assertTrue(np.array_equal(sceneView.getImageDataWithDefaultAlignment(), addedImage))
-        displayedPosition = mockAddImage.call_args[0][4]
+        displayedPosition = self.mock3DViewer.addImage.call_args[0][4]
         self.assertEqual(-2.1, displayedPosition)
-        mockShow.assert_called_once()
+        self.mock3DViewer.show.assert_called_once()
 
-    @patchMayaviRender
-    @patch("pytissueoptics.scene.viewer.MayaviViewer.addImage")
-    def testWhenShow3DWithViewsIndexList_shouldAdd2DImageOfTheseViewsInThe3DDisplay(
-        self, mockAddImage, mockShow, *args
-    ):
+    def testWhenShow3DWithViewsIndexList_shouldAdd2DImageOfTheseViewsInThe3DDisplay(self):
         self._givenLoggerWithXSceneView()
         sceneView = self.logger.views[0]
         theViewIndex = 9
@@ -223,16 +198,14 @@ class TestViewer(unittest.TestCase):
 
         self.viewer.show3D(visibility=Visibility.VIEWS, viewsVisibility=[theViewIndex])
 
-        mockAddImage.assert_called_once()
-        addedImage = mockAddImage.call_args[0][0]
+        self.mock3DViewer.addImage.assert_called_once()
+        addedImage = self.mock3DViewer.addImage.call_args[0][0]
         self.assertTrue(np.array_equal(sceneView.getImageDataWithDefaultAlignment(), addedImage))
-        displayedPosition = mockAddImage.call_args[0][4]
+        displayedPosition = self.mock3DViewer.addImage.call_args[0][4]
         self.assertEqual(-2.1, displayedPosition)
-        mockShow.assert_called_once()
+        self.mock3DViewer.show.assert_called_once()
 
-    @patchMayaviRender
-    @patch("pytissueoptics.scene.viewer.MayaviViewer.addImage")
-    def testGiven3DLogger_whenShow3DDefault_shouldDisplayEverythingExceptViews(self, mockAddImage, mockShow, *args):
+    def testGiven3DLogger_whenShow3DDefault_shouldDisplayEverythingExceptViews(self):
         mockPointCloudFactory = mock(PointCloudFactory)
         aPointCloud = PointCloud()
         when(mockPointCloudFactory).getPointCloud(...).thenReturn(aPointCloud)
@@ -243,14 +216,10 @@ class TestViewer(unittest.TestCase):
         verify(self.source, times=1).addToViewer(...)
         verify(self.scene, times=1).addToViewer(...)
         verify(mockPointCloudFactory, times=1).getPointCloud(...)
-        mockAddImage.assert_not_called()
-        mockShow.assert_called_once()
+        self.mock3DViewer.addImage.assert_not_called()
+        self.mock3DViewer.show.assert_called_once()
 
-    @patchMayaviRender
-    @patch("pytissueoptics.scene.viewer.MayaviViewer.addImage")
-    def testGiven2DLogger_whenShow3DDefault_shouldDisplayEverythingExceptPointCloud(
-        self, mockAddImage, mockShow, *args
-    ):
+    def testGiven2DLogger_whenShow3DDefault_shouldDisplayEverythingExceptPointCloud(self):
         self._givenLoggerWithXSceneView()
         self.logger.has3D = False
 
@@ -263,14 +232,10 @@ class TestViewer(unittest.TestCase):
         verify(self.source, times=1).addToViewer(...)
         verify(self.scene, times=1).addToViewer(...)
         verify(mockPointCloudFactory, times=0).getPointCloud(...)
-        mockAddImage.assert_called()
-        mockShow.assert_called_once()
+        self.mock3DViewer.addImage.assert_called()
+        self.mock3DViewer.show.assert_called_once()
 
-    @patchMayaviRender
-    @patch("pytissueoptics.scene.viewer.MayaviViewer.addImage")
-    def testGiven2DLogger_whenShow3DWithDefault3DVisibility_shouldWarnAndDisplayDefault2D(
-        self, mockAddImage, mockShow, *args
-    ):
+    def testGiven2DLogger_whenShow3DWithDefault3DVisibility_shouldWarnAndDisplayDefault2D(self):
         self._givenLoggerWithXSceneView()
         self.logger.has3D = False
 
@@ -284,8 +249,8 @@ class TestViewer(unittest.TestCase):
         verify(self.source, times=1).addToViewer(...)
         verify(self.scene, times=1).addToViewer(...)
         verify(mockPointCloudFactory, times=0).getPointCloud(...)
-        mockAddImage.assert_called()
-        mockShow.assert_called_once()
+        self.mock3DViewer.addImage.assert_called()
+        self.mock3DViewer.show.assert_called_once()
 
     def _givenLoggerWithXSceneView(self):
         sceneView = View2DProjectionX()

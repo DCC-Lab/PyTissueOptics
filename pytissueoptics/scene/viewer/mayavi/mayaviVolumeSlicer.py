@@ -35,7 +35,7 @@ except Exception as e:
     VIEW = e
 
 
-class VolumeSlicer(HasTraits):
+class MayaviVolumeSlicer(HasTraits):
     # The data to plot
     data = Array()
 
@@ -67,7 +67,7 @@ class VolumeSlicer(HasTraits):
         if isinstance(VIEW, Exception):
             raise VIEW
 
-        super(VolumeSlicer, self).__init__(data=hist3D, **traits)
+        super(MayaviVolumeSlicer, self).__init__(data=hist3D, **traits)
 
         # Force the creation of the image_plane_widgets:
         for ipw in (self.ipw_3d_x, self.ipw_3d_y, self.ipw_3d_z):
@@ -184,5 +184,5 @@ if __name__ == "__main__":
     x, y, z = np.ogrid[-5:5:64j, -5:5:64j, -5:5:64j]
     data = np.sin(3 * x) / x + 0.05 * z**2 + np.cos(3 * y)
 
-    m = VolumeSlicer(data)
+    m = MayaviVolumeSlicer(data)
     m.show()

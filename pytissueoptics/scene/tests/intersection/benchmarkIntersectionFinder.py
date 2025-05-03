@@ -33,7 +33,7 @@ from pytissueoptics.scene.tree import TreeConstructor
 from pytissueoptics.scene.tree.treeConstructor.binary.noSplitOneAxisConstructor import NoSplitOneAxisConstructor
 from pytissueoptics.scene.tree.treeConstructor.binary.noSplitThreeAxesConstructor import NoSplitThreeAxesConstructor
 from pytissueoptics.scene.tree.treeConstructor.binary.splitTreeAxesConstructor import SplitThreeAxesConstructor
-from pytissueoptics.scene.viewer import MayaviViewer
+from pytissueoptics.scene.viewer import get3DViewer
 
 pandas.set_option("display.max_columns", 20)
 pandas.set_option("display.width", 1200)
@@ -153,7 +153,7 @@ class IntersectionFinderBenchmark:
             f" - {str('REFERENCE'):^10}"
         )
         if display:
-            viewer = MayaviViewer()
+            viewer = get3DViewer()
             viewer.addLogger(logger)
             viewer.show()
         return missedRays
@@ -192,7 +192,7 @@ class IntersectionFinderBenchmark:
             f" - {partition.getAverageDepth():^10.2f} - {missedRays:^10} - {missedRays == referenceMissed:^10}",
         )
         if display and missedRays != referenceMissed:
-            viewer = MayaviViewer()
+            viewer = get3DViewer()
             viewer.addLogger(logger)
             viewer.show()
 
@@ -297,7 +297,7 @@ class IntersectionFinderBenchmark:
     def displayBenchmarkTreeResults(
         self, objectsDisplay: bool = True, scenes: List[Scene] = None, objectsOpacity: float = 0.5
     ):
-        viewer = MayaviViewer()
+        viewer = get3DViewer()
         if scenes is None:
             scenes = self.scenes
         for j, scene in enumerate(scenes):

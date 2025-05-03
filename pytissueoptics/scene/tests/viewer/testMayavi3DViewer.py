@@ -5,12 +5,11 @@ from unittest.mock import patch
 
 import numpy as np
 
-from pytissueoptics import Logger
+from pytissueoptics import Logger, ViewPointStyle
 from pytissueoptics.scene.geometry import Vector
 from pytissueoptics.scene.scene import Scene
 from pytissueoptics.scene.solids import Cuboid, Ellipsoid, Sphere
 from pytissueoptics.scene.tests import SHOW_VISUAL_TESTS, compareVisuals
-from pytissueoptics.scene.viewer.mayavi import MayaviViewer, ViewPointStyle
 
 TEST_IMAGES_DIR = os.path.join(os.path.dirname(__file__), "testImages")
 
@@ -26,9 +25,11 @@ def patchMayaviShow(func):
 @unittest.skipIf(
     not SHOW_VISUAL_TESTS, "Visual tests are disabled. Set scene.tests.SHOW_VISUAL_TESTS to True to enable them."
 )
-class TestMayaviViewer(unittest.TestCase):
+class TestMayavi3DViewer(unittest.TestCase):
     def setUp(self):
-        self.viewer = MayaviViewer()
+        from pytissueoptics.scene.viewer.mayavi.mayavi3DViewer import Mayavi3DViewer
+
+        self.viewer = Mayavi3DViewer()
 
     def testWhenAddLogger_shouldDrawAllLoggerComponents(self):
         logger = self._getTestLogger()
@@ -36,12 +37,12 @@ class TestMayaviViewer(unittest.TestCase):
         self._assertViewerDisplays("logger_natural")
 
     def testGivenOpticsViewPoint_shouldDisplayFromOpticsViewPoint(self):
-        self.viewer = MayaviViewer(viewPointStyle=ViewPointStyle.OPTICS)
+        self.viewer.setViewPointStyle(ViewPointStyle.OPTICS)
         self.viewer.add(self._getSimpleSolid())
         self._assertViewerDisplays("solid_optics")
 
     def testGivenNaturalFrontViewPoint_shouldDisplayFromNaturalFrontViewPoint(self):
-        self.viewer = MayaviViewer(viewPointStyle=ViewPointStyle.NATURAL_FRONT)
+        self.viewer.setViewPointStyle(ViewPointStyle.NATURAL_FRONT)
         self.viewer.add(self._getSimpleSolid())
         self._assertViewerDisplays("solid_natural_front")
 
@@ -51,7 +52,7 @@ class TestMayaviViewer(unittest.TestCase):
         self._assertViewerDisplays("sphere_normals")
 
     def testWhenAddImages_shouldDraw2DImagesCorrectly(self):
-        self.viewer = MayaviViewer(viewPointStyle=ViewPointStyle.NATURAL)
+        self.viewer.setViewPointStyle(ViewPointStyle.NATURAL)
         testImage = np.zeros((5, 5))
         testImage[4, 4] = 1
         for axis in range(3):

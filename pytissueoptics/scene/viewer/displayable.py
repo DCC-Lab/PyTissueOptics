@@ -1,6 +1,6 @@
 from abc import abstractmethod
 
-from pytissueoptics.scene.viewer.mayavi import MayaviViewer
+from .provider import get3DViewer
 
 
 class Displayable:
@@ -9,6 +9,6 @@ class Displayable:
         pass
 
     def show(self, **kwargs):
-        viewer = MayaviViewer()
+        viewer = get3DViewer()
         self.addToViewer(viewer, **kwargs)
         viewer.show()

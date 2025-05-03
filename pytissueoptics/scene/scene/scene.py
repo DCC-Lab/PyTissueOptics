@@ -4,8 +4,7 @@ from typing import Dict, List, Optional
 
 from pytissueoptics.scene.geometry import INTERFACE_KEY, BoundingBox, Environment, Polygon, Vector
 from pytissueoptics.scene.solids import Solid
-from pytissueoptics.scene.viewer.displayable import Displayable
-from pytissueoptics.scene.viewer.mayavi import MayaviViewer
+from pytissueoptics.scene.viewer import Abstract3DViewer, Displayable
 
 
 class Scene(Displayable):
@@ -33,7 +32,7 @@ class Scene(Displayable):
     def solids(self):
         return self._solids
 
-    def addToViewer(self, viewer: MayaviViewer, representation="surface", colormap="bone", opacity=0.1, **kwargs):
+    def addToViewer(self, viewer: Abstract3DViewer, representation="surface", colormap="bone", opacity=0.1, **kwargs):
         viewer.add(*self.solids, representation=representation, colormap=colormap, opacity=opacity, **kwargs)
 
     def getWorldEnvironment(self) -> Environment:
