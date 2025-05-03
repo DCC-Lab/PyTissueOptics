@@ -15,7 +15,7 @@ from .display.views import (
 )
 from .energyLogging import EnergyLogger
 from .materials import ScatteringMaterial
-from .opencl import CONFIG, hardwareAccelerationIsAvailable
+from .opencl import CONFIG, disableOpenCL, hardwareAccelerationIsAvailable
 from .photon import Photon
 from .scatteringScene import ScatteringScene
 from .source import DirectionalSource, DivergentSource, IsotropicPointSource, PencilPointSource
@@ -49,6 +49,7 @@ __all__ = [
     "View2DSliceZ",
     "samples",
     "Stats",
+    "disableOpenCL",
     "hardwareAccelerationIsAvailable",
     "CONFIG",
 ]
