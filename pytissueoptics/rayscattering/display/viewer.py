@@ -7,7 +7,11 @@ from pytissueoptics.rayscattering import utils
 from pytissueoptics.rayscattering.display.profiles import ProfileFactory
 from pytissueoptics.rayscattering.display.utils import Direction
 from pytissueoptics.rayscattering.display.views import View2D, ViewGroup
-from pytissueoptics.rayscattering.energyLogging import EnergyLogger, PointCloudFactory
+from pytissueoptics.rayscattering.energyLogging import (
+    EnergyLogger,
+    EnergyType,
+    PointCloudFactory,
+)
 from pytissueoptics.rayscattering.energyLogging.pointCloud import PointCloud
 from pytissueoptics.rayscattering.scatteringScene import ScatteringScene
 from pytissueoptics.rayscattering.source import Source
@@ -40,6 +44,7 @@ class PointCloudStyle:
         showSolidPoints (bool): Show the point clouds of the solids.
         showSurfacePointsLeaving (bool): Show energy that left the surface (direction with surface normal).
         showSurfacePointsEntering (bool): Show energy that entered the surface (direction opposite to surface normal).
+        energyType (EnergyType): Type of energy to show for volumetric datapoints (deposition or fluence).
 
     Other attributes:
         showPointsAsSpheres (bool): Show the points as spheres or as dots. Dots require less memory.
@@ -60,6 +65,7 @@ class PointCloudStyle:
         showSolidPoints: bool = True,
         showSurfacePointsLeaving: bool = True,
         showSurfacePointsEntering: bool = False,
+        energyType=EnergyType.DEPOSITION,
         showPointsAsSpheres: bool = False,
         pointSize: float = 0.15,
         scaleWithValue: bool = True,
@@ -75,6 +81,7 @@ class PointCloudStyle:
         self.showSolidPoints = showSolidPoints
         self.showSurfacePointsLeaving = showSurfacePointsLeaving
         self.showSurfacePointsEntering = showSurfacePointsEntering
+        self.energyType = energyType
         self.showPointsAsSpheres = showPointsAsSpheres
 
         self.pointSize = pointSize
@@ -142,6 +149,7 @@ class Viewer:
         logScale: bool = True,
         interpolate: bool = False,
         limits: Tuple[tuple, tuple, tuple] = None,
+        energyType: EnergyType = EnergyType.DEPOSITION,
     ):
         if not self._logger.has3D:
             utils.warn("ERROR: Cannot show 3D volume slicer without 3D data.")
@@ -161,7 +169,7 @@ class Viewer:
                 f"Consider using a larger binSize or tighter limits."
             )
 
-        points = self._pointCloudFactory.getPointCloudOfSolids().solidPoints
+        points = self._pointCloudFactory.getPointCloudOfSolids(energyType=energyType).solidPoints
         try:
             hist, _ = np.histogramdd(points[:, 1:], bins=bins, weights=points[:, 0], range=limits)
         except MemoryError:
@@ -195,8 +203,11 @@ class Viewer:
         surfaceEnergyLeaving: bool = True,
         limits: Tuple[float, float] = None,
         binSize: float = None,
+        energyType: EnergyType = EnergyType.DEPOSITION,
     ):
-        profile = self._profileFactory.create(along, solidLabel, surfaceLabel, surfaceEnergyLeaving, limits, binSize)
+        profile = self._profileFactory.create(
+            along, solidLabel, surfaceLabel, surfaceEnergyLeaving, limits, binSize, energyType
+        )
         profile.show(logScale=logScale)
 
     def reportStats(self, solidLabel: str = None, saveToFile: str = None, verbose=True):
@@ -204,7 +215,9 @@ class Viewer:
         stats.report(solidLabel=solidLabel, saveToFile=saveToFile, verbose=verbose)
 
     def _addPointCloud(self, style: PointCloudStyle):
-        pointCloud = self._pointCloudFactory.getPointCloud(solidLabel=style.solidLabel, surfaceLabel=style.surfaceLabel)
+        pointCloud = self._pointCloudFactory.getPointCloud(
+            solidLabel=style.solidLabel, surfaceLabel=style.surfaceLabel, energyType=style.energyType
+        )
 
         self._drawPointCloudOfSolids(pointCloud, style)
         self._drawPointCloudOfSurfaces(pointCloud, style)

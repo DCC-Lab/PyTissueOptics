@@ -149,6 +149,14 @@ class Scene(Displayable):
                     materials.append(material)
         return list(materials)
 
+    def getMaterial(self, solidLabel: str):
+        solid = self.getSolid(solidLabel)
+        if solid.isStack():
+            layerSurfaceLabel = [s for s in solid.getLayerSurfaceLabels(solidLabel) if INTERFACE_KEY not in s][0]
+            return solid.getEnvironment(layerSurfaceLabel).material
+        else:
+            return solid.getEnvironment().material
+
     def getBoundingBox(self) -> Optional[BoundingBox]:
         if len(self._solids) == 0:
             return None

@@ -9,6 +9,7 @@ from pytissueoptics.rayscattering.display.utils import (
     Direction,
 )
 from pytissueoptics.rayscattering.display.views.view2D import View2D, ViewGroup
+from pytissueoptics.rayscattering.energyLogging.energyType import EnergyType
 
 
 class View2DProjection(View2D):
@@ -19,9 +20,15 @@ class View2DProjection(View2D):
         solidLabel: str = None,
         limits: Tuple[Tuple[float, float], Tuple[float, float]] = None,
         binSize: Union[float, Tuple[int, int]] = None,
+        energyType=EnergyType.DEPOSITION,
     ):
         super().__init__(
-            projectionDirection, horizontalDirection, solidLabel=solidLabel, limits=limits, binSize=binSize
+            projectionDirection,
+            horizontalDirection,
+            solidLabel=solidLabel,
+            limits=limits,
+            binSize=binSize,
+            energyType=energyType,
         )
 
     def _filter(self, dataPoints: np.ndarray) -> np.ndarray:
@@ -34,8 +41,11 @@ class View2DProjectionX(View2DProjection):
         solidLabel: str = None,
         limits: Tuple[Tuple[float, float], Tuple[float, float]] = None,
         binSize: Union[float, Tuple[int, int]] = None,
+        energyType=EnergyType.DEPOSITION,
     ):
-        super().__init__(*DEFAULT_X_VIEW_DIRECTIONS, solidLabel=solidLabel, limits=limits, binSize=binSize)
+        super().__init__(
+            *DEFAULT_X_VIEW_DIRECTIONS, solidLabel=solidLabel, limits=limits, binSize=binSize, energyType=energyType
+        )
 
 
 class View2DProjectionY(View2DProjection):
@@ -44,8 +54,11 @@ class View2DProjectionY(View2DProjection):
         solidLabel: str = None,
         limits: Tuple[Tuple[float, float], Tuple[float, float]] = None,
         binSize: Union[float, Tuple[int, int]] = None,
+        energyType=EnergyType.DEPOSITION,
     ):
-        super().__init__(*DEFAULT_Y_VIEW_DIRECTIONS, solidLabel=solidLabel, limits=limits, binSize=binSize)
+        super().__init__(
+            *DEFAULT_Y_VIEW_DIRECTIONS, solidLabel=solidLabel, limits=limits, binSize=binSize, energyType=energyType
+        )
 
 
 class View2DProjectionZ(View2DProjection):
@@ -54,8 +67,11 @@ class View2DProjectionZ(View2DProjection):
         solidLabel: str = None,
         limits: Tuple[Tuple[float, float], Tuple[float, float]] = None,
         binSize: Union[float, Tuple[int, int]] = None,
+        energyType=EnergyType.DEPOSITION,
     ):
-        super().__init__(*DEFAULT_Z_VIEW_DIRECTIONS, solidLabel=solidLabel, limits=limits, binSize=binSize)
+        super().__init__(
+            *DEFAULT_Z_VIEW_DIRECTIONS, solidLabel=solidLabel, limits=limits, binSize=binSize, energyType=energyType
+        )
 
 
 class View2DSurface(View2D):
@@ -159,6 +175,7 @@ class View2DSlice(View2D):
         thickness: float = None,
         limits: Tuple[Tuple[float, float], Tuple[float, float]] = None,
         binSize: Union[float, Tuple[int, int]] = None,
+        energyType=EnergyType.DEPOSITION,
     ):
         super().__init__(
             projectionDirection,
@@ -168,6 +185,7 @@ class View2DSlice(View2D):
             thickness=thickness,
             limits=limits,
             binSize=binSize,
+            energyType=energyType,
         )
 
     def setContext(self, limits3D: List[Tuple[float, float]], binSize3D: Tuple[float, float, float]):
@@ -191,6 +209,7 @@ class View2DSliceX(View2DSlice):
         thickness: float = None,
         limits: Tuple[Tuple[float, float], Tuple[float, float]] = None,
         binSize: Union[float, Tuple[int, int]] = None,
+        energyType=EnergyType.DEPOSITION,
     ):
         super().__init__(
             *DEFAULT_X_VIEW_DIRECTIONS,
@@ -199,6 +218,7 @@ class View2DSliceX(View2DSlice):
             thickness=thickness,
             limits=limits,
             binSize=binSize,
+            energyType=energyType,
         )
 
 
@@ -210,6 +230,7 @@ class View2DSliceY(View2DSlice):
         thickness: float = None,
         limits: Tuple[Tuple[float, float], Tuple[float, float]] = None,
         binSize: Union[float, Tuple[int, int]] = None,
+        energyType=EnergyType.DEPOSITION,
     ):
         super().__init__(
             *DEFAULT_Y_VIEW_DIRECTIONS,
@@ -218,6 +239,7 @@ class View2DSliceY(View2DSlice):
             thickness=thickness,
             limits=limits,
             binSize=binSize,
+            energyType=energyType,
         )
 
 
@@ -229,6 +251,7 @@ class View2DSliceZ(View2DSlice):
         thickness: float = None,
         limits: Tuple[Tuple[float, float], Tuple[float, float]] = None,
         binSize: Union[float, Tuple[int, int]] = None,
+        energyType=EnergyType.DEPOSITION,
     ):
         super().__init__(
             *DEFAULT_Z_VIEW_DIRECTIONS,
@@ -237,4 +260,5 @@ class View2DSliceZ(View2DSlice):
             thickness=thickness,
             limits=limits,
             binSize=binSize,
+            energyType=energyType,
         )

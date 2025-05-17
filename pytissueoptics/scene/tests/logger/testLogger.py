@@ -17,7 +17,7 @@ class TestLogger(unittest.TestCase):
         logger = Logger()
 
         self.assertIsNone(logger.getPoints())
-        self.assertIsNone(logger.getDataPoints())
+        self.assertIsNone(logger.getRawDataPoints())
         self.assertIsNone(logger.getSegments())
 
     def testWhenLogNewPoint_shouldAddPointToTheLoggedPoints(self):
@@ -45,15 +45,15 @@ class TestLogger(unittest.TestCase):
 
         logger.logDataPoint(10, Vector(2, 0, 0), self.INTERACTION_KEY)
 
-        self.assertEqual(3, len(logger.getDataPoints()))
-        self.assertTrue(np.array_equal([10, 2, 0, 0], logger.getDataPoints()[-1]))
+        self.assertEqual(3, len(logger.getRawDataPoints()))
+        self.assertTrue(np.array_equal([10, 2, 0, 0], logger.getRawDataPoints()[-1]))
 
     def testWhenLogDataPointArray_shouldAddAllDataPointsToTheLoggedDataPoints(self):
         logger = Logger()
         logger.logDataPointArray(np.array([[2, 0, 0, 0], [1, 1, 0, 0]]), self.INTERACTION_KEY)
 
-        self.assertEqual(2, len(logger.getDataPoints()))
-        self.assertTrue(np.array_equal([1, 1, 0, 0], logger.getDataPoints()[-1]))
+        self.assertEqual(2, len(logger.getRawDataPoints()))
+        self.assertTrue(np.array_equal([1, 1, 0, 0], logger.getRawDataPoints()[-1]))
 
     def testWhenLogNewSegment_shouldAddSegmentToTheLoggedSegments(self):
         logger = Logger()
@@ -127,7 +127,7 @@ class TestLogger(unittest.TestCase):
         logger.logDataPoint(0, Vector(0, 0, 0), self.INTERACTION_KEY)
         logger.logPoint(Vector(0, 0, 0), InteractionKey("another solid", "another surface"))
 
-        self.assertEqual(1, len(logger.getDataPoints()))
+        self.assertEqual(1, len(logger.getRawDataPoints()))
 
     def testWhenGetDataWithEmptyKey_shouldReturnAllData(self):
         anotherKey = InteractionKey(self.SOLID_LABEL, "another surface")
@@ -157,7 +157,7 @@ class TestLogger(unittest.TestCase):
 
         self.assertIsNone(logger.getPoints())
         self.assertIsNone(logger.getSegments())
-        self.assertIsNone(logger.getDataPoints())
+        self.assertIsNone(logger.getRawDataPoints())
 
     def testWhenGetSolidLabels_shouldReturnAListOfUniqueSolidLabels(self):
         solidLabel1 = "A label"

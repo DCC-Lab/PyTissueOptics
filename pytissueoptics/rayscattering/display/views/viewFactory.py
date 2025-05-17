@@ -12,14 +12,20 @@ from pytissueoptics.rayscattering.display.views.defaultViews import (
     View2DSurfaceZ,
 )
 from pytissueoptics.rayscattering.display.views.view2D import View2D, ViewGroup
+from pytissueoptics.rayscattering.energyLogging.energyType import EnergyType
 from pytissueoptics.rayscattering.scatteringScene import ScatteringScene
 
 
 class ViewFactory:
     def __init__(
-        self, scene: ScatteringScene, defaultBinSize: Union[float, Tuple[float, float, float]], infiniteLimits: tuple
+        self,
+        scene: ScatteringScene,
+        defaultBinSize: Union[float, Tuple[float, float, float]],
+        infiniteLimits: tuple,
+        energyType=EnergyType.DEPOSITION,
     ):
         self._scene = scene
+        self._energyType = energyType
 
         self._defaultBinSize3D = defaultBinSize
         if isinstance(self._defaultBinSize3D, float):
@@ -137,10 +143,9 @@ class ViewFactory:
             return self._viewHasValidSurfaceLabel(view)
         return False
 
-    @staticmethod
-    def _getDefaultViewsXYZ(solidLabel: str = None) -> List[View2D]:
+    def _getDefaultViewsXYZ(self, solidLabel: str = None) -> List[View2D]:
         return [
-            View2DProjectionX(solidLabel=solidLabel),
-            View2DProjectionY(solidLabel=solidLabel),
-            View2DProjectionZ(solidLabel=solidLabel),
+            View2DProjectionX(solidLabel=solidLabel, energyType=self._energyType),
+            View2DProjectionY(solidLabel=solidLabel, energyType=self._energyType),
+            View2DProjectionZ(solidLabel=solidLabel, energyType=self._energyType),
         ]

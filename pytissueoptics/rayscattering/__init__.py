@@ -13,7 +13,7 @@ from .display.views import (
     View2DSurfaceY,
     View2DSurfaceZ,
 )
-from .energyLogging import EnergyLogger
+from .energyLogging import EnergyLogger, EnergyType
 from .materials import ScatteringMaterial
 from .opencl import CONFIG, disableOpenCL, hardwareAccelerationIsAvailable
 from .photon import Photon
@@ -29,6 +29,7 @@ __all__ = [
     "DirectionalSource",
     "DivergentSource",
     "EnergyLogger",
+    "EnergyType",
     "ScatteringScene",
     "Viewer",
     "PointCloudStyle",

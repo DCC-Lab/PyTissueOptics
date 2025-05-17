@@ -1,6 +1,6 @@
 import os
 import pickle
-from typing import List, Union
+from typing import List, Union, Optional
 
 import numpy as np
 
@@ -9,7 +9,10 @@ from pytissueoptics.rayscattering.display.views.view2D import View2D, ViewGroup
 from pytissueoptics.rayscattering.display.views.viewFactory import ViewFactory
 from pytissueoptics.rayscattering.scatteringScene import ScatteringScene
 from pytissueoptics.scene.geometry import Vector
-from pytissueoptics.scene.logger.logger import InteractionKey, Logger
+from pytissueoptics.scene.logger.listArrayContainer import ListArrayContainer
+from pytissueoptics.scene.logger.logger import DataType, InteractionKey, Logger
+
+from .energyType import EnergyType
 
 
 class EnergyLogger(Logger):
@@ -19,6 +22,7 @@ class EnergyLogger(Logger):
         filepath: str = None,
         keep3D: bool = True,
         views: Union[ViewGroup, List[View2D]] = ViewGroup.ALL,
+        defaultViewEnergyType: EnergyType = EnergyType.DEPOSITION,
         defaultBinSize: Union[float, tuple] = 0.01,
         infiniteLimits=((-5, 5), (-5, 5), (-5, 5)),
     ):
@@ -47,7 +51,7 @@ class EnergyLogger(Logger):
         self._keep3D = keep3D
         self._defaultBinSize = defaultBinSize
         self._infiniteLimits = infiniteLimits
-        self._viewFactory = ViewFactory(scene, defaultBinSize, infiniteLimits)
+        self._viewFactory = ViewFactory(scene, defaultBinSize, infiniteLimits, energyType=defaultViewEnergyType)
 
         self._sceneHash = hash(scene)
         self._defaultViews = views
@@ -193,6 +197,7 @@ class EnergyLogger(Logger):
         for i, v in enumerate(self._views):
             if v.isEqualTo(view):
                 return i
+        raise ValueError(f"View {view.name} not found in the list of views.")
 
     def _viewExists(self, view: View2D) -> bool:
         return any([view.isEqualTo(v) for v in self._views])
@@ -229,7 +234,7 @@ class EnergyLogger(Logger):
 
     def _compileViews(self, views: List[View2D]):
         for key, data in self._data.items():
-            datapointsContainer = data.dataPoints
+            datapointsContainer: Optional[ListArrayContainer] = data.dataPoints
             if datapointsContainer is None or len(datapointsContainer) == 0:
                 continue
             for view in views:
@@ -239,7 +244,12 @@ class EnergyLogger(Logger):
                     continue
                 if view.surfaceLabel is None and key.surfaceLabel is not None:
                     continue
-                view.extractData(datapointsContainer.getData())
+
+                data = datapointsContainer.getData()
+                if view.energyType == EnergyType.FLUENCE_RATE:
+                    data = self._fluenceTransform(key, data)
+
+                view.extractData(data)
         for view in views:
             self._outdatedViews.discard(view)
 
@@ -272,3 +282,28 @@ class EnergyLogger(Logger):
 
     def logSegmentArray(self, array: np.ndarray, key: InteractionKey = None):
         raise NotImplementedError("Can only log data points to an EnergyLogger.")
+
+    def getDataPoints(self, key: InteractionKey, energyType=EnergyType.DEPOSITION) -> np.ndarray:
+        """All 3D data points recorded for this InteractionKey (not binned). Array of shape (n, 4) where
+        the second axis is (value, x, y, z). The value can be the energy deposited, the fluence rate, or the
+        energy that crossed the surface.
+
+        :param key: Filtering the data by solidLabel and surfaceLabel.
+        :param energyType: The type of volumetric energy to return when no surfaceLabel is given.
+
+        :return: The data points (value, x, y, z) for the given solidLabel and surfaceLabel. If a surfaceLabel is given,
+        the value corresponds to the energy that crossed the surface (positive when in the direction of the normal). If
+        only a solidLabel is given, the value corresponds to the volumetric EnergyType at that point.
+        """
+        if energyType == EnergyType.FLUENCE_RATE:
+            return self._getData(DataType.DATA_POINT, key, transform=self._fluenceTransform)
+
+        return self._getData(DataType.DATA_POINT, key)
+
+    def _fluenceTransform(self, key: InteractionKey, data: Optional[np.ndarray]) -> Optional[np.ndarray]:
+        # Converts volumetric data to fluence rate when needed.
+        if not key.volumetric or data is None:
+            return data
+
+        data[:, 0] = data[:, 0] / self._scene.getMaterial(key.solidLabel).mu_a
+        return data
