@@ -215,7 +215,7 @@ class TestEnergyLogger(unittest.TestCase):
             logger = EnergyLogger(self.TEST_SCENE)
             logger.load(filePath)
 
-            self.assertTrue(np.array_equal(previousLogger.getDataPoints(), logger.getDataPoints()))
+            self.assertTrue(np.array_equal(previousLogger.getRawDataPoints(), logger.getRawDataPoints()))
             self.assertEqual(previousLogger.info, logger.info)
 
     def testGivenALoggerPreviouslySaved_whenCreatingNewLoggerFromFile_shouldLoadPreviousLoggerFromFile(self):
@@ -229,7 +229,7 @@ class TestEnergyLogger(unittest.TestCase):
 
             logger = EnergyLogger(self.TEST_SCENE, filePath)
 
-            self.assertTrue(np.array_equal(previousLogger.getDataPoints(), logger.getDataPoints()))
+            self.assertTrue(np.array_equal(previousLogger.getRawDataPoints(), logger.getRawDataPoints()))
             self.assertEqual(previousLogger.info, logger.info)
 
     def testGivenLoggerFromFile_shouldWarnIfLoadedWithDifferentScene(self):

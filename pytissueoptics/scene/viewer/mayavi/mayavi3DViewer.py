@@ -67,7 +67,7 @@ class Mayavi3DViewer(Abstract3DViewer):
     ):
         self.addPoints(logger.getPoints(), colormap=colormap, reverseColormap=reverseColormap, scale=pointScale)
         self.addDataPoints(
-            logger.getDataPoints(),
+            logger.getRawDataPoints(),
             colormap=colormap,
             reverseColormap=reverseColormap,
             scale=dataPointScale,

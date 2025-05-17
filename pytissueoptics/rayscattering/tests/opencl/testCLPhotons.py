@@ -35,7 +35,7 @@ class TestCLPhotons(unittest.TestCase):
 
         photons.propagate(IPP=IPP, verbose=False)
 
-        dataPoints = logger.getDataPoints()
+        dataPoints = logger.getRawDataPoints()
         totalWeightScattered = float(np.sum(dataPoints[:, 0]))
         # Roulette effect will result in total weight slightly different from N.
         self.assertAlmostEqual(N, totalWeightScattered, places=1)
@@ -58,16 +58,16 @@ class TestCLPhotons(unittest.TestCase):
 
         photons.propagate(IPP=IPP, verbose=False)
 
-        frontSurfacePoints = logger.getDataPoints(InteractionKey("cube", "cube_front"))
+        frontSurfacePoints = logger.getRawDataPoints(InteractionKey("cube", "cube_front"))
         energyInput = -np.sum(frontSurfacePoints[:, 0])  # should be around 97% of total energy because of reflections
-        cubePoints = logger.getDataPoints(InteractionKey("cube"))
+        cubePoints = logger.getRawDataPoints(InteractionKey("cube"))
         energyScattered = np.sum(cubePoints[:, 0])
 
         energyLeaving = 0
         for surfaceLabel in logger.getStoredSurfaceLabels("cube"):
             if "front" in surfaceLabel:
                 continue
-            surfacePoints = logger.getDataPoints(InteractionKey("cube", surfaceLabel))
+            surfacePoints = logger.getRawDataPoints(InteractionKey("cube", surfaceLabel))
             energyLeaving += np.sum(surfacePoints[:, 0])
 
         self.assertAlmostEqual(energyInput, energyScattered + energyLeaving, places=2)
@@ -88,6 +88,6 @@ class TestCLPhotons(unittest.TestCase):
 
         photons.propagate(IPP=IPP, verbose=False)
 
-        dataPoints = logger.getDataPoints()
+        dataPoints = logger.getRawDataPoints()
         totalWeightScattered = float(np.sum(dataPoints[:, 0]))
         self.assertAlmostEqual(N, totalWeightScattered, places=2)

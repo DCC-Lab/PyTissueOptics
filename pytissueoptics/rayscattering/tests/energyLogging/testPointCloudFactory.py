@@ -2,8 +2,9 @@ import unittest
 
 import numpy as np
 
+from pytissueoptics import EnergyLogger, ScatteringScene
 from pytissueoptics.rayscattering.energyLogging import PointCloudFactory
-from pytissueoptics.scene.logger import InteractionKey, Logger
+from pytissueoptics.scene.logger import InteractionKey
 
 
 class TestPointCloudFactory(unittest.TestCase):
@@ -55,7 +56,7 @@ class TestPointCloudFactory(unittest.TestCase):
         self.assertIsNone(pointCloud.solidPoints)
 
     def testGivenEmptyLogger_whenGetPointCloud_shouldReturnEmptyPointCloud(self):
-        logger = Logger()
+        logger = EnergyLogger(scene=ScatteringScene([]))
         pointCloudFactory = PointCloudFactory(logger)
         pointCloud = pointCloudFactory.getPointCloud()
 
@@ -63,7 +64,7 @@ class TestPointCloudFactory(unittest.TestCase):
         self.assertIsNone(pointCloud.surfacePoints)
 
     def _createTestLogger(self):
-        logger = Logger()
+        logger = EnergyLogger(scene=ScatteringScene([]))
         solidPointsA = np.array([[0.5, 1, 0, 0], [0.5, 1, 0, 0.1], [0.5, 1, 0, -0.1]])
         solidPointsB = np.array([[0.5, -1, 0, 0], [0.5, -1, 0, 0.1], [0.5, -1, 0, -0.1]])
         surfacePointsA = np.array([[1, 1, 0, 0.1], [-1, 1, 0, -0.1]])

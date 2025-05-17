@@ -127,7 +127,7 @@ class TestProfileFactory(unittest.TestCase):
         profile = self.profileFactory.create(
             Direction.Z_POS, solidLabel="cube", surfaceLabel="top", surfaceEnergyLeaving=True
         )
-        self.assertEqual("Energy profile along z of cube surface top (leaving)", profile.name)
+        self.assertEqual("DEPOSITION profile along z of cube surface top (leaving)", profile.name)
 
     def testGivenEmptyLogger_whenCreateProfile_shouldReturnEmptyProfile(self):
         emptyLogger = EnergyLogger(self.TEST_SCENE)

@@ -1,4 +1,5 @@
 import env  # noqa: F401
+
 from pytissueoptics import *  # noqa: F403
 
 TITLE = "Divergent source propagation through a multi-layered tissue"
@@ -24,6 +25,7 @@ def exampleCode():
     viewer.reportStats()
 
     viewer.show2D(View2DProjectionX())
+    viewer.show2D(View2DProjectionX(energyType=EnergyType.FLUENCE_RATE))
     viewer.show2D(View2DProjectionX(solidLabel="middleLayer"))
     viewer.show2D(View2DSurfaceZ(solidLabel="middleLayer", surfaceLabel="interface1", surfaceEnergyLeaving=False))
     viewer.show1D(Direction.Z_POS)

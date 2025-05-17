@@ -5,7 +5,7 @@ import numpy as np
 from pytissueoptics.rayscattering import utils
 from pytissueoptics.rayscattering.display.profiles import Profile1D
 from pytissueoptics.rayscattering.display.utils import Direction
-from pytissueoptics.rayscattering.energyLogging import EnergyLogger, PointCloudFactory
+from pytissueoptics.rayscattering.energyLogging import EnergyLogger, EnergyType, PointCloudFactory
 from pytissueoptics.rayscattering.scatteringScene import ScatteringScene
 
 
@@ -28,6 +28,7 @@ class ProfileFactory:
         surfaceEnergyLeaving: bool = True,
         limits: Tuple[float, float] = None,
         binSize: float = None,
+        energyType=EnergyType.DEPOSITION,
     ) -> Profile1D:
         solidLabel, surfaceLabel = self._correctCapitalization(solidLabel, surfaceLabel)
         if binSize is None:
@@ -39,15 +40,15 @@ class ProfileFactory:
 
         if self._logger.has3D:
             histogram = self._extractHistogramFrom3D(
-                horizontalDirection, solidLabel, surfaceLabel, surfaceEnergyLeaving, limits, bins
+                horizontalDirection, solidLabel, surfaceLabel, surfaceEnergyLeaving, limits, bins, energyType
             )
         else:
             histogram = self._extractHistogramFromViews(
-                horizontalDirection, solidLabel, surfaceLabel, surfaceEnergyLeaving, limits, bins
+                horizontalDirection, solidLabel, surfaceLabel, surfaceEnergyLeaving, limits, bins, energyType
             )
 
-        name = self._createName(horizontalDirection, solidLabel, surfaceLabel, surfaceEnergyLeaving)
-        return Profile1D(histogram, horizontalDirection, limits, name)
+        name = self._createName(horizontalDirection, solidLabel, surfaceLabel, surfaceEnergyLeaving, energyType)
+        return Profile1D(histogram, horizontalDirection, limits, name, energyType)
 
     def _getDefaultLimits(self, horizontalDirection: Direction, solidLabel: str = None):
         if solidLabel:
@@ -70,8 +71,9 @@ class ProfileFactory:
         surfaceEnergyLeaving: bool,
         limits: Tuple[float, float],
         bins: int,
+        energyType: EnergyType,
     ):
-        pointCloud = self._pointCloudFactory.getPointCloud(solidLabel, surfaceLabel)
+        pointCloud = self._pointCloudFactory.getPointCloud(solidLabel, surfaceLabel, energyType=energyType)
 
         if surfaceLabel:
             if surfaceEnergyLeaving:
@@ -95,7 +97,10 @@ class ProfileFactory:
         surfaceEnergyLeaving: bool,
         limits: Tuple[float, float],
         bins: int,
+        energyType: EnergyType,
     ):
+        energyMismatch = False
+
         for view in self._logger.views:
             if view.axis == horizontalDirection.axis:
                 continue
@@ -118,10 +123,16 @@ class ProfileFactory:
                 continue
             if viewBins != bins:
                 continue
+            if not surfaceLabel and energyType != view.energyType:
+                energyMismatch = True
+                continue
 
             return self._extractHistogramFromView(view, horizontalDirection)
 
-        raise RuntimeError("Cannot create 1D profile. The 3D data was discarded and no matching 2D view was found.")
+        error_message = "Cannot create 1D profile. The 3D data was discarded and no matching 2D view was found."
+        if energyMismatch:
+            error_message += " Note that a view candidate was found to only differ in energy type."
+        raise RuntimeError(error_message)
 
     def _extractHistogramFromView(self, view, horizontalDirection: Direction):
         if view.axisU == horizontalDirection.axis:
@@ -160,9 +171,14 @@ class ProfileFactory:
         return solidLabel, surfaceLabel
 
     def _createName(
-        self, horizontalDirection: Direction, solidLabel: str, surfaceLabel: str, surfaceEnergyLeaving: bool
+        self,
+        horizontalDirection: Direction,
+        solidLabel: str,
+        surfaceLabel: str,
+        surfaceEnergyLeaving: bool,
+        energyType: EnergyType,
     ) -> str:
-        name = "Energy profile along " + "xyz"[horizontalDirection.axis]
+        name = f"{energyType.name} profile along " + "xyz"[horizontalDirection.axis]
         if solidLabel:
             name += " of " + solidLabel
         if surfaceLabel:

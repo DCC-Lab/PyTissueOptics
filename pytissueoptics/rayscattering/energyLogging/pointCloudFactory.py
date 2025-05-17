@@ -1,25 +1,32 @@
 import numpy as np
 
-from pytissueoptics.rayscattering.energyLogging import PointCloud
-from pytissueoptics.scene.logger import InteractionKey, Logger
+from pytissueoptics.scene.logger import InteractionKey
+
+from .energyLogger import EnergyLogger
+from .energyType import EnergyType
+from .pointCloud import PointCloud
 
 
 class PointCloudFactory:
-    def __init__(self, logger: Logger):
+    def __init__(self, logger: EnergyLogger):
         self._logger = logger
 
-    def getPointCloud(self, solidLabel: str = None, surfaceLabel: str = None) -> PointCloud:
+    def getPointCloud(
+        self, solidLabel: str = None, surfaceLabel: str = None, energyType=EnergyType.DEPOSITION
+    ) -> PointCloud:
         if not solidLabel and not surfaceLabel:
-            return PointCloud(self.getPointCloudOfSolids().solidPoints, self.getPointCloudOfSurfaces().surfacePoints)
-        points = self._logger.getDataPoints(InteractionKey(solidLabel, surfaceLabel))
+            return PointCloud(
+                self.getPointCloudOfSolids(energyType).solidPoints, self.getPointCloudOfSurfaces().surfacePoints
+            )
+        points = self._logger.getDataPoints(InteractionKey(solidLabel, surfaceLabel), energyType=energyType)
         if surfaceLabel:
             return PointCloud(None, points)
         return PointCloud(points, None)
 
-    def getPointCloudOfSolids(self) -> PointCloud:
+    def getPointCloudOfSolids(self, energyType=EnergyType.DEPOSITION) -> PointCloud:
         points = []
         for solidLabel in self._logger.getStoredSolidLabels():
-            solidPoints = self.getPointCloud(solidLabel).solidPoints
+            solidPoints = self.getPointCloud(solidLabel, energyType=energyType).solidPoints
             if solidPoints is not None:
                 points.append(solidPoints)
         if len(points) == 0:
