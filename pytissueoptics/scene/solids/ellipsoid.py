@@ -212,3 +212,11 @@ class Ellipsoid(Solid):
 
     def _getMinimumRadiusTowards(self, vertex) -> float:
         return (1 - self._getRadiusError()) * self._radiusTowards(vertex)
+
+    def _geometryParams(self) -> dict:
+        return {
+            "radius_a": self._a,
+            "radius_b": self._b,
+            "radius_c": self._c,
+            "order": self._order,
+        }

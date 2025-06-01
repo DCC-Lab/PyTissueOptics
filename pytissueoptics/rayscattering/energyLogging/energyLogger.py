@@ -1,6 +1,7 @@
+import json
 import os
 import pickle
-from typing import List, Union, Optional
+from typing import List, Optional, TextIO, Union
 
 import numpy as np
 
@@ -10,12 +11,15 @@ from pytissueoptics.rayscattering.display.views.viewFactory import ViewFactory
 from pytissueoptics.rayscattering.scatteringScene import ScatteringScene
 from pytissueoptics.scene.geometry import Vector
 from pytissueoptics.scene.logger.listArrayContainer import ListArrayContainer
-from pytissueoptics.scene.logger.logger import DataType, InteractionKey, Logger
+from pytissueoptics.scene.logger.logger import DataType, InteractionData, InteractionKey, Logger
 
+from ..opencl.CLScene import NO_SOLID_LABEL
 from .energyType import EnergyType
 
 
 class EnergyLogger(Logger):
+    _data: dict[InteractionKey, InteractionData]
+
     def __init__(
         self,
         scene: ScatteringScene,
@@ -307,3 +311,78 @@ class EnergyLogger(Logger):
 
         data[:, 0] = data[:, 0] / self._scene.getMaterial(key.solidLabel).mu_a
         return data
+
+    def export(self, exportPath: str):
+        """
+        Export the raw 3D data points to a CSV file, along with the scene information to a JSON file.
+
+        The data file <exportPath>.csv will be comma-delimited and will contain the following columns:
+        - energy, x, y, z, solid_index, surface_index
+
+        Two types of interactions are logged: scattering and surface crossings. In the first case, the energy will be
+        the delta energy deposited at the point and the surface index will be -1. In the second case, the energy
+        will be the total photon energy when crossing the surface, either as positive if leaving the surface
+        (along the normal) or as negative if entering the surface.
+
+        The scene information will be saved in a JSON file named <exportPath>.json, which includes details for each solid
+        index and surface index, such as their labels, materials, and geometry. The world information is also exported
+        as solid index -1.
+        """
+        if not self.has3D:
+            utils.warn("Cannot export data when keep3D is False. No 3D data available.")
+            return
+
+        solidLabels = []
+        for solid in self._scene.solids:
+            if solid.isStack():
+                solidLabels.extend(solid.getLayerLabels())
+            else:
+                solidLabels.append(solid.getLabel())
+        solidLabels.sort()
+
+        print("Exporting raw data to file...")
+        filepath = f"{exportPath}.csv"
+        with open(filepath, "w") as file:
+            file.write("energy,x,y,z,solid_index,surface_index\n")
+            self._writeKeyData(file, InteractionKey(NO_SOLID_LABEL), -1, -1)
+            for i, solidLabel in enumerate(solidLabels):
+                self._writeKeyData(file, InteractionKey(solidLabel), i, -1)
+                for j, surfaceLabel in enumerate(self._scene.getSurfaceLabels(solidLabel)):
+                    self._writeKeyData(file, InteractionKey(solidLabel, surfaceLabel), i, j)
+        print(f"Exported data points to {filepath}")
+
+        sceneInfo = {}
+        material = self._scene.getWorldEnvironment().material
+        sceneInfo["-1"] = {"label": "world", "material": material.__dict__ if material else None}
+        for i, solidLabel in enumerate(solidLabels):
+            material = self._scene.getMaterial(solidLabel)
+            solid = self._scene.getSolid(solidLabel)
+            surfaces = {}
+            for j, surfaceLabel in enumerate(solid.surfaceLabels):
+                normals = [s.normal for s in solid.getPolygons(surfaceLabel)[:2]]
+                if len(normals) == 1 or normals[0] == normals[1]:
+                    normal = normals[0].array
+                else:
+                    normal = None
+                surfaces[j] = {"label": surfaceLabel, "normal": normal}
+
+            sceneInfo[str(i)] = {
+                "label": solidLabel,
+                "type": solid.__class__.__name__,
+                "material": material.__dict__ if material else None,
+                "geometry": solid.geometryExport(),
+                "surfaces": surfaces,
+            }
+
+        sceneFilepath = f"{exportPath}.json"
+        with open(sceneFilepath, "w") as file:
+            json.dump(sceneInfo, file, indent=4)
+        print(f"Exported scene information to {sceneFilepath}")
+
+    def _writeKeyData(self, file: TextIO, key: InteractionKey, solidIndex: int, surfaceIndex: int):
+        if key not in self._data or self._data[key].dataPoints is None:
+            return
+        dataArray = self._data[key].dataPoints.getData().astype(str)
+        dataArray = np.hstack((dataArray, np.full((dataArray.shape[0], 2), str(solidIndex))))
+        dataArray[:, 5] = str(surfaceIndex)
+        file.write("\n".join([",".join(row) for row in dataArray]) + "\n")

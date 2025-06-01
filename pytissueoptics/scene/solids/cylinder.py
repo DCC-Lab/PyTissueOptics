@@ -164,3 +164,12 @@ class Cylinder(Solid):
         materialHash = hash(self._material) if self._material else 0
         propertyHash = hash((self._radius, self._length, self._frontCenter, self._backCenter))
         return hash((materialHash, propertyHash))
+
+    def _geometryParams(self) -> dict:
+        return {
+            "radius": self._radius,
+            "length": self._length,
+            "u": self._u,
+            "v": self._v,
+            "s": self._s,
+        }

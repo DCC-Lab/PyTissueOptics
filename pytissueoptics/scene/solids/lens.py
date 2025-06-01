@@ -50,6 +50,7 @@ class ThickLens(Cylinder):
         self._diameter = diameter
         self._frontRadius = frontRadius
         self._backRadius = backRadius
+        self._thickness = thickness
 
         length = self._computeEdgeThickness(thickness)
         super().__init__(
@@ -155,6 +156,18 @@ class ThickLens(Cylinder):
             return super(Cylinder, self).smooth(surfaceLabel, reset)
         for surfaceLabel in ["front", "back"]:
             self.smooth(surfaceLabel, reset=False)
+
+    def _geometryParams(self) -> dict:
+        return {
+            "diameter": self._diameter,
+            "frontRadius": self._frontRadius,
+            "backRadius": self._backRadius,
+            "thickness": self._thickness,
+            "length": self._length,
+            "u": self._u,
+            "v": self._v,
+            "s": self._s,
+        }
 
 
 class SymmetricLens(ThickLens):
