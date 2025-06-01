@@ -13,6 +13,7 @@ from pytissueoptics.rayscattering.display.utils import (
     DEFAULT_Z_VIEW_DIRECTIONS,
     Direction,
 )
+from pytissueoptics.rayscattering.energyLogging.energyType import EnergyType
 
 
 class ViewGroup(Flag):
@@ -48,6 +49,7 @@ class View2D:
         thickness: float = None,
         limits: Tuple[Tuple[float, float], Tuple[float, float]] = None,
         binSize: Union[float, Tuple[int, int]] = None,
+        energyType=EnergyType.DEPOSITION,
     ):
         """
         The 2D view plane is obtained by looking towards the 'projectionDirection'. The 'horizontalDirection'
@@ -75,6 +77,7 @@ class View2D:
         self._surfaceEnergyLeaving = surfaceEnergyLeaving
         self._position = position
         self._thickness = thickness
+        self._energyType = energyType
 
         limits = [sorted(limit) for limit in limits] if limits else [None, None]
         self._limitsU, self._limitsV = limits
@@ -113,6 +116,10 @@ class View2D:
             raise MemoryError(
                 "Cannot allocate memory for 2D view. Consider increasing `defaultBinSize` of EnergyLogger."
             )
+
+    @property
+    def energyType(self) -> EnergyType:
+        return self._energyType
 
     def extractData(self, dataPoints: np.ndarray):
         """
@@ -236,6 +243,8 @@ class View2D:
         otherLimits = sorted(other._limitsU), sorted(other._limitsV)
         if limits != otherLimits:
             return False
+        if self._energyType != other._energyType:
+            return False
         return True
 
     def isContainedBy(self, other: "View2D") -> bool:
@@ -346,7 +355,8 @@ class View2D:
         if self._surfaceLabel:
             objectLabel += f" surface {self._surfaceLabel}"
             objectLabel += " (leaving)" if self._surfaceEnergyLeaving else " (entering)"
-
+        elif self._energyType == EnergyType.FLUENCE_RATE:
+            objectLabel += " (fluence)"
         return f"{self.__class__.__name__} of {objectLabel}"
 
     @property

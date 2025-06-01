@@ -3,7 +3,7 @@ import pickle
 import warnings
 from dataclasses import dataclass
 from enum import Enum
-from typing import Dict, List, Optional, Union
+from typing import Callable, Dict, List, Optional, Union
 
 import numpy as np
 
@@ -15,6 +15,17 @@ from pytissueoptics.scene.logger.listArrayContainer import ListArrayContainer
 class InteractionKey:
     solidLabel: str
     surfaceLabel: Optional[str] = None
+
+    @property
+    def volumetric(self) -> bool:
+        return self.surfaceLabel is None
+
+
+TransformFn = Callable[[InteractionKey, Optional[np.ndarray]], Optional[np.ndarray]]
+
+
+def _noTransform(_: InteractionKey, data: Optional[np.ndarray]) -> Optional[np.ndarray]:
+    return data
 
 
 @dataclass
@@ -74,17 +85,17 @@ class Logger:
         self._appendData([start.x, start.y, start.z, end.x, end.y, end.z], DataType.SEGMENT, key)
 
     def logPointArray(self, array: np.ndarray, key: InteractionKey = None):
-        """'array' must be of shape (n, 3) where second axis is (x, y, z)"""
+        """'array' must be of shape (n, 3) where the second axis is (x, y, z)"""
         assert array.shape[1] == 3 and array.ndim == 2, "Point array must be of shape (n, 3)"
         self._appendData(array, DataType.POINT, key)
 
     def logDataPointArray(self, array: np.ndarray, key: InteractionKey):
-        """'array' must be of shape (n, 4) where second axis is (value, x, y, z)"""
+        """'array' must be of shape (n, 4) where the second axis is (value, x, y, z)"""
         assert array.shape[1] == 4 and array.ndim == 2, "Data point array must be of shape (n, 4)"
         self._appendData(array, DataType.DATA_POINT, key)
 
     def logSegmentArray(self, array: np.ndarray, key: InteractionKey = None):
-        """'array' must be of shape (n, 6) where second axis is (x1, y1, z1, x2, y2, z2)"""
+        """'array' must be of shape (n, 6) where the second axis is (x1, y1, z1, x2, y2, z2)"""
         assert array.shape[1] == 6 and array.ndim == 2, "Segment array must be of shape (n, 6)"
         self._appendData(array, DataType.SEGMENT, key)
 
@@ -115,22 +126,26 @@ class Logger:
     def getPoints(self, key: InteractionKey = None) -> np.ndarray:
         return self._getData(DataType.POINT, key)
 
-    def getDataPoints(self, key: InteractionKey = None) -> np.ndarray:
+    def getRawDataPoints(self, key: InteractionKey = None) -> np.ndarray:
+        """All raw 3D data points recorded for this InteractionKey (not binned). Array of shape (n, 4) where
+        the second axis is (value, x, y, z)."""
         return self._getData(DataType.DATA_POINT, key)
 
     def getSegments(self, key: InteractionKey = None) -> np.ndarray:
         return self._getData(DataType.SEGMENT, key)
 
-    def _getData(self, dataType: DataType, key: InteractionKey = None) -> Optional[np.ndarray]:
+    def _getData(
+        self, dataType: DataType, key: InteractionKey = None, transform: TransformFn = _noTransform
+    ) -> Optional[np.ndarray]:
         if key and key.solidLabel:
             if not self._keyExists(key):
                 return None
-            container = getattr(self._data[key], dataType.value)
-            return container.getData()
+            container: ListArrayContainer = getattr(self._data[key], dataType.value)
+            return transform(key, container.getData())
         else:
             container = ListArrayContainer()
             for interactionData in self._data.values():
-                points = getattr(interactionData, dataType.value)
+                points: Optional[ListArrayContainer] = getattr(interactionData, dataType.value)
                 if points is None:
                     continue
                 container.extend(points)
