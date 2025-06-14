@@ -1,6 +1,6 @@
 import warnings
 from functools import partial
-from typing import Callable, Dict, List
+from typing import Any, Callable, Dict, List
 
 import numpy as np
 
@@ -332,3 +332,20 @@ class Solid:
         verticesHash = hash(tuple(sorted([hash(v) for v in self._vertices])))
         materialHash = hash(self._material) if self._material else 0
         return hash((verticesHash, materialHash))
+
+    def geometryExport(self) -> dict[str, Any]:
+        """Used to describe geometry during data export."""
+        params = {
+            **self._geometryParams(),
+            "position": self.position.array,
+            "bbox": self.getBoundingBox().xyzLimits,
+        }
+        if self._orientation != INITIAL_SOLID_ORIENTATION:
+            params["orientation"] = self._orientation.array
+        if self._rotation:
+            params["rotation"] = [self._rotation.xTheta, self._rotation.yTheta, self._rotation.zTheta]
+        return params
+
+    def _geometryParams(self) -> dict:
+        """To be implemented by Solid subclasses to detail other geometry parameters."""
+        return {}
