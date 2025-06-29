@@ -100,6 +100,8 @@ class CLScene:
         insideSolidID = self.getSolidID(insideEnvironment.solid)
         outsideSolidID = self.getSolidID(outsideEnvironment.solid)
         toSmooth = polygonRef.toSmooth
+        isDetector = insideEnvironment.solid.isDetector if insideEnvironment.solid else False
+        detectorHalfAngle = insideEnvironment.solid.detectorHalfAngle if insideEnvironment.solid else 0.0
 
         self._surfacesInfo.append(
             SurfaceCLInfo(
@@ -110,6 +112,9 @@ class CLScene:
                 insideSolidID,
                 outsideSolidID,
                 toSmooth,
+                insideEnvironment.solid.
+                isDetector,
+                detectorHalfAngle,
             )
         )
 

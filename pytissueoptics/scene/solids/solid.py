@@ -42,6 +42,8 @@ class Solid:
         self._bbox = None
         self._label = label
         self._layerLabels = {}
+        self._halfAngle = 0.0
+        self._isDetector = False
 
         if not self._surfaces:
             self._computeMesh()
@@ -79,6 +81,14 @@ class Solid:
     @property
     def bbox(self) -> BoundingBox:
         return self._bbox
+
+    @property
+    def isDetector(self) -> bool:
+        return self._isDetector
+
+    @property
+    def detectorHalfAngle(self) -> float:
+        return self._halfAngle
 
     def getBoundingBox(self) -> BoundingBox:
         return self.bbox
@@ -188,7 +198,15 @@ class Solid:
             return Environment(self._material, self)
 
     def setOutsideEnvironment(self, environment: Environment, surfaceLabel: str = None):
+        if environment == self.getEnvironment():
+            # Detector solids are the only ones with the same inside and outside environment.
+            self._isDetector = True
+        else:
+            self._isDetector = False
         self._surfaces.setOutsideEnvironment(environment, surfaceLabel)
+
+    def setDetectorHalfAngle(self, halfAngle: float):
+        self._halfAngle = halfAngle
 
     @property
     def surfaceLabels(self) -> List[str]:

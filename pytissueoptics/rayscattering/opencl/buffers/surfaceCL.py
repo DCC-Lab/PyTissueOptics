@@ -14,6 +14,8 @@ SurfaceCLInfo = NamedTuple(
         ("insideSolidID", int),
         ("outsideSolidID", int),
         ("toSmooth", bool),
+        ("isDetector", bool),
+        ("detectorHalfAngle", float),
     ],
 )
 
@@ -29,6 +31,8 @@ class SurfaceCL(CLObject):
             ("insideSolidID", cl.cltypes.int),
             ("outsideSolidID", cl.cltypes.int),
             ("toSmooth", cl.cltypes.uint),
+            ("isDetector", cl.cltypes.uint),
+            ("detectorHalfAngle", cl.cltypes.float),
         ]
     )
 
@@ -47,4 +51,6 @@ class SurfaceCL(CLObject):
             buffer[i]["insideSolidID"] = np.int32(surfaceInfo.insideSolidID)
             buffer[i]["outsideSolidID"] = np.int32(surfaceInfo.outsideSolidID)
             buffer[i]["toSmooth"] = np.uint32(surfaceInfo.toSmooth)
+            buffer[i]["isDetector"] = np.uint32(surfaceInfo.isDetector)
+            buffer[i]["detectorHalfAngle"] = np.float32(surfaceInfo.detectorHalfAngle)
         return buffer

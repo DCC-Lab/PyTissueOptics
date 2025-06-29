@@ -86,7 +86,21 @@ class Photon:
 
         if intersection:
             self.moveTo(intersection.position)
-            distanceLeft = self.reflectOrRefract(intersection)
+            # If intersecting detector, kill or transmit photon.
+            # TODO: instantiate detector polygons with same inside and outside environments (and not affected by scene processing).
+            isDetector = intersection.outsideEnvironment.solidLabel == intersection.insideEnvironment.solidLabel
+            if isDetector:
+                # If incidence angle is within NA, kill photon as absorbed by detector solid ID.
+                # else, ignore intersection and compute distanceLeft.
+                distanceLeft = self.detectOrIgnore(intersection)
+                # TODO: vertex correction below will not work for detectors. stepSign will always be 1.
+                # should use photon direction (stepSign of 1 if direction dot detector normal > 0).
+                # Probably not an issue with flat surfaces tho, as long as we skip it.
+                # if self._weight == 0:
+                #     return 0
+                return distanceLeft  # prevent vertex correction below.
+            else:
+                distanceLeft = self.reflectOrRefract(intersection)
 
             # Check if intersection lies too close to a vertex.
             for vertex in intersection.polygon.vertices:
@@ -119,6 +133,15 @@ class Photon:
 
         stepRay = Ray(self._position, self._direction, distance)
         return self._intersectionFinder.findIntersection(stepRay, self.solidLabel)
+
+    def detectOrIgnore(self, intersection: Intersection) -> float:
+        # Intersected with detector. check if the photon is absorbed or transmitted.
+        # If the incidence angle is within the numerical aperture, absorb photon.
+        incidenceAngle = intersection.normal.dot(self._direction)
+
+
+        # Else, ignore intersection and compute distanceLeft.
+        pass
 
     def reflectOrRefract(self, intersection: Intersection):
         fresnelIntersection = self._getFresnelIntersection(intersection)

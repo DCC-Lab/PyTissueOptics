@@ -4,7 +4,7 @@ from .solid import Solid
 
 class Rectangle(Solid):
     def __init__(self, a: float, b: float, orientation = Vector(0, 0, 1), position = Vector(0, 0, 0),
-                 primitive: str = primitives.DEFAULT):
+                 primitive: str = primitives.DEFAULT, label="rectangle"):
         self._a = a
         self._b = b
 
@@ -15,7 +15,7 @@ class Rectangle(Solid):
             Vertex(-a / 2, b / 2, 0)
         ]
 
-        super().__init__(vertices, position, label="rectangle", primitive=primitive)
+        super().__init__(vertices, position, label=label, primitive=primitive)
         self.orient(towards=orientation)
 
     def _computeTriangleMesh(self):

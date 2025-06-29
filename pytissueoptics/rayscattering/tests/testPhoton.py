@@ -421,6 +421,17 @@ class TestPhoton(unittest.TestCase):
         self.photon.interact()
         self.assertFalse(self.photon.isAlive)
 
+    def testWhenIntersectingDetectorInsideNA_shouldKillPhoton(self):
+        self.photon.setContext(
+            Environment(ScatteringMaterial()),
+            intersectionFinder=self._createIntersectionFinder(),
+            fresnelIntersect=self._createFresnelIntersectionFactory(Environment(nextMaterial), isReflected=False),
+        )
+
+        self.photon.step()
+
+        self.assertEqual(nextMaterial, self.photon.material)
+
     def assertVectorEqual(self, v1, v2):
         self.assertAlmostEqual(v1.x, v2.x, places=7)
         self.assertAlmostEqual(v1.y, v2.y, places=7)

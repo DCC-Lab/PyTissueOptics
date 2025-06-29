@@ -99,6 +99,28 @@ void logIntersection(Intersection *intersection, __global Photon *photons, __glo
     (*logIndex)++;
 }
 
+float detectOrIgnore(Intersection *intersection, __global Photon *photons, __global Surface *surfaces,
+    __global DataPoint *logger, uint *logIndex, uint gid, uint photonID){
+    // Incidence angle must be calculated between the photon direction and inverse surface normal.
+    float incidenceAngle = acos(-1 * dot(photons[photonID].direction, intersection->normal));
+
+    if (incidenceAngle > surfaces[intersection->surfaceID].detectorHalfAngle){
+        return intersection->distanceLeft; // Continue propagation.
+    }
+    // Absorb whole photon.
+    // TODO: add photonID to interaction logs so we can compute what the detected photon interacted with,
+    //  and filter interactions by detector ID (sampling volume).
+    logger[*logIndex].x = photons[photonID].position.x;
+    logger[*logIndex].y = photons[photonID].position.y;
+    logger[*logIndex].z = photons[photonID].position.z;
+    logger[*logIndex].surfaceID = intersection->surfaceID;
+    logger[*logIndex].solidID = surfaces[intersection->surfaceID].insideSolidID;
+    logger[*logIndex].delta_weight = photons[photonID].weight;
+    (*logIndex)++;
+    photons[photonID].weight = 0;
+    return 0;
+}
+
 float reflectOrRefract(Intersection *intersection, __global Photon *photons, __constant Material *materials,
         __global Surface *surfaces, __global DataPoint *logger, uint *logIndex, __global uint *seeds, uint gid, uint photonID){
     FresnelIntersection fresnelIntersection = computeFresnelIntersection(photons[photonID].direction, intersection,
@@ -162,6 +184,11 @@ float propagateStep(float distance, __global Photon *photons, __constant Materia
 
     if (intersection.exists){
         moveTo(intersection.position, photons, photonID);
+        if (scene->surfaces[intersection.surfaceID].isDetector) {
+            distanceLeft = detectOrIgnore(&intersection, photons, scene->surfaces, logger, logIndex, gid, photonID);
+            // fixme: Need to skip vertex correction for now since stepSign logic wont work with detectors.
+            return distanceLeft;
+        }
         distanceLeft = reflectOrRefract(&intersection, photons, materials, scene->surfaces, logger, logIndex, seeds, gid, photonID);
 
         // Check if intersection lies too close to a vertex.

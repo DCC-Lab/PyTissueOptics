@@ -1,16 +1,28 @@
-from typing import List
+from typing import List, Union, Optional
 
 import numpy as np
 
 from pytissueoptics.rayscattering.materials import ScatteringMaterial
 from pytissueoptics.scene import Scene, Vector, get3DViewer
+from pytissueoptics.scene.detectors import Detector
 from pytissueoptics.scene.solids import Solid
 from pytissueoptics.scene.viewer.displayable import Displayable
 
 
 class ScatteringScene(Scene):
-    def __init__(self, solids: List[Solid], worldMaterial=ScatteringMaterial(), ignoreIntersections: bool = False):
+    def __init__(self, solids: List[Solid], detectors: Optional[List[Detector]] = None, worldMaterial=ScatteringMaterial(), ignoreIntersections: bool = False):
+        self._detectors = detectors or []
         super().__init__(solids, worldMaterial=worldMaterial, ignoreIntersections=ignoreIntersections)
+
+    def addDetector(self, detector: Detector):
+        self._validateLabel(detector.solid)
+        detector.solid.setOutsideEnvironment(detector.solid.getEnvironment())
+
+        self._detectors.append(detector)
+
+    @property
+    def solids(self):
+        return self._solids + [d.solid for d in self._detectors]
 
     def add(self, solid: Solid, position: Vector = None):
         polygonSample = solid.getPolygons()[0]

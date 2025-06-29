@@ -4,8 +4,8 @@ from .cylinder import Cylinder
 
 class Circle(Cylinder):
     def __init__(self, radius: float, orientation: Vector = Vector(0, 0, 1), position: Vector = Vector(0, 0, 0),
-                u: int = 32, s: int = 1, primitive: str = primitives.DEFAULT):
-        super().__init__(radius, length=0, u=u, v=1, s=s, position=position, label="circle", primitive=primitive, smooth=False)
+                u: int = 32, s: int = 1, primitive: str = primitives.DEFAULT, label="circle"):
+        super().__init__(radius, length=0, u=u, v=1, s=s, position=position, label=label, primitive=primitive, smooth=False)
         self.orient(towards=orientation)
 
     def _computeTriangleMesh(self):
