@@ -151,3 +151,6 @@ class Cuboid(Solid):
         for surfaceLabel in layerSurfaceLabels:
             polygons.extend(self._surfaces.getPolygons(surfaceLabel))
         return polygons
+
+    def _geometryParams(self) -> dict:
+        return {"shape": self.shape}

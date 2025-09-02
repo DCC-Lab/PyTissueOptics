@@ -1,4 +1,5 @@
 import io
+import json
 import os
 import tempfile
 import unittest
@@ -6,6 +7,7 @@ from unittest.mock import MagicMock, patch
 
 import numpy as np
 
+from pytissueoptics import Sphere
 from pytissueoptics.rayscattering.display.utils import Direction
 from pytissueoptics.rayscattering.display.views import (
     View2DProjection,
@@ -16,6 +18,8 @@ from pytissueoptics.rayscattering.display.views import (
 )
 from pytissueoptics.rayscattering.energyLogging import EnergyLogger
 from pytissueoptics.rayscattering.materials import ScatteringMaterial
+from pytissueoptics.rayscattering.opencl.CLScene import NO_SOLID_LABEL
+from pytissueoptics.rayscattering.samples import PhantomTissue
 from pytissueoptics.rayscattering.scatteringScene import ScatteringScene
 from pytissueoptics.scene.geometry import Vector
 from pytissueoptics.scene.logger import InteractionKey
@@ -284,3 +288,64 @@ class TestEnergyLogger(unittest.TestCase):
     def testWhenLogSegment_shouldRaiseError(self):
         with self.assertRaises(NotImplementedError):
             self.logger.logSegment(Vector(0, 0, 0), Vector(0, 0, 0), self.INTERACTION_KEY)
+
+    def testWhenExport_shouldExport3DDataPointsToFile(self):
+        # Use a scene that contains a stack, a sphere and a world material.
+        scene = PhantomTissue(worldMaterial=ScatteringMaterial(0.1, 0.1, 0.99))
+        scene.add(Sphere(position=Vector(0, 5, 0), material=ScatteringMaterial(0.4, 0.2, 0.9)))
+        self.logger = EnergyLogger(scene)
+
+        # Log entering surface event, world scattering event and scattering event in both solids.
+        self.logger.logDataPoint(0.1, Vector(0.7, 0.8, 0.8), InteractionKey("middleLayer"))
+        self.logger.logDataPoint(-0.9, Vector(0.5, 1.0, 0.75), InteractionKey("frontLayer", "interface1"))
+        self.logger.logDataPoint(0.4, Vector(0, 5, 0), InteractionKey("sphere"))
+        self.logger.logDataPoint(0.2, Vector(0, 0, 0), InteractionKey(NO_SOLID_LABEL))
+
+        with tempfile.TemporaryDirectory() as tempDir:
+            filePath = os.path.join(tempDir, "test_sim")
+            self.logger.export(filePath)
+            self.assertTrue(os.path.exists(filePath + ".csv"))
+
+            with open(filePath + ".csv", "r") as f:
+                lines = f.readlines()
+
+            self.assertEqual(5, len(lines))
+            self.assertEqual("energy,x,y,z,solid_index,surface_index\n", lines[0])
+            self.assertEqual("0.2,0.0,0.0,0.0,-1,-1\n", lines[1])
+            self.assertEqual("-0.9,0.5,1.0,0.75,1,5\n", lines[2])
+            self.assertEqual("0.1,0.7,0.8,0.8,2,-1\n", lines[3])
+            self.assertEqual("0.4,0.0,5.0,0.0,3,-1\n", lines[4])
+
+    def testWhenExport_shouldExportMetadataToFile(self):
+        scene = PhantomTissue(worldMaterial=ScatteringMaterial(0.1, 0.1, 0.99))
+        scene.add(Sphere(position=Vector(0, 5, 0), material=ScatteringMaterial(0.4, 0.2, 0.9)))
+        self.logger = EnergyLogger(scene)
+
+        with tempfile.TemporaryDirectory() as tempDir:
+            filePath = os.path.join(tempDir, "test_sim")
+            self.logger.export(filePath)
+            self.assertTrue(os.path.exists(filePath + ".json"))
+            sceneInfo = json.loads(open(filePath + ".json", "r").read())
+
+        self.assertEqual(["-1", "0", "1", "2", "3"], list(sceneInfo.keys()))
+
+        expectedWorldInfo = {
+            "label": "world",
+            "material": {
+                "mu_s": 0.1,
+                "mu_a": 0.1,
+                "mu_t": 0.2,
+                "_albedo": 0.5,
+                "g": 0.99,
+                "n": 1.0,
+            },
+        }
+        self.assertEqual(expectedWorldInfo, sceneInfo["-1"])
+
+        self.assertEqual(["label", "type", "material", "geometry", "surfaces"], list(sceneInfo["0"].keys()))
+        self.assertEqual("backLayer", sceneInfo["0"]["label"])
+        self.assertEqual("Cuboid", sceneInfo["0"]["type"])
+        expectedLayerGeometry = {"shape": [3, 3, 2], "position": [0, 0, 1], "bbox": [[-1.5, 1.5], [-1.5, 1.5], [0, 2]]}
+        self.assertEqual(expectedLayerGeometry, sceneInfo["0"]["geometry"])
+        self.assertEqual(16, len(sceneInfo["0"]["surfaces"]))
+        self.assertEqual({"label": "interface0", "normal": [0.0, 0.0, -1.0]}, sceneInfo["0"]["surfaces"]["14"])

@@ -59,3 +59,9 @@ class Sphere(Ellipsoid):
 
     def _radiusTowards(self, vertex) -> float:
         return self.radius
+
+    def _geometryParams(self) -> dict:
+        return {
+            "radius": self._radius,
+            "order": self._order,
+        }
