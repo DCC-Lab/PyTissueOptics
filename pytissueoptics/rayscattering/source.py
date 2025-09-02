@@ -335,3 +335,37 @@ class DivergentSource(DirectionalSource):
     @property
     def _hashComponents(self) -> tuple:
         return self._position, self._direction, self._diameter, self._divergence
+
+
+class ConvergentSource(DirectionalSource):
+    def __init__(
+        self,
+        position: Vector,
+        focal_point: Vector,
+        diameter: float,
+        N: int,
+        useHardwareAcceleration: bool = True,
+        displaySize: float = 0.1,
+        seed: Optional[int] = None,
+    ):
+        self._focal_point = focal_point
+
+        super().__init__(
+            position=position,
+            direction=focal_point - position,
+            diameter=diameter,
+            N=N,
+            useHardwareAcceleration=useHardwareAcceleration,
+            displaySize=displaySize,
+            seed=seed,
+        )
+
+    def getInitialPositionsAndDirections(self) -> Tuple[np.ndarray, np.ndarray]:
+        positions = self._getUniformlySampledDisc(self._diameter) + self._position.array
+        directions = self._focal_point.array - positions
+        directions /= np.linalg.norm(directions, axis=1, keepdims=True)
+        return positions, directions
+
+    @property
+    def _hashComponents(self) -> tuple:
+        return self._position, self._direction, self._diameter, self._focal_point
