@@ -341,18 +341,22 @@ class ConvergentSource(DirectionalSource):
     def __init__(
         self,
         position: Vector,
-        focal_point: Vector,
+        direction: Vector,
         diameter: float,
+        focalLength: float,
         N: int,
         useHardwareAcceleration: bool = True,
         displaySize: float = 0.1,
         seed: Optional[int] = None,
     ):
-        self._focal_point = focal_point
+        if focalLength <= 0:
+            raise ValueError("The focal length of a convergent source must be positive.")
+
+        self._focalLength = focalLength
 
         super().__init__(
             position=position,
-            direction=focal_point - position,
+            direction=direction,
             diameter=diameter,
             N=N,
             useHardwareAcceleration=useHardwareAcceleration,
@@ -361,11 +365,12 @@ class ConvergentSource(DirectionalSource):
         )
 
     def getInitialPositionsAndDirections(self) -> Tuple[np.ndarray, np.ndarray]:
-        positions = self._getUniformlySampledDisc(self._diameter) + self._position.array
-        directions = self._focal_point.array - positions
+        positions = self._getInitialPositions()
+        focalPoint = self._position + self._direction * self._focalLength
+        directions = focalPoint.array - positions
         directions /= np.linalg.norm(directions, axis=1, keepdims=True)
         return positions, directions
 
     @property
     def _hashComponents(self) -> tuple:
-        return self._position, self._direction, self._diameter, self._focal_point
+        return self._position, self._direction, self._diameter, self._focalLength
