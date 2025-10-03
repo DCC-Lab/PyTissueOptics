@@ -4,12 +4,10 @@ from typing import Optional
 import numpy as np
 from pytissueoptics.rayscattering.photon import Photon
 from pytissueoptics.scene.geometry import Vector, CompactVector
-from pytissueoptics.rayscattering import Source
+from pytissueoptics.rayscattering.compactstructures import CompactObject
 
-WORLD_LABEL = "world"
-WEIGHT_THRESHOLD = 1e-4
 
-class CompactPhoton(Photon):
+class CompactPhoton(Photon, CompactObject):
     npStruct = np.dtype([("position", CompactVector.npStruct),
                       ("direction", CompactVector.npStruct),
                       ("er", CompactVector.npStruct),

@@ -1,122 +1,12 @@
-import sys
 import unittest
 import numpy as np
 
-
-dtype_vector = np.dtype([("x", np.uint),("y", np.float32),("z", np.float64)])
-
-class CompactRawObject:
-    def __init__(self, raw_buffer, index, dtype, offset_in_bytes=0, stride_in_bytes = None):
-        if stride_in_bytes is None:
-            stride_in_bytes = dtype.itemsize
-
-        self._array = np.frombuffer(raw_buffer, dtype=dtype, count=1, offset=offset_in_bytes + stride_in_bytes * index)
-
-        self.dtype = dtype
-        self.raw_buffer = raw_buffer
-        self.index = index
-        self.offset_in_bytes = offset_in_bytes
-        self.as_dict = True
-        if stride_in_bytes is None:
-            stride_in_bytes = self.dtype.itemsize
-        self.stride_in_bytes = stride_in_bytes
-
-        self.as_dict = True
-
-    def __repl__(self):
-        return str(self.value)
-
-    def __str__(self):
-        if self.as_dict and self.dtype.names is not None:
-            return str(dict(zip(self.dtype.names,  self._array[0])))
-        return str(self.value)
-
-    @property
-    def value(self):
-        return self._array[0]
-
-    @value.setter
-    def value(self, new_value):
-        self._array[0] = new_value
-
-    def __getitem__(self, name):
-        return self._array[name]
-
-    def __getattribute__(self, name):
-        if name in ['dtype','_array']:
-            return super().__getattribute__(name)
-        else:
-            if self.dtype is not None and self.dtype.names is not None:
-                if name in self.dtype.names:
-                    return self._array[0][name]
-                else:
-                    return super().__getattribute__(name)
-            else:
-                return super().__getattribute__(name)
-
-    def __setattr__(self, name, value):
-        if name in ['dtype','_array']:
-            super().__setattr__(name, value)
-        else:
-            if self.dtype is not None and self.dtype.names is not None:
-                if name in self.dtype.names:
-                    self._array[0][name] = value
-                else:
-                    super().__setattr__(name, value)
-            else:
-                super().__setattr__(name, value)
-
-
-class CompactObject(CompactRawObject):
-
-    def __init__(self, compact_objects, index):
-        dtype_objects = compact_objects.dtype
-        stride_in_bytes = compact_objects.stride_in_bytes
-
-        super().__init__(raw_buffer=compact_objects._array.data, index=index, dtype=dtype_objects, offset_in_bytes=0, stride_in_bytes=stride_in_bytes)
-
-class CompactField(CompactRawObject):
-
-    def __init__(self, compact_objects, index, field):
-        dtype_objects = compact_objects.dtype
-        stride_in_bytes = compact_objects.stride_in_bytes
-
-        field_offset = dtype_objects.fields[field][1]
-        field_dtype = dtype_objects.fields[field][0]
-        super().__init__(raw_buffer=compact_objects._array.data, index=index, dtype=field_dtype, offset_in_bytes=field_offset, stride_in_bytes=stride_in_bytes)
-
-class CompactObjects:
-    def __init__(self, max_count, dtype, field=None):
-        self.dtype = dtype
-        self.return_type = None
-        self.stride_in_bytes = self.dtype.itemsize
-        self.max_count = max_count
-        self._array = np.zeros(shape=(max_count, ), dtype=self.dtype)
-        self.field = field
-        self.iteration = 0
-
-    def __getitem__(self, index):
-        if index >= self.max_count or index < 0:
-            raise IndexError()
-        if self.return_type is None: # Default type 
-            if self.field is not None:
-                return CompactField(compact_objects=self, index=index, field=self.field)                
-            else:
-                return CompactObject(compact_objects=self, index=index)
-        else:
-            return self.return_type(compact_objects=self, index=index, field=self.field)
-
-    def __iter__(self):
-        self.iteration = 0
-        return self
-
-    def __next__(self):
-        if self.iteration < self.max_count:
-            element = self[self.iteration]
-            self.iteration += 1
-            return element
-
-        raise StopIteration
+from pytissueoptics.rayscattering.photon import Photon
+# from pytissueoptics.scene.geometry import Vector
+from pytissueoptics.rayscattering.compactstructures import CompactRawObject, CompactObject, CompactField, CompactObjects, dtype_vector
+from pytissueoptics.scene.geometry import Environment, Vector, CompactVector
+from pytissueoptics.rayscattering.scatteringScene import ScatteringScene
+from pytissueoptics.rayscattering.materials import ScatteringMaterial
 
 
 class TestCompactObject(unittest.TestCase):
@@ -291,7 +181,7 @@ class TestCompactObject(unittest.TestCase):
 
     def test_position_direction_environment_assignement(self):
         class CompactPhoton(CompactObject):
-            def __init__(self, compact_objects, index, field):
+            def __init__(self, compact_objects, index):
                 super().__init__(compact_objects, index)
                 self.energy = 0
                 self.polarisation = (1,0,0)
@@ -307,6 +197,36 @@ class TestCompactObject(unittest.TestCase):
 
         for photon in objects:
             self.assertEqual(photon.environment, 123)
+
+
+
+    def test_position_direction_environment_assignement(self):
+        class CompactPhoton(CompactObject, Photon):
+            def __init__(self, compact_objects, index):
+                CompactObject.__init__(self, compact_objects, index)
+                Photon.__init__(self, Vector(0,0,0), Vector(0,0,1))
+
+                self.energy = 0
+                self.polarisation = (1,0,0)
+
+            def set_environment(self, value):
+                self.environment = value
+
+        dtype_photon_custom = np.dtype([("x", np.float32),("y", np.float32),("z", np.float32), ("u", np.float32),("v", np.float32),("w", np.float32), ("weight", np.float32), ('environment',np.uint) ])
+        photons = CompactObjects(max_count=10, dtype=dtype_photon_custom)
+        photons.return_type = CompactPhoton
+
+        for i, photon in enumerate(photons):
+            photon.direction =  Vector(0,0,1)
+            photon.er =  Vector(1,0,0)
+            photon.weight =  1
+
+        scene = ScatteringScene(solids=[], worldMaterial=ScatteringMaterial(mu_s=100, mu_a=0.1, g=0, n=1.0))
+
+        for i, photon in enumerate(photons):
+            photon.setContext(scene.getEnvironmentAt(photon.position))
+            photon.propagate()
+            print(photon.position, photon.direction)
 
 
 if __name__ == "__main__":
