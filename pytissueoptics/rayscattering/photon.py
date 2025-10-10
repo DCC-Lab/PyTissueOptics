@@ -29,6 +29,8 @@ class Photon:
         self._intersectionFinder: Optional[IntersectionFinder] = None
         self._logger: Optional[Logger] = None
 
+        self._lastIntersectedDetector: Optional[str] = None  # Prevent intersecting with a detector when passing through it.
+
     @property
     def isAlive(self) -> bool:
         return self._weight > 0
@@ -83,10 +85,23 @@ class Photon:
                 distance = 0
 
         intersection = self._getIntersection(distance)
+        self._lastIntersectedDetector = None  # Reset ignored intersection label after each step.
 
         if intersection:
             self.moveTo(intersection.position)
-            distanceLeft = self.reflectOrRefract(intersection)
+            isDetector = intersection.insideEnvironment.solid.isDetector
+
+            if isDetector:
+                if self.detectOrIgnore(intersection):
+                    return 0  # Skip unnecessary vertex check if detected.
+
+                # Prevent re-intersecting with the same detector when passing through it.
+                self._lastIntersectedDetector = intersection.insideEnvironment.solid.getLabel()
+
+                # skipping vertex check for now. TODO? Unclear stepCorrection and implications.
+                return intersection.distanceLeft
+            else:
+                distanceLeft = self.reflectOrRefract(intersection)
 
             # Check if intersection lies too close to a vertex.
             for vertex in intersection.polygon.vertices:
@@ -118,7 +133,22 @@ class Photon:
             return None
 
         stepRay = Ray(self._position, self._direction, distance)
-        return self._intersectionFinder.findIntersection(stepRay, self.solidLabel)
+        return self._intersectionFinder.findIntersection(stepRay, self.solidLabel, self._lastIntersectedDetector)
+
+    def detectOrIgnore(self, intersection: Intersection) -> bool:
+        # If the incidence angle is within the numerical aperture, absorb photon.
+        cosIncidence = -intersection.normal.dot(self._direction)
+        cosDetector = intersection.insideEnvironment.solid.detectorAcceptanceCosine
+        if cosIncidence >= cosDetector:
+            self._detectAndLog(intersection.insideEnvironment.solidLabel)
+            return True
+        return False
+
+    def _detectAndLog(self, solidLabel: str):
+        if self._logger:
+            key = InteractionKey(solidLabel)
+            self._logger.logDataPoint(self._weight, self._position, key)
+        self._weight = 0
 
     def reflectOrRefract(self, intersection: Intersection):
         fresnelIntersection = self._getFresnelIntersection(intersection)

@@ -1,3 +1,4 @@
+import math
 import os
 from dataclasses import dataclass
 from typing import Dict
@@ -88,6 +89,11 @@ class Stats:
         solidStats = self._solidStatsMap[solidLabel]
         reportString = "Report of solid '{}'\n".format(solidLabel)
 
+        if solidStats.absorbance == math.inf:
+            # Detectors don't log energy input.
+            reportString += "  Detected {:.2f}% of total power\n".format(solidStats.totalAbsorbance)
+            return reportString
+
         if solidStats.absorbance is None:
             reportString += "  Absorbance: N/A ({:.2f}% of total power)\n".format(solidStats.totalAbsorbance)
             reportString += "  Absorbance + Transmittance: N/A\n"
@@ -110,12 +116,12 @@ class Stats:
             return self._getAbsorbanceFromViews(solidLabel, useTotalEnergy)
         points = self._getPointCloud(solidLabel).solidPoints
         energyInput = self.getEnergyInput(solidLabel) if not useTotalEnergy else self.getPhotonCount()
-        return 100 * self._sumEnergy(points) / energyInput
+        return 100 * self._sumEnergy(points) / energyInput if energyInput else math.inf
 
     def _getAbsorbanceFromViews(self, solidLabel: str, useTotalEnergy=False) -> float:
         energyInput = self.getEnergyInput(solidLabel) if not useTotalEnergy else self.getPhotonCount()
         absorbedEnergy = self._getAbsorbedEnergyFromViews(solidLabel)
-        return 100 * absorbedEnergy / energyInput
+        return 100 * absorbedEnergy / energyInput if energyInput else math.inf
 
     def _getAbsorbedEnergyFromViews(self, solidLabel: str) -> float:
         for view in self._logger.views:
@@ -207,7 +213,7 @@ class Stats:
             points = self._getPointCloud(solidLabel, surfaceLabel).leavingSurfacePoints
 
         energyInput = self.getEnergyInput(solidLabel) if not useTotalEnergy else self.getPhotonCount()
-        return 100 * self._sumEnergy(points) / energyInput
+        return 100 * self._sumEnergy(points) / energyInput if energyInput else math.inf
 
     def _getTransmittanceFromViews(self, solidLabel: str, surfaceLabel: str = None, useTotalEnergy=False):
         if surfaceLabel is None:
@@ -216,7 +222,7 @@ class Stats:
             energyLeaving = self._getSurfaceEnergyFromViews(solidLabel, surfaceLabel, leaving=True)
 
         energyInput = self.getEnergyInput(solidLabel) if not useTotalEnergy else self.getPhotonCount()
-        return 100 * energyLeaving / energyInput
+        return 100 * energyLeaving / energyInput if energyInput else math.inf
 
     @staticmethod
     def _sumEnergy(points: np.ndarray):

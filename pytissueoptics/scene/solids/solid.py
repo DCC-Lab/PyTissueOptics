@@ -81,7 +81,7 @@ class Solid:
     def bbox(self) -> BoundingBox:
         return self._bbox
 
-    def asDetector(self, halfAngle: float) -> "Solid":
+    def asDetector(self, halfAngle: float = np.pi / 2) -> "Solid":
         """Treat this solid as a detector with a given half angle in radians.
 
         Detectors will fully absorb a photon when incident within the half angle, else the photon will go through

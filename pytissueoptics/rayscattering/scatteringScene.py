@@ -14,7 +14,7 @@ class ScatteringScene(Scene):
 
     def add(self, solid: Solid, position: Vector = None):
         polygonSample = solid.getPolygons()[0]
-        if not isinstance(polygonSample.insideEnvironment.material, ScatteringMaterial):
+        if not isinstance(polygonSample.insideEnvironment.material, ScatteringMaterial) and not solid.isDetector:
             raise Exception(
                 f"Solid '{solid.getLabel()}' has no ScatteringMaterial defined. "
                 f"This is required for any RayScatteringScene. "
