@@ -3,7 +3,7 @@ from typing import List
 
 import numpy as np
 
-from pytissueoptics.rayscattering.opencl.CLScene import NO_LOG_ID, NO_SOLID_LABEL, CLScene
+from pytissueoptics.rayscattering.opencl.CLScene import NO_LOG_ID, WORLD_SOLID_LABEL, CLScene
 from pytissueoptics.scene.logger import InteractionKey, Logger
 
 SOLID_ID_COL = 4
@@ -42,7 +42,7 @@ class CLKeyLog:
         noInteractionIndices = np.where(self._log[:, SOLID_ID_COL] == NO_LOG_ID)[0]
         self._log = self._log[:, :4]
         self._log = np.delete(self._log, noInteractionIndices, axis=0)
-        self._keyLog[InteractionKey(NO_SOLID_LABEL, None)] = self._log
+        self._keyLog[InteractionKey(WORLD_SOLID_LABEL, None)] = self._log
 
     def _sortLocal(self):
         """Sorts the log locally by solidID and surfaceID,

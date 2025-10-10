@@ -18,7 +18,7 @@ from pytissueoptics.rayscattering.display.views import (
 )
 from pytissueoptics.rayscattering.energyLogging import EnergyLogger
 from pytissueoptics.rayscattering.materials import ScatteringMaterial
-from pytissueoptics.rayscattering.opencl.CLScene import NO_SOLID_LABEL
+from pytissueoptics.rayscattering.opencl.CLScene import WORLD_SOLID_LABEL
 from pytissueoptics.rayscattering.samples import PhantomTissue
 from pytissueoptics.rayscattering.scatteringScene import ScatteringScene
 from pytissueoptics.scene.geometry import Vector
@@ -299,7 +299,7 @@ class TestEnergyLogger(unittest.TestCase):
         self.logger.logDataPoint(0.1, Vector(0.7, 0.8, 0.8), InteractionKey("middleLayer"))
         self.logger.logDataPoint(-0.9, Vector(0.5, 1.0, 0.75), InteractionKey("frontLayer", "interface1"))
         self.logger.logDataPoint(0.4, Vector(0, 5, 0), InteractionKey("sphere"))
-        self.logger.logDataPoint(0.2, Vector(0, 0, 0), InteractionKey(NO_SOLID_LABEL))
+        self.logger.logDataPoint(0.2, Vector(0, 0, 0), InteractionKey(WORLD_SOLID_LABEL))
 
         with tempfile.TemporaryDirectory() as tempDir:
             filePath = os.path.join(tempDir, "test_sim")

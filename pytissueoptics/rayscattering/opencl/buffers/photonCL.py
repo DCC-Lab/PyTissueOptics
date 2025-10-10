@@ -3,6 +3,8 @@ from numpy.lib import recfunctions as rfn
 
 from .CLObject import CLObject, cl
 
+NULL_SOLID_ID = 0
+
 
 class PhotonCL(CLObject):
     STRUCT_NAME = "Photon"
@@ -14,6 +16,7 @@ class PhotonCL(CLObject):
             ("weight", cl.cltypes.float),
             ("materialID", cl.cltypes.uint),
             ("solidID", cl.cltypes.int),
+            ("lastIntersectedDetectorID", cl.cltypes.int),
         ]
     )
 
@@ -36,4 +39,5 @@ class PhotonCL(CLObject):
         buffer["weight"] = self._weight
         buffer["materialID"] = self._materialID
         buffer["solidID"] = self._solidID
+        buffer["lastIntersectedDetectorID"] = NULL_SOLID_ID
         return buffer

@@ -13,7 +13,7 @@ from pytissueoptics.scene.geometry import Vector
 from pytissueoptics.scene.logger.listArrayContainer import ListArrayContainer
 from pytissueoptics.scene.logger.logger import DataType, InteractionData, InteractionKey, Logger
 
-from ..opencl.CLScene import NO_SOLID_LABEL
+from ..opencl.CLScene import WORLD_SOLID_LABEL
 from .energyType import EnergyType
 
 
@@ -344,7 +344,7 @@ class EnergyLogger(Logger):
         filepath = f"{exportPath}.csv"
         with open(filepath, "w") as file:
             file.write("energy,x,y,z,solid_index,surface_index\n")
-            self._writeKeyData(file, InteractionKey(NO_SOLID_LABEL), -1, -1)
+            self._writeKeyData(file, InteractionKey(WORLD_SOLID_LABEL), -1, -1)
             for i, solidLabel in enumerate(solidLabels):
                 self._writeKeyData(file, InteractionKey(solidLabel), i, -1)
                 for j, surfaceLabel in enumerate(self._scene.getSurfaceLabels(solidLabel)):

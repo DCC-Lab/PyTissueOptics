@@ -8,7 +8,7 @@ import numpy as np
 from pytissueoptics.rayscattering import utils
 from pytissueoptics.rayscattering.display.views.defaultViews import View2DProjection
 from pytissueoptics.rayscattering.energyLogging import EnergyLogger, PointCloud, PointCloudFactory
-from pytissueoptics.rayscattering.opencl.CLScene import NO_SOLID_LABEL
+from pytissueoptics.rayscattering.opencl.CLScene import WORLD_SOLID_LABEL
 
 
 @dataclass
@@ -50,11 +50,11 @@ class Stats:
 
     def _computeStats(self, solidLabel: str = None):
         solidLabels = [solidLabel]
-        if solidLabel is None or utils.labelsEqual(solidLabel, NO_SOLID_LABEL):
+        if solidLabel is None or utils.labelsEqual(solidLabel, WORLD_SOLID_LABEL):
             solidLabels = self._logger.getSeenSolidLabels()
 
         for solidLabel in solidLabels:
-            if solidLabel == NO_SOLID_LABEL:
+            if solidLabel == WORLD_SOLID_LABEL:
                 continue
             try:
                 absorbance = self.getAbsorbance(solidLabel)
@@ -70,7 +70,7 @@ class Stats:
 
     def _makeReport(self, solidLabel: str = None, reportString: str = ""):
         if solidLabel:
-            if solidLabel == NO_SOLID_LABEL:
+            if solidLabel == WORLD_SOLID_LABEL:
                 reportString += self._reportWorld(solidLabel)
             else:
                 reportString += self._reportSolid(solidLabel)

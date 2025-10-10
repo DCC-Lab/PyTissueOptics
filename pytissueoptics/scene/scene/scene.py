@@ -142,6 +142,8 @@ class Scene(Displayable):
     def getMaterials(self) -> list:
         materials = [self._worldMaterial]
         for solid in self._solids:
+            if solid.isDetector:
+                continue
             surfaceLabels = solid.surfaceLabels
             for surfaceLabel in surfaceLabels:
                 material = solid.getPolygons(surfaceLabel)[0].insideEnvironment.material

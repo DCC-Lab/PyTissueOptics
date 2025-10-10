@@ -12,10 +12,10 @@ from pytissueoptics.rayscattering.opencl.buffers.vertexCL import VertexCL
 from pytissueoptics.rayscattering.scatteringScene import ScatteringScene
 
 NO_LOG_ID = 0
-NO_SOLID_ID = -1
+WORLD_SOLID_ID = -1
 NO_SURFACE_ID = -1
 FIRST_SOLID_ID = 1
-NO_SOLID_LABEL = "world"
+WORLD_SOLID_LABEL = "world"
 
 
 class CLScene:
@@ -40,32 +40,35 @@ class CLScene:
         self.vertices = VertexCL(self._vertices)
 
     def getMaterialID(self, material):
+        if material is None:
+            # Detector case. Set dummy value (not used).
+            return 0
         return self._sceneMaterials.index(material)
 
     def getSolidID(self, solid):
         if solid is None:
-            return NO_SOLID_ID
+            return WORLD_SOLID_ID
         return self._solidLabels.index(solid.getLabel()) + FIRST_SOLID_ID
 
     def getSolidLabel(self, solidID):
-        if solidID == NO_SOLID_ID:
-            return NO_SOLID_LABEL
+        if solidID == WORLD_SOLID_ID:
+            return WORLD_SOLID_LABEL
         return self._solidLabels[solidID - FIRST_SOLID_ID]
 
     def getSolidIDs(self) -> List[int]:
         solidIDs = list(self._surfaceLabels.keys())
-        solidIDs.insert(0, NO_SOLID_ID)
+        solidIDs.insert(0, WORLD_SOLID_ID)
         return solidIDs
 
     def getSurfaceIDs(self, solidID):
-        if solidID == NO_SOLID_ID:
+        if solidID == WORLD_SOLID_ID:
             return [NO_SURFACE_ID]
         surfaceIDs = list(self._surfaceLabels[solidID].keys())
         surfaceIDs.insert(0, NO_SURFACE_ID)
         return surfaceIDs
 
     def getSurfaceLabel(self, solidID, surfaceID):
-        if solidID == NO_SOLID_ID:
+        if solidID == WORLD_SOLID_ID:
             return None
         if surfaceID == NO_SURFACE_ID:
             return None
@@ -100,6 +103,8 @@ class CLScene:
         insideSolidID = self.getSolidID(insideEnvironment.solid)
         outsideSolidID = self.getSolidID(outsideEnvironment.solid)
         toSmooth = polygonRef.toSmooth
+        isDetector = insideEnvironment.solid.isDetector if insideEnvironment.solid else False
+        detectorCosine = insideEnvironment.solid.detectorAcceptanceCosine if isDetector else 0.0
 
         self._surfacesInfo.append(
             SurfaceCLInfo(
@@ -110,6 +115,8 @@ class CLScene:
                 insideSolidID,
                 outsideSolidID,
                 toSmooth,
+                isDetector,
+                detectorCosine,
             )
         )
 

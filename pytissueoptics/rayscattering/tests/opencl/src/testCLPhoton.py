@@ -21,7 +21,7 @@ from pytissueoptics.rayscattering.opencl.buffers import (
     VertexCL,
 )
 from pytissueoptics.rayscattering.opencl.CLProgram import CLProgram
-from pytissueoptics.rayscattering.opencl.CLScene import NO_LOG_ID, NO_SOLID_ID, NO_SURFACE_ID, CLScene
+from pytissueoptics.rayscattering.opencl.CLScene import NO_LOG_ID, WORLD_SOLID_ID, NO_SURFACE_ID, CLScene
 from pytissueoptics.rayscattering.opencl.config.CLConfig import OPENCL_SOURCE_DIR
 from pytissueoptics.scene.geometry import Vertex
 
@@ -172,7 +172,7 @@ class TestCLPhoton(unittest.TestCase):
         self.INITIAL_DIRECTION.normalize()
         intersectionNormal = Vector(0, 0, 1)
         insideSolidID = self.INITIAL_SOLID_ID
-        outsideSolidID = NO_SOLID_ID
+        outsideSolidID = WORLD_SOLID_ID
 
         surfaceID = 0
         surfaces = SurfaceCL([SurfaceCLInfo(0, 0, 0, 0, insideSolidID, outsideSolidID, False)])
@@ -196,10 +196,10 @@ class TestCLPhoton(unittest.TestCase):
     ):
         self.INITIAL_DIRECTION = Vector(0, 1, -1)
         self.INITIAL_DIRECTION.normalize()
-        self.INITIAL_SOLID_ID = NO_SOLID_ID
+        self.INITIAL_SOLID_ID = WORLD_SOLID_ID
         intersectionNormal = Vector(0, 0, 1)
         insideSolidID = 9
-        outsideSolidID = NO_SOLID_ID
+        outsideSolidID = WORLD_SOLID_ID
 
         surfaceID = 0
         surfaces = SurfaceCL([SurfaceCLInfo(0, 0, 0, 0, insideSolidID, outsideSolidID, False)])
@@ -255,13 +255,13 @@ class TestCLPhoton(unittest.TestCase):
     def testWhenReflectOrRefractWithReflectingIntersection_shouldReflectPhoton(self):
         # => Photon is trying to enter solid
         intersectionNormal = Vector(0, 1, 0)
-        self.INITIAL_SOLID_ID = NO_SOLID_ID
+        self.INITIAL_SOLID_ID = WORLD_SOLID_ID
         self.INITIAL_DIRECTION = Vector(1, -1, 0)
         self.INITIAL_DIRECTION.normalize()
         self._mockFresnelIntersection(isReflected=True, incidencePlane=Vector(0, 0, 1), angleDeflection=np.pi / 2)
 
         logger = DataPointCL(2)
-        surfaces = SurfaceCL([SurfaceCLInfo(0, 0, 0, 0, insideSolidID=9, outsideSolidID=NO_SOLID_ID, toSmooth=False)])
+        surfaces = SurfaceCL([SurfaceCLInfo(0, 0, 0, 0, insideSolidID=9, outsideSolidID=WORLD_SOLID_ID, toSmooth=False)])
         photonResult = self._photonFunc(
             "reflectOrRefract",
             intersectionNormal,
@@ -279,7 +279,7 @@ class TestCLPhoton(unittest.TestCase):
         self._assertVectorAlmostEqual(expectedDirection, photonResult.direction, places=6)
         expectedPosition = self.INITIAL_POSITION
         self._assertVectorAlmostEqual(expectedPosition, photonResult.position)
-        self.assertEqual(NO_SOLID_ID, photonResult.solidID)
+        self.assertEqual(WORLD_SOLID_ID, photonResult.solidID)
 
         dataPoint = self._getDataPointResult(logger)
         self.assertEqual(NO_LOG_ID, dataPoint.solidID)
@@ -287,7 +287,7 @@ class TestCLPhoton(unittest.TestCase):
     def testWhenReflectOrRefractWithRefractingIntersection_shouldRefractPhoton(self):
         # => Photon enters solid
         intersectionNormal = Vector(0, 1, 0)
-        self.INITIAL_SOLID_ID = NO_SOLID_ID
+        self.INITIAL_SOLID_ID = WORLD_SOLID_ID
         self.INITIAL_DIRECTION = Vector(1, -1, 0)
         self.INITIAL_DIRECTION.normalize()
         insideSolidID = 9
@@ -301,7 +301,7 @@ class TestCLPhoton(unittest.TestCase):
         )
 
         logger = DataPointCL(2)
-        surfaces = SurfaceCL([SurfaceCLInfo(0, 0, 0, 0, insideSolidID, outsideSolidID=NO_SOLID_ID, toSmooth=False)])
+        surfaces = SurfaceCL([SurfaceCLInfo(0, 0, 0, 0, insideSolidID, outsideSolidID=WORLD_SOLID_ID, toSmooth=False)])
         photonResult = self._photonFunc(
             "reflectOrRefract",
             intersectionNormal,
