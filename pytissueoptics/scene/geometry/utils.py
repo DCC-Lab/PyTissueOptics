@@ -55,7 +55,13 @@ def getAxisAngleBetween(fromDirection: Vector, toDirection: Vector) -> Tuple[Vec
     dot = fromDirection.dot(toDirection)
     dot = max(min(dot, 1), -1)
     angle = np.arccos(dot)
-    axis = fromDirection.cross(toDirection)
+
+    # Special case: vectors are opposite (antiparallel)
+    if np.isclose(dot, -1):
+        axis = fromDirection.getAnyOrthogonal()
+    else:
+        axis = fromDirection.cross(toDirection)
+
     axis.normalize()
     axis = axis.array
     return Vector(*axis), angle
