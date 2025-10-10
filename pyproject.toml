@@ -27,7 +27,7 @@ dependencies = [
   "Pygments",
   "siphash24; python_version < '3.13'",
   "pyopencl",
-  "vtk>=9.4",
+  "vtk==9.4",
   "mayavi-dev",
   "pyqt5",
 ]
