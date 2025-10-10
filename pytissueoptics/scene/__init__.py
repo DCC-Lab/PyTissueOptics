@@ -14,6 +14,8 @@ from .solids import (
     Sphere,
     SymmetricLens,
     ThickLens,
+    Rectangle,
+    Circle,
 )
 from .viewer import ViewPointStyle, get3DViewer
 
@@ -37,4 +39,6 @@ __all__ = [
     "SymmetricLens",
     "PlanoConvexLens",
     "PlanoConcaveLens",
+    "Rectangle",
+    "Circle",
 ]

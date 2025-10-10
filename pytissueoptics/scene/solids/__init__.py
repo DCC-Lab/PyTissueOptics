@@ -7,6 +7,8 @@ from .lens import PlanoConcaveLens, PlanoConvexLens, SymmetricLens, ThickLens
 from .solid import Solid
 from .solidFactory import SolidFactory
 from .sphere import Sphere
+from .circle import Circle
+from .rectangle import Rectangle
 
 __all__ = [
     "Solid",
@@ -21,4 +23,6 @@ __all__ = [
     "PlanoConcaveLens",
     "ThickLens",
     "SymmetricLens",
+    "Rectangle",
+    "Circle",
 ]
