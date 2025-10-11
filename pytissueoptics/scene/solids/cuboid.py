@@ -154,3 +154,15 @@ class Cuboid(Solid):
 
     def _geometryParams(self) -> dict:
         return {"shape": self.shape}
+
+    def __hash__(self):
+        baseHash = super().__hash__()
+        if not self.isStack():
+            return baseHash
+
+        materials = set()
+        for surfaceLabel in self.surfaceLabels:
+            material = self.getPolygons(surfaceLabel)[0].insideEnvironment.material
+            materials.add(material)
+        materialsHash = hash(tuple(materials))
+        return hash((baseHash, materialsHash))
