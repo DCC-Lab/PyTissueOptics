@@ -12,8 +12,8 @@ class CLParameters:
         nBatch = 1 / CONFIG.BATCH_LOAD_FACTOR
         avgPhotonsPerBatch = int(np.ceil(N / min(nBatch, CONFIG.N_WORK_UNITS)))
         self._maxLoggerMemory = self._calculateAverageBatchMemorySize(avgPhotonsPerBatch, AVG_IT_PER_PHOTON)
-        self._maxPhotonsPerBatch = min(2 * avgPhotonsPerBatch, N)
         self._workItemAmount = CONFIG.N_WORK_UNITS
+        self.maxPhotonsPerBatch = min(2 * avgPhotonsPerBatch, N)
 
         self._assertEnoughRAM()
 
