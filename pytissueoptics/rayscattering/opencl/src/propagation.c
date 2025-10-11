@@ -37,6 +37,7 @@ void interact(__global Photon *photons, __constant Material *materials, __global
     logger[logIndex].delta_weight = delta_weight;
     logger[logIndex].solidID = photons[photonID].solidID;
     logger[logIndex].surfaceID = NO_SURFACE_ID;
+    logger[logIndex].photonID = photons[photonID].ID;
 }
 
 void scatter(__global Photon *photons, __constant Material *materials, __global uint *seeds, __global DataPoint *logger,
@@ -80,6 +81,7 @@ void logIntersection(Intersection *intersection, __global Photon *photons, __glo
     logger[logID].z = photons[photonID].position.z;
     logger[logID].surfaceID = intersection->surfaceID;
     logger[logID].solidID = surfaces[intersection->surfaceID].insideSolidID;
+    logger[logID].photonID = photons[photonID].ID;
 
     bool isLeavingSurface = dot(photons[photonID].direction, intersection->normal) > 0;
     int sign = isLeavingSurface ? 1 : -1;
@@ -97,6 +99,7 @@ void logIntersection(Intersection *intersection, __global Photon *photons, __glo
     logger[logID].surfaceID = intersection->surfaceID;
     logger[logID].solidID = outsideSolidID;
     logger[logID].delta_weight = -sign * photons[photonID].weight;
+    logger[logID].photonID = photons[photonID].ID;
     (*logIndex)++;
 }
 
@@ -116,6 +119,7 @@ bool detectOrIgnore(Intersection *intersection, __global Photon *photons, __glob
     logger[*logIndex].solidID = surfaces[intersection->surfaceID].insideSolidID;
     logger[*logIndex].delta_weight = photons[photonID].weight;
     logger[*logIndex].surfaceID = NO_SURFACE_ID;
+    logger[*logIndex].photonID = photons[photonID].ID;
     (*logIndex)++;
 
     // Absorb photon.

@@ -6,15 +6,16 @@ import numpy as np
 from pytissueoptics.rayscattering.opencl.CLScene import NO_LOG_ID, WORLD_SOLID_LABEL, CLScene
 from pytissueoptics.scene.logger import InteractionKey, Logger
 
-SOLID_ID_COL = 4
-SURFACE_ID_COL = 5
+SOLID_ID_COL = 5
+SURFACE_ID_COL = 6
 
 
 class CLKeyLog:
-    """Parses a DataPointCL array of shape (N, 6) where each point is of the form
-    (weight, x, y, z, solidID, surfaceID) to extract a dictionary of InteractionKey
-    and their corresponding datapoint array of the form (weight, x, y, z). The
-    translation from IDs to their corresponding labels is done using the given CLScene."""
+    """Parses a DataPointCL array of shape (N, 7) where each point is of the form
+    (weight, x, y, z, photonID, solidID, surfaceID) to extract a dictionary of InteractionKey
+    and their corresponding datapoint array of the form (weight, x, y, z, photonID). The
+    translation from IDs to their corresponding labels is done using the given CLScene.
+    """
 
     def __init__(self, log: np.ndarray, sceneCL: CLScene):
         self._log = log
@@ -40,7 +41,7 @@ class CLKeyLog:
 
     def _extractNoKeyLog(self):
         noInteractionIndices = np.where(self._log[:, SOLID_ID_COL] == NO_LOG_ID)[0]
-        self._log = self._log[:, :4]
+        self._log = self._log[:, :5]
         self._log = np.delete(self._log, noInteractionIndices, axis=0)
         self._keyLog[InteractionKey(WORLD_SOLID_LABEL, None)] = self._log
 
@@ -95,7 +96,7 @@ class CLKeyLog:
 
     def _merge(self):
         """Merges the local batches into a single key log with unique interaction keys."""
-        self._log = self._log[:, :4]
+        self._log = self._log[:, :5]
 
         for i, batchKeyIndices in enumerate(self._keyIndices):
             batchStartIndex = i * self._batchSize

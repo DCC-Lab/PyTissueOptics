@@ -54,6 +54,7 @@ class CLPhotons:
             self._directions[params.maxPhotonsPerBatch :],
             materialID=scene.getMaterialID(self._initialMaterial),
             solidID=scene.getSolidID(self._initialSolid),
+            startID=params.maxPhotonsPerBatch,
         )
         photonPool.make(program.device)
         seeds = SeedCL(params.maxPhotonsPerBatch)

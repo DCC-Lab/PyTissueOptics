@@ -16,11 +16,12 @@ MIN_ANGLE = 0.0001
 
 
 class Photon:
-    def __init__(self, position: Vector, direction: Vector):
+    def __init__(self, position: Vector, direction: Vector, ID: int = 0):
         self._position = position
         self._direction = direction
         self._weight = 1
         self._environment: Environment = None
+        self._ID = ID
 
         self._er = self._direction.getAnyOrthogonal()
         self._hasContext = False
@@ -147,7 +148,7 @@ class Photon:
     def _detectAndLog(self, solidLabel: str):
         if self._logger:
             key = InteractionKey(solidLabel)
-            self._logger.logDataPoint(self._weight, self._position, key)
+            self._logger.logDataPoint(self._weight, self._position, key, self._ID)
         self._weight = 0
 
     def reflectOrRefract(self, intersection: Intersection):
@@ -242,16 +243,16 @@ class Photon:
         key = InteractionKey(solidLabelA, intersection.surfaceLabel)
         isLeavingSurface = self._direction.dot(intersection.normal) > 0
         sign = 1 if isLeavingSurface else -1
-        self._logger.logDataPoint(sign * self._weight, self._position, key)
+        self._logger.logDataPoint(sign * self._weight, self._position, key, self._ID)
 
         solidB = intersection.outsideEnvironment.solid
         if solidB is None:
             return
         solidLabelB = solidB.getLabel()
         key = InteractionKey(solidLabelB, intersection.surfaceLabel)
-        self._logger.logDataPoint(-sign * self._weight, self._position, key)
+        self._logger.logDataPoint(-sign * self._weight, self._position, key, self._ID)
 
     def _logWeightDecrease(self, delta):
         if self._logger:
             key = InteractionKey(self.solidLabel)
-            self._logger.logDataPoint(delta, self._position, key)
+            self._logger.logDataPoint(delta, self._position, key, self._ID)

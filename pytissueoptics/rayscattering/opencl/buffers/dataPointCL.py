@@ -12,6 +12,7 @@ class DataPointCL(CLObject):
             ("x", cl.cltypes.float),
             ("y", cl.cltypes.float),
             ("z", cl.cltypes.float),
+            ("photonID", cl.cltypes.uint),
             ("solidID", cl.cltypes.int),
             ("surfaceID", cl.cltypes.int),
         ]
