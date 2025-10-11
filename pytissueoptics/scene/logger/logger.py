@@ -79,7 +79,7 @@ class Logger:
         self._appendData([point.x, point.y, point.z], DataType.POINT, key)
 
     def logDataPoint(self, value: float, position: Vector, key: InteractionKey, ID: Optional[int] = None):
-        dataPoint = [value, position.x, position.y, position.z]
+        dataPoint = [value, *position.array]
         if ID is not None:
             dataPoint.append(ID)
         self._appendData(dataPoint, DataType.DATA_POINT, key)

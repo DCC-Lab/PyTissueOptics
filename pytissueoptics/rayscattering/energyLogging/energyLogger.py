@@ -1,7 +1,9 @@
+from __future__ import annotations
+
 import json
 import os
 import pickle
-from typing import List, Optional, TextIO, Union
+from typing import List, Optional, TextIO, Union, Dict
 
 import numpy as np
 
@@ -76,7 +78,7 @@ class EnergyLogger(Logger):
             return True
 
         if self.has3D:
-            self._compileViews([view])
+            self._compileViews([view], detectedBy=view.detectedBy)
             self._views.append(view)
             return True
 
@@ -233,11 +235,24 @@ class EnergyLogger(Logger):
             self._compileViews(self._views)
             self._delete3DData()
 
-    def logDataPoint(self, value: float, position: Vector, key: InteractionKey):
-        self.logDataPointArray(np.array([[value, *position.array]]), key)
+    def logDataPoint(self, value: float, position: Vector, key: InteractionKey, ID: Optional[int] = None):
+        dataPoint = [value, *position.array]
+        if ID is not None:
+            dataPoint.append(ID)
+        self.logDataPointArray(np.array([dataPoint]), key)
 
-    def _compileViews(self, views: List[View2D]):
-        for key, data in self._data.items():
+    def _compileViews(self, views: List[View2D], detectedBy: str = None):
+        if detectedBy is None:
+            dataPerInteraction = self._data
+            if any(view.detectedBy for view in views):
+                utils.warn(
+                    "Ignoring the detectedBy property of a view. Can only use detectedBy when adding a view after the "
+                    "simulation with keep3D=True."
+                )
+        else:
+            dataPerInteraction = self.getFiltered(detectedBy)._data
+
+        for key, data in dataPerInteraction.items():
             datapointsContainer: Optional[ListArrayContainer] = data.dataPoints
             if datapointsContainer is None or len(datapointsContainer) == 0:
                 continue
@@ -304,6 +319,47 @@ class EnergyLogger(Logger):
 
         return self._getData(DataType.DATA_POINT, key)
 
+    def filter(self, detectedBy: str) -> None:
+        """Keeps only the data points that were detected by the given solid label."""
+        if not self._keep3D:
+            utils.warn("Cannot filter a logger that has discarded the 3D data.")
+            return
+
+        filteredPhotonIDs = self._getPhotonIDs(InteractionKey(detectedBy))
+        self._data = self._getDataForPhotons(filteredPhotonIDs)
+        self._outdatedViews = set(self._views)
+
+    def getFiltered(self, detectedBy: str) -> EnergyLogger:
+        filteredLogger = EnergyLogger(self._scene, views=[])
+        filteredPhotonIDs = self._getPhotonIDs(InteractionKey(detectedBy))
+        filteredLogger._data = self._getDataForPhotons(filteredPhotonIDs)
+        return filteredLogger
+
+    def _getPhotonIDs(self, key: InteractionKey = None) -> np.ndarray:
+        """Get all unique photon IDs that interacted with the given interaction key."""
+        data = self.getRawDataPoints(key)
+        if data is None or data.shape[1] < 5:
+            return np.array([])
+        return np.unique(data[:, 4].astype(int))
+
+    def _getDataForPhotons(self, photonIDs: np.ndarray) -> Dict[InteractionKey, InteractionData]:
+        keyToData: Dict[InteractionKey, InteractionData] = {}
+        photonIDs = np.asarray(photonIDs, dtype=np.uint32)
+        for key, interactionData in self._data.items():
+            points: Optional[ListArrayContainer] = interactionData.dataPoints
+            if points is None:
+                continue
+            data = points.getData()
+            if data.shape[1] < 5:
+                continue
+            mask = np.isin(data[:, 4].astype(np.uint32), photonIDs)
+            filteredData = data[mask]
+            if filteredData.size > 0:
+                container = ListArrayContainer()
+                container.append(filteredData)
+                keyToData[key] = InteractionData(dataPoints=container)
+        return keyToData
+
     def _fluenceTransform(self, key: InteractionKey, data: Optional[np.ndarray]) -> Optional[np.ndarray]:
         # Converts volumetric data to fluence rate when needed.
         if not key.volumetric or data is None:
@@ -317,7 +373,7 @@ class EnergyLogger(Logger):
         Export the raw 3D data points to a CSV file, along with the scene information to a JSON file.
 
         The data file <exportPath>.csv will be comma-delimited and will contain the following columns:
-        - energy, x, y, z, solid_index, surface_index
+        - energy, x, y, z, photon_index, solid_index, surface_index
 
         Two types of interactions are logged: scattering and surface crossings. In the first case, the energy will be
         the delta energy deposited at the point and the surface index will be -1. In the second case, the energy
@@ -343,7 +399,7 @@ class EnergyLogger(Logger):
         print("Exporting raw data to file...")
         filepath = f"{exportPath}.csv"
         with open(filepath, "w") as file:
-            file.write("energy,x,y,z,solid_index,surface_index\n")
+            file.write("energy,x,y,z,photon_index,solid_index,surface_index\n")
             self._writeKeyData(file, InteractionKey(WORLD_SOLID_LABEL), -1, -1)
             for i, solidLabel in enumerate(solidLabels):
                 self._writeKeyData(file, InteractionKey(solidLabel), i, -1)
@@ -382,7 +438,12 @@ class EnergyLogger(Logger):
     def _writeKeyData(self, file: TextIO, key: InteractionKey, solidIndex: int, surfaceIndex: int):
         if key not in self._data or self._data[key].dataPoints is None:
             return
-        dataArray = self._data[key].dataPoints.getData().astype(str)
-        dataArray = np.hstack((dataArray, np.full((dataArray.shape[0], 2), str(solidIndex))))
-        dataArray[:, 5] = str(surfaceIndex)
-        file.write("\n".join([",".join(row) for row in dataArray]) + "\n")
+        dataArray = self._data[key].dataPoints.getData()
+        n_rows = dataArray.shape[0]
+
+        energy_xyz = dataArray[:, :4].astype(str)
+        photon_ids = dataArray[:, 4].astype(np.uint32).astype(str)
+        solid_indices = np.full(n_rows, solidIndex, dtype=int).astype(str)
+        surface_indices = np.full(n_rows, surfaceIndex, dtype=int).astype(str)
+        output = np.column_stack([energy_xyz, photon_ids, solid_indices, surface_indices])
+        file.write("\n".join([",".join(row) for row in output]) + "\n")
