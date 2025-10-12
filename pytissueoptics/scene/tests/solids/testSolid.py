@@ -257,6 +257,24 @@ class TestSolid(unittest.TestCase):
         with self.assertWarns(RuntimeWarning):
             self.assertFalse(self.solid.contains(Vertex(2, 2, -0.75)))
 
+    def testShouldNotBeFlat(self):
+        self.assertFalse(self.solid.isFlat)
+
+    def shouldHaveNoDetectorProperties(self):
+        with self.assertRaises(RuntimeError):
+            _ = self.solid.detectorAcceptanceCosine
+
+    def testWhenConvertToDetector_shouldSetDetectorCosine(self):
+        halfAngle = math.pi / 8
+        self.solid.asDetector(halfAngle)
+        expectedAcceptanceCosine = math.cos(halfAngle)
+        self.assertEqual(expectedAcceptanceCosine, self.solid.detectorAcceptanceCosine)
+
+    def testWhenConvertToDetector_shouldRemoveMaterial(self):
+        self.assertIsNotNone(self.solid.getEnvironment().material)
+        self.solid.asDetector()
+        self.assertIsNone(self.solid.getEnvironment().material)
+
     @staticmethod
     def createPolygonMock() -> Polygon:
         polygon = mock(Polygon)

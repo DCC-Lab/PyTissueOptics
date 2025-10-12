@@ -380,3 +380,7 @@ class Solid:
     def _geometryParams(self) -> dict:
         """To be implemented by Solid subclasses to detail other geometry parameters."""
         raise NotImplementedError(f"Geometry parameters not implemented for Solids of type {type(self).__name__}")
+
+    @property
+    def isFlat(self) -> bool:
+        return False

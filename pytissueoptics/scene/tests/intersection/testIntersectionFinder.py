@@ -227,6 +227,13 @@ class BaseTestAnyIntersectionFinder:
         self.assertIsNotNone(intersection)
         self.assertNotEqual(smoothNormal, intersection.normal)
 
+    def testGivenIgnoreLabel_shouldNotIntersectWithIt(self):
+        ray = Ray(origin=Vector(0, 0.5, 0), direction=Vector(0, 0, 1))
+        solid = Cube(2, position=Vector(0, 0, 5), label="ignoreMe")
+
+        intersection = self.getIntersectionFinder([solid]).findIntersection(ray, WORLD_LABEL, ignoreLabel="ignoreMe")
+        self.assertIsNone(intersection)
+
     def assertVectorEqual(self, expected, actual):
         self.assertEqual(expected.x, actual.x)
         self.assertEqual(expected.y, actual.y)

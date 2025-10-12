@@ -4,7 +4,7 @@ from pytissueoptics import *  # noqa: F403
 
 TITLE = "Detectors"
 
-DESCRIPTION = """ Sampling volume simulation with a directional source and a circle detector. """
+DESCRIPTION = """ Sampling volume simulation with a directional source and two circle detectors. """
 
 
 def exampleCode():

@@ -35,3 +35,10 @@ class Circle(Cylinder):
             "u": self._u,
             "s": self._s,
         }
+
+    @property
+    def isFlat(self) -> bool:
+        return True
+
+    def __hash__(self):
+        return hash((self._radius, self._orientation, self._position))

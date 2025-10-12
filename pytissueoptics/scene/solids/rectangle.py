@@ -35,3 +35,7 @@ class Rectangle(Solid):
 
     def _geometryParams(self) -> dict:
         return {"a": self._a, "b": self._b, "position": self._position, "orientation": self._orientation}
+
+    @property
+    def isFlat(self) -> bool:
+        return True

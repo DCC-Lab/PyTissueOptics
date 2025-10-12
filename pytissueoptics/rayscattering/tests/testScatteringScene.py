@@ -4,6 +4,7 @@ from unittest.mock import patch
 
 from mockito import mock, verify, when
 
+from pytissueoptics import Circle
 from pytissueoptics.rayscattering.materials import ScatteringMaterial
 from pytissueoptics.rayscattering.scatteringScene import ScatteringScene
 from pytissueoptics.scene.solids import Cuboid
@@ -54,3 +55,12 @@ class TestScatteringScene(unittest.TestCase):
         estimation = scene.getEstimatedIPP(weightThreshold)
         expectedEstimation = -math.log(weightThreshold) / meanAlbedo
         self.assertAlmostEqual(expectedEstimation, estimation, places=7)
+
+    def testCannotAddFlatSolidThatIsNotADetector(self):
+        flatSolid = Circle(radius=1)
+        with self.assertRaises(Exception):
+            ScatteringScene([flatSolid])
+
+    def testCanAddFlatDetectors(self):
+        flatSolid = Circle(radius=1).asDetector()
+        ScatteringScene([flatSolid])
