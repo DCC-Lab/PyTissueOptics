@@ -219,7 +219,9 @@ class Viewer:
         logger = self._logger if style.detectedBy is None else self._logger.getFiltered(style.detectedBy)
 
         pointCloud = PointCloudFactory(logger).getPointCloud(
-            solidLabel=style.solidLabel, surfaceLabel=style.surfaceLabel, energyType=style.energyType,
+            solidLabel=style.solidLabel,
+            surfaceLabel=style.surfaceLabel,
+            energyType=style.energyType,
         )
 
         self._drawPointCloudOfSolids(pointCloud, style)

@@ -30,7 +30,7 @@ class Photon:
         self._intersectionFinder: Optional[IntersectionFinder] = None
         self._logger: Optional[Logger] = None
 
-        self._lastIntersectedDetector: Optional[str] = None  # Prevent intersecting with a detector when passing through it.
+        self._lastIntersectedDetector: Optional[str] = None
 
     @property
     def isAlive(self) -> bool:
@@ -99,7 +99,7 @@ class Photon:
                 # Prevent re-intersecting with the same detector when passing through it.
                 self._lastIntersectedDetector = intersection.insideEnvironment.solid.getLabel()
 
-                # skipping vertex check for now. TODO? Unclear stepCorrection and implications.
+                # skipping vertex check if detector
                 return intersection.distanceLeft
             else:
                 distanceLeft = self.reflectOrRefract(intersection)

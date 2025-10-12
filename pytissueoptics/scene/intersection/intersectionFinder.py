@@ -182,7 +182,9 @@ class FastIntersectionFinder(IntersectionFinder):
         # todo: test if this node search is still compatible with the new core intersection logic
         #  which can now require testing a polygon slightly behind the ray origin.
         if node.isLeaf:
-            intersection = self._findClosestPolygonIntersection(ray, node.polygons, self._currentSolidLabel, ignoreLabel)
+            intersection = self._findClosestPolygonIntersection(
+                ray, node.polygons, self._currentSolidLabel, ignoreLabel
+            )
             return intersection
 
         if not self._nodeIsWorthExploring(ray, node, closestDistance):

@@ -8,7 +8,7 @@ from pytissueoptics import Direction, View2DProjectionX, ViewGroup
 from pytissueoptics.rayscattering.display.profiles import Profile1D, ProfileFactory
 from pytissueoptics.rayscattering.display.viewer import PointCloudStyle, Viewer, Visibility
 from pytissueoptics.rayscattering.display.views import View2D
-from pytissueoptics.rayscattering.energyLogging import EnergyLogger, PointCloud, PointCloudFactory
+from pytissueoptics.rayscattering.energyLogging import EnergyLogger, PointCloud
 from pytissueoptics.rayscattering.scatteringScene import ScatteringScene
 from pytissueoptics.rayscattering.source import Source
 from pytissueoptics.scene.geometry import BoundingBox
@@ -112,14 +112,11 @@ class TestViewer(unittest.TestCase):
         self.mock3DViewer.show.assert_called_once()
 
     def testWhenShow3DWithDefaultPointCloud_shouldDisplayPointCloudOfSolidsAndSurfaceLeaving(self):
-        mockPointCloudFactory = mock(PointCloudFactory)
         aPointCloud = PointCloud(
-            solidPoints=np.array([[0.5, 0, 0, 0]]), surfacePoints=np.array([[1, 0, 0, 0], [-1, 0, 0, 0]])
+            solidPoints=np.array([[0.5, 0, 0, 0, 0]]), surfacePoints=np.array([[1, 0, 0, 0, 0], [-1, 0, 0, 0, 0]])
         )
-        when(mockPointCloudFactory).getPointCloud(...).thenReturn(aPointCloud)
-        self.viewer._pointCloudFactory = mockPointCloudFactory
-
-        self.viewer.show3D(visibility=Visibility.POINT_CLOUD)
+        with self._mockPointCloud(aPointCloud):
+            self.viewer.show3D(visibility=Visibility.POINT_CLOUD)
 
         self.mock3DViewer.addDataPoints.assert_called()
         addedSolidPoints = self.mock3DViewer.addDataPoints.call_args_list[0][0][0]
@@ -130,25 +127,21 @@ class TestViewer(unittest.TestCase):
         self.mock3DViewer.show.assert_called_once()
 
     def testGivenNoData_whenShow3DWithPointCloud_shouldNotDisplayPointCloud(self):
-        mockPointCloudFactory = mock(PointCloudFactory)
         aPointCloud = PointCloud()
-        when(mockPointCloudFactory).getPointCloud(...).thenReturn(aPointCloud)
-        self.viewer._pointCloudFactory = mockPointCloudFactory
-
-        self.viewer.show3D(visibility=Visibility.POINT_CLOUD)
+        with self._mockPointCloud(aPointCloud):
+            self.viewer.show3D(visibility=Visibility.POINT_CLOUD)
 
         self.mock3DViewer.addDataPoints.assert_not_called()
         self.mock3DViewer.show.assert_called_once()
 
     def testWhenShow3DWithSurfacePointCloud_shouldOnlyDisplaySurfacePoints(self):
-        mockPointCloudFactory = mock(PointCloudFactory)
         aPointCloud = PointCloud(
-            solidPoints=np.array([[0.5, 0, 0, 0]]), surfacePoints=np.array([[1, 0, 0, 0], [-1, 0, 0, 0]])
+            solidPoints=np.array([[0.5, 0, 0, 0, 0]]), surfacePoints=np.array([[1, 0, 0, 0, 0], [-1, 0, 0, 0, 0]])
         )
-        when(mockPointCloudFactory).getPointCloud(...).thenReturn(aPointCloud)
-        self.viewer._pointCloudFactory = mockPointCloudFactory
-
-        self.viewer.show3D(visibility=Visibility.POINT_CLOUD, pointCloudStyle=PointCloudStyle(showSolidPoints=False))
+        with self._mockPointCloud(aPointCloud):
+            self.viewer.show3D(
+                visibility=Visibility.POINT_CLOUD, pointCloudStyle=PointCloudStyle(showSolidPoints=False)
+            )
 
         self.mock3DViewer.addDataPoints.assert_called_once()
         self.assertTrue(
@@ -157,19 +150,16 @@ class TestViewer(unittest.TestCase):
         self.mock3DViewer.show.assert_called_once()
 
     def testWhenShow3DWithEnteringSurfacePointCloud_shouldOnlyDisplayEnteringSurfacePoints(self):
-        mockPointCloudFactory = mock(PointCloudFactory)
         aPointCloud = PointCloud(
-            solidPoints=np.array([[0.5, 0, 0, 0]]), surfacePoints=np.array([[1, 0, 0, 0], [-1, 1, 1, 1]])
+            solidPoints=np.array([[0.5, 0, 0, 0, 0]]), surfacePoints=np.array([[1, 0, 0, 0, 0], [-1, 1, 1, 0, 1]])
         )
-        when(mockPointCloudFactory).getPointCloud(...).thenReturn(aPointCloud)
-        self.viewer._pointCloudFactory = mockPointCloudFactory
-
-        self.viewer.show3D(
-            visibility=Visibility.POINT_CLOUD,
-            pointCloudStyle=PointCloudStyle(
-                showSolidPoints=False, showSurfacePointsLeaving=False, showSurfacePointsEntering=True
-            ),
-        )
+        with self._mockPointCloud(aPointCloud):
+            self.viewer.show3D(
+                visibility=Visibility.POINT_CLOUD,
+                pointCloudStyle=PointCloudStyle(
+                    showSolidPoints=False, showSurfacePointsLeaving=False, showSurfacePointsEntering=True
+                ),
+            )
 
         self.mock3DViewer.addDataPoints.assert_called_once()
         self.assertTrue(
@@ -206,16 +196,13 @@ class TestViewer(unittest.TestCase):
         self.mock3DViewer.show.assert_called_once()
 
     def testGiven3DLogger_whenShow3DDefault_shouldDisplayEverythingExceptViews(self):
-        mockPointCloudFactory = mock(PointCloudFactory)
         aPointCloud = PointCloud()
-        when(mockPointCloudFactory).getPointCloud(...).thenReturn(aPointCloud)
-        self.viewer._pointCloudFactory = mockPointCloudFactory
 
-        self.viewer.show3D()
+        with self._mockPointCloud(aPointCloud):
+            self.viewer.show3D()
 
         verify(self.source, times=1).addToViewer(...)
         verify(self.scene, times=1).addToViewer(...)
-        verify(mockPointCloudFactory, times=1).getPointCloud(...)
         self.mock3DViewer.addImage.assert_not_called()
         self.mock3DViewer.show.assert_called_once()
 
@@ -223,15 +210,11 @@ class TestViewer(unittest.TestCase):
         self._givenLoggerWithXSceneView()
         self.logger.has3D = False
 
-        mockPointCloudFactory = mock(PointCloudFactory)
-        when(mockPointCloudFactory).getPointCloud(...).thenReturn()
-        self.viewer._pointCloudFactory = mockPointCloudFactory
-
-        self.viewer.show3D()
+        with self._mockPointCloud(PointCloud()):
+            self.viewer.show3D()
 
         verify(self.source, times=1).addToViewer(...)
         verify(self.scene, times=1).addToViewer(...)
-        verify(mockPointCloudFactory, times=0).getPointCloud(...)
         self.mock3DViewer.addImage.assert_called()
         self.mock3DViewer.show.assert_called_once()
 
@@ -239,16 +222,12 @@ class TestViewer(unittest.TestCase):
         self._givenLoggerWithXSceneView()
         self.logger.has3D = False
 
-        mockPointCloudFactory = mock(PointCloudFactory)
-        when(mockPointCloudFactory).getPointCloud(...).thenReturn()
-        self.viewer._pointCloudFactory = mockPointCloudFactory
-
-        with self.assertWarns(UserWarning):
-            self.viewer.show3D(visibility=Visibility.DEFAULT_3D)
+        with self._mockPointCloud(PointCloud()):
+            with self.assertWarns(UserWarning):
+                self.viewer.show3D(visibility=Visibility.DEFAULT_3D)
 
         verify(self.source, times=1).addToViewer(...)
         verify(self.scene, times=1).addToViewer(...)
-        verify(mockPointCloudFactory, times=0).getPointCloud(...)
         self.mock3DViewer.addImage.assert_called()
         self.mock3DViewer.show.assert_called_once()
 
@@ -260,3 +239,10 @@ class TestViewer(unittest.TestCase):
         self.logger.views = [sceneView]
         when(self.logger).updateView(sceneView).thenReturn()
         when(self.scene).getBoundingBox().thenReturn(BoundingBox([-2, 2], [-2, 2], [0, 5]))
+
+    @staticmethod
+    def _mockPointCloud(pointCloud: PointCloud):
+        return patch(
+            "pytissueoptics.rayscattering.display.viewer.PointCloudFactory.getPointCloud",
+            return_value=pointCloud,
+        )

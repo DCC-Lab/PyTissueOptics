@@ -21,7 +21,7 @@ from pytissueoptics.rayscattering.opencl.buffers import (
     VertexCL,
 )
 from pytissueoptics.rayscattering.opencl.CLProgram import CLProgram
-from pytissueoptics.rayscattering.opencl.CLScene import NO_LOG_ID, WORLD_SOLID_ID, NO_SURFACE_ID, CLScene
+from pytissueoptics.rayscattering.opencl.CLScene import NO_LOG_ID, NO_SURFACE_ID, WORLD_SOLID_ID, CLScene
 from pytissueoptics.rayscattering.opencl.config.CLConfig import OPENCL_SOURCE_DIR
 from pytissueoptics.scene.geometry import Vertex
 
@@ -175,7 +175,7 @@ class TestCLPhoton(unittest.TestCase):
         outsideSolidID = WORLD_SOLID_ID
 
         surfaceID = 0
-        surfaces = SurfaceCL([SurfaceCLInfo(0, 0, 0, 0, insideSolidID, outsideSolidID, False)])
+        surfaces = SurfaceCL([SurfaceCLInfo(0, 0, 0, 0, insideSolidID, outsideSolidID, False, False, 0)])
         logger = DataPointCL(2)
 
         self._photonFunc("logIntersection", intersectionNormal, 0, surfaces, logger, 0)
@@ -202,7 +202,7 @@ class TestCLPhoton(unittest.TestCase):
         outsideSolidID = WORLD_SOLID_ID
 
         surfaceID = 0
-        surfaces = SurfaceCL([SurfaceCLInfo(0, 0, 0, 0, insideSolidID, outsideSolidID, False)])
+        surfaces = SurfaceCL([SurfaceCLInfo(0, 0, 0, 0, insideSolidID, outsideSolidID, False, False, 0)])
         logger = DataPointCL(2)
 
         self._photonFunc("logIntersection", intersectionNormal, surfaceID, surfaces, logger, 0)
@@ -225,7 +225,7 @@ class TestCLPhoton(unittest.TestCase):
         insideSolidID = self.INITIAL_SOLID_ID
         outsideSolidID = self.INITIAL_SOLID_ID + 11
 
-        surfaces = SurfaceCL([SurfaceCLInfo(0, 0, 0, 0, insideSolidID, outsideSolidID, False)])
+        surfaces = SurfaceCL([SurfaceCLInfo(0, 0, 0, 0, insideSolidID, outsideSolidID, False, False, 0)])
         logger = DataPointCL(2)
 
         self._photonFunc("logIntersection", intersectionNormal, 0, surfaces, logger, 0)
@@ -261,7 +261,7 @@ class TestCLPhoton(unittest.TestCase):
         self._mockFresnelIntersection(isReflected=True, incidencePlane=Vector(0, 0, 1), angleDeflection=np.pi / 2)
 
         logger = DataPointCL(2)
-        surfaces = SurfaceCL([SurfaceCLInfo(0, 0, 0, 0, insideSolidID=9, outsideSolidID=WORLD_SOLID_ID, toSmooth=False)])
+        surfaces = SurfaceCL([SurfaceCLInfo(0, 0, 0, 0, 9, WORLD_SOLID_ID, False, False, 0)])
         photonResult = self._photonFunc(
             "reflectOrRefract",
             intersectionNormal,
@@ -301,7 +301,7 @@ class TestCLPhoton(unittest.TestCase):
         )
 
         logger = DataPointCL(2)
-        surfaces = SurfaceCL([SurfaceCLInfo(0, 0, 0, 0, insideSolidID, outsideSolidID=WORLD_SOLID_ID, toSmooth=False)])
+        surfaces = SurfaceCL([SurfaceCLInfo(0, 0, 0, 0, insideSolidID, WORLD_SOLID_ID, False, False, 0)])
         photonResult = self._photonFunc(
             "reflectOrRefract",
             intersectionNormal,
@@ -334,7 +334,7 @@ class TestCLPhoton(unittest.TestCase):
         self._mockFindIntersection(exists=False)
 
         logger = DataPointCL(2)
-        surfaces = SurfaceCL([SurfaceCLInfo(0, 0, 0, 0, insideSolidID=9, outsideSolidID=10, toSmooth=False)])
+        surfaces = SurfaceCL([SurfaceCLInfo(0, 0, 0, 0, 9, 10, False, False, 0)])
         photonResult = self._photonFunc(
             "propagateStep",
             stepDistance,
@@ -354,7 +354,7 @@ class TestCLPhoton(unittest.TestCase):
         self._mockFindIntersection(exists=False)
 
         logger = DataPointCL(2)
-        surfaces = SurfaceCL([SurfaceCLInfo(0, 0, 0, 0, insideSolidID=9, outsideSolidID=10, toSmooth=False)])
+        surfaces = SurfaceCL([SurfaceCLInfo(0, 0, 0, 0, 9, 10, False, False, 0)])
         photonResult = self._photonFunc(
             "propagateStep",
             stepDistance,
@@ -381,9 +381,7 @@ class TestCLPhoton(unittest.TestCase):
         intersectionPosition = self.INITIAL_POSITION + self.INITIAL_DIRECTION * stepDistance
 
         logger = DataPointCL(2)
-        surfaces = SurfaceCL(
-            [SurfaceCLInfo(0, 0, 0, 0, insideSolidID=nextSolidID, outsideSolidID=self.INITIAL_SOLID_ID, toSmooth=False)]
-        )
+        surfaces = SurfaceCL([SurfaceCLInfo(0, 0, 0, 0, nextSolidID, self.INITIAL_SOLID_ID, False, False, 0)])
         triangles = TriangleCL([TriangleCLInfo([0, 1, 2], normal)])
         # Put vertex slightly after the intersection point
         vertex = Vertex(intersectionPosition.x, intersectionPosition.y, intersectionPosition.z - 2e-7)
@@ -410,7 +408,7 @@ class TestCLPhoton(unittest.TestCase):
         self._mockFindIntersection(exists=False)
 
         logger = DataPointCL(2)
-        surfaces = SurfaceCL([SurfaceCLInfo(0, 0, 0, 0, insideSolidID=9, outsideSolidID=10, toSmooth=False)])
+        surfaces = SurfaceCL([SurfaceCLInfo(0, 0, 0, 0, 9, 10, False, False, 0)])
         photonResult = self._photonFunc(
             "propagateStep",
             stepDistance,
@@ -432,7 +430,7 @@ class TestCLPhoton(unittest.TestCase):
         self._mockFresnelIntersection(isReflected=True)
 
         logger = DataPointCL(2)
-        surfaces = SurfaceCL([SurfaceCLInfo(0, 0, 0, 0, insideSolidID=9, outsideSolidID=10, toSmooth=False)])
+        surfaces = SurfaceCL([SurfaceCLInfo(0, 0, 0, 0, 9, 10, False, False, 0)])
         triangles = TriangleCL([TriangleCLInfo([0, 1, 2], Vector(0, 0, 1))])
         vertices = VertexCL([Vertex(0, 0, 0)] * 3)
         photonResult = self._photonFunc(
@@ -457,7 +455,7 @@ class TestCLPhoton(unittest.TestCase):
         self._mockFresnelIntersection(isReflected=False)
 
         logger = DataPointCL(2)
-        surfaces = SurfaceCL([SurfaceCLInfo(0, 0, 0, 0, insideSolidID=9, outsideSolidID=10, toSmooth=False)])
+        surfaces = SurfaceCL([SurfaceCLInfo(0, 0, 0, 0, 9, 10, False, False, 0)])
         triangles = TriangleCL([TriangleCLInfo([0, 1, 2], Vector(0, 0, 1))])
         vertices = VertexCL([Vertex(0, 0, 0)] * 3)
         photonResult = self._photonFunc(
@@ -590,7 +588,7 @@ class TestCLPhoton(unittest.TestCase):
 
     def _getDataPointResult(self, dataPointBuffer: DataPointCL, i=0):
         data = self.program.getData(dataPointBuffer)[i]
-        return DataPointResult(deltaWeight=data[0], position=Vector(*data[1:4]), solidID=data[4], surfaceID=data[5])
+        return DataPointResult(deltaWeight=data[0], position=Vector(*data[1:4]), solidID=data[5], surfaceID=data[6])
 
     def _assertVectorAlmostEqual(self, v1: Vector, v2: Vector, places=7):
         self.assertAlmostEqual(v1.x, v2.x, places=places)
@@ -644,9 +642,7 @@ class TestCLPhoton(unittest.TestCase):
 
     def _mockFindIntersection(self, exists=True, distance=8.0, normal=Vector(0, 0, 1), surfaceID=0, distanceLeft=2):
         expectedPosition = self.INITIAL_POSITION + self.INITIAL_DIRECTION * distance
-        intersectionCall = (
-            """Intersection intersection = findIntersection(stepRay, scene, gid, photons[photonID].solidID);"""
-        )
+        intersectionCall = """Intersection intersection = findIntersection(stepRay, scene, gid, photons[photonID].solidID, photons[photonID].lastIntersectedDetectorID);"""
         px, py, pz = expectedPosition.array
         nx, ny, nz = normal.array
         mockCall = """Intersection intersection;

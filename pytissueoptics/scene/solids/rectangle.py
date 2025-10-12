@@ -1,10 +1,17 @@
-from ..geometry import primitives, Vertex, Triangle, Quad, Vector
+from ..geometry import Quad, Triangle, Vector, Vertex, primitives
 from .solid import Solid
 
 
 class Rectangle(Solid):
-    def __init__(self, a: float, b: float, orientation = Vector(0, 0, 1), position = Vector(0, 0, 0),
-                 primitive: str = primitives.DEFAULT, label="rectangle"):
+    def __init__(
+        self,
+        a: float,
+        b: float,
+        orientation=Vector(0, 0, 1),
+        position=Vector(0, 0, 0),
+        primitive: str = primitives.DEFAULT,
+        label="rectangle",
+    ):
         self._a = a
         self._b = b
 
@@ -12,7 +19,7 @@ class Rectangle(Solid):
             Vertex(-a / 2, -b / 2, 0),
             Vertex(a / 2, -b / 2, 0),
             Vertex(a / 2, b / 2, 0),
-            Vertex(-a / 2, b / 2, 0)
+            Vertex(-a / 2, b / 2, 0),
         ]
 
         super().__init__(vertices, position, label=label, primitive=primitive)
@@ -27,9 +34,4 @@ class Rectangle(Solid):
         self._surfaces.add("surface", [Quad(V[0], V[1], V[2], V[3])])
 
     def _geometryParams(self) -> dict:
-        return {
-            "a": self._a,
-            "b": self._b,
-            "position": self._position,
-            "orientation": self._orientation
-        }
+        return {"a": self._a, "b": self._b, "position": self._position, "orientation": self._orientation}

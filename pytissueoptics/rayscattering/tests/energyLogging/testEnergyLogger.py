@@ -296,10 +296,10 @@ class TestEnergyLogger(unittest.TestCase):
         self.logger = EnergyLogger(scene)
 
         # Log entering surface event, world scattering event and scattering event in both solids.
-        self.logger.logDataPoint(0.1, Vector(0.7, 0.8, 0.8), InteractionKey("middleLayer"))
-        self.logger.logDataPoint(-0.9, Vector(0.5, 1.0, 0.75), InteractionKey("frontLayer", "interface1"))
-        self.logger.logDataPoint(0.4, Vector(0, 5, 0), InteractionKey("sphere"))
-        self.logger.logDataPoint(0.2, Vector(0, 0, 0), InteractionKey(WORLD_SOLID_LABEL))
+        self.logger.logDataPoint(0.1, Vector(0.7, 0.8, 0.8), InteractionKey("middleLayer"), ID=1)
+        self.logger.logDataPoint(-0.9, Vector(0.5, 1.0, 0.75), InteractionKey("frontLayer", "interface1"), ID=0)
+        self.logger.logDataPoint(0.4, Vector(0, 5, 0), InteractionKey("sphere"), ID=0)
+        self.logger.logDataPoint(0.2, Vector(0, 0, 0), InteractionKey(WORLD_SOLID_LABEL), ID=0)
 
         with tempfile.TemporaryDirectory() as tempDir:
             filePath = os.path.join(tempDir, "test_sim")
@@ -309,12 +309,15 @@ class TestEnergyLogger(unittest.TestCase):
             with open(filePath + ".csv", "r") as f:
                 lines = f.readlines()
 
+            def parse_line(line):
+                return list(map(float, line.strip().split(",")))
+
             self.assertEqual(5, len(lines))
-            self.assertEqual("energy,x,y,z,solid_index,surface_index\n", lines[0])
-            self.assertEqual("0.2,0.0,0.0,0.0,-1,-1\n", lines[1])
-            self.assertEqual("-0.9,0.5,1.0,0.75,1,5\n", lines[2])
-            self.assertEqual("0.1,0.7,0.8,0.8,2,-1\n", lines[3])
-            self.assertEqual("0.4,0.0,5.0,0.0,3,-1\n", lines[4])
+            self.assertEqual("energy,x,y,z,photon_index,solid_index,surface_index\n", lines[0])
+            self.assertEqual(parse_line(lines[1]), [0.2, 0.0, 0.0, 0.0, 0.0, -1.0, -1.0])
+            self.assertEqual(parse_line(lines[2]), [-0.9, 0.5, 1.0, 0.75, 0.0, 1.0, 5.0])
+            self.assertEqual(parse_line(lines[3]), [0.1, 0.7, 0.8, 0.8, 1.0, 2.0, -1.0])
+            self.assertEqual(parse_line(lines[4]), [0.4, 0.0, 5.0, 0.0, 0.0, 3.0, -1.0])
 
     def testWhenExport_shouldExportMetadataToFile(self):
         scene = PhantomTissue(worldMaterial=ScatteringMaterial(0.1, 0.1, 0.99))

@@ -312,7 +312,7 @@ class TestPhoton(unittest.TestCase):
 
         intersectionPoint = self.INITIAL_POSITION + self.INITIAL_DIRECTION * distance
         interactionKey = InteractionKey(self.SOLID_INSIDE_LABEL, self.SURFACE_LABEL)
-        verify(logger).logDataPoint(self.photon.weight, intersectionPoint, interactionKey)
+        verify(logger).logDataPoint(self.photon.weight, intersectionPoint, interactionKey, 0)
 
     def testGivenALogger_whenSteppingOutsideASolid_shouldLogNegativeWeightOnOtherSolidSurfaceIntersection(self):
         distance = 8
@@ -320,7 +320,7 @@ class TestPhoton(unittest.TestCase):
 
         intersectionPoint = self.INITIAL_POSITION + self.INITIAL_DIRECTION * distance
         interactionKey = InteractionKey(self.SOLID_OUTSIDE_LABEL, self.SURFACE_LABEL)
-        verify(logger).logDataPoint(-self.photon.weight, intersectionPoint, interactionKey)
+        verify(logger).logDataPoint(-self.photon.weight, intersectionPoint, interactionKey, 0)
 
     def givenALogger_whenSteppingInsideASolidAt(self, distance):
         logger = self._createLogger()
@@ -340,7 +340,7 @@ class TestPhoton(unittest.TestCase):
 
         intersectionPoint = self.INITIAL_POSITION + self.INITIAL_DIRECTION * distance
         interactionKey = InteractionKey(self.SOLID_INSIDE_LABEL, self.SURFACE_LABEL)
-        verify(logger).logDataPoint(-self.photon.weight, intersectionPoint, interactionKey)
+        verify(logger).logDataPoint(-self.photon.weight, intersectionPoint, interactionKey, 0)
 
     def testGivenALogger_whenSteppingInsideASurface_shouldLogPositiveWeightOnOtherSolidSurfaceIntersection(self):
         distance = 8
@@ -348,7 +348,7 @@ class TestPhoton(unittest.TestCase):
 
         intersectionPoint = self.INITIAL_POSITION + self.INITIAL_DIRECTION * distance
         interactionKey = InteractionKey(self.SOLID_OUTSIDE_LABEL, self.SURFACE_LABEL)
-        verify(logger).logDataPoint(self.photon.weight, intersectionPoint, interactionKey)
+        verify(logger).logDataPoint(self.photon.weight, intersectionPoint, interactionKey, 0)
 
     def testGivenALogger_whenScatter_shouldLogWeightLossAtThisPositionWithSolidLabel(self):
         solidInside = mock(Solid)
@@ -359,7 +359,7 @@ class TestPhoton(unittest.TestCase):
         self.photon.scatter()
 
         weightLoss = self.photon.material.getAlbedo()
-        verify(logger).logDataPoint(weightLoss, self.INITIAL_POSITION, InteractionKey(self.SOLID_INSIDE_LABEL))
+        verify(logger).logDataPoint(weightLoss, self.INITIAL_POSITION, InteractionKey(self.SOLID_INSIDE_LABEL), 0)
 
     def testGivenALogger_whenScatterInWorldMaterial_shouldLogWeightLossAtThisPositionWithWorldLabel(self):
         logger = self._createLogger()
@@ -368,7 +368,7 @@ class TestPhoton(unittest.TestCase):
         self.photon.scatter()
 
         weightLoss = self.photon.material.getAlbedo()
-        verify(logger).logDataPoint(weightLoss, self.INITIAL_POSITION, InteractionKey(WORLD_LABEL))
+        verify(logger).logDataPoint(weightLoss, self.INITIAL_POSITION, InteractionKey(WORLD_LABEL), 0)
 
     def givenALoggerAndNoSolidOutside_whenSteppingInsideASolidAt(self, distance):
         self.solidOutside = None
@@ -440,9 +440,7 @@ class TestPhoton(unittest.TestCase):
         # Setup intersection with detector.
         distance = 8
         intersectionFinder = self._createIntersectionFinder(distance)
-        self.photon.setContext(
-            Environment(ScatteringMaterial()), intersectionFinder=intersectionFinder
-        )
+        self.photon.setContext(Environment(ScatteringMaterial()), intersectionFinder=intersectionFinder)
 
         self.photon.step(distance + 2)
 
@@ -467,9 +465,7 @@ class TestPhoton(unittest.TestCase):
         # Setup intersection with detector.
         distance = 8
         intersectionFinder = self._createIntersectionFinder(distance)
-        self.photon.setContext(
-            Environment(ScatteringMaterial()), intersectionFinder=intersectionFinder
-        )
+        self.photon.setContext(Environment(ScatteringMaterial()), intersectionFinder=intersectionFinder)
 
         self.photon.step(distance + 2)
 
@@ -491,7 +487,7 @@ class TestPhoton(unittest.TestCase):
         # Setup photon going towards detector within NA.
         photonIncidence = halfAngle  # Within NA
         self.INITIAL_DIRECTION = Vector(0, math.sin(photonIncidence), -math.cos(photonIncidence))
-        self.photon = Photon(self.INITIAL_POSITION.copy(), self.INITIAL_DIRECTION.copy())
+        self.photon = Photon(self.INITIAL_POSITION.copy(), self.INITIAL_DIRECTION.copy(), ID=42)
         initial_weight = self.photon.weight
 
         # Setup intersection with detector.
@@ -508,7 +504,7 @@ class TestPhoton(unittest.TestCase):
 
         self.assertFalse(self.photon.isAlive)
         intersectionPoint = self.INITIAL_POSITION + self.INITIAL_DIRECTION * distance
-        verify(logger).logDataPoint(initial_weight, intersectionPoint, InteractionKey(detectorLabel))
+        verify(logger).logDataPoint(initial_weight, intersectionPoint, InteractionKey(detectorLabel), 42)
 
     def assertVectorEqual(self, v1, v2):
         self.assertAlmostEqual(v1.x, v2.x, places=7)

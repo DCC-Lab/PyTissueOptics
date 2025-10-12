@@ -3,7 +3,7 @@ from __future__ import annotations
 import json
 import os
 import pickle
-from typing import List, Optional, TextIO, Union, Dict
+from typing import Dict, List, Optional, TextIO, Union
 
 import numpy as np
 
@@ -409,9 +409,7 @@ class EnergyLogger(Logger):
 
         self._exportSceneInfo(f"{exportName}.json", solidLabels)
 
-    def _writeKeyData(
-        self, file: TextIO, key: InteractionKey, solidIndex: int, surfaceIndex: int
-    ):
+    def _writeKeyData(self, file: TextIO, key: InteractionKey, solidIndex: int, surfaceIndex: int):
         if key not in self._data or self._data[key].dataPoints is None:
             return
 
