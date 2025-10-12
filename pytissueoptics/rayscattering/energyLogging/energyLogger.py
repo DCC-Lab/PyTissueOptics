@@ -241,7 +241,7 @@ class EnergyLogger(Logger):
             dataPoint.append(ID)
         self.logDataPointArray(np.array([dataPoint]), key)
 
-    def _compileViews(self, views: List[View2D], detectedBy: str = None):
+    def _compileViews(self, views: List[View2D], detectedBy: Union[str, List[str]] = None):
         if detectedBy is None:
             dataPerInteraction = self._data
             if any(view.detectedBy for view in views):
@@ -319,28 +319,52 @@ class EnergyLogger(Logger):
 
         return self._getData(DataType.DATA_POINT, key)
 
-    def filter(self, detectedBy: str) -> None:
-        """Keeps only the data points that were detected by the given solid label."""
+    def filter(self, detectedBy: Union[str, List[str]]) -> None:
+        """Keeps only the data points from photons detected by one of the specified detector(s)."""
         if not self._keep3D:
             utils.warn("Cannot filter a logger that has discarded the 3D data.")
             return
 
-        filteredPhotonIDs = self._getPhotonIDs(InteractionKey(detectedBy))
+        filteredPhotonIDs = self._getDetectedPhotonIDs(detectedBy)
         self._data = self._getDataForPhotons(filteredPhotonIDs)
         self._outdatedViews = set(self._views)
 
-    def getFiltered(self, detectedBy: str) -> EnergyLogger:
+    def getFiltered(self, detectedBy: Union[str, List[str]]) -> "EnergyLogger":
+        """
+        Returns a new logger with only data from photons detected by one of the specified detector(s).
+        """
         filteredLogger = EnergyLogger(self._scene, views=[])
-        filteredPhotonIDs = self._getPhotonIDs(InteractionKey(detectedBy))
+        filteredPhotonIDs = self._getDetectedPhotonIDs(detectedBy)
         filteredLogger._data = self._getDataForPhotons(filteredPhotonIDs)
         return filteredLogger
 
-    def _getPhotonIDs(self, key: InteractionKey = None) -> np.ndarray:
-        """Get all unique photon IDs that interacted with the given interaction key."""
+    def _getDetectedPhotonIDs(self, detectedBy: Union[str, List[str]]) -> np.ndarray:
+        """Helper to get photon IDs detected by one of the specified detector(s)."""
+        detector_labels = [detectedBy] if isinstance(detectedBy, str) else detectedBy
+        detector_keys = [InteractionKey(label) for label in detector_labels]
+        photonIDs = self._getPhotonIDs(detector_keys)
+        if len(photonIDs) == 0:
+            utils.warn(f"No photons detected by: {detectedBy}")
+        return photonIDs
+
+    def _getPhotonIDs(self, key: Union[InteractionKey, List[InteractionKey], None] = None) -> np.ndarray:
+        """Get all unique photon IDs that interacted with one of the given interaction key(s)."""
+        if isinstance(key, list):
+            all_photon_ids = []
+            for k in key:
+                data = self.getRawDataPoints(k)
+                if data is not None and data.shape[1] >= 5:
+                    all_photon_ids.append(data[:, 4].astype(np.uint32))
+
+            if len(all_photon_ids) == 0:
+                return np.array([], dtype=np.uint32)
+            combined = np.concatenate(all_photon_ids)
+            return np.unique(combined)
+
         data = self.getRawDataPoints(key)
         if data is None or data.shape[1] < 5:
-            return np.array([])
-        return np.unique(data[:, 4].astype(int))
+            return np.array([], dtype=np.uint32)
+        return np.unique(data[:, 4].astype(np.uint32))
 
     def _getDataForPhotons(self, photonIDs: np.ndarray) -> Dict[InteractionKey, InteractionData]:
         keyToData: Dict[InteractionKey, InteractionData] = {}

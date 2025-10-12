@@ -50,7 +50,7 @@ class View2D:
         limits: Tuple[Tuple[float, float], Tuple[float, float]] = None,
         binSize: Union[float, Tuple[int, int]] = None,
         energyType=EnergyType.DEPOSITION,
-        detectedBy: str = None,
+        detectedBy: Union[str, List[str]] = None,
     ):
         """
         The 2D view plane is obtained by looking towards the 'projectionDirection'. The 'horizontalDirection'
@@ -125,7 +125,7 @@ class View2D:
         return self._energyType
 
     @property
-    def detectedBy(self) -> Optional[str]:
+    def detectedBy(self) -> Union[str, List[str], None]:
         return self._detectedBy
 
     def extractData(self, dataPoints: np.ndarray):

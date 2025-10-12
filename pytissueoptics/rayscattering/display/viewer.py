@@ -66,7 +66,7 @@ class PointCloudStyle:
         showSurfacePointsLeaving: bool = True,
         showSurfacePointsEntering: bool = False,
         energyType=EnergyType.DEPOSITION,
-        detectedBy: str = None,
+        detectedBy: Union[str, List[str]] = None,
         showPointsAsSpheres: bool = False,
         pointSize: float = 0.15,
         scaleWithValue: bool = True,
