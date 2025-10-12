@@ -368,11 +368,11 @@ class EnergyLogger(Logger):
         data[:, 0] = data[:, 0] / self._scene.getMaterial(key.solidLabel).mu_a
         return data
 
-    def export(self, exportPath: str):
+    def export(self, exportName: str):
         """
         Export the raw 3D data points to a CSV file, along with the scene information to a JSON file.
 
-        The data file <exportPath>.csv will be comma-delimited and will contain the following columns:
+        The data file <exportName>.csv will be comma-delimited and will contain the following columns:
         - energy, x, y, z, photon_index, solid_index, surface_index
 
         Two types of interactions are logged: scattering and surface crossings. In the first case, the energy will be
@@ -380,7 +380,7 @@ class EnergyLogger(Logger):
         will be the total photon energy when crossing the surface, either as positive if leaving the surface
         (along the normal) or as negative if entering the surface.
 
-        The scene information will be saved in a JSON file named <exportPath>.json, which includes details for each solid
+        The scene information will be saved in a JSON file named <exportName>.json, which includes details for each solid
         index and surface index, such as their labels, materials, and geometry. The world information is also exported
         as solid index -1.
         """
@@ -397,7 +397,7 @@ class EnergyLogger(Logger):
         solidLabels.sort()
 
         print("Exporting raw data to file...")
-        filepath = f"{exportPath}.csv"
+        filepath = f"{exportName}.csv"
         with open(filepath, "w") as file:
             file.write("energy,x,y,z,photon_index,solid_index,surface_index\n")
             self._writeKeyData(file, InteractionKey(WORLD_SOLID_LABEL), -1, -1)
@@ -407,6 +407,31 @@ class EnergyLogger(Logger):
                     self._writeKeyData(file, InteractionKey(solidLabel, surfaceLabel), i, j)
         print(f"Exported data points to {filepath}")
 
+        self._exportSceneInfo(f"{exportName}.json", solidLabels)
+
+    def _writeKeyData(
+        self, file: TextIO, key: InteractionKey, solidIndex: int, surfaceIndex: int
+    ):
+        if key not in self._data or self._data[key].dataPoints is None:
+            return
+
+        dataArray = self._data[key].dataPoints.getData()
+        n_rows = dataArray.shape[0]
+
+        output = np.empty((n_rows, 7), dtype=np.float64)
+        output[:, :4] = dataArray[:, :4]
+        output[:, 4] = dataArray[:, 4].astype(np.uint32)
+        output[:, 5] = solidIndex
+        output[:, 6] = surfaceIndex
+
+        np.savetxt(
+            file,
+            output,
+            delimiter=",",
+            fmt=["%.8e", "%.8e", "%.8e", "%.8e", "%d", "%d", "%d"],
+        )
+
+    def _exportSceneInfo(self, filepath: str, solidLabels: List[str]):
         sceneInfo = {}
         material = self._scene.getWorldEnvironment().material
         sceneInfo["-1"] = {"label": "world", "material": material.__dict__ if material else None}
@@ -430,20 +455,6 @@ class EnergyLogger(Logger):
                 "surfaces": surfaces,
             }
 
-        sceneFilepath = f"{exportPath}.json"
-        with open(sceneFilepath, "w") as file:
+        with open(filepath, "w") as file:
             json.dump(sceneInfo, file, indent=4)
-        print(f"Exported scene information to {sceneFilepath}")
-
-    def _writeKeyData(self, file: TextIO, key: InteractionKey, solidIndex: int, surfaceIndex: int):
-        if key not in self._data or self._data[key].dataPoints is None:
-            return
-        dataArray = self._data[key].dataPoints.getData()
-        n_rows = dataArray.shape[0]
-
-        energy_xyz = dataArray[:, :4].astype(str)
-        photon_ids = dataArray[:, 4].astype(np.uint32).astype(str)
-        solid_indices = np.full(n_rows, solidIndex, dtype=int).astype(str)
-        surface_indices = np.full(n_rows, surfaceIndex, dtype=int).astype(str)
-        output = np.column_stack([energy_xyz, photon_ids, solid_indices, surface_indices])
-        file.write("\n".join([",".join(row) for row in output]) + "\n")
+        print(f"Exported scene information to {filepath}")
