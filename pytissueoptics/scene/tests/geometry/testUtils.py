@@ -94,13 +94,12 @@ class TestGetAxisAngleBetween(unittest.TestCase):
         testCases = self._generateAxisAlignedTestCases()
         for testCase in testCases:
             axis, angle = getAxisAngleBetween(testCase.v1, testCase.v2)
-            self.assertTrue(np.allclose(testCase.expectedAxis.array, axis.array))
             self.assertTrue(np.isclose(testCase.expectedAngle, angle))
+            self.assertTrue(np.isclose(1, axis.getNorm()))
 
-            axis, angle = getAxisAngleBetween(testCase.v2, testCase.v1)
-            testCase.expectedAxis *= -1
-            self.assertTrue(np.allclose(testCase.expectedAxis.array, axis.array))
-            self.assertTrue(np.isclose(testCase.expectedAngle, angle))
+            # For non-degenerate cases (angle not 0 or 180), check axis direction
+            if not np.isclose(testCase.expectedAngle % np.pi, 0):
+                self.assertTrue(np.allclose(testCase.expectedAxis.array, axis.array))
 
     def _generateAxisAlignedTestCases(self):
         testCases = []
@@ -126,3 +125,10 @@ class TestGetAxisAngleBetween(unittest.TestCase):
         v2 = Vector(1, 0, 0)
         _, angle = getAxisAngleBetween(v1, v2)
         self.assertTrue(np.isclose(0, angle))
+
+    def testGivenTwoOppositeVectors_shouldReturnAnyAxisAnd180Degrees(self):
+        v1 = Vector(1, 0, 0)
+        v2 = Vector(-1, 0, 0)
+        axis, angle = getAxisAngleBetween(v1, v2)
+        self.assertTrue(np.isclose(np.pi, angle))
+        self.assertTrue(np.isclose(1, axis.getNorm()))

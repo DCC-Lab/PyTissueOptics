@@ -55,6 +55,8 @@ class TestCLFresnel(unittest.TestCase):
                     self.INSIDE_SOLID_ID,
                     self.OUTSIDE_SOLID_ID,
                     False,
+                    False,
+                    0,
                 )
             ]
         )

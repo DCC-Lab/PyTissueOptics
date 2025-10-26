@@ -138,7 +138,7 @@ class Source(Displayable):
     def _loadPhotonsCPU(self):
         positions, directions = self.getInitialPositionsAndDirections()
         for i in range(self._N):
-            self._photons.append(Photon(Vector(*positions[i]), Vector(*directions[i])))
+            self._photons.append(Photon(Vector(*positions[i]), Vector(*directions[i]), ID=i))
 
     def _loadPhotonsOpenCL(self):
         positions, directions = self.getInitialPositionsAndDirections()

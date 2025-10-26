@@ -66,6 +66,7 @@ class PointCloudStyle:
         showSurfacePointsLeaving: bool = True,
         showSurfacePointsEntering: bool = False,
         energyType=EnergyType.DEPOSITION,
+        detectedBy: Union[str, List[str]] = None,
         showPointsAsSpheres: bool = False,
         pointSize: float = 0.15,
         scaleWithValue: bool = True,
@@ -82,6 +83,7 @@ class PointCloudStyle:
         self.showSurfacePointsLeaving = showSurfacePointsLeaving
         self.showSurfacePointsEntering = showSurfacePointsEntering
         self.energyType = energyType
+        self.detectedBy = detectedBy
         self.showPointsAsSpheres = showPointsAsSpheres
 
         self.pointSize = pointSize
@@ -103,7 +105,6 @@ class Viewer:
         self._logger = logger
 
         self._viewer3D = None
-        self._pointCloudFactory = PointCloudFactory(logger)
         self._profileFactory = ProfileFactory(scene, logger)
 
     def listViews(self):
@@ -169,7 +170,7 @@ class Viewer:
                 f"Consider using a larger binSize or tighter limits."
             )
 
-        points = self._pointCloudFactory.getPointCloudOfSolids(energyType=energyType).solidPoints
+        points = PointCloudFactory(self._logger).getPointCloudOfSolids(energyType=energyType).solidPoints
         try:
             hist, _ = np.histogramdd(points[:, 1:], bins=bins, weights=points[:, 0], range=limits)
         except MemoryError:
@@ -215,8 +216,12 @@ class Viewer:
         stats.report(solidLabel=solidLabel, saveToFile=saveToFile, verbose=verbose)
 
     def _addPointCloud(self, style: PointCloudStyle):
-        pointCloud = self._pointCloudFactory.getPointCloud(
-            solidLabel=style.solidLabel, surfaceLabel=style.surfaceLabel, energyType=style.energyType
+        logger = self._logger if style.detectedBy is None else self._logger.getFiltered(style.detectedBy)
+
+        pointCloud = PointCloudFactory(logger).getPointCloud(
+            solidLabel=style.solidLabel,
+            surfaceLabel=style.surfaceLabel,
+            energyType=style.energyType,
         )
 
         self._drawPointCloudOfSolids(pointCloud, style)
@@ -241,7 +246,7 @@ class Viewer:
         if pointCloud.surfacePoints is None:
             return
 
-        surfacePoints = np.empty((0, 4))
+        surfacePoints = np.empty((0, 5))
 
         if style.showSurfacePointsLeaving:
             surfacePoints = np.vstack((surfacePoints, pointCloud.leavingSurfacePoints))

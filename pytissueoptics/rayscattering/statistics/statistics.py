@@ -1,3 +1,4 @@
+import math
 import os
 from dataclasses import dataclass
 from typing import Dict
@@ -7,7 +8,7 @@ import numpy as np
 from pytissueoptics.rayscattering import utils
 from pytissueoptics.rayscattering.display.views.defaultViews import View2DProjection
 from pytissueoptics.rayscattering.energyLogging import EnergyLogger, PointCloud, PointCloudFactory
-from pytissueoptics.rayscattering.opencl.CLScene import NO_SOLID_LABEL
+from pytissueoptics.rayscattering.opencl.CLScene import WORLD_SOLID_LABEL
 
 
 @dataclass
@@ -49,11 +50,11 @@ class Stats:
 
     def _computeStats(self, solidLabel: str = None):
         solidLabels = [solidLabel]
-        if solidLabel is None or utils.labelsEqual(solidLabel, NO_SOLID_LABEL):
+        if solidLabel is None or utils.labelsEqual(solidLabel, WORLD_SOLID_LABEL):
             solidLabels = self._logger.getSeenSolidLabels()
 
         for solidLabel in solidLabels:
-            if solidLabel == NO_SOLID_LABEL:
+            if solidLabel == WORLD_SOLID_LABEL:
                 continue
             try:
                 absorbance = self.getAbsorbance(solidLabel)
@@ -69,7 +70,7 @@ class Stats:
 
     def _makeReport(self, solidLabel: str = None, reportString: str = ""):
         if solidLabel:
-            if solidLabel == NO_SOLID_LABEL:
+            if solidLabel == WORLD_SOLID_LABEL:
                 reportString += self._reportWorld(solidLabel)
             else:
                 reportString += self._reportSolid(solidLabel)
@@ -87,6 +88,11 @@ class Stats:
     def _reportSolid(self, solidLabel: str):
         solidStats = self._solidStatsMap[solidLabel]
         reportString = "Report of solid '{}'\n".format(solidLabel)
+
+        if solidStats.absorbance == math.inf:
+            # Detectors don't log energy input.
+            reportString += "  Detected {:.2f}% of total power\n".format(solidStats.totalAbsorbance)
+            return reportString
 
         if solidStats.absorbance is None:
             reportString += "  Absorbance: N/A ({:.2f}% of total power)\n".format(solidStats.totalAbsorbance)
@@ -110,12 +116,12 @@ class Stats:
             return self._getAbsorbanceFromViews(solidLabel, useTotalEnergy)
         points = self._getPointCloud(solidLabel).solidPoints
         energyInput = self.getEnergyInput(solidLabel) if not useTotalEnergy else self.getPhotonCount()
-        return 100 * self._sumEnergy(points) / energyInput
+        return 100 * self._sumEnergy(points) / energyInput if energyInput else math.inf
 
     def _getAbsorbanceFromViews(self, solidLabel: str, useTotalEnergy=False) -> float:
         energyInput = self.getEnergyInput(solidLabel) if not useTotalEnergy else self.getPhotonCount()
         absorbedEnergy = self._getAbsorbedEnergyFromViews(solidLabel)
-        return 100 * absorbedEnergy / energyInput
+        return 100 * absorbedEnergy / energyInput if energyInput else math.inf
 
     def _getAbsorbedEnergyFromViews(self, solidLabel: str) -> float:
         for view in self._logger.views:
@@ -207,7 +213,7 @@ class Stats:
             points = self._getPointCloud(solidLabel, surfaceLabel).leavingSurfacePoints
 
         energyInput = self.getEnergyInput(solidLabel) if not useTotalEnergy else self.getPhotonCount()
-        return 100 * self._sumEnergy(points) / energyInput
+        return 100 * self._sumEnergy(points) / energyInput if energyInput else math.inf
 
     def _getTransmittanceFromViews(self, solidLabel: str, surfaceLabel: str = None, useTotalEnergy=False):
         if surfaceLabel is None:
@@ -216,7 +222,7 @@ class Stats:
             energyLeaving = self._getSurfaceEnergyFromViews(solidLabel, surfaceLabel, leaving=True)
 
         energyInput = self.getEnergyInput(solidLabel) if not useTotalEnergy else self.getPhotonCount()
-        return 100 * energyLeaving / energyInput
+        return 100 * energyLeaving / energyInput if energyInput else math.inf
 
     @staticmethod
     def _sumEnergy(points: np.ndarray):

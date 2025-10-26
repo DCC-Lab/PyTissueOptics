@@ -78,8 +78,11 @@ class Logger:
     def logPoint(self, point: Vector, key: InteractionKey = None):
         self._appendData([point.x, point.y, point.z], DataType.POINT, key)
 
-    def logDataPoint(self, value: float, position: Vector, key: InteractionKey):
-        self._appendData([value, position.x, position.y, position.z], DataType.DATA_POINT, key)
+    def logDataPoint(self, value: float, position: Vector, key: InteractionKey, ID: Optional[int] = None):
+        dataPoint = [value, *position.array]
+        if ID is not None:
+            dataPoint.append(ID)
+        self._appendData(dataPoint, DataType.DATA_POINT, key)
 
     def logSegment(self, start: Vector, end: Vector, key: InteractionKey = None):
         self._appendData([start.x, start.y, start.z, end.x, end.y, end.z], DataType.SEGMENT, key)
@@ -90,8 +93,9 @@ class Logger:
         self._appendData(array, DataType.POINT, key)
 
     def logDataPointArray(self, array: np.ndarray, key: InteractionKey):
-        """'array' must be of shape (n, 4) where the second axis is (value, x, y, z)"""
-        assert array.shape[1] == 4 and array.ndim == 2, "Data point array must be of shape (n, 4)"
+        """'array' must be of shape (n, 4) or (n, 5) where the second axis is (value, x, y, z)
+        or (value, x, y, z, photonID). The photonID column is optional."""
+        assert array.shape[1] in [4, 5] and array.ndim == 2, "Data point array must be of shape (n, 4) or (n, 5)"
         self._appendData(array, DataType.DATA_POINT, key)
 
     def logSegmentArray(self, array: np.ndarray, key: InteractionKey = None):
@@ -127,8 +131,8 @@ class Logger:
         return self._getData(DataType.POINT, key)
 
     def getRawDataPoints(self, key: InteractionKey = None) -> np.ndarray:
-        """All raw 3D data points recorded for this InteractionKey (not binned). Array of shape (n, 4) where
-        the second axis is (value, x, y, z)."""
+        """All raw 3D data points recorded for this InteractionKey (not binned). Array of shape (n, 4) or (n, 5) where
+        the second axis is (value, x, y, z) or (value, x, y, z, photonID) if photon IDs were logged."""
         return self._getData(DataType.DATA_POINT, key)
 
     def getSegments(self, key: InteractionKey = None) -> np.ndarray:

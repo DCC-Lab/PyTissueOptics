@@ -4,6 +4,7 @@ from .logger import InteractionKey, Logger
 from .material import RefractiveMaterial
 from .scene import Scene
 from .solids import (
+    Circle,
     Cone,
     Cube,
     Cuboid,
@@ -11,6 +12,7 @@ from .solids import (
     Ellipsoid,
     PlanoConcaveLens,
     PlanoConvexLens,
+    Rectangle,
     Sphere,
     SymmetricLens,
     ThickLens,
@@ -37,4 +39,6 @@ __all__ = [
     "SymmetricLens",
     "PlanoConvexLens",
     "PlanoConcaveLens",
+    "Rectangle",
+    "Circle",
 ]

@@ -50,6 +50,7 @@ class View2D:
         limits: Tuple[Tuple[float, float], Tuple[float, float]] = None,
         binSize: Union[float, Tuple[int, int]] = None,
         energyType=EnergyType.DEPOSITION,
+        detectedBy: Union[str, List[str]] = None,
     ):
         """
         The 2D view plane is obtained by looking towards the 'projectionDirection'. The 'horizontalDirection'
@@ -78,6 +79,7 @@ class View2D:
         self._position = position
         self._thickness = thickness
         self._energyType = energyType
+        self._detectedBy = detectedBy
 
         limits = [sorted(limit) for limit in limits] if limits else [None, None]
         self._limitsU, self._limitsV = limits
@@ -103,6 +105,7 @@ class View2D:
 
         limits = [self._limitsU, self._limitsV]
         self._binsU, self._binsV = [int((limit[1] - limit[0]) / bin_) for limit, bin_ in zip(limits, self._binSize)]
+        self._binsU, self._binsV = max(1, self._binsU), max(1, self._binsV)
 
         if self._verticalIsNegative:
             self._limitsV = self._limitsV[::-1]
@@ -120,6 +123,10 @@ class View2D:
     @property
     def energyType(self) -> EnergyType:
         return self._energyType
+
+    @property
+    def detectedBy(self) -> Union[str, List[str], None]:
+        return self._detectedBy
 
     def extractData(self, dataPoints: np.ndarray):
         """
@@ -245,6 +252,8 @@ class View2D:
             return False
         if self._energyType != other._energyType:
             return False
+        if self._detectedBy != other._detectedBy:
+            return False
         return True
 
     def isContainedBy(self, other: "View2D") -> bool:
@@ -259,6 +268,8 @@ class View2D:
         if self._position != other._position:
             return False
         if self._thickness != other._thickness:
+            return False
+        if self._detectedBy != other._detectedBy:
             return False
 
         # TODO: change/remove the following once the algorithm can extract a view contained inside a bigger view.

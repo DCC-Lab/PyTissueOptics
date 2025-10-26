@@ -18,7 +18,7 @@ from pytissueoptics.rayscattering.display.views import (
 )
 from pytissueoptics.rayscattering.energyLogging import EnergyLogger
 from pytissueoptics.rayscattering.materials import ScatteringMaterial
-from pytissueoptics.rayscattering.opencl.CLScene import NO_SOLID_LABEL
+from pytissueoptics.rayscattering.opencl.CLScene import WORLD_SOLID_LABEL
 from pytissueoptics.rayscattering.samples import PhantomTissue
 from pytissueoptics.rayscattering.scatteringScene import ScatteringScene
 from pytissueoptics.scene.geometry import Vector
@@ -177,6 +177,17 @@ class TestEnergyLogger(unittest.TestCase):
 
         self.assertEqual(initialNumberOfViews, len(self.logger.views))
 
+    def testGiven3DLoggerWithData_whenAddViewWithDetectedBy_shouldInitializeViewWithFilteredData(self):
+        # Photon 0
+        self.logger.logDataPoint(0.9, Vector(0.7, 0.8, 0.8), InteractionKey("cube"), ID=0)
+        # Photon 1 interacted with "sphere".
+        self.logger.logDataPoint(0.1, Vector(0.7, 0.8, 0.8), InteractionKey("cube"), ID=1)
+        self.logger.logDataPoint(0.4, Vector(0.5, 0.5, 0.5), InteractionKey("sphere"), ID=1)
+
+        newView = View2DProjectionX(detectedBy="sphere")
+        self.logger.addView(newView)
+        self.assertAlmostEqual(0.1 + 0.4, newView.getSum())
+
     def testWhenSave_shouldSaveLoggerToFile(self):
         with tempfile.TemporaryDirectory() as tempDir:
             filePath = os.path.join(tempDir, "test.log")
@@ -296,10 +307,10 @@ class TestEnergyLogger(unittest.TestCase):
         self.logger = EnergyLogger(scene)
 
         # Log entering surface event, world scattering event and scattering event in both solids.
-        self.logger.logDataPoint(0.1, Vector(0.7, 0.8, 0.8), InteractionKey("middleLayer"))
-        self.logger.logDataPoint(-0.9, Vector(0.5, 1.0, 0.75), InteractionKey("frontLayer", "interface1"))
-        self.logger.logDataPoint(0.4, Vector(0, 5, 0), InteractionKey("sphere"))
-        self.logger.logDataPoint(0.2, Vector(0, 0, 0), InteractionKey(NO_SOLID_LABEL))
+        self.logger.logDataPoint(0.1, Vector(0.7, 0.8, 0.8), InteractionKey("middleLayer"), ID=1)
+        self.logger.logDataPoint(-0.9, Vector(0.5, 1.0, 0.75), InteractionKey("frontLayer", "interface1"), ID=0)
+        self.logger.logDataPoint(0.4, Vector(0, 5, 0), InteractionKey("sphere"), ID=0)
+        self.logger.logDataPoint(0.2, Vector(0, 0, 0), InteractionKey(WORLD_SOLID_LABEL), ID=0)
 
         with tempfile.TemporaryDirectory() as tempDir:
             filePath = os.path.join(tempDir, "test_sim")
@@ -309,12 +320,15 @@ class TestEnergyLogger(unittest.TestCase):
             with open(filePath + ".csv", "r") as f:
                 lines = f.readlines()
 
+            def parse_line(line):
+                return list(map(float, line.strip().split(",")))
+
             self.assertEqual(5, len(lines))
-            self.assertEqual("energy,x,y,z,solid_index,surface_index\n", lines[0])
-            self.assertEqual("0.2,0.0,0.0,0.0,-1,-1\n", lines[1])
-            self.assertEqual("-0.9,0.5,1.0,0.75,1,5\n", lines[2])
-            self.assertEqual("0.1,0.7,0.8,0.8,2,-1\n", lines[3])
-            self.assertEqual("0.4,0.0,5.0,0.0,3,-1\n", lines[4])
+            self.assertEqual("energy,x,y,z,photon_index,solid_index,surface_index\n", lines[0])
+            self.assertEqual(parse_line(lines[1]), [0.2, 0.0, 0.0, 0.0, 0.0, -1.0, -1.0])
+            self.assertEqual(parse_line(lines[2]), [-0.9, 0.5, 1.0, 0.75, 0.0, 1.0, 5.0])
+            self.assertEqual(parse_line(lines[3]), [0.1, 0.7, 0.8, 0.8, 1.0, 2.0, -1.0])
+            self.assertEqual(parse_line(lines[4]), [0.4, 0.0, 5.0, 0.0, 0.0, 3.0, -1.0])
 
     def testWhenExport_shouldExportMetadataToFile(self):
         scene = PhantomTissue(worldMaterial=ScatteringMaterial(0.1, 0.1, 0.99))
@@ -349,3 +363,69 @@ class TestEnergyLogger(unittest.TestCase):
         self.assertEqual(expectedLayerGeometry, sceneInfo["0"]["geometry"])
         self.assertEqual(16, len(sceneInfo["0"]["surfaces"]))
         self.assertEqual({"label": "interface0", "normal": [0.0, 0.0, -1.0]}, sceneInfo["0"]["surfaces"]["14"])
+
+    def testWhenFilterWithOneLabel_shouldOnlyKeepPhotonsThatInteractedWithTheGivenLabel(self):
+        # Photon 0
+        self.logger.logDataPoint(0.1, Vector(0.7, 0.8, 0.8), InteractionKey("cube"), ID=0)
+        self.logger.logDataPoint(-0.9, Vector(0.5, 1.0, 0.75), InteractionKey("cube", "cube_top"), ID=0)
+        self.logger.logDataPoint(0.2, Vector(0, 0, 0), InteractionKey(WORLD_SOLID_LABEL), ID=0)
+        # Photon 1 interacted with "sphere".
+        self.logger.logDataPoint(0.1, Vector(0.7, 0.8, 0.8), InteractionKey("cube"), ID=1)
+        self.logger.logDataPoint(-0.9, Vector(0.5, 1.0, 0.75), InteractionKey("cube", "cube_top"), ID=1)
+        self.logger.logDataPoint(0.4, Vector(0, 5, 0), InteractionKey("sphere"), ID=1)
+        self.logger.logDataPoint(0.2, Vector(0, 0, 0), InteractionKey(WORLD_SOLID_LABEL), ID=1)
+
+        self.logger.filter(detectedBy="sphere")
+
+        data = self.logger.getRawDataPoints()
+
+        # We should only have the data related to photon 1.
+        self.assertEqual(4, data.shape[0])
+        self.assertTrue(np.array_equal(np.unique(data[:, 4]), [1]))
+
+    def testWhenFilterWithMultipleLabels_shouldKeepPhotonsThatInteractedWithAnyOfTheGivenLabels(self):
+        # Photon 0
+        self.logger.logDataPoint(0.1, Vector(0.7, 0.8, 0.8), InteractionKey("cube"), ID=0)
+        self.logger.logDataPoint(-0.9, Vector(0.5, 1.0, 0.75), InteractionKey("cube", "cube_top"), ID=0)
+        self.logger.logDataPoint(0.2, Vector(0, 0, 0), InteractionKey(WORLD_SOLID_LABEL), ID=0)
+        # Photon 1 interacted with "sphere".
+        self.logger.logDataPoint(0.1, Vector(0.7, 0.8, 0.8), InteractionKey("cube"), ID=1)
+        self.logger.logDataPoint(-0.9, Vector(0.5, 1.0, 0.75), InteractionKey("cube", "cube_top"), ID=1)
+        self.logger.logDataPoint(0.4, Vector(0, 5, 0), InteractionKey("sphere"), ID=1)
+        self.logger.logDataPoint(0.2, Vector(0, 0, 0), InteractionKey(WORLD_SOLID_LABEL), ID=1)
+        # Photon 2 interacted with "otherSphere".
+        self.logger.logDataPoint(0.1, Vector(0.7, 0.8, 0.8), InteractionKey("cube"), ID=2)
+        self.logger.logDataPoint(-0.9, Vector(0.5, 1.0, 0.75), InteractionKey("cube", "cube_top"), ID=2)
+        self.logger.logDataPoint(0.4, Vector(3, 5, 0), InteractionKey("otherSphere"), ID=2)
+        self.logger.logDataPoint(0.2, Vector(0, 0, 0), InteractionKey(WORLD_SOLID_LABEL), ID=2)
+
+        self.logger.filter(detectedBy=["sphere", "otherSphere"])
+
+        data = self.logger.getRawDataPoints()
+
+        # We should only have the data related to photon 1 and photon 2.
+        self.assertEqual(8, data.shape[0])
+        self.assertTrue(np.array_equal(np.unique(data[:, 4]), [1, 2]))
+
+    def testWhenGetFiltered_shouldReturnANewFilteredLogger(self):
+        # Photon 0
+        self.logger.logDataPoint(0.1, Vector(0.7, 0.8, 0.8), InteractionKey("cube"), ID=0)
+        self.logger.logDataPoint(-0.9, Vector(0.5, 1.0, 0.75), InteractionKey("cube", "cube_top"), ID=0)
+        self.logger.logDataPoint(0.2, Vector(0, 0, 0), InteractionKey(WORLD_SOLID_LABEL), ID=0)
+        # Photon 1 interacted with "sphere".
+        self.logger.logDataPoint(0.1, Vector(0.7, 0.8, 0.8), InteractionKey("cube"), ID=1)
+        self.logger.logDataPoint(-0.9, Vector(0.5, 1.0, 0.75), InteractionKey("cube", "cube_top"), ID=1)
+        self.logger.logDataPoint(0.4, Vector(0, 5, 0), InteractionKey("sphere"), ID=1)
+        self.logger.logDataPoint(0.2, Vector(0, 0, 0), InteractionKey(WORLD_SOLID_LABEL), ID=1)
+
+        filteredLogger = self.logger.getFiltered(detectedBy="sphere")
+
+        data = filteredLogger.getRawDataPoints()
+
+        # We should only have the data related to photon 1.
+        self.assertEqual(4, data.shape[0])
+        self.assertTrue(np.array_equal(np.unique(data[:, 4]), [1]))
+
+        # Should not modify the original logger.
+        originalData = self.logger.getRawDataPoints()
+        self.assertEqual(7, originalData.shape[0])

@@ -4,7 +4,8 @@
 #include "intersection.c"
 #include "fresnel.c"
 
-__constant int NO_SOLID_ID = -1;
+__constant int NULL_SOLID_ID = 0;
+__constant int WORLD_SOLID_ID = -1;
 __constant int NO_SURFACE_ID = -1;
 __constant float MIN_ANGLE = 0.0001f;
 
@@ -36,6 +37,7 @@ void interact(__global Photon *photons, __constant Material *materials, __global
     logger[logIndex].delta_weight = delta_weight;
     logger[logIndex].solidID = photons[photonID].solidID;
     logger[logIndex].surfaceID = NO_SURFACE_ID;
+    logger[logIndex].photonID = photons[photonID].ID;
 }
 
 void scatter(__global Photon *photons, __constant Material *materials, __global uint *seeds, __global DataPoint *logger,
@@ -79,6 +81,7 @@ void logIntersection(Intersection *intersection, __global Photon *photons, __glo
     logger[logID].z = photons[photonID].position.z;
     logger[logID].surfaceID = intersection->surfaceID;
     logger[logID].solidID = surfaces[intersection->surfaceID].insideSolidID;
+    logger[logID].photonID = photons[photonID].ID;
 
     bool isLeavingSurface = dot(photons[photonID].direction, intersection->normal) > 0;
     int sign = isLeavingSurface ? 1 : -1;
@@ -86,7 +89,7 @@ void logIntersection(Intersection *intersection, __global Photon *photons, __glo
     (*logIndex)++;
 
     int outsideSolidID = surfaces[intersection->surfaceID].outsideSolidID;
-    if (outsideSolidID == NO_SOLID_ID){
+    if (outsideSolidID == WORLD_SOLID_ID){
         return;
     }
     logID++;
@@ -96,7 +99,32 @@ void logIntersection(Intersection *intersection, __global Photon *photons, __glo
     logger[logID].surfaceID = intersection->surfaceID;
     logger[logID].solidID = outsideSolidID;
     logger[logID].delta_weight = -sign * photons[photonID].weight;
+    logger[logID].photonID = photons[photonID].ID;
     (*logIndex)++;
+}
+
+bool detectOrIgnore(Intersection *intersection, __global Photon *photons, __global Surface *surfaces,
+    __global DataPoint *logger, uint *logIndex, uint gid, uint photonID){
+    // If the incidence angle is within the numerical aperture, absorb photon.
+    float cosIncidence = -1 * dot(intersection->normal, photons[photonID].direction);
+    float cosDetector = surfaces[intersection->surfaceID].detectorCosine;
+
+    if (cosIncidence < cosDetector){
+        return false;  // Outside NA, ignore.
+    }
+
+    logger[*logIndex].x = photons[photonID].position.x;
+    logger[*logIndex].y = photons[photonID].position.y;
+    logger[*logIndex].z = photons[photonID].position.z;
+    logger[*logIndex].solidID = surfaces[intersection->surfaceID].insideSolidID;
+    logger[*logIndex].delta_weight = photons[photonID].weight;
+    logger[*logIndex].surfaceID = NO_SURFACE_ID;
+    logger[*logIndex].photonID = photons[photonID].ID;
+    (*logIndex)++;
+
+    // Absorb photon.
+    photons[photonID].weight = 0;
+    return true;
 }
 
 float reflectOrRefract(Intersection *intersection, __global Photon *photons, __constant Material *materials,
@@ -156,13 +184,27 @@ float propagateStep(float distance, __global Photon *photons, __constant Materia
     }
 
     Ray stepRay = {photons[photonID].position, photons[photonID].direction, distance};
-    Intersection intersection = findIntersection(stepRay, scene, gid, photons[photonID].solidID);
+    Intersection intersection = findIntersection(stepRay, scene, gid, photons[photonID].solidID, photons[photonID].lastIntersectedDetectorID);
+
+    photons[photonID].lastIntersectedDetectorID = NULL_SOLID_ID;  // Reset ignored detector ID.
 
     float distanceLeft = 0;
 
     if (intersection.exists){
         moveTo(intersection.position, photons, photonID);
-        distanceLeft = reflectOrRefract(&intersection, photons, materials, scene->surfaces, logger, logIndex, seeds, gid, photonID);
+        if (scene->surfaces[intersection.surfaceID].isDetector) {
+            if (detectOrIgnore(&intersection, photons, scene->surfaces, logger, logIndex, gid, photonID)) {;
+                return 0;  // Skip unnecessary vertex check if detected.
+            }
+
+            // Prevent re-intersecting with the same detector when passing through it.
+            photons[photonID].lastIntersectedDetectorID = scene->surfaces[intersection.surfaceID].insideSolidID;
+
+            // Skipping vertex check for now.
+            return intersection.distanceLeft;
+        } else {
+            distanceLeft = reflectOrRefract(&intersection, photons, materials, scene->surfaces, logger, logIndex, seeds, gid, photonID);
+        }
 
         // Check if intersection lies too close to a vertex.
         int closeToVertexID = -1;

@@ -13,8 +13,11 @@ class ScatteringScene(Scene):
         super().__init__(solids, worldMaterial=worldMaterial, ignoreIntersections=ignoreIntersections)
 
     def add(self, solid: Solid, position: Vector = None):
+        if solid.isFlat and not solid.isDetector:
+            raise Exception(f"Solid '{solid.getLabel()}' is flat. Flat solids must be used with asDetector().")
+
         polygonSample = solid.getPolygons()[0]
-        if not isinstance(polygonSample.insideEnvironment.material, ScatteringMaterial):
+        if not isinstance(polygonSample.insideEnvironment.material, ScatteringMaterial) and not solid.isDetector:
             raise Exception(
                 f"Solid '{solid.getLabel()}' has no ScatteringMaterial defined. "
                 f"This is required for any RayScatteringScene. "

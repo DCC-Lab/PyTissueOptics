@@ -1,7 +1,9 @@
+from __future__ import annotations
+
 import json
 import os
 import pickle
-from typing import List, Optional, TextIO, Union
+from typing import Dict, List, Optional, TextIO, Union
 
 import numpy as np
 
@@ -13,7 +15,7 @@ from pytissueoptics.scene.geometry import Vector
 from pytissueoptics.scene.logger.listArrayContainer import ListArrayContainer
 from pytissueoptics.scene.logger.logger import DataType, InteractionData, InteractionKey, Logger
 
-from ..opencl.CLScene import NO_SOLID_LABEL
+from ..opencl.CLScene import WORLD_SOLID_LABEL
 from .energyType import EnergyType
 
 
@@ -76,7 +78,7 @@ class EnergyLogger(Logger):
             return True
 
         if self.has3D:
-            self._compileViews([view])
+            self._compileViews([view], detectedBy=view.detectedBy)
             self._views.append(view)
             return True
 
@@ -233,11 +235,24 @@ class EnergyLogger(Logger):
             self._compileViews(self._views)
             self._delete3DData()
 
-    def logDataPoint(self, value: float, position: Vector, key: InteractionKey):
-        self.logDataPointArray(np.array([[value, *position.array]]), key)
+    def logDataPoint(self, value: float, position: Vector, key: InteractionKey, ID: Optional[int] = None):
+        dataPoint = [value, *position.array]
+        if ID is not None:
+            dataPoint.append(ID)
+        self.logDataPointArray(np.array([dataPoint]), key)
 
-    def _compileViews(self, views: List[View2D]):
-        for key, data in self._data.items():
+    def _compileViews(self, views: List[View2D], detectedBy: Union[str, List[str]] = None):
+        if detectedBy is None:
+            dataPerInteraction = self._data
+            if any(view.detectedBy for view in views):
+                utils.warn(
+                    "Ignoring the detectedBy property of a view. Can only use detectedBy when adding a view after the "
+                    "simulation with keep3D=True."
+                )
+        else:
+            dataPerInteraction = self.getFiltered(detectedBy)._data
+
+        for key, data in dataPerInteraction.items():
             datapointsContainer: Optional[ListArrayContainer] = data.dataPoints
             if datapointsContainer is None or len(datapointsContainer) == 0:
                 continue
@@ -304,6 +319,71 @@ class EnergyLogger(Logger):
 
         return self._getData(DataType.DATA_POINT, key)
 
+    def filter(self, detectedBy: Union[str, List[str]]) -> None:
+        """Keeps only the data points from photons detected by one of the specified detector(s)."""
+        if not self._keep3D:
+            utils.warn("Cannot filter a logger that has discarded the 3D data.")
+            return
+
+        filteredPhotonIDs = self._getDetectedPhotonIDs(detectedBy)
+        self._data = self._getDataForPhotons(filteredPhotonIDs)
+        self._outdatedViews = set(self._views)
+
+    def getFiltered(self, detectedBy: Union[str, List[str]]) -> "EnergyLogger":
+        """
+        Returns a new logger with only data from photons detected by one of the specified detector(s).
+        """
+        filteredLogger = EnergyLogger(self._scene, views=[])
+        filteredPhotonIDs = self._getDetectedPhotonIDs(detectedBy)
+        filteredLogger._data = self._getDataForPhotons(filteredPhotonIDs)
+        return filteredLogger
+
+    def _getDetectedPhotonIDs(self, detectedBy: Union[str, List[str]]) -> np.ndarray:
+        """Helper to get photon IDs detected by one of the specified detector(s)."""
+        detector_labels = [detectedBy] if isinstance(detectedBy, str) else detectedBy
+        detector_keys = [InteractionKey(label) for label in detector_labels]
+        photonIDs = self._getPhotonIDs(detector_keys)
+        if len(photonIDs) == 0:
+            utils.warn(f"No photons detected by: {detectedBy}")
+        return photonIDs
+
+    def _getPhotonIDs(self, key: Union[InteractionKey, List[InteractionKey], None] = None) -> np.ndarray:
+        """Get all unique photon IDs that interacted with one of the given interaction key(s)."""
+        if isinstance(key, list):
+            all_photon_ids = []
+            for k in key:
+                data = self.getRawDataPoints(k)
+                if data is not None and data.shape[1] >= 5:
+                    all_photon_ids.append(data[:, 4].astype(np.uint32))
+
+            if len(all_photon_ids) == 0:
+                return np.array([], dtype=np.uint32)
+            combined = np.concatenate(all_photon_ids)
+            return np.unique(combined)
+
+        data = self.getRawDataPoints(key)
+        if data is None or data.shape[1] < 5:
+            return np.array([], dtype=np.uint32)
+        return np.unique(data[:, 4].astype(np.uint32))
+
+    def _getDataForPhotons(self, photonIDs: np.ndarray) -> Dict[InteractionKey, InteractionData]:
+        keyToData: Dict[InteractionKey, InteractionData] = {}
+        photonIDs = np.asarray(photonIDs, dtype=np.uint32)
+        for key, interactionData in self._data.items():
+            points: Optional[ListArrayContainer] = interactionData.dataPoints
+            if points is None:
+                continue
+            data = points.getData()
+            if data.shape[1] < 5:
+                continue
+            mask = np.isin(data[:, 4].astype(np.uint32), photonIDs)
+            filteredData = data[mask]
+            if filteredData.size > 0:
+                container = ListArrayContainer()
+                container.append(filteredData)
+                keyToData[key] = InteractionData(dataPoints=container)
+        return keyToData
+
     def _fluenceTransform(self, key: InteractionKey, data: Optional[np.ndarray]) -> Optional[np.ndarray]:
         # Converts volumetric data to fluence rate when needed.
         if not key.volumetric or data is None:
@@ -312,19 +392,19 @@ class EnergyLogger(Logger):
         data[:, 0] = data[:, 0] / self._scene.getMaterial(key.solidLabel).mu_a
         return data
 
-    def export(self, exportPath: str):
+    def export(self, exportName: str):
         """
         Export the raw 3D data points to a CSV file, along with the scene information to a JSON file.
 
-        The data file <exportPath>.csv will be comma-delimited and will contain the following columns:
-        - energy, x, y, z, solid_index, surface_index
+        The data file <exportName>.csv will be comma-delimited and will contain the following columns:
+        - energy, x, y, z, photon_index, solid_index, surface_index
 
         Two types of interactions are logged: scattering and surface crossings. In the first case, the energy will be
         the delta energy deposited at the point and the surface index will be -1. In the second case, the energy
         will be the total photon energy when crossing the surface, either as positive if leaving the surface
         (along the normal) or as negative if entering the surface.
 
-        The scene information will be saved in a JSON file named <exportPath>.json, which includes details for each solid
+        The scene information will be saved in a JSON file named <exportName>.json, which includes details for each solid
         index and surface index, such as their labels, materials, and geometry. The world information is also exported
         as solid index -1.
         """
@@ -341,16 +421,39 @@ class EnergyLogger(Logger):
         solidLabels.sort()
 
         print("Exporting raw data to file...")
-        filepath = f"{exportPath}.csv"
+        filepath = f"{exportName}.csv"
         with open(filepath, "w") as file:
-            file.write("energy,x,y,z,solid_index,surface_index\n")
-            self._writeKeyData(file, InteractionKey(NO_SOLID_LABEL), -1, -1)
+            file.write("energy,x,y,z,photon_index,solid_index,surface_index\n")
+            self._writeKeyData(file, InteractionKey(WORLD_SOLID_LABEL), -1, -1)
             for i, solidLabel in enumerate(solidLabels):
                 self._writeKeyData(file, InteractionKey(solidLabel), i, -1)
                 for j, surfaceLabel in enumerate(self._scene.getSurfaceLabels(solidLabel)):
                     self._writeKeyData(file, InteractionKey(solidLabel, surfaceLabel), i, j)
         print(f"Exported data points to {filepath}")
 
+        self._exportSceneInfo(f"{exportName}.json", solidLabels)
+
+    def _writeKeyData(self, file: TextIO, key: InteractionKey, solidIndex: int, surfaceIndex: int):
+        if key not in self._data or self._data[key].dataPoints is None:
+            return
+
+        dataArray = self._data[key].dataPoints.getData()
+        n_rows = dataArray.shape[0]
+
+        output = np.empty((n_rows, 7), dtype=np.float64)
+        output[:, :4] = dataArray[:, :4]
+        output[:, 4] = dataArray[:, 4].astype(np.uint32)
+        output[:, 5] = solidIndex
+        output[:, 6] = surfaceIndex
+
+        np.savetxt(
+            file,
+            output,
+            delimiter=",",
+            fmt=["%.8e", "%.8e", "%.8e", "%.8e", "%d", "%d", "%d"],
+        )
+
+    def _exportSceneInfo(self, filepath: str, solidLabels: List[str]):
         sceneInfo = {}
         material = self._scene.getWorldEnvironment().material
         sceneInfo["-1"] = {"label": "world", "material": material.__dict__ if material else None}
@@ -374,15 +477,6 @@ class EnergyLogger(Logger):
                 "surfaces": surfaces,
             }
 
-        sceneFilepath = f"{exportPath}.json"
-        with open(sceneFilepath, "w") as file:
+        with open(filepath, "w") as file:
             json.dump(sceneInfo, file, indent=4)
-        print(f"Exported scene information to {sceneFilepath}")
-
-    def _writeKeyData(self, file: TextIO, key: InteractionKey, solidIndex: int, surfaceIndex: int):
-        if key not in self._data or self._data[key].dataPoints is None:
-            return
-        dataArray = self._data[key].dataPoints.getData().astype(str)
-        dataArray = np.hstack((dataArray, np.full((dataArray.shape[0], 2), str(solidIndex))))
-        dataArray[:, 5] = str(surfaceIndex)
-        file.write("\n".join([",".join(row) for row in dataArray]) + "\n")
+        print(f"Exported scene information to {filepath}")

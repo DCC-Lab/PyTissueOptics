@@ -115,12 +115,17 @@ GemsBoxIntersection _getBBoxIntersection(Ray ray, float3 minCornerVector, float3
     return intersection;
 }
 
-void _findBBoxIntersectingSolids(Ray ray, Scene *scene, uint gid, uint photonSolidID) {
+void _findBBoxIntersectingSolids(Ray ray, Scene *scene, uint gid, uint photonSolidID, uint ignoreSolidID) {
 
     for (uint i = 0; i < scene->nSolids; i++) {
         uint boxGID = gid * scene->nSolids + i;
         uint solidID = i + 1;
         scene->solidCandidates[boxGID].solidID = solidID;
+
+        if (solidID == ignoreSolidID) {
+            scene->solidCandidates[boxGID].distance = -1;
+            continue;
+        }
 
         if (solidID == photonSolidID) {
             scene->solidCandidates[boxGID].distance = 0;
@@ -375,12 +380,12 @@ void _composeIntersection(Intersection *intersection, Ray *ray, Scene *scene) {
     intersection->distanceLeft = ray->length - intersection->distance;
 }
 
-Intersection findIntersection(Ray ray, Scene *scene, uint gid, uint photonSolidID) {
+Intersection findIntersection(Ray ray, Scene *scene, uint gid, uint photonSolidID, uint ignoreSolidID) {
     /*
     OpenCL implementation of the Python module SimpleIntersectionFinder
     See the Python module documentation for more details.
     */
-    _findBBoxIntersectingSolids(ray, scene, gid, photonSolidID);
+    _findBBoxIntersectingSolids(ray, scene, gid, photonSolidID, ignoreSolidID);
     _sortSolidCandidates(scene, gid);
 
     Intersection closestIntersection;
@@ -420,7 +425,7 @@ __kernel void findIntersections(__global Ray *rays, uint nSolids, __global Solid
         __global Triangle *triangles, __global Vertex *vertices, __global SolidCandidate *solidCandidates, __global Intersection *intersections) {
     uint gid = get_global_id(0);
     Scene scene = {nSolids, solids, surfaces, triangles, vertices, solidCandidates};
-    intersections[gid] = findIntersection(rays[gid], &scene, gid, -1);
+    intersections[gid] = findIntersection(rays[gid], &scene, gid, -1, 0);
 }
 
 

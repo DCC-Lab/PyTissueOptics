@@ -16,11 +16,12 @@ MIN_ANGLE = 0.0001
 
 
 class Photon:
-    def __init__(self, position: Vector, direction: Vector):
+    def __init__(self, position: Vector, direction: Vector, ID: int = 0):
         self._position = position
         self._direction = direction
         self._weight = 1
         self._environment: Environment = None
+        self._ID = ID
 
         self._er = self._direction.getAnyOrthogonal()
         self._hasContext = False
@@ -28,6 +29,8 @@ class Photon:
 
         self._intersectionFinder: Optional[IntersectionFinder] = None
         self._logger: Optional[Logger] = None
+
+        self._lastIntersectedDetector: Optional[str] = None
 
     @property
     def isAlive(self) -> bool:
@@ -83,10 +86,23 @@ class Photon:
                 distance = 0
 
         intersection = self._getIntersection(distance)
+        self._lastIntersectedDetector = None  # Reset ignored intersection label after each step.
 
         if intersection:
             self.moveTo(intersection.position)
-            distanceLeft = self.reflectOrRefract(intersection)
+            isDetector = intersection.insideEnvironment.solid.isDetector
+
+            if isDetector:
+                if self.detectOrIgnore(intersection):
+                    return 0  # Skip unnecessary vertex check if detected.
+
+                # Prevent re-intersecting with the same detector when passing through it.
+                self._lastIntersectedDetector = intersection.insideEnvironment.solid.getLabel()
+
+                # skipping vertex check if detector
+                return intersection.distanceLeft
+            else:
+                distanceLeft = self.reflectOrRefract(intersection)
 
             # Check if intersection lies too close to a vertex.
             for vertex in intersection.polygon.vertices:
@@ -118,7 +134,22 @@ class Photon:
             return None
 
         stepRay = Ray(self._position, self._direction, distance)
-        return self._intersectionFinder.findIntersection(stepRay, self.solidLabel)
+        return self._intersectionFinder.findIntersection(stepRay, self.solidLabel, self._lastIntersectedDetector)
+
+    def detectOrIgnore(self, intersection: Intersection) -> bool:
+        # If the incidence angle is within the numerical aperture, absorb photon.
+        cosIncidence = -intersection.normal.dot(self._direction)
+        cosDetector = intersection.insideEnvironment.solid.detectorAcceptanceCosine
+        if cosIncidence >= cosDetector:
+            self._detectAndLog(intersection.insideEnvironment.solidLabel)
+            return True
+        return False
+
+    def _detectAndLog(self, solidLabel: str):
+        if self._logger:
+            key = InteractionKey(solidLabel)
+            self._logger.logDataPoint(self._weight, self._position, key, self._ID)
+        self._weight = 0
 
     def reflectOrRefract(self, intersection: Intersection):
         fresnelIntersection = self._getFresnelIntersection(intersection)
@@ -212,16 +243,16 @@ class Photon:
         key = InteractionKey(solidLabelA, intersection.surfaceLabel)
         isLeavingSurface = self._direction.dot(intersection.normal) > 0
         sign = 1 if isLeavingSurface else -1
-        self._logger.logDataPoint(sign * self._weight, self._position, key)
+        self._logger.logDataPoint(sign * self._weight, self._position, key, self._ID)
 
         solidB = intersection.outsideEnvironment.solid
         if solidB is None:
             return
         solidLabelB = solidB.getLabel()
         key = InteractionKey(solidLabelB, intersection.surfaceLabel)
-        self._logger.logDataPoint(-sign * self._weight, self._position, key)
+        self._logger.logDataPoint(-sign * self._weight, self._position, key, self._ID)
 
     def _logWeightDecrease(self, delta):
         if self._logger:
             key = InteractionKey(self.solidLabel)
-            self._logger.logDataPoint(delta, self._position, key)
+            self._logger.logDataPoint(delta, self._position, key, self._ID)

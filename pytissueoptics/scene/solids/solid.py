@@ -42,6 +42,7 @@ class Solid:
         self._bbox = None
         self._label = label
         self._layerLabels = {}
+        self._detectorAcceptanceCosine = None
 
         if not self._surfaces:
             self._computeMesh()
@@ -79,6 +80,36 @@ class Solid:
     @property
     def bbox(self) -> BoundingBox:
         return self._bbox
+
+    def asDetector(self, halfAngle: float = np.pi / 2) -> "Solid":
+        """Treat this solid as a detector with a given half angle in radians.
+
+        Detectors will fully absorb a photon when incident within the half angle, else the photon will go through
+        unaffected. Enabling this makes any previous material assigned to the solid irrelevant. Note that using a half
+        angle above pi/2 will detect rays coming from the back as well.
+        """
+        if halfAngle < 0 or halfAngle > np.pi:
+            raise ValueError("Detector half angle must be between 0 and pi radians.")
+
+        if self._material:
+            warnings.warn(
+                f"Solid '{self._label}' is now treated as a detector. Its material '{self._material}' will be ignored.",
+                RuntimeWarning,
+            )
+            self._material = None
+
+        self._detectorAcceptanceCosine = np.cos(halfAngle)
+        return self
+
+    @property
+    def isDetector(self) -> bool:
+        return self._detectorAcceptanceCosine is not None
+
+    @property
+    def detectorAcceptanceCosine(self) -> float:
+        if self._detectorAcceptanceCosine is None:
+            raise RuntimeError("This solid is not a detector. Set the half angle first with asDetector().")
+        return self._detectorAcceptanceCosine
 
     def getBoundingBox(self) -> BoundingBox:
         return self.bbox
@@ -348,4 +379,8 @@ class Solid:
 
     def _geometryParams(self) -> dict:
         """To be implemented by Solid subclasses to detail other geometry parameters."""
-        return {}
+        raise NotImplementedError(f"Geometry parameters not implemented for Solids of type {type(self).__name__}")
+
+    @property
+    def isFlat(self) -> bool:
+        return False

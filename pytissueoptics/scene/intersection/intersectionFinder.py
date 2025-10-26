@@ -35,11 +35,13 @@ class IntersectionFinder:
         self._polygonIntersect = MollerTrumboreIntersect()
         self._boxIntersect = GemsBoxIntersect()
 
-    def findIntersection(self, ray: Ray, currentSolidLabel: Optional[str]) -> Optional[Intersection]:
+    def findIntersection(
+        self, ray: Ray, currentSolidLabel: Optional[str], ignoreLabel: Optional[str] = None
+    ) -> Optional[Intersection]:
         raise NotImplementedError
 
     def _findClosestPolygonIntersection(
-        self, ray: Ray, polygons: List[Polygon], currentSolidLabel: str
+        self, ray: Ray, polygons: List[Polygon], currentSolidLabel: str, ignoreLabel: Optional[str] = None
     ) -> Optional[Intersection]:
         closestIntersection = Intersection(sys.maxsize)
         minSameSolidDistance = -sys.maxsize
@@ -50,6 +52,9 @@ class IntersectionFinder:
             insideLabel = polygon.insideEnvironment.solidLabel
             outsideLabel = polygon.outsideEnvironment.solidLabel if polygon.outsideEnvironment else WORLD_LABEL
             if insideLabel != currentSolidLabel and outsideLabel != currentSolidLabel:
+                continue
+
+            if ignoreLabel and insideLabel == ignoreLabel:
                 continue
 
             intersectionPoint = self._polygonIntersect.getIntersection(ray, polygon)
@@ -107,7 +112,9 @@ class IntersectionFinder:
 
 
 class SimpleIntersectionFinder(IntersectionFinder):
-    def findIntersection(self, ray: Ray, currentSolidLabel: str) -> Optional[Intersection]:
+    def findIntersection(
+        self, ray: Ray, currentSolidLabel: str, ignoreLabel: Optional[str] = None
+    ) -> Optional[Intersection]:
         """
         Find the closest intersection between a ray and the scene.
 
@@ -119,7 +126,7 @@ class SimpleIntersectionFinder(IntersectionFinder):
             If the solid bbox distance is greater than the closest intersection distance, then we can stop testing since
             they are ordered by distance. Note that bbox distance is zero if the ray starts inside.
         """
-        bboxIntersections = self._findBBoxIntersectingSolids(ray, currentSolidLabel)
+        bboxIntersections = self._findBBoxIntersectingSolids(ray, currentSolidLabel, ignoreLabel)
         bboxIntersections.sort(key=lambda x: x[0])
 
         closestDistance = sys.maxsize
@@ -134,12 +141,16 @@ class SimpleIntersectionFinder(IntersectionFinder):
 
         return self._composeIntersection(ray, closestIntersection)
 
-    def _findBBoxIntersectingSolids(self, ray: Ray, currentSolidLabel: str) -> Optional[List[Tuple[float, Solid]]]:
+    def _findBBoxIntersectingSolids(
+        self, ray: Ray, currentSolidLabel: str, ignoreLabel: Optional[str] = None
+    ) -> Optional[List[Tuple[float, Solid]]]:
         """We need to handle the special case where ray starts inside bbox. The Box Intersect will not compute
         the intersection for this case and will instead return ray.origin. When that happens, distance will be 0,
         and we continue to check for possibly other contained solids."""
         solidCandidates = []
         for solid in self._scene.solids:
+            if ignoreLabel and solid.getLabel() == ignoreLabel:
+                continue
             if solid.getLabel() == currentSolidLabel:
                 bboxIntersectionPoint = ray.origin
             else:
@@ -158,16 +169,22 @@ class FastIntersectionFinder(IntersectionFinder):
             self._scene.getBoundingBox(), self._scene.getPolygons(), constructor, maxDepth, minLeafSize
         )
 
-    def findIntersection(self, ray: Ray, currentSolidLabel: str) -> Optional[Intersection]:
+    def findIntersection(
+        self, ray: Ray, currentSolidLabel: str, ignoreLabel: Optional[str] = None
+    ) -> Optional[Intersection]:
         self._currentSolidLabel = currentSolidLabel
-        intersection = self._findIntersection(ray, self._partition.root)
+        intersection = self._findIntersection(ray, self._partition.root, ignoreLabel=ignoreLabel)
         return self._composeIntersection(ray, intersection)
 
-    def _findIntersection(self, ray: Ray, node: Node, closestDistance=sys.maxsize) -> Optional[Intersection]:
+    def _findIntersection(
+        self, ray: Ray, node: Node, closestDistance=sys.maxsize, ignoreLabel: Optional[str] = None
+    ) -> Optional[Intersection]:
         # todo: test if this node search is still compatible with the new core intersection logic
         #  which can now require testing a polygon slightly behind the ray origin.
         if node.isLeaf:
-            intersection = self._findClosestPolygonIntersection(ray, node.polygons, self._currentSolidLabel)
+            intersection = self._findClosestPolygonIntersection(
+                ray, node.polygons, self._currentSolidLabel, ignoreLabel
+            )
             return intersection
 
         if not self._nodeIsWorthExploring(ray, node, closestDistance):
@@ -175,7 +192,7 @@ class FastIntersectionFinder(IntersectionFinder):
 
         closestIntersection = None
         for child in node.children:
-            intersection = self._findIntersection(ray, child, closestDistance)
+            intersection = self._findIntersection(ray, child, closestDistance, ignoreLabel)
             if intersection is None:
                 continue
             if intersection.distance < closestDistance:

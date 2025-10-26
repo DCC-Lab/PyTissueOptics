@@ -27,7 +27,7 @@ dependencies = [
   "Pygments",
   "siphash24; python_version < '3.13'",
   "pyopencl",
-  "vtk>=9.4",
+  "vtk>=9.4,<9.5",
   "mayavi-dev",
   "pyqt5",
 ]
@@ -67,3 +67,14 @@ ignore = [
 [tool.ruff.format]
 quote-style = "double"
 indent-style = "space"
+
+[tool.coverage.run]
+source = ["pytissueoptics"]
+omit = [
+    "*/tests/*",
+    "*/test*.py",
+    "*/examples/*",
+]
+
+[tool.coverage.report]
+show_missing = true
