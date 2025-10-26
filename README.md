@@ -114,12 +114,19 @@ python -m pytissueoptics --list
 python -m pytissueoptics --examples 1,2,3
 ```
 
-1. [Scene sample](/pytissueoptics/examples/ex01.py)
-2. [Infinite medium](/pytissueoptics/examples/ex02.py)
-3. [Optical lens & saving progress](/pytissueoptics/examples/ex03.py)
-4. [Custom layer stack](/pytissueoptics/examples/ex04.py)
-5. [Sphere in cube](/pytissueoptics/examples/ex05.py)
-6. [Sampling volume simulation](/pytissueoptics/examples/ex06.py)
+1. [Scene sample](/pytissueoptics/examples/rayscattering/ex01.py)
+2. [Infinite medium](/pytissueoptics/examples/rayscattering/ex02.py)
+3. [Optical lens & saving progress](/pytissueoptics/examples/rayscattering/ex03.py)
+4. [Custom layer stack](/pytissueoptics/examples/rayscattering/ex04.py)
+5. [Sphere in cube](/pytissueoptics/examples/rayscattering/ex05.py)
+6. [Sampling volume simulation](/pytissueoptics/examples/rayscattering/ex06.py)
+
+Other scene and benchmark examples are available under [/examples](/pytissueoptics/examples), including:
+- [External 3D model](/pytissueoptics/examples/scene/example3.py)
+- [Solid transforms](/pytissueoptics/examples/scene/example1.py)
+- [Lenses](/pytissueoptics/examples/scene/example4.py)
+- [Skin vessel benchmark](/pytissueoptics/examples/benchmarks/skinvessel.py)
+- [Spherical shells benchmark](/pytissueoptics/examples/benchmarks/sphshells.py)
 
 ---
 
