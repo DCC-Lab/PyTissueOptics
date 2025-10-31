@@ -5,6 +5,8 @@ on:
     push:
       branches:
         - main
+    schedule:
+      - cron: "0 20 * * 4"  # Every Thursday @ 20:00 UTC (15:00 EST)
     workflow_dispatch:
 
 jobs:
