@@ -2,7 +2,12 @@
 <p align="center"><i>A hardware-accelerated Python module to simulate light transport in arbitrarily complex 3D media with ease.</i></p>
 <img src="https://raw.githubusercontent.com/DCC-Lab/PyTissueOptics/main/assets/banner.png" />
 
-[![Tests](https://github.com/DCC-Lab/pytissueoptics/actions/workflows/tests.yaml/badge.svg)](https://github.com/DCC-Lab/pytissueoptics/actions/workflows/tests.yaml) [![codecov](https://codecov.io/gh/DCC-Lab/pytissueoptics/branch/main/graph/badge.svg)](https://codecov.io/gh/DCC-Lab/pytissueoptics) [![CodeFactor](https://www.codefactor.io/repository/github/DCC-Lab/pytissueoptics/badge)](https://www.codefactor.io/repository/github/DCC-Lab/pytissueoptics) [![License](https://img.shields.io/github/license/DCC-Lab/pytissueoptics.svg)](LICENSE)
+[![Tests](https://github.com/DCC-Lab/pytissueoptics/actions/workflows/tests.yaml/badge.svg)](https://github.com/DCC-Lab/pytissueoptics/actions/workflows/tests.yaml) 
+[![pypi](https://img.shields.io/pypi/v/pytissueoptics?label=PyPI&color=orange&logo=python&logoColor=white)](https://pypi.org/project/pytissueoptics/)
+[![Python Versions](https://img.shields.io/badge/python-3.9+-blue.svg?logo=python&logoColor=white)](https://pypi.org/project/pytissueoptics/)
+[![codecov](https://codecov.io/gh/DCC-Lab/pytissueoptics/branch/main/graph/badge.svg)](https://codecov.io/gh/DCC-Lab/pytissueoptics) 
+[![CodeFactor](https://www.codefactor.io/repository/github/DCC-Lab/pytissueoptics/badge)](https://www.codefactor.io/repository/github/DCC-Lab/pytissueoptics) 
+[![License](https://img.shields.io/github/license/DCC-Lab/pytissueoptics.svg)](LICENSE)
 
 This python package is a fast and flexible implementation of Monte Carlo modeling for light transport in diffuse media. 
 The package is **easy to set up and use**, and its mesh-based approach makes it a polyvalent tool to simulate 
@@ -23,16 +28,9 @@ Designed with **research and education** in mind, the code aims to be clear, mod
 - **Reusable graphics framework** to kickstart other raytracing projects like [SensorSim](https://github.com/JLBegin/SensorSim).
 
 ## Installation
-Requires Python 3.9+ installed. 
-
-> Currently, the `pip` version is outdated. We recommend installing the development version.
-1. Clone the repository.
-2. Create a virtual environment inside the repository with `python -m venv venv`.
-3. Activate the virtual environment. 
-    - On MacOS/Linux: `source venv/bin/activate`.
-    - On Windows: `venv\Scripts\activate.bat`.
-4. Upgrade `pip` with `pip install --upgrade pip`.
-5. Install the package requirements with `python -m pip install -e .[dev]`.
+```
+pip install pytissueoptics
+```
 
 ## Getting started
 
