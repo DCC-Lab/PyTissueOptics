@@ -1,11 +1,11 @@
 name: Test Coverage
 
 on:
-    pull_request:
-    push:
-      branches:
-        - main
-    workflow_dispatch:
+  pull_request:
+  push:
+    branches:
+      - main
+  workflow_dispatch:
 
 jobs:
   test:
@@ -40,7 +40,9 @@ jobs:
         env:
           PTO_CI_MODE: 1
         run: |
-          pytest -v --cov=pytissueoptics --cov-report=xml --cov-report=html
+          pytest --cov --cov-branch --cov-report=term --cov-report=xml
 
       - name: Upload coverage report
-        uses: codecov/codecov-action@v4
+        uses: codecov/codecov-action@v5
+        with:
+          token: ${{ secrets.CODECOV_TOKEN }}
