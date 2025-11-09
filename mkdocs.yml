@@ -1,0 +1,39 @@
+site_name: PyTissueOptics
+theme:
+  name: material
+  features:
+    - navigation.instant
+  palette:
+    - scheme: slate
+      primary: deep-purple
+      accent: deep-purple
+      toggle:
+        icon: material/weather-sunny
+        name: Switch to light mode
+    - scheme: default
+      primary: deep-purple
+      accent: deep-purple
+      toggle:
+        icon: material/weather-night
+        name: Switch to dark mode
+
+nav:
+  - Home: index.md
+  - API Reference:
+      - Overview: api/index.md
+      - RayScattering: api/rayscattering.md
+      - Scene: api/scene.md
+
+plugins:
+  - search
+  - mkdocstrings:
+      handlers:
+        python:
+          options:
+            show_source: true
+            docstring_style: google
+
+markdown_extensions:
+  - admonition
+  - pymdownx.details
+  - pymdownx.superfences

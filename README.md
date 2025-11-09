@@ -7,7 +7,8 @@
 [![Python Versions](https://img.shields.io/badge/python-3.9+-blue.svg?logo=python&logoColor=white)](https://pypi.org/project/pytissueoptics/)
 [![codecov](https://codecov.io/gh/DCC-Lab/pytissueoptics/branch/main/graph/badge.svg)](https://codecov.io/gh/DCC-Lab/pytissueoptics) 
 [![CodeFactor](https://www.codefactor.io/repository/github/DCC-Lab/pytissueoptics/badge)](https://www.codefactor.io/repository/github/DCC-Lab/pytissueoptics) 
-[![License](https://img.shields.io/github/license/DCC-Lab/pytissueoptics.svg)](LICENSE)
+[![License](https://img.shields.io/github/license/DCC-Lab/pytissueoptics.svg)](https://github.com/DCC-Lab/PyTissueOptics/blob/main/LICENSE)
+[![Docs](https://img.shields.io/badge/docs-online-brightgreen.svg)](https://dcc-lab.github.io/PyTissueOptics/)
 
 This python package is a fast and flexible implementation of Monte Carlo modeling for light transport in diffuse media. 
 The package is **easy to set up and use**, and its mesh-based approach makes it a polyvalent tool to simulate 
@@ -112,19 +113,20 @@ python -m pytissueoptics --list
 python -m pytissueoptics --examples 1,2,3
 ```
 
-1. [Scene sample](/pytissueoptics/examples/rayscattering/ex01.py)
-2. [Infinite medium](/pytissueoptics/examples/rayscattering/ex02.py)
-3. [Optical lens & saving progress](/pytissueoptics/examples/rayscattering/ex03.py)
-4. [Custom layer stack](/pytissueoptics/examples/rayscattering/ex04.py)
-5. [Sphere in cube](/pytissueoptics/examples/rayscattering/ex05.py)
-6. [Sampling volume simulation](/pytissueoptics/examples/rayscattering/ex06.py)
+1. [Scene sample](https://github.com/DCC-Lab/PyTissueOptics/blob/main/pytissueoptics/examples/rayscattering/ex01.py)
+2. [Infinite medium](https://github.com/DCC-Lab/PyTissueOptics/blob/main/pytissueoptics/examples/rayscattering/ex02.py)
+3. [Optical lens & saving progress](https://github.com/DCC-Lab/PyTissueOptics/blob/main/pytissueoptics/examples/rayscattering/ex03.py)
+4. [Custom layer stack](https://github.com/DCC-Lab/PyTissueOptics/blob/main/pytissueoptics/examples/rayscattering/ex04.py)
+5. [Sphere in cube](https://github.com/DCC-Lab/PyTissueOptics/blob/main/pytissueoptics/examples/rayscattering/ex05.py)
+6. [Sampling volume simulation](https://github.com/DCC-Lab/PyTissueOptics/blob/main/pytissueoptics/examples/rayscattering/ex06.py)
 
-Other scene and benchmark examples are available under [/examples](/pytissueoptics/examples), including:
-- [External 3D model](/pytissueoptics/examples/scene/example3.py)
-- [Solid transforms](/pytissueoptics/examples/scene/example1.py)
-- [Lenses](/pytissueoptics/examples/scene/example4.py)
-- [Skin vessel benchmark](/pytissueoptics/examples/benchmarks/skinvessel.py)
-- [Spherical shells benchmark](/pytissueoptics/examples/benchmarks/sphshells.py)
+Other scene and benchmark examples are available under [/examples](https://github.com/DCC-Lab/PyTissueOptics/blob/main/pytissueoptics/examples), including:
+
+- [External 3D model](https://github.com/DCC-Lab/PyTissueOptics/blob/main/pytissueoptics/examples/scene/example3.py)
+- [Solid transforms](https://github.com/DCC-Lab/PyTissueOptics/blob/main/pytissueoptics/examples/scene/example1.py)
+- [Lenses](https://github.com/DCC-Lab/PyTissueOptics/blob/main/pytissueoptics/examples/scene/example4.py)
+- [Skin vessel benchmark](https://github.com/DCC-Lab/PyTissueOptics/blob/main/pytissueoptics/examples/benchmarks/skinvessel.py)
+- [Spherical shells benchmark](https://github.com/DCC-Lab/PyTissueOptics/blob/main/pytissueoptics/examples/benchmarks/sphshells.py)
 
 ---
 

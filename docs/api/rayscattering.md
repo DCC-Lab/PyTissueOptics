@@ -1,0 +1,3 @@
+# Scattering Module
+
+::: pytissueoptics.rayscattering
