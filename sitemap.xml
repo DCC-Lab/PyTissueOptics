@@ -1,19 +1,19 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
     <url>
-         <loc>https://dcc-lab.github.io/PyTissueOptics/</loc>
+         <loc>https://dcclab.github.io/PyTissueOptics/</loc>
          <lastmod>2025-11-09</lastmod>
     </url>
     <url>
-         <loc>https://dcc-lab.github.io/PyTissueOptics/api/</loc>
+         <loc>https://dcclab.github.io/PyTissueOptics/api/</loc>
          <lastmod>2025-11-09</lastmod>
     </url>
     <url>
-         <loc>https://dcc-lab.github.io/PyTissueOptics/api/rayscattering/</loc>
+         <loc>https://dcclab.github.io/PyTissueOptics/api/rayscattering/</loc>
          <lastmod>2025-11-09</lastmod>
     </url>
     <url>
-         <loc>https://dcc-lab.github.io/PyTissueOptics/api/scene/</loc>
+         <loc>https://dcclab.github.io/PyTissueOptics/api/scene/</loc>
          <lastmod>2025-11-09</lastmod>
     </url>
 </urlset>
