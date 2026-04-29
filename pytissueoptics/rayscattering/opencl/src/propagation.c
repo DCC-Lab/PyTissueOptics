@@ -243,13 +243,20 @@ float propagateStep(float distance, __global Photon *photons, __constant Materia
 
 __kernel void propagate(uint maxPhotons, uint maxInteractions, float weightThreshold, uint workUnitsAmount, __global Photon *photons,
             __constant Material *materials, uint nSolids, __global Solid *solids, __global Surface *surfaces, __global Triangle *triangles,
-            __global Vertex *vertices, __global SolidCandidate *solidCandidates, __global uint *seeds, __global DataPoint *logger){
+            __global Vertex *vertices, __global SolidCandidate *solidCandidates,
+            uint nNodes, __global TreeNode *treeNodes, __global uint *leafPolygons,
+            __global uint *seeds, __global DataPoint *logger){
     /*
     OpenCL implementation of the Python module Photon.
     See the Python module documentation for more details.
+
+    The BVH buffers (nNodes/treeNodes/leafPolygons) are read by findIntersection() when
+    nNodes > 0. CLScene decides whether to build them based on the scene's polygon and solid
+    counts; small scenes pass nNodes == 0 and stay on the flat per-solid AABB path.
     */
 
-    Scene scene = {nSolids, solids, surfaces, triangles, vertices, solidCandidates};
+    Scene scene = {nSolids, solids, surfaces, triangles, vertices, solidCandidates,
+                   nNodes, treeNodes, leafPolygons};
 
     uint gid = get_global_id(0);
     uint logIndex = gid * maxInteractions;
