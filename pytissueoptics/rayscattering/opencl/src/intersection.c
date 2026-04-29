@@ -249,6 +249,56 @@ HitPoint _getTriangleIntersection(Ray ray, float3 v1, float3 v2, float3 v3, floa
     return hitPoint;
 }
 
+void _testPolygonIntersection(Ray ray, uint polygonID, uint photonSolidID,
+                              __global Surface *surfaces, __global Triangle *triangles, __global Vertex *vertices,
+                              Intersection *intersection, float *minSameSolidDistance) {
+    // Tests one polygon and updates `intersection` (closest hit so far) and `minSameSolidDistance`
+    // (used to cancel backward-catch hits when a same-solid hit is farther). Skips polygons whose
+    // surface environment does not include the photon's current solid.
+    uint surfaceID = triangles[polygonID].surfaceID;
+    if (photonSolidID != surfaces[surfaceID].insideSolidID && photonSolidID != surfaces[surfaceID].outsideSolidID) {
+        return;
+    }
+
+    uint v0 = triangles[polygonID].vertexIDs[0];
+    uint v1 = triangles[polygonID].vertexIDs[1];
+    uint v2 = triangles[polygonID].vertexIDs[2];
+    HitPoint hitPoint = _getTriangleIntersection(ray, vertices[v0].position, vertices[v1].position, vertices[v2].position, triangles[polygonID].normal);
+    if (!hitPoint.exists) {
+        return;
+    }
+
+    bool isGoingInside = dot(ray.direction, triangles[polygonID].normal) < 0;
+    uint nextSolidID = isGoingInside ? surfaces[surfaceID].insideSolidID : surfaces[surfaceID].outsideSolidID;
+    if (nextSolidID == photonSolidID) {
+        if (hitPoint.distance > *minSameSolidDistance) {
+            *minSameSolidDistance = hitPoint.distance;
+        }
+        return;
+    }
+
+    if (fabs(hitPoint.distance) < fabs(intersection->distance)) {
+        intersection->exists = true;
+        intersection->distance = hitPoint.distance;
+        intersection->position = hitPoint.position;
+        intersection->normal = triangles[polygonID].normal;
+        intersection->surfaceID = surfaceID;
+        intersection->polygonID = polygonID;
+    }
+}
+
+void _resolveBackCatch(Intersection *intersection, float minSameSolidDistance) {
+    if (intersection->distance == 0 && minSameSolidDistance == 0){
+        // Cancel back catch. Surface overlap.
+        intersection->exists = false;
+    } else if (intersection->distance < 0) {
+        // Cancel backward catch if the same-solid intersect distance is greater.
+        if (minSameSolidDistance > intersection->distance + 1e-7) {
+            intersection->exists = false;
+        }
+    }
+}
+
 Intersection _findClosestPolygonIntersection(Ray ray, uint solidID,
                                             __global Solid *solids, __global Surface *surfaces,
                                             __global Triangle *triangles, __global Vertex *vertices,
@@ -267,43 +317,12 @@ Intersection _findClosestPolygonIntersection(Ray ray, uint solidID,
         }
 
         for (uint p = surfaces[s].firstPolygonID; p <= surfaces[s].lastPolygonID; p++) {
-            uint vertexIDs[3] = {triangles[p].vertexIDs[0], triangles[p].vertexIDs[1], triangles[p].vertexIDs[2]};
-            HitPoint hitPoint = _getTriangleIntersection(ray, vertices[vertexIDs[0]].position, vertices[vertexIDs[1]].position, vertices[vertexIDs[2]].position, triangles[p].normal);
-
-            if (!hitPoint.exists) {
-                continue;
-            }
-
-            bool isGoingInside = dot(ray.direction, triangles[p].normal) < 0;
-            uint nextSolidID = isGoingInside ? surfaces[s].insideSolidID : surfaces[s].outsideSolidID;
-            if (nextSolidID == photonSolidID) {
-                if (hitPoint.distance > minSameSolidDistance) {
-                    minSameSolidDistance = hitPoint.distance;
-                }
-                continue;
-            }
-
-            if (fabs(hitPoint.distance) < fabs(intersection.distance)) {
-                intersection.exists = true;
-                intersection.distance = hitPoint.distance;
-                intersection.position = hitPoint.position;
-                intersection.normal = triangles[p].normal;
-                intersection.surfaceID = s;
-                intersection.polygonID = p;
-            }
+            _testPolygonIntersection(ray, p, photonSolidID, surfaces, triangles, vertices,
+                                     &intersection, &minSameSolidDistance);
         }
     }
 
-    if (intersection.distance == 0 && minSameSolidDistance == 0){
-        // Cancel back catch. Surface overlap.
-        intersection.exists = false;
-    } else if (intersection.distance < 0) {
-        // Cancel backward catch if the same-solid intersect distance is greater.
-        if (minSameSolidDistance > intersection.distance + 1e-7) {
-            intersection.exists = false;
-        }
-    }
-
+    _resolveBackCatch(&intersection, minSameSolidDistance);
     return intersection;
 }
 

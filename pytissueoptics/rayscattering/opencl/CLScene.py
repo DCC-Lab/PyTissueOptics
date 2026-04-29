@@ -149,8 +149,8 @@ class CLScene:
                 firstPolygonID = len(self._trianglesInfo)
 
             vertexIDs = [vertexToID[id(v)] for v in triangle.vertices]
-            self._trianglesInfo.append(TriangleCLInfo(vertexIDs, triangle.normal))
             newSurfaceID = len(self._surfacesInfo)
+            self._trianglesInfo.append(TriangleCLInfo(vertexIDs, triangle.normal, newSurfaceID))
             self._processPolygon(triangle, surfaceLabel, surfaceID=newSurfaceID)
             lastSolid = currentSolid
 
