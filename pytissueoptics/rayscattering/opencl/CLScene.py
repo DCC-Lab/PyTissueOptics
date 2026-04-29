@@ -1,8 +1,15 @@
-from typing import List
+from typing import List, Optional
 
 import numpy as np
 
-from pytissueoptics.rayscattering.opencl.buffers import SolidCLInfo, SurfaceCLInfo, TriangleCLInfo
+from pytissueoptics.rayscattering.opencl.buffers import (
+    LeafPolygonsCL,
+    SolidCLInfo,
+    SurfaceCLInfo,
+    TreeNodeCL,
+    TriangleCLInfo,
+    flattenSpacePartition,
+)
 from pytissueoptics.rayscattering.opencl.buffers.materialCL import MaterialCL
 from pytissueoptics.rayscattering.opencl.buffers.solidCandidateCL import SolidCandidateCL
 from pytissueoptics.rayscattering.opencl.buffers.solidCL import SolidCL
@@ -10,6 +17,8 @@ from pytissueoptics.rayscattering.opencl.buffers.surfaceCL import SurfaceCL
 from pytissueoptics.rayscattering.opencl.buffers.triangleCL import TriangleCL
 from pytissueoptics.rayscattering.opencl.buffers.vertexCL import VertexCL
 from pytissueoptics.rayscattering.scatteringScene import ScatteringScene
+from pytissueoptics.scene.tree import SpacePartition
+from pytissueoptics.scene.tree.treeConstructor.binary import NoSplitThreeAxesConstructor
 
 NO_LOG_ID = 0
 WORLD_SOLID_ID = -1
@@ -17,9 +26,19 @@ NO_SURFACE_ID = -1
 FIRST_SOLID_ID = 1
 WORLD_SOLID_LABEL = "world"
 
+# Default tree shape, mirroring the CPU FastIntersectionFinder defaults.
+BVH_MAX_DEPTH = 20
+BVH_MIN_LEAF_SIZE = 6
+
+# Penalty multiplier applied to BVH traversal cost vs. the flat-list inner loop. The flat path
+# is a tight 2-loop over contiguous arrays; BVH adds branchy memory access plus a private
+# traversal stack, both of which hurt GPU occupancy. K=5 means we only switch to BVH once the
+# flat-list worst case is at least ~5x the BVH worst case. Tunable from benchmarks.
+BVH_KERNEL_PENALTY = 5
+
 
 class CLScene:
-    def __init__(self, scene: ScatteringScene, nWorkUnits: int):
+    def __init__(self, scene: ScatteringScene, nWorkUnits: int, useBVH: Optional[bool] = None):
         self._sceneMaterials = scene.getMaterials()
         self._solidLabels = [solid.getLabel() for solid in scene.getSolids()]
         self._surfaceLabels = {}
@@ -27,6 +46,7 @@ class CLScene:
         self._solidsInfo = []
         self._surfacesInfo = []
         self._trianglesInfo = []
+        self._polygonToTriangleID: dict = {}
         self._vertices = []
         for solid in scene.solids:
             self._processSolid(solid)
@@ -38,6 +58,43 @@ class CLScene:
         self.surfaces = SurfaceCL(self._surfacesInfo)
         self.triangles = TriangleCL(self._trianglesInfo)
         self.vertices = VertexCL(self._vertices)
+
+        self.useBVH, self.treeNodes, self.leafPolygons, self.nNodes = self._buildBVH(scene, useBVH)
+
+    def _buildBVH(self, scene: ScatteringScene, useBVH: Optional[bool]):
+        if useBVH is None:
+            useBVH = self._bvhWorthwhile()
+        if not useBVH or len(self._trianglesInfo) == 0:
+            return False, TreeNodeCL([]), LeafPolygonsCL([]), np.uint32(0)
+
+        partition = SpacePartition(
+            scene.getBoundingBox(),
+            scene.getPolygons(),
+            NoSplitThreeAxesConstructor(),
+            maxDepth=BVH_MAX_DEPTH,
+            minLeafSize=BVH_MIN_LEAF_SIZE,
+        )
+        treeNodes, leafPolygons = flattenSpacePartition(partition, self._polygonToTriangleID)
+        nNodes = np.uint32(len(treeNodes._nodes))
+        return True, treeNodes, leafPolygons, nNodes
+
+    def _bvhWorthwhile(self) -> bool:
+        """
+        Decide whether BVH traversal is likely to beat the flat-list path on the GPU.
+
+        The flat path is dominated by an O(N_solids^2) bubble sort over solid bbox candidates
+        plus, in the worst case, a linear scan over every polygon. The BVH path is roughly
+        log2(N_polys) node tests plus one leaf-sized polygon scan, but each operation is more
+        expensive on the GPU because of branchy memory access and a private traversal stack
+        (charged via BVH_KERNEL_PENALTY).
+        """
+        nSolids = len(self._solidsInfo)
+        nPolys = len(self._trianglesInfo)
+        if nPolys == 0:
+            return False
+        flatCost = nSolids * nSolids + nPolys
+        bvhCost = BVH_KERNEL_PENALTY * (int(np.log2(max(nPolys, 1))) + BVH_MIN_LEAF_SIZE)
+        return flatCost > bvhCost
 
     def getMaterialID(self, material):
         if material is None:
@@ -150,7 +207,9 @@ class CLScene:
 
             vertexIDs = [vertexToID[id(v)] for v in triangle.vertices]
             newSurfaceID = len(self._surfacesInfo)
+            triangleID = len(self._trianglesInfo)
             self._trianglesInfo.append(TriangleCLInfo(vertexIDs, triangle.normal, newSurfaceID))
+            self._polygonToTriangleID[id(triangle)] = triangleID
             self._processPolygon(triangle, surfaceLabel, surfaceID=newSurfaceID)
             lastSolid = currentSolid
 
