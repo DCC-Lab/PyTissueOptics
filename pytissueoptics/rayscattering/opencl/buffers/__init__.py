@@ -6,6 +6,7 @@ from .seedCL import SeedCL
 from .solidCandidateCL import SolidCandidateCL
 from .solidCL import SolidCL, SolidCLInfo
 from .surfaceCL import SurfaceCL, SurfaceCLInfo
+from .treeCL import NO_CHILD, LeafPolygonsCL, TreeNodeCL, flattenSpacePartition
 from .triangleCL import TriangleCL, TriangleCLInfo
 from .vertexCL import VertexCL
 
@@ -16,6 +17,8 @@ __all__ = [
     "RandomBuffer",
     "DataPointCL",
     "MaterialCL",
+    "NO_CHILD",
+    "LeafPolygonsCL",
     "PhotonCL",
     "SeedCL",
     "SolidCandidateCL",
@@ -23,7 +26,9 @@ __all__ = [
     "SolidCLInfo",
     "SurfaceCL",
     "SurfaceCLInfo",
+    "TreeNodeCL",
     "TriangleCL",
     "TriangleCLInfo",
     "VertexCL",
+    "flattenSpacePartition",
 ]
