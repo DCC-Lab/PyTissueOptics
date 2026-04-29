@@ -337,7 +337,10 @@ __kernel void reflectOrRefractKernel(float3 normal, int surfaceID, float distanc
 __kernel void propagateStepKernel(float distance, __constant Material *materials, __global Surface *surfaces,
                     __global Triangle *triangles, __global Vertex *vertices, __global uint *seeds, __global DataPoint *logger, uint logIndex,
                     __global Photon *photons, uint photonID){
-    Scene scene;
+    // Zero-initialize so nNodes/treeNodes/leafPolygons (untouched here) keep findIntersection
+    // on the flat-list path. The other fields (nSolids/solids/solidCandidates) are not used by
+    // the test path that mocks findIntersection.
+    Scene scene = {0};
     scene.surfaces = surfaces;
     scene.triangles = triangles;
     scene.vertices = vertices;

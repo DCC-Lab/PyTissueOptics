@@ -36,8 +36,12 @@ class TreeNodeCL(CLObject):
 
     def __init__(self, nodes: List[Tuple[float, float, float, float, float, float, int, int]]):
         # nodes is a list of (xMin, yMin, zMin, xMax, yMax, zMax, polygonCount, offset).
+        # Skip the auto-emitted C declaration: the TreeNode struct is hand-written in
+        # intersection.c so it can be referenced by the Scene struct even on kernel paths
+        # that do not pass a TreeNodeCL buffer. The dtype is still registered host-side via
+        # match_dtype_to_c_struct so buffer reads/writes work normally.
         self._nodes = nodes
-        super().__init__(buildOnce=True)
+        super().__init__(skipDeclaration=True, buildOnce=True)
 
     def _getInitialHostBuffer(self) -> np.ndarray:
         bufferSize = max(len(self._nodes), 1)
