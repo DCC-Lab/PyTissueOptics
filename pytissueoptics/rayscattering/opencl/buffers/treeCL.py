@@ -91,6 +91,17 @@ def flattenSpacePartition(
     in more than one leaf (which the no-split constructors do for triangles straddling a split
     plane) are emitted once per leaf.
     """
+    # An empty partition would be flattened into a single node with polygonCount == 0 and
+    # offset == 0 - which the kernel parses as an internal node pointing to children that do
+    # not exist (out-of-bounds read at index 1). Refuse to build such a tree; the caller
+    # (CLScene._buildBVH) already short-circuits on empty scenes, so reaching this point is
+    # always a misuse.
+    if not partition.root.polygons:
+        raise ValueError(
+            "Cannot flatten a SpacePartition with no polygons. The kernel cannot distinguish "
+            "an empty leaf from an internal node."
+        )
+
     nodes: List[Tuple[float, float, float, float, float, float, int, int]] = []
     leafPolygonIDs: List[int] = []
 

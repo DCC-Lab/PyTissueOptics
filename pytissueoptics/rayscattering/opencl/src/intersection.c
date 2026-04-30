@@ -544,23 +544,24 @@ Intersection findIntersection(Ray ray, Scene *scene, uint gid, uint photonSolidI
 // ----------------- TEST KERNELS -----------------
 
 __kernel void findIntersections(__global Ray *rays, uint nSolids, __global Solid *solids, __global Surface *surfaces,
-        __global Triangle *triangles, __global Vertex *vertices, __global SolidCandidate *solidCandidates, __global Intersection *intersections) {
+        __global Triangle *triangles, __global Vertex *vertices, __global SolidCandidate *solidCandidates,
+        uint photonSolidID, uint ignoreSolidID, __global Intersection *intersections) {
     uint gid = get_global_id(0);
     // Trailing fields (nNodes/treeNodes/leafPolygons) are zero-initialized by C99 brace
     // semantics, so dispatch in findIntersection() picks the flat path.
     Scene scene = {nSolids, solids, surfaces, triangles, vertices, solidCandidates};
-    intersections[gid] = findIntersection(rays[gid], &scene, gid, -1, 0);
+    intersections[gid] = findIntersection(rays[gid], &scene, gid, photonSolidID, ignoreSolidID);
 }
 
 
 __kernel void findIntersectionsBVH(__global Ray *rays, uint nSolids, __global Solid *solids, __global Surface *surfaces,
         __global Triangle *triangles, __global Vertex *vertices, __global SolidCandidate *solidCandidates,
         uint nNodes, __global TreeNode *treeNodes, __global uint *leafPolygons,
-        __global Intersection *intersections) {
+        uint photonSolidID, uint ignoreSolidID, __global Intersection *intersections) {
     uint gid = get_global_id(0);
     Scene scene = {nSolids, solids, surfaces, triangles, vertices, solidCandidates,
                    nNodes, treeNodes, leafPolygons};
-    intersections[gid] = findIntersection(rays[gid], &scene, gid, -1, 0);
+    intersections[gid] = findIntersection(rays[gid], &scene, gid, photonSolidID, ignoreSolidID);
 }
 
 

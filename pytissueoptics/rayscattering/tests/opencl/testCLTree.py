@@ -39,7 +39,7 @@ class TestCLTree(unittest.TestCase):
         treeNodeCL, leafPolygonsCL = flattenSpacePartition(partition, polygonToTriangleID)
 
         nodes = self._bakeBuffer(treeNodeCL)
-        self.assertEqual(1, len([n for n in nodes if n["polygonCount"] > 0 or n["polygonCount"] == 0]))
+        self.assertEqual(1, len(nodes))
         self.assertEqual(len(polygons), int(nodes[0]["polygonCount"]))
         self.assertEqual(0, int(nodes[0]["offset"]))
         polygonIDs = leafPolygonsCL.hostBuffer[: int(nodes[0]["polygonCount"])]
@@ -125,6 +125,15 @@ class TestCLTree(unittest.TestCase):
                 continue
             offset = int(n["offset"])
             self.assertTrue(0 <= offset < offset + count <= len(leafPolygonsCL.hostBuffer))
+
+    def testFlattenRejectsEmptyPartition(self):
+        # An empty partition would produce a leaf with polygonCount=0, which the kernel parses
+        # as an internal node pointing to a non-existent left child (OOB read). The host-side
+        # API must refuse to build such a tree.
+        polygons: list = []
+        bbox = BoundingBox(xLim=[0, 1], yLim=[0, 1], zLim=[0, 1])
+        partition = SpacePartition(bbox, polygons, NoSplitThreeAxesConstructor(), maxDepth=4, minLeafSize=2)
+        self.assertRaises(ValueError, flattenSpacePartition, partition, {})
 
     def testEmptyLeafPolygonsBufferIsSizeOne(self):
         # CLObject convention: zero-element buffers reserve one slot to keep cl.Buffer happy.
