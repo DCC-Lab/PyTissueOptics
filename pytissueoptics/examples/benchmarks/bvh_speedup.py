@@ -1,8 +1,12 @@
 """
 Benchmark: GPU BVH path vs. legacy flat per-solid AABB path.
 
-Measures end-to-end propagate() time on three sphere-rich scenes, with both BVH disabled and
-enabled. Run with hardware acceleration available; otherwise the script will report it cannot
+Measures propagate() time on three sphere-rich scenes, with both BVH disabled and enabled,
+and breaks the total down into BVH/scene construction time vs. propagation kernel time. The
+construction cost is non-trivial for small scenes and is what a user actually pays in
+end-to-end runtime, so the report includes both speedup figures (propagation-only and total).
+
+Run with hardware acceleration available; otherwise the script will report it cannot
 benchmark and exit.
 
 Usage:
@@ -56,7 +60,7 @@ def _denseSpheres() -> ScatteringScene:
     return ScatteringScene([big, small])
 
 
-def _runOnce(buildScene: Callable[[], ScatteringScene], N: int, useBVH: bool) -> Tuple[float, int, int, int]:
+def _runOnce(buildScene: Callable[[], ScatteringScene], N: int, useBVH: bool) -> Tuple[float, float, int, int, int]:
     scene = buildScene()
     np.random.seed(0)
     src = PencilPointSource(position=Vector(0, 0.01, -3), direction=Vector(0, 0, 1), N=N, displaySize=1)
@@ -64,7 +68,12 @@ def _runOnce(buildScene: Callable[[], ScatteringScene], N: int, useBVH: bool) ->
         src = PencilPointSource(position=Vector(0, 0, -29.99), direction=Vector(0, 0, 1), N=N, displaySize=1)
     logger = EnergyLogger(scene, defaultBinSize=0.5, keep3D=False)
 
+    # Measure scene-build cost (which includes BVH construction when useBVH=True) in isolation.
+    # propagate() builds its own CLScene internally, so this same cost is also paid inside the
+    # total timer below; subtracting gives an approximate kernel-only time.
+    tBuildStart = time.time()
     inspectScene = CLScene(scene, nWorkUnits=1024, useBVH=useBVH)
+    tBuild = time.time() - tBuildStart
     nSolids = int(inspectScene.nSolids)
     nTriangles = len(inspectScene.triangles._trianglesInfo)
     nNodes = int(inspectScene.nNodes)
@@ -74,10 +83,10 @@ def _runOnce(buildScene: Callable[[], ScatteringScene], N: int, useBVH: bool) ->
     try:
         t0 = time.time()
         src.propagate(scene, logger=logger, showProgress=False)
-        elapsed = time.time() - t0
+        tTotal = time.time() - t0
     finally:
         cl_photons.CLScene = orig
-    return elapsed, nSolids, nTriangles, nNodes
+    return tTotal, tBuild, nSolids, nTriangles, nNodes
 
 
 def _bench(name: str, buildScene: Callable[[], ScatteringScene], N: int) -> None:
@@ -86,11 +95,18 @@ def _bench(name: str, buildScene: Callable[[], ScatteringScene], N: int) -> None
     _runOnce(buildScene, N=max(500, N // 20), useBVH=False)
     _runOnce(buildScene, N=max(500, N // 20), useBVH=True)
 
-    tFlat, nSolids, nTriangles, _ = _runOnce(buildScene, N=N, useBVH=False)
-    tBVH, _, _, nNodes = _runOnce(buildScene, N=N, useBVH=True)
-    speedup = tFlat / tBVH if tBVH > 0 else float("inf")
+    tFlat, tBuildFlat, nSolids, nTriangles, _ = _runOnce(buildScene, N=N, useBVH=False)
+    tBVH, tBuildBVH, _, _, nNodes = _runOnce(buildScene, N=N, useBVH=True)
+
+    tKernelFlat = max(tFlat - tBuildFlat, 1e-9)
+    tKernelBVH = max(tBVH - tBuildBVH, 1e-9)
+    propSpeedup = tKernelFlat / tKernelBVH
+    totalSpeedup = tFlat / tBVH if tBVH > 0 else float("inf")
+
     print(f"  scene: {nSolids} solids, {nTriangles} triangles, BVH nodes: {nNodes}")
-    print(f"  flat: {tFlat:7.3f} s    BVH: {tBVH:7.3f} s    speedup: {speedup:5.2f}x")
+    print(f"  flat: build {tBuildFlat:6.3f}s + propagate {tKernelFlat:6.3f}s = total {tFlat:6.3f}s")
+    print(f"  BVH:  build {tBuildBVH:6.3f}s + propagate {tKernelBVH:6.3f}s = total {tBVH:6.3f}s")
+    print(f"  speedup — propagation only: {propSpeedup:5.2f}x    total (incl. build): {totalSpeedup:5.2f}x")
 
 
 def exampleCode():
@@ -104,7 +120,10 @@ def exampleCode():
 
 
 TITLE = "BVH speedup vs flat per-solid AABB"
-DESCRIPTION = "Compares end-to-end propagation time with the BVH disabled and enabled."
+DESCRIPTION = (
+    "Compares propagation time with the BVH disabled and enabled, splitting total runtime into "
+    "BVH/scene construction vs. propagation kernel cost."
+)
 
 
 if __name__ == "__main__":
