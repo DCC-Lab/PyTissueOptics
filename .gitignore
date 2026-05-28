@@ -139,3 +139,6 @@ pytissueoptics/rayscattering/opencl/ipp.json
 .vscode/settings.json
 
 .DS_Store
+
+# Oversized paper-figure artifact (~73 MB) — kept locally, too large for the repo
+paper_figures/previous_figures/fig2b_spherical_aberration.pdf
