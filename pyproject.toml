@@ -10,6 +10,7 @@ name = "pytissueoptics"
 description = "Python module for 3D Monte Carlo Simulation of Light Propagation"
 readme = "README.md"
 authors = [
+  { name = "William Boucher", email = "william.boucher@halpietech.com" },
   { name = "Ludovick Begin", email = "ludovick.begin@gmail.com" },
   { name = "Marc-Andre Vigneault", email = "marc-andre.vigneault.2@ulaval.ca" },
   { name = "Daniel Cote", email = "dccote@cervo.ulaval.ca" }
