@@ -6,7 +6,6 @@
 [![pypi](https://img.shields.io/pypi/v/pytissueoptics?label=PyPI&color=orange&logo=python&logoColor=white)](https://pypi.org/project/pytissueoptics/)
 [![Python Versions](https://img.shields.io/badge/python-3.9+-blue.svg?logo=python&logoColor=white)](https://pypi.org/project/pytissueoptics/)
 [![codecov](https://codecov.io/gh/DCC-Lab/pytissueoptics/branch/main/graph/badge.svg)](https://codecov.io/gh/DCC-Lab/pytissueoptics) 
-[![CodeFactor](https://www.codefactor.io/repository/github/DCC-Lab/pytissueoptics/badge)](https://www.codefactor.io/repository/github/DCC-Lab/pytissueoptics) 
 [![License](https://img.shields.io/github/license/DCC-Lab/pytissueoptics.svg)](LICENSE)
 
 This python package is a fast and flexible implementation of Monte Carlo modeling for light transport in diffuse media. 
