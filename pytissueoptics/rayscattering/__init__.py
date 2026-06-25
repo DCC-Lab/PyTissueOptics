@@ -18,7 +18,7 @@ from .materials import ScatteringMaterial
 from .opencl import CONFIG, disableOpenCL, hardwareAccelerationIsAvailable
 from .photon import Photon
 from .scatteringScene import ScatteringScene
-from .source import DirectionalSource, DivergentSource, IsotropicPointSource, PencilPointSource
+from .source import DirectionalSource, DivergentSource, ConvergentSource, IsotropicPointSource, PencilPointSource
 from .statistics import Stats
 
 __all__ = [
@@ -28,6 +28,7 @@ __all__ = [
     "IsotropicPointSource",
     "DirectionalSource",
     "DivergentSource",
+    "ConvergentSource",
     "EnergyLogger",
     "EnergyType",
     "ScatteringScene",

@@ -8,7 +8,13 @@ from mockito import mock, verify, when
 from pytissueoptics.rayscattering import EnergyLogger, PencilPointSource, Photon
 from pytissueoptics.rayscattering.materials import ScatteringMaterial
 from pytissueoptics.rayscattering.scatteringScene import ScatteringScene
-from pytissueoptics.rayscattering.source import DirectionalSource, DivergentSource, IsotropicPointSource, Source
+from pytissueoptics.rayscattering.source import (
+    DirectionalSource,
+    DivergentSource,
+    IsotropicPointSource,
+    Source,
+    ConvergentSource,
+)
 from pytissueoptics.scene.geometry import Environment, Vector
 from pytissueoptics.scene.logger import Logger
 from pytissueoptics.scene.solids import Solid
@@ -252,3 +258,118 @@ class TestDivergentSource(unittest.TestCase):
             position=Vector(), direction=sourceDirection, diameter=1, divergence=divergence2, N=1
         )
         self.assertNotEqual(hash(divergentSource1), hash(divergentSource2))
+
+
+class TestConvergentSource(unittest.TestCase):
+    def testGivenNegativeOrZeroFocalLength_shouldRaiseValueError(self):
+        with self.assertRaises(ValueError):
+            ConvergentSource(
+                position=Vector(),
+                direction=Vector(0, 0, 1),
+                focalLength=0,
+                diameter=1,
+                N=1,
+                useHardwareAcceleration=False,
+            )
+        with self.assertRaises(ValueError):
+            ConvergentSource(
+                position=Vector(),
+                direction=Vector(0, 0, 1),
+                focalLength=-1,
+                diameter=1,
+                N=1,
+                useHardwareAcceleration=False,
+            )
+
+    def testShouldHavePhotonsPointingTowardTheFocalPoint(self):
+        np.random.seed(0)
+        position = Vector(0, 0, 0)
+        direction = Vector(0, 0, 1)
+        focalLength = 5.0
+        diameter = 2.0
+        source = ConvergentSource(
+            position=position,
+            direction=direction,
+            focalLength=focalLength,
+            diameter=diameter,
+            N=10,
+            useHardwareAcceleration=False,
+        )
+
+        focalPoint = position + direction * focalLength
+        for photon in source.photons:
+            expectedDirection = focalPoint - photon.position
+            expectedDirection.normalize()
+            self.assertEqual(expectedDirection, photon.direction)
+
+    def testGivenInfiniteFocalLength_shouldHavePhotonsAllPointingInTheSourceDirection(self):
+        sourceDirection = Vector(1, 0, 0)
+        source = ConvergentSource(
+            position=Vector(),
+            direction=sourceDirection,
+            focalLength=1e10,
+            diameter=1.0,
+            N=10,
+            useHardwareAcceleration=False,
+        )
+        for photon in source.photons:
+            self.assertEqual(sourceDirection, photon.direction)
+
+    def testShouldHavePhotonsUniformlyPositionedInsideTheSourceDiameter(self):
+        np.random.seed(0)
+        sourcePosition = Vector(3, 3, 0)
+        sourceDiameter = 2.0
+        source = ConvergentSource(
+            position=sourcePosition,
+            direction=Vector(0, 1, 0),
+            focalLength=5.0,
+            diameter=sourceDiameter,
+            N=10,
+            useHardwareAcceleration=False,
+        )
+        for photon in source.photons:
+            self.assertTrue(np.isclose(photon.position.y, sourcePosition.y))
+            self.assertTrue(
+                sourcePosition.x - sourceDiameter / 2 <= photon.position.x <= sourcePosition.x + sourceDiameter / 2
+            )
+            self.assertTrue(
+                sourcePosition.z - sourceDiameter / 2 <= photon.position.z <= sourcePosition.z + sourceDiameter / 2
+            )
+
+    def testGivenTwoConvergentSourcesWithSamePropertiesExceptPhotonCount_shouldHaveSameHash(self):
+        source1 = ConvergentSource(
+            position=Vector(),
+            direction=Vector(0, 0, 1),
+            focalLength=5.0,
+            diameter=1.0,
+            N=1,
+            useHardwareAcceleration=False,
+        )
+        source2 = ConvergentSource(
+            position=Vector(),
+            direction=Vector(0, 0, 1),
+            focalLength=5.0,
+            diameter=1.0,
+            N=2,
+            useHardwareAcceleration=False,
+        )
+        self.assertEqual(hash(source1), hash(source2))
+
+    def testGivenTwoConvergentSourcesThatDifferInFocalLength_shouldNotHaveSameHash(self):
+        source1 = ConvergentSource(
+            position=Vector(),
+            direction=Vector(0, 0, 1),
+            focalLength=5.0,
+            diameter=1.0,
+            N=1,
+            useHardwareAcceleration=False,
+        )
+        source2 = ConvergentSource(
+            position=Vector(),
+            direction=Vector(0, 0, 1),
+            focalLength=10.0,
+            diameter=1.0,
+            N=1,
+            useHardwareAcceleration=False,
+        )
+        self.assertNotEqual(hash(source1), hash(source2))
