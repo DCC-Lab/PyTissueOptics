@@ -34,6 +34,17 @@ struct GemsBoxIntersection {
 
 typedef struct GemsBoxIntersection GemsBoxIntersection;
 
+// BVH node layout. Hand-written here (rather than generated from TreeNodeCL) so the Scene
+// struct can reference TreeNode regardless of whether a particular kernel passes the BVH
+// buffers. Must remain byte-compatible with TreeNodeCL.STRUCT_DTYPE in
+// pytissueoptics/rayscattering/opencl/buffers/treeCL.py.
+typedef struct {
+  float3 bbox_min;
+  float3 bbox_max;
+  uint polygonCount;
+  uint offset;
+} TreeNode;
+
 struct Scene{
     uint nSolids;
     __global Solid *solids;
@@ -41,9 +52,19 @@ struct Scene{
     __global Triangle *triangles;
     __global Vertex *vertices;
     __global SolidCandidate *solidCandidates;
+    // BVH (optional). When nNodes == 0 the flat per-solid AABB path is used.
+    uint nNodes;
+    __global TreeNode *treeNodes;
+    __global uint *leafPolygons;
 };
 
 typedef struct Scene Scene;
+
+// Sentinel matching NO_CHILD in pytissueoptics/rayscattering/opencl/buffers/treeCL.py.
+__constant uint TREE_NO_CHILD = 0xFFFFFFFFu;
+// Maximum BVH depth we will encode per work-item in private memory. Must >= BVH_MAX_DEPTH on
+// the Python side. 32 covers the default of 20 with comfortable headroom.
+#define BVH_STACK_SIZE 32
 
 GemsBoxIntersection _getBBoxIntersection(Ray ray, float3 minCornerVector, float3 maxCornerVector) {
     GemsBoxIntersection intersection;
@@ -249,6 +270,61 @@ HitPoint _getTriangleIntersection(Ray ray, float3 v1, float3 v2, float3 v3, floa
     return hitPoint;
 }
 
+void _testPolygonIntersection(Ray ray, uint polygonID, uint photonSolidID, uint ignoreSolidID,
+                              __global Surface *surfaces, __global Triangle *triangles, __global Vertex *vertices,
+                              Intersection *intersection, float *minSameSolidDistance) {
+    // Tests one polygon and updates `intersection` (closest hit so far) and `minSameSolidDistance`
+    // (used to cancel backward-catch hits when a same-solid hit is farther). Skips polygons whose
+    // surface environment does not include the photon's current solid, or whose owning solid is
+    // the one we have been asked to ignore (e.g. the last detector hit, to avoid re-detection).
+    // ignoreSolidID == 0 disables the ignore-filter, matching the flat-list path's convention.
+    uint surfaceID = triangles[polygonID].surfaceID;
+    if (ignoreSolidID != 0 && surfaces[surfaceID].insideSolidID == (int)ignoreSolidID) {
+        return;
+    }
+    if (photonSolidID != surfaces[surfaceID].insideSolidID && photonSolidID != surfaces[surfaceID].outsideSolidID) {
+        return;
+    }
+
+    uint v0 = triangles[polygonID].vertexIDs[0];
+    uint v1 = triangles[polygonID].vertexIDs[1];
+    uint v2 = triangles[polygonID].vertexIDs[2];
+    HitPoint hitPoint = _getTriangleIntersection(ray, vertices[v0].position, vertices[v1].position, vertices[v2].position, triangles[polygonID].normal);
+    if (!hitPoint.exists) {
+        return;
+    }
+
+    bool isGoingInside = dot(ray.direction, triangles[polygonID].normal) < 0;
+    uint nextSolidID = isGoingInside ? surfaces[surfaceID].insideSolidID : surfaces[surfaceID].outsideSolidID;
+    if (nextSolidID == photonSolidID) {
+        if (hitPoint.distance > *minSameSolidDistance) {
+            *minSameSolidDistance = hitPoint.distance;
+        }
+        return;
+    }
+
+    if (fabs(hitPoint.distance) < fabs(intersection->distance)) {
+        intersection->exists = true;
+        intersection->distance = hitPoint.distance;
+        intersection->position = hitPoint.position;
+        intersection->normal = triangles[polygonID].normal;
+        intersection->surfaceID = surfaceID;
+        intersection->polygonID = polygonID;
+    }
+}
+
+void _resolveBackCatch(Intersection *intersection, float minSameSolidDistance) {
+    if (intersection->distance == 0 && minSameSolidDistance == 0){
+        // Cancel back catch. Surface overlap.
+        intersection->exists = false;
+    } else if (intersection->distance < 0) {
+        // Cancel backward catch if the same-solid intersect distance is greater.
+        if (minSameSolidDistance > intersection->distance + 1e-7) {
+            intersection->exists = false;
+        }
+    }
+}
+
 Intersection _findClosestPolygonIntersection(Ray ray, uint solidID,
                                             __global Solid *solids, __global Surface *surfaces,
                                             __global Triangle *triangles, __global Vertex *vertices,
@@ -267,43 +343,82 @@ Intersection _findClosestPolygonIntersection(Ray ray, uint solidID,
         }
 
         for (uint p = surfaces[s].firstPolygonID; p <= surfaces[s].lastPolygonID; p++) {
-            uint vertexIDs[3] = {triangles[p].vertexIDs[0], triangles[p].vertexIDs[1], triangles[p].vertexIDs[2]};
-            HitPoint hitPoint = _getTriangleIntersection(ray, vertices[vertexIDs[0]].position, vertices[vertexIDs[1]].position, vertices[vertexIDs[2]].position, triangles[p].normal);
-
-            if (!hitPoint.exists) {
-                continue;
-            }
-
-            bool isGoingInside = dot(ray.direction, triangles[p].normal) < 0;
-            uint nextSolidID = isGoingInside ? surfaces[s].insideSolidID : surfaces[s].outsideSolidID;
-            if (nextSolidID == photonSolidID) {
-                if (hitPoint.distance > minSameSolidDistance) {
-                    minSameSolidDistance = hitPoint.distance;
-                }
-                continue;
-            }
-
-            if (fabs(hitPoint.distance) < fabs(intersection.distance)) {
-                intersection.exists = true;
-                intersection.distance = hitPoint.distance;
-                intersection.position = hitPoint.position;
-                intersection.normal = triangles[p].normal;
-                intersection.surfaceID = s;
-                intersection.polygonID = p;
-            }
+            _testPolygonIntersection(ray, p, photonSolidID, 0, surfaces, triangles, vertices,
+                                     &intersection, &minSameSolidDistance);
         }
     }
 
-    if (intersection.distance == 0 && minSameSolidDistance == 0){
-        // Cancel back catch. Surface overlap.
-        intersection.exists = false;
-    } else if (intersection.distance < 0) {
-        // Cancel backward catch if the same-solid intersect distance is greater.
-        if (minSameSolidDistance > intersection.distance + 1e-7) {
-            intersection.exists = false;
+    _resolveBackCatch(&intersection, minSameSolidDistance);
+    return intersection;
+}
+
+bool _bboxNodeWorthExploring(Ray ray, float3 bboxMin, float3 bboxMax, float closestDistance) {
+    // Mirror of FastIntersectionFinder._nodeIsWorthExploring: keep the node if the ray hits its
+    // bbox, AND the hit is at least as close as anything we have found so far. When the ray
+    // origin is already inside the bbox we always recurse (the bbox intersect cannot return
+    // a meaningful distance in that case).
+    GemsBoxIntersection bb = _getBBoxIntersection(ray, bboxMin, bboxMax);
+    if (bb.rayIsInside) {
+        return true;
+    }
+    if (!bb.exists) {
+        return false;
+    }
+    float bboxDistance = length(bb.position - ray.origin);
+    return bboxDistance <= closestDistance;
+}
+
+Intersection _findIntersectionBVH(Ray ray, Scene *scene, uint photonSolidID, uint ignoreSolidID) {
+    /*
+    OpenCL counterpart of the Python FastIntersectionFinder, walked iteratively with a private
+    DFS stack. The BVH is the flattened SpacePartition built by CLScene; each TreeNode is either
+    a leaf (polygonCount > 0; offset indexes into leafPolygons) or an internal node (left child
+    at idx+1; right child at offset, or absent if offset == TREE_NO_CHILD).
+    */
+    Intersection intersection;
+    intersection.exists = false;
+    intersection.distance = INFINITY;
+    float minSameSolidDistance = -INFINITY;
+
+    if (scene->nNodes == 0) {
+        return intersection;
+    }
+
+    uint stack[BVH_STACK_SIZE];
+    int stackTop = 0;
+    stack[0] = 0;
+
+    while (stackTop >= 0) {
+        uint nodeIdx = stack[stackTop--];
+        TreeNode node = scene->treeNodes[nodeIdx];
+
+        if (!_bboxNodeWorthExploring(ray, node.bbox_min, node.bbox_max, intersection.distance)) {
+            continue;
+        }
+
+        if (node.polygonCount > 0) {
+            for (uint i = 0; i < node.polygonCount; i++) {
+                uint polygonID = scene->leafPolygons[node.offset + i];
+                _testPolygonIntersection(ray, polygonID, photonSolidID, ignoreSolidID,
+                                         scene->surfaces, scene->triangles, scene->vertices,
+                                         &intersection, &minSameSolidDistance);
+            }
+            continue;
+        }
+
+        // Internal node: push right first so left is popped first (DFS pre-order).
+        uint rightChild = node.offset;
+        if (rightChild != TREE_NO_CHILD && stackTop + 1 < BVH_STACK_SIZE) {
+            stackTop++;
+            stack[stackTop] = rightChild;
+        }
+        if (stackTop + 1 < BVH_STACK_SIZE) {
+            stackTop++;
+            stack[stackTop] = nodeIdx + 1;
         }
     }
 
+    _resolveBackCatch(&intersection, minSameSolidDistance);
     return intersection;
 }
 
@@ -382,9 +497,16 @@ void _composeIntersection(Intersection *intersection, Ray *ray, Scene *scene) {
 
 Intersection findIntersection(Ray ray, Scene *scene, uint gid, uint photonSolidID, uint ignoreSolidID) {
     /*
-    OpenCL implementation of the Python module SimpleIntersectionFinder
-    See the Python module documentation for more details.
+    Dispatch to BVH traversal (FastIntersectionFinder-equivalent) when CLScene built a tree;
+    otherwise fall back to the flat per-solid AABB sort (SimpleIntersectionFinder-equivalent).
+    The selection is made on the host side via CLScene; see opencl/CLScene.py.
     */
+    if (scene->nNodes > 0) {
+        Intersection bvhIntersection = _findIntersectionBVH(ray, scene, photonSolidID, ignoreSolidID);
+        _composeIntersection(&bvhIntersection, &ray, scene);
+        return bvhIntersection;
+    }
+
     _findBBoxIntersectingSolids(ray, scene, gid, photonSolidID, ignoreSolidID);
     _sortSolidCandidates(scene, gid);
 
@@ -422,10 +544,24 @@ Intersection findIntersection(Ray ray, Scene *scene, uint gid, uint photonSolidI
 // ----------------- TEST KERNELS -----------------
 
 __kernel void findIntersections(__global Ray *rays, uint nSolids, __global Solid *solids, __global Surface *surfaces,
-        __global Triangle *triangles, __global Vertex *vertices, __global SolidCandidate *solidCandidates, __global Intersection *intersections) {
+        __global Triangle *triangles, __global Vertex *vertices, __global SolidCandidate *solidCandidates,
+        uint photonSolidID, uint ignoreSolidID, __global Intersection *intersections) {
     uint gid = get_global_id(0);
+    // Trailing fields (nNodes/treeNodes/leafPolygons) are zero-initialized by C99 brace
+    // semantics, so dispatch in findIntersection() picks the flat path.
     Scene scene = {nSolids, solids, surfaces, triangles, vertices, solidCandidates};
-    intersections[gid] = findIntersection(rays[gid], &scene, gid, -1, 0);
+    intersections[gid] = findIntersection(rays[gid], &scene, gid, photonSolidID, ignoreSolidID);
+}
+
+
+__kernel void findIntersectionsBVH(__global Ray *rays, uint nSolids, __global Solid *solids, __global Surface *surfaces,
+        __global Triangle *triangles, __global Vertex *vertices, __global SolidCandidate *solidCandidates,
+        uint nNodes, __global TreeNode *treeNodes, __global uint *leafPolygons,
+        uint photonSolidID, uint ignoreSolidID, __global Intersection *intersections) {
+    uint gid = get_global_id(0);
+    Scene scene = {nSolids, solids, surfaces, triangles, vertices, solidCandidates,
+                   nNodes, treeNodes, leafPolygons};
+    intersections[gid] = findIntersection(rays[gid], &scene, gid, photonSolidID, ignoreSolidID);
 }
 
 
